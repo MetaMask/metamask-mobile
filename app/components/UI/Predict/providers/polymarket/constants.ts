@@ -1,4 +1,4 @@
-import { ContractConfig, RoundConfig, TickSize } from '../types/polymarket';
+import { ContractConfig, RoundConfig, TickSize } from './types';
 
 export const COLLATERAL_TOKEN_DECIMALS = 6;
 export const CONDITIONAL_TOKEN_DECIMALS = 6;

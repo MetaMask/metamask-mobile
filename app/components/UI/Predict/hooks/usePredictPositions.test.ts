@@ -2,6 +2,8 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictPositions } from './usePredictPositions';
 import { usePredictTrading } from './usePredictTrading';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
 // Mock dependencies
 jest.mock('./usePredictTrading');
@@ -13,13 +15,30 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
     log: jest.fn(),
   },
 }));
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
+}));
 
 describe('usePredictPositions', () => {
   const mockGetPositions = jest.fn();
   const mockUseFocusEffect = useFocusEffect as jest.Mock;
+  const mockUseSelector = useSelector as jest.Mock;
+  const mockSelectSelectedInternalAccountAddress = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectSelectedInternalAccountAddress.mockReturnValue(
+      '0x1234567890123456789012345678901234567890',
+    );
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountAddress) {
+        return '0x1234567890123456789012345678901234567890';
+      }
+      return undefined;
+    });
     (usePredictTrading as jest.Mock).mockReturnValue({
       getPositions: mockGetPositions,
     });
@@ -45,16 +64,20 @@ describe('usePredictPositions', () => {
       },
     ]);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictPositions(),
-    );
+    const { result } = renderHook(() => usePredictPositions());
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.positions).toEqual([]);
 
-    await waitForNextUpdate();
+    // Wait for the async operation to complete
+    await act(async () => {
+      // The effect should trigger the loadPositions call
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
-    expect(mockGetPositions).toHaveBeenCalled();
+    expect(mockGetPositions).toHaveBeenCalledWith({
+      address: '0x1234567890123456789012345678901234567890',
+    });
     expect(result.current.positions).toHaveLength(1);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
@@ -73,11 +96,14 @@ describe('usePredictPositions', () => {
     mockGetPositions.mockRejectedValue(testError);
     const onError = jest.fn();
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictPositions({ onError }),
-    );
+    const { result } = renderHook(() => usePredictPositions({ onError }));
 
-    await waitForNextUpdate();
+    expect(result.current.isLoading).toBe(true);
+
+    // Wait for the async operation to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(result.current.error).toBe('Failed to load positions');
     expect(result.current.positions).toEqual([]);
@@ -88,11 +114,12 @@ describe('usePredictPositions', () => {
   it('refreshes positions with isRefresh flag', async () => {
     mockGetPositions.mockResolvedValue([]);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictPositions(),
-    );
+    const { result } = renderHook(() => usePredictPositions());
 
-    await waitForNextUpdate();
+    // Wait for initial load
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     mockGetPositions.mockClear();
     mockGetPositions.mockResolvedValue([
@@ -118,7 +145,9 @@ describe('usePredictPositions', () => {
       await result.current.loadPositions({ isRefresh: true });
     });
 
-    expect(mockGetPositions).toHaveBeenCalled();
+    expect(mockGetPositions).toHaveBeenCalledWith({
+      address: '0x1234567890123456789012345678901234567890',
+    });
     expect(result.current.isRefreshing).toBe(false);
     expect(result.current.positions).toHaveLength(1);
   });
@@ -145,24 +174,31 @@ describe('usePredictPositions', () => {
     ];
     mockGetPositions.mockResolvedValue(positions);
 
-    const { waitForNextUpdate } = renderHook(() =>
-      usePredictPositions({ onSuccess }),
-    );
+    renderHook(() => usePredictPositions({ onSuccess }));
 
-    await waitForNextUpdate();
+    // Wait for the async operation to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(onSuccess).toHaveBeenCalledWith(positions);
   });
 
   it('sets up focus effect when refreshOnFocus is true', () => {
-    renderHook(() => usePredictPositions({ refreshOnFocus: true }));
+    const { result } = renderHook(() =>
+      usePredictPositions({ refreshOnFocus: true }),
+    );
 
     expect(mockUseFocusEffect).toHaveBeenCalled();
+    expect(result.current.positions).toEqual([]);
   });
 
   it('still registers focus effect when refreshOnFocus is false (no refresh on focus)', () => {
-    renderHook(() => usePredictPositions({ refreshOnFocus: false }));
+    const { result } = renderHook(() =>
+      usePredictPositions({ refreshOnFocus: false }),
+    );
 
     expect(mockUseFocusEffect).toHaveBeenCalled();
+    expect(result.current.positions).toEqual([]);
   });
 });

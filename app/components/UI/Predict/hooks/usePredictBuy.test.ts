@@ -1,20 +1,15 @@
 import { renderHook, act } from '@testing-library/react-native';
-import Engine from '../../../../core/Engine';
-import { Side } from '../types';
 import { usePredictBuy } from './usePredictBuy';
 
-// Mock Engine
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      buy: jest.fn(),
-    },
-  },
+// Mock usePredictTrading hook
+const mockBuy = jest.fn();
+jest.mock('./usePredictTrading', () => ({
+  usePredictTrading: () => ({
+    buy: mockBuy,
+  }),
 }));
 
-const mockBuyOrder = Engine.context.PredictController.buy as jest.Mock;
-
-describe('usePredictPlaceOrder', () => {
+describe('usePredictBuy', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -26,6 +21,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.isPlacing).toBe(false);
       expect(result.current.error).toBe(null);
       expect(result.current.lastResult).toBe(null);
+      expect(result.current.currentOrder).toBe(null);
       expect(typeof result.current.placeBuyOrder).toBe('function');
       expect(typeof result.current.reset).toBe('function');
     });
@@ -33,9 +29,10 @@ describe('usePredictPlaceOrder', () => {
 
   describe('placeOrder', () => {
     const mockOrderParams = {
+      providerId: 'provider-123',
       marketId: 'market-123',
       outcomeId: 'outcome-456',
-      side: Side.BUY,
+      outcomeTokenId: 'outcome-token-789',
       amount: 100,
     };
 
@@ -45,7 +42,7 @@ describe('usePredictPlaceOrder', () => {
     };
 
     it('places order successfully and updates state', async () => {
-      mockBuyOrder.mockResolvedValue(mockOrderResult);
+      mockBuy.mockResolvedValue(mockOrderResult);
 
       const { result } = renderHook(() => usePredictBuy());
 
@@ -53,15 +50,22 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeBuyOrder(mockOrderParams);
       });
 
-      expect(mockBuyOrder).toHaveBeenCalledWith(mockOrderParams);
+      expect(mockBuy).toHaveBeenCalledWith({
+        amount: 100,
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        providerId: 'provider-123',
+      });
       expect(result.current.isPlacing).toBe(false);
       expect(result.current.error).toBe(null);
       expect(result.current.lastResult).toEqual(mockOrderResult);
+      expect(result.current.currentOrder).toEqual(mockOrderParams);
     });
 
     it('handles errors from placeOrder and updates state', async () => {
       const mockError = new Error('Failed to place order');
-      mockBuyOrder.mockRejectedValue(mockError);
+      mockBuy.mockRejectedValue(mockError);
 
       const { result } = renderHook(() => usePredictBuy());
 
@@ -69,14 +73,21 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeBuyOrder(mockOrderParams);
       });
 
-      expect(mockBuyOrder).toHaveBeenCalledWith(mockOrderParams);
+      expect(mockBuy).toHaveBeenCalledWith({
+        amount: 100,
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        providerId: 'provider-123',
+      });
       expect(result.current.isPlacing).toBe(false);
       expect(result.current.error).toBe('Failed to place order');
       expect(result.current.lastResult).toBe(null);
+      expect(result.current.currentOrder).toEqual(mockOrderParams);
     });
 
     it('handles non-Error objects thrown from placeOrder', async () => {
-      mockBuyOrder.mockRejectedValue('String error');
+      mockBuy.mockRejectedValue('String error');
 
       const { result } = renderHook(() => usePredictBuy());
 
@@ -85,13 +96,14 @@ describe('usePredictPlaceOrder', () => {
       });
 
       expect(result.current.error).toBe('Failed to place order');
+      expect(result.current.currentOrder).toEqual(mockOrderParams);
     });
 
     it('clears previous error when starting new order', async () => {
       const { result } = renderHook(() => usePredictBuy());
 
       // First, set an error state
-      mockBuyOrder.mockRejectedValueOnce(new Error('First error'));
+      mockBuy.mockRejectedValueOnce(new Error('First error'));
 
       await act(async () => {
         await result.current.placeBuyOrder(mockOrderParams);
@@ -100,7 +112,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.error).toBe('First error');
 
       // Now try a successful order
-      mockBuyOrder.mockResolvedValueOnce(mockOrderResult);
+      mockBuy.mockResolvedValueOnce(mockOrderResult);
 
       await act(async () => {
         await result.current.placeBuyOrder(mockOrderParams);
@@ -108,14 +120,16 @@ describe('usePredictPlaceOrder', () => {
 
       expect(result.current.error).toBe(null);
       expect(result.current.lastResult).toEqual(mockOrderResult);
+      expect(result.current.currentOrder).toEqual(mockOrderParams);
     });
   });
 
   describe('callbacks', () => {
     const mockOrderParams = {
+      providerId: 'provider-123',
       marketId: 'market-123',
       outcomeId: 'outcome-456',
-      side: Side.BUY,
+      outcomeTokenId: 'outcome-token-789',
       amount: 100,
     };
 
@@ -128,7 +142,7 @@ describe('usePredictPlaceOrder', () => {
       const onSuccessMock = jest.fn();
       const onErrorMock = jest.fn();
 
-      mockBuyOrder.mockResolvedValue(mockOrderResult);
+      mockBuy.mockResolvedValue(mockOrderResult);
 
       const { result } = renderHook(() =>
         usePredictBuy({
@@ -151,7 +165,7 @@ describe('usePredictPlaceOrder', () => {
       const onErrorMock = jest.fn();
 
       const mockError = new Error('Network error');
-      mockBuyOrder.mockRejectedValue(mockError);
+      mockBuy.mockRejectedValue(mockError);
 
       const { result } = renderHook(() =>
         usePredictBuy({
@@ -175,15 +189,17 @@ describe('usePredictPlaceOrder', () => {
       const { result } = renderHook(() => usePredictBuy());
 
       // Set some state
-      mockBuyOrder.mockResolvedValue({
+      mockBuy.mockResolvedValue({
         txMeta: { id: 'test' },
         providerId: 'test',
       });
 
       await act(async () => {
         await result.current.placeBuyOrder({
+          providerId: 'test',
           marketId: 'test',
           outcomeId: 'test',
+          outcomeTokenId: 'test-token',
           amount: 10,
         });
       });
@@ -191,6 +207,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.lastResult).not.toBe(null);
       expect(result.current.error).toBe(null);
       expect(result.current.isPlacing).toBe(false);
+      expect(result.current.currentOrder).not.toBe(null);
 
       // Reset
       act(() => {
@@ -200,6 +217,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.lastResult).toBe(null);
       expect(result.current.error).toBe(null);
       expect(result.current.isPlacing).toBe(false);
+      expect(result.current.currentOrder).toBe(null);
     });
   });
 

@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import PredictMarketMultiple from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PredictEvent } from '../../types';
+import { PredictMarket, Recurrence } from '../../types';
 import Button from '../../../../../component-library/components/Buttons/Button';
 
 const mockNavigate = jest.fn();
@@ -15,23 +15,32 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockEvent: PredictEvent = {
-  id: 'test-event-1',
+const mockMarket: PredictMarket = {
+  id: 'test-market-1',
+  providerId: 'test-provider',
+  slug: 'bitcoin-price-prediction',
   title: 'Will Bitcoin reach $150,000 by end of year?',
-  markets: [
+  description: 'Predict whether Bitcoin will reach $150,000 by end of year',
+  image: 'https://example.com/bitcoin.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  categories: ['crypto'],
+  outcomes: [
     {
-      id: 'test-market-1',
-      question: 'Will Bitcoin reach $150,000 by end of year?',
-      groupItemTitle: 'Bitcoin Price Prediction',
-      outcomes: '["Yes", "No"]',
-      outcomePrices: '["0.65", "0.35"]',
+      id: 'outcome-1',
+      marketId: 'test-market-1',
+      title: 'Yes',
+      description: 'Bitcoin will reach $150,000',
       image: 'https://example.com/bitcoin.png',
-      volume: '1000000',
-      providerId: 'test-provider',
       status: 'open',
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 0.65 },
+        { id: 'token-no', title: 'No', price: 0.35 },
+      ],
+      volume: 1000000,
+      groupItemTitle: 'Bitcoin Price Prediction',
     },
   ],
-  series: [],
 };
 
 const initialState = {
@@ -48,7 +57,7 @@ describe('PredictMarket', () => {
 
   it('should render market information correctly', () => {
     const { getByText } = renderWithProvider(
-      <PredictMarketMultiple event={mockEvent} />,
+      <PredictMarketMultiple market={mockMarket} />,
       { state: initialState },
     );
 
@@ -56,14 +65,14 @@ describe('PredictMarket', () => {
       getByText('Will Bitcoin reach $150,000 by end of year?'),
     ).toBeOnTheScreen();
 
-    // For 1 market, no "+X outcomes" text is shown (only for >3 markets)
+    expect(getByText('Bitcoin Price Prediction')).toBeOnTheScreen();
     expect(getByText('65.00%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
   it('should navigate to market details when buttons are pressed', () => {
     const { UNSAFE_getAllByType } = renderWithProvider(
-      <PredictMarketMultiple event={mockEvent} />,
+      <PredictMarketMultiple market={mockMarket} />,
       { state: initialState },
     );
 
@@ -77,20 +86,20 @@ describe('PredictMarket', () => {
   });
 
   it('should handle missing or invalid market data gracefully', () => {
-    const eventWithMissingData: PredictEvent = {
-      ...mockEvent,
-      markets: [
+    const marketWithMissingData: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
         {
-          ...mockEvent.markets[0],
+          ...mockMarket.outcomes[0],
           groupItemTitle: '',
-          volume: undefined,
-          outcomes: 'invalid json',
+          volume: 0,
+          tokens: [],
         },
       ],
     };
 
     const { getByText } = renderWithProvider(
-      <PredictMarketMultiple event={eventWithMissingData} />,
+      <PredictMarketMultiple market={marketWithMissingData} />,
       { state: initialState },
     );
 
@@ -98,34 +107,34 @@ describe('PredictMarket', () => {
       getByText('Will Bitcoin reach $150,000 by end of year?'),
     ).toBeOnTheScreen();
     expect(getByText(/\$0.*Vol\./)).toBeOnTheScreen();
-    // For 1 market, no "+X outcomes" text is shown (only for >3 markets)
   });
 
-  it('should handle multiple markets correctly', () => {
-    const eventWithMultipleMarkets: PredictEvent = {
-      ...mockEvent,
-      markets: [
+  it('should handle multiple outcomes correctly', () => {
+    const marketWithMultipleOutcomes: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
         {
-          ...mockEvent.markets[0],
-          id: 'market-1',
+          ...mockMarket.outcomes[0],
+          id: 'outcome-1',
           groupItemTitle: 'Market 1',
         },
         {
-          ...mockEvent.markets[0],
-          id: 'market-2',
+          ...mockMarket.outcomes[0],
+          id: 'outcome-2',
           groupItemTitle: 'Market 2',
-          outcomes: '["Option A", "Option B"]',
-          outcomePrices: '["0.75", "0.25"]',
+          tokens: [
+            { id: 'token-a', title: 'Option A', price: 0.75 },
+            { id: 'token-b', title: 'Option B', price: 0.25 },
+          ],
         },
       ],
     };
 
     const { getByText } = renderWithProvider(
-      <PredictMarketMultiple event={eventWithMultipleMarkets} />,
+      <PredictMarketMultiple market={marketWithMultipleOutcomes} />,
       { state: initialState },
     );
 
-    // For 2 markets, no "+X outcomes" text is shown (only for >3 markets)
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
     expect(getByText('75.00%')).toBeOnTheScreen();

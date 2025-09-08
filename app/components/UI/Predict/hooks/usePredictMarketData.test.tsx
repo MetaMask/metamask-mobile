@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePredictMarketData } from './usePredictMarketData';
-import type { PredictEvent } from '../types';
+import { PredictMarket, Recurrence } from '../types';
 
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
@@ -10,53 +10,109 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       initializeProviders: jest.fn(),
-      getEvents: jest.fn(),
+      getMarkets: jest.fn(),
     },
   },
 }));
 
 describe('usePredictMarketData', () => {
   const mockInitializeProviders = jest.fn();
-  const mockGetEvents = jest.fn();
+  const mockGetMarkets = jest.fn();
 
-  const mockEventData: PredictEvent[] = [
+  const mockMarketData: PredictMarket[] = [
     {
-      id: 'event-1',
-      title: 'Bitcoin Price Prediction',
-      markets: [
+      id: 'market-1',
+      providerId: 'polymarket',
+      slug: 'bitcoin-price-prediction',
+      title: 'Will Bitcoin reach $100k by end of 2024?',
+      description: 'Bitcoin price prediction market',
+      image: 'https://example.com/btc.png',
+      status: 'open',
+      recurrence: Recurrence.NONE,
+      categories: ['crypto', 'trending'],
+      outcomes: [
         {
-          id: 'market-1',
-          question: 'Will Bitcoin reach $100k by end of 2024?',
-          outcomes: 'Yes,No',
-          outcomePrices: '0.65,0.35',
-          image: 'https://example.com/btc.png',
-          volume: '1000000',
-          providerId: 'polymarket',
+          id: 'outcome-1',
+          marketId: 'market-1',
+          title: 'Yes',
+          description: 'Bitcoin will reach $100k',
+          image: '',
           status: 'open',
-          image_url: 'https://example.com/btc.png',
-          icon: 'BTC',
+          tokens: [
+            {
+              id: 'token-1',
+              title: 'Yes',
+              price: 0.65,
+            },
+          ],
+          volume: 1000000,
+          groupItemTitle: 'Yes/No',
+        },
+        {
+          id: 'outcome-2',
+          marketId: 'market-1',
+          title: 'No',
+          description: 'Bitcoin will not reach $100k',
+          image: '',
+          status: 'open',
+          tokens: [
+            {
+              id: 'token-2',
+              title: 'No',
+              price: 0.35,
+            },
+          ],
+          volume: 1000000,
+          groupItemTitle: 'Yes/No',
         },
       ],
-      series: [{ recurrence: 'daily' }],
     },
     {
-      id: 'event-2',
-      title: 'Ethereum Price Prediction',
-      markets: [
+      id: 'market-2',
+      providerId: 'polymarket',
+      slug: 'ethereum-price-prediction',
+      title: 'Will Ethereum reach $100000 by end of 2025?',
+      description: 'Ethereum price prediction market',
+      image: 'https://example.com/eth.png',
+      status: 'open',
+      recurrence: Recurrence.NONE,
+      categories: ['crypto', 'trending'],
+      outcomes: [
         {
-          id: 'market-2',
-          question: 'Will Ethereum reach $100000 by end of 2025?',
-          outcomes: 'Yes,No',
-          outcomePrices: '0.45,0.55',
-          image: 'https://example.com/eth.png',
-          volume: '500000',
-          providerId: 'polymarket',
+          id: 'outcome-3',
+          marketId: 'market-2',
+          title: 'Yes',
+          description: 'Ethereum will reach $100k',
+          image: '',
           status: 'open',
-          image_url: 'https://example.com/eth.png',
-          icon: 'ETH',
+          tokens: [
+            {
+              id: 'token-3',
+              title: 'Yes',
+              price: 0.45,
+            },
+          ],
+          volume: 500000,
+          groupItemTitle: 'Yes/No',
+        },
+        {
+          id: 'outcome-4',
+          marketId: 'market-2',
+          title: 'No',
+          description: 'Ethereum will not reach $100k',
+          image: '',
+          status: 'open',
+          tokens: [
+            {
+              id: 'token-4',
+              title: 'No',
+              price: 0.55,
+            },
+          ],
+          volume: 500000,
+          groupItemTitle: 'Yes/No',
         },
       ],
-      series: [{ recurrence: 'daily' }],
     },
   ];
 
@@ -66,7 +122,7 @@ describe('usePredictMarketData', () => {
     // Setup Engine mocks
     (Engine.context.PredictController.initializeProviders as jest.Mock) =
       mockInitializeProviders;
-    (Engine.context.PredictController.getEvents as jest.Mock) = mockGetEvents;
+    (Engine.context.PredictController.getMarkets as jest.Mock) = mockGetMarkets;
 
     // Setup DevLogger mock
     (DevLogger.log as jest.Mock).mockImplementation(() => {
@@ -76,7 +132,7 @@ describe('usePredictMarketData', () => {
 
   it.skip('should fetch market data successfully', async () => {
     mockInitializeProviders.mockResolvedValue(undefined);
-    mockGetEvents.mockResolvedValue(mockEventData);
+    mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       usePredictMarketData(),
@@ -91,10 +147,10 @@ describe('usePredictMarketData', () => {
     await waitForNextUpdate();
 
     expect(result.current.isFetching).toBe(false);
-    expect(result.current.marketData).toEqual(mockEventData);
+    expect(result.current.marketData).toEqual(mockMarketData);
     expect(result.current.error).toBe(null);
     expect(mockInitializeProviders).toHaveBeenCalledTimes(1);
-    expect(mockGetEvents).toHaveBeenCalledTimes(1);
+    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
     expect(DevLogger.log).toHaveBeenCalledWith(
       'Fetching market data for category:',
       'trending',
@@ -107,13 +163,13 @@ describe('usePredictMarketData', () => {
     );
     expect(DevLogger.log).toHaveBeenCalledWith(
       'Market data received:',
-      mockEventData,
+      mockMarketData,
     );
   });
 
   it('should handle null market data', async () => {
     mockInitializeProviders.mockResolvedValue(undefined);
-    mockGetEvents.mockResolvedValue(null);
+    mockGetMarkets.mockResolvedValue(null);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       usePredictMarketData(),
@@ -128,7 +184,7 @@ describe('usePredictMarketData', () => {
 
   it('should handle empty market data array', async () => {
     mockInitializeProviders.mockResolvedValue(undefined);
-    mockGetEvents.mockResolvedValue([]);
+    mockGetMarkets.mockResolvedValue([]);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       usePredictMarketData(),
@@ -143,7 +199,7 @@ describe('usePredictMarketData', () => {
 
   it('should refetch data when calling refetch', async () => {
     mockInitializeProviders.mockResolvedValue(undefined);
-    mockGetEvents.mockResolvedValue(mockEventData);
+    mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, waitForNextUpdate } = renderHook(() =>
       usePredictMarketData(),
@@ -151,19 +207,19 @@ describe('usePredictMarketData', () => {
 
     await waitForNextUpdate();
 
-    expect(mockGetEvents).toHaveBeenCalledTimes(1);
+    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
 
     // Call refetch
     await act(async () => {
       await result.current.refetch();
     });
 
-    expect(mockGetEvents).toHaveBeenCalledTimes(2);
+    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
   });
 
   it('should maintain stable refetch function reference', () => {
     mockInitializeProviders.mockResolvedValue(undefined);
-    mockGetEvents.mockResolvedValue(mockEventData);
+    mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, rerender } = renderHook(() => usePredictMarketData());
 

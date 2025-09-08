@@ -3,16 +3,16 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { MarketCategory, PredictEvent } from '../types';
+import { PredictCategory, PredictMarket } from '../types';
 
 export interface UsePredictMarketDataOptions {
-  category?: MarketCategory;
   q?: string;
+  category?: PredictCategory;
   pageSize?: number;
 }
 
 export interface UsePredictMarketDataResult {
-  marketData: PredictEvent[];
+  marketData: PredictMarket[];
   isFetching: boolean;
   isFetchingMore: boolean;
   error: string | null;
@@ -29,7 +29,7 @@ export const usePredictMarketData = (
   options: UsePredictMarketDataOptions = {},
 ): UsePredictMarketDataResult => {
   const { category = 'trending', q, pageSize = 20 } = options;
-  const [marketData, setMarketData] = useState<PredictEvent[]>([]);
+  const [marketData, setMarketData] = useState<PredictMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +88,7 @@ export const usePredictMarketData = (
             }
 
             await controller.initializeProviders();
-            const markets = await controller.getEvents({
+            const markets = await controller.getMarkets({
               category,
               q,
               limit: pageSize,

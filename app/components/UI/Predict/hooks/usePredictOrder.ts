@@ -17,8 +17,9 @@ export const usePredictOrder = (transactionId?: string) => {
       return {
         status: predictState.activeOrders[transactionId]?.status || 'idle',
         currentTxHash:
-          predictState.activeOrders[transactionId]?.txMeta.hash || null,
-        error: predictState.activeOrders[transactionId]?.txMeta.error || null,
+          predictState.activeOrders[transactionId]?.onchainTradeParams.txMeta
+            ?.hash || null,
+        error: predictState.activeOrders[transactionId]?.error || null,
       };
     },
   );

@@ -1,8 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { usePredictTrading } from './usePredictTrading';
-import type { Position } from '../types';
+import { useCallback, useEffect, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import type { PredictPosition } from '../types';
+import { usePredictTrading } from './usePredictTrading';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
 interface UsePredictPositionsOptions {
   /**
@@ -18,7 +20,7 @@ interface UsePredictPositionsOptions {
   /**
    * Callback when positions are loaded successfully
    */
-  onSuccess?: (positions: Position[]) => void;
+  onSuccess?: (positions: PredictPosition[]) => void;
   /**
    * Callback when an error occurs
    */
@@ -26,7 +28,7 @@ interface UsePredictPositionsOptions {
 }
 
 interface UsePredictPositionsReturn {
-  positions: Position[];
+  positions: PredictPosition[];
   isLoading: boolean;
   isRefreshing: boolean;
   error: string | null;
@@ -50,10 +52,14 @@ export function usePredictPositions(
 
   const { getPositions } = usePredictTrading();
 
-  const [positions, setPositions] = useState<Position[]>([]);
+  const [positions, setPositions] = useState<PredictPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
 
   const loadPositions = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
@@ -68,8 +74,10 @@ export function usePredictPositions(
         setError(null);
 
         // Get positions from Predict controller
-        const positionsData = await getPositions();
-        const validPositions = positionsData || [];
+        const positionsData = await getPositions({
+          address: selectedInternalAccountAddress ?? '',
+        });
+        const validPositions = positionsData ?? [];
         setPositions(validPositions);
 
         DevLogger.log('usePredictPositions: Loaded positions', {
@@ -95,7 +103,7 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
-    [getPositions, onSuccess, onError],
+    [getPositions, selectedInternalAccountAddress, onSuccess, onError],
   );
 
   // Load positions on mount if enabled

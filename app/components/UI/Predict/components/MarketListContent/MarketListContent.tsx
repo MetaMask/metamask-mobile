@@ -11,13 +11,16 @@ import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import styleSheet from './MarketListContent.styles';
-import { MarketCategory, PredictEvent } from '../../types';
+import {
+  PredictCategory,
+  PredictMarket as PredictMarketType,
+} from '../../types';
 import PredictMarket from '../PredictMarket';
 import PredictMarketMultiple from '../PredictMarketMultiple';
 
 interface MarketListContentProps {
-  category: MarketCategory;
   q?: string;
+  category: PredictCategory;
 }
 
 const MarketListContent: React.FC<MarketListContentProps> = ({
@@ -36,19 +39,23 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
     fetchMore,
   } = usePredictMarketData({ category, q, pageSize: 20 });
 
-  const listRef = useRef<FlashListRef<PredictEvent>>(null);
+  const listRef = useRef<FlashListRef<PredictMarketType>>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const renderItem = useCallback(({ item }: { item: PredictEvent }) => {
-    if (item.markets.length === 1) {
+  const renderItem = useCallback(({ item }: { item: PredictMarketType }) => {
+    if (item.outcomes.length === 1) {
       return (
-        <PredictMarket key={item.markets[0].id} market={item.markets[0]} />
+        <PredictMarket
+          key={item.outcomes[0].id}
+          outcome={item.outcomes[0]}
+          providerId={item.providerId}
+        />
       );
     }
-    return <PredictMarketMultiple key={item.id} event={item} />;
+    return <PredictMarketMultiple key={item.id} market={item} />;
   }, []);
 
-  const keyExtractor = useCallback((item: PredictEvent) => item.id, []);
+  const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
 
   const handleEndReached = useCallback(() => {
     if (hasMore && !isFetchingMore) {
@@ -165,7 +172,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       getItemType={(item) =>
-        item.markets.length === 1 ? 'single' : 'multiple'
+        item.outcomes.length === 1 ? 'single' : 'multiple'
       }
     />
   );

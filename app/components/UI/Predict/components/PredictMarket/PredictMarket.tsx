@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useEffect } from 'react';
 import { Alert, Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -13,49 +19,36 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictBuy } from '../../hooks/usePredictBuy';
 import { usePredictOrder } from '../../hooks/usePredictOrder';
-import { Market } from '../../types';
+import { PredictOutcome } from '../../types';
 import { formatVolume } from '../../utils/format';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import styleSheet from './PredictMarket.styles';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 interface PredictMarketProps {
-  market: Market;
+  outcome: PredictOutcome;
+  providerId: string;
 }
 
-const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
+const PredictMarket: React.FC<PredictMarketProps> = ({
+  outcome,
+  providerId,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const { placeBuyOrder, isPlacing, currentOrder, lastResult, reset } =
     usePredictBuy();
-  const { status } = usePredictOrder(lastResult?.txMeta?.id);
-
-  // TODO: Remove this once we have a new Market model that abstracts away the clobTokenIds
-  const tokenIds = useMemo(() => JSON.parse(market.clobTokenIds), [market]);
+  const { status, error } = usePredictOrder(lastResult?.transactionId);
 
   useEffect(() => {
-    if (status === 'success') {
+    if (status === 'filled') {
       Alert.alert('Order confirmed');
       reset();
+    } else if (status === 'error') {
+      Alert.alert('Order failed', (error as string) ?? 'Unknown error');
     }
-  }, [status, reset]);
+  }, [status, reset, error]);
 
-  const getOutcomePrices = (): number[] => {
-    try {
-      if (market.outcomePrices && typeof market.outcomePrices === 'string') {
-        return JSON.parse(market.outcomePrices).map((price: string) =>
-          parseFloat(price),
-        );
-      }
-      return [];
-    } catch (error) {
-      return [];
-    }
-  };
+  const getOutcomePrices = (): number[] =>
+    outcome.tokens.map((token) => token.price);
 
   const getYesPercentage = (): number => {
     const prices = getOutcomePrices();
@@ -65,28 +58,31 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
     return 0;
   };
 
-  const getTitle = (): string => market.question || 'Unknown Market';
+  const getTitle = (): string => outcome.title ?? 'Unknown Market';
 
-  const getImageUrl = (): string =>
-    market.image || market.icon || market.image_url || '';
+  const getImageUrl = (): string => outcome.image;
 
-  const getVolumeDisplay = (): string => formatVolume(market.volume || 0);
+  const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
 
   const yesPercentage = getYesPercentage();
 
   const handleYes = () => {
     placeBuyOrder({
-      marketId: market.conditionId,
-      outcomeId: tokenIds[0],
       amount: 1,
+      marketId: outcome.marketId,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcome.tokens[0].id,
+      providerId,
     });
   };
 
   const handleNo = () => {
     placeBuyOrder({
-      marketId: market.conditionId,
-      outcomeId: tokenIds[1],
       amount: 1,
+      marketId: outcome.marketId,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcome.tokens[1].id,
+      providerId,
     });
   };
 
@@ -222,7 +218,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
           onPress={handleYes}
           style={styles.buttonYes}
           disabled={isPlacing}
-          loading={currentOrder?.outcomeId === tokenIds[0] && isPlacing}
+          loading={
+            currentOrder?.outcomeTokenId === outcome.tokens[0].id && isPlacing
+          }
         />
         <Button
           variant={ButtonVariants.Secondary}
@@ -236,7 +234,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
           onPress={handleNo}
           style={styles.buttonNo}
           disabled={isPlacing}
-          loading={currentOrder?.outcomeId === tokenIds[1] && isPlacing}
+          loading={
+            currentOrder?.outcomeId === outcome.tokens[1].id && isPlacing
+          }
         />
       </View>
       <View style={styles.marketFooter}>

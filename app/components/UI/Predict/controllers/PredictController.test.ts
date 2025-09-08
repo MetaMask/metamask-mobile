@@ -9,11 +9,12 @@ import {
   type PredictControllerState,
   DEFAULT_GEO_BLOCKED_REGIONS,
 } from './PredictController';
-import { PolymarketProvider } from '../providers/PolymarketProvider';
+import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { addTransaction } from '../../../../util/transaction-controller';
 import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
 
 // Mock the PolymarketProvider and its dependencies
-jest.mock('../providers/PolymarketProvider');
+jest.mock('../providers/polymarket/PolymarketProvider');
 
 // Mock transaction controller addTransaction
 jest.mock('../../../../util/transaction-controller', () => ({
@@ -83,7 +84,8 @@ describe('PredictController', () => {
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
-      prepareBuyTransactionOrder: jest.fn(),
+      prepareOrder: jest.fn(),
+      getApiKey: jest.fn(),
       providerId: 'polymarket',
       placeOrder: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
@@ -162,7 +164,6 @@ describe('PredictController', () => {
     it('should initialize with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
-        expect(controller.state.activeProvider).toBe('polymarket');
         expect(controller.state.positions).toEqual([]);
         expect(controller.state.markets).toEqual([]);
         expect(controller.state.connectionStatus).toBe('disconnected');
@@ -172,7 +173,6 @@ describe('PredictController', () => {
 
     it('should initialize with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        activeProvider: 'polymarket',
         isTestnet: false,
         positions: [
           {
@@ -187,7 +187,6 @@ describe('PredictController', () => {
 
       withController(
         ({ controller }) => {
-          expect(controller.state.activeProvider).toBe('polymarket');
           expect(controller.state.isTestnet).toBe(false);
           expect(controller.state.positions).toHaveLength(1);
           expect((controller.state.positions[0] as any).marketId).toBe('m1');
@@ -198,23 +197,6 @@ describe('PredictController', () => {
   });
 
   describe('provider management', () => {
-    it('should get active provider when initialized', () => {
-      withController(({ controller }) => {
-        controller.initializeProviders();
-        expect(() => controller.getActiveProvider()).not.toThrow();
-      });
-    });
-
-    it('should throw when provider not initialized', () => {
-      withController(({ controller }) => {
-        // @ts-ignore - Accessing private property for testing
-        controller.isInitialized = false;
-        expect(() => controller.getActiveProvider()).toThrow(
-          'CLIENT_NOT_INITIALIZED',
-        );
-      });
-    });
-
     it('should toggle testnet', async () => {
       await withController(async ({ controller }) => {
         const initial = controller.state.isTestnet;
@@ -222,27 +204,6 @@ describe('PredictController', () => {
         expect(result.success).toBe(true);
         expect(controller.state.isTestnet).toBe(!initial);
         expect(controller.state.connectionStatus).toBe('disconnected');
-      });
-    });
-
-    it('should switch provider successfully', async () => {
-      await withController(async ({ controller }) => {
-        await controller.initializeProviders();
-        const result = await controller.switchProvider('polymarket');
-        expect(result.success).toBe(true);
-        expect(result.providerId).toBe('polymarket');
-        expect(controller.state.activeProvider).toBe('polymarket');
-        expect(controller.state.connectionStatus).toBe('disconnected');
-      });
-    });
-
-    it('should handle switch to non-existent provider', async () => {
-      await withController(async ({ controller }) => {
-        await controller.initializeProviders();
-        const result = await controller.switchProvider('nonexistent');
-        expect(result.success).toBe(false);
-        expect(result.error).toBe('Provider nonexistent not available');
-        expect(result.providerId).toBe('polymarket');
       });
     });
   });
@@ -266,7 +227,7 @@ describe('PredictController', () => {
         mockPolymarketProvider.getMarkets.mockResolvedValue(mockMarkets as any);
         await controller.initializeProviders();
 
-        const result = await controller.getMarkets();
+        const result = await controller.getMarkets({});
 
         expect(result).toEqual(mockMarkets as any);
         expect(controller.state.lastError).toBeNull();
@@ -282,7 +243,7 @@ describe('PredictController', () => {
         );
         await controller.initializeProviders();
 
-        await expect(controller.getMarkets()).rejects.toThrow(errorMessage);
+        await expect(controller.getMarkets({})).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
       });
     });
@@ -304,7 +265,9 @@ describe('PredictController', () => {
         );
         await controller.initializeProviders();
 
-        const result = await controller.getPositions();
+        const result = await controller.getPositions({
+          address: '0x1234567890123456789012345678901234567890',
+        });
 
         expect(result).toEqual(mockPositions as any);
         expect(controller.state.positions).toEqual(mockPositions as any);
@@ -321,95 +284,148 @@ describe('PredictController', () => {
         );
         await controller.initializeProviders();
 
-        await expect(controller.getPositions()).rejects.toThrow(errorMessage);
+        await expect(
+          controller.getPositions({
+            address: '0x1234567890123456789012345678901234567890',
+          }),
+        ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
         expect(controller.state.positions).toEqual([]);
       });
     });
   });
   describe('placeOrder', () => {
-    // it('should place order via provider, connect if needed, and track active order (polymarket approving)', async () => {
-    //   const mockTxMeta = { id: 'tx-1' } as any;
-    //   await withController(async ({ controller }) => {
-    //     await controller.initializeProviders();
-    //     // Prepare provider transaction data
-    //     mockPolymarketProvider.prepareBuyTransaction.mockResolvedValue({
-    //       callData: '0xdeadbeef',
-    //       toAddress: '0x000000000000000000000000000000000000dead',
-    //       chainId: 1,
-    //     } as any);
-    //     // Mock addTransaction to return our txMeta
-    //     (addTransaction as jest.Mock).mockResolvedValue({
-    //       transactionMeta: mockTxMeta,
-    //     });
-    //     const result = await controller.buy({
-    //       marketId: 'm1',
-    //       outcomeId: 'o1',
-    //       amount: 1,
-    //     });
-    //     expect(mockPolymarketProvider.getApiKey).toHaveBeenCalled();
-    //     expect(
-    //       mockPolymarketProvider.prepareBuyTransaction,
-    //     ).toHaveBeenCalledWith({
-    //       address: '0x1234567890123456789012345678901234567890',
-    //       orderParams: {
-    //         marketId: 'm1',
-    //         outcomeId: 'o1',
-    //         amount: 1,
-    //       },
-    //     });
-    //     expect(result).toEqual({
-    //       success: true,
-    //       txMeta: mockTxMeta,
-    //       providerId: 'polymarket',
-    //     });
-    //     expect(controller.state.activeOrders['tx-1']).toBeDefined();
-    //     expect(controller.state.activeOrders['tx-1'].params).toEqual({
-    //       marketId: 'm1',
-    //       outcomeId: 'o1',
-    //       side: Side.BUY,
-    //       amount: 1,
-    //     });
-    //     expect(controller.state.activeOrders['tx-1'].txMeta).toBe(mockTxMeta);
-    //     expect(controller.state.activeOrders['tx-1'].status).toBe('approving');
-    //   });
-    // });
-    // it('should set status to approving for buy order', async () => {
-    //   const mockTxMeta = { id: 'tx-2' } as any;
-    //   await withController(async ({ controller }) => {
-    //     await controller.initializeProviders();
-    //     mockPolymarketProvider.prepareBuyTransaction.mockResolvedValue({
-    //       callData: '0xdeadbeef',
-    //       toAddress: '0x000000000000000000000000000000000000dead',
-    //       chainId: 1,
-    //     } as any);
-    //     (addTransaction as jest.Mock).mockResolvedValue({
-    //       transactionMeta: mockTxMeta,
-    //     });
-    //     await controller.buy({
-    //       marketId: 'm2',
-    //       outcomeId: 'o2',
-    //       amount: 2,
-    //     });
-    //     expect(controller.state.activeOrders['tx-2']).toBeDefined();
-    //     expect(controller.state.activeOrders['tx-2'].status).toBe('approving');
-    //   });
-    // });
-    // it('should throw PLACE_ORDER_FAILED if provider returns no result', async () => {
-    //   await withController(async ({ controller }) => {
-    //     await controller.initializeProviders();
-    //     mockPolymarketProvider.prepareBuyTransaction.mockResolvedValue(
-    //       undefined as any,
-    //     );
-    //     const result = await controller.buy({
-    //       marketId: 'm3',
-    //       outcomeId: 'o3',
-    //       amount: 3,
-    //     });
-    //     expect(result.success).toBe(false);
-    //     expect(result.error).toBeDefined();
-    //   });
-    // });
+    it('should place order via provider, connect if needed, and track active order (polymarket approving)', async () => {
+      const mockTxMeta = { id: 'tx-1' } as any;
+      await withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        // Prepare provider transaction data
+        mockPolymarketProvider.prepareOrder.mockResolvedValue({
+          id: 'order-1',
+          providerId: 'polymarket',
+          marketId: 'm1',
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          isBuy: true,
+          amount: 1,
+          price: 1,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: {
+            data: '0xdeadbeef',
+            to: '0x000000000000000000000000000000000000dead',
+            chainId: 1,
+            from: '0x1234567890123456789012345678901234567890',
+            value: '0x0',
+          },
+          offchainTradeParams: {},
+        } as any);
+
+        // Mock addTransaction to return our txMeta
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
+        });
+
+        const result = await controller.buy({
+          providerId: 'polymarket',
+          marketId: 'm1',
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          amount: 1,
+        });
+
+        expect(mockPolymarketProvider.prepareOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            marketId: 'm1',
+            outcomeId: 'o1',
+            outcomeTokenId: 'ot1',
+            amount: 1,
+            isBuy: true,
+            signer: expect.objectContaining({
+              address: '0x1234567890123456789012345678901234567890',
+            }),
+          }),
+        );
+
+        expect(result).toEqual({
+          success: true,
+          error: undefined,
+          transactionId: mockTxMeta.id,
+        });
+
+        expect(controller.state.activeOrders[mockTxMeta.id]).toBeDefined();
+        expect(controller.state.activeOrders[mockTxMeta.id].status).toBe(
+          'pending',
+        );
+      });
+    });
+
+    it('should set status to approving for buy order', async () => {
+      const mockTxMeta = { id: 'tx-2' } as any;
+      await withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        mockPolymarketProvider.prepareOrder.mockResolvedValue({
+          id: 'order-2',
+          providerId: 'polymarket',
+          marketId: 'm2',
+          outcomeId: 'o2',
+          outcomeTokenId: 'ot2',
+          isBuy: true,
+          amount: 2,
+          price: 1,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: {
+            data: '0xdeadbeef',
+            to: '0x000000000000000000000000000000000000dead',
+            chainId: 1,
+            from: '0x1234567890123456789012345678901234567890',
+            value: '0x0',
+          },
+          offchainTradeParams: {},
+        } as any);
+
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
+        });
+
+        await controller.buy({
+          providerId: 'polymarket',
+          marketId: 'm2',
+          outcomeId: 'o2',
+          outcomeTokenId: 'ot2',
+          amount: 2,
+        });
+
+        expect(controller.state.activeOrders[mockTxMeta.id]).toBeDefined();
+        expect(controller.state.activeOrders[mockTxMeta.id].status).toBe(
+          'pending',
+        );
+      });
+    });
+
+    it('should throw PLACE_ORDER_FAILED if provider returns no result', async () => {
+      await withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        mockPolymarketProvider.prepareOrder.mockResolvedValue(undefined as any);
+
+        const result = await controller.buy({
+          providerId: 'polymarket',
+          marketId: 'm3',
+          outcomeId: 'o3',
+          outcomeTokenId: 'ot3',
+          amount: 3,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
+    });
   });
 
   describe('transaction event handlers (no-ops for now)', () => {

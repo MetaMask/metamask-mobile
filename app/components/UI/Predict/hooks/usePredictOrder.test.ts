@@ -54,7 +54,9 @@ describe('usePredictOrder', () => {
   it('returns order status, hash and error from active order', () => {
     mockState.engine.backgroundState.PredictController.activeOrders['tx-1'] = {
       status: 'pending',
-      txMeta: { hash: '0xabc', error: null },
+      onchainTradeParams: {
+        txMeta: { hash: '0xabc', error: null },
+      },
     };
 
     const { result } = renderHook(() => usePredictOrder('tx-1'));
@@ -76,7 +78,9 @@ describe('usePredictOrder', () => {
     mockState.engine.backgroundState.PredictController.activeOrders['tx-err'] =
       {
         status: 'failed',
-        txMeta: { hash: '0xdef', error: 'Something went wrong' },
+        onchainTradeParams: {
+          txMeta: { hash: '0xdef', error: 'Something went wrong' },
+        },
       };
 
     const { result } = renderHook(() => usePredictOrder('tx-err'));

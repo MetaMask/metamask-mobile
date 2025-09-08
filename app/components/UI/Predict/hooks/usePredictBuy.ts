@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { BuyOrderParams, PlaceOrderResult } from '../types';
+import type { BuyParams, Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 
 interface UsePredictBuyOptions {
   /**
    * Callback when order is placed successfully
    */
-  onSuccess?: (result: PlaceOrderResult) => void;
+  onSuccess?: (result: Result) => void;
   /**
    * Callback when an error occurs
    */
@@ -17,13 +17,9 @@ interface UsePredictBuyOptions {
 interface UsePredictBuyReturn {
   isPlacing: boolean;
   error: string | null;
-  lastResult: PlaceOrderResult | null;
-  currentOrder: BuyOrderParams | null;
-  placeBuyOrder: (params: {
-    marketId: string;
-    outcomeId: string;
-    amount: number;
-  }) => Promise<void>;
+  lastResult: Result | null;
+  currentOrder: BuyParams | null;
+  placeBuyOrder: (params: BuyParams) => Promise<void>;
   reset: () => void;
 }
 
@@ -40,8 +36,8 @@ export function usePredictBuy(
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentOrder, setCurrentOrder] = useState<BuyOrderParams | null>(null);
-  const [lastResult, setLastResult] = useState<PlaceOrderResult | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<BuyParams | null>(null);
+  const [lastResult, setLastResult] = useState<Result | null>(null);
 
   const reset = useCallback(() => {
     setError(null);
@@ -51,29 +47,31 @@ export function usePredictBuy(
   }, []);
 
   const placeBuyOrder = useCallback(
-    async (orderParams: {
-      marketId: string;
-      outcomeId: string;
-      amount: number;
-    }) => {
+    async (orderParams: BuyParams) => {
       reset();
       try {
         setIsPlacing(true);
         setError(null);
+
+        const { amount, marketId, outcomeId, outcomeTokenId, providerId } =
+          orderParams;
 
         DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
 
         setCurrentOrder(orderParams);
 
         // Place order using Predict controller
-        const result = await buy({ orderParams });
+        const result = await buy({
+          amount,
+          marketId,
+          outcomeId,
+          outcomeTokenId,
+          providerId,
+        });
 
         setLastResult(result);
 
-        DevLogger.log('usePredictPlaceOrder: Order placed successfully', {
-          providerId: result.providerId,
-          txMeta: result.txMeta,
-        });
+        DevLogger.log('usePredictPlaceOrder: Order placed successfully');
 
         onSuccess?.(result);
       } catch (err) {

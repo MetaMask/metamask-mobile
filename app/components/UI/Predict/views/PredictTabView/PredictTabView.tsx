@@ -9,10 +9,10 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import PredictPosition from '../../components/PredictPosition';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import type { Position } from '../../types';
 import styleSheet from './PredictTabView.styles';
+import { PredictPosition as PredictPositionType } from '../../types';
+import PredictPosition from '../../components/PredictPosition';
 
 interface PredictTabViewProps {}
 
@@ -22,10 +22,12 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const { positions, isRefreshing, loadPositions } = usePredictPositions({
     loadOnMount: true,
   });
-  const listRef = useRef<FlashListRef<Position>>(null);
+  const listRef = useRef<FlashListRef<PredictPositionType>>(null);
 
   const renderItem = useCallback(
-    ({ item }: { item: Position }) => <PredictPosition position={item} />,
+    ({ item }: { item: PredictPositionType }) => (
+      <PredictPosition position={item} />
+    ),
     [],
   );
 

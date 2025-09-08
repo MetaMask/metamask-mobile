@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 // ESLint override: BaseController requires 'type' for Json compatibility, not 'interface'
-import type {
-  TransactionMeta,
-  TransactionParams,
-} from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
-import { OrderResponse } from './polymarket';
-import { PredictControllerState } from '../controllers/PredictController';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 
 export type ToggleTestnetResult = {
   success: boolean;
@@ -14,176 +8,192 @@ export type ToggleTestnetResult = {
   error?: string;
 };
 
-export type SwitchProviderResult = {
+export enum Side {
+  BUY = 'BUY',
+  SELL = 'SELL',
+}
+
+export interface GetPositionsParams {
+  address?: string;
+  providerId?: string;
+}
+
+export type PredictMarketStatus = 'open' | 'closed' | 'resolved';
+
+export enum Recurrence {
+  NONE = 'none',
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly',
+  QUARTERLY = 'quarterly',
+  ANNUALLY = 'annually',
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OnchainTradeParams = {
+  from: string;
+  to: string;
+  data: string;
+  value: string;
+  chainId: number;
+  txMeta?: TransactionMeta;
+};
+
+// This is provider-specific
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OffchainTradeParams = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+};
+
+export interface OffchainTradeResponse {
   success: boolean;
-  providerId: string;
-  error?: string;
-};
+  response: unknown;
+}
 
-export type OrderParams = {
-  marketId: string;
-  outcomeId: string;
-  side: Side;
-  amount: number;
-};
-
-export type OrderStatus =
+export type PredictOrderStatus =
   | 'idle'
-  | 'approving'
-  | 'processing'
-  | 'success'
+  | 'pending'
+  | 'filled'
+  | 'cancelled'
   | 'error';
 
-export type OrderResult = {
-  status: OrderStatus;
-  message?: string;
-};
-
-export type Order = {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictOrder = {
   id: string;
-  params: OrderParams;
-  result: OrderResult;
-  transactions: TransactionParams[];
-  isOffchainTrade?: boolean;
+  providerId: string;
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  isBuy: boolean;
+  amount: number;
+  price: number;
+  status: PredictOrderStatus;
+  error?: string;
+  timestamp: number;
+  lastUpdated: number;
+  onchainTradeParams: OnchainTradeParams;
+  offchainTradeParams?: OffchainTradeParams;
 };
 
-// note: named to avoid conflict with the DOM `Event` type (could be good to add the prefix to Market type too)
-export type PredictEvent = {
+export type PredictMarket = {
+  id: string;
+  providerId: string;
+  slug: string;
+  title: string;
+  description: string;
+  image: string;
+  status: 'open' | 'closed' | 'resolved';
+  recurrence: Recurrence;
+  categories: PredictCategory[];
+  outcomes: PredictOutcome[];
+};
+
+export type PredictSeries = {
   id: string;
   title: string;
-  markets: Market[];
-  series: {
-    recurrence: string;
-  }[];
+  recurrence: string;
 };
 
-export type MarketOutcome = {
-  id: string;
-  label: string;
-};
-
-export type MarketStatus = 'open' | 'closed' | 'resolved';
-
-export type MarketCategory =
+export type PredictCategory =
   | 'trending'
   | 'new'
   | 'sports'
   | 'crypto'
   | 'politics';
 
-export enum Side {
-  BUY = 'BUY',
-  SELL = 'SELL',
-}
-
-export interface OrderSummary {
-  price: string;
-  size: string;
-}
-
-export type Market = {
+export type PredictOutcome = {
   id: string;
-  question: string;
-  outcomes: string;
-  outcomePrices?: string;
+  marketId: string;
+  title: string;
+  description: string;
   image: string;
-  volume?: string | number;
-  providerId?: string;
-  title?: string;
-  groupItemTitle?: string;
-  status?: MarketStatus;
-  image_url?: string;
-  icon?: string;
-  neg_risk?: boolean;
-  conditionId: string;
-  clobTokenIds: string;
-  tokenIds: string[];
+  status: 'open' | 'closed' | 'resolved';
+  tokens: PredictOutcomeToken[];
+  volume: number;
+  groupItemTitle: string;
 };
 
-export type Position = {
-  providerId: string;
-  conditionId: string;
-  icon: string;
+export type PredictOutcomeToken = {
+  id: string;
   title: string;
-  slug: string;
-  size: number;
+  price: number;
+};
+
+export interface PredictActivity {
+  id: string;
+  providerId: string;
+  entry: PredictActivityEntry;
+}
+
+export type PredictActivityEntry =
+  | PredictActivityBuy
+  | PredictActivitySell
+  | PredictActivityClaimWinnings;
+
+export interface PredictActivityBuy {
+  type: 'buy';
+  timestamp: number;
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: number;
+  amount: number;
+  price: number;
+}
+
+export interface PredictActivitySell {
+  type: 'sell';
+  timestamp: number;
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: number;
+  amount: number;
+  price: number;
+}
+
+export interface PredictActivityClaimWinnings {
+  type: 'claimWinnings';
+  timestamp: number;
+  // tbd
+}
+
+export type PredictPosition = {
+  id: string;
+  providerId: string;
+  marketId: string;
+  outcomeId: string;
   outcome: string;
+  outcomeTokenId: number;
+  title: string;
+  icon: string;
+  amount: number;
+  price: number;
+  status: 'open' | 'redeemable' | 'won' | 'lost';
+  size: number;
   outcomeIndex: number;
-  cashPnl: number;
   curPrice: number;
-  currentValue: number;
+  conditionId: string;
   percentPnl: number;
+  cashPnl: number;
+  redeemable: boolean;
   initialValue: number;
   avgPrice: number;
-  redeemable: boolean;
-  negativeRisk: boolean;
+  currentValue: number;
   endDate: string;
 };
 
-export type PlaceOrderResult = {
-  success: boolean;
-  error?: string;
+export interface BuyParams {
   providerId: string;
-  txMeta?: TransactionMeta;
-};
-
-export type ProcessOrderResult = {
-  providerId: string;
-  status: OrderStatus;
-  response?: OrderResponse;
-};
-
-export type BuyOrderParams = {
   marketId: string;
   outcomeId: string;
+  outcomeTokenId: string;
   amount: number;
-};
-
-export type prepareBuyParams = {
-  address: string;
-  orderParams: BuyOrderParams;
-};
-
-export interface IPredictProvider {
-  readonly providerId: string;
-
-  // Market data
-  getMarkets(params?: { category?: MarketCategory }): Promise<Market[]>;
-
-  // Event data
-  getEvents(params?: {
-    category?: MarketCategory;
-    q?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<PredictEvent[]>;
-
-  // User positions
-  getPositions({
-    address,
-    limit,
-    offset,
-  }: {
-    address: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<Position[]>;
-
-  prepareBuyTransaction({ address, orderParams }: prepareBuyParams): Promise<{
-    callData: Hex;
-    toAddress: string;
-    chainId: number;
-  }>;
-
-  processOrder?({
-    orderParams,
-    address,
-    state,
-  }: {
-    address: string;
-    orderParams: OrderParams;
-    state: PredictControllerState;
-  }): Promise<ProcessOrderResult>;
-
-  // ...extend as needed
 }
+
+export type Result<T = void> = {
+  success: boolean;
+  transactionId?: string;
+  error?: string;
+  value?: T;
+};

@@ -2,29 +2,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { TransactionType } from '@metamask/transaction-controller';
-import Engine from '../../../../core/Engine';
-import { addTransaction } from '../../../../util/transaction-controller';
+import Engine from '../../../../../core/Engine';
+import { addTransaction } from '../../../../../util/transaction-controller';
 import {
   AMOY_CONTRACTS,
   ClobAuthDomain,
   EIP712Domain,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
-} from '../constants/polymarket';
-import { Market, OrderSummary, Side } from '../types';
+} from './constants';
+import { Side } from '../../types';
 import {
   ApiKeyCreds,
-  ClobOrderParams,
+  ClobHeaders,
+  ClobOrderObject,
   L2HeaderArgs,
   OrderData,
   OrderResponse,
+  OrderSummary,
   OrderType,
   RoundConfig,
   SignatureType,
   TickSizeResponse,
   UserMarketOrder,
   UtilsSide,
-} from '../types/polymarket';
+} from './types';
 import {
   POLYGON_MAINNET_CHAIN_ID,
   AMOY_TESTNET_CHAIN_ID,
@@ -53,7 +55,7 @@ import {
   encodeApprove,
   approveUSDCAllowance,
   submitClobOrder,
-} from './polymarket';
+} from './utils';
 
 // Mock external dependencies
 jest.mock('../../../../core/Engine', () => ({
@@ -436,14 +438,50 @@ describe('polymarket utils', () => {
 
   describe('getMarket', () => {
     it('should fetch market data successfully', async () => {
-      const mockMarket: Market = {
+      const mockMarket = {
         id: 'test-market',
         question: 'Will it rain?',
         outcomes: 'YES,NO',
         image: 'test-image.jpg',
         conditionId: 'test-condition',
         clobTokenIds: 'token1,token2',
-        tokenIds: ['token1', 'token2'],
+        slug: 'test-market',
+        resolutionSource: 'test-source',
+        endDate: '2024-12-31',
+        liquidity: '1000',
+        startDate: '2024-01-01',
+        icon: 'test-icon.jpg',
+        description: 'Test market description',
+        outcomePrices: '0.5,0.5',
+        volume: '500',
+        active: true,
+        closed: false,
+        marketMakerAddress: '0x123',
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        new: false,
+        featured: false,
+        submitted_by: 'test-user',
+        archived: false,
+        resolvedBy: 'test-resolver',
+        restricted: false,
+        groupItemTitle: 'Test Group',
+        groupItemThreshold: '0.5',
+        questionID: 'test-question',
+        enableOrderBook: true,
+        orderPriceMinTickSize: 0.01,
+        orderMinSize: 1,
+        volumeNum: 500,
+        liquidityNum: 1000,
+        endDateIso: '2024-12-31T00:00:00Z',
+        startDateIso: '2024-01-01T00:00:00Z',
+        hasReviewedDates: true,
+        volume24hr: 100,
+        volume1wk: 200,
+        volume1mo: 300,
+        volume1yr: 400,
+        umaBond: '100',
+        umaReward: '10',
       };
 
       const mockResponse = {
@@ -1105,24 +1143,28 @@ describe('polymarket utils', () => {
   });
 
   describe('submitClobOrder', () => {
-    const mockClobOrder: ClobOrderParams = {
-      owner: mockAddress,
-      order: {
-        salt: 12345,
-        maker: mockAddress,
-        signer: mockAddress,
-        taker: '0x0000000000000000000000000000000000000000',
-        tokenId: 'test-token',
-        makerAmount: '100000000',
-        takerAmount: '50000000',
-        expiration: '0',
-        nonce: '0',
-        feeRateBps: '0',
-        side: Side.BUY,
-        signatureType: SignatureType.EOA,
-        signature: 'mock-signature',
-      },
-      orderType: OrderType.GTC,
+    const mockHeaders: ClobHeaders = {
+      POLY_ADDRESS: mockAddress,
+      POLY_SIGNATURE: 'test-signature_',
+      POLY_TIMESTAMP: '1704067200',
+      POLY_API_KEY: 'test-api-key',
+      POLY_PASSPHRASE: 'test-passphrase',
+    };
+
+    const mockClobOrder: ClobOrderObject = {
+      maker: mockAddress,
+      signer: mockAddress,
+      taker: '0x0000000000000000000000000000000000000000',
+      tokenId: 'test-token',
+      makerAmount: '100000000',
+      takerAmount: '50000000',
+      expiration: '0',
+      nonce: '0',
+      feeRateBps: '0',
+      side: Side.BUY,
+      signatureType: SignatureType.EOA,
+      signature: 'mock-signature',
+      salt: 12345,
     };
 
     const mockOrderResponse: OrderResponse = {
@@ -1136,27 +1178,14 @@ describe('polymarket utils', () => {
     };
 
     beforeEach(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date('2024-01-01T00:00:00Z'));
-
-      const mockHmac = {
-        update: jest.fn().mockReturnThis(),
-        digest: jest.fn().mockReturnValue('test+signature/'),
-      };
-      (global.crypto as any).createHmac.mockReturnValue(mockHmac);
-
       mockFetch.mockResolvedValue({
         json: jest.fn().mockResolvedValue(mockOrderResponse),
       });
     });
 
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
     it('should submit CLOB order successfully', async () => {
       const result = await submitClobOrder({
-        apiKey: mockApiKey,
+        headers: mockHeaders,
         clobOrder: mockClobOrder,
       });
 
@@ -1165,28 +1194,10 @@ describe('polymarket utils', () => {
         'https://clob.polymarket.com/order',
         {
           method: 'POST',
-          headers: expect.objectContaining({
-            POLY_ADDRESS: mockAddress,
-            POLY_SIGNATURE: 'test-signature_',
-            POLY_API_KEY: 'test-api-key',
-          }),
+          headers: mockHeaders,
           body: JSON.stringify(mockClobOrder),
         },
       );
-    });
-
-    it('should handle undefined signer', async () => {
-      const orderWithoutSigner = {
-        ...mockClobOrder,
-        order: { ...mockClobOrder.order, signer: undefined },
-      };
-
-      const result = await submitClobOrder({
-        apiKey: mockApiKey,
-        clobOrder: orderWithoutSigner,
-      });
-
-      expect(result).toEqual(mockOrderResponse);
     });
 
     it('should handle fetch errors', async () => {
@@ -1195,7 +1206,7 @@ describe('polymarket utils', () => {
 
       await expect(
         submitClobOrder({
-          apiKey: mockApiKey,
+          headers: mockHeaders,
           clobOrder: mockClobOrder,
         }),
       ).rejects.toThrow('Network error');

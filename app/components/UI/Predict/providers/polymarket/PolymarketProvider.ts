@@ -2,49 +2,53 @@ import {
   SignTypedDataVersion,
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { Hex } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { ROUNDING_CONFIG } from '../constants/polymarket';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { ROUNDING_CONFIG } from './constants';
 import {
-  IPredictProvider,
-  Market,
-  MarketCategory,
-  MarketStatus,
-  OrderParams,
-  Position,
-  PredictEvent,
-  ProcessOrderResult,
+  OffchainTradeParams,
+  OffchainTradeResponse,
+  PredictActivity,
+  PredictCategory,
+  PredictMarket,
+  PredictOrder,
+  PredictPosition,
   Side,
-} from '../types';
-import {
-  ApiKeyCreds,
-  OrderData,
-  OrderType,
-  SignatureType,
-  TickSize,
-} from '../types/polymarket';
+} from '../../types';
 import {
   buildMarketOrderCreationArgs,
   calculateMarketPrice,
   createApiKey,
   encodeApprove,
   getContractConfig,
+  getL2Headers,
   getMarket,
   getOrderTypedData,
   getPolymarketEndpoints,
   getTickSize,
+  parsePolymarketEvents,
+  parsePolymarketPositions,
   POLYGON_MAINNET_CHAIN_ID,
   priceValid,
   submitClobOrder,
-} from '../utils/polymarket';
+} from './utils';
+import { GetMarketsParams, OrderParams, PredictProvider } from '../types';
+import {
+  ApiKeyCreds,
+  OrderArtifactsParams,
+  OrderData,
+  OrderType,
+  PolymarketOffchainTradeParams,
+  PolymarketPosition,
+  SignatureType,
+  TickSize,
+} from './types';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
   version: SignTypedDataVersion,
 ) => Promise<string>;
 
-export class PolymarketProvider implements IPredictProvider {
+export class PolymarketProvider implements PredictProvider {
   readonly providerId = 'polymarket';
 
   #isTestnet: boolean;
@@ -52,6 +56,17 @@ export class PolymarketProvider implements IPredictProvider {
 
   constructor(options: { isTestnet?: boolean }) {
     this.#isTestnet = options.isTestnet || false;
+  }
+  public getMarketDetails(_params: {
+    marketId: string;
+  }): Promise<PredictMarket> {
+    throw new Error('Method not implemented.');
+  }
+  public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
+    throw new Error('Method not implemented.');
+  }
+  public claimWinnings(): Promise<void> {
+    throw new Error('Method not implemented.');
   }
 
   /**
@@ -63,10 +78,10 @@ export class PolymarketProvider implements IPredictProvider {
    */
   private async buildOrderArtifacts({
     address,
-    orderParams: { marketId, outcomeId, side, amount },
+    orderParams: { marketId, outcomeTokenId, side, amount },
   }: {
     address: string;
-    orderParams: OrderParams;
+    orderParams: OrderArtifactsParams;
   }): Promise<{
     chainId: number;
     price: number;
@@ -78,7 +93,7 @@ export class PolymarketProvider implements IPredictProvider {
   }> {
     const chainId = POLYGON_MAINNET_CHAIN_ID;
     const conditionId = marketId;
-    const tokenId = outcomeId;
+    const tokenId = outcomeTokenId;
 
     const marketData = await getMarket({ conditionId });
 
@@ -100,7 +115,7 @@ export class PolymarketProvider implements IPredictProvider {
         side,
         orderType: OrderType.FOK,
       },
-      roundConfig: ROUNDING_CONFIG[tickSize],
+      roundConfig: ROUNDING_CONFIG[tickSize as TickSize],
     });
 
     const negRisk = !!marketData.neg_risk;
@@ -124,7 +139,11 @@ export class PolymarketProvider implements IPredictProvider {
     };
   }
 
-  async getApiKey({ address }: { address: string }): Promise<ApiKeyCreds> {
+  private async getApiKey({
+    address,
+  }: {
+    address: string;
+  }): Promise<ApiKeyCreds> {
     const cachedApiKey = this.#apiKeysByAddress.get(address);
     if (cachedApiKey) {
       return cachedApiKey;
@@ -135,12 +154,7 @@ export class PolymarketProvider implements IPredictProvider {
     return apiKeyCreds;
   }
 
-  async getEvents(params?: {
-    category?: MarketCategory;
-    q?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<PredictEvent[]> {
+  public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
       const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
@@ -161,7 +175,7 @@ export class PolymarketProvider implements IPredictProvider {
         Math.floor(offset / limit) + 1
       }&ascending=false`;
 
-      const categoryTagMap: Record<MarketCategory, string> = {
+      const categoryTagMap: Record<PredictCategory, string> = {
         trending: '&exclude_tag_id=100639&order=volume24hr',
         new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
         sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
@@ -180,6 +194,7 @@ export class PolymarketProvider implements IPredictProvider {
 
       const response = await fetch(endpoint);
       const data = await response.json();
+
       DevLogger.log('Polymarket response data:', data);
 
       // Handle different response structures
@@ -189,78 +204,20 @@ export class PolymarketProvider implements IPredictProvider {
         return [];
       }
 
-      DevLogger.log('Processed markets:', events);
-      return events;
-    } catch (error) {
-      DevLogger.log('Error getting markets via Polymarket API:', error);
-      return [];
-    }
-  }
-
-  async getMarkets(params?: { category?: MarketCategory }): Promise<Market[]> {
-    try {
-      const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-
-      const { category = 'trending' } = params || {};
-      DevLogger.log(
-        'Getting markets via Polymarket API for category:',
+      const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
+        events,
         category,
       );
 
-      let queryParams =
-        'limit=3&active=true&archived=false&closed=false&order=volume24hr&ascending=false&offset=0';
-
-      const categoryTagMap: Record<MarketCategory, string> = {
-        trending: '&exclude_tag_id=100639&order=volume24hr',
-        new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
-        sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
-        crypto: '&tag_slug=crypto&order=volume24hr',
-        politics: '&tag_slug=politics&order=volume24hr',
-      };
-
-      queryParams += categoryTagMap[category];
-
-      const response = await fetch(
-        `${GAMMA_API_ENDPOINT}/events/pagination?${queryParams}`,
-      );
-      const data = await response.json();
-      DevLogger.log('Polymarket response data:', data);
-
-      const events = data?.data;
-
-      if (!events || !Array.isArray(events)) {
-        return [];
-      }
-
-      const markets = events.flatMap((event: PredictEvent) =>
-        event.markets.map((market: Market) => ({
-          id: market.id?.toString() || '',
-          question: market.question || '',
-          outcomes: market.outcomes || '[]',
-          outcomePrices: market.outcomePrices,
-          image: market.image || '',
-          volume: market.volume,
-          providerId: 'polymarket',
-          status: (market.status === 'closed'
-            ? 'closed'
-            : 'open') as MarketStatus,
-          image_url: market.image,
-          icon: market.icon,
-          conditionId: market.conditionId,
-          clobTokenIds: market.clobTokenIds,
-          tokenIds: JSON.parse(market.clobTokenIds),
-        })),
-      );
-
-      DevLogger.log('Processed markets:', markets);
-      return markets;
+      DevLogger.log('Processed markets:', parsedMarkets);
+      return parsedMarkets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
       return [];
     }
   }
 
-  async getPositions({
+  public async getPositions({
     address,
     limit = 10,
     offset = 0,
@@ -268,7 +225,7 @@ export class PolymarketProvider implements IPredictProvider {
     address: string;
     limit?: number;
     offset?: number;
-  }): Promise<Position[]> {
+  }): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     const response = await fetch(
@@ -280,69 +237,30 @@ export class PolymarketProvider implements IPredictProvider {
         },
       },
     );
-    const positionsData = await response.json();
-    positionsData.forEach((position: Position) => {
-      position.providerId = this.providerId;
+    const positionsData = (await response.json()) as PolymarketPosition[];
+    const parsedPositions = parsePolymarketPositions({
+      positions: positionsData,
     });
 
-    return positionsData;
+    return parsedPositions;
   }
 
-  async processOrder({
-    address,
-    orderParams: { marketId, outcomeId, side, amount },
-  }: {
-    address: string;
-    orderParams: OrderParams;
-  }): Promise<ProcessOrderResult> {
-    const { chainId, order, verifyingContract } =
-      await this.buildOrderArtifacts({
-        address,
-        orderParams: { marketId, outcomeId, side, amount },
-      });
-
-    const typedData = getOrderTypedData({
-      order,
-      chainId,
-      verifyingContract,
-    });
-
-    const signature = await Engine.context.KeyringController.signTypedMessage(
-      { data: typedData, from: address },
-      SignTypedDataVersion.V4,
-    );
-
-    const signedOrder = {
-      ...order,
-      signature,
-    };
-
-    // Ensure API key is available in memory; connect if needed
-    const signerApiKey = await this.getApiKey({ address });
-
-    const responseData = await submitClobOrder({
-      apiKey: signerApiKey,
-      clobOrder: {
-        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt, 10) },
-        owner: signerApiKey.apiKey,
-        orderType: OrderType.FOK,
-      },
-    });
-
-    return {
-      status: responseData.success ? 'success' : 'error',
-      response: responseData,
-      providerId: this.providerId,
-    };
+  public async prepareOrder(params: OrderParams): Promise<PredictOrder> {
+    const { isBuy } = params;
+    if (isBuy) {
+      return this.prepareBuyTransaction(params);
+    }
+    return this.prepareSellTransaction(params);
   }
 
-  async prepareBuyTransaction({
-    address,
-    orderParams: { marketId, outcomeId, amount },
-  }: {
-    address: string;
-    orderParams: OrderParams;
-  }): Promise<{ callData: Hex; toAddress: string; chainId: number }> {
+  private async prepareBuyTransaction({
+    signer,
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    amount,
+  }: OrderParams): Promise<PredictOrder> {
+    const { address, signTypedMessage } = signer;
     const side = Side.BUY;
     const {
       chainId,
@@ -351,9 +269,10 @@ export class PolymarketProvider implements IPredictProvider {
       order,
       contractConfig,
       exchangeContract,
+      verifyingContract,
     } = await this.buildOrderArtifacts({
       address,
-      orderParams: { marketId, outcomeId, side, amount },
+      orderParams: { marketId, outcomeTokenId, side, amount },
     });
 
     if (!priceValid(price, tickSize)) {
@@ -369,6 +288,86 @@ export class PolymarketProvider implements IPredictProvider {
       amount: BigInt(order.makerAmount),
     });
 
-    return { callData, toAddress: contractConfig.collateral, chainId };
+    const typedData = getOrderTypedData({
+      order,
+      chainId,
+      verifyingContract,
+    });
+
+    const signature = await signTypedMessage(
+      { data: typedData, from: address },
+      SignTypedDataVersion.V4,
+    );
+
+    const signedOrder = {
+      ...order,
+      signature,
+    };
+
+    const signerApiKey = await this.getApiKey({ address });
+
+    const clobOrder = {
+      order: { ...signedOrder, side, salt: parseInt(signedOrder.salt, 10) },
+      owner: signerApiKey.apiKey,
+      orderType: OrderType.FOK,
+    };
+
+    const body = JSON.stringify(clobOrder);
+
+    const headers = await getL2Headers({
+      l2HeaderArgs: {
+        method: 'POST',
+        requestPath: `/order`,
+        body,
+      },
+      address: clobOrder.order.signer ?? '',
+      apiKey: signerApiKey,
+    });
+
+    return {
+      id: 'temp-id',
+      providerId: this.providerId,
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      isBuy: true,
+      amount,
+      price,
+      status: 'idle',
+      error: undefined,
+      timestamp: Date.now(),
+      lastUpdated: Date.now(),
+      onchainTradeParams: {
+        data: callData,
+        to: contractConfig.collateral,
+        chainId,
+        from: address,
+        value: '0x0',
+      },
+      offchainTradeParams: { clobOrder, headers },
+    };
+  }
+
+  private async prepareSellTransaction(
+    _params: OrderParams,
+  ): Promise<PredictOrder> {
+    throw new Error('Sell transactions not implemented yet');
+  }
+
+  public async submitOffchainTrade(
+    params: OffchainTradeParams,
+  ): Promise<OffchainTradeResponse> {
+    const { clobOrder, headers } =
+      params as unknown as PolymarketOffchainTradeParams;
+
+    const response = await submitClobOrder({
+      headers,
+      clobOrder,
+    });
+
+    return {
+      success: response.success,
+      response,
+    };
   }
 }

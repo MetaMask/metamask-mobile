@@ -2,7 +2,7 @@ import React from 'react';
 import MarketListContent from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PredictEvent, Market, MarketCategory } from '../../types';
+import { PredictCategory, PredictMarket, Recurrence } from '../../types';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 
 // Mock animations to prevent act() warnings
@@ -49,51 +49,81 @@ jest.mock('@shopify/flash-list', () => {
   };
 });
 
-const mockMarket: Market = {
+const mockPredictMarket: PredictMarket = {
   id: 'test-market-1',
-  question: 'Will Bitcoin reach $150,000 by end of year?',
-  outcomes: '["Yes", "No"]',
-  outcomePrices: '["0.65", "0.35"]',
+  providerId: 'test-provider',
+  slug: 'bitcoin-prediction',
+  title: 'Will Bitcoin reach $150,000 by end of year?',
+  description: 'Bitcoin price prediction market',
   image: 'https://example.com/bitcoin.png',
-  volume: '1000000',
-  providerId: 'test-provider',
   status: 'open',
-  conditionId: 'test-condition-id',
-  clobTokenIds: '["1", "2"]',
-  tokenIds: ['1', '2'],
-};
-
-const mockMarket2: Market = {
-  id: 'test-market-2',
-  question: 'Will Ethereum reach $10,000 by end of year?',
-  outcomes: '["Yes", "No"]',
-  outcomePrices: '["0.45", "0.55"]',
-  image: 'https://example.com/ethereum.png',
-  volume: '500000',
-  providerId: 'test-provider',
-  status: 'open',
-  clobTokenIds: '["token3", "token4"]',
-  conditionId: 'condition2',
-};
-
-const mockPredictEvent: PredictEvent = {
-  id: 'test-event-1',
-  title: 'Bitcoin Prediction Event',
-  markets: [mockMarket],
-  series: [
+  recurrence: Recurrence.NONE,
+  categories: ['crypto', 'trending'],
+  outcomes: [
     {
-      recurrence: 'weekly',
+      id: 'outcome-1',
+      marketId: 'test-market-1',
+      title: 'Yes',
+      description: 'Bitcoin will reach $150,000',
+      image: 'https://example.com/bitcoin.png',
+      status: 'open',
+      tokens: [
+        {
+          id: '1',
+          title: 'Yes Token',
+          price: 0.65,
+        },
+      ],
+      volume: 1000000,
+      groupItemTitle: 'Bitcoin Prediction',
     },
   ],
 };
 
-const mockPredictEventMultiple: PredictEvent = {
-  id: 'test-event-2',
+const mockPredictMarketMultiple: PredictMarket = {
+  id: 'test-market-3',
+  providerId: 'test-provider',
+  slug: 'crypto-predictions',
   title: 'Crypto Predictions Event',
-  markets: [mockMarket, mockMarket2],
-  series: [
+  description: 'Multiple crypto prediction markets',
+  image: 'https://example.com/crypto.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  categories: ['crypto', 'trending'],
+  outcomes: [
     {
-      recurrence: 'monthly',
+      id: 'outcome-3',
+      marketId: 'test-market-3',
+      title: 'Bitcoin Yes',
+      description: 'Bitcoin will reach $150,000',
+      image: 'https://example.com/bitcoin.png',
+      status: 'open',
+      tokens: [
+        {
+          id: '3',
+          title: 'Bitcoin Yes Token',
+          price: 0.65,
+        },
+      ],
+      volume: 1000000,
+      groupItemTitle: 'Bitcoin Prediction',
+    },
+    {
+      id: 'outcome-4',
+      marketId: 'test-market-3',
+      title: 'Ethereum Yes',
+      description: 'Ethereum will reach $10,000',
+      image: 'https://example.com/ethereum.png',
+      status: 'open',
+      tokens: [
+        {
+          id: '4',
+          title: 'Ethereum Yes Token',
+          price: 0.45,
+        },
+      ],
+      volume: 500000,
+      groupItemTitle: 'Ethereum Prediction',
     },
   ],
 };
@@ -102,7 +132,7 @@ const mockRefetch = jest.fn();
 const mockFetchMore = jest.fn();
 
 const defaultMockReturn = {
-  marketData: [],
+  marketData: [] as PredictMarket[],
   isFetching: false,
   isFetchingMore: false,
   error: null,
@@ -143,7 +173,7 @@ describe('MarketListContent', () => {
     it('should render footer loading skeleton when isFetchingMore is true', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
-        marketData: [mockPredictEvent],
+        marketData: [mockPredictMarket],
         isFetchingMore: true,
       });
 
@@ -192,7 +222,7 @@ describe('MarketListContent', () => {
     it('should render empty state when marketData is null', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
-        marketData: null as unknown as PredictEvent[],
+        marketData: null as unknown as PredictMarket[],
       });
 
       const { getByText } = renderWithProvider(
@@ -205,10 +235,10 @@ describe('MarketListContent', () => {
   });
 
   describe('Data Rendering', () => {
-    it('should render single market when event has one market', () => {
+    it('should render single market component when market has one outcome', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
-        marketData: [mockPredictEvent],
+        marketData: [mockPredictMarket],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -219,10 +249,10 @@ describe('MarketListContent', () => {
       expect(getByTestId('predict-market')).toBeOnTheScreen();
     });
 
-    it('should render multiple markets when event has multiple markets', () => {
+    it('should render multiple market component when market has multiple outcomes', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
-        marketData: [mockPredictEventMultiple],
+        marketData: [mockPredictMarketMultiple],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -233,10 +263,10 @@ describe('MarketListContent', () => {
       expect(getByTestId('predict-market-multiple')).toBeOnTheScreen();
     });
 
-    it('should render multiple events with mixed market types', () => {
+    it('should render multiple markets with mixed outcome types', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
-        marketData: [mockPredictEvent, mockPredictEventMultiple],
+        marketData: [mockPredictMarket, mockPredictMarketMultiple],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -251,7 +281,7 @@ describe('MarketListContent', () => {
 
   describe('Hook Integration', () => {
     it('should call usePredictMarketData with correct parameters', () => {
-      const categories: MarketCategory[] = [
+      const categories: PredictCategory[] = [
         'trending',
         'new',
         'sports',

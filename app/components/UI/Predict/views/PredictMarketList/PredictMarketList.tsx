@@ -1,30 +1,29 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, Pressable } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { getNavigationOptionsTitle } from '../../../Navbar';
-import { useTheme } from '../../../../../util/theme';
-import styleSheet from './PredictMarketList.styles';
-import TabBar from '../../../../Base/TabBar';
-import MarketListContent from '../../components/MarketListContent';
 import {
   Box,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
+import { default as React, useEffect, useState } from 'react';
+import { Pressable, SafeAreaView, View } from 'react-native';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import { useTheme } from '../../../../../util/theme';
+import TabBar from '../../../../Base/TabBar';
+import { getNavigationOptionsTitle } from '../../../Navbar';
+import MarketListContent from '../../components/MarketListContent';
 import SearchBox from '../../components/SearchBox';
+import styleSheet from './PredictMarketList.styles';
 
 interface PredictMarketListProps {}
 

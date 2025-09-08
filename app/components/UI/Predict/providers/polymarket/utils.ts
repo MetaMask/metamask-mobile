@@ -3,23 +3,25 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex, hexToNumber } from '@metamask/utils';
 import { Interface, parseUnits } from 'ethers/lib/utils';
-import Engine from '../../../../core/Engine';
-import { addTransaction } from '../../../../util/transaction-controller';
+import Engine from '../../../../../core/Engine';
+import { addTransaction } from '../../../../../util/transaction-controller';
 import {
   AMOY_CONTRACTS,
   ClobAuthDomain,
   EIP712Domain,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
-} from '../constants/polymarket';
-import { Market, OrderSummary, Side } from '../types';
+} from './constants';
 import {
+  ClobHeaders,
+  ClobOrderObject,
+  OrderData,
+  OrderSummary,
+  UtilsSide,
   ApiKeyCreds,
-  ClobOrderParams,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
-  OrderData,
   OrderResponse,
   OrderType,
   RoundConfig,
@@ -27,8 +29,19 @@ import {
   TickSize,
   TickSizeResponse,
   UserMarketOrder,
-  UtilsSide,
-} from '../types/polymarket';
+  PolymarketMarket,
+  PolymarketEvent,
+  PolymarketPosition,
+} from './types';
+import {
+  Side,
+  type PredictCategory,
+  type PredictMarket,
+  type PredictMarketStatus,
+  type PredictPosition,
+  type Recurrence,
+} from '../../types';
+import { getRecurrenceDisplay } from '../../utils/format';
 
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 export const AMOY_TESTNET_CHAIN_ID = 80002;
@@ -187,7 +200,7 @@ export const getMarket = async ({ conditionId }: { conditionId: string }) => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints({ isStaging: false });
   const response = await fetch(`${CLOB_ENDPOINT}/markets/${conditionId}`);
   const responseData = await response.json();
-  return responseData as Market;
+  return responseData as PolymarketMarket;
 };
 
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
@@ -568,30 +581,88 @@ function replaceAll(s: string, search: string, replace: string) {
 }
 
 export const submitClobOrder = async ({
-  apiKey,
+  headers,
   clobOrder,
 }: {
-  apiKey: ApiKeyCreds;
-  clobOrder: ClobOrderParams;
+  headers: ClobHeaders;
+  clobOrder: ClobOrderObject;
 }) => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
   const body = JSON.stringify(clobOrder);
 
-  const l2Headers = await getL2Headers({
-    l2HeaderArgs: {
-      method: 'POST',
-      requestPath: `/order`,
-      body,
-    },
-    address: clobOrder.order.signer ?? '',
-    apiKey,
-  });
   const response = await fetch(`${CLOB_ENDPOINT}/order`, {
     method: 'POST',
-    headers: l2Headers,
+    headers,
     body,
   });
 
   const responseData = (await response.json()) as OrderResponse;
   return responseData;
+};
+
+export const parsePolymarketEvents = (
+  events: PolymarketEvent[],
+  category: PredictCategory,
+): PredictMarket[] => {
+  const parsedMarkets: PredictMarket[] = events.map(
+    (event: PolymarketEvent) => ({
+      ...event,
+      id: event.id,
+      providerId: 'polymarket',
+      title: event.title,
+      description: event.description,
+      image: event.icon,
+      status: (event.closed ? 'closed' : 'open') as PredictMarketStatus,
+      recurrence: getRecurrenceDisplay(event.series) as Recurrence,
+      categories: [category],
+      outcomes: event.markets
+        .filter(
+          (market: PolymarketMarket) =>
+            !!market.outcomePrices && !!market.volume && !!market.clobTokenIds,
+        )
+        .map((market: PolymarketMarket) => {
+          const outcomeTokensIds = JSON.parse(market.clobTokenIds);
+          const outcomes = JSON.parse(market.outcomes);
+          const outcomePrices = JSON.parse(market.outcomePrices);
+          return {
+            id: market.conditionId,
+            marketId: event.id,
+            title: market.question,
+            description: market.description,
+            image: market.icon ?? market.image,
+            groupItemTitle: market.groupItemTitle,
+            status: (market.closed ? 'closed' : 'open') as PredictMarketStatus,
+            volume: market.volumeNum,
+            tokens: outcomeTokensIds.map((tokenId: string, index: number) => ({
+              id: tokenId,
+              title: outcomes[index],
+              price: parseFloat(outcomePrices[index]),
+            })),
+          };
+        }),
+    }),
+  );
+  return parsedMarkets;
+};
+
+export const parsePolymarketPositions = ({
+  positions,
+}: {
+  positions: PolymarketPosition[];
+}) => {
+  const parsedPositions = positions.map((position: PolymarketPosition) => ({
+    ...position,
+    id: position.asset,
+    providerId: 'polymarket',
+    marketId: position.conditionId,
+    outcomeId: position.outcomeIndex.toString(),
+    outcomeTokenId: position.outcomeIndex,
+    amount: position.size,
+    price: position.curPrice,
+    status: (position.redeemable
+      ? 'redeemable'
+      : 'open') as PredictPosition['status'],
+  }));
+  return parsedPositions;
 };

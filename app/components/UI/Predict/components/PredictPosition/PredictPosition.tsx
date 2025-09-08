@@ -6,11 +6,11 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PredictPosition.styles';
-import { Position } from '../../types';
+import { PredictPosition as PredictPositionType } from '../../types';
 import { formatPrice, formatPercentage } from '../../utils/format';
 
 interface PredictPositionProps {
-  position: Position;
+  position: PredictPositionType;
 }
 
 const PredictPosition: React.FC<PredictPositionProps> = ({

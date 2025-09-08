@@ -1,53 +1,55 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { Image, View } from 'react-native';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PredictMarketMultiple.styles';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 
-import Routes from '../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
-import { PredictEvent } from '../../types';
-import { formatVolume } from '../../utils/format';
 import {
   Box,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictMarket } from '../../types';
+import { formatVolume } from '../../utils/format';
 interface PredictMarketMultipleProps {
-  event: PredictEvent;
+  market: PredictMarket;
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
-  event,
+  market,
 }) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
 
-  const getFirstOutcomePrice = (outcomePrices?: string): string | undefined => {
+  const getFirstOutcomePrice = (
+    outcomePrices?: number[],
+  ): string | undefined => {
     if (!outcomePrices) {
       return undefined;
     }
 
     try {
-      const parsed = JSON.parse(outcomePrices);
+      const parsed = outcomePrices;
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const firstValue = parseFloat(parsed[0]);
+        const firstValue = parsed[0];
         return (firstValue * 100).toFixed(2);
       }
     } catch (error) {
@@ -57,83 +59,29 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     return undefined;
   };
 
-  const getOutcomeLabels = (outcomes?: string): string[] => {
-    if (!outcomes) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(outcomes);
-      if (Array.isArray(parsed)) {
-        return parsed.map((outcome) => String(outcome));
-      }
-    } catch (error) {
-      console.warn('Failed to parse outcomes:', outcomes, error);
-    }
-
-    return [];
-  };
-
-  const totalVolume = event.markets.reduce((sum, market) => {
+  const totalVolume = market.outcomes.reduce((sum, outcome) => {
     const volume =
-      typeof market.volume === 'string'
-        ? parseFloat(market.volume)
-        : market.volume || 0;
+      typeof outcome.volume === 'string'
+        ? parseFloat(outcome.volume)
+        : outcome.volume || 0;
     return sum + volume;
   }, 0);
 
   const totalVolumeDisplay = formatVolume(totalVolume);
 
-  const formatRecurrence = (recurrence: string): string => {
-    if (!recurrence) return '';
-
-    // Capitalize first letter and handle common recurrence types
-    const formatted = recurrence.charAt(0).toUpperCase() + recurrence.slice(1);
-
-    // Handle special cases
-    switch (recurrence.toLowerCase()) {
-      case 'monthly':
-        return strings('predict.recurrence.monthly');
-      case 'weekly':
-        return strings('predict.recurrence.weekly');
-      case 'daily':
-        return strings('predict.recurrence.daily');
-      case 'yearly':
-      case 'annually':
-        return strings('predict.recurrence.yearly');
-      case 'quarterly':
-        return strings('predict.recurrence.quarterly');
-      default:
-        return formatted;
-    }
-  };
-
-  const getRecurrenceDisplay = (): string => {
-    if (!event.series || event.series.length === 0) {
-      return '';
-    }
-
-    const recurrence = event.series[0]?.recurrence;
-    if (!recurrence) {
-      return '';
-    }
-
-    return formatRecurrence(recurrence);
-  };
-
   return (
     <View style={styles.marketContainer}>
-      <Box key={event.id}>
+      <Box key={market.id}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="mb-4 gap-3"
         >
           <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
-            {event.markets[0]?.image && (
+            {market.outcomes[0]?.image && (
               <Box twClassName="w-full h-full">
                 <Image
-                  source={{ uri: event.markets[0].image }}
+                  source={{ uri: market.outcomes[0].image }}
                   style={tw.style('w-full h-full')}
                   resizeMode="cover"
                 />
@@ -142,14 +90,13 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           </Box>
           <Box twClassName="flex-1">
             <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-              {event.title}
+              {market.title}
             </Text>
           </Box>
         </Box>
 
-        {event.markets.slice(0, 3).map((market) => {
-          const outcomeLabels = getOutcomeLabels(market.outcomes);
-
+        {market.outcomes.slice(0, 3).map((outcome) => {
+          const outcomeLabels = outcome.tokens.map((token) => token.title);
           return (
             <Box
               key={`${market.id}`}
@@ -159,7 +106,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             >
               <Box twClassName="flex-1">
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {market.groupItemTitle}
+                  {outcome.groupItemTitle}
                 </Text>
               </Box>
 
@@ -168,7 +115,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {getFirstOutcomePrice(market.outcomePrices) || '0'}%
+                  {getFirstOutcomePrice(
+                    outcome.tokens.map((token) => token.price),
+                  ) ?? '0'}
+                  %
                 </Text>
               </Box>
 
@@ -216,9 +166,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           twClassName="mt-4"
         >
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {event.markets.length > 3
-              ? `+${event.markets.length - 3} ${
-                  event.markets.length - 3 === 1
+            {market.outcomes.length > 3
+              ? `+${market.outcomes.length - 3} ${
+                  market.outcomes.length - 3 === 1
                     ? strings('predict.outcomes_singular')
                     : strings('predict.outcomes_plural')
                 }`
@@ -232,7 +182,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
             </Text>
-            {getRecurrenceDisplay() && (
+            {market.recurrence && (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
@@ -247,7 +197,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {getRecurrenceDisplay()}
+                  {market.recurrence}
                 </Text>
               </Box>
             )}

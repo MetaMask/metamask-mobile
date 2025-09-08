@@ -9,30 +9,29 @@ import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
-  TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { numberToHex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../../../util/transaction-controller';
-import { PolymarketProvider } from '../providers/PolymarketProvider';
+import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { GetMarketsParams, PredictProvider } from '../providers/types';
 import {
-  IPredictProvider,
-  Market,
-  MarketCategory,
-  Order,
-  OrderParams,
-  OrderStatus,
-  PlaceOrderResult,
-  Position,
-  PredictEvent,
-  Side,
-  SwitchProviderResult,
+  BuyParams,
+  PredictMarket,
+  PredictPosition,
   ToggleTestnetResult,
+  GetPositionsParams,
+  Result,
+  PredictOrder,
+  OffchainTradeResponse,
 } from '../types';
-import { OrderResponse } from '../types/polymarket';
 import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
+import {
+  SignTypedDataVersion,
+  TypedMessageParams,
+} from '@metamask/keyring-controller';
 
 /**
  * Get environment type for geo-blocking URLs
@@ -53,6 +52,7 @@ export const PREDICT_ERROR_CODES = {
   PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
   PLACE_BUY_ORDER_FAILED: 'PLACE_BUY_ORDER_FAILED',
+  SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED: 'SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED',
 } as const;
 
 export type PredictErrorCode =
@@ -86,19 +86,14 @@ export const DEFAULT_GEO_BLOCKED_REGIONS = [
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
-  // Active provider
-  activeProvider: string;
   isTestnet: boolean; // Dev toggle for testnet
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Market data
-  markets: Market[];
+  markets: PredictMarket[];
 
   // User positions
-  positions: Position[];
-
-  // Order management
-  pendingOrders: Order[];
+  positions: PredictPosition[];
 
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
@@ -106,16 +101,7 @@ export type PredictControllerState = {
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
-  activeOrders: Record<
-    string,
-    {
-      params: OrderParams;
-      response?: OrderResponse;
-      txMeta: TransactionMeta;
-      status: OrderStatus;
-      providerId: string;
-    }
-  >;
+  activeOrders: { [key: string]: PredictOrder };
   lastSuccessfulTransaction: string | null;
 };
 
@@ -123,12 +109,10 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  activeProvider: 'polymarket',
   isTestnet: __DEV__, // Default to testnet in dev
   connectionStatus: 'disconnected',
   markets: [],
   positions: [],
-  pendingOrders: [],
   isEligible: false,
   lastError: null,
   lastUpdateTimestamp: 0,
@@ -140,7 +124,6 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
  * State metadata for the PredictController
  */
 const metadata = {
-  activeProvider: { persist: true, anonymous: false },
   isTestnet: { persist: true, anonymous: false },
   connectionStatus: { persist: false, anonymous: false },
   markets: { persist: false, anonymous: false },
@@ -226,7 +209,7 @@ export class PredictController extends BaseController<
   PredictControllerState,
   PredictControllerMessenger
 > {
-  private providers: Map<string, IPredictProvider>;
+  private providers: Map<string, PredictProvider>;
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
 
@@ -298,26 +281,34 @@ export class PredictController extends BaseController<
   private async handleTransactionConfirmed(
     _txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0],
   ): Promise<void> {
-    const hasActiveOrder = this.state.activeOrders[_txMeta.id];
+    const activeOrder = this.state.activeOrders[_txMeta.id];
 
-    if (hasActiveOrder) {
-      const provider = this.getActiveProvider();
+    if (activeOrder) {
+      const provider = this.providers.get(activeOrder.providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
 
-      if (provider.processOrder) {
-        const { params, txMeta } = this.state.activeOrders[_txMeta.id];
-        const { status, response } = await provider.processOrder({
-          address: txMeta.txParams.from,
-          orderParams: params,
-          state: this.state,
-        });
+      if (activeOrder.offchainTradeParams) {
+        if (!provider.submitOffchainTrade) {
+          throw new Error(
+            PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED,
+          );
+        }
+        const { clobOrder, headers } = activeOrder.offchainTradeParams;
+        const { success, response } = (await provider.submitOffchainTrade({
+          clobOrder,
+          headers,
+        })) as OffchainTradeResponse;
 
         this.update((state) => {
-          state.activeOrders[_txMeta.id].status = status;
-          state.activeOrders[_txMeta.id].response = response;
+          state.activeOrders[_txMeta.id].status = success ? 'filled' : 'error';
+          state.activeOrders[_txMeta.id].error =
+            (response as { error: string }).error ?? 'Unknown error';
         });
       } else {
         this.update((state) => {
-          state.activeOrders[_txMeta.id].status = 'success';
+          state.activeOrders[_txMeta.id].status = 'filled';
         });
       }
     }
@@ -391,42 +382,20 @@ export class PredictController extends BaseController<
     this.isInitialized = true;
     DevLogger.log('PredictController: Providers initialized successfully', {
       providerCount: this.providers.size,
-      activeProvider: this.state.activeProvider,
       timestamp: new Date().toISOString(),
     });
   }
 
   /**
-   * Get the currently active provider - ensures initialization first
-   */
-  getActiveProvider(): IPredictProvider {
-    if (!this.isInitialized) {
-      this.update((state) => {
-        state.lastError = PREDICT_ERROR_CODES.CLIENT_NOT_INITIALIZED;
-        state.lastUpdateTimestamp = Date.now();
-      });
-      throw new Error(PREDICT_ERROR_CODES.CLIENT_NOT_INITIALIZED);
-    }
-
-    const provider = this.providers.get(this.state.activeProvider);
-    if (!provider) {
-      this.update((state) => {
-        state.lastError = PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
-        state.lastUpdateTimestamp = Date.now();
-      });
-      throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-    }
-
-    return provider;
-  }
-
-  /**
    * Get available markets with optional filtering
    */
-  async getMarkets(params?: { category?: MarketCategory }): Promise<Market[]> {
+  async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const provider = this.getActiveProvider();
-      const allMarkets = await provider.getMarkets(params);
+      const provider = this.providers.get('polymarket');
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+      const allMarkets = await provider?.getMarkets(params);
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -453,53 +422,21 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Get available events with optional filtering
-   */
-  async getEvents(params?: {
-    category?: MarketCategory;
-    q?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<PredictEvent[]> {
-    try {
-      const provider = this.getActiveProvider();
-      const allEvents = await provider.getEvents(params);
-
-      // Clear any previous errors on successful call
-      this.update((state) => {
-        state.lastError = null;
-        state.lastUpdateTimestamp = Date.now();
-      });
-
-      return allEvents;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : PREDICT_ERROR_CODES.MARKETS_FAILED;
-
-      // Update error state
-      this.update((state) => {
-        state.lastError = errorMessage;
-        state.lastUpdateTimestamp = Date.now();
-      });
-
-      // Re-throw the error so components can handle it appropriately
-      throw error;
-    }
-  }
-
-  /**
    * Get user positions
    */
-  async getPositions(): Promise<Position[]> {
+  async getPositions({
+    address,
+  }: GetPositionsParams): Promise<PredictPosition[]> {
     try {
-      const provider = this.getActiveProvider();
+      const provider = this.providers.get('polymarket');
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
 
-      // TODO: Change to AccountTreeController when available
       const { AccountsController } = Engine.context;
 
-      const selectedAddress = AccountsController.getSelectedAccount().address;
+      const selectedAddress =
+        address ?? AccountsController.getSelectedAccount().address;
 
       const positions = await provider.getPositions({
         address: selectedAddress,
@@ -533,28 +470,37 @@ export class PredictController extends BaseController<
   async buy({
     marketId,
     outcomeId,
+    outcomeTokenId,
     amount,
-  }: {
-    marketId: string;
-    outcomeId: string;
-    amount: number;
-  }): Promise<PlaceOrderResult> {
+    providerId,
+  }: BuyParams): Promise<Result> {
     try {
-      const provider = this.getActiveProvider();
+      const provider = this.providers.get(providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
 
       // TODO: Change to AccountTreeController when available
-      const { AccountsController, NetworkController } = Engine.context;
+      const { AccountsController, NetworkController, KeyringController } =
+        Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
 
-      const { callData, toAddress, chainId } =
-        await provider.prepareBuyTransaction({
+      const order = await provider.prepareOrder({
+        signer: {
           address: selectedAddress,
-          orderParams: {
-            marketId,
-            outcomeId,
-            amount,
-          },
-        });
+          signTypedMessage: (
+            params: TypedMessageParams,
+            version: SignTypedDataVersion,
+          ) => KeyringController.signTypedMessage(params, version),
+        },
+        marketId,
+        outcomeId,
+        outcomeTokenId,
+        amount,
+        isBuy: true,
+      });
+
+      const { chainId, to, data, value } = order.onchainTradeParams;
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         numberToHex(chainId),
@@ -563,9 +509,9 @@ export class PredictController extends BaseController<
       const { transactionMeta } = await addTransaction(
         {
           from: selectedAddress,
-          to: toAddress,
-          data: callData,
-          value: '0x0',
+          to,
+          data,
+          value,
         },
         {
           networkClientId,
@@ -575,32 +521,25 @@ export class PredictController extends BaseController<
       );
 
       this.update((state) => {
-        state.activeOrders[transactionMeta.id] = {
-          status: 'approving',
-          txMeta: transactionMeta,
-          providerId: provider.providerId,
-          params: {
-            marketId,
-            outcomeId,
-            side: Side.BUY,
-            amount,
-          },
-        };
+        state.activeOrders[transactionMeta.id] = order;
+        state.activeOrders[transactionMeta.id].onchainTradeParams.txMeta =
+          transactionMeta;
+        state.activeOrders[transactionMeta.id].status = 'pending';
       });
 
       return {
         success: true,
-        txMeta: transactionMeta,
-        providerId: provider.providerId,
+        error: undefined,
+        transactionId: transactionMeta.id,
       };
     } catch (error) {
       return {
         success: false,
-        providerId: this.state.activeProvider,
         error:
           error instanceof Error
             ? error.message
             : PREDICT_ERROR_CODES.PLACE_BUY_ORDER_FAILED,
+        transactionId: undefined,
       };
     }
   }
@@ -647,26 +586,6 @@ export class PredictController extends BaseController<
             : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
       };
     }
-  }
-
-  /**
-   * Switch to a different provider
-   */
-  async switchProvider(providerId: string): Promise<SwitchProviderResult> {
-    if (!this.providers.has(providerId)) {
-      return {
-        success: false,
-        providerId: this.state.activeProvider,
-        error: `Provider ${providerId} not available`,
-      };
-    }
-
-    this.update((state) => {
-      state.activeProvider = providerId;
-      state.connectionStatus = 'disconnected';
-    });
-
-    return { success: true, providerId };
   }
 
   /**

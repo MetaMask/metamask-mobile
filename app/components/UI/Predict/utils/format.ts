@@ -1,4 +1,6 @@
+import { strings } from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
+import { PredictSeries, Recurrence } from '../types';
 
 /**
  * Formats a percentage value with sign prefix
@@ -97,4 +99,41 @@ export const formatVolume = (volume: string | number): string => {
   }
 
   return Math.floor(num).toString();
+};
+
+const formatRecurrence = (recurrence: string): string => {
+  if (!recurrence) return '';
+
+  // Capitalize first letter and handle common recurrence types
+  const formatted = recurrence.charAt(0).toUpperCase() + recurrence.slice(1);
+
+  // Handle special cases
+  switch (recurrence.toLowerCase()) {
+    case Recurrence.MONTHLY:
+      return strings('predict.recurrence.monthly');
+    case Recurrence.WEEKLY:
+      return strings('predict.recurrence.weekly');
+    case Recurrence.DAILY:
+      return strings('predict.recurrence.daily');
+    case Recurrence.YEARLY:
+    case Recurrence.ANNUALLY:
+      return strings('predict.recurrence.yearly');
+    case Recurrence.QUARTERLY:
+      return strings('predict.recurrence.quarterly');
+    default:
+      return formatted;
+  }
+};
+
+export const getRecurrenceDisplay = (series?: PredictSeries[]): string => {
+  if (!series || series.length === 0) {
+    return '';
+  }
+
+  const recurrence = series[0]?.recurrence;
+  if (!recurrence) {
+    return '';
+  }
+
+  return formatRecurrence(recurrence);
 };

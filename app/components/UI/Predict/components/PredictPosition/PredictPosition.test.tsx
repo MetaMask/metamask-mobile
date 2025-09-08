@@ -1,30 +1,38 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import PredictPosition from './PredictPosition';
-import type { Position } from '../../types';
+import type { PredictPosition as PredictPositionType } from '../../types';
 
-const basePosition: Position = {
+const basePosition: PredictPositionType = {
+  id: 'pos-1',
   providerId: 'polymarket',
+  marketId: 'market-1',
+  outcomeId: 'outcome-1',
+  outcomeTokenId: 0,
   conditionId: 'cond-1',
   icon: 'https://example.com/icon.png',
   title: 'Will ETF be approved?',
-  slug: 'etf-approved',
-  size: 10,
   outcome: 'Yes',
   outcomeIndex: 0,
-  cashPnl: 100,
+  amount: 10,
+  price: 0.67,
+  status: 'open',
+  size: 10,
   curPrice: 0.67,
-  currentValue: 2345.67,
+  cashPnl: 100,
   percentPnl: 5.25,
   initialValue: 123.45,
   avgPrice: 0.34,
+  currentValue: 2345.67,
   redeemable: false,
-  negativeRisk: false,
   endDate: '2025-12-31T00:00:00Z',
 };
 
-const renderComponent = (overrides?: Partial<Position>) => {
-  const position: Position = { ...basePosition, ...overrides } as Position;
+const renderComponent = (overrides?: Partial<PredictPositionType>) => {
+  const position: PredictPositionType = {
+    ...basePosition,
+    ...overrides,
+  } as PredictPositionType;
   return render(<PredictPosition position={position} />);
 };
 
