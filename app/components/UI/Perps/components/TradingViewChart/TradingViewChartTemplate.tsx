@@ -101,14 +101,14 @@ export const createTradingViewChartTemplate = (
                         touch: true,
                         // Momentum and friction tuning for smoother panning
                         momentum: {
-                            friction: 0.1, // Very low friction for quick stop after fling
-                            minVelocity: 0.1, // Lower threshold for more responsive stopping
+                            friction: 0.2, // Very low friction for quick stop after fling
+                            minVelocity: 0.3, // Lower threshold for more responsive stopping
                         },
                         // Additional kinetic settings for mobile optimization
                         touch: {
                             enabled: true,
                             // Fine-tune touch sensitivity
-                            sensitivity: 1.0, // Default sensitivity
+                            sensitivity: 0.5, // Default sensitivity
                         }
                     },
                     crosshair: {
