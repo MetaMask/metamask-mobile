@@ -544,7 +544,7 @@ describe('useRewards', () => {
       });
     });
 
-    it('should set hasError to true when isRewardsFeatureEnabled fails', async () => {
+    it('should set hasError to true when isRewardsFeatureEnabled throws an error', async () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           throw new Error('Feature check failed');
@@ -579,7 +579,7 @@ describe('useRewards', () => {
       });
     });
 
-    it('should set hasError to true when getHasAccountOptedIn fails', async () => {
+    it('should set hasError to true when getHasAccountOptedIn throws an error', async () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
@@ -641,7 +641,7 @@ describe('useRewards', () => {
       });
 
       const { result, rerender } = renderHookWithProvider(
-        (props) =>
+        (props: { activeQuote: typeof mockActiveQuote }) =>
           useRewards({
             activeQuote: props?.activeQuote || mockActiveQuote,
             isQuoteLoading: false,
