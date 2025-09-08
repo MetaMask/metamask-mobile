@@ -5,4 +5,5 @@ export interface PerpsTokenLogoProps {
   size?: number;
   style?: ViewStyle;
   testID?: string;
+  recyclingKey?: string; // For FlashList optimization
 }
