@@ -14,6 +14,7 @@ jest.mock('../controllers/PerpsController', () => ({
     ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
     MARKETS_FAILED: 'MARKETS_FAILED',
     UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+    ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
   },
 }));
 
@@ -141,6 +142,18 @@ describe('translatePerpsError', () => {
       expect(result).toBe('perps.errors.unknownError');
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
     });
+
+    it('should translate ORDER_LEVERAGE_REDUCTION_FAILED error code', () => {
+      const result = translatePerpsError({
+        error: PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+      });
+
+      expect(result).toBe('perps.errors.orderLeverageReductionFailed');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.orderLeverageReductionFailed',
+        {},
+      );
+    });
   });
 
   describe('with Error objects', () => {
@@ -160,6 +173,37 @@ describe('translatePerpsError', () => {
       const result = translatePerpsError({ error });
 
       expect(result).toBe('Custom error message');
+    });
+
+    it('should use fallbackMessage when Error is not an error code', () => {
+      const error = new Error('Some technical error');
+      const result = translatePerpsError({
+        error,
+        fallbackMessage: 'User-friendly fallback message',
+      });
+
+      expect(result).toBe('User-friendly fallback message');
+    });
+
+    it('should prioritize error code translation over fallbackMessage', () => {
+      const error = new Error(PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED);
+      const result = translatePerpsError({
+        error,
+        data: { token: 'DAI' },
+        fallbackMessage: 'This should not be used',
+      });
+
+      expect(result).toBe('perps.errors.tokenNotSupported [token:DAI]');
+      expect(strings).toHaveBeenCalledWith('perps.errors.tokenNotSupported', {
+        token: 'DAI',
+      });
+    });
+
+    it('should return error message when no fallbackMessage provided', () => {
+      const error = new Error('Specific error details');
+      const result = translatePerpsError({ error });
+
+      expect(result).toBe('Specific error details');
     });
   });
 
@@ -182,6 +226,51 @@ describe('translatePerpsError', () => {
         'perps.errors.clientNotInitialized',
         {},
       );
+    });
+
+    it('should use fallbackMessage when string is not an error code', () => {
+      const result = translatePerpsError({
+        error: 'Technical error details',
+        fallbackMessage: 'Something went wrong',
+      });
+
+      expect(result).toBe('Something went wrong');
+    });
+
+    it('should prioritize string error over fallbackMessage', () => {
+      const result = translatePerpsError({
+        error: 'Actual error message',
+        fallbackMessage: 'Fallback message',
+      });
+
+      expect(result).toBe('Fallback message');
+    });
+
+    it('should prioritize error code translation over fallbackMessage for string codes', () => {
+      const result = translatePerpsError({
+        error: PERPS_ERROR_CODES.MARKETS_FAILED,
+        fallbackMessage: 'Should not be used',
+      });
+
+      expect(result).toBe('perps.errors.marketsFailed');
+      expect(strings).toHaveBeenCalledWith('perps.errors.marketsFailed', {});
+    });
+
+    it('should use fallbackMessage for empty string', () => {
+      const result = translatePerpsError({
+        error: '',
+        fallbackMessage: 'Default error message',
+      });
+
+      expect(result).toBe('Default error message');
+    });
+
+    it('should return empty string when no fallbackMessage for empty error', () => {
+      const result = translatePerpsError({
+        error: '',
+      });
+
+      expect(result).toBe('');
     });
   });
 });
@@ -375,6 +464,74 @@ describe('handlePerpsError', () => {
       });
 
       expect(result).toBe('Some error');
+    });
+  });
+
+  describe('with error codes and fallbackMessage', () => {
+    it('should ignore fallbackMessage when valid error code is provided', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,
+        fallbackMessage: 'This should be ignored',
+      });
+
+      expect(result).toBe('perps.errors.clientNotInitialized');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.clientNotInitialized',
+        {},
+      );
+    });
+
+    it('should ignore fallbackMessage for TOKEN_NOT_SUPPORTED with context', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED,
+        context: { token: 'WETH' },
+        fallbackMessage: 'Should not appear',
+      });
+
+      expect(result).toBe('perps.errors.tokenNotSupported [token:WETH]');
+      expect(strings).toHaveBeenCalledWith('perps.errors.tokenNotSupported', {
+        token: 'WETH',
+      });
+    });
+
+    it('should ignore fallbackMessage for PROVIDER_NOT_AVAILABLE with context', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE,
+        context: { providerId: 'gmx' },
+        fallbackMessage: 'Ignored fallback',
+      });
+
+      expect(result).toBe('perps.errors.providerNotAvailable [providerId:gmx]');
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerNotAvailable',
+        {
+          providerId: 'gmx',
+        },
+      );
+    });
+
+    it('should ignore fallbackMessage for Error object with valid error code', () => {
+      const error = new Error(PERPS_ERROR_CODES.WITHDRAW_FAILED);
+      const result = handlePerpsError({
+        error,
+        context: { amount: '500' },
+        fallbackMessage: 'Generic withdrawal error',
+      });
+
+      expect(result).toBe('perps.errors.withdrawFailed [amount:500]');
+      expect(strings).toHaveBeenCalledWith('perps.errors.withdrawFailed', {
+        amount: '500',
+      });
+    });
+
+    it('should use fallbackMessage for Error object without valid error code', () => {
+      const error = new Error('Network timeout');
+      const result = handlePerpsError({
+        error,
+        fallbackMessage: 'Connection error, please try again',
+      });
+
+      expect(result).toBe('Connection error, please try again');
     });
   });
 
