@@ -89,8 +89,6 @@ const Identicon: React.FC<IdenticonProps> = ({
       {avatar}
     </FadeIn>
   );
-
-  // Unreachable
 };
 
 export default memo(Identicon);
