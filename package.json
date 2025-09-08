@@ -200,7 +200,7 @@
     "appwright/**/@ffmpeg-installer/linux-x64": "npm:noop-fn@1.0.0",
     "appwright/**/@ffmpeg-installer/win32-ia32": "npm:noop-fn@1.0.0",
     "appwright/**/@ffmpeg-installer/win32-x64": "npm:noop-fn@1.0.0",
-    "@metamask/multichain-account-service": "npm:@metamask-previews/multichain-account-service@0.6.0-preview-3734aa94"
+    "@metamask/multichain-account-service": "npm:@metamask-previews/multichain-account-service@0.6.0-preview-cab2ca5"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -258,7 +258,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/mobile-wallet-protocol-core": "^0.0.6",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.0.6",
-    "@metamask/multichain-account-service": "npm:@metamask-previews/multichain-account-service@0.6.0-preview-3734aa94",
+    "@metamask/multichain-account-service": "npm:@metamask-previews/multichain-account-service@0.6.0-preview-cab2ca5",
     "@metamask/multichain-api-client": "^0.6.5",
     "@metamask/multichain-api-middleware": "^1.0.0",
     "@metamask/multichain-network-controller": "^0.10.0",

@@ -5561,10 +5561,10 @@
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@0.6.0-preview-3734aa94":
-  version "0.6.0-preview-3734aa94"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/multichain-account-service/-/multichain-account-service-0.6.0-preview-3734aa94.tgz#81083db8cf6818380898a14c8859aade67ab8444"
-  integrity sha512-HhEDgpDizXPqI/5NbPyjzmWpx+0AwTfToOyaYQdd/lSOQHxngtrafOSx9eqwXDIJkvm6CCA1JD+aRhEqozmjow==
+"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@0.6.0-preview-cab2ca5":
+  version "0.6.0-preview-cab2ca5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/multichain-account-service/-/multichain-account-service-0.6.0-preview-cab2ca5.tgz#6f25b3e80d00125ab99fb59217bb360e69c33c5a"
+  integrity sha512-e5FTlMWiB4vW+iAFC3vremiIkFNyj5QRFVThtoL9lcPUScc9xDSDqSKKMdAp+kgGSml01DCK3hqSSYTbGCH7jA==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
     "@metamask/eth-snap-keyring" "^16.1.0"
@@ -5572,10 +5572,10 @@
     "@metamask/keyring-internal-api" "^8.1.0"
     "@metamask/keyring-snap-client" "^7.0.0"
     "@metamask/keyring-utils" "^3.1.0"
-    "@metamask/scure-bip39" "^2.1.1"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
 
 "@metamask/multichain-api-client@^0.6.5":
   version "0.6.5"
