@@ -318,7 +318,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
   useEffect(() => {
     if (marketDataError) {
       showToast(
-        PerpsToastOptions.market.error.marketDataUnavailable(orderForm.asset),
+        PerpsToastOptions.dataFetching.market.error.marketDataUnavailable(
+          orderForm.asset,
+        ),
       );
     }
   }, [
@@ -326,7 +328,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.asset,
     navigation,
     showToast,
-    PerpsToastOptions.market,
+    PerpsToastOptions.dataFetching.market.error,
   ]);
 
   // Real-time position size calculation - memoized to prevent recalculation
@@ -579,7 +581,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
       if (!orderValidation.isValid) {
         const firstError = orderValidation.errors[0];
         showToast(
-          PerpsToastOptions.order.orderForm.validationError(firstError),
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            firstError,
+          ),
         );
 
         // Track validation failure as error encountered
@@ -676,7 +680,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     navigationMarketData,
     executeOrder,
     showToast,
-    PerpsToastOptions.order.orderForm,
+    PerpsToastOptions.formValidation.orderForm,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render

@@ -58,7 +58,12 @@ export const usePerpsWithdrawStatus = () => {
       const amount = lastWithdrawResult.amount || '';
 
       // Show withdrawal initiated toast with arrival time info
-      showToast(PerpsToastOptions.withdrawal.withdrawalSuccess(amount, 'USDC'));
+      showToast(
+        PerpsToastOptions.accountManagement.withdrawal.withdrawalSuccess(
+          amount,
+          'USDC',
+        ),
+      );
 
       // Clear the result after showing toast
       timeoutId = setTimeout(() => {
@@ -68,7 +73,9 @@ export const usePerpsWithdrawStatus = () => {
     } else {
       // Show error toast
       showToast(
-        PerpsToastOptions.withdrawal.withdrawalFailed(lastWithdrawResult.error),
+        PerpsToastOptions.accountManagement.withdrawal.withdrawalFailed(
+          lastWithdrawResult.error,
+        ),
       );
 
       // Clear the result after showing toast
@@ -88,7 +95,7 @@ export const usePerpsWithdrawStatus = () => {
     lastWithdrawResult,
     clearWithdrawResult,
     showToast,
-    PerpsToastOptions.withdrawal,
+    PerpsToastOptions.accountManagement.withdrawal,
   ]);
 
   return { withdrawInProgress: !!lastWithdrawResult };

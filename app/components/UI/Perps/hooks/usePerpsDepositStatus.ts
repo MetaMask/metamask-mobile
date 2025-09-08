@@ -63,7 +63,7 @@ export const usePerpsDepositStatus = () => {
 
       if (!lastDepositResult.success) {
         // Show error toast
-        showToast(PerpsToastOptions.deposit.error);
+        showToast(PerpsToastOptions.accountManagement.deposit.error);
 
         // Clear the result after showing toast
         timeoutId = setTimeout(() => {
@@ -83,7 +83,7 @@ export const usePerpsDepositStatus = () => {
     lastDepositResult,
     clearDepositResult,
     showToast,
-    PerpsToastOptions.deposit.error,
+    PerpsToastOptions.accountManagement.deposit.error,
   ]);
 
   return { depositInProgress };

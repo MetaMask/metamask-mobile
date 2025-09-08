@@ -124,7 +124,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         const processingTimeSeconds =
           bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
 
-        showToast(PerpsToastOptions.deposit.inProgress(processingTimeSeconds));
+        showToast(
+          PerpsToastOptions.accountManagement.deposit.inProgress(
+            processingTimeSeconds,
+          ),
+        );
       }
     };
 
@@ -139,7 +143,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         handleTransactionSubmitted,
       );
     };
-  }, [PerpsToastOptions.deposit, bridgeQuotes, showToast]);
+  }, [PerpsToastOptions.accountManagement.deposit, bridgeQuotes, showToast]);
 
   // Listen for deposit transaction confirmations
   useEffect(() => {
@@ -179,7 +183,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         parseFloat(previousBalanceRef.current)
     ) {
       showToast(
-        PerpsToastOptions.deposit.success(
+        PerpsToastOptions.accountManagement.deposit.success(
           formatPerpsFiat(liveAccount.availableBalance),
         ),
       );
@@ -191,7 +195,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       previousBalanceRef.current = liveAccount.availableBalance;
     }
   }, [
-    PerpsToastOptions.deposit,
+    PerpsToastOptions.accountManagement.deposit,
     isExpectingDeposit,
     liveAccount?.availableBalance,
     showToast,

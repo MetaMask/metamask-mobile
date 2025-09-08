@@ -211,7 +211,9 @@ const PerpsWithdrawView: React.FC = () => {
     });
 
     // Show processing toast immediately
-    showToast(PerpsToastOptions.withdrawal.withdrawalInProgress);
+    showToast(
+      PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
+    );
 
     // Navigate back immediately to close the withdrawal screen
     navigation.goBack();
@@ -303,7 +305,7 @@ const PerpsWithdrawView: React.FC = () => {
     trackEvent,
     withdrawAmount,
     showToast,
-    PerpsToastOptions.withdrawal.withdrawalInProgress,
+    PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
     navigation,
     destToken.chainId,
     destToken.address,

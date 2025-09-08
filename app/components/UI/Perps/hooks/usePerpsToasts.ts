@@ -103,74 +103,76 @@ const usePerpsToasts = () => {
   // Centralized toast options for Perps
   const PerpsToastOptions = useMemo(
     () => ({
-      deposit: {
-        success: (amountFormatted: string) => ({
-          ...perpsBaseToastOptions.success,
-          labelOptions: getPerpsToastLabels(
-            strings('perps.deposit.success_toast'),
-            strings('perps.deposit.success_message', {
-              amount: amountFormatted,
-            }),
-          ),
-        }),
-        inProgress: (processingTimeInSeconds: number | undefined) => {
-          let processingMessage = strings(
-            'perps.deposit.funds_available_momentarily',
-          );
-
-          if (processingTimeInSeconds && processingTimeInSeconds > 0) {
-            const formattedProcessingTime = toHumanDuration(
-              processingTimeInSeconds,
+      accountManagement: {
+        deposit: {
+          success: (amountFormatted: string) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.success_toast'),
+              strings('perps.deposit.success_message', {
+                amount: amountFormatted,
+              }),
+            ),
+          }),
+          inProgress: (processingTimeInSeconds: number | undefined) => {
+            let processingMessage = strings(
+              'perps.deposit.funds_available_momentarily',
             );
-            processingMessage = strings(
-              'perps.deposit.estimated_processing_time',
-              {
-                time: formattedProcessingTime,
-              },
-            );
-          }
 
-          return {
+            if (processingTimeInSeconds && processingTimeInSeconds > 0) {
+              const formattedProcessingTime = toHumanDuration(
+                processingTimeInSeconds,
+              );
+              processingMessage = strings(
+                'perps.deposit.estimated_processing_time',
+                {
+                  time: formattedProcessingTime,
+                },
+              );
+            }
+
+            return {
+              ...perpsBaseToastOptions.inProgress,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.deposit.in_progress'),
+                processingMessage,
+              ),
+            };
+          },
+          error: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.error_toast'),
+              strings('perps.deposit.error_generic'),
+            ),
+          },
+        },
+        withdrawal: {
+          withdrawalInProgress: {
             ...perpsBaseToastOptions.inProgress,
             labelOptions: getPerpsToastLabels(
-              strings('perps.deposit.in_progress'),
-              processingMessage,
+              strings('perps.withdrawal.processing_title'),
+              strings('perps.withdrawal.eta_will_be_shared_shortly'),
             ),
-          };
+          },
+          withdrawalSuccess: (amount: string, assetSymbol: string) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.withdrawal.success_toast'),
+              strings('perps.withdrawal.arrival_time', {
+                amount,
+                symbol: assetSymbol,
+              }),
+            ),
+          }),
+          withdrawalFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.withdrawal.error'),
+              error || strings('perps.withdrawal.error_generic'),
+            ),
+          }),
         },
-        error: {
-          ...perpsBaseToastOptions.error,
-          labelOptions: getPerpsToastLabels(
-            strings('perps.deposit.error_toast'),
-            strings('perps.deposit.error_generic'),
-          ),
-        },
-      },
-      withdrawal: {
-        withdrawalInProgress: {
-          ...perpsBaseToastOptions.inProgress,
-          labelOptions: getPerpsToastLabels(
-            strings('perps.withdrawal.processing_title'),
-            strings('perps.withdrawal.eta_will_be_shared_shortly'),
-          ),
-        },
-        withdrawalSuccess: (amount: string, assetSymbol: string) => ({
-          ...perpsBaseToastOptions.success,
-          labelOptions: getPerpsToastLabels(
-            strings('perps.withdrawal.success_toast'),
-            strings('perps.withdrawal.arrival_time', {
-              amount,
-              symbol: assetSymbol,
-            }),
-          ),
-        }),
-        withdrawalFailed: (error?: string) => ({
-          ...perpsBaseToastOptions.error,
-          labelOptions: getPerpsToastLabels(
-            strings('perps.withdrawal.error'),
-            error || strings('perps.withdrawal.error_generic'),
-          ),
-        }),
       },
       // Intentional duplication of some options between market and limit to avoid coupling.
       orderManagement: {
@@ -305,18 +307,6 @@ const usePerpsToasts = () => {
           },
         },
       },
-      order: {
-        // TODO: Move into form validation section
-        orderForm: {
-          validationError: (error: string) => ({
-            ...perpsBaseToastOptions.error,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.order.validation.failed'),
-              error,
-            ),
-          }),
-        },
-      },
       positionManagement: {
         closePosition: {
           marketClose: {
@@ -426,25 +416,37 @@ const usePerpsToasts = () => {
           },
         },
       },
-      // TODO: Move to dataFetching section
-      market: {
-        error: {
-          marketDataUnavailable: (assetSymbol: string) => ({
+      formValidation: {
+        orderForm: {
+          validationError: (error: string) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
-              strings('perps.order.error.invalid_asset'),
-              strings('perps.order.error.asset_not_tradable', {
-                asset: assetSymbol,
-              }),
+              strings('perps.order.validation.failed'),
+              error,
             ),
-            closeButtonOptions: {
-              label: strings('perps.order.error.go_back'),
-              variant: ButtonVariants.Secondary,
-              onPress: () => {
-                navigationHandlers.goToPerpsTab();
-              },
-            },
           }),
+        },
+      },
+      dataFetching: {
+        market: {
+          error: {
+            marketDataUnavailable: (assetSymbol: string) => ({
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.error.invalid_asset'),
+                strings('perps.order.error.asset_not_tradable', {
+                  asset: assetSymbol,
+                }),
+              ),
+              closeButtonOptions: {
+                label: strings('perps.order.error.go_back'),
+                variant: ButtonVariants.Secondary,
+                onPress: () => {
+                  navigationHandlers.goToPerpsTab();
+                },
+              },
+            }),
+          },
         },
       },
     }),
