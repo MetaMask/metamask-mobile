@@ -82,9 +82,11 @@ import {
   endTrace,
   trace,
   TraceOperation,
-} from '../../../util/trace';
+ flushBufferedTraces, updateCachedConsent } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { setupSentry } from '../../../util/sentry/utils';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -203,6 +205,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  */
 class ChoosePassword extends PureComponent {
   static propTypes = {
+    setDataCollectionForMarketing: PropTypes.func,
     /**
      * The navigator object
      */
@@ -477,7 +480,14 @@ class ChoosePassword extends PureComponent {
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
+        const { metrics, setDataCollectionForMarketing } = this.props;
         await StorageWrapper.setItem(USE_TERMS, TRUE);
+        await setupSentry();
+        await flushBufferedTraces();
+        updateCachedConsent(true);
+
+        await metrics.enable();
+        setDataCollectionForMarketing(this.state.isCheckboxChecked);
 
         this.props.navigation.reset({
           index: 0,

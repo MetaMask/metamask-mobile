@@ -92,12 +92,16 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
+const mockEnable = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
+    enable: mockEnable,
   }),
 }));
+
+const mockSetDataCollectionForMarketing = jest.fn();
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
@@ -151,6 +155,7 @@ interface ChoosePasswordProps {
   metrics: {
     isEnabled: jest.Mock;
   };
+  setDataCollectionForMarketing: jest.Mock;
 }
 
 const mockNavigation = {
@@ -171,11 +176,17 @@ const renderWithProviders = (ui: React.ReactElement) =>
   );
 
 const defaultProps: ChoosePasswordProps = {
-  route: { params: { [ONBOARDING]: true, [PROTECT]: true } },
+  route: {
+    params: {
+      [ONBOARDING]: true,
+      [PROTECT]: true,
+    },
+  },
   navigation: mockNavigation,
   metrics: {
     isEnabled: mockMetricsIsEnabled,
   },
+  setDataCollectionForMarketing: mockSetDataCollectionForMarketing,
 };
 
 describe('ChoosePassword', () => {
@@ -506,6 +517,7 @@ describe('ChoosePassword', () => {
       metrics: {
         isEnabled: jest.fn(),
       },
+      setDataCollectionForMarketing: jest.fn(),
     };
 
     const component = renderWithProviders(<ChoosePassword {...props} />);

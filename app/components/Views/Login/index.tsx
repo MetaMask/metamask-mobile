@@ -110,6 +110,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import { setupSentry } from '../../../util/sentry/utils';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -554,6 +555,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       if (oauthLoginSuccess) {
+        await setupSentry();
         await navigateToHome();
       } else {
         await checkMetricsUISeen();
