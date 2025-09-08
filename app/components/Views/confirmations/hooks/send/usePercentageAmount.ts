@@ -1,7 +1,6 @@
 import BN from 'bnjs4';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useCallback } from 'react';
 
 import { hexToBN } from '../../../../../util/number';
@@ -56,15 +55,9 @@ export const getPercentageValueFn = ({
     return '0';
   }
   let estimatedTotalGas = new BN('0');
-  if (isEvmSendType && percentage === 100) {
-    const nativeTokenAddressForChainId = getNativeTokenAddress(
-      asset?.chainId as Hex,
-    );
-    if (
-      nativeTokenAddressForChainId.toLowerCase() === asset.address.toLowerCase()
-    ) {
-      estimatedTotalGas = getEstimatedTotalGas(gasFeeEstimates, layer1GasFee);
-    }
+
+  if (isEvmSendType && percentage === 100 && asset.isNative) {
+    estimatedTotalGas = getEstimatedTotalGas(gasFeeEstimates, layer1GasFee);
   }
 
   let percentageValue = rawBalanceBN.sub(estimatedTotalGas);
