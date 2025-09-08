@@ -2,24 +2,21 @@ import axios from 'axios';
 
 export class PerformanceTracker {
   constructor() {
-    this.timers = {};
+    this.timers = [];
   }
 
   addTimer(timer) {
-    if (this.timers[timer.id]) {
-      // eslint-disable-next-line no-console
-      console.log('Timer already exists', timer.id);
+    if (this.timers.find((existingTimer) => existingTimer.id === timer.id)) {
       return;
     }
-    this.timers[timer.id] = timer;
+
+    this.timers.push(timer);
   }
 
   async storeSessionData(sessionId, testTitle) {
     // Store in process environment
     process.env.TEMP_SESSION_ID = sessionId;
     process.env.TEMP_TEST_TITLE = testTitle;
-
-    console.log(`✅ Session data stored: ${sessionId}`);
   }
 
   async getVideoURL(sessionId, maxRetries = 60, delayMs = 3000) {
@@ -29,16 +26,12 @@ export class PerformanceTracker {
     console.log(
       `🔄 STARTING RETRY MECHANISM: ${maxRetries} retries, ${delayMs}ms delays`,
     );
-    console.log(
-      `📊 Estimated total time: ${(maxRetries * delayMs) / 1000} seconds`,
-    );
-    console.log(`🕐 Start time: ${new Date().toISOString()}`);
-
+    console.log(`📊 Max total time: ${(maxRetries * delayMs) / 1000} seconds`);
     // Initial delay to let BrowserStack process the session
     console.log(
-      '⏱️ Initial 15-second wait for BrowserStack session processing...',
+      '⏱️ Initial 5-second wait for BrowserStack session processing...',
     );
-    await new Promise((resolve) => setTimeout(resolve, 15000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const startTime = Date.now();
@@ -119,19 +112,49 @@ export class PerformanceTracker {
   }
 
   async attachToTest(testInfo) {
-    const metrics = {};
+    const metrics = {
+      steps: [],
+    };
     let totalSeconds = 0;
-    for (const [id, timer] of Object.entries(this.timers)) {
-      metrics[id] = timer.getDuration();
-      totalSeconds += timer.getDurationInSeconds();
-    }
-    metrics.total = totalSeconds;
-    metrics.device = testInfo.project.use.device;
 
-    await testInfo.attach(`performance-metrics-${testInfo.title}`, {
-      body: JSON.stringify(metrics),
-      contentType: 'application/json',
-    });
+    for (const timer of this.timers) {
+      const duration = timer.getDuration();
+      const durationInSeconds = timer.getDurationInSeconds();
+
+      if (duration !== null && !isNaN(duration) && duration > 0) {
+        // Create a step object with the timer id as key and duration as value
+        const stepObject = {};
+        stepObject[timer.id] = duration;
+        metrics.steps.push(stepObject);
+
+        totalSeconds += durationInSeconds;
+      }
+    }
+
+    metrics.total = totalSeconds;
+
+    // Safely get device info with fallbacks
+    const deviceInfo = testInfo?.project?.use?.device;
+    if (deviceInfo) {
+      metrics.device = deviceInfo;
+    } else {
+      metrics.device = {
+        name: 'Unknown',
+        osVersion: 'Unknown',
+        provider: 'unknown',
+      };
+    }
+
+    try {
+      await testInfo.attach(`performance-metrics-${testInfo.title}`, {
+        body: JSON.stringify(metrics),
+        contentType: 'application/json',
+      });
+    } catch (error) {
+      console.error(`❌ Failed to attach performance metrics:`, error.message);
+      throw error;
+    }
+
     return metrics;
   }
 }
