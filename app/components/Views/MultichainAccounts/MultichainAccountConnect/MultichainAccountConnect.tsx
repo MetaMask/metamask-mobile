@@ -14,7 +14,6 @@ import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n.js';
-import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet/index.ts';
 import {
   ToastContext,
   ToastVariants,
