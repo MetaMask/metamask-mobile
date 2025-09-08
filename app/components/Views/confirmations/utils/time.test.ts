@@ -1,8 +1,4 @@
-import {
-  toHumanDuration,
-  toHumanEstimatedTimeRange,
-  toHumanSeconds,
-} from './time';
+import { toHumanEstimatedTimeRange, toHumanSeconds } from './time';
 
 describe('toHumanEstimatedTimeRange', () => {
   it('return undefined for invalid inputs', () => {
@@ -60,32 +56,5 @@ describe('toHumanSeconds', () => {
     expect(toHumanSeconds(60000)).toBe('60 sec');
     expect(toHumanSeconds(120000)).toBe('120 sec');
     expect(toHumanSeconds(3600000)).toBe('3600 sec');
-  });
-});
-
-describe('toHumanDuration', () => {
-  it('should format seconds correctly', () => {
-    expect(toHumanDuration(30)).toBe('30 sec');
-    expect(toHumanDuration(45)).toBe('45 sec');
-    expect(toHumanDuration(59)).toBe('59 sec');
-  });
-
-  it('should format minutes correctly', () => {
-    expect(toHumanDuration(60)).toBe('1 min');
-    expect(toHumanDuration(120)).toBe('2 min');
-    expect(toHumanDuration(90)).toBe('1.5 min');
-    expect(toHumanDuration(150)).toBe('2.5 min');
-  });
-
-  it('should format hours correctly', () => {
-    expect(toHumanDuration(3600)).toBe('1 hr');
-    expect(toHumanDuration(5400)).toBe('1.5 hr');
-    expect(toHumanDuration(7200)).toBe('2 hr');
-  });
-
-  it('should handle edge cases', () => {
-    expect(toHumanDuration(0)).toBe('0 sec');
-    expect(toHumanDuration(3599)).toBe('60 min'); // Just under an hour
-    expect(toHumanDuration(3601)).toBe('1 hr'); // Just over an hour
   });
 });

@@ -62,18 +62,3 @@ export const toHumanSeconds = (milliseconds: number): string => {
 
   return shortEnglishHumanizer(milliseconds, options);
 };
-
-// TODO: Add tests
-export const toHumanDuration = (seconds: number): string => {
-  const milliseconds = seconds * 1000;
-
-  const options = {
-    units: ['h', 'm', 's'] as const,
-    round: true,
-    spacer: ' ',
-    largest: 1, // Show only the largest appropriate unit
-    maxDecimalPoints: 1,
-  };
-
-  return shortEnglishHumanizer(milliseconds, options);
-};

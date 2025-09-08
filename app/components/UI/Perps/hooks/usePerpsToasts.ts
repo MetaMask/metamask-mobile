@@ -7,7 +7,6 @@ import {
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import { toHumanDuration } from '../../../Views/confirmations/utils/time';
 import { capitalize } from '../../../../util/general';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
@@ -15,6 +14,7 @@ import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
 import { OrderDirection } from '../types';
+import { formatDurationForDisplay } from '../utils/time';
 
 export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
@@ -232,7 +232,7 @@ const usePerpsToasts = (): {
             );
 
             if (processingTimeInSeconds && processingTimeInSeconds > 0) {
-              const formattedProcessingTime = toHumanDuration(
+              const formattedProcessingTime = formatDurationForDisplay(
                 processingTimeInSeconds,
               );
               processingMessage = strings(
