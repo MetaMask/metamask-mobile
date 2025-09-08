@@ -1,5 +1,5 @@
 import { IconName } from '@metamask/design-system-react-native';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 /**
@@ -79,13 +79,13 @@ export const getEventDetails = (
   switch (event.type) {
     case 'SWAP':
       return {
-        title: 'Swap',
+        title: strings('rewards.events.swap'),
         details: '0.0 ETH to USDC',
         icon: IconName.SwapVertical,
       };
     case 'PERPS':
       return {
-        title: 'Perps',
+        title: strings('rewards.events.perps'),
         details: getPerpsEventDetails(event),
         icon: IconName.Chart,
       };
@@ -97,25 +97,25 @@ export const getEventDetails = (
       };
     case 'SIGN_UP_BONUS':
       return {
-        title: 'Sign up bonus',
+        title: strings('rewards.events.sign_up_bonus'),
         details: undefined,
         icon: IconName.Edit,
       };
     case 'LOYALTY_BONUS':
       return {
-        title: 'Loyalty bonus',
+        title: strings('rewards.events.loyalty_bonus'),
         details: undefined, // TODO: Missing data
         icon: IconName.ThumbUp,
       };
     case 'ONE_TIME_BONUS':
       return {
-        title: 'One-time bonus',
+        title: strings('rewards.events.one_time_bonus'),
         details: undefined,
         icon: IconName.Gift,
       };
     default:
       return {
-        title: 'Uncategorized event',
+        title: strings('rewards.events.uncategorized_event'),
         details: undefined,
         icon: IconName.Star,
       };
