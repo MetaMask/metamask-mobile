@@ -86,13 +86,14 @@ jobs:
           fetch-depth: 0
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config 
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@test-only 
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
           configure-keystores: false
           sd-card-size: 8192
+          test-only: true
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
