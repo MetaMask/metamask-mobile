@@ -34,7 +34,7 @@ export function useAutomaticTransactionPayToken({
   );
 
   const tokens = useTokensWithBalance({ chainIds });
-  const requiredTokens = useTransactionRequiredTokens();
+  const requiredTokens = useTransactionRequiredTokens({ log: true });
   const { chainId } = useTransactionMetadataRequest() ?? {};
   const { setPayToken } = useTransactionPayToken();
   const { totalFiat } = useTransactionRequiredFiat();
