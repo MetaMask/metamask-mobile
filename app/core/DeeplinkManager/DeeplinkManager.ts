@@ -20,6 +20,7 @@ import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
+import FCMService from '../../util/notifications/services/FCMService';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -170,6 +171,12 @@ class DeeplinkManager {
         Logger.error(error as Error, 'Error getting Branch deeplink');
       }
     };
+
+    FCMService.onClickPushNotification().then((deeplink) => {
+      if (deeplink) {
+        handleDeeplink({ uri: deeplink });
+      }
+    });
 
     Linking.getInitialURL().then((url) => {
       if (!url) {

@@ -8,6 +8,9 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import Logger from '../../../util/Logger';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 
 type UnsubscribeFunc = () => void;
 
@@ -176,6 +179,36 @@ class FCMService {
   clearRegistration = () => {
     this.#hasRegisteredForeground?.();
     this.#hasRegisteredForeground = null;
+  };
+
+  onClickPushNotification = async () => {
+    try {
+      const remoteMessage = await messaging().getInitialNotification();
+      Logger.log('FCMService.onClickPushNotification invoked', {
+        remoteMessage,
+      });
+
+      // Track Event - Push Click
+      if (remoteMessage?.data) {
+        try {
+          MetaMetrics.getInstance().trackEvent(
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
+            )
+              .addProperties({ ...(remoteMessage.data as JsonMap) })
+              .build(),
+          );
+        } catch {
+          // Do Nothing
+        }
+      }
+
+      // Return DeepLink
+      const deeplink = remoteMessage?.data?.deeplink?.toString();
+      return deeplink;
+    } catch (e) {
+      return null;
+    }
   };
 }
 export default new FCMService();

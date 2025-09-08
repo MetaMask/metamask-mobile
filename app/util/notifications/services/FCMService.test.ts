@@ -6,6 +6,7 @@ import { processNotification } from '@metamask/notification-services-controller/
 import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
 
 import FCMService from './FCMService';
+import { EVENT_NAME, MetaMetrics } from '../../../core/Analytics';
 
 // Firebase Mock
 jest.mock('@react-native-firebase/messaging', () => {
@@ -17,6 +18,7 @@ jest.mock('@react-native-firebase/messaging', () => {
   const deleteToken = jest.fn();
   const setBackgroundMessageHandler = jest.fn();
   const onMessage = jest.fn();
+  const getInitialNotification = jest.fn();
 
   // Messaging() function mock
   const mockMessaging = jest.fn(() => ({
@@ -27,6 +29,7 @@ jest.mock('@react-native-firebase/messaging', () => {
     deleteToken,
     setBackgroundMessageHandler,
     onMessage,
+    getInitialNotification,
   }));
 
   // Retain the messaging properties
@@ -55,6 +58,9 @@ const arrangeFirebaseMocks = () => {
     .mockResolvedValue('MOCK_FCM_TOKEN');
   const mockDeleteToken = jest.mocked(messaging().deleteToken);
   const mockOnMessage = jest.mocked(messaging().onMessage);
+  const mockGetInitialNotification = jest.mocked(
+    messaging().getInitialNotification,
+  );
 
   return {
     mockHasPermission,
@@ -62,11 +68,12 @@ const arrangeFirebaseMocks = () => {
     mockGetToken,
     mockDeleteToken,
     mockOnMessage,
+    mockGetInitialNotification,
   };
 };
 
 describe('FCMService - createRegToken()', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -105,7 +112,7 @@ describe('FCMService - createRegToken()', () => {
 });
 
 describe('FCMService - deleteRegToken()', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -143,7 +150,7 @@ describe('FCMService - deleteRegToken()', () => {
 });
 
 describe('FCMService - isPushNotificationsEnabled()', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -288,5 +295,75 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
 
       expect(mocks.mockHandler).not.toHaveBeenCalled();
     });
+  });
+});
+describe('FCMService - onClickPushNotification', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const arrangeMocks = () => {
+    const mockTrackEvent = jest.spyOn(MetaMetrics.getInstance(), 'trackEvent');
+    const firebaseMocks = arrangeFirebaseMocks();
+    return {
+      ...firebaseMocks,
+      mockTrackEvent,
+    };
+  };
+
+  const createMockRemoteMessage = (
+    data?: unknown,
+  ): FirebaseMessagingTypes.RemoteMessage =>
+    ({
+      data,
+    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+
+  const arrangeAct = async (data?: null | Record<string, unknown>) => {
+    const mocks = arrangeMocks();
+    const mockNotification =
+      data === null ? null : createMockRemoteMessage(data);
+    mocks.mockGetInitialNotification.mockResolvedValue(mockNotification);
+    const result = await FCMService.onClickPushNotification();
+    return { result, mocks };
+  };
+
+  it('returns deeplink when notification has deeplink data', async () => {
+    const { result, mocks } = await arrangeAct({
+      kind: 'take_profit_executed',
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    });
+
+    expect(result).toBe('https://test.metamask.io/perps-asset?symbol=ETH');
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: expect.objectContaining({
+          kind: 'take_profit_executed',
+          deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+        }),
+      }),
+    );
+  });
+
+  it('tracks click event, but does not return deeplink', async () => {
+    const { result, mocks } = await arrangeAct({
+      kind: 'take_profit_executed',
+    });
+
+    expect(result).toBeFalsy();
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: expect.objectContaining({
+          kind: 'take_profit_executed',
+        }),
+      }),
+    );
+  });
+
+  it('does not track event or returns deeplink if notification is null', async () => {
+    const { result, mocks } = await arrangeAct(null);
+    expect(result).toBeFalsy();
+    expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
   });
 });
