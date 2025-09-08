@@ -155,9 +155,13 @@ const MultichainAccountSelectorList = ({
   useEffect(() => {
     if (listRefToUse.current) {
       // Use requestAnimationFrame to ensure the list has finished re-rendering
-      requestAnimationFrame(() => {
+      const animationFrameId = requestAnimationFrame(() => {
         listRefToUse.current?.scrollToOffset({ offset: 0, animated: true });
       });
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
     }
   }, [debouncedSearchText, listRefToUse]);
 
