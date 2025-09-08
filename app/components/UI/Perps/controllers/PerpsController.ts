@@ -930,7 +930,7 @@ export class PerpsController extends BaseController<
     });
 
     try {
-      DevLogger.log('🚀 PerpsController: STARTING WITHDRAWAL', {
+      DevLogger.log('PerpsController: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
         assetId: params.assetId,
@@ -947,7 +947,7 @@ export class PerpsController extends BaseController<
 
       // Get provider (all validation is handled at the provider level)
       const provider = this.getActiveProvider();
-      DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
+      DevLogger.log('PerpsController: DELEGATING TO PROVIDER', {
         provider: this.state.activeProvider,
         providerReady: !!provider,
       });
@@ -955,7 +955,7 @@ export class PerpsController extends BaseController<
       // Execute withdrawal through provider
       const result = await provider.withdraw(params);
 
-      DevLogger.log('📊 PerpsController: WITHDRAWAL RESULT', {
+      DevLogger.log('PerpsController: WITHDRAWAL RESULT', {
         success: result.success,
         error: result.error,
         txHash: result.txHash,
@@ -975,7 +975,7 @@ export class PerpsController extends BaseController<
           };
         });
 
-        DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
+        DevLogger.log('PerpsController: WITHDRAWAL SUCCESSFUL', {
           txHash: result.txHash,
           amount: params.amount,
           assetId: params.assetId,
@@ -1017,7 +1017,7 @@ export class PerpsController extends BaseController<
         };
       });
 
-      DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
+      DevLogger.log('PerpsController: WITHDRAWAL FAILED', {
         error: result.error,
         params,
       });
@@ -1037,7 +1037,7 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
-      DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
+      DevLogger.log('PerpsController: WITHDRAWAL EXCEPTION', {
         error: errorMessage,
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
