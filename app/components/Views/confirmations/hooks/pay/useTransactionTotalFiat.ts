@@ -73,11 +73,7 @@ function getTotal(
   format: (value: BigNumber) => string,
 ) {
   const balanceTotal = requiredFiat
-    .filter(
-      (token) =>
-        !token.skipIfBalance ||
-        new BigNumber(token.balanceFiat).isLessThan(token.amountFiat),
-    )
+    .filter((token) => !token.skipIfBalance)
     .reduce(
       (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
       new BigNumber(0),
