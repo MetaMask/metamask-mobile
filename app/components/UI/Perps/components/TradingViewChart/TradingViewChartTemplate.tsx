@@ -161,6 +161,18 @@ export const createTradingViewChartTemplate = (
                                     maximumFractionDigits: 6
                                 }).format(price);
                             }
+                        },
+                        timeFormatter: (time) => {
+                            // Format time in user's local timezone for crosshair labels
+                            const date = new Date(time * 1000);
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                            });
                         }
                     },
                     grid: {
