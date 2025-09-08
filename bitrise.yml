@@ -102,8 +102,7 @@ pipelines:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
-  
-
+      
   flask_smoke_e2e_pipeline:
     stages:
       - set_flask_target_stage: {}
@@ -165,6 +164,30 @@ pipelines:
       - create_build_flask_release: {}
       - deploy_flask_build_release: {}
       - release_notify: {}
+  nightly_exp_builds_pipeline:
+    workflows:
+      bump_version_code: {}
+      build_android_main_exp:
+        depends_on:
+        - bump_version_code
+      build_ios_main_exp:
+        depends_on:
+        - bump_version_code    
+      deploy_ios_to_store:
+        depends_on:
+        - build_ios_main_exp
+  nightly_rc_builds_pipeline:
+    workflows:
+      bump_version_code: {}
+      build_android_main_rc:
+        depends_on:
+        - bump_version_code
+      build_ios_main_rc:
+        depends_on:
+        - bump_version_code
+      deploy_ios_to_store:
+        depends_on:
+        - build_ios_main_rc    
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -597,6 +620,35 @@ workflows:
             - paths: |-
                 ../.nvm/
                 ../../../root/.nvm/
+  extract_version_info:
+    steps:
+      - script@1:
+          title: Extract Version Info from Android build.gradle
+          inputs:
+            - content: |
+                #!/bin/bash
+                set -e
+                
+                # Path to Android build.gradle file
+                BUILD_GRADLE_PATH="$PROJECT_LOCATION_ANDROID/app/build.gradle"
+                
+                # Extract versionName (remove quotes)
+                APP_SEM_VER_NAME_TMP=$(grep -o 'versionName "[^"]*"' "$BUILD_GRADLE_PATH" | sed 's/versionName "\(.*\)"/\1/')
+                
+                # Extract versionCode
+                APP_BUILD_NUMBER_TMP=$(grep -o 'versionCode [0-9]*' "$BUILD_GRADLE_PATH" | sed 's/versionCode \([0-9]*\)/\1/')
+                
+                # Validate that we found both values
+                if [ -z "$APP_SEM_VER_NAME_TMP" ] || [ -z "$APP_BUILD_NUMBER_TMP" ]; then
+                    echo "Error: Could not extract version information from $BUILD_GRADLE_PATH"
+                    echo "APP_SEM_VER_NAME: $APP_SEM_VER_NAME_TMP"
+                    echo "APP_BUILD_NUMBER: $APP_SEM_VER_NAME_TMP"
+                    exit 1
+                fi
+
+                # Export as environment variables
+                envman add --key APP_SEM_VER_NAME --value "$APP_SEM_VER_NAME_TMP"
+                envman add --key APP_BUILD_NUMBER --value "$APP_BUILD_NUMBER_TMP"
   install_applesimutils:
     steps:
       - script@1:
@@ -2271,14 +2323,10 @@ workflows:
   _android_build_template:
     before_run:
       - code_setup
+      - extract_version_info
     after_run:
       - notify_failure
     steps:
-      - change-android-versioncode-and-versionname@1:
-          inputs:
-            - new_version_name: $NAME
-            - new_version_code: $NUMBER
-            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
             - source: $KEYSTORE_FILE_PATH
@@ -2336,9 +2384,9 @@ workflows:
                 # Generate new names based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
                 fi
 
                 # Rename APK
@@ -3105,17 +3153,13 @@ workflows:
   _ios_build_template:
     before_run:
       - code_setup
+      - extract_version_info
     after_run:
       - notify_failure
     steps:
       - certificate-and-profile-installer@1: {
         run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
       }
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $NAME
-            - build_version: $NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/$INFO_PLIST_NAME
       - script@1:
           title: iOS Sourcemaps & Build
           is_always_run: false
@@ -3175,9 +3219,9 @@ workflows:
                 # Generate new name based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
                 fi
 
                 # Copy binary with new name (preserve original)
@@ -3684,13 +3728,13 @@ app:
       VERSION_NAME: 7.56.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2296
+      VERSION_NUMBER: 2349
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.56.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2296
+      FLASK_VERSION_NUMBER: 2349
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

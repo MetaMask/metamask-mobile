@@ -34,7 +34,11 @@ import {
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
+import {
+  usePerpsFirstTimeUser,
+  usePerpsTrading,
+  usePerpsNetworkManagement,
+} from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
@@ -125,6 +129,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
@@ -179,7 +184,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     [track],
   );
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     if (isLastScreen) {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
@@ -190,6 +195,11 @@ const PerpsTutorialCarousel: React.FC = () => {
         [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
         [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
       });
+
+      // We need to enable Arbitrum for desposits to work
+      // Arbitrum One is already added for all users as a default network
+      // For devs on testnet, Arbitrum Sepolia will be added/enabled
+      await ensureArbitrumNetworkExists();
 
       // Mark tutorial as completed
       markTutorialCompleted();
@@ -235,6 +245,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigation,
     depositWithConfirmation,
     tutorialScreens.length,
+    ensureArbitrumNetworkExists,
   ]);
 
   const handleSkip = useCallback(() => {

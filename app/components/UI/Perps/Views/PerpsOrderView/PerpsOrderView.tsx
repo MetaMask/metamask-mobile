@@ -18,6 +18,9 @@ import {
   PerpsOrderViewSelectorsIDs,
   PerpsGeneralSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -218,6 +221,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             testID: PerpsGeneralSelectorsIDs.ORDER_SUCCESS_TOAST_DISMISS_BUTTON,
           },
         });
+
+        // Add haptic feedback for order confirmed
+        notificationAsync(NotificationFeedbackType.Success);
       },
       onError: (error) => {
         toastRef?.current?.showToast({
@@ -242,6 +248,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onPress: () => toastRef?.current?.closeToast(),
           },
         });
+
+        // Add haptic feedback for order failed
+        notificationAsync(NotificationFeedbackType.Error);
       },
     });
   // Update ref when orderType changes
@@ -686,6 +695,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
         iconColor: IconColor.Primary,
         hasNoTimeout: false, // Auto-dismiss after a few seconds
       });
+
+      // Add haptic feedback for order submitted
+      notificationAsync(NotificationFeedbackType.Warning);
 
       // Track trade transaction submitted
       track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED, {
