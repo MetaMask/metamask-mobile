@@ -1445,6 +1445,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // Don't render webview unless ready to load. This should save on performance for initial app start.
     if (!isWebViewReadyToLoad.current) return null;
 
+    /*
+     * Wildcard '*' matches all URL that go through WebView,
+     * so that all content gets filtered by onShouldStartLoadWithRequest function.
+     *
+     * All URL that do not match will bypass onShouldStartLoadWithRequest
+     * and go directly to the OS handler
+     *
+     * source: https://github.com/react-native-webview/react-native-webview/blob/master/docs/Reference.md#originwhitelist
+     *
+     */
+    const webViewOriginWhitelist = ['*'];
+
     /**
      * Main render
      */
@@ -1474,17 +1486,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 {!!entryScriptWeb3 && firstUrlLoaded && (
                   <>
                     <WebView
-                      originWhitelist={[
-                        'https://',
-                        'http://',
-                        'metamask://',
-                        'dapp://',
-                        'wc://',
-                        'ethereum://',
-                        'file://',
-                        // Needed for Recaptcha
-                        'about:srcdoc',
-                      ]}
+                      originWhitelist={webViewOriginWhitelist}
                       decelerationRate={0.998}
                       ref={webviewRef}
                       renderError={() => (
