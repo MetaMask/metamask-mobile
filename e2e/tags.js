@@ -79,7 +79,6 @@ const RegressionWalletUX = (testName) =>
 const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
 const RegressionSampleFeature = (testName) =>
   `${tags.regressionSampleFeature} ${testName}`;
-
 const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
 
 export {
