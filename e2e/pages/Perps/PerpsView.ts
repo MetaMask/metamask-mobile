@@ -184,7 +184,9 @@ class PerpsView {
   }
 
   async tapClosePositionButton() {
-    await Gestures.waitAndTap(this.closePositionButton);
+    await Gestures.waitAndTap(this.closePositionButton, {
+      elemDescription: 'Close position button',
+    });
   }
 
   async tapConfirmClosePositionButton() {

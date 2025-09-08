@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { RegressionPerps } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import PerpsTabView from '../../pages/Perps/PerpsTabView';
@@ -10,7 +10,7 @@ import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 
 describe(
-  RegressionPerps('Perps - no funds shows Start Trading and tutorial'),
+  RegressionTrade('Perps - no funds shows Start Trading and tutorial'),
   () => {
     beforeEach(async () => {
       jest.setTimeout(150000);

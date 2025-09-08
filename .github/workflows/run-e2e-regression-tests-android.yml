@@ -165,22 +165,6 @@ jobs:
       total_splits: 1
     secrets: inherit
 
-  regression-perps-android:
-    name: 'Perps Regression (Android) - ${{ matrix.split }}'
-    needs: [build-android-apks]
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: regression-perps-android-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'RegressionPerps'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-    secrets: inherit
-
   report-android-regression-tests:
     name: Report Android Regression Tests
     runs-on: ubuntu-latest
@@ -195,7 +179,6 @@ jobs:
       - regression-network-expansion-android
       - regression-assets-android
       - regression-ux-android
-      - regression-perps-android
 
     steps:
       - name: Checkout
