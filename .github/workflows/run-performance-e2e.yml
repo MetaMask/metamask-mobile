@@ -944,16 +944,6 @@ jobs:
             echo "❌ No performance data could be aggregated - all tests may have failed"
             echo "overall_status=failure" >> "$GITHUB_OUTPUT"
           fi
-      
-      - name: Display QA Build Info
-        run: |
-          echo "=== QA Build Information ==="
-          echo "Android Version: 7.56.0"
-          echo "iOS Version: 7.56.0"
-          echo ""
-          echo "=== BrowserStack App URLs ==="
-          echo "Android App URL: $BROWSERSTACK_ANDROID_APP_URL"
-          echo "iOS App URL: $BROWSERSTACK_IOS_APP_URL"
     
     outputs:
       overall_status: ${{ steps.test-results.outputs.overall_status }}
