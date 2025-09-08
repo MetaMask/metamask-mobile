@@ -1,31 +1,63 @@
-# Pure Android E2E build workflow - just builds APKs and uploads artifacts
-# No testing, no unnecessary setup - optimized for speed and efficiency
+# Dual Android Build Workflow - Builds two versions and uploads to BrowserStack
+# Version 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet)
+# Version 2: Without these environment variables (fresh wallet)
 
-name: Build Android E2E APKs
+name: Build Android Dual Versions and Upload to BrowserStack
 
 on:
   workflow_call:
     outputs:
-      apk-uploaded:
-        description: 'Whether the APK was successfully uploaded'
-        value: ${{ jobs.build-android-apks.outputs.apk-uploaded }}
-      aab-uploaded:
-        description: 'Whether the AAB was successfully uploaded'
-        value: ${{ jobs.build-android-apks.outputs.aab-uploaded }}
-      sourcemap-uploaded:
-        description: 'Whether the sourcemap was successfully uploaded'
-        value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
+      with-srp-apk-uploaded:
+        description: 'Whether the with-SRP APK was successfully uploaded'
+        value: ${{ jobs.build-android-dual.outputs.with-srp-apk-uploaded }}
+      without-srp-apk-uploaded:
+        description: 'Whether the without-SRP APK was successfully uploaded'
+        value: ${{ jobs.build-android-dual.outputs.without-srp-apk-uploaded }}
+      with-srp-browserstack-url:
+        description: 'BrowserStack URL for with-SRP version'
+        value: ${{ jobs.build-android-dual.outputs.with-srp-browserstack-url }}
+      without-srp-browserstack-url:
+        description: 'BrowserStack URL for without-SRP version'
+        value: ${{ jobs.build-android-dual.outputs.without-srp-browserstack-url }}
+      with-srp-version:
+        description: 'App version for with-SRP build'
+        value: ${{ jobs.build-android-dual.outputs.with-srp-version }}
+      without-srp-version:
+        description: 'App version for without-SRP build'
+        value: ${{ jobs.build-android-dual.outputs.without-srp-version }}
+  workflow_dispatch:
+    inputs:
+      description:
+        description: 'Optional description for this build run'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+  BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
 jobs:
-  build-android-apks:
-    name: Build Android E2E APKs
+  build-android-dual:
+    name: Build Android Dual Versions
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
     outputs:
-      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
-      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+      with-srp-apk-uploaded: ${{ steps.build-results.outputs.with-srp-apk-uploaded }}
+      without-srp-apk-uploaded: ${{ steps.build-results.outputs.without-srp-apk-uploaded }}
+      with-srp-browserstack-url: ${{ steps.browserstack-results.outputs.with-srp-browserstack-url }}
+      without-srp-browserstack-url: ${{ steps.browserstack-results.outputs.without-srp-browserstack-url }}
+      with-srp-version: ${{ steps.build-results.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.build-results.outputs.without-srp-version }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [with-srp, without-srp]
     
     steps:
       - name: Checkout repo
@@ -46,16 +78,17 @@ jobs:
             /home/runner/_work/.gradle/caches
             /home/runner/_work/.gradle/wrapper
             android/.gradle
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
+            gradle-${{ runner.os }}-${{ matrix.build_type }}-
             gradle-${{ runner.os }}-
 
-      - name: Build Android E2E APKs
+      - name: Build Android E2E APK - ${{ matrix.build_type }}
         run: |
-          echo "🚀 Setting up project..."
+          echo "🚀 Setting up project for ${{ matrix.build_type }} build..."
           yarn setup:github-ci --no-build-ios
           
-          echo "🏗 Building Android E2E APKs..."
+          echo "🏗 Building Android E2E APK (${{ matrix.build_type }})..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:main:e2e
@@ -78,6 +111,9 @@ jobs:
           MM_NOTIFICATIONS_UI_ENABLED: "true"
           MM_SECURITY_ALERTS_API_ENABLED: "true"
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          # Conditionally set SRP and password based on build type
+          ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.TEST_SRP_1 || '' }}
+          PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -95,40 +131,206 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      - name: Upload Android APK
+      - name: Upload Android APK - ${{ matrix.build_type }}
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.apk
+          name: app-prod-release-${{ matrix.build_type }}.apk
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           retention-days: 7
           if-no-files-found: error
 
-      - name: Upload Android Test APK
-        id: upload-test-apk
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-prod-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
-          retention-days: 7
-          if-no-files-found: error
-
-      - name: Upload Android AAB
+      - name: Upload Android AAB - ${{ matrix.build_type }}
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.aab
+          name: app-prod-release-${{ matrix.build_type }}.aab
           path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
 
-      - name: Upload Android Source Map
+      - name: Upload Android Source Map - ${{ matrix.build_type }}
         id: upload-sourcemap
         uses: actions/upload-artifact@v4
         with:
-          name: index.android.bundle.map
+          name: index.android.bundle.map-${{ matrix.build_type }}
           path: sourcemaps/android/index.android.bundle.map
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
+
+  # Job to upload APKs to BrowserStack and get URLs
+  upload-to-browserstack:
+    name: Upload to BrowserStack and Get URLs
+    runs-on: ubuntu-latest
+    needs: build-android-dual
+    if: always() && (needs.build-android-dual.result == 'success' || needs.build-android-dual.result == 'partial_success')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn setup
+      
+      - name: Download APK Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+        continue-on-error: true
+      
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ env.BROWSERSTACK_USERNAME }}
+          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+      
+      - name: Upload APKs to BrowserStack
+        id: browserstack-upload
+        run: |
+          echo "📱 Uploading APKs to BrowserStack..."
+          
+          # Find the APK files
+          WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" | head -1)
+          WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" | head -1)
+          
+          echo "Found APKs:"
+          echo "  With SRP: $WITH_SRP_APK"
+          echo "  Without SRP: $WITHOUT_SRP_APK"
+          
+          # Upload with-SRP APK
+          if [ -f "$WITH_SRP_APK" ]; then
+            echo "📤 Uploading with-SRP APK to BrowserStack..."
+            WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@$WITH_SRP_APK" \
+              -F "custom_id=MetaMask-Android-With-SRP-${{ github.run_id }}")
+            
+            WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url')
+            WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id')
+            
+            echo "✅ With-SRP APK uploaded successfully"
+            echo "  App URL: $WITH_SRP_APP_URL"
+            echo "  App ID: $WITH_SRP_APP_ID"
+            
+            {
+              echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
+              echo "with-srp-app-id=$WITH_SRP_APP_ID"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ With-SRP APK not found"
+            {
+              echo "with-srp-browserstack-url="
+              echo "with-srp-app-id="
+            } >> "$GITHUB_OUTPUT"
+          fi
+          
+          # Upload without-SRP APK
+          if [ -f "$WITHOUT_SRP_APK" ]; then
+            echo "📤 Uploading without-SRP APK to BrowserStack..."
+            WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@$WITHOUT_SRP_APK" \
+              -F "custom_id=MetaMask-Android-Without-SRP-${{ github.run_id }}")
+            
+            WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url')
+            WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
+            
+            echo "✅ Without-SRP APK uploaded successfully"
+            echo "  App URL: $WITHOUT_SRP_APP_URL"
+            echo "  App ID: $WITHOUT_SRP_APP_ID"
+            
+            {
+              echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
+              echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ Without-SRP APK not found"
+            {
+              echo "without-srp-browserstack-url="
+              echo "without-srp-app-id="
+            } >> "$GITHUB_OUTPUT"
+          fi
+          
+          echo "🎉 BrowserStack upload process completed!"
+          echo "With-SRP URL: $WITH_SRP_APP_URL"
+          echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
+        env:
+          BROWSERSTACK_USERNAME: ${{ env.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+
+  # Job to collect and report results
+  collect-results:
+    name: Collect Build and Upload Results
+    runs-on: ubuntu-latest
+    needs: [build-android-dual, upload-to-browserstack]
+    if: always()
+    outputs:
+      with-srp-apk-uploaded: ${{ steps.results.outputs.with-srp-apk-uploaded }}
+      without-srp-apk-uploaded: ${{ steps.results.outputs.without-srp-apk-uploaded }}
+      with-srp-browserstack-url: ${{ steps.results.outputs.with-srp-browserstack-url }}
+      without-srp-browserstack-url: ${{ steps.results.outputs.without-srp-browserstack-url }}
+      with-srp-version: ${{ steps.results.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.results.outputs.without-srp-version }}
+      overall-status: ${{ steps.results.outputs.overall-status }}
+    
+    steps:
+      - name: Collect Results
+        id: results
+        run: |
+          echo "📊 Collecting build and upload results..."
+          
+          # Get build results
+          BUILD_RESULT="${{ needs.build-android-dual.result }}"
+          UPLOAD_RESULT="${{ needs.upload-to-browserstack.result }}"
+          
+          echo "Build result: $BUILD_RESULT"
+          echo "Upload result: $UPLOAD_RESULT"
+          
+          # Get BrowserStack URLs from upload job
+          WITH_SRP_URL="${{ needs.upload-to-browserstack.outputs.with-srp-browserstack-url }}"
+          WITHOUT_SRP_URL="${{ needs.upload-to-browserstack.outputs.without-srp-browserstack-url }}"
+          
+          echo "With-SRP BrowserStack URL: $WITH_SRP_URL"
+          echo "Without-SRP BrowserStack URL: $WITHOUT_SRP_URL"
+          
+          # Determine overall status
+          if [ "$BUILD_RESULT" = "success" ] && [ "$UPLOAD_RESULT" = "success" ]; then
+            OVERALL_STATUS="✅ SUCCESS"
+            echo "Overall Status: SUCCESS - Both builds completed and uploaded to BrowserStack"
+          elif [ "$BUILD_RESULT" = "success" ] && [ "$UPLOAD_RESULT" = "failure" ]; then
+            OVERALL_STATUS="⚠️ PARTIAL SUCCESS"
+            echo "Overall Status: PARTIAL SUCCESS - Builds completed but BrowserStack upload failed"
+          elif [ "$BUILD_RESULT" = "failure" ]; then
+            OVERALL_STATUS="❌ FAILED"
+            echo "Overall Status: FAILED - Build process failed"
+          else
+            OVERALL_STATUS="❓ UNKNOWN"
+            echo "Overall Status: UNKNOWN - Unexpected state"
+          fi
+          
+          # Set outputs
+          {
+            echo "with-srp-apk-uploaded=${{ needs.build-android-dual.outputs.with-srp-apk-uploaded }}"
+            echo "without-srp-apk-uploaded=${{ needs.build-android-dual.outputs.without-srp-apk-uploaded }}"
+            echo "with-srp-browserstack-url=$WITH_SRP_URL"
+            echo "without-srp-browserstack-url=$WITHOUT_SRP_URL"
+            echo "with-srp-version=${{ needs.build-android-dual.outputs.with-srp-version }}"
+            echo "without-srp-version=${{ needs.build-android-dual.outputs.without-srp-version }}"
+            echo "overall-status=$OVERALL_STATUS"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "📋 Final Results:"
+          echo "  With-SRP APK Uploaded: ${{ needs.build-android-dual.outputs.with-srp-apk-uploaded }}"
+          echo "  Without-SRP APK Uploaded: ${{ needs.build-android-dual.outputs.without-srp-apk-uploaded }}"
+          echo "  With-SRP BrowserStack URL: $WITH_SRP_URL"
+          echo "  Without-SRP BrowserStack URL: $WITHOUT_SRP_URL"
+          echo "  Overall Status: $OVERALL_STATUS"
