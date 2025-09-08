@@ -64,6 +64,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     }
   }, [isActive, fadeAnim]);
 
+  const isAmountExceedingMax = parseFloat(amount || '0') > maxAmount;
+
   const content = (
     <View
       style={styles.container}
@@ -82,7 +84,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
           variant={TextVariant.DisplayLG}
-          color={TextColor.Default}
+          color={isAmountExceedingMax ? TextColor.Error : TextColor.Default}
           style={styles.amountValue}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
