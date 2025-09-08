@@ -39,14 +39,14 @@ export const getEstimatedTotalGas = (
 export const getPercentageValueFn = ({
   asset,
   gasFeeEstimates,
-  isEvmSendType,
+  isEvmNativeSendType,
   layer1GasFee,
   percentage,
   rawBalanceBN,
 }: {
   asset?: AssetType;
   gasFeeEstimates: GasFeeEstimatesType;
-  isEvmSendType?: boolean;
+  isEvmNativeSendType?: boolean;
   layer1GasFee: Hex;
   percentage: number;
   rawBalanceBN: BN;
@@ -56,7 +56,7 @@ export const getPercentageValueFn = ({
   }
   let estimatedTotalGas = new BN('0');
 
-  if (isEvmSendType && percentage === 100 && asset.isNative) {
+  if (isEvmNativeSendType && percentage === 100) {
     estimatedTotalGas = getEstimatedTotalGas(gasFeeEstimates, layer1GasFee);
   }
 
@@ -75,8 +75,7 @@ export const getPercentageValueFn = ({
 
 export const usePercentageAmount = () => {
   const { asset, chainId, from, value } = useSendContext();
-  const { isEvmSendType, isEvmNativeSendType, isNonEvmNativeSendType } =
-    useSendType();
+  const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
   const { rawBalanceBN } = useBalance();
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
 
@@ -98,7 +97,7 @@ export const usePercentageAmount = () => {
       return getPercentageValueFn({
         asset: asset as AssetType,
         gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
-        isEvmSendType,
+        isEvmNativeSendType,
         layer1GasFee: layer1GasFee ?? '0x0',
         percentage,
         rawBalanceBN,
@@ -107,7 +106,7 @@ export const usePercentageAmount = () => {
     [
       asset,
       gasFeeEstimates,
-      isEvmSendType,
+      isEvmNativeSendType,
       isNonEvmNativeSendType,
       layer1GasFee,
       rawBalanceBN,
