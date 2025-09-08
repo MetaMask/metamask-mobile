@@ -14,13 +14,11 @@ import { useNavigation } from '@react-navigation/native';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
+import { OrderDirection } from '../types';
 
 export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
 };
-
-type OrderDirection = 'long' | 'short';
-
 export interface PerpsToastOptionsConfig {
   accountManagement: {
     deposit: {

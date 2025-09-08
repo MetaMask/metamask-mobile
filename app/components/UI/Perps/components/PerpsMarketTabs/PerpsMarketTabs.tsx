@@ -27,6 +27,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { OrderDirection } from '../../types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   symbol,
@@ -180,7 +181,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
         showToast(
           PerpsToastOptions.orderManagement.limit.cancellationInProgress(
-            orderDirection,
+            orderDirection as OrderDirection,
             orderToCancel.remainingSize,
             orderToCancel.symbol,
           ),
