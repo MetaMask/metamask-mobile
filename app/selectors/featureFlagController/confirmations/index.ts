@@ -122,7 +122,7 @@ export const selectSendRedesignFlagsFromRemoteFeatureFlags = (
   const remoteValues = remoteFeatureFlags.sendRedesign as SendRedesignFlags;
 
   const isEnabled = getFeatureFlagValue(
-    process.env.MM_SEND_REDESIGN_ENABLED,
+    'false',
     remoteValues?.enabled !== false,
   );
 
