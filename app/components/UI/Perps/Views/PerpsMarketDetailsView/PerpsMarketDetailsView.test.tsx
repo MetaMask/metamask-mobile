@@ -1028,6 +1028,45 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('shows geo block modal when add funds button is pressed and user is not eligible', () => {
+      // Set user as not eligible
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set zero balance to show add funds button
+      mockUsePerpsAccount.mockReturnValue({
+        availableBalance: '0.00',
+        totalBalance: '0.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('closes geo block modal when onClose is called', () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(

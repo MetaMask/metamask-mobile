@@ -169,10 +169,14 @@ jest.mock('../SeasonTierImage', () => {
   );
 });
 
-// Mock lodash capitalize
-jest.mock('lodash', () => ({
-  capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
-}));
+// Mock lodash capitalize but preserve the rest of lodash
+jest.mock('lodash', () => {
+  const actual = jest.requireActual('lodash');
+  return {
+    ...actual,
+    capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
+  };
+});
 
 describe('SeasonStatus', () => {
   // Default mock values
