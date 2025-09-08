@@ -38,7 +38,6 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
           await Assertions.expectElementToBeVisible(
             NetworkListModal.networkMultiSelectorContainer,
           );
-          await NetworkListModal.scrollToBottomOfNetworkMultiSelector();
 
           await NetworkListModal.tapNetworkMenuButton('Arbitrum One');
           await NetworkApprovalBottomSheet.tapApproveButton();
