@@ -172,14 +172,13 @@ export const useNetworkSelection = ({
       }
       onComplete?.();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       enableNetwork,
       resetCustomNetworks,
       resetSolanaNetworks,
       isMultichainAccountsState2Enabled,
       resetEvmNetworks,
-      MultichainNetworkController,
-      NetworkController, // <-- Add missing dependency as per lint warning
     ],
   );
 
@@ -200,10 +199,13 @@ export const useNetworkSelection = ({
           // Already in CAIP format
           caipChainId = inputString as CaipChainId;
 
+          // Parse the CAIP chain ID to get namespace and reference
+          const { namespace: caipNamespace, reference } =
+            parseCaipChainId(caipChainId);
+
           // For EVM networks, check if it's popular
-          if (inputString.startsWith('eip155:')) {
-            const chainIdPart = inputString.split(':')[1];
-            const hexChainId = toHex(chainIdPart) as `0x${string}`;
+          if (caipNamespace === 'eip155') {
+            const hexChainId = toHex(reference) as `0x${string}`;
             isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
           }
           // For non-EVM networks (like Solana), treat as popular by default
