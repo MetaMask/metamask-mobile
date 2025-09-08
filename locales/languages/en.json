@@ -173,7 +173,8 @@
     "import_using_srp_social_login": "I have an existing wallet",
     "by_continuing": "By continuing, you agree to MetaMask's",
     "terms_of_use": "Terms of use",
-    "privacy_notice": "Privacy notice"
+    "privacy_notice": "Privacy notice",
+    "and": "and"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",

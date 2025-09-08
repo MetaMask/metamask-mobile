@@ -257,7 +257,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             >
               {strings('onboarding.terms_of_use')}
             </Text>{' '}
-            and{' '}
+            {strings('onboarding.and')}{' '}
             <Text
               variant={TextVariant.BodyXSMedium}
               style={styles.link}
