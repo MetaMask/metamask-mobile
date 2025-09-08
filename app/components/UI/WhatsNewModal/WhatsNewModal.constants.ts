@@ -5,8 +5,8 @@ import { strings } from '../../../../locales/i18n';
 export const whatsNew: WhatsNew = {
   // Network UI Update announcement - show to all users
   onlyUpdates: false, // false: Users who updated the app and new installs will see this. true: only users who update will see it
-  maxLastAppVersion: '7.30', // When updating, only users who had a previous version < '7.30' may see the modal
-  minAppVersion: '7.0.0', // Only users whose current version is >= 7.0.0 may see the modal. This should match the version with the latest copy changes in the modal.
+  maxLastAppVersion: '7.55', // When updating, only users who had a previous version < '7.55' may see the modal
+  minAppVersion: '7.55.0', // Only users whose current version is >= 7.55.0 may see the modal. This should match the version with the latest copy changes in the modal.
   /**
    * Slides for Network UI Update announcement.
    * Now supports carousel images with static content.
