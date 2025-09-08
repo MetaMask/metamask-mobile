@@ -8,66 +8,64 @@ import {
   Text,
   TextVariant,
   Icon,
-  IconName,
   IconSize,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { usePointsEvents } from '../../hooks/usePointsEvents';
 import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { capitalize } from 'lodash';
-import { formatChartDate } from '../../../Stake/components/PoolStakingLearnMoreModal/InteractiveTimespanChart/InteractiveTimespanChart.utils';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
+import { formatRewardsDate, getEventDetails } from '../../utils/formatUtils';
 
-const getEventIcon = (type: string): IconName => {
-  switch (type) {
-    case 'SWAP':
-      return IconName.SwapVertical;
-    case 'PERPS':
-      return IconName.Chart;
-    default:
-      return IconName.Star;
-  }
-};
+const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({ event }) => {
+  const eventDetails = getEventDetails(event);
 
-const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({ event }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    twClassName="w-full"
-    gap={3}
-  >
+  return (
     <Box
-      twClassName="bg-muted rounded-full items-center justify-center size-12"
-      flexDirection={BoxFlexDirection.Column}
+      flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="w-full"
+      gap={3}
     >
-      <Icon name={getEventIcon(event.type)} size={IconSize.Xl} />
-    </Box>
-    <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
       <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
+        twClassName="bg-muted rounded-full items-center justify-center size-12"
+        flexDirection={BoxFlexDirection.Column}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
       >
-        <Text>{capitalize(event.type)}</Text>
-        <Text>{`+${event.value} points`}</Text>
+        <Icon name={eventDetails.icon} size={IconSize.Lg} />
       </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-      >
-        <Text variant={TextVariant.BodySm} twClassName="text-muted mt-1">
-          0.0 ETH to USDC
-        </Text>
-        <Text variant={TextVariant.BodySm} twClassName="text-muted mt-1">
-          {formatChartDate(event.timestamp.toString())}
-        </Text>
+      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+        >
+          <Text>{eventDetails.title}</Text>
+          <Box flexDirection={BoxFlexDirection.Row} gap={1}>
+            <Text>{`+${event.value}`}</Text>
+            {event.bonus?.bips && (
+              <Text twClassName="text-muted">{`(+${
+                event.bonus?.bips / 100
+              }% bonus)`}</Text>
+            )}
+          </Box>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+        >
+          <Text variant={TextVariant.BodySm} twClassName="text-muted">
+            {eventDetails.details}
+          </Text>
+          <Text variant={TextVariant.BodySm} twClassName="text-muted">
+            {formatRewardsDate(event.timestamp.getTime())}
+          </Text>
+        </Box>
       </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">

@@ -124,7 +124,13 @@ export interface EstimatePointsContextDto {
  * Type of point earning activity. Swap is for swaps and bridges. PERPS is for perps activities.
  * @example 'SWAP'
  */
-export type PointsEventEarnType = 'SWAP' | 'PERPS';
+export type PointsEventEarnType =
+  | 'SWAP'
+  | 'PERPS'
+  | 'REFERRAL'
+  | 'SIGN_UP_BONUS'
+  | 'LOYALTY_BONUS'
+  | 'ONE_TIME_BONUS';
 
 export interface GetPointsEventsDto {
   seasonId: string;
@@ -168,7 +174,7 @@ export interface PointsEventDto {
    * Payload of the point earning activity
    * @example 'string'
    */
-  payload: object | null;
+  payload?: object | null;
 
   /**
    * Value of the point earning activity
@@ -181,15 +187,15 @@ export interface PointsEventDto {
    * @example {}
    */
   bonus: {
-    bips: number | null;
-    bonuses: string[] | null;
+    bips?: number | null;
+    bonuses?: string[] | null;
   } | null;
 
   /**
    * Account address performing the activity in CAIP-10 format
    * @example '0x1234567890123456789012345678901234567890'
    */
-  accountAddress: CaipAccountAddress;
+  accountAddress: CaipAccountAddress | null;
 
   /**
    * Account ID of the account performing the activity
