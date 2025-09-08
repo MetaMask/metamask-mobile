@@ -196,7 +196,6 @@ const LeverageSlider: React.FC<{
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
-      thumbScale.value = 1.1; // Subtle scale effect, instant
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onUpdate((event) => {

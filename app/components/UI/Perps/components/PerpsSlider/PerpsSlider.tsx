@@ -119,7 +119,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   }));
 
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }, { scale: thumbScale.value }],
+    transform: [{ translateX: translateX.value }],
   }));
 
   // JS callback wrapper
@@ -169,7 +169,6 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     .enabled(!disabled)
     .onBegin(() => {
       isPressed.value = true;
-      thumbScale.value = 1.1; // Subtle scale effect, instant
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onUpdate((event) => {
@@ -254,11 +253,11 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
           {/* Percentage dots positioned on the track */}
           {showPercentageLabels &&
             percentageSteps.map((percent) => {
-              // Don't show dots at 0% and 100%
-              if (percent === 0 || percent === 100) return null;
-
               let dotStyle;
               switch (percent) {
+                case 0:
+                  dotStyle = styles.percentageDot0;
+                  break;
                 case 25:
                   dotStyle = styles.percentageDot25;
                   break;
@@ -267,6 +266,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
                   break;
                 case 75:
                   dotStyle = styles.percentageDot75;
+                  break;
+                case 100:
+                  dotStyle = styles.percentageDot100;
                   break;
                 default:
                   dotStyle = {};
