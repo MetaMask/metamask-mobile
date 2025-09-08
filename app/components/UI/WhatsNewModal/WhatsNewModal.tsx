@@ -66,12 +66,10 @@ const WhatsNewModal = () => {
       imageProgressAnimations.length = 0;
 
       for (let i = 0; i < imageCount; i++) {
-        imageProgressAnimations.push(
-          new Animated.Value(i === currentImageIndex ? 1 : 0),
-        );
+        imageProgressAnimations.push(new Animated.Value(i === 0 ? 1 : 0));
       }
     },
-    [imageProgressAnimations, currentImageIndex],
+    [imageProgressAnimations],
   );
 
   const animateImageProgressIndicators = useCallback(
