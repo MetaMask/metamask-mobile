@@ -382,6 +382,183 @@ describe('useNetworksToUse', () => {
       // it should fall back to the default networks
       expect(result.current.networksToUse).toEqual(mockDefaultNetworks);
     });
+
+    it('returns EVM networks when both accounts are selected but only EVM networks are available', () => {
+      // Arrange - Clear mocks and set up specific scenario
+      jest.clearAllMocks();
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === EVM_SCOPE) {
+              return mockEvmAccount;
+            }
+            if (scope === SolScope.Mainnet) {
+              return mockSolanaAccount;
+            }
+            return null;
+          };
+        }
+        return undefined;
+      });
+
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: mockEvmNetworks, // EVM networks available
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
+        })
+        .mockReturnValueOnce({
+          networks: null as unknown as ProcessedNetwork[], // No Solana networks (falsy)
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        });
+
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      // When both accounts are selected but only EVM networks are available,
+      // it should return EVM networks (covers line 77-78)
+      expect(result.current.networksToUse).toEqual(mockEvmNetworks);
+      expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
+      expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
+    });
+
+    it('returns Solana networks when both accounts are selected but only Solana networks are available', () => {
+      // Arrange - Clear mocks and set up specific scenario
+      jest.clearAllMocks();
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === EVM_SCOPE) {
+              return mockEvmAccount;
+            }
+            if (scope === SolScope.Mainnet) {
+              return mockSolanaAccount;
+            }
+            return null;
+          };
+        }
+        return undefined;
+      });
+
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: null as unknown as ProcessedNetwork[], // No EVM networks (falsy)
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        })
+        .mockReturnValueOnce({
+          networks: mockSolanaNetworks, // Solana networks available
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 1,
+          totalEnabledNetworksCount: 1,
+        });
+
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      // When both accounts are selected but only Solana networks are available,
+      // it should return Solana networks (covers line 79-80)
+      expect(result.current.networksToUse).toEqual(mockSolanaNetworks);
+      expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
+      expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
+    });
+
+    it('falls back to default networks when both accounts are selected but no networks are available', () => {
+      // Arrange - Clear mocks and set up specific scenario
+      jest.clearAllMocks();
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === EVM_SCOPE) {
+              return mockEvmAccount;
+            }
+            if (scope === SolScope.Mainnet) {
+              return mockSolanaAccount;
+            }
+            return null;
+          };
+        }
+        return undefined;
+      });
+
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: null as unknown as ProcessedNetwork[], // No EVM networks
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        })
+        .mockReturnValueOnce({
+          networks: null as unknown as ProcessedNetwork[], // No Solana networks
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        });
+
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      // When both accounts are selected but no EVM or Solana networks are available,
+      // it should fall back to default networks (covers line 82)
+      expect(result.current.networksToUse).toEqual(mockDefaultNetworks);
+      expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
+      expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
+    });
   });
 
   describe('areAllNetworksSelectedCombined logic', () => {
@@ -441,7 +618,7 @@ describe('useNetworksToUse', () => {
       expect(result.current.areAllNetworksSelectedCombined).toBe(false);
     });
 
-    it('returns true when EVM networks are selected but Solana networks are not', () => {
+    it('returns false when EVM networks are selected but Solana networks are not', () => {
       // Arrange - Clear all mocks first
       jest.clearAllMocks();
 
@@ -494,11 +671,15 @@ describe('useNetworksToUse', () => {
       const { result } = renderHook(() => useNetworksToUse(props));
 
       // Assert
-      expect(result.current.areAllNetworksSelectedCombined).toBe(true);
+      // When both accounts are selected, EVM all selected but Solana not all selected,
+      // the combined result should be false (both must be true for combined to be true)
+      expect(result.current.areAllNetworksSelectedCombined).toBe(false);
     });
 
     it('returns EVM selection state when only EVM account is selected', () => {
-      // Arrange
+      // Arrange - Clear all mocks first
+      jest.clearAllMocks();
+
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
           return true;
@@ -538,6 +719,85 @@ describe('useNetworksToUse', () => {
         networks: mockDefaultNetworks,
         networkType: NetworkType.Popular,
         areAllNetworksSelected: false,
+      };
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      // When only EVM account is selected, it should return EVM areAllNetworksSelected state
+      expect(result.current.areAllNetworksSelectedCombined).toBe(true);
+    });
+
+    it('returns Solana selection state when only Solana account is selected', () => {
+      // Arrange - Clear all mocks first
+      jest.clearAllMocks();
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === SolScope.Mainnet) {
+              return mockSolanaAccount;
+            }
+            return null; // No EVM account
+          };
+        }
+        return undefined;
+      });
+
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: mockEvmNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
+        })
+        .mockReturnValueOnce({
+          networks: mockSolanaNetworks,
+          selectedNetworks: mockSolanaNetworks,
+          selectedCount: 1,
+          areAllNetworksSelected: true,
+          areAnyNetworksSelected: true,
+          networkCount: 1,
+          totalEnabledNetworksCount: 1,
+        });
+
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      // When only Solana account is selected, it should return Solana areAllNetworksSelected state
+      expect(result.current.areAllNetworksSelectedCombined).toBe(true);
+    });
+
+    it('returns default areAllNetworksSelected when multichain is enabled but no accounts selected', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => null; // No accounts selected
+        }
+        return undefined;
+      });
+
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: true, // This should be returned
       };
 
       // Act
@@ -643,6 +903,224 @@ describe('useNetworksToUse', () => {
       expect(result.current.solanaNetworks).toBeUndefined();
       expect(result.current.areAllEvmNetworksSelected).toBe(false);
       expect(result.current.areAllSolanaNetworksSelected).toBe(false);
+    });
+
+    it('falls back to default networks when EVM account is selected but evmNetworks is null', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === EVM_SCOPE) {
+              return mockEvmAccount;
+            }
+            return null; // No Solana account
+          };
+        }
+        return undefined;
+      });
+
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: null as unknown as ProcessedNetwork[], // null EVM networks
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        })
+        .mockReturnValueOnce({
+          networks: mockSolanaNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 1,
+          totalEnabledNetworksCount: 1,
+        });
+
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      // When only EVM account is selected but evmNetworks is null,
+      // it should fall back to default networks (covers line 84)
+      expect(result.current.networksToUse).toEqual(mockDefaultNetworks);
+      expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
+      expect(result.current.selectedSolanaAccount).toBeNull();
+    });
+
+    it('falls back to default networks when Solana account is selected but solanaNetworks is null', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === SolScope.Mainnet) {
+              return mockSolanaAccount;
+            }
+            return null; // No EVM account
+          };
+        }
+        return undefined;
+      });
+
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: mockEvmNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
+        })
+        .mockReturnValueOnce({
+          networks: null as unknown as ProcessedNetwork[], // null Solana networks
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        });
+
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      // When only Solana account is selected but solanaNetworks is null,
+      // it should fall back to default networks (covers line 86)
+      expect(result.current.networksToUse).toEqual(mockDefaultNetworks);
+      expect(result.current.selectedEvmAccount).toBeNull();
+      expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
+    });
+  });
+
+  describe('memoization and re-render optimization', () => {
+    it('recalculates networksToUse when dependencies change', () => {
+      // Arrange - Clear all mocks first
+      jest.clearAllMocks();
+
+      const initialProps = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === EVM_SCOPE) {
+              return mockEvmAccount;
+            }
+            return null;
+          };
+        }
+        return undefined;
+      });
+
+      mockUseNetworksByCustomNamespace.mockReturnValue({
+        networks: mockEvmNetworks,
+        selectedNetworks: [],
+        selectedCount: 0,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: false,
+        networkCount: 2,
+        totalEnabledNetworksCount: 2,
+      });
+
+      // Act
+      const { result, rerender } = renderHook(
+        (props) => useNetworksToUse(props),
+        { initialProps },
+      );
+      const firstResult = result.current.networksToUse;
+
+      // Change networks prop and rerender
+      const newProps = {
+        ...initialProps,
+        networks: [...mockDefaultNetworks, mockEvmNetworks[0]],
+      };
+      rerender(newProps);
+
+      // Assert
+      expect(result.current.networksToUse).toBe(firstResult); // Should be same reference since EVM networks didn't change
+      expect(result.current.networksToUse).toEqual(mockEvmNetworks);
+    });
+
+    it('updates areAllNetworksSelectedCombined when selection state changes', () => {
+      // Arrange
+      const props = {
+        networks: mockDefaultNetworks,
+        networkType: NetworkType.Popular,
+        areAllNetworksSelected: false,
+      };
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === EVM_SCOPE) {
+              return mockEvmAccount;
+            }
+            if (scope === SolScope.Mainnet) {
+              return mockSolanaAccount;
+            }
+            return null;
+          };
+        }
+        return undefined;
+      });
+
+      // First render - not all selected
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: mockEvmNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 2,
+          totalEnabledNetworksCount: 2,
+        })
+        .mockReturnValueOnce({
+          networks: mockSolanaNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 1,
+          totalEnabledNetworksCount: 1,
+        });
+
+      // Act
+      const { result } = renderHook(() => useNetworksToUse(props));
+
+      // Assert
+      expect(result.current.areAllNetworksSelectedCombined).toBe(false);
     });
   });
 });
