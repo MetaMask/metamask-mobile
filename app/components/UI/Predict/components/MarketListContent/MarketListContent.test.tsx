@@ -72,6 +72,8 @@ const mockMarket2: Market = {
   volume: '500000',
   providerId: 'test-provider',
   status: 'open',
+  clobTokenIds: '["token3", "token4"]',
+  conditionId: 'condition2',
 };
 
 const mockPredictEvent: PredictEvent = {

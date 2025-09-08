@@ -151,7 +151,12 @@ export interface IPredictProvider {
   getMarkets(params?: { category?: MarketCategory }): Promise<Market[]>;
 
   // Event data
-  getEvents(params?: { category?: MarketCategory }): Promise<PredictEvent[]>;
+  getEvents(params?: {
+    category?: MarketCategory;
+    q?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<PredictEvent[]>;
 
   // User positions
   getPositions({

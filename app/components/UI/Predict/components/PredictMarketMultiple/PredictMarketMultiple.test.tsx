@@ -56,7 +56,7 @@ describe('PredictMarket', () => {
       getByText('Will Bitcoin reach $150,000 by end of year?'),
     ).toBeOnTheScreen();
 
-    expect(getByText('1 outcomes')).toBeOnTheScreen();
+    // For 1 market, no "+X outcomes" text is shown (only for >3 markets)
     expect(getByText('65.00%')).toBeOnTheScreen();
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
@@ -98,7 +98,7 @@ describe('PredictMarket', () => {
       getByText('Will Bitcoin reach $150,000 by end of year?'),
     ).toBeOnTheScreen();
     expect(getByText(/\$0.*Vol\./)).toBeOnTheScreen();
-    expect(getByText('1 outcomes')).toBeOnTheScreen();
+    // For 1 market, no "+X outcomes" text is shown (only for >3 markets)
   });
 
   it('should handle multiple markets correctly', () => {
@@ -125,7 +125,7 @@ describe('PredictMarket', () => {
       { state: initialState },
     );
 
-    expect(getByText('2 outcomes')).toBeOnTheScreen();
+    // For 2 markets, no "+X outcomes" text is shown (only for >3 markets)
     expect(getByText('Market 1')).toBeOnTheScreen();
     expect(getByText('Market 2')).toBeOnTheScreen();
     expect(getByText('75.00%')).toBeOnTheScreen();

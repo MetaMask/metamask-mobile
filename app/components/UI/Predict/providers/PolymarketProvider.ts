@@ -137,23 +137,29 @@ export class PolymarketProvider implements IPredictProvider {
 
   async getEvents(params?: {
     category?: MarketCategory;
+    q?: string;
     limit?: number;
     offset?: number;
   }): Promise<PredictEvent[]> {
     try {
       const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
-      const { category = 'trending', limit = 20, offset = 0 } = params || {};
+      const { category = 'trending', q, limit = 20, offset = 0 } = params || {};
       DevLogger.log(
         'Getting markets via Polymarket API for category:',
         category,
+        'search:',
+        q,
         'limit:',
         limit,
         'offset:',
         offset,
       );
 
-      let queryParams = `limit=${limit}&active=true&archived=false&closed=false&ascending=false&offset=${offset}`;
+      let queryParamsEvents = `limit=${limit}&active=true&archived=false&closed=false&ascending=false&offset=${offset}`;
+      const queryParamsSearch = `limit_per_type=${limit}&page=${
+        Math.floor(offset / limit) + 1
+      }&ascending=false`;
 
       const categoryTagMap: Record<MarketCategory, string> = {
         trending: '&exclude_tag_id=100639&order=volume24hr',
@@ -163,15 +169,21 @@ export class PolymarketProvider implements IPredictProvider {
         politics: '&tag_slug=politics&order=volume24hr',
       };
 
-      queryParams += categoryTagMap[category];
+      queryParamsEvents += categoryTagMap[category];
 
-      const response = await fetch(
-        `${GAMMA_API_ENDPOINT}/events/pagination?${queryParams}`,
-      );
+      // Use search endpoint if q parameter is provided
+      const endpoint = q
+        ? `${GAMMA_API_ENDPOINT}/public-search?q=${encodeURIComponent(
+            q,
+          )}&${queryParamsSearch}`
+        : `${GAMMA_API_ENDPOINT}/events/pagination?${queryParamsEvents}`;
+
+      const response = await fetch(endpoint);
       const data = await response.json();
       DevLogger.log('Polymarket response data:', data);
 
-      const events = data?.data;
+      // Handle different response structures
+      const events = q ? data?.events : data?.data;
 
       if (!events || !Array.isArray(events)) {
         return [];

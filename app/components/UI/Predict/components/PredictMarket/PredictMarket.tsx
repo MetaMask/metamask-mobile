@@ -22,7 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import styleSheet from './PredictMarket.styles';
-
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 interface PredictMarketProps {
   market: Market;
 }
@@ -43,17 +43,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
       reset();
     }
   }, [status, reset]);
-
-  const getOutcomeLabels = (): string[] => {
-    try {
-      if (typeof market.outcomes === 'string') {
-        return JSON.parse(market.outcomes);
-      }
-      return [];
-    } catch (error) {
-      return [];
-    }
-  };
 
   const getOutcomePrices = (): number[] => {
     try {
@@ -83,7 +72,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
 
   const getVolumeDisplay = (): string => formatVolume(market.volume || 0);
 
-  const outcomeLabels = getOutcomeLabels();
   const yesPercentage = getYesPercentage();
 
   const handleYes = () => {
@@ -100,6 +88,94 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
       outcomeId: tokenIds[1],
       amount: 1,
     });
+  };
+
+  interface SemiCircleYesPercentageProps {
+    percentage: number;
+    size?: number;
+    compensateCaps?: boolean;
+    startAngle?: number;
+  }
+
+  const SemiCircleYesPercentage = ({
+    percentage,
+    size = 40,
+    compensateCaps = true,
+    startAngle = 180,
+  }: SemiCircleYesPercentageProps) => {
+    const { theme } = useStyles(() => ({}), {});
+    const radius = size / 2;
+    const strokeWidth = 4;
+
+    const fullCircumference = 2 * Math.PI * (radius - strokeWidth / 2);
+    const semiCircumference = fullCircumference / 2;
+
+    let progress = Math.min(Math.max(percentage, 0), 100) / 100;
+
+    if (compensateCaps && progress > 0) {
+      const capCompensation = strokeWidth / radius;
+      const adjustment = capCompensation / Math.PI / 2;
+      progress = Math.min(progress, 1 - adjustment);
+    }
+
+    const backgroundDasharray = `${semiCircumference} ${fullCircumference}`;
+    const progressDasharray = `${
+      semiCircumference * progress
+    } ${fullCircumference}`;
+
+    return (
+      <Box
+        twClassName="relative items-center justify-center"
+        style={{ width: size, height: size / 2 }}
+      >
+        <Svg width={size} height={size / 2} style={tw.style('absolute')}>
+          <Defs>
+            <LinearGradient
+              id="progressGradient"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
+              <Stop offset="0%" stopColor={theme.colors.success.default} />
+              <Stop offset="100%" stopColor={theme.colors.success.default} />
+            </LinearGradient>
+          </Defs>
+
+          {/* Background semi-circle */}
+          <Circle
+            cx={radius}
+            cy={radius}
+            r={radius - strokeWidth / 2}
+            stroke={theme.colors.border.muted}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={backgroundDasharray}
+            transform={`rotate(${startAngle} ${radius} ${radius})`}
+          />
+
+          {/* Progress arc */}
+          <Circle
+            cx={radius}
+            cy={radius}
+            r={radius - strokeWidth / 2}
+            stroke="url(#progressGradient)"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={progressDasharray}
+            transform={`rotate(${startAngle} ${radius} ${radius})`}
+            strokeLinecap="round"
+          />
+        </Svg>
+        <Text
+          variant={TextVariant.HeadingMD}
+          color={TextColor.Success}
+          style={[tw.style('absolute'), { top: radius - 18 }]}
+        >
+          {percentage}%
+        </Text>
+      </Box>
+    );
   };
 
   return (
@@ -128,9 +204,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
           >
             {getTitle()}
           </Text>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Success}>
-            {yesPercentage}%
-          </Text>
+          <View style={styles.yesPercentageContainer}>
+            <SemiCircleYesPercentage percentage={yesPercentage} size={78} />
+          </View>
         </Box>
       </View>
       <View style={styles.buttonContainer}>
@@ -164,9 +240,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
         />
       </View>
       <View style={styles.marketFooter}>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {outcomeLabels.length} {strings('predict.outcomes')}
-        </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
         </Text>

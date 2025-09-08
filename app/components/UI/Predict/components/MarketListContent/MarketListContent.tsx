@@ -17,9 +17,13 @@ import PredictMarketMultiple from '../PredictMarketMultiple';
 
 interface MarketListContentProps {
   category: MarketCategory;
+  q?: string;
 }
 
-const MarketListContent: React.FC<MarketListContentProps> = ({ category }) => {
+const MarketListContent: React.FC<MarketListContentProps> = ({
+  category,
+  q,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const {
@@ -30,7 +34,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({ category }) => {
     hasMore,
     refetch,
     fetchMore,
-  } = usePredictMarketData({ category, pageSize: 20 });
+  } = usePredictMarketData({ category, q, pageSize: 20 });
 
   const listRef = useRef<FlashListRef<PredictEvent>>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);

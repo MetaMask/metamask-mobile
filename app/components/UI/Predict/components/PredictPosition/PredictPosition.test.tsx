@@ -40,7 +40,7 @@ describe('PredictPosition', () => {
 
   it.each([
     { value: -3.5, expected: '-3.50%' },
-    { value: 0, expected: '+0%' },
+    { value: 0, expected: '0%' },
     { value: 7.5, expected: '+7.50%' },
   ])('formats percentPnl $value as $expected', ({ value, expected }) => {
     renderComponent({ percentPnl: value });

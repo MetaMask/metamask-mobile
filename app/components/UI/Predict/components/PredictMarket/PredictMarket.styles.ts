@@ -21,6 +21,12 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       width: '100%',
     },
+    yesPercentageContainer: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minWidth: 60,
+    },
     marketFooter: {
       flexDirection: 'row',
       justifyContent: 'space-between',

@@ -1539,7 +1539,9 @@
         "sports": "Sports",
         "crypto": "Crypto",
         "politics": "Politics"
-    }
+    },
+    "search_placeholder": "Search prediction markets",
+    "search_cancel": "Cancel"
   },
   "receive": {
     "title": "Receive"

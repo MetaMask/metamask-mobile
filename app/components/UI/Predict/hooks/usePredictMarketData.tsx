@@ -7,6 +7,7 @@ import { MarketCategory, PredictEvent } from '../types';
 
 export interface UsePredictMarketDataOptions {
   category?: MarketCategory;
+  q?: string;
   pageSize?: number;
 }
 
@@ -27,7 +28,7 @@ export interface UsePredictMarketDataResult {
 export const usePredictMarketData = (
   options: UsePredictMarketDataOptions = {},
 ): UsePredictMarketDataResult => {
-  const { category = 'trending', pageSize = 20 } = options;
+  const { category = 'trending', q, pageSize = 20 } = options;
   const [marketData, setMarketData] = useState<PredictEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -63,6 +64,8 @@ export const usePredictMarketData = (
         DevLogger.log(
           'Fetching market data for category:',
           category,
+          'search:',
+          q,
           'offset:',
           offset,
           'limit:',
@@ -87,6 +90,7 @@ export const usePredictMarketData = (
             await controller.initializeProviders();
             const markets = await controller.getEvents({
               category,
+              q,
               limit: pageSize,
               offset,
             });
@@ -155,7 +159,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, pageSize],
+    [category, q, pageSize],
   );
 
   const loadMore = useCallback(async () => {
@@ -167,14 +171,14 @@ export const usePredictMarketData = (
     await fetchMarketData(false);
   }, [fetchMarketData]);
 
-  // Reset pagination when category changes
+  // Reset pagination when category or search changes
   useEffect(() => {
     setCurrentOffset(0);
     currentOffsetRef.current = 0;
     setHasMore(true);
     setMarketData([]);
     fetchMarketData(false);
-  }, [category, fetchMarketData]);
+  }, [category, q, fetchMarketData]);
 
   return {
     marketData,
