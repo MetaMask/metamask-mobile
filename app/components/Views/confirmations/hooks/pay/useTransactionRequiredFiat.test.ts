@@ -51,12 +51,14 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress1Mock,
         amountHuman: '2',
+        amountRaw: '2000',
         balanceHuman: '10',
         skipIfBalance: false,
       },
       {
         address: tokenAddress2Mock,
         amountHuman: '3',
+        amountRaw: '3000',
         balanceHuman: '20',
         skipIfBalance: true,
       },
@@ -72,6 +74,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress1Mock,
         amountFiat: 8,
+        amountRaw: '2000',
         balanceFiat: 40,
         feeFiat: 0.2,
         skipIfBalance: false,
@@ -80,6 +83,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress2Mock,
         amountFiat: 15,
+        amountRaw: '3000',
         balanceFiat: 100,
         feeFiat: 0.375,
         skipIfBalance: true,
@@ -104,6 +108,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress1Mock,
         amountFiat: 16,
+        amountRaw: '2000',
         balanceFiat: 40,
         feeFiat: 0.4,
         skipIfBalance: false,
@@ -112,6 +117,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress2Mock,
         amountFiat: 15,
+        amountRaw: '3000',
         balanceFiat: 100,
         feeFiat: 0.375,
         skipIfBalance: true,

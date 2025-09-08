@@ -4,7 +4,7 @@ import { RootState } from '../../../../../reducers';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { BigNumber } from 'bignumber.js';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { useEffect } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TransactionBridgeQuote } from '../../utils/bridge';
@@ -54,30 +54,39 @@ export function useTransactionTotalFiat() {
       new BigNumber(0),
     ) ?? new BigNumber(0);
 
-  const total = quoteTotal.plus(balanceCost);
-  const value = total.toString(10);
-  const formatted = fiatFormatter(total);
-
   const totalNetworkFee = quoteNetworkFeeTotal.plus(
     new BigNumber(estimatedFeeFiatPrecise ?? 0),
   );
+
+  const dustTotal =
+    quotes?.reduce(
+      (acc, quote) => acc.plus(getQuoteDust(quote, requiredFiat)),
+      new BigNumber(0),
+    ) ?? new BigNumber(0);
+
+  const total = quoteTotal.plus(balanceCost).minus(dustTotal);
+  const value = total.toString(10);
+  const formatted = fiatFormatter(total);
 
   const totalNetworkFeeFormatted = fiatFormatter(totalNetworkFee);
   const bridgeFeeFormatted = fiatFormatter(quoteFeeTotal);
   const balanceCostString = balanceCost.toString(10);
   const quoteTotalString = quoteTotal.toString(10);
+  const dustTotalString = dustTotal.toString(10);
 
   useEffect(() => {
     log('Total fiat', {
       balances: balanceCostString,
-      quotes: quoteTotalString,
-      networkFees: totalNetworkFeeFormatted,
       bridgeFees: bridgeFeeFormatted,
+      dust: dustTotalString,
+      networkFees: totalNetworkFeeFormatted,
+      quotes: quoteTotalString,
       total: formatted,
     });
   }, [
     balanceCostString,
     bridgeFeeFormatted,
+    dustTotalString,
     formatted,
     quoteTotalString,
     totalNetworkFeeFormatted,
@@ -107,6 +116,25 @@ function getQuoteGasAndRelayFee(quote: TransactionBridgeQuote): BigNumber {
 
 function getQuoteSourceFee(quote: TransactionBridgeQuote): BigNumber {
   return getQuoteSourceAmount(quote).minus(
-    quote.toTokenAmount?.valueInCurrency ?? 0,
+    quote.minToTokenAmount?.valueInCurrency ?? 0,
   );
+}
+
+function getQuoteDust(
+  quote: TransactionBridgeQuote,
+  requiredFiat: { address: Hex; amountFiat: number }[],
+): BigNumber {
+  const targetAmount = quote.minToTokenAmount?.valueInCurrency ?? '0';
+
+  const requiredAmount = requiredFiat.find(
+    (token) =>
+      token.address.toLowerCase() ===
+      quote.quote.destAsset.address.toLowerCase(),
+  )?.amountFiat;
+
+  if (!requiredAmount) {
+    return new BigNumber(0);
+  }
+
+  return new BigNumber(targetAmount).minus(requiredAmount);
 }

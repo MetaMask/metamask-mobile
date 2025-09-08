@@ -100,13 +100,16 @@ export const useCurrencyConversions = () => {
     if (!asset?.address) {
       return 0;
     }
+    if ((asset as AssetType)?.fiat?.conversionRate) {
+      return (asset as AssetType)?.fiat?.conversionRate ?? 0;
+    }
     if (isEvmAddress(asset?.address)) {
       return conversionRateEvm ?? 0;
     }
     return parseFloat(
       multichainAssetsRates[asset?.address as CaipAssetType]?.rate ?? 0,
     );
-  }, [asset?.address, conversionRateEvm, multichainAssetsRates]);
+  }, [asset, conversionRateEvm, multichainAssetsRates]);
 
   const getFiatDisplayValue = useCallback(
     (amount: string) =>

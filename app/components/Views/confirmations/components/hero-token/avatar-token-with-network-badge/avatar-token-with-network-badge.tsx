@@ -13,6 +13,7 @@ import BadgeWrapper, {
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../component-library/hooks';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
+import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
 import { TokenI } from '../../../../../UI/Tokens/types';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useTokenAsset } from '../../../hooks/useTokenAsset';
@@ -43,7 +44,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
     />
   ) : (
     <AvatarToken
-      imageSource={image ? { uri: image } : undefined}
+      imageSource={image ? { uri: image } : NetworkBadgeSource(chainId as Hex)}
       name={isUnknownToken ? undefined : displayName}
       size={AvatarSize.Xl}
       style={styles.avatarToken}
