@@ -37,7 +37,7 @@ import {
   usePerpsPerformance,
   usePerpsLivePositions,
 } from '../../hooks';
-import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
@@ -47,15 +47,6 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import Engine from '../../../../../core/Engine';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { formatPerpsFiat } from '../../utils/formatUtils';
-import { RootState } from '../../../../../reducers';
-import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
-import usePerpsToasts from '../../hooks/usePerpsToasts';
 
 interface PerpsTabViewProps {}
 
@@ -63,10 +54,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
-
-  const { account: liveAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
-  const [isExpectingDeposit, setIsExpectingDeposit] = useState(false);
-  const previousBalanceRef = useRef<string | null>(null);
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
@@ -89,20 +76,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
-  const { showToast, PerpsToastOptions } = usePerpsToasts();
-
-  // Get the internal transaction ID from the controller. Needed to get bridge quotes.
-  const lastDepositTransactionId = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.PerpsController?.lastDepositTransactionId ??
-      null,
-  );
-
-  // For Perps deposits this array typically contains only one element.
-  const bridgeQuotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
-  );
-
   const isEligible = useSelector(selectPerpsEligibility);
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
@@ -112,94 +85,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
-
-  // Listen for transaction submission
-  useEffect(() => {
-    const handleTransactionSubmitted = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
-      if (transactionMeta.type === TransactionType.perpsDeposit) {
-        const processingTimeSeconds =
-          bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
-
-        showToast(
-          PerpsToastOptions.accountManagement.deposit.inProgress(
-            processingTimeSeconds,
-          ),
-        );
-      }
-    };
-
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionSubmitted',
-      handleTransactionSubmitted,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionSubmitted',
-        handleTransactionSubmitted,
-      );
-    };
-  }, [PerpsToastOptions.accountManagement.deposit, bridgeQuotes, showToast]);
-
-  // Listen for deposit transaction confirmations
-  useEffect(() => {
-    const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
-      if (transactionMeta.type === TransactionType.perpsDeposit) {
-        setIsExpectingDeposit(true);
-      }
-    };
-
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionConfirmed',
-      handleTransactionConfirmed,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionConfirmed',
-        handleTransactionConfirmed,
-      );
-    };
-  }, []);
-
-  // Watch live account balance for deposit credits
-  useEffect(() => {
-    // Initialize previous balance
-    if (previousBalanceRef.current === null && liveAccount?.availableBalance) {
-      previousBalanceRef.current = liveAccount.availableBalance;
-      return;
-    }
-
-    // Check for balance increase
-    if (
-      isExpectingDeposit &&
-      liveAccount?.availableBalance &&
-      previousBalanceRef.current &&
-      parseFloat(liveAccount.availableBalance) >
-        parseFloat(previousBalanceRef.current)
-    ) {
-      showToast(
-        PerpsToastOptions.accountManagement.deposit.success(
-          formatPerpsFiat(liveAccount.availableBalance),
-        ),
-      );
-      setIsExpectingDeposit(false);
-    }
-
-    // Always update the ref
-    if (liveAccount?.availableBalance) {
-      previousBalanceRef.current = liveAccount.availableBalance;
-    }
-  }, [
-    PerpsToastOptions.accountManagement.deposit,
-    isExpectingDeposit,
-    liveAccount?.availableBalance,
-    showToast,
-  ]);
 
   // Start measuring position data load time on mount
   useEffect(() => {

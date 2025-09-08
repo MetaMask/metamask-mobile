@@ -4,6 +4,15 @@ import type { RootState } from '../../../../reducers';
 import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import usePerpsToasts from './usePerpsToasts';
+import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import {
+  TransactionMeta,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import Engine from '../../../../core/Engine';
+import { formatPerpsFiat } from '../utils/formatUtils';
+import { selectPerpsAccountState } from '../selectors/perpsController';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -16,6 +25,8 @@ import usePerpsToasts from './usePerpsToasts';
  */
 export const usePerpsDepositStatus = () => {
   const { clearDepositResult } = usePerpsTrading();
+
+  const accountState = useSelector(selectPerpsAccountState);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -33,6 +44,88 @@ export const usePerpsDepositStatus = () => {
       state.engine.backgroundState.PerpsController?.lastDepositResult ?? null,
   );
 
+  // Get the internal transaction ID from the controller. Needed to get bridge quotes.
+  const lastDepositTransactionId = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.lastDepositTransactionId ??
+      null,
+  );
+
+  // For Perps deposits this array typically contains only one element.
+  const bridgeQuotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
+  );
+
+  // Listen for PerpsDeposit approval - Used to display deposit in progress toast
+  useEffect(() => {
+    const handleTransactionApproved = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => {
+      if (
+        transactionMeta.type === TransactionType.perpsDeposit &&
+        transactionMeta.status === TransactionStatus.approved
+      ) {
+        const processingTimeSeconds =
+          bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
+
+        showToast(
+          PerpsToastOptions.accountManagement.deposit.inProgress(
+            processingTimeSeconds,
+          ),
+        );
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      handleTransactionApproved,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionStatusUpdated',
+        handleTransactionApproved,
+      );
+    };
+  }, [PerpsToastOptions.accountManagement.deposit, bridgeQuotes, showToast]);
+
+  // Listen for PerpsDeposit confirmation - Used to display deposit success toast
+  useEffect(() => {
+    const handleTransactionConfirmed = async (
+      transactionMeta: TransactionMeta,
+    ) => {
+      if (transactionMeta.type === TransactionType.perpsDeposit) {
+        await Engine.context.PerpsController.getAccountState();
+
+        if (accountState?.totalBalance) {
+          showToast(
+            PerpsToastOptions.accountManagement.deposit.success(
+              formatPerpsFiat(accountState.totalBalance),
+            ),
+          );
+        }
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      handleTransactionConfirmed,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionConfirmed',
+        handleTransactionConfirmed,
+      );
+    };
+  }, [
+    PerpsToastOptions.accountManagement.deposit,
+    accountState?.totalBalance,
+    showToast,
+  ]);
+
   // Clear stale results on mount
   useEffect(() => {
     // If there's a result on mount, it's stale from a previous session
@@ -46,7 +139,7 @@ export const usePerpsDepositStatus = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount - intentionally omitting dependencies
 
-  // Update toast when deposit state changes
+  // Update toast when deposit state changes - We display the deposit error toast if the deposit fails
   useEffect(() => {
     // Create a unique identifier for this result to prevent duplicate toasts
     const resultId = lastDepositResult
@@ -59,20 +152,16 @@ export const usePerpsDepositStatus = () => {
     if (lastDepositResult && resultId !== hasProcessedResultRef.current) {
       hasProcessedResultRef.current = resultId;
 
-      let timeoutId: NodeJS.Timeout | null = null;
-
       if (!lastDepositResult.success) {
         // Show error toast
         showToast(PerpsToastOptions.accountManagement.deposit.error);
-
-        // Clear the result after showing toast
-        timeoutId = setTimeout(() => {
-          clearDepositResult();
-          hasProcessedResultRef.current = null;
-        }, 500);
       }
 
-      // Cleanup function to clear timeout if component unmounts
+      const timeoutId = setTimeout(() => {
+        clearDepositResult();
+        hasProcessedResultRef.current = null;
+      }, 500);
+
       return () => {
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -84,6 +173,8 @@ export const usePerpsDepositStatus = () => {
     clearDepositResult,
     showToast,
     PerpsToastOptions.accountManagement.deposit.error,
+    PerpsToastOptions.accountManagement.deposit,
+    bridgeQuotes,
   ]);
 
   return { depositInProgress };
