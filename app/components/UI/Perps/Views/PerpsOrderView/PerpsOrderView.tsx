@@ -359,7 +359,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         });
 
         showToast(
-          PerpsToastOptions.order.orderManagement[orderForm.type].confirmed(
+          PerpsToastOptions.orderManagement[orderForm.type].confirmed(
             orderForm.direction,
             positionSize,
             orderForm.asset,
@@ -368,8 +368,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       },
       onError: (_error) => {
         showToast(
-          PerpsToastOptions.order.orderManagement[orderForm.type]
-            .creationFailed,
+          PerpsToastOptions.orderManagement[orderForm.type].creationFailed,
         );
       },
     });
@@ -377,7 +376,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   useEffect(() => {
     if (isPlacingOrder) {
       showToast(
-        PerpsToastOptions.order.orderManagement[orderForm.type].submitted(
+        PerpsToastOptions.orderManagement[orderForm.type].submitted(
           orderForm.direction,
           positionSize,
           orderForm.asset,
@@ -385,7 +384,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
       );
     }
   }, [
-    PerpsToastOptions.order.orderManagement,
+    PerpsToastOptions.orderManagement,
     isPlacingOrder,
     orderForm.asset,
     orderForm.direction,

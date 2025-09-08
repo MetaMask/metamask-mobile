@@ -179,7 +179,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         );
 
         showToast(
-          PerpsToastOptions.order.orderManagement.limit.cancellationInProgress(
+          PerpsToastOptions.orderManagement.limit.cancellationInProgress(
             orderDirection,
             orderToCancel.remainingSize,
             orderToCancel.symbol,
@@ -200,14 +200,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               // Distinction is important since reduce-only orders don't require margin.
               // So we shouldn't display "Your funds are available to trade" in the toast.
               showToast(
-                PerpsToastOptions.order.orderManagement.limit.reduceOnlyClose
+                PerpsToastOptions.orderManagement.limit.reduceOnlyClose
                   .cancellationSuccess,
               );
             } else {
               // In regular limit order, funds are "locked up" and the "funds are available to trade" text in toast makes sense.
               showToast(
-                PerpsToastOptions.order.orderManagement.limit
-                  .cancellationSuccess,
+                PerpsToastOptions.orderManagement.limit.cancellationSuccess,
               );
             }
           }, 1500);
@@ -218,14 +217,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
             if (orderToCancel.reduceOnly) {
               showToast(
-                PerpsToastOptions.order.orderManagement.limit.reduceOnlyClose
+                PerpsToastOptions.orderManagement.limit.reduceOnlyClose
                   .cancellationFailed,
               );
             } else {
               // Display "Funds have been returned to you" toast
               showToast(
-                PerpsToastOptions.order.orderManagement.limit
-                  .cancellationFailed,
+                PerpsToastOptions.orderManagement.limit.cancellationFailed,
               );
             }
           }, 1500);
@@ -239,7 +237,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         DevLogger.log('Failed to cancel order:', error);
       }
     },
-    [PerpsToastOptions.order.orderManagement.limit, position?.size, showToast],
+    [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
   );
 
   const renderTooltipModal = useCallback(() => {

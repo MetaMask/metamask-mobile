@@ -172,141 +172,140 @@ const usePerpsToasts = () => {
           ),
         }),
       },
-      order: {
-        // TODO: Bring orderManagement up a level
-        // Intentional duplication of some options between market and limit to avoid coupling.
-        orderManagement: {
-          market: {
-            submitted: (
-              direction: OrderDirection,
-              amount: string,
-              assetSymbol: string,
-            ) => ({
-              ...perpsBaseToastOptions.success,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_submitted'),
-                strings('perps.order.order_placement_subtitle', {
-                  direction: capitalize(direction),
-                  amount,
-                  assetSymbol,
-                }),
-              ),
-            }),
-            // Displays "Order Filled" since market orders are filled immediately or fail.
-            confirmed: (
-              direction: OrderDirection,
-              amount: string,
-              assetSymbol: string,
-            ) => ({
-              ...perpsBaseToastOptions.success,
-              iconName: IconName.Check,
-              iconColor: theme.colors.primary.default,
-              backgroundColor: theme.colors.background.default,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_filled'),
-                strings('perps.order.order_placement_subtitle', {
-                  direction: capitalize(direction),
-                  amount,
-                  assetSymbol,
-                }),
-              ),
-            }),
-            creationFailed: {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_failed'),
-                strings('perps.order.your_funds_have_been_returned_to_you'),
-              ),
-            },
+      // Intentional duplication of some options between market and limit to avoid coupling.
+      orderManagement: {
+        market: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_submitted'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol,
+              }),
+            ),
+          }),
+          // Displays "Order Filled" since market orders are filled immediately or fail.
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            iconName: IconName.Check,
+            iconColor: theme.colors.primary.default,
+            backgroundColor: theme.colors.background.default,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_filled'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol,
+              }),
+            ),
+          }),
+          creationFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_failed'),
+              strings('perps.order.your_funds_have_been_returned_to_you'),
+            ),
           },
-          limit: {
-            submitted: (
-              direction: OrderDirection,
-              amount: string,
-              assetSymbol: string,
-            ) => ({
-              ...perpsBaseToastOptions.success,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_submitted'),
-                strings('perps.order.order_placement_subtitle', {
-                  direction: capitalize(direction),
-                  amount,
-                  assetSymbol,
-                }),
-              ),
-            }),
-            // Displays "Order Placed" since limit orders aren't typically filled immediately.
-            confirmed: (
-              direction: OrderDirection,
-              amount: string,
-              assetSymbol: string,
-            ) => ({
-              ...perpsBaseToastOptions.success,
-              iconName: IconName.Check,
-              iconColor: theme.colors.primary.default,
-              backgroundColor: theme.colors.background.default,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_placed'),
-                strings('perps.order.order_placement_subtitle', {
-                  direction: capitalize(direction),
-                  amount,
-                  assetSymbol,
-                }),
-              ),
-            }),
-            creationFailed: {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_failed'),
-                strings('perps.order.your_funds_have_been_returned_to_you'),
-              ),
-            },
-            cancellationInProgress: (
-              direction: OrderDirection,
-              amount: string,
-              assetSymbol: string,
-            ) => ({
-              ...perpsBaseToastOptions.inProgress,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.cancelling_order'),
-                strings('perps.order.cancelling_order_subtitle', {
-                  direction,
-                  amount,
-                  assetSymbol,
-                }),
-              ),
-            }),
+        },
+        limit: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_submitted'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol,
+              }),
+            ),
+          }),
+          // Displays "Order Placed" since limit orders aren't typically filled immediately.
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            iconName: IconName.Check,
+            iconColor: theme.colors.primary.default,
+            backgroundColor: theme.colors.background.default,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_placed'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol,
+              }),
+            ),
+          }),
+          creationFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_failed'),
+              strings('perps.order.your_funds_have_been_returned_to_you'),
+            ),
+          },
+          cancellationInProgress: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.cancelling_order'),
+              strings('perps.order.cancelling_order_subtitle', {
+                direction,
+                amount,
+                assetSymbol,
+              }),
+            ),
+          }),
+          cancellationSuccess: {
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_cancelled'),
+              strings('perps.order.funds_are_available_to_trade'),
+            ),
+          },
+          cancellationFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.failed_to_cancel_order'),
+            ),
+          },
+          reduceOnlyClose: {
             cancellationSuccess: {
               ...perpsBaseToastOptions.success,
               labelOptions: getPerpsToastLabels(
                 strings('perps.order.order_cancelled'),
-                strings('perps.order.funds_are_available_to_trade'),
+                strings('perps.close_position.limit_close_order_cancelled'),
               ),
             },
             cancellationFailed: {
               ...perpsBaseToastOptions.error,
               labelOptions: getPerpsToastLabels(
                 strings('perps.order.failed_to_cancel_order'),
+                strings('perps.order.close_order_still_active'),
               ),
-            },
-            reduceOnlyClose: {
-              cancellationSuccess: {
-                ...perpsBaseToastOptions.success,
-                labelOptions: getPerpsToastLabels(
-                  strings('perps.order.order_cancelled'),
-                  strings('perps.close_position.limit_close_order_cancelled'),
-                ),
-              },
-              cancellationFailed: {
-                ...perpsBaseToastOptions.error,
-                labelOptions: getPerpsToastLabels(
-                  strings('perps.order.failed_to_cancel_order'),
-                  strings('perps.order.close_order_still_active'),
-                ),
-              },
             },
           },
         },
+      },
+      order: {
         // TODO: Move into form validation section
         orderForm: {
           validationError: (error: string) => ({
