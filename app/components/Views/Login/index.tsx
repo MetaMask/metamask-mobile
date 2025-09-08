@@ -209,16 +209,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [route.params?.onboardingTraceCtx]);
 
+  const [refreshAuthPref, setRefreshAuthPref] = useState(false);
   useEffect(() => {
-    const getUserAuthPreferences = async () => {
-      if (isSeedlessPasswordOutdated) {
-        setError(strings('login.seedless_password_outdated'));
-        // password outdated, reset biometric password and choice
-        await Authentication.resetPassword().catch((e) => {
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+      // password outdated, reset biometric password and choice
+      Authentication.resetPassword()
+        .then(() => {
+          // set to fupate authPref
+          setRefreshAuthPref(true);
+        })
+        .catch((e) => {
           Logger.error(e);
         });
-      }
+    }
+  }, [isSeedlessPasswordOutdated]);
 
+  useEffect(() => {
+    const getUserAuthPreferences = async () => {
       const authData = await Authentication.getType();
 
       //Setup UI to handle Biometric
@@ -252,7 +260,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     };
 
     getUserAuthPreferences();
-  }, [isSeedlessPasswordOutdated, route?.params?.locked]);
+  }, [route?.params?.locked, refreshAuthPref]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
