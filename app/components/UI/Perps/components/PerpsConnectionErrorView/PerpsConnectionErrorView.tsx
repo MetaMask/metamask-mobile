@@ -47,7 +47,6 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
 
   // Determine if back button should be shown
   const shouldShowBackButton = showBackButton || retryAttempts > 0;
-
   const handleGoBack = () => {
     // Navigate back to the previous screen or wallet home
     if (navigation.canGoBack()) {
@@ -119,7 +118,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={strings('navigation.go_back')}
+            label={strings('perps.errors.connectionFailed.go_back')}
             onPress={handleGoBack}
             style={styles.backButton}
           />

@@ -24,17 +24,33 @@ import { strings } from '../../../../../../../locales/i18n';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { useTransactionRequiredTokens } from '../../../hooks/pay/useTransactionRequiredTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
-  const { sortedSourceNetworks } = useSortedSourceNetworks();
+  const { sortedSourceNetworks: sortedSourceNetworksRaw } =
+    useSortedSourceNetworks();
   const navigation = useNavigation();
   const { payToken, setPayToken } = useTransactionPayToken();
   const { minimumFiatBalance } = useParams<{ minimumFiatBalance?: number }>();
   const { chainId: transactionChainId } = useTransactionMetadataRequest() ?? {};
   const requiredTokens = useTransactionRequiredTokens();
+
+  const supportedSourceChains = useMemo(
+    () =>
+      enabledSourceChains.filter((chain) => !isSolanaChainId(chain.chainId)),
+    [enabledSourceChains],
+  );
+
+  const sortedSourceNetworks = useMemo(
+    () =>
+      sortedSourceNetworksRaw.filter((chain) =>
+        supportedSourceChains.some((c) => c.chainId === chain.chainId),
+      ),
+    [sortedSourceNetworksRaw, supportedSourceChains],
+  );
 
   const targetTokens = useMemo(
     () => requiredTokens.filter((t) => !t.skipIfBalance),
@@ -157,7 +173,7 @@ export function PayWithModal() {
           networksToShow={networksToShow}
           networkConfigurations={allNetworkConfigurations}
           selectedSourceChainIds={selectedSourceChainIds as Hex[]}
-          enabledSourceChains={enabledSourceChains}
+          enabledSourceChains={supportedSourceChains}
           onPress={handleNetworkPress}
         />
       }
