@@ -538,7 +538,7 @@ describe('NetworkMultiSelector', () => {
       });
     });
 
-    it('calls useNetworksByCustomNamespace for both EVM and Solana when multichain is enabled', () => {
+    it('calls useNetworksToUse when multichain is enabled', () => {
       mockUseSelector
         .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
@@ -546,15 +546,11 @@ describe('NetworkMultiSelector', () => {
 
       renderWithProvider(<NetworkMultiSelector openModal={mockOpenModal} />);
 
-      // Should call useNetworksByCustomNamespace twice (once for EVM, once for Solana)
-      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledTimes(2);
-      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledWith({
+      // Should call useNetworksToUse with correct parameters
+      expect(mockUseNetworksToUse).toHaveBeenCalledWith({
+        networks: mockNetworks,
         networkType: NetworkType.Popular,
-        namespace: KnownCaipNamespace.Eip155,
-      });
-      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledWith({
-        networkType: NetworkType.Popular,
-        namespace: KnownCaipNamespace.Solana,
+        areAllNetworksSelected: false,
       });
     });
 
@@ -597,26 +593,18 @@ describe('NetworkMultiSelector', () => {
         customNetworksToReset: [],
       });
 
-      // Set up custom namespace mocks - EVM returns data, Solana returns empty
-      mockUseNetworksByCustomNamespace
-        .mockReturnValueOnce({
-          networks: mockEvmNetworks,
-          selectedNetworks: [mockEvmNetworks[0]],
-          selectedCount: 1,
-          areAllNetworksSelected: true,
-          areAnyNetworksSelected: true,
-          networkCount: 1,
-          totalEnabledNetworksCount: 1,
-        })
-        .mockReturnValueOnce({
-          networks: [],
-          selectedNetworks: [],
-          selectedCount: 0,
-          areAllNetworksSelected: false,
-          areAnyNetworksSelected: false,
-          networkCount: 0,
-          totalEnabledNetworksCount: 0,
-        });
+      // Mock useNetworksToUse to return only EVM networks
+      mockUseNetworksToUse.mockReturnValue({
+        networksToUse: mockEvmNetworks,
+        evmNetworks: mockEvmNetworks,
+        solanaNetworks: [],
+        isMultichainAccountsState2Enabled: true,
+        selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
+        selectedSolanaAccount: null,
+        areAllNetworksSelectedCombined: true,
+        areAllEvmNetworksSelected: true,
+        areAllSolanaNetworksSelected: false,
+      });
 
       // Setup selector mock
       mockUseSelector.mockImplementation((selector) => {
@@ -640,15 +628,75 @@ describe('NetworkMultiSelector', () => {
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
-      // The component currently returns both networks, update expectation to match actual behavior
-      expect(networkList.props.networks).toEqual(mockNetworks);
+      expect(networkList.props.networks).toEqual(mockEvmNetworks);
     });
 
     it('handles Solana-only account selection', () => {
-      mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
-        .mockReturnValueOnce(() => null) // selectedEvmAccount
-        .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
+      // Clear all mocks for clean state
+      jest.clearAllMocks();
+
+      const mockSolanaNetworks = [mockNetworks[1]]; // Just the second network for Solana
+
+      // Setup base mocks
+      mockUseNetworkEnablement.mockReturnValue({
+        namespace: KnownCaipNamespace.Eip155,
+        enabledNetworksByNamespace: mockEnabledNetworks,
+        enabledNetworksForCurrentNamespace: mockEnabledNetworks.eip155,
+        networkEnablementController: {} as NetworkEnablementController,
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
+      });
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: mockNetworks,
+        selectedNetworks: [mockNetworks[1]],
+        selectedCount: 1,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworkSelection.mockReturnValue({
+        selectPopularNetwork: jest.fn(),
+        selectCustomNetwork: jest.fn(),
+        selectNetwork: jest.fn(),
+        deselectAll: jest.fn(),
+        selectAllPopularNetworks: jest.fn(),
+        resetCustomNetworks: jest.fn(),
+        customNetworksToReset: [],
+      });
+
+      // Mock useNetworksToUse to return only Solana networks
+      mockUseNetworksToUse.mockReturnValue({
+        networksToUse: mockSolanaNetworks,
+        evmNetworks: [],
+        solanaNetworks: mockSolanaNetworks,
+        isMultichainAccountsState2Enabled: true,
+        selectedEvmAccount: null,
+        selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
+        areAllNetworksSelectedCombined: true,
+        areAllEvmNetworksSelected: false,
+        areAllSolanaNetworksSelected: true,
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope.includes('solana')) {
+              return { id: 'solana-account' };
+            }
+            return null; // No EVM account
+          };
+        }
+        return undefined;
+      });
 
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector openModal={mockOpenModal} />,
@@ -658,14 +706,68 @@ describe('NetworkMultiSelector', () => {
       // Should render a network list when only Solana account is selected
       expect(networkList.props.networks).toBeDefined();
       expect(Array.isArray(networkList.props.networks)).toBe(true);
-      expect(networkList.props.networks).toEqual(mockNetworks);
+      expect(networkList.props.networks).toEqual(mockSolanaNetworks);
     });
 
     it('falls back to regular networks when no accounts are selected', () => {
-      mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
-        .mockReturnValueOnce(() => null) // selectedEvmAccount
-        .mockReturnValueOnce(() => null); // selectedSolanaAccount
+      // Clear all mocks for clean state
+      jest.clearAllMocks();
+
+      // Setup base mocks
+      mockUseNetworkEnablement.mockReturnValue({
+        namespace: KnownCaipNamespace.Eip155,
+        enabledNetworksByNamespace: mockEnabledNetworks,
+        enabledNetworksForCurrentNamespace: mockEnabledNetworks.eip155,
+        networkEnablementController: {} as NetworkEnablementController,
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
+      });
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: mockNetworks,
+        selectedNetworks: mockNetworks,
+        selectedCount: 2,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworkSelection.mockReturnValue({
+        selectPopularNetwork: jest.fn(),
+        selectCustomNetwork: jest.fn(),
+        selectNetwork: jest.fn(),
+        deselectAll: jest.fn(),
+        selectAllPopularNetworks: jest.fn(),
+        resetCustomNetworks: jest.fn(),
+        customNetworksToReset: [],
+      });
+
+      // Mock useNetworksToUse to return default networks when no accounts selected
+      mockUseNetworksToUse.mockReturnValue({
+        networksToUse: mockNetworks,
+        evmNetworks: [],
+        solanaNetworks: [],
+        isMultichainAccountsState2Enabled: true,
+        selectedEvmAccount: null,
+        selectedSolanaAccount: null,
+        areAllNetworksSelectedCombined: false,
+        areAllEvmNetworksSelected: false,
+        areAllSolanaNetworksSelected: false,
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return true;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => null; // No accounts selected
+        }
+        return undefined;
+      });
 
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector openModal={mockOpenModal} />,
@@ -676,10 +778,72 @@ describe('NetworkMultiSelector', () => {
     });
 
     it('uses regular networks when multichain is disabled', () => {
-      mockUseSelector
-        .mockReturnValueOnce(false) // isMultichainAccountsState2Enabled
-        .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
-        .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
+      // Clear all mocks for clean state
+      jest.clearAllMocks();
+
+      // Setup base mocks
+      mockUseNetworkEnablement.mockReturnValue({
+        namespace: KnownCaipNamespace.Eip155,
+        enabledNetworksByNamespace: mockEnabledNetworks,
+        enabledNetworksForCurrentNamespace: mockEnabledNetworks.eip155,
+        networkEnablementController: {} as NetworkEnablementController,
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
+      });
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: mockNetworks,
+        selectedNetworks: mockNetworks,
+        selectedCount: 2,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+      });
+
+      mockUseNetworkSelection.mockReturnValue({
+        selectPopularNetwork: jest.fn(),
+        selectCustomNetwork: jest.fn(),
+        selectNetwork: jest.fn(),
+        deselectAll: jest.fn(),
+        selectAllPopularNetworks: jest.fn(),
+        resetCustomNetworks: jest.fn(),
+        customNetworksToReset: [],
+      });
+
+      // Mock useNetworksToUse to return default networks when multichain disabled
+      mockUseNetworksToUse.mockReturnValue({
+        networksToUse: mockNetworks,
+        evmNetworks: [],
+        solanaNetworks: [],
+        isMultichainAccountsState2Enabled: false,
+        selectedEvmAccount: null,
+        selectedSolanaAccount: null,
+        areAllNetworksSelectedCombined: false,
+        areAllEvmNetworksSelected: false,
+        areAllSolanaNetworksSelected: false,
+      });
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false;
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return (scope: string) => {
+            if (scope === 'eip155:0') {
+              return { id: 'evm-account' };
+            }
+            if (scope.includes('solana')) {
+              return { id: 'solana-account' };
+            }
+            return null;
+          };
+        }
+        return undefined;
+      });
 
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector openModal={mockOpenModal} />,
