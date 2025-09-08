@@ -113,7 +113,7 @@ class AuthenticationService {
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
       SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
-        Logger.error(err, 'Failed to revoke refresh token');
+        Logger.log(err, 'Failed to revoke refresh token');
       });
     }
     password = this.wipeSensitiveData();
@@ -635,10 +635,7 @@ class AuthenticationService {
     }
     // async check seedless password outdated skip cache when app lock
     this.checkIsSeedlessPasswordOutdated(true).catch((err: Error) => {
-      Logger.error(
-        err,
-        'Error in lockApp: checking seedless password outdated',
-      );
+      Logger.log(err, 'Error in lockApp: checking seedless password outdated');
     });
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
@@ -763,7 +760,7 @@ class AuthenticationService {
           // discover multichain accounts from imported srp
           this.addMultichainAccounts([keyringMetadata]);
         } else {
-          Logger.error(new Error('Unknown secret type'), secret.type);
+          Logger.log(new Error('Unknown secret type'), secret.type);
         }
       }
     }
@@ -976,11 +973,11 @@ class AuthenticationService {
                   await this.importSeedlessMnemonicToVault(mnemonic);
                 keyringMetadataList.push(keyringMetadata);
               } else {
-                Logger.error(new Error('Unknown secret type'), item.type);
+                Logger.log(new Error('Unknown secret type'), item.type);
               }
             } catch (error) {
               // catch error to prevent unable to login
-              Logger.error(error as Error);
+              Logger.log(error as Error);
             }
           }
         }
@@ -997,7 +994,7 @@ class AuthenticationService {
       }
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
-      Logger.error(error as Error);
+      Logger.log(error as Error);
       throw error;
     }
   };
@@ -1033,7 +1030,7 @@ class AuthenticationService {
 
     if (!success) {
       const errorMessage = (seedlessSyncError as Error).message;
-      Logger.error(
+      Logger.log(
         seedlessSyncError as Error,
         `error while submitting global password: ${errorMessage}`,
       );
@@ -1085,7 +1082,7 @@ class AuthenticationService {
       await this.syncKeyringEncryptionKey();
       SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
         (err) => {
-          Logger.error(err, 'Failed to revoke refresh token');
+          Logger.log(err, 'Failed to revoke refresh token');
         },
       );
     } catch (err) {
@@ -1116,7 +1113,7 @@ class AuthenticationService {
         });
       return isSeedlessPasswordOutdated;
     } catch (error) {
-      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      Logger.log(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
       return false;
     }
   };
