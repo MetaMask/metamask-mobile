@@ -1686,11 +1686,6 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@ecies/ciphers@^0.2.3":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@ecies/ciphers/-/ciphers-0.2.4.tgz#20a4e51f61d521e5e311eb49385d93d91087de51"
-  integrity sha512-t+iX+Wf5nRKyNzk8dviW3Ikb/280+aEJAnw9YXvCp2tYGPSkMki+NRY+8aNLmVFv3eNtMdvViPNOPxS8SZNP+w==
-
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
   resolved "https://registry.yarnpkg.com/@egjs/hammerjs/-/hammerjs-2.0.17.tgz#5dc02af75a6a06e4c2db0202cae38c9263895124"
@@ -5553,22 +5548,21 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/mobile-wallet-protocol-core@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.0.6.tgz#5112cd91c571e8c9e97769606cb76cff6383cc96"
-  integrity sha512-/RQwH1IoUTrhIgTn9P+XaWdD6R+JdtqiFGrs0A/D0EBoLV8jWtBhFzBIOzaNDKMGoKR6y3uSvDCDAj3V1tCz7g==
+"@metamask/mobile-wallet-protocol-core@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.1.0.tgz#148a7393fc603af9eed89a1e2517df371eb01018"
+  integrity sha512-YcGPtV/I7GRAjtFhGQa6R+OwGYSrgKrel3PQbnoHPyvrzJ8wYW+ObeFuAHDiS79jbi10ETbDuf/5v/U62StahA==
   dependencies:
     centrifuge "^5.3.5"
-    eciesjs "^0.4.15"
     eventemitter3 "^5.0.1"
     uuid "^11.1.0"
 
-"@metamask/mobile-wallet-protocol-wallet-client@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.0.6.tgz#5862bd975788f27b94f528882726e7aefedeea03"
-  integrity sha512-W/iRXuMvpImAlJLZ8BxtJp3raQZaPB8cR+gBY3Irtb+CUMclmuQL0mlLHs2tz0hLunhXd8rSRrI6W1T0AT4H6A==
+"@metamask/mobile-wallet-protocol-wallet-client@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.1.0.tgz#738fc8fd9a604b079e2c11e9c898a2f99ee5ab8e"
+  integrity sha512-t3UKLP2XJ0vN5LL1nkb3y7neSARrnRlMZk+wmBgICnqHC8+1ebnE41KdeVqaRSfisK/EfmYEXqqob44N/zpy3Q==
   dependencies:
-    "@metamask/mobile-wallet-protocol-core" "^0.0.6"
+    "@metamask/mobile-wallet-protocol-core" "^0.1.0"
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
@@ -18683,16 +18677,6 @@ eciesjs@^0.3.15:
   dependencies:
     futoin-hkdf "^1.5.3"
     secp256k1 "^5.0.1"
-
-eciesjs@^0.4.15:
-  version "0.4.15"
-  resolved "https://registry.yarnpkg.com/eciesjs/-/eciesjs-0.4.15.tgz#8c7191ce425c54627ee5c65328ab54eaa6ed4556"
-  integrity sha512-r6kEJXDKecVOCj2nLMuXK/FCPeurW33+3JRpfXVbjLja3XUYFfD9I/JBreH6sUyzcm3G/YQboBjMla6poKeSdA==
-  dependencies:
-    "@ecies/ciphers" "^0.2.3"
-    "@noble/ciphers" "^1.3.0"
-    "@noble/curves" "^1.9.1"
-    "@noble/hashes" "^1.8.0"
 
 edge-paths@^2.1.0:
   version "2.2.1"
