@@ -12,6 +12,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   ImageSourcePropType,
+  Animated,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -37,7 +38,6 @@ import Icon, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import { whatsNewList } from './';
 import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/WhatsNewModal.selectors';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -46,7 +46,6 @@ import createStyles from './WhatsNewModal.styles';
 import Device from '../../../util/device';
 import { SlideContent, SlideContentType } from './types';
 
-// Constants
 const CAROUSEL_INTERVAL_MS = 4000;
 const SLIDE_PADDING = 48;
 
@@ -59,6 +58,34 @@ const WhatsNewModal = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const imageCarouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const imageProgressAnimations = useRef<Animated.Value[]>([]).current;
+
+  const initializeImageProgressAnimations = useCallback(
+    (imageCount: number) => {
+      imageProgressAnimations.length = 0;
+
+      for (let i = 0; i < imageCount; i++) {
+        imageProgressAnimations.push(
+          new Animated.Value(i === currentImageIndex ? 1 : 0),
+        );
+      }
+    },
+    [imageProgressAnimations, currentImageIndex],
+  );
+
+  const animateImageProgressIndicators = useCallback(
+    (activeIndex: number) => {
+      imageProgressAnimations.forEach((animation, index) => {
+        Animated.timing(animation, {
+          toValue: index === activeIndex ? 1 : 0,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      });
+    },
+    [imageProgressAnimations],
+  );
 
   const getCarouselImages = useCallback(() => {
     const currentSlideData = whatsNewList.slides[currentSlide];
@@ -86,9 +113,11 @@ const WhatsNewModal = () => {
         animated: true,
       });
 
+      animateImageProgressIndicators(nextIndex);
+
       return nextIndex;
     });
-  }, [getCarouselImages]);
+  }, [getCarouselImages, animateImageProgressIndicators]);
 
   const startAutoAdvance = useCallback(() => {
     if (imageCarouselIntervalRef.current) {
@@ -117,9 +146,16 @@ const WhatsNewModal = () => {
       return;
     }
 
+    initializeImageProgressAnimations(carouselImages.images.length);
     startAutoAdvance();
     return clearAutoAdvance;
-  }, [currentSlide, getCarouselImages, startAutoAdvance, clearAutoAdvance]);
+  }, [
+    currentSlide,
+    getCarouselImages,
+    startAutoAdvance,
+    clearAutoAdvance,
+    initializeImageProgressAnimations,
+  ]);
 
   const recordSeenModal = async () => {
     const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
@@ -157,9 +193,10 @@ const WhatsNewModal = () => {
       }
 
       setCurrentImageIndex(imageIndex);
+      animateImageProgressIndicators(imageIndex);
       startAutoAdvance();
     },
-    [currentImageIndex, startAutoAdvance],
+    [currentImageIndex, startAutoAdvance, animateImageProgressIndicators],
   );
 
   const selectImage = useCallback(
@@ -171,9 +208,10 @@ const WhatsNewModal = () => {
         animated: true,
       });
       setCurrentImageIndex(index);
+      animateImageProgressIndicators(index);
       startAutoAdvance();
     },
-    [startAutoAdvance],
+    [startAutoAdvance, animateImageProgressIndicators],
   );
 
   const renderSlideElement = useCallback(
@@ -205,8 +243,8 @@ const WhatsNewModal = () => {
               {elementInfo.descriptions.map((descriptionKey, index) => (
                 <View key={index} style={styles.descriptionItem}>
                   <Icon
-                    name={IconName.Confirmation}
-                    size={IconSize.Sm}
+                    name={IconName.Check}
+                    size={IconSize.Md}
                     color={IconColor.Success}
                     style={styles.featureCheckmark}
                   />
@@ -270,12 +308,29 @@ const WhatsNewModal = () => {
                         onPress={() => selectImage(index)}
                         hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
                       >
-                        <View
+                        <Animated.View
                           style={[
                             styles.imageProgressDot,
-                            currentImageIndex === index
-                              ? styles.imageProgressDotActive
-                              : {},
+                            {
+                              width:
+                                imageProgressAnimations[index]?.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [8, 24],
+                                }) || (currentImageIndex === index ? 24 : 8),
+                              backgroundColor:
+                                imageProgressAnimations[index]?.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [
+                                    styles.imageProgressDot.backgroundColor,
+                                    styles.imageProgressDotActive
+                                      .backgroundColor,
+                                  ],
+                                }) ||
+                                (currentImageIndex === index
+                                  ? styles.imageProgressDotActive
+                                      .backgroundColor
+                                  : styles.imageProgressDot.backgroundColor),
+                            },
                           ]}
                         />
                       </TouchableWithoutFeedback>
@@ -289,8 +344,8 @@ const WhatsNewModal = () => {
           return (
             <Text
               color={TextColor.Default}
-              variant={TextVariant.BodyMDMedium}
-              style={styles.slideDescription}
+              variant={TextVariant.BodyMD}
+              style={styles.moreInformation}
             >
               {elementInfo.moreInformation}
             </Text>
@@ -315,6 +370,7 @@ const WhatsNewModal = () => {
       currentImageIndex,
       callButton,
       onImageCarouselScrollEnd,
+      imageProgressAnimations,
     ],
   );
 
@@ -322,11 +378,7 @@ const WhatsNewModal = () => {
     (slideInfo: SlideContent[], index: number) => {
       const key = `slide-info-${index}`;
       return (
-        <ScrollView
-          key={key}
-          style={styles.slideItemContainer}
-          showsVerticalScrollIndicator={false}
-        >
+        <View key={key} style={styles.slideItemContainer}>
           <TouchableWithoutFeedback>
             <View>
               {slideInfo.map((elementInfo: SlideContent, elIndex: number) => {
@@ -337,7 +389,7 @@ const WhatsNewModal = () => {
               })}
             </View>
           </TouchableWithoutFeedback>
-        </ScrollView>
+        </View>
       );
     },
     [styles.slideItemContainer, renderSlideElement],
@@ -356,68 +408,18 @@ const WhatsNewModal = () => {
     [currentSlide],
   );
 
-  // Memoized slide navigation function
-  const navigateToSlide = useCallback((index: number) => {
-    const slideWidth = Device.getDeviceWidth();
-    scrollViewRef.current?.scrollTo({
-      y: 0,
-      x: index * slideWidth,
-      animated: true,
-    });
-    setCurrentSlide(index);
-  }, []);
-
-  const renderHeader = useCallback(
-    () => (
-      <SheetHeader
-        title={strings('whats_new.remove_gns_new_ui_update.title')}
-        style={styles.header}
-      />
-    ),
-    [styles.header],
-  );
-
-  const renderProgressIndicators = useCallback(
-    () => (
-      <View style={styles.progressIndicatorsContainer}>
-        {whatsNewList.slides.map((_, index) => (
-          <TouchableWithoutFeedback
-            key={index}
-            onPress={() => navigateToSlide(index)}
-            hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-          >
-            <View
-              style={[
-                styles.slideCircle,
-                currentSlide === index ? styles.slideSolidCircle : {},
-              ]}
-            />
-          </TouchableWithoutFeedback>
-        ))}
-      </View>
-    ),
-    [
-      currentSlide,
-      navigateToSlide,
-      styles.progressIndicatorsContainer,
-      styles.slideCircle,
-      styles.slideSolidCircle,
-    ],
-  );
-
   const renderedSlides = useMemo(
     () => whatsNewList.slides.map(renderSlide),
     [renderSlide],
   );
 
-  const progressIndicators = useMemo(
-    () => (whatsNewList.slides.length > 1 ? renderProgressIndicators() : null),
-    [renderProgressIndicators],
-  );
-
   return (
     <BottomSheet ref={sheetRef} onClose={recordSeenModal}>
-      {renderHeader()}
+      <View style={styles.headerContainer}>
+        <Text variant={TextVariant.HeadingMD} style={styles.header}>
+          {strings('whats_new.remove_gns_new_ui_update.title')}
+        </Text>
+      </View>
       <View testID={WhatsNewModalSelectorsIDs.CONTAINER}>
         <View style={styles.slideContent}>
           <ScrollView
@@ -432,7 +434,6 @@ const WhatsNewModal = () => {
           >
             {renderedSlides}
           </ScrollView>
-          {progressIndicators}
         </View>
       </View>
     </BottomSheet>

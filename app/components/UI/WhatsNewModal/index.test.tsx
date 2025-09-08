@@ -4,12 +4,10 @@ import WhatsNewModal from './';
 import { NavigationContainer } from '@react-navigation/native';
 import { ThemeContext } from '../../../util/theme';
 
-// Mock the strings function
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-// Mock the navigation
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -19,7 +17,6 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
-// Mock the BottomSheet component
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -39,7 +36,6 @@ jest.mock(
         ) => {
           ReactMock.useImperativeHandle(ref, () => ({
             onCloseBottomSheet: (callback?: () => void) => {
-              // Simulate the real BottomSheet behavior: call navigation.goBack first, then onClose
               mockGoBack();
               onClose?.();
               callback?.();
@@ -47,7 +43,6 @@ jest.mock(
           }));
 
           const handleClose = () => {
-            // Simulate the real BottomSheet behavior: call navigation.goBack first, then onClose
             mockGoBack();
             onClose?.();
           };
@@ -64,7 +59,6 @@ jest.mock(
   },
 );
 
-// Mock the StorageWrapper
 jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
@@ -73,13 +67,11 @@ jest.mock('../../../store/storage-wrapper', () => ({
   },
 }));
 
-// Mock Device utility
 jest.mock('../../../util/device', () => ({
   getDeviceWidth: jest.fn(() => 375),
   getDeviceHeight: jest.fn(() => 812),
 }));
 
-// Mock the component library components
 jest.mock('../../../component-library/components/Buttons/Button', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
@@ -182,12 +174,10 @@ jest.mock('../../../component-library/hooks', () => ({
   })),
 }));
 
-// Mock react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => ({
   ScrollView: jest.requireActual('react-native').ScrollView,
 }));
 
-// Mock constants
 jest.mock('../../../constants/storage', () => ({
   CURRENT_APP_VERSION: 'CURRENT_APP_VERSION',
   WHATS_NEW_APP_VERSION_SEEN: 'WHATS_NEW_APP_VERSION_SEEN',
@@ -233,30 +223,24 @@ describe('WhatsNewModal', () => {
 
   describe('Rendering', () => {
     it('displays the modal title', () => {
-      // Arrange & Act
       renderWithProviders(<WhatsNewModal />);
 
-      // Assert
       expect(
         screen.getByText('whats_new.remove_gns_new_ui_update.title'),
       ).toBeOnTheScreen();
     });
 
     it('displays slide descriptions', () => {
-      // Arrange & Act
       renderWithProviders(<WhatsNewModal />);
 
-      // Assert
       expect(
         screen.getByText('whats_new.remove_gns_new_ui_update.introduction'),
       ).toBeOnTheScreen();
     });
 
     it('shows feature descriptions with checkmarks', () => {
-      // Arrange & Act
       renderWithProviders(<WhatsNewModal />);
 
-      // Assert
       expect(
         screen.getByText(
           'whats_new.remove_gns_new_ui_update.descriptions.description_1',
@@ -270,10 +254,8 @@ describe('WhatsNewModal', () => {
     });
 
     it('renders the action button', () => {
-      // Arrange & Act
       renderWithProviders(<WhatsNewModal />);
 
-      // Assert
       expect(
         screen.getByText('whats_new.remove_gns_new_ui_update.got_it'),
       ).toBeOnTheScreen();
@@ -282,57 +264,43 @@ describe('WhatsNewModal', () => {
 
   describe('Image Carousel Functionality', () => {
     it('advances to next image automatically after 4 seconds', () => {
-      // Arrange
       renderWithProviders(<WhatsNewModal />);
 
-      // Act
       act(() => {
         jest.advanceTimersByTime(4000);
       });
 
-      // Assert
-      // The carousel should have advanced to the next image
       expect(jest.getTimerCount()).toBeGreaterThan(0);
     });
 
     it('loops back to first image when reaching the end', () => {
-      // Arrange
       renderWithProviders(<WhatsNewModal />);
 
-      // Act
-      // Advance through all images (2 images * 4 seconds each)
       act(() => {
         jest.advanceTimersByTime(8000);
       });
 
-      // Assert
-      // Should loop back to first image
       expect(jest.getTimerCount()).toBeGreaterThan(0);
     });
   });
 
   describe('Modal Dismissal', () => {
     it('calls navigation.goBack when dismissed', () => {
-      // Arrange
       renderWithProviders(<WhatsNewModal />);
 
-      // Act
       const closeButton = screen.getByTestId('close-button');
       act(() => {
         fireEvent.press(closeButton);
       });
 
-      // Assert
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Button Interactions', () => {
     it('handles button press correctly', () => {
-      // Arrange
       renderWithProviders(<WhatsNewModal />);
 
-      // Act
       const button = screen.getByText(
         'whats_new.remove_gns_new_ui_update.got_it',
       );
@@ -340,26 +308,20 @@ describe('WhatsNewModal', () => {
         fireEvent.press(button);
       });
 
-      // Assert
-      // Button should be pressable without errors
       expect(button).toBeOnTheScreen();
     });
   });
 
   describe('Accessibility', () => {
     it('provides proper test IDs for testing', () => {
-      // Arrange & Act
       renderWithProviders(<WhatsNewModal />);
 
-      // Assert
       expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
 
     it('renders all text content for screen readers', () => {
-      // Arrange & Act
       renderWithProviders(<WhatsNewModal />);
 
-      // Assert
       expect(
         screen.getByText('whats_new.remove_gns_new_ui_update.title'),
       ).toBeOnTheScreen();
@@ -371,13 +333,10 @@ describe('WhatsNewModal', () => {
 
   describe('Error Handling', () => {
     it('handles missing carousel images gracefully', () => {
-      // Arrange
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      // Act
       renderWithProviders(<WhatsNewModal />);
 
-      // Assert
       expect(consoleSpy).not.toHaveBeenCalled();
       consoleSpy.mockRestore();
     });

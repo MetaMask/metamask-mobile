@@ -816,67 +816,6 @@ const Wallet = ({
       // Do not check since it will conflict with the onboarding and/or network onboarding
       return;
     }
-
-    // TEMPORARY: Force show What's New modal for development/testing
-    // TODO: Remove this before merging to main
-    const forceShowWhatsNewModal = true;
-    if (forceShowWhatsNewModal) {
-      // Small delay to ensure wallet is fully loaded
-      const timer = setTimeout(() => {
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.MODAL.WHATS_NEW,
-        });
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-
-    // TODO: Come back to this
-    // Check if we need to show What's New modal
-    // const checkWhatsNewModal = async () => {
-    //   try {
-    //     const { shouldShowWhatsNewModal } = await import('../../../util/onboarding');
-    //     const shouldShow = await shouldShowWhatsNewModal();
-    //
-    //     if (!shouldShow) {
-    //       return; // Don't show modal if version/storage conditions not met
-    //     }
-
-    //     // If Perps GTM is enabled, wait for it to be dismissed first
-    //     if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
-    //       const perpsModalSeen = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
-    //       if (perpsModalSeen !== 'true') {
-    //         // Wait and check again every 2 seconds until Perps modal is dismissed
-    //         const checkInterval = setInterval(async () => {
-    //           const isPerpsModalDismissed = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
-    //           if (isPerpsModalDismissed === 'true') {
-    //             clearInterval(checkInterval);
-    //             // Show WhatsNew modal after Perps modal is dismissed
-    //             setTimeout(() => {
-    //               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-    //                 screen: Routes.MODAL.WHATS_NEW,
-    //               });
-    //             }, 500); // Small delay after Perps modal dismissal
-    //           }
-    //         }, 2000);
-    //
-    //         // Cleanup function for the interval
-    //         return () => clearInterval(checkInterval);
-    //       }
-    //     }
-
-    //     // Show immediately if Perps modal not enabled or already dismissed
-    //     const timer = setTimeout(() => {
-    //       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-    //         screen: Routes.MODAL.WHATS_NEW,
-    //       });
-    //     }, 1000);
-    //     return () => clearTimeout(timer);
-    //   } catch (error) {
-    //     console.warn('Error checking WhatsNewModal:', error);
-    //   }
-    // };
-
-    // checkWhatsNewModal();
   }, [
     navigation,
     chainId,
@@ -886,8 +825,6 @@ const Wallet = ({
     prevChainId,
     // TODO: Is this accountBalanceByChainId?.balance needed in this useEffect dependencies?
     accountBalanceByChainId?.balance,
-    isPerpsFlagEnabled,
-    isPerpsGTMModalEnabled,
   ]);
 
   useEffect(

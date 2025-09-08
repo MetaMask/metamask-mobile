@@ -5,8 +5,7 @@ import { Theme } from '@metamask/design-tokens';
 const modalPadding = 24;
 const screenWidth = Device.getDeviceWidth();
 const screenHeight = Device.getDeviceHeight();
-const slideItemWidth = screenWidth; // Full width for fullscreen modal
-const maxSlideItemHeight = screenHeight - 200;
+const slideItemWidth = screenWidth;
 const slideImageWidth = slideItemWidth - modalPadding * 2;
 const imageAspectRatio = 128 / 264;
 const slideImageHeight = slideImageWidth * imageAspectRatio;
@@ -21,11 +20,16 @@ const slideImageHeight = slideImageWidth * imageAspectRatio;
 const createStyles = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
     header: {
-      alignItems: 'center',
+      textAlign: 'center',
       marginTop: 16,
+      fontWeight: 'bold',
+    },
+    headerContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     slideContent: {
-      maxHeight: maxSlideItemHeight,
+      maxHeight: screenHeight,
     },
     horizontalScrollView: {
       flexGrow: 0,
@@ -40,50 +44,31 @@ const createStyles = ({ theme }: { theme: Theme }) =>
     slideImageContainer: {
       flexDirection: 'column',
       borderRadius: 10,
-      marginBottom: 24,
+      marginBottom: 16,
     },
     slideTitle: {
       marginBottom: 12,
     },
-    slideDescription: {
-      lineHeight: 20,
+    slideDescription: {},
+    moreInformation: {
+      marginTop: 16,
     },
     button: {
-      marginTop: 24,
-    },
-    progressIndicatorsContainer: {
-      flexDirection: 'row',
-      alignSelf: 'center',
-      marginTop: 8,
-      marginBottom: 8,
-    },
-    slideCircle: {
-      width: 8,
-      height: 8,
-      borderRadius: 8 / 2,
-      backgroundColor: theme.colors.icon.default,
-      opacity: 0.3,
-      marginHorizontal: 4,
-    },
-    slideSolidCircle: {
-      opacity: 1,
-      backgroundColor: theme.colors.primary.default,
+      marginTop: 16,
     },
     featureCheckmark: {
       marginRight: 12,
-      marginTop: 2, // Align with text baseline
+      marginTop: 2,
     },
     featureText: {
       flex: 1,
-      marginBottom: 0,
     },
     previewImage: {
-      width: slideImageWidth,
-      height: slideImageHeight * 1.5, // Taller for the preview mockups to match design
+      width: slideImageWidth - 7.5,
+      height: slideImageHeight * 1.5,
       borderRadius: 12,
       alignSelf: 'center',
     },
-    // Image carousel specific styles
     imageCarousel: {
       flexGrow: 0,
     },
@@ -91,7 +76,6 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       width: slideImageWidth,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: 16,
     },
     imageProgressContainer: {
       flexDirection: 'row',
@@ -101,21 +85,22 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: theme.colors.icon.default,
-      opacity: 0.3,
-      marginHorizontal: 4,
+      backgroundColor: theme.colors.text.muted,
+      marginHorizontal: 2,
     },
     imageProgressDotActive: {
-      opacity: 1,
-      backgroundColor: theme.colors.primary.default,
+      width: 24,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.colors.text.default,
     },
     descriptionsContainer: {
       marginTop: 16,
     },
     descriptionItem: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginBottom: 12,
+      alignItems: 'center',
+      marginBottom: 8,
     },
   });
 
