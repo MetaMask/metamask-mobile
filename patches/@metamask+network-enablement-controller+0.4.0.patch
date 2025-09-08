@@ -1,0 +1,17 @@
+diff --git a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs
+index 9ddb3ce..8bc9bb4 100644
+--- a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs
++++ b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs
+@@ -72,12 +72,6 @@ class NetworkEnablementController extends base_controller_1.BaseController {
+         messenger.subscribe('NetworkController:networkRemoved', ({ chainId }) => {
+             __classPrivateFieldGet(this, _NetworkEnablementController_instances, "m", _NetworkEnablementController_removeNetworkEntry).call(this, chainId);
+         });
+-        // Listen for confirmed staking transactions
+-        messenger.subscribe('TransactionController:transactionSubmitted', (transactionMeta) => {
+-            if (transactionMeta?.transactionMeta?.chainId) {
+-                this.enableNetwork(transactionMeta.transactionMeta.chainId);
+-            }
+-        });
+     }
+     /**
+      * Enables or disables a network for the user.

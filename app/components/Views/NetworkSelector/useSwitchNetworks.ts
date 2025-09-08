@@ -183,7 +183,6 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
