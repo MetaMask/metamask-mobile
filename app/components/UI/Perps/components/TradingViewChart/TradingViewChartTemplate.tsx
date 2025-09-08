@@ -315,7 +315,7 @@ export const createTradingViewChartTemplate = (
                     const timeSinceLastRangeChange = now - window.lastRangeChangeTime;
                     
                     // Detect if this is user-initiated panning (not programmatic)
-                    if (timeSinceLastRangeChange < 50) { // Rapid range changes indicate panning
+                    if (timeSinceLastRangeChange < 1000) { // Less sensitive detection for smoother direction changes
                         window.isUserPanning = true;
                         window.panStartTime = now;
                         
