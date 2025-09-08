@@ -6,7 +6,7 @@ import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
-import PerpsView from '../Views/PerpsView';
+import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
@@ -15,6 +15,7 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsBalanceModal from '../Views/PerpsBalanceModal';
+import PerpsGTMModal from '../components/PerpsGTMModal';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -37,20 +38,24 @@ const PerpsModalStack = () => (
       name={Routes.PERPS.MODALS.BALANCE_MODAL}
       component={PerpsBalanceModal}
     />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.GTM_MODAL}
+      component={PerpsGTMModal}
+    />
   </ModalStack.Navigator>
 );
 
 const PerpsScreenStack = () => (
-  <PerpsConnectionProvider>
+  <PerpsConnectionProvider isFullScreen>
     <PerpsStreamProvider>
       <Stack.Navigator initialRouteName={Routes.PERPS.TRADING_VIEW}>
-        {/* Main trading view with minimal functionality */}
+        {/* Redirect to wallet perps tab */}
         <Stack.Screen
           name={Routes.PERPS.TRADING_VIEW}
-          component={PerpsView}
+          component={PerpsRedirect}
           options={{
             title: strings('perps.perps_trading'),
-            headerShown: true,
+            headerShown: false,
           }}
         />
 
@@ -60,6 +65,7 @@ const PerpsScreenStack = () => (
           options={{
             title: strings('perps.markets.title'),
             headerShown: false,
+            animationEnabled: false,
           }}
         />
 

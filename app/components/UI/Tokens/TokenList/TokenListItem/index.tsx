@@ -464,3 +464,5 @@ export const TokenListItem = React.memo(
 );
 
 TokenListItem.displayName = 'TokenListItem';
+
+export { TokenListItemBip44 } from './TokenListItemBip44';

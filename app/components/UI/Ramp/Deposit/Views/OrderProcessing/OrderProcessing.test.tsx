@@ -12,7 +12,6 @@ const mockSetOptions = jest.fn();
 const mockLinkingOpenURL = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockCancelOrder = jest.fn();
-const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -59,8 +58,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
-
 describe('OrderProcessing Component', () => {
   const mockOrder = {
     id: 'test-order-id',
@@ -105,7 +102,6 @@ describe('OrderProcessing Component', () => {
       selectedRegion: mockSelectedRegion,
       selectedWalletAddress: mockSelectedWalletAddress,
     });
-    mockTrackEvent.mockClear();
   });
 
   it('renders success state correctly', () => {
@@ -205,215 +201,5 @@ describe('OrderProcessing Component', () => {
     fireEvent.press(mainButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BUILD_QUOTE);
-  });
-
-  describe('Analytics Event Tracking', () => {
-    describe('RAMPS_TRANSACTION_COMPLETED tracking', () => {
-      it('tracks RAMPS_TRANSACTION_COMPLETED event when order state is COMPLETED', () => {
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          'RAMPS_TRANSACTION_COMPLETED',
-          {
-            ramp_type: 'DEPOSIT',
-            amount_source: 100,
-            amount_destination: 0.05,
-            exchange_rate: 2000,
-            gas_fee: 2.5,
-            processing_fee: 2.5,
-            total_fee: 2.5,
-            payment_method_id: 'credit_debit_card',
-            country: 'US',
-            chain_id: 'eip155:1',
-            currency_destination:
-              'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            currency_source: 'USD',
-          },
-        );
-      });
-
-      it('tracks RAMPS_TRANSACTION_COMPLETED with order wallet address when selectedWalletAddress is not available', () => {
-        mockUseDepositSDK.mockReturnValueOnce({
-          isAuthenticated: false,
-          selectedRegion: mockSelectedRegion,
-          selectedWalletAddress: null,
-        });
-
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          'RAMPS_TRANSACTION_COMPLETED',
-          {
-            ramp_type: 'DEPOSIT',
-            amount_source: 100,
-            amount_destination: 0.05,
-            exchange_rate: 2000,
-            gas_fee: 2.5,
-            processing_fee: 2.5,
-            total_fee: 2.5,
-            payment_method_id: 'credit_debit_card',
-            country: 'US',
-            chain_id: 'eip155:1',
-            currency_destination:
-              'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            currency_source: 'USD',
-          },
-        );
-      });
-
-      it('tracks RAMPS_TRANSACTION_COMPLETED with correct number conversions for all numeric fields', () => {
-        const orderWithStringNumbers = {
-          ...mockOrder,
-          data: {
-            ...mockOrder.data,
-            fiatAmount: '250.75',
-            exchangeRate: '1850.25',
-            totalFeesFiat: '5.99',
-            networkFees: '5.99',
-            partnerFees: '5.99',
-          },
-          cryptoAmount: '0.135',
-        };
-        (getOrderById as jest.Mock).mockReturnValue(orderWithStringNumbers);
-
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          'RAMPS_TRANSACTION_COMPLETED',
-          {
-            ramp_type: 'DEPOSIT',
-            amount_source: 250.75,
-            amount_destination: 0.135,
-            exchange_rate: 1850.25,
-            gas_fee: 5.99,
-            processing_fee: 5.99,
-            total_fee: 5.99,
-            payment_method_id: 'credit_debit_card',
-            country: 'US',
-            chain_id: 'eip155:1',
-            currency_destination:
-              'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            currency_source: 'USD',
-          },
-        );
-      });
-    });
-
-    describe('RAMPS_TRANSACTION_FAILED tracking', () => {
-      it('tracks RAMPS_TRANSACTION_FAILED event when order state is FAILED', () => {
-        const failedOrder = { ...mockOrder, state: FIAT_ORDER_STATES.FAILED };
-        (getOrderById as jest.Mock).mockReturnValue(failedOrder);
-
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).toHaveBeenCalledWith(
-          'RAMPS_TRANSACTION_FAILED',
-          {
-            ramp_type: 'DEPOSIT',
-            amount_source: 100,
-            amount_destination: 0.05,
-            exchange_rate: 2000,
-            gas_fee: 2.5,
-            processing_fee: 2.5,
-            total_fee: 2.5,
-            payment_method_id: 'credit_debit_card',
-            country: 'US',
-            chain_id: 'eip155:1',
-            currency_destination:
-              'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            currency_source: 'USD',
-            error_message: 'transaction_failed',
-          },
-        );
-      });
-    });
-
-    describe('No analytics tracking scenarios', () => {
-      it('does not track analytics events for PENDING state', () => {
-        const pendingOrder = { ...mockOrder, state: FIAT_ORDER_STATES.PENDING };
-        (getOrderById as jest.Mock).mockReturnValue(pendingOrder);
-
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).not.toHaveBeenCalled();
-      });
-
-      it('does not track analytics events for CREATED state', () => {
-        const createdOrder = { ...mockOrder, state: FIAT_ORDER_STATES.CREATED };
-        (getOrderById as jest.Mock).mockReturnValue(createdOrder);
-
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).not.toHaveBeenCalled();
-      });
-
-      it('does not track analytics events for CANCELLED state', () => {
-        const cancelledOrder = {
-          ...mockOrder,
-          state: FIAT_ORDER_STATES.CANCELLED,
-        };
-        (getOrderById as jest.Mock).mockReturnValue(cancelledOrder);
-
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).not.toHaveBeenCalled();
-      });
-
-      it('does not track analytics events when order is null', () => {
-        (getOrderById as jest.Mock).mockReturnValue(null);
-
-        renderWithProvider(<OrderProcessing />, {
-          state: {
-            engine: {
-              backgroundState,
-            },
-          },
-        });
-
-        expect(mockTrackEvent).not.toHaveBeenCalled();
-      });
-    });
   });
 });

@@ -115,6 +115,65 @@ describe('useTransactionTotalFiat', () => {
     );
   });
 
+  it('excludes dust', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: ADDRESS_MOCK,
+          amountFiat: 1.22,
+        },
+        {
+          address: ADDRESS_2_MOCK,
+          amountFiat: 2.33,
+        },
+      ],
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const { result } = runHook({
+      quotes: [
+        {
+          quote: {
+            destAsset: {
+              address: ADDRESS_MOCK,
+            },
+          },
+          sentAmount: {
+            valueInCurrency: '12.34',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '23.45',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '11.22',
+          },
+        },
+        {
+          quote: {
+            destAsset: {
+              address: ADDRESS_2_MOCK,
+            },
+          },
+          sentAmount: {
+            valueInCurrency: '34.56',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '45.67',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '22.33',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '86.02',
+        formatted: '$86.02',
+      }),
+    );
+  });
+
   it('ignores balance cost if matching quote', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [
@@ -137,6 +196,9 @@ describe('useTransactionTotalFiat', () => {
           },
           totalMaxNetworkFee: {
             valueInCurrency: '40',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '1000',
           },
           quote: {
             destAsset: {
@@ -181,7 +243,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '100',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -192,7 +254,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '60',
           },
           totalMaxNetworkFee: {
@@ -212,7 +274,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '100',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -223,7 +285,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '60',
           },
           totalMaxNetworkFee: {
