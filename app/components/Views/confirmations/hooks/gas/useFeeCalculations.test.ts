@@ -179,18 +179,18 @@ describe('useFeeCalculations', () => {
     );
 
     expect(result.current).toMatchInlineSnapshot(`
-      {
-        "calculateGasEstimate": [Function],
-        "estimatedFeeFiat": "$0.16",
-        "estimatedFeeFiatPrecise": "0.164",
-        "estimatedFeeNative": "0 ETH",
-        "maxFeeFiat": "$0.86",
-        "maxFeeNative": "0.0002 ETH",
-        "maxFeeNativeHex": "0xda088e7816a0",
-        "maxFeeNativePrecise": "0.00024 ETH",
-        "preciseNativeFeeInHex": "0x298d09489800",
-      }
-    `);
+{
+  "calculateGasEstimate": [Function],
+  "estimatedFeeFiat": "$0.16",
+  "estimatedFeeFiatPrecise": "0.164",
+  "estimatedFeeNative": "0",
+  "maxFeeFiat": "$0.86",
+  "maxFeeNative": "0.0002",
+  "maxFeeNativeHex": "0xda088e7816a0",
+  "maxFeeNativePrecise": "0.00024 ETH",
+  "preciseNativeFeeInHex": "0x298d09489800",
+}
+`);
   });
 
   describe('Max fee', () => {
@@ -208,7 +208,7 @@ describe('useFeeCalculations', () => {
       );
 
       expect(result.current.maxFeeFiat).toBe('$0.86');
-      expect(result.current.maxFeeNative).toBe('0.0002 ETH');
+      expect(result.current.maxFeeNative).toBe('0.0002');
       expect(result.current.maxFeeNativePrecise).toBe('0.00024 ETH');
       expect(result.current.maxFeeNativeHex).toBe('0xda088e7816a0');
       expect(result.current.calculateGasEstimate).toBeDefined();
@@ -234,7 +234,7 @@ describe('useFeeCalculations', () => {
       );
 
       expect(result.current.maxFeeFiat).toBe('$0.86');
-      expect(result.current.maxFeeNative).toBe('0.0002 ETH');
+      expect(result.current.maxFeeNative).toBe('0.0002');
       expect(result.current.maxFeeNativePrecise).toBe('0.00024 ETH');
       expect(result.current.maxFeeNativeHex).toBe('0xda088e7826a0'); // visually 0x1000 more than the test above
       expect(result.current.calculateGasEstimate).toBeDefined();
