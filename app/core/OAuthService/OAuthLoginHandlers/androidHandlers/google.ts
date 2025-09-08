@@ -21,6 +21,8 @@ const ACM_ERRORS_REGEX = {
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   readonly #scope = ['email', 'profile', 'openid'];
 
+  private retries: number = 0;
+
   protected clientId: string;
 
   get authConnection() {
@@ -55,12 +57,13 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
     try {
       const result = await signInWithGoogle({
         serverClientId: this.clientId,
-        nonce: this.nonce,
+        nonce: this.nonce + this.retries,
         autoSelectEnabled: true,
         filterByAuthorizedAccounts: false,
       });
 
       if (result?.type === 'google-signin') {
+        this.retries = 0;
         return {
           authConnection: this.authConnection,
           idToken: result.idToken,
@@ -83,17 +86,27 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             OAuthErrorType.UserCancelled,
           );
         } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
-          throw new OAuthError(
-            'handleGoogleLogin: Google login has no credential',
-            OAuthErrorType.GoogleLoginNoCredential,
-          );
+          if (this.retries === 0) {
+            this.retries++;
+            return await this.login();
+          }
+            throw new OAuthError(
+              'handleGoogleLogin: Google login has no credential',
+              OAuthErrorType.GoogleLoginNoCredential,
+            );
+
         } else if (
           ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
         ) {
-          throw new OAuthError(
-            'handleGoogleLogin: Google login has no matching credential',
-            OAuthErrorType.GoogleLoginNoMatchingCredential,
-          );
+          if (this.retries === 0) {
+            this.retries++;
+            return await this.login();
+          }
+            throw new OAuthError(
+              'handleGoogleLogin: Google login has no matching credential',
+              OAuthErrorType.GoogleLoginNoMatchingCredential,
+            );
+
         } else {
           throw new OAuthError(error, OAuthErrorType.UnknownError);
         }
