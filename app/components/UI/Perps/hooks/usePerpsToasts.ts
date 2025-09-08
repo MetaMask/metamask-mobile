@@ -13,6 +13,7 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import { useNavigation } from '@react-navigation/native';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import Routes from '../../../../constants/navigation/Routes';
+import { handlePerpsError } from '../utils/perpsErrorHandler';
 
 type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
@@ -213,13 +214,18 @@ const usePerpsToasts = () => {
               }),
             ),
           }),
-          creationFailed: {
+          creationFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_failed'),
-              strings('perps.order.your_funds_have_been_returned_to_you'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.your_funds_have_been_returned_to_you',
+                ),
+              }),
             ),
-          },
+          }),
         },
         limit: {
           submitted: (
@@ -256,13 +262,16 @@ const usePerpsToasts = () => {
               }),
             ),
           }),
-          creationFailed: {
+          creationFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_failed'),
-              strings('perps.order.your_funds_have_been_returned_to_you'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings('perps.order.order_failed'),
+              }),
             ),
-          },
+          }),
           cancellationInProgress: (
             direction: OrderDirection,
             amount: string,

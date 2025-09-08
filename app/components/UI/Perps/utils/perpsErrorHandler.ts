@@ -23,6 +23,8 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
+  [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
+    'perps.errors.orderLeverageReductionFailed',
 };
 
 /**
@@ -31,6 +33,7 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
 export interface TranslatePerpsErrorParams {
   error: string | Error;
   data?: Record<string, unknown>;
+  fallbackMessage?: string;
 }
 
 /**
@@ -39,7 +42,7 @@ export interface TranslatePerpsErrorParams {
  * @returns Localized error message
  */
 export function translatePerpsError(params: TranslatePerpsErrorParams): string {
-  const { error, data } = params;
+  const { error, data, fallbackMessage } = params;
 
   // Handle error code strings
   if (typeof error === 'string' && error in ERROR_CODE_TO_I18N_KEY) {
@@ -54,12 +57,12 @@ export function translatePerpsError(params: TranslatePerpsErrorParams): string {
       const i18nKey = ERROR_CODE_TO_I18N_KEY[error.message as PerpsErrorCode];
       return strings(i18nKey, data || {});
     }
-    return error.message;
+    return fallbackMessage || error.message;
   }
 
   // Handle string errors that might be error codes
   if (typeof error === 'string') {
-    return error;
+    return fallbackMessage || error;
   }
 
   // Default fallback
@@ -158,7 +161,11 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         break;
     }
 
-    return translatePerpsError({ error: errorString, data: errorParams });
+    return translatePerpsError({
+      error: errorString,
+      data: errorParams,
+      fallbackMessage,
+    });
   }
 
   // For non-PerpsController errors, return as-is or use fallback

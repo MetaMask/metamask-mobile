@@ -1188,6 +1188,7 @@
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
+      "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "connectionFailed": {
         "title": "Perps is temporarily offline",
         "description": "We're working to get it back online soon.",
