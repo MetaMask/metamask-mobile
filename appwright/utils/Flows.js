@@ -10,6 +10,44 @@ import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingShee
 import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
+import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
+
+/**
+ * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
+ * @param {Object} device - The device object from Appwright
+ */
+export async function dismissSystemDialogs(device) {
+  await device.waitForTimeout(3000);
+
+  try {
+    // Wait 3 seconds for dialog to appear
+
+    // Try common permission dialog selectors using AppwrightSelectors
+    const dialogSelectors = ['Allow', 'OK', 'Allow Notifications'];
+
+    for (const selector of dialogSelectors) {
+      try {
+        const allowButton = await AppwrightSelectors.getElementByCatchAll(
+          device,
+          selector,
+        );
+        if (allowButton) {
+          await device.tap(allowButton);
+          console.log(`Tapped permission dialog button: ${selector}`);
+          return;
+        }
+      } catch (e) {
+        // Continue to next selector
+      }
+    }
+
+    console.log(
+      'No permission dialog found - autoAcceptAlerts may have handled it',
+    );
+  } catch (error) {
+    console.debug('Error handling permission dialog:', error.message);
+  }
+}
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -53,6 +91,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.tapDone();
 
   await WalletMainScreen.isMainWalletViewVisible();
+  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {

@@ -493,6 +493,10 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
+const UnmountOnBlurComponent = (children) => (
+  <UnmountOnBlur>{children}</UnmountOnBlur>
+);
+
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
@@ -640,14 +644,14 @@ const HomeTabs = () => {
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
           component={RewardsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (
         <Tab.Screen
           name={Routes.SETTINGS_VIEW}
           options={options.settings}
           component={SettingsFlow}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       )}
     </Tab.Navigator>
@@ -817,7 +821,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -958,7 +962,13 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.ROOT}
+            component={PerpsScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}

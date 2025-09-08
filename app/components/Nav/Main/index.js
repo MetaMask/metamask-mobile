@@ -386,12 +386,18 @@ const Main = (props) => {
       previousNetworkValues.length &&
       currentNetworkValues.length !== previousNetworkValues.length
     ) {
-      // Find the newly added network
+      // Find the newly added network by comparing chainIds
       const newNetwork = currentNetworkValues.find(
-        (network) => !previousNetworkValues.includes(network),
+        (network) =>
+          !previousNetworkValues.some(
+            (prev) => prev.chainId === network.chainId,
+          ),
       );
       const deletedNetwork = previousNetworkValues.find(
-        (network) => !currentNetworkValues.includes(network),
+        (network) =>
+          !currentNetworkValues.some(
+            (curr) => curr.chainId === network.chainId,
+          ),
       );
 
       toastRef?.current?.showToast({

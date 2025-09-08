@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
-import { TextProps, View, ViewStyle } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, TextProps, View, ViewStyle } from 'react-native';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,
@@ -20,6 +20,8 @@ import useDisplayName, {
 import Identicon from '../Identicon';
 import styleSheet from './Name.styles';
 import { NameProperties, NameType } from './Name.types';
+import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip';
+import { strings } from '../../../../locales/i18n';
 
 const NameLabel: React.FC<{
   displayNameVariant: DisplayNameVariant;
@@ -63,6 +65,7 @@ const Name: React.FC<NameProperties> = ({
   variation,
   style,
 }) => {
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
@@ -95,26 +98,41 @@ const Name: React.FC<NameProperties> = ({
       : name;
 
   return (
-    <View style={[styles.base, style]}>
-      {isFirstPartyContractName ? (
-        <Badge
-          size={AvatarSize.Xs}
-          imageSource={images.FOX_LOGO}
-          variant={BadgeVariant.Network}
-          isScaled={false}
-        />
-      ) : (
-        <Identicon
-          address={value}
-          diameter={16}
-          imageUri={image}
-          customStyle={styles.image}
+    <>
+      <Pressable
+        testID={`name-${value}`}
+        onPress={() => setIsTooltipVisible(true)}
+      >
+        <View style={[styles.base, style]}>
+          {isFirstPartyContractName ? (
+            <Badge
+              size={AvatarSize.Xs}
+              imageSource={images.FOX_LOGO}
+              variant={BadgeVariant.Network}
+              isScaled={false}
+            />
+          ) : (
+            <Identicon
+              address={value}
+              diameter={16}
+              imageUri={image}
+              customStyle={styles.image}
+            />
+          )}
+          <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
+            {truncatedName}
+          </NameLabel>
+        </View>
+      </Pressable>
+      {isTooltipVisible && (
+        <TooltipModal
+          open={isTooltipVisible}
+          setOpen={setIsTooltipVisible}
+          content={value}
+          title={strings('confirm.label.value')}
         />
       )}
-      <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
-        {truncatedName}
-      </NameLabel>
-    </View>
+    </>
   );
 };
 
