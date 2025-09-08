@@ -9,6 +9,16 @@ import { useSelector } from 'react-redux';
 
 const log = createProjectLogger('transaction-pay');
 
+export interface TransactionRequiredFiat {
+  address: Hex;
+  amountFiat: number;
+  amountRaw: string;
+  balanceFiat: number;
+  feeFiat: number;
+  totalFiat: number;
+  skipIfBalance: boolean;
+}
+
 /**
  * Calculate the fiat value of any tokens required by the transaction.
  * Necessary for MetaMask Pay to calculate how much of the selected pay token is needed.
@@ -17,7 +27,10 @@ export function useTransactionRequiredFiat({
   amountOverrides,
 }: {
   amountOverrides?: Record<Hex, string>;
-} = {}) {
+} = {}): {
+  values: TransactionRequiredFiat[];
+  totalFiat: number;
+} {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
