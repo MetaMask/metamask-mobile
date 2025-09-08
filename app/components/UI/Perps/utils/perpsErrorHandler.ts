@@ -168,13 +168,8 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     });
   }
 
-  // For non-PerpsController errors, handle based on type
+  // For non-PerpsController errors, return as-is or use fallback
   if (errorString) {
-    // If the original error was an Error object, prefer fallback
-    if (error instanceof Error && fallbackMessage) {
-      return fallbackMessage;
-    }
-    // For string errors, prefer the error string
     return errorString;
   }
 
