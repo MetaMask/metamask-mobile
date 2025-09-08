@@ -109,10 +109,10 @@
     "test:wdio:android": "yarn wdio ./wdio/config/android.config.debug.js",
     "test:wdio:android:browserstack": "yarn wdio ./wdio/config/android.config.browserstack.js",
     "test:wdio:android:browserstack:local": "yarn wdio ./wdio/config/android.config.browserstack.local.js",
-    "run-appwright:android-bs": "npx appwright test --project browserstack-android --config appwright/appwright.config.ts",
-    "run-appwright:ios-bs": "npx appwright test --project browserstack-ios --config appwright/appwright.config.ts",
-    "run-appwright:android": "npx appwright test --project android --config appwright/appwright.config.ts",
-    "run-appwright:ios": "npx appwright test --project ios --config appwright/appwright.config.ts",
+    "run-appwright:android-bs": "yarn appwright test --project browserstack-android --config appwright/appwright.config.ts",
+    "run-appwright:ios-bs": "yarn appwright test --project browserstack-ios --config appwright/appwright.config.ts",
+    "run-appwright:android": "yarn appwright test --project android --config appwright/appwright.config.ts",
+    "run-appwright:ios": "yarn appwright test --project ios --config appwright/appwright.config.ts",
     "test:depcheck": "yarn depcheck",
     "test:tgz-check": "./scripts/tgz-check.sh",
     "test:attribution-check": "./scripts/attributions-check.sh",
@@ -126,10 +126,10 @@
     "patch:approval": "./scripts/patch-approval-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
-    "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
-    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
+    "gen-bundle:ios": "yarn react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
+    "gen-bundle:android": "yarn react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
     "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
-    "generate-icons": "npx ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
+    "generate-icons": "yarn ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
