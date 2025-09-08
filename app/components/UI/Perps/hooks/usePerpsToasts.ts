@@ -146,7 +146,34 @@ const usePerpsToasts = () => {
           ),
         },
       },
+      withdrawal: {
+        withdrawalInProgress: {
+          ...perpsBaseToastOptions.inProgress,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.withdrawal.processing_title'),
+            strings('perps.withdrawal.eta_will_be_shared_shortly'),
+          ),
+        },
+        withdrawalSuccess: (amount: string, assetSymbol: string) => ({
+          ...perpsBaseToastOptions.success,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.withdrawal.success_toast'),
+            strings('perps.withdrawal.arrival_time', {
+              amount,
+              symbol: assetSymbol,
+            }),
+          ),
+        }),
+        withdrawalFailed: (error?: string) => ({
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.withdrawal.error'),
+            error || strings('perps.withdrawal.error_generic'),
+          ),
+        }),
+      },
       order: {
+        // TODO: Bring orderManagement up a level
         // Intentional duplication of some options between market and limit to avoid coupling.
         orderManagement: {
           market: {
@@ -280,6 +307,7 @@ const usePerpsToasts = () => {
             },
           },
         },
+        // TODO: Move into form validation section
         orderForm: {
           validationError: (error: string) => ({
             ...perpsBaseToastOptions.error,
@@ -399,6 +427,7 @@ const usePerpsToasts = () => {
           },
         },
       },
+      // TODO: Move to dataFetching section
       market: {
         error: {
           marketDataUnavailable: (assetSymbol: string) => ({
