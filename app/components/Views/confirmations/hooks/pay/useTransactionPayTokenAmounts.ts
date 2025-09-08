@@ -54,6 +54,7 @@ export function useTransactionPayTokenAmounts({
 
     return values
       .filter((value) => {
+        const { address: currentAddress } = value;
         const hasBalance = value.balanceFiat > value.amountFiat;
 
         const isSameTokenSelected =
@@ -61,7 +62,7 @@ export function useTransactionPayTokenAmounts({
 
         const hasOtherTokenWithoutBalance = values.some(
           (v) =>
-            v.address.toLowerCase() !== address.toLowerCase() &&
+            v.address.toLowerCase() !== currentAddress.toLowerCase() &&
             v.balanceFiat < v.amountFiat,
         );
 
