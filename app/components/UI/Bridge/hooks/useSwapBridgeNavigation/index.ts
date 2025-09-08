@@ -2,16 +2,18 @@ import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import useGoToPortfolioBridge from '../useGoToPortfolioBridge';
 import Routes from '../../../../../constants/navigation/Routes';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
-import { getNativeAssetForChainId } from '@metamask/bridge-controller';
+import {
+  formatChainIdToHex,
+  getNativeAssetForChainId,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../../Views/BridgeView';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
+import { SolScope, EthScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -25,6 +27,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { trace, TraceName } from '../../../../../util/trace';
+import { useCurrentNetworkInfo } from '../../../../hooks/useCurrentNetworkInfo';
 
 export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
@@ -55,14 +58,37 @@ export const useSwapBridgeNavigation = ({
     selectIsBridgeEnabledSource(state, selectedChainId),
   );
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+  const currentNetworkInfo = useCurrentNetworkInfo();
 
   // Bridge
   const goToNativeBridge = useCallback(
     (bridgeViewMode: BridgeViewMode) => {
+      // Determine effective chain ID - use home page filter network when no sourceToken provided
+      const getEffectiveChainId = (): CaipChainId | Hex => {
+        if (tokenBase) {
+          // If specific token provided, use its chainId
+          return tokenBase.chainId;
+        }
+
+        // No token provided - check home page filter network
+        const homePageFilterNetwork = currentNetworkInfo.getNetworkInfo(0);
+        if (
+          !homePageFilterNetwork?.caipChainId ||
+          currentNetworkInfo.enabledNetworks.length > 1
+        ) {
+          // Fall back to mainnet if no filter or multiple networks
+          return EthScope.Mainnet;
+        }
+
+        return homePageFilterNetwork.caipChainId as CaipChainId;
+      };
+
+      const effectiveChainId = getEffectiveChainId();
+
       let bridgeSourceNativeAsset;
       try {
         if (!tokenBase) {
-          bridgeSourceNativeAsset = getNativeAssetForChainId(selectedChainId);
+          bridgeSourceNativeAsset = getNativeAssetForChainId(effectiveChainId);
         }
       } catch (error) {
         // Suppress error as it's expected when the chain is not supported
@@ -76,7 +102,9 @@ export const useSwapBridgeNavigation = ({
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',
               decimals: bridgeSourceNativeAsset.decimals,
-              chainId: selectedChainId,
+              chainId: isSolanaChainId(effectiveChainId)
+                ? effectiveChainId
+                : formatChainIdToHex(effectiveChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
             }
           : undefined;
 
@@ -118,13 +146,13 @@ export const useSwapBridgeNavigation = ({
     },
     [
       navigation,
-      selectedChainId,
       tokenBase,
       sourcePage,
       trackEvent,
       createEventBuilder,
       location,
       isBridgeEnabledSource,
+      currentNetworkInfo,
     ],
   );
 

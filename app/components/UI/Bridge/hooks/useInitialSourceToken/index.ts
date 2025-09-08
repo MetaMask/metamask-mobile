@@ -12,6 +12,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import {
   getNativeAssetForChainId,
   isSolanaChainId,
+  formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 import { constants } from 'ethers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -101,14 +102,27 @@ export const useInitialSourceToken = (
   }
 
   // Change network if necessary
-  if (initialSourceToken?.chainId && initialSourceToken?.chainId !== chainId) {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (initialSourceToken?.chainId === SolScope.Mainnet) {
-      onNonEvmNetworkChange(initialSourceToken.chainId);
-      return;
-    }
-    ///: END:ONLY_INCLUDE_IF
+  if (initialSourceToken?.chainId) {
+    // Convert both chain IDs to CAIP format for accurate comparison
+    const sourceCaipChainId =
+      typeof initialSourceToken.chainId === 'string' &&
+      initialSourceToken.chainId.includes(':')
+        ? initialSourceToken.chainId
+        : formatChainIdToCaip(initialSourceToken.chainId);
+    const currentCaipChainId = formatChainIdToCaip(chainId);
 
-    onSetRpcTarget(evmNetworkConfigurations[initialSourceToken.chainId as Hex]);
+    if (sourceCaipChainId !== currentCaipChainId) {
+      if (initialSourceToken.chainId === SolScope.Mainnet) {
+        onNonEvmNetworkChange(initialSourceToken.chainId);
+        return;
+      }
+
+      // Convert CAIP format to hex for network configuration lookup
+      const chainIdFromCaip = sourceCaipChainId.split(':')[1];
+      const hexChainId = `0x${parseInt(chainIdFromCaip, 10).toString(
+        16,
+      )}` as Hex;
+      onSetRpcTarget(evmNetworkConfigurations[hexChainId]);
+    }
   }
 };
