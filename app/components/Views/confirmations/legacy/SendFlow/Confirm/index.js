@@ -1628,7 +1628,7 @@ const mapStateToProps = (state) => {
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-    maxValueMode: state.transaction?.maxValueMode,
+    maxValueMode: state.transaction.maxValueMode,
   };
 };
 

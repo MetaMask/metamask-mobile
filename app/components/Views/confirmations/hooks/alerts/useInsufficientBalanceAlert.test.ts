@@ -13,6 +13,14 @@ import { useConfirmActions } from '../useConfirmActions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { noop } from 'lodash';
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation((selector) => selector()),
