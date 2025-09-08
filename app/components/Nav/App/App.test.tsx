@@ -673,6 +673,7 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByText('Account Group')).toBeTruthy();
+        expect(getByText('Account name')).toBeTruthy();
       });
     });
 
