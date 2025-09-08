@@ -158,14 +158,14 @@ PERFORMANCE OPTIMIZATIONS:
                         touch: true,
                         // Momentum and friction tuning for smoother panning
                         momentum: {
-                            friction: 0.1, // Very low friction for quick stop after fling
-                            minVelocity: 0.1, // Lower threshold for more responsive stopping
+                            friction: 0.2, // Very low friction for quick stop after fling
+                            minVelocity: 0.3, // Lower threshold for more responsive stopping
                         },
                         // Additional kinetic settings for mobile optimization
                         touch: {
                             enabled: true,
                             // Fine-tune touch sensitivity
-                            sensitivity: 1.0, // Default sensitivity
+                            sensitivity: 0.5, // Default sensitivity
                         }
                     },
                     crosshair: {
@@ -218,6 +218,18 @@ PERFORMANCE OPTIMIZATIONS:
                                     maximumFractionDigits: 6
                                 }).format(price);
                             }
+                        },
+                        timeFormatter: (time) => {
+                            // Format time in user's local timezone for crosshair labels
+                            const date = new Date(time * 1000);
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                            });
                         }
                     },
                     grid: {
@@ -289,136 +301,13 @@ PERFORMANCE OPTIMIZATIONS:
                     }
                 });
 
-                // Custom crosshair implementation for mobile touch
-                let customCrosshair = null;
-                let isCrosshairVisible = false;
-
-                const createCustomCrosshair = () => {
-                    const crosshair = document.createElement('div');
-                    crosshair.style.position = 'absolute';
-                    crosshair.style.width = '1px';
-                    crosshair.style.height = '100%';
-                    crosshair.style.backgroundColor = '#666666';
-                    crosshair.style.pointerEvents = 'none';
-                    crosshair.style.zIndex = '1000';
-                    crosshair.style.display = 'none';
-                    crosshair.style.borderLeft = '1px dotted #666666';
-                    crosshair.id = 'custom-crosshair';
-                    container.appendChild(crosshair);
-                    return crosshair;
-                };
-
-                const showCrosshair = (x) => {
-                    if (!customCrosshair) {
-                        customCrosshair = createCustomCrosshair();
-                    }
-                    customCrosshair.style.display = 'block';
-                    customCrosshair.style.left = x + 'px';
-                    isCrosshairVisible = true;
-                };
-
-                const hideCrosshair = () => {
-                    if (customCrosshair) {
-                        customCrosshair.style.display = 'none';
-                        isCrosshairVisible = false;
-                    }
-                };
-
-                // Double tap to toggle crosshair
-                let lastTap = 0;
-                container.addEventListener('touchend', (e) => {
-                    const currentTime = new Date().getTime();
-                    const tapLength = currentTime - lastTap;
-                    
-                    if (tapLength < 500 && tapLength > 0) {
-                        // Double tap detected
-                        e.preventDefault();
-                        const rect = container.getBoundingClientRect();
-                        const x = e.changedTouches[0].clientX - rect.left;
-                        
-                        if (isCrosshairVisible) {
-                            hideCrosshair();
-                        } else {
-                            showCrosshair(x);
-                        }
-                    }
-                    lastTap = currentTime;
-                }, { passive: false });
-
-                // Move crosshair on touch move when visible
-                container.addEventListener('touchmove', (e) => {
-                    if (isCrosshairVisible && customCrosshair) {
-                        e.preventDefault();
-                        const rect = container.getBoundingClientRect();
-                        const x = e.touches[0].clientX - rect.left;
-                        customCrosshair.style.left = x + 'px';
-                    }
-                }, { passive: false });
-
-                // Hide crosshair on touch start (new gesture)
-                container.addEventListener('touchstart', (e) => {
-                    if (isCrosshairVisible) {
-                        hideCrosshair();
-                    }
-                }, { passive: true                 });
-
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
                     window.ReactNativeWebView.postMessage(JSON.stringify({
                         type: 'CHART_READY',
                         timestamp: new Date().toISOString()
                     }));
-                } 
-
-                // Panning detection and crosshair management
-                window.isUserPanning = false;
-                window.panStartTime = 0;
-                window.lastRangeChangeTime = Date.now();
-                window.isCrosshairEnabled = true;
-                window.crosshairDisabledDuringPan = true;
-                window.panningDisableTime = null;
-
-                // Listen for visible time range changes to detect panning
-                window.chart.subscribeVisibleTimeRangeChange((timeRange) => {
-                    const now = Date.now();
-                    const timeSinceLastRangeChange = now - window.lastRangeChangeTime;
-                    
-                    // Detect if this is user-initiated panning (not programmatic)
-                    if (timeSinceLastRangeChange < 1000) { // Less sensitive detection for smoother direction changes
-                        window.isUserPanning = true;
-                        window.panStartTime = now;
-                        
-                        // Disable crosshair during panning for performance
-                        if (window.crosshairDisabledDuringPan && window.isCrosshairEnabled) {
-                            window.isCrosshairEnabled = false;
-                            window.chart.applyOptions({
-                                crosshair: { mode: 2 } // Hidden mode
-                            });
-                        }
-                    }
-                    
-                    window.lastRangeChangeTime = now;
-                    
-                    // Re-enable crosshair after panning stops
-                    if (window.isUserPanning) {
-                        // Clear any existing timeout
-                        if (window.panningDisableTime) {
-                            clearTimeout(window.panningDisableTime);
-                        }
-                        
-                        // Set timeout to re-enable crosshair
-                        window.panningDisableTime = setTimeout(() => {
-                            window.isUserPanning = false;
-                            if (window.crosshairDisabledDuringPan && !window.isCrosshairEnabled) {
-                                window.isCrosshairEnabled = true;
-                                window.chart.applyOptions({
-                                    crosshair: { mode: 3 } // MagnetOHLC mode
-                                });
-                            }
-                            window.panningDisableTime = null;
-                        }, 300); // 300ms delay after panning stops
-                    }
-                });
+                }
 
             } catch (error) {
                 console.error('TradingView: Error creating chart:', error);
@@ -465,11 +354,6 @@ PERFORMANCE OPTIMIZATIONS:
 
             // Subscribe to crosshair events to send OHLC data to React Native
             window.chart.subscribeCrosshairMove((param) => {
-                // Skip if user is panning or crosshair is disabled
-                if (window.isUserPanning || !window.isCrosshairEnabled) {
-                    return;
-                }
-                
                 if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
                     // Crosshair is outside the chart area - hide legend
                     if (window.ReactNativeWebView) {
@@ -557,6 +441,99 @@ PERFORMANCE OPTIMIZATIONS:
             takeProfitPrice: null,
             stopLossPrice: null,
             currentPrice: null
+        };
+        
+        // Store original price line data for restoration
+        window.originalPriceLineData = null;
+        
+        // Helper functions to hide/show all price lines during panning
+        window.hideAllPriceLines = function() {
+            if (!window.candlestickSeries) return;
+            
+            // Store current price line data for restoration
+            window.originalPriceLineData = {
+                entryPrice: window.priceLines.entryPrice,
+                liquidationPrice: window.priceLines.liquidationPrice,
+                takeProfitPrice: window.priceLines.takeProfitPrice,
+                stopLossPrice: window.priceLines.stopLossPrice
+            };
+            
+            // Remove all price lines
+            Object.keys(window.priceLines).forEach(key => {
+                if (window.priceLines[key]) {
+                    try {
+                        window.candlestickSeries.removePriceLine(window.priceLines[key]);
+                        window.priceLines[key] = null;
+                    } catch (error) {
+                        // Silent error handling
+                    }
+                }
+            });
+        };
+        
+        window.showAllPriceLines = function() {
+            if (!window.candlestickSeries || !window.originalPriceLineData) return;
+            
+            // Recreate all price lines from stored data
+            if (window.originalPriceLineData.entryPrice) {
+                try {
+                    window.priceLines.entryPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.entryPrice.price,
+                        color: '#CCC',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'Entry'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            if (window.originalPriceLineData.liquidationPrice) {
+                try {
+                    window.priceLines.liquidationPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.liquidationPrice.price,
+                        color: '#FF7584',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'Liq'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            if (window.originalPriceLineData.takeProfitPrice) {
+                try {
+                    window.priceLines.takeProfitPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.takeProfitPrice.price,
+                        color: '#BAF24A',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'TP'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            if (window.originalPriceLineData.stopLossPrice) {
+                try {
+                    window.priceLines.stopLossPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.stopLossPrice.price,
+                        color: '#484848',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'SL'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
+            // Clear stored data
+            window.originalPriceLineData = null;
         };
         // Simple zoom function without complex interaction tracking
         window.applyZoom = function(candleCount, forceReset = false) {
