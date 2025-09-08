@@ -46,6 +46,7 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
+import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   INTRO = 'Intro_Perps_v03 2',
@@ -388,10 +389,15 @@ const PerpsTutorialCarousel: React.FC = () => {
             label={buttonLabel}
             onPress={handleContinue}
             size={ButtonSize.Lg}
+            testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
             style={styles.continueButton}
           />
           <View style={styles.skipButton}>
-            <TouchableOpacity onPress={handleSkip} disabled={!isEligible}>
+            <TouchableOpacity
+              onPress={handleSkip}
+              disabled={!isEligible}
+              testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
+            >
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Alternative}
