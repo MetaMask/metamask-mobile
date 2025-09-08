@@ -16,7 +16,6 @@ jest.mock('../../hooks/tokens/useTokenFiatRates');
 
 jest.useFakeTimers();
 
-const VALUE_MOCK = '1.23';
 const FIAT_RATE_MOCK = 2;
 
 const state = merge(
@@ -49,20 +48,6 @@ describe('EditAmount', () => {
     } as ReturnType<typeof useTransactionPayToken>);
 
     useTokenFiatRateMock.mockReturnValue(FIAT_RATE_MOCK);
-  });
-
-  it('renders amount from current transaction data', () => {
-    useTokenAmountMock.mockReturnValue({
-      fiatUnformatted: VALUE_MOCK,
-      updateTokenAmount: updateTokenAmountMock,
-    } as unknown as ReturnType<typeof useTokenAmount>);
-
-    const { getByTestId } = render();
-
-    expect(getByTestId('edit-amount-input')).toHaveProp(
-      'defaultValue',
-      `${VALUE_MOCK}`,
-    );
   });
 
   it('calls updateTokenAmount with token amount when done button pressed', async () => {

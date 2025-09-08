@@ -12,6 +12,7 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../../../AccountAction/AccountAction';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -62,6 +63,11 @@ const MultichainAccountActions = () => {
   const sheetRef = React.useRef<BottomSheetRef>(null);
   const { navigate, goBack } = useNavigation();
 
+  const handleOnClose = useCallback(() => {
+    // Close the entire modal stack by going back to the parent
+    goBack();
+  }, [goBack]);
+
   const goToAccountDetails = useCallback(() => {
     // Close the modal and navigate to account details
     goBack();
@@ -96,6 +102,9 @@ const MultichainAccountActions = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
+      <BottomSheetHeader onClose={handleOnClose}>
+        {accountGroup?.metadata?.name || 'Account Group'}
+      </BottomSheetHeader>
       <View style={styles.container}>
         <AccountAction
           actionTitle={strings('account_details.title')}
