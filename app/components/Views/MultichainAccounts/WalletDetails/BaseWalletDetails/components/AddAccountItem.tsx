@@ -14,57 +14,72 @@ import Text, {
 import Icon, {
   IconSize,
   IconName,
+  IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../../../locales/i18n';
+import AnimatedSpinner, {
+  SpinnerSize,
+} from '../../../../../UI/AnimatedSpinner';
 import { WalletDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
+import { strings } from '../../../../../../../locales/i18n';
 
 interface AddAccountItemProps {
+  index: number;
   totalItemsCount: number;
+  isLoading: boolean;
   onPress: () => void;
 }
 
 export const AddAccountItem: React.FC<AddAccountItemProps> = ({
+  index,
   totalItemsCount,
+  isLoading,
   onPress,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
 
-  const boxStyles: ViewStyle[] = [styles.addAccountBox];
+  const boxStyles: ViewStyle[] = [styles.accountBox];
 
   if (totalItemsCount > 1) {
-    boxStyles.push(styles.lastAccountBox);
+    if (index === 0) {
+      boxStyles.push(styles.firstAccountBox);
+    } else if (index === totalItemsCount - 1) {
+      boxStyles.push(styles.lastAccountBox);
+    }
   }
 
   return (
     <TouchableOpacity
-      key="add-account"
       testID={WalletDetailsIds.ADD_ACCOUNT_BUTTON}
       onPress={onPress}
+      disabled={isLoading}
+      style={[
+        boxStyles,
+        styles.addAccountButton,
+        isLoading && styles.addAccountItemDisabled,
+      ]}
+      activeOpacity={0.7}
     >
       <Box
-        style={boxStyles}
         flexDirection={FlexDirection.Row}
         alignItems={AlignItems.center}
-        justifyContent={JustifyContent.spaceBetween}
+        justifyContent={JustifyContent.flexStart}
       >
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={8}
-        >
-          <Icon
-            name={IconName.Add}
-            size={IconSize.Md}
-            color={colors.primary.default}
-          />
-          <Text
-            style={{ color: colors.primary.default }}
-            variant={TextVariant.BodyMDMedium}
-          >
-            {strings('multichain_accounts.wallet_details.create_account')}
-          </Text>
+        <Box style={styles.addAccountIconContainer}>
+          {isLoading ? (
+            <AnimatedSpinner size={SpinnerSize.SM} />
+          ) : (
+            <Icon
+              name={IconName.Add}
+              size={IconSize.Md}
+              color={IconColor.Primary}
+            />
+          )}
         </Box>
+        <Text variant={TextVariant.BodyMD} style={styles.addAccountButtonText}>
+          {isLoading
+            ? strings('multichain_accounts.wallet_details.creating_account')
+            : strings('multichain_accounts.wallet_details.create_account')}
+        </Text>
       </Box>
     </TouchableOpacity>
   );

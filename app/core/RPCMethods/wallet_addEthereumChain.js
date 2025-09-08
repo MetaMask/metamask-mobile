@@ -112,11 +112,6 @@ export const wallet_addEthereumChain = async ({
     });
   };
 
-  //TODO: Remove aurora from default chains in @metamask/controller-utils
-  const actualChains = { ...ChainId, aurora: undefined };
-  if (Object.values(actualChains).find((value) => value === chainId)) {
-    throw rpcErrors.invalidParams(`May not specify default MetaMask chain.`);
-  }
   const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
     store.getState(),
   );

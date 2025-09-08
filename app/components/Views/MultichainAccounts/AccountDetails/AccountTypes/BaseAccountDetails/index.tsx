@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
 import Text, {
@@ -30,7 +31,16 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
-import { selectWalletByAccount } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectWalletByAccount,
+  selectAccountToGroupMap,
+} from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+
+export const createEditAccountNameNavigationDetails = createNavigationDetails<{
+  accountGroup: AccountGroupObject;
+}>(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME);
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -52,12 +62,37 @@ export const BaseAccountDetails = ({
   const selectWallet = useSelector(selectWalletByAccount);
   const wallet = selectWallet?.(account.id);
 
+  // Feature flag and selectors for conditional navigation
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+
   const handleEditAccountName = useCallback(() => {
-    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-      params: { account },
-    });
-  }, [navigation, account]);
+    if (isMultichainAccountsState2Enabled) {
+      // Use multichain edit account name for account groups (same as MultichainAccountActions)
+      const accountGroup = accountToGroupMap[account.id];
+      if (accountGroup) {
+        navigation.navigate(
+          ...createEditAccountNameNavigationDetails({
+            accountGroup,
+          }),
+        );
+      }
+    } else {
+      // Use legacy edit account name for individual accounts
+      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen:
+          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
+        params: { account },
+      });
+    }
+  }, [
+    navigation,
+    account,
+    isMultichainAccountsState2Enabled,
+    accountToGroupMap,
+  ]);
 
   const handleShareAddress = useCallback(() => {
     navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {

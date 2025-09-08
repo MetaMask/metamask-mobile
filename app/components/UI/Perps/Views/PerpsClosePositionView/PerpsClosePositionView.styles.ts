@@ -24,15 +24,6 @@ export const createStyles = (theme: Theme) => {
     headerContent: {
       flex: 1,
     },
-    orderTypeButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.background.alternative,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 20,
-      gap: 4,
-    },
     content: {
       flex: 1,
     },
@@ -141,6 +132,18 @@ export const createStyles = (theme: Theme) => {
     },
     keypad: {
       paddingHorizontal: 16,
+    },
+    marketButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+      backgroundColor: colors.background.muted,
+    },
+    marketButtonIcon: {
+      marginLeft: 2,
     },
   });
 };
