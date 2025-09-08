@@ -1,34 +1,32 @@
-import Device from '../../../../../util/device';
-import {
-  APPLE_PAY_PAYMENT_METHOD,
-  SUPPORTED_PAYMENT_METHODS,
-  REGIONS_BY_PAYMENT_METHODS,
-} from '../constants';
+import { useEffect } from 'react';
 import { useDepositSDK } from '../sdk';
+import { useDepositSdkMethod } from './useDepositSdkMethod';
 
 function usePaymentMethods() {
-  const { selectedRegion } = useDepositSDK();
+  const {
+    selectedRegion,
+    selectedCryptoCurrency,
+    setSelectedPaymentMethod,
+    selectedPaymentMethod,
+  } = useDepositSDK();
 
-  let paymentMethods = SUPPORTED_PAYMENT_METHODS;
+  const [{ data: paymentMethods, error, isFetching }] = useDepositSdkMethod(
+    'getPaymentMethods',
+    selectedRegion?.isoCode,
+    selectedCryptoCurrency?.assetId,
+  );
 
-  if (!Device.isIos()) {
-    paymentMethods = paymentMethods.filter(
-      (paymentMethod) => paymentMethod.id !== APPLE_PAY_PAYMENT_METHOD.id,
-    );
-  }
+  useEffect(() => {
+    if (paymentMethods && !selectedPaymentMethod) {
+      setSelectedPaymentMethod(paymentMethods[0]);
+    }
+  }, [paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod]);
 
-  if (selectedRegion) {
-    paymentMethods = paymentMethods.filter((paymentMethod) => {
-      if (REGIONS_BY_PAYMENT_METHODS[paymentMethod.id]) {
-        return REGIONS_BY_PAYMENT_METHODS[paymentMethod.id].includes(
-          selectedRegion?.isoCode,
-        );
-      }
-      return true;
-    });
-  }
-
-  return paymentMethods;
+  return {
+    paymentMethods,
+    error,
+    isFetching,
+  };
 }
 
 export default usePaymentMethods;

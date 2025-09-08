@@ -55,13 +55,7 @@ import { createUnsupportedRegionModalNavigationDetails } from '../Modals/Unsuppo
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
 import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
-import {
-  getTransakCryptoCurrencyId,
-  getTransakFiatCurrencyId,
-  getTransakChainId,
-  getTransakPaymentMethodId,
-  formatCurrency,
-} from '../../utils';
+import { formatCurrency } from '../../utils';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
@@ -100,24 +94,26 @@ const BuildQuote = () => {
   const {
     isAuthenticated,
     selectedRegion,
-    paymentMethod,
-    setPaymentMethod,
-    cryptoCurrency,
-    setCryptoCurrency,
-    fiatCurrency,
-    setFiatCurrency,
+    selectedPaymentMethod,
+    selectedCryptoCurrency,
+    selectedFiatCurrency,
+    setSelectedPaymentMethod,
+    setSelectedCryptoCurrency,
+    setSelectedFiatCurrency,
   } = useDepositSDK();
 
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const [error, setError] = useState<string | null>();
 
-  const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
+  const isAccountTokenCompatible = useAccountTokenCompatible(
+    selectedCryptoCurrency,
+  );
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting({
-      cryptoCurrencyChainId: cryptoCurrency.chainId,
-      paymentMethodId: paymentMethod.id,
+      cryptoCurrencyChainId: selectedCryptoCurrency.chainId,
+      paymentMethodId: selectedPaymentMethod.id,
     });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -125,10 +121,10 @@ const BuildQuote = () => {
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
-    fiatCurrency.id,
-    cryptoCurrency.assetId,
-    cryptoCurrency.chainId,
-    paymentMethod.id,
+    selectedFiatCurrency.id,
+    selectedCryptoCurrency.assetId,
+    selectedCryptoCurrency.chainId,
+    selectedPaymentMethod.id,
     amount,
   );
 
@@ -137,9 +133,9 @@ const BuildQuote = () => {
     isLoading: isLoadingTokenAmount,
     error: errorLoadingTokenAmount,
   } = useDepositTokenExchange({
-    fiatCurrency,
+    fiatCurrency: selectedFiatCurrency,
     fiatAmount: amount,
-    token: cryptoCurrency,
+    token: selectedCryptoCurrency,
     tokens: supportedTokens,
   });
 
@@ -175,28 +171,32 @@ const BuildQuote = () => {
   useEffect(() => {
     if (selectedRegion?.currency) {
       if (selectedRegion.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
+        setSelectedFiatCurrency(USD_CURRENCY);
       } else if (selectedRegion.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
+        setSelectedFiatCurrency(EUR_CURRENCY);
       }
     }
-  }, [selectedRegion?.currency, setFiatCurrency]);
+  }, [selectedRegion?.currency, setSelectedFiatCurrency]);
 
   useEffect(() => {
-    if (selectedRegion?.isoCode && paymentMethods.length > 0) {
-      const isPaymentMethodSupported = paymentMethods.some(
-        (method) => method.id === paymentMethod.id,
+    if (
+      selectedRegion?.isoCode &&
+      paymentMethods.paymentMethods &&
+      paymentMethods.paymentMethods.length > 0
+    ) {
+      const isPaymentMethodSupported = paymentMethods.paymentMethods?.some(
+        (method) => method.id === selectedPaymentMethod.id,
       );
 
       if (!isPaymentMethodSupported) {
-        setPaymentMethod(paymentMethods[0]);
+        setSelectedPaymentMethod(paymentMethods.paymentMethods[0]);
       }
     }
   }, [
     selectedRegion?.isoCode,
     paymentMethods,
-    paymentMethod,
-    setPaymentMethod,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
   ]);
 
   useEffect(() => {
@@ -208,22 +208,22 @@ const BuildQuote = () => {
         caipChainId = chainId;
       }
 
-      if (cryptoCurrency.chainId !== caipChainId) {
+      if (selectedCryptoCurrency.chainId !== caipChainId) {
         const token = supportedTokens.find(
           (supportedToken) => supportedToken.chainId === caipChainId,
         );
         if (token) {
-          setCryptoCurrency(token);
+          setSelectedCryptoCurrency(token);
           return;
         }
       }
 
       if (
         !supportedTokens.some(
-          (token) => token.assetId === cryptoCurrency.assetId,
+          (token) => token.assetId === selectedCryptoCurrency.assetId,
         )
       ) {
-        setCryptoCurrency(supportedTokens[0]);
+        setSelectedCryptoCurrency(supportedTokens[0]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -265,8 +265,8 @@ const BuildQuote = () => {
         name: TraceName.DepositContinueFlow,
         tags: {
           amount: amountAsNumber,
-          currency: cryptoCurrency.symbol,
-          paymentMethod: paymentMethod.id,
+          currency: selectedCryptoCurrency.symbol,
+          paymentMethod: selectedPaymentMethod.id,
           authenticated: isAuthenticated,
         },
       });
@@ -277,19 +277,23 @@ const BuildQuote = () => {
         ramp_type: 'DEPOSIT',
         amount_source: amountAsNumber,
         amount_destination: Number(tokenAmount),
-        payment_method_id: paymentMethod.id,
+        payment_method_id: selectedPaymentMethod.id,
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
-        currency_source: fiatCurrency.id,
+        chain_id: selectedCryptoCurrency.chainId,
+        currency_destination: selectedCryptoCurrency.assetId,
+        currency_source: selectedFiatCurrency.id,
         is_authenticated: isAuthenticated,
       });
 
       quote = await getQuote(
-        getTransakFiatCurrencyId(fiatCurrency),
-        getTransakCryptoCurrencyId(cryptoCurrency),
-        getTransakChainId(cryptoCurrency.chainId),
-        getTransakPaymentMethodId(paymentMethod),
+        // selectedFiatCurrency.transakId
+        // selectedCryptoCurrency.transakId,
+        // selectedCryptoCurrency.transakChainId,
+        // selectedPaymentMethod.transakId,
+        'USD',
+        'USDC',
+        'ethereum',
+        'credit_debit_card',
         amount,
       );
 
@@ -318,11 +322,11 @@ const BuildQuote = () => {
         ramp_type: 'DEPOSIT',
         amount_source: amountAsNumber,
         amount_destination: Number(tokenAmount),
-        payment_method_id: paymentMethod.id,
+        payment_method_id: selectedPaymentMethod.id,
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
-        currency_source: fiatCurrency.id,
+        chain_id: selectedCryptoCurrency.chainId,
+        currency_destination: selectedCryptoCurrency.assetId,
+        currency_source: selectedFiatCurrency.id,
         error_message: 'BuildQuote - Error fetching quote',
         is_authenticated: isAuthenticated,
       });
@@ -358,8 +362,8 @@ const BuildQuote = () => {
         total_fee: Number(quote.totalFee || 0),
         payment_method_id: quote.paymentMethod,
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
+        chain_id: selectedCryptoCurrency.chainId,
+        currency_destination: selectedCryptoCurrency.assetId,
         currency_source: quote.fiatCurrency,
       });
 
@@ -374,11 +378,11 @@ const BuildQuote = () => {
         ramp_type: 'DEPOSIT',
         amount_source: quote?.fiatAmount || amountAsNumber,
         amount_destination: quote?.cryptoAmount || Number(tokenAmount),
-        payment_method_id: quote?.paymentMethod || paymentMethod.id,
+        payment_method_id: quote?.paymentMethod || selectedPaymentMethod.id,
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
-        currency_source: quote?.fiatCurrency || fiatCurrency.id,
+        chain_id: selectedCryptoCurrency.chainId,
+        currency_destination: selectedCryptoCurrency.assetId,
+        currency_source: quote?.fiatCurrency || selectedFiatCurrency.id,
         error_message: 'BuildQuote - Error handling authentication',
         is_authenticated: isAuthenticated,
       });
@@ -398,10 +402,10 @@ const BuildQuote = () => {
     trackEvent,
     amountAsNumber,
     tokenAmount,
-    paymentMethod,
+    selectedPaymentMethod,
     selectedRegion?.isoCode,
-    cryptoCurrency,
-    fiatCurrency,
+    selectedCryptoCurrency,
+    selectedFiatCurrency,
     isAuthenticated,
     getQuote,
     amount,
@@ -435,9 +439,10 @@ const BuildQuote = () => {
     navigation.navigate(...createPaymentMethodSelectorModalNavigationDetails());
   }, [navigation]);
 
-  const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;
+  const networkName =
+    allNetworkConfigurations[selectedCryptoCurrency.chainId]?.name;
   const networkImageSource = getNetworkImageSource({
-    chainId: cryptoCurrency.chainId,
+    chainId: selectedCryptoCurrency.chainId,
   });
 
   useEffect(() => {
@@ -481,7 +486,7 @@ const BuildQuote = () => {
                 numberOfLines={1}
                 adjustsFontSizeToFit
               >
-                {formatCurrency(amountAsNumber, fiatCurrency.id, {
+                {formatCurrency(amountAsNumber, selectedFiatCurrency.id, {
                   currencyDisplay: 'narrowSymbol',
                   maximumFractionDigits: 0,
                 })}
@@ -497,7 +502,7 @@ const BuildQuote = () => {
                 ) : (
                   <>
                     {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
-                    {cryptoCurrency.symbol}
+                    {selectedCryptoCurrency.symbol}
                   </>
                 )}
               </Text>
@@ -515,13 +520,13 @@ const BuildQuote = () => {
                   }
                 >
                   <AvatarToken
-                    name={cryptoCurrency.name}
-                    imageSource={{ uri: cryptoCurrency.iconUrl }}
+                    name={selectedCryptoCurrency.name}
+                    imageSource={{ uri: selectedCryptoCurrency.iconUrl }}
                     size={AvatarSize.Md}
                   />
                 </BadgeWrapper>
                 <Text variant={TextVariant.HeadingLG}>
-                  {cryptoCurrency.symbol}
+                  {selectedCryptoCurrency.symbol}
                 </Text>
 
                 <Icon
@@ -557,7 +562,7 @@ const BuildQuote = () => {
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {paymentMethod.name}
+                  {selectedPaymentMethod.name}
                 </Text>
               </ListItemColumn>
 
@@ -567,7 +572,7 @@ const BuildQuote = () => {
                   textProps={{ variant: TextVariant.BodySM }}
                 >
                   {strings(
-                    `deposit.payment_duration.${paymentMethod.duration}`,
+                    `deposit.payment_duration.${selectedPaymentMethod.duration}`,
                   )}
                 </TagBase>
               </ListItemColumn>
@@ -584,7 +589,7 @@ const BuildQuote = () => {
           <Keypad
             value={amount}
             onChange={handleKeypadChange}
-            currency={fiatCurrency.symbol}
+            currency={selectedFiatCurrency.symbol}
             decimals={0}
             periodButtonProps={{
               isDisabled: true,

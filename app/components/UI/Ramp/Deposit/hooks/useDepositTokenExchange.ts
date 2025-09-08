@@ -1,6 +1,9 @@
 import { useFetchTokenRatesMulti } from './useTokenRates';
-import { DepositCryptoCurrency, DepositFiatCurrency } from '../constants';
 import Logger from '../../../../../util/Logger';
+import {
+  DepositFiatCurrency,
+  DepositCryptoCurrency,
+} from '@consensys/native-ramps-sdk/dist/Deposit';
 
 interface UseTokenExchangeParams {
   fiatCurrency: DepositFiatCurrency;

@@ -28,19 +28,14 @@ import {
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
-import {
-  DepositRegion,
-  DEPOSIT_REGIONS,
-  DEFAULT_REGION,
-  DepositCryptoCurrency,
-  DepositPaymentMethod,
-  DepositFiatCurrency,
-  USDC_TOKEN,
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  USD_CURRENCY,
-} from '../constants';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  DepositPaymentMethod,
+  DepositRegion,
+  DepositCryptoCurrency,
+  DepositFiatCurrency,
+} from '@consensys/native-ramps-sdk/dist/Deposit';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -56,12 +51,12 @@ export interface DepositSDK {
   selectedWalletAddress?: string;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
-  paymentMethod: DepositPaymentMethod;
-  setPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
-  cryptoCurrency: DepositCryptoCurrency;
-  setCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
-  fiatCurrency: DepositFiatCurrency;
-  setFiatCurrency: (fiatCurrency: DepositFiatCurrency) => void;
+  selectedPaymentMethod: DepositPaymentMethod;
+  setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
+  selectedCryptoCurrency: DepositCryptoCurrency;
+  setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
+  selectedFiatCurrency: DepositFiatCurrency;
+  setSelectedFiatCurrency: (fiatCurrency: DepositFiatCurrency) => void;
 }
 
 const isDevelopment =
@@ -113,13 +108,12 @@ export const DepositSDKProvider = ({
     INITIAL_SELECTED_REGION,
   );
 
-  const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
-  );
-  const [cryptoCurrency, setCryptoCurrency] =
-    useState<DepositCryptoCurrency>(USDC_TOKEN);
-  const [fiatCurrency, setFiatCurrency] =
-    useState<DepositFiatCurrency>(USD_CURRENCY);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<DepositPaymentMethod | null>(null);
+  const [selectedCryptoCurrency, setSelectedCryptoCurrency] =
+    useState<DepositCryptoCurrency | null>(null);
+  const [selectedFiatCurrency, setSelectedFiatCurrency] =
+    useState<DepositFiatCurrency | null>(null);
 
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {
@@ -136,28 +130,6 @@ export const DepositSDKProvider = ({
     },
     [dispatch],
   );
-
-  useEffect(() => {
-    async function setRegionByGeolocation() {
-      if (selectedRegion === null) {
-        try {
-          const geo = await DepositSDKNoAuth.getGeolocation();
-          const region = DEPOSIT_REGIONS.find(
-            (r) => r.isoCode === geo?.ipCountryCode,
-          );
-          if (region) {
-            setSelectedRegionCallback(region);
-          } else {
-            setSelectedRegionCallback(DEFAULT_REGION);
-          }
-        } catch (error) {
-          Logger.error(error as Error, 'Error setting region by geolocation:');
-          setSelectedRegionCallback(DEFAULT_REGION);
-        }
-      }
-    }
-    setRegionByGeolocation();
-  }, [selectedRegion, setSelectedRegionCallback]);
 
   useEffect(() => {
     try {
@@ -263,12 +235,12 @@ export const DepositSDKProvider = ({
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
-      paymentMethod,
-      setPaymentMethod,
-      cryptoCurrency,
-      setCryptoCurrency,
-      fiatCurrency,
-      setFiatCurrency,
+      selectedPaymentMethod,
+      setSelectedPaymentMethod,
+      selectedCryptoCurrency,
+      setSelectedCryptoCurrency,
+      selectedFiatCurrency,
+      setSelectedFiatCurrency,
     }),
     [
       sdk,
@@ -284,12 +256,12 @@ export const DepositSDKProvider = ({
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegionCallback,
-      paymentMethod,
-      setPaymentMethod,
-      cryptoCurrency,
-      setCryptoCurrency,
-      fiatCurrency,
-      setFiatCurrency,
+      selectedPaymentMethod,
+      setSelectedPaymentMethod,
+      selectedCryptoCurrency,
+      setSelectedCryptoCurrency,
+      selectedFiatCurrency,
+      setSelectedFiatCurrency,
     ],
   );
 
