@@ -132,3 +132,12 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
+
+      # Upload node_modules for reuse in test jobs
+      - name: Upload node_modules for test jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: node_modules-android-e2e
+          path: node_modules/
+          retention-days: 7
+          if-no-files-found: error

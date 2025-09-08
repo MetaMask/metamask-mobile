@@ -85,15 +85,66 @@ jobs:
           clean: true
           fetch-depth: 0
 
-      - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@test-only 
+      # For Android, skip environment setup and reuse build artifacts
+      - name: Set up minimal Android environment
+        if: ${{ inputs.platform == 'android' }}
+        run: |
+          echo "🤖 Setting up minimal Android environment for testing..."
+          
+          # Set Android environment variables (SDK pre-installed on runner)
+          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+          
+          # Set AVD home
+          echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.android/avd"
+          
+          # Create Android Virtual Device
+          IMAGE="system-images;android-34;google_apis;x86_64"
+          echo "Creating AVD with image: $IMAGE"
+          "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" --verbose create avd \
+            --force \
+            --name "emulator" \
+            --package "$IMAGE" \
+            --device "pixel_5" \
+            --tag "google_apis" \
+            --abi "x86_64" \
+            --sdcard "8092M"
+          
+          echo "✅ Minimal Android environment ready"
+        shell: bash
+
+      # For iOS, use the full environment setup (for now)
+      - name: Set up E2E environment (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@test-only
         with:
-          platform: ${{ inputs.platform }}
-          setup-simulator: ${{ inputs.platform == 'ios' }}
-          android-avd-name: emulator
+          platform: ios
+          setup-simulator: true
           configure-keystores: false
-          sd-card-size: 8192
           test-only: true
+
+      # Setup Node.js for Android (minimal, no dependency installation needed)
+      - name: Setup Node.js for Android
+        if: ${{ inputs.platform == 'android' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.0'
+
+      - name: Setup Yarn for Android
+        if: ${{ inputs.platform == 'android' }}
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+        shell: bash
+
+      # Download pre-built node_modules from build job (Android only)
+      - name: Download pre-built node_modules
+        if: ${{ inputs.platform == 'android' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules-android-e2e
+          path: node_modules/
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
