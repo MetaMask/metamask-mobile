@@ -96,7 +96,7 @@ export const Amount = () => {
       setAmountInputTypeToken();
     }
     setFiatMode(newFiatMode);
-    if (amount) {
+    if (amount !== undefined) {
       setAmount(newFiatMode ? getFiatValue(amount) : getNativeValue(amount));
     }
   }, [
