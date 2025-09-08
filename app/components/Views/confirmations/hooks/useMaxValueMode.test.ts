@@ -21,7 +21,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-describe('useMaxValueRefresher', () => {
+describe('useMaxValueMode', () => {
   const mockUseSelector = jest.mocked(useSelector);
   const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 
