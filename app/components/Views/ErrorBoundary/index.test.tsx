@@ -10,6 +10,7 @@ import {
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import getSupportUrl from '../../../util/support';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -77,7 +78,7 @@ describe('ErrorBoundary', () => {
   };
 
   const initialState = {
-    privacy: {
+    security: {
       dataCollectionForMarketing: true,
     },
   };
@@ -117,7 +118,7 @@ describe('ErrorBoundary', () => {
 
   it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
     const stateWithoutDataCollection = {
-      privacy: {
+      security: {
         dataCollectionForMarketing: false,
       },
     };
@@ -385,8 +386,9 @@ describe('ErrorBoundary', () => {
     });
 
     it('consents to share information when consent button is pressed', async () => {
-      const mockGetSupportUrl = require('../../../util/support').default;
-      mockGetSupportUrl.mockResolvedValue('https://support.metamask.io');
+      (getSupportUrl as jest.Mock).mockResolvedValue(
+        'https://support.metamask.io',
+      );
 
       const { getByText } = renderWithProvider(
         <ErrorBoundary view={'Root'}>
@@ -406,12 +408,13 @@ describe('ErrorBoundary', () => {
         fireEvent.press(consentButton);
       });
 
-      expect(mockGetSupportUrl).toHaveBeenCalledWith(true);
+      expect(getSupportUrl).toHaveBeenCalledWith(true);
     });
 
     it('declines to share information when decline button is pressed', async () => {
-      const mockGetSupportUrl = require('../../../util/support').default;
-      mockGetSupportUrl.mockResolvedValue('https://support.metamask.io');
+      (getSupportUrl as jest.Mock).mockResolvedValue(
+        'https://support.metamask.io',
+      );
 
       const { getByText } = renderWithProvider(
         <ErrorBoundary view={'Root'}>
@@ -431,13 +434,16 @@ describe('ErrorBoundary', () => {
         fireEvent.press(declineButton);
       });
 
-      expect(mockGetSupportUrl).toHaveBeenCalledWith(false);
+      expect(getSupportUrl).toHaveBeenCalledWith(false);
     });
 
     it('falls back to base URL when consent request fails', async () => {
-      const mockGetSupportUrl = require('../../../util/support').default;
-      mockGetSupportUrl.mockRejectedValueOnce(new Error('Network error'));
-      mockGetSupportUrl.mockResolvedValueOnce('https://support.metamask.io');
+      (getSupportUrl as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error'),
+      );
+      (getSupportUrl as jest.Mock).mockResolvedValueOnce(
+        'https://support.metamask.io',
+      );
 
       const { getByText } = renderWithProvider(
         <ErrorBoundary view={'Root'}>
@@ -458,9 +464,9 @@ describe('ErrorBoundary', () => {
       });
 
       // Verify getSupportUrl was called twice (once with true, once with false for fallback)
-      expect(mockGetSupportUrl).toHaveBeenCalledTimes(2);
-      expect(mockGetSupportUrl).toHaveBeenNthCalledWith(1, true);
-      expect(mockGetSupportUrl).toHaveBeenNthCalledWith(2, false);
+      expect(getSupportUrl).toHaveBeenCalledTimes(2);
+      expect(getSupportUrl).toHaveBeenNthCalledWith(1, true);
+      expect(getSupportUrl).toHaveBeenNthCalledWith(2, false);
     });
   });
 });

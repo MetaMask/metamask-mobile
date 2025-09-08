@@ -142,7 +142,7 @@ export const Fallback = (props) => {
   const [feedback, setFeedback] = useState('');
   const isOnboardingError = Boolean(props.onboardingErrorConfig);
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state) => state.privacy.dataCollectionForMarketing,
+    (state) => state.security.dataCollectionForMarketing,
   );
   const dataCollectionForMarketing =
     isDataCollectionForMarketingEnabled && !isOnboardingError;
