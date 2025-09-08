@@ -33,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
     },
     sectionTitle: {
-      paddingTop: 8,
+      paddingTop: 16,
     },
     emptyContainer: {
       padding: 24,
