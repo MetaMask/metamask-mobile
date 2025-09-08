@@ -25,8 +25,10 @@ export interface TransactionRequiredFiat {
  */
 export function useTransactionRequiredFiat({
   amountOverrides,
+  log: isLoggingEnabled,
 }: {
   amountOverrides?: Record<Hex, string>;
+  log?: boolean;
 } = {}): {
   values: TransactionRequiredFiat[];
   totalFiat: number;
@@ -34,7 +36,10 @@ export function useTransactionRequiredFiat({
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
-  const { bufferInitial } = useSelector(selectMetaMaskPayFlags);
+
+  const { bufferInitial, bufferSubsequent } = useSelector(
+    selectMetaMaskPayFlags,
+  );
 
   const fiatRequests = useMemo(
     () =>
@@ -61,7 +66,9 @@ export function useTransactionRequiredFiat({
           targetFiatRate,
         );
 
-        const feeFiat = amountFiat.multipliedBy(bufferInitial);
+        const feeFiat = amountFiat.multipliedBy(
+          index === 0 ? bufferInitial : bufferSubsequent,
+        );
 
         const balanceFiat = new BigNumber(target.balanceHuman).multipliedBy(
           targetFiatRate,
@@ -79,7 +86,13 @@ export function useTransactionRequiredFiat({
           skipIfBalance: target.skipIfBalance,
         };
       }),
-    [amountOverrides, bufferInitial, requiredTokens, tokenFiatRates],
+    [
+      amountOverrides,
+      bufferInitial,
+      bufferSubsequent,
+      requiredTokens,
+      tokenFiatRates,
+    ],
   );
 
   const totalFiat = values.reduce<number>(
@@ -88,10 +101,12 @@ export function useTransactionRequiredFiat({
   );
 
   useEffect(() => {
+    if (!isLoggingEnabled) return;
+
     log('Required fiat', values, {
       totalFiat,
     });
-  }, [values, totalFiat]);
+  }, [isLoggingEnabled, totalFiat, values]);
 
   return {
     values,

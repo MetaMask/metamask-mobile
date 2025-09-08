@@ -460,6 +460,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
       component={ReturnToAppModal}
+      initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}

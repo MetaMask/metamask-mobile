@@ -12,7 +12,10 @@ import {
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { store } from '../../../store';
 import { ExtractEventHandler } from '@metamask/base-controller';
-import { TransactionBridgeQuote } from '../../../components/Views/confirmations/utils/bridge';
+import {
+  TransactionBridgeQuote,
+  refreshQuote,
+} from '../../../components/Views/confirmations/utils/bridge';
 import { cloneDeep } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { toHex } from '@metamask/controller-utils';
@@ -82,7 +85,8 @@ export class PayHook {
     for (const quote of quotes) {
       log('Submitting bridge', index, quote);
 
-      await this.#submitBridgeTransaction(transactionId, quote);
+      const finalQuote = index > 0 ? await refreshQuote(quote) : quote;
+      await this.#submitBridgeTransaction(transactionId, finalQuote);
 
       index += 1;
     }
