@@ -160,7 +160,9 @@ const Routes = {
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
-      EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
+      ACCOUNT_ACTIONS: 'MultichainAccountActions',
+      EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
+      LEGACY_EDIT_ACCOUNT_NAME: 'LegacyEditMultichainAccountName',
       EDIT_WALLET_NAME: 'EditWalletName',
       SHARE_ADDRESS: 'ShareAddress',
       SHARE_ADDRESS_QR: 'ShareAddressQR',

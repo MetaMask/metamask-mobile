@@ -1168,7 +1168,8 @@
       "connectionFailed": {
         "title": "Perps is temporarily offline",
         "description": "We're working to get it back online soon.",
-        "retry": "Retry"
+        "retry": "Retry",
+        "go_back": "Go Back"
       },
       "networkError": {
         "title": "Network Error",
@@ -5226,6 +5227,9 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network Fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "points": "Points",
+    "points_tooltip": "Points",
+    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
@@ -5432,9 +5436,13 @@
     },
     "edit_account_name": {
       "title": "Edit Account Name",
+      "account_name": "Account name",
+      "confirm_button": "Confirm",
       "name": "Name",
       "save_button": "Save",
-      "error_duplicate_name": "This account name already exists"
+      "error": "Failed to edit account name",
+      "error_duplicate_name": "This account name already exists",
+      "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
       "title": "Remove Account",

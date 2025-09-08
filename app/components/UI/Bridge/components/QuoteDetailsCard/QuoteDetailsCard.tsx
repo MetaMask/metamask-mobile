@@ -44,6 +44,8 @@ import {
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { useRewards } from '../../hooks/useRewards';
+import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
 
 const ANIMATION_DURATION_MS = 50;
 
@@ -66,12 +68,24 @@ const QuoteDetailsCard = () => {
     maximumFractionDigits: 3,
   });
 
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
+  const {
+    formattedQuoteData,
+    activeQuote,
+    isLoading: isQuoteLoading,
+  } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const {
+    estimatedPoints,
+    isLoading: isRewardsLoading,
+    shouldShowRewardsRow,
+  } = useRewards({
+    activeQuote,
+    isQuoteLoading,
+  });
 
   const isSameChainId = sourceToken?.chainId === destToken?.chainId;
   // Initialize expanded state based on whether destination is Solana or it's a Solana swap
@@ -377,6 +391,38 @@ const QuoteDetailsCard = () => {
                     text: estimatedTime,
                     variant: TextVariant.BodyMD,
                   },
+                }}
+              />
+            )}
+
+            {/* Estimated Points */}
+            {shouldShowRewardsRow && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.points'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                  tooltip: {
+                    title: strings('bridge.points_tooltip'),
+                    content: strings('bridge.points_tooltip_content'),
+                  },
+                }}
+                value={{
+                  label: (
+                    <Box
+                      flexDirection={FlexDirection.Row}
+                      alignItems={AlignItems.center}
+                      gap={4}
+                    >
+                      <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+                      {!isRewardsLoading && estimatedPoints !== null && (
+                        <Text variant={TextVariant.BodyMD}>
+                          {estimatedPoints.toString()}
+                        </Text>
+                      )}
+                    </Box>
+                  ),
                 }}
               />
             )}

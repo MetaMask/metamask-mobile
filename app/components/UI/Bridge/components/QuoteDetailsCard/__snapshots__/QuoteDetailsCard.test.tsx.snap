@@ -371,7 +371,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               onPress={[Function]}
                               testID="expand-quote-details"
                             >
-                              <SvgMock
+                              <MetamaskRewardsPointsSvg
                                 color="#b7bbc8"
                                 fill="currentColor"
                                 height={16}
@@ -462,7 +462,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     }
                                   }
                                 >
-                                  <SvgMock
+                                  <MetamaskRewardsPointsSvg
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -600,7 +600,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     }
                                   }
                                 >
-                                  <SvgMock
+                                  <MetamaskRewardsPointsSvg
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -736,7 +736,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     }
                                   }
                                 >
-                                  <SvgMock
+                                  <MetamaskRewardsPointsSvg
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -897,7 +897,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       >
                                         Slippage
                                       </Text>
-                                      <SvgMock
+                                      <MetamaskRewardsPointsSvg
                                         color="#b7bbc8"
                                         fill="currentColor"
                                         height={16}
@@ -932,7 +932,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       }
                                     }
                                   >
-                                    <SvgMock
+                                    <MetamaskRewardsPointsSvg
                                       color="#b7bbc8"
                                       fill="currentColor"
                                       height={16}
@@ -1481,7 +1481,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               onPress={[Function]}
                               testID="expand-quote-details"
                             >
-                              <SvgMock
+                              <MetamaskRewardsPointsSvg
                                 color="#b7bbc8"
                                 fill="currentColor"
                                 height={16}
@@ -1572,7 +1572,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <SvgMock
+                                  <MetamaskRewardsPointsSvg
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -1710,7 +1710,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <SvgMock
+                                  <MetamaskRewardsPointsSvg
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -1846,7 +1846,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <SvgMock
+                                  <MetamaskRewardsPointsSvg
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
