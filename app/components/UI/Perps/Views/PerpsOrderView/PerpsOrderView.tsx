@@ -13,12 +13,7 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  PerpsOrderViewSelectorsIDs,
-  PerpsGeneralSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {

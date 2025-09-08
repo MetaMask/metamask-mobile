@@ -11,14 +11,12 @@ import { toHumanDuration } from '../../../Views/confirmations/utils/time';
 import { capitalize } from '../../../../util/general';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import Routes from '../../../../constants/navigation/Routes';
 
-export interface PerpsToastOptions {
-  deposit: {
-    success: ToastOptions;
-    error: ToastOptions;
-  };
-}
+type PerpsToastOptions = ToastOptions & {
+  hapticsType: NotificationFeedbackType;
+};
 
 type OrderDirection = 'long' | 'short';
 
@@ -46,7 +44,7 @@ const getPerpsToastLabels = (primary: string, secondary?: string) => {
   return labels;
 };
 
-const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<ToastOptions> = {
+const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
   hasNoTimeout: false,
 };
 
@@ -55,37 +53,41 @@ const usePerpsToasts = () => {
   const theme = useAppThemeFromContext();
   const navigation = useNavigation();
 
-  const perpsBaseToastOptions: Record<string, ToastOptions> = useMemo(
+  const perpsBaseToastOptions: Record<string, PerpsToastOptions> = useMemo(
     () => ({
       success: {
-        ...(PERPS_TOASTS_DEFAULT_OPTIONS as ToastOptions),
+        ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.CheckBold,
         iconColor: theme.colors.icon.default,
         backgroundColor: theme.colors.primary.default,
+        hapticsType: NotificationFeedbackType.Success,
       },
       // Intentional duplication for now to avoid coupling with success options.
       inProgress: {
-        ...(PERPS_TOASTS_DEFAULT_OPTIONS as ToastOptions),
+        ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
         iconColor: theme.colors.icon.default,
         backgroundColor: theme.colors.primary.default,
+        hapticsType: NotificationFeedbackType.Warning,
       },
       error: {
-        ...(PERPS_TOASTS_DEFAULT_OPTIONS as ToastOptions),
+        ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
         iconColor: theme.colors.icon.default,
         backgroundColor: theme.colors.error.default,
+        hapticsType: NotificationFeedbackType.Error,
       },
     }),
     [theme],
   );
 
   const showToast = useCallback(
-    (config: ToastOptions) => {
+    (config: PerpsToastOptions) => {
       toastRef?.current?.showToast(config);
+      notificationAsync(config.hapticsType);
     },
     [toastRef],
   );
