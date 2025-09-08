@@ -16,9 +16,9 @@ import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetwor
 import {
   useNetworksByNamespace,
   NetworkType,
-  useNetworksByCustomNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
@@ -32,11 +32,6 @@ import {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/Icon.types';
-import { useSelector } from 'react-redux';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts.ts';
-import { EVM_SCOPE } from '../Earn/constants/networks.ts';
-import { SolScope } from '@metamask/keyring-api';
 
 interface ModalState {
   showPopularNetworkModal: boolean;
@@ -75,74 +70,14 @@ const NetworkMultiSelector = ({
   });
 
   const {
-    networks: evmNetworks,
-    areAllNetworksSelected: areAllEvmNetworksSelected,
-  } = useNetworksByCustomNamespace({
-    networkType: NetworkType.Popular,
-    namespace: KnownCaipNamespace.Eip155,
-  });
-
-  const {
-    networks: solanaNetworks,
-    areAllNetworksSelected: areAllSolanaNetworksSelected,
-  } = useNetworksByCustomNamespace({
-    networkType: NetworkType.Popular,
-    namespace: KnownCaipNamespace.Solana,
-  });
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
-  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
-    EVM_SCOPE,
-  );
-
-  const selectedSolanaAccount = useSelector(
-    selectSelectedInternalAccountByScope,
-  )(SolScope.Mainnet);
-
-  const networksToUse = useMemo(() => {
-    if (isMultichainAccountsState2Enabled) {
-      if (selectedEvmAccount && selectedSolanaAccount) {
-        return [...evmNetworks, ...solanaNetworks];
-      } else if (selectedEvmAccount) {
-        return evmNetworks;
-      } else if (selectedSolanaAccount) {
-        return solanaNetworks;
-      }
-      return networks;
-    }
-    return networks;
-  }, [
+    networksToUse,
+    areAllNetworksSelectedCombined,
     isMultichainAccountsState2Enabled,
-    selectedEvmAccount,
-    selectedSolanaAccount,
-    evmNetworks,
-    solanaNetworks,
+  } = useNetworksToUse({
     networks,
-  ]);
-
-  const areAllNetworksSelectedCombined = useMemo(() => {
-    if (isMultichainAccountsState2Enabled) {
-      if (selectedEvmAccount && selectedSolanaAccount) {
-        return areAllEvmNetworksSelected && areAllSolanaNetworksSelected;
-      } else if (selectedEvmAccount) {
-        return areAllEvmNetworksSelected;
-      } else if (selectedSolanaAccount) {
-        return areAllSolanaNetworksSelected;
-      }
-      return areAllNetworksSelected;
-    }
-    return areAllNetworksSelected;
-  }, [
-    isMultichainAccountsState2Enabled,
-    selectedEvmAccount,
-    selectedSolanaAccount,
-    areAllEvmNetworksSelected,
-    areAllSolanaNetworksSelected,
+    networkType: NetworkType.Popular,
     areAllNetworksSelected,
-  ]);
+  });
 
   const { selectPopularNetwork, selectAllPopularNetworks } =
     useNetworkSelection({

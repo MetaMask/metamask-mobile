@@ -14,8 +14,11 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -81,6 +84,10 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: jest.fn(),
 }));
 
+jest.mock('../../hooks/useNetworksToUse/useNetworksToUse', () => ({
+  useNetworksToUse: jest.fn(),
+}));
+
 jest.mock('../../../util/device', () => ({
   getDeviceHeight: jest.fn(() => 800),
   isAndroid: jest.fn(() => false),
@@ -92,6 +99,13 @@ jest.mock('../../../selectors/networkController', () => ({
   createProviderConfig: jest.fn(),
 }));
 
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(),
+  }),
+);
+
 jest.mock('../../../selectors/preferencesController', () => ({
   selectUseBlockieIcon: jest.fn(),
 }));
@@ -100,13 +114,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   Provider: jest.requireActual('react-redux').Provider,
 }));
-
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
 
 jest.mock('../../../component-library/components/Cells/Cell', () => {
   const ReactActual = jest.requireActual('react');
@@ -165,12 +172,14 @@ describe('CustomNetworkSelector', () => {
     useNetworksByNamespace as jest.MockedFunction<
       typeof useNetworksByNamespace
     >;
-  const mockUseNetworksByCustomNamespace =
-    useNetworksByCustomNamespace as jest.MockedFunction<
-      typeof useNetworksByCustomNamespace
-    >;
+  const mockUseNetworksByCustomNamespace = jest.mocked(
+    useNetworksByCustomNamespace,
+  );
   const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
     typeof useNetworkSelection
+  >;
+  const mockUseNetworksToUse = useNetworksToUse as jest.MockedFunction<
+    typeof useNetworksToUse
   >;
   const mockUseSelector = jest.mocked(useSelector);
 
@@ -245,7 +254,24 @@ describe('CustomNetworkSelector', () => {
       totalEnabledNetworksCount: 2,
     });
 
-    mockUseSelector.mockReturnValue(true); // Mock isMultichainAccountsState2Enabled
+    mockUseNetworksToUse.mockReturnValue({
+      networksToUse: [...mockNetworks, ...mockNetworks], // Combined EVM and Solana networks
+      evmNetworks: mockNetworks,
+      solanaNetworks: mockNetworks,
+      isMultichainAccountsState2Enabled: true,
+      selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
+      selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
+      areAllNetworksSelectedCombined: false,
+      areAllEvmNetworksSelected: false,
+      areAllSolanaNetworksSelected: false,
+    });
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectMultichainAccountsState2Enabled) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   // Helper function to render with Redux provider
@@ -285,7 +311,7 @@ describe('CustomNetworkSelector', () => {
         />,
       );
 
-      // The component now combines EVM and Solana networks
+      // Since multichain is enabled, it should combine EVM and Solana networks
       const expectedNetworks = [...mockNetworks, ...mockNetworks]; // Both hooks return the same mock data
       expect(mockUseNetworkSelection).toHaveBeenCalledWith({
         networks: expectedNetworks,
@@ -396,7 +422,7 @@ describe('CustomNetworkSelector', () => {
         />,
       );
 
-      // Assert that the hook was called with networks
+      // Assert that the hook was called with networks (multichain enabled combines both)
       const expectedNetworks = [...mockNetworks, ...mockNetworks]; // Both hooks return the same mock data
       expect(mockUseNetworkSelection).toHaveBeenCalledWith({
         networks: expectedNetworks,
