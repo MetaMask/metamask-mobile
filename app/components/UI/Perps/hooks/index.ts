@@ -2,6 +2,7 @@
 export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
+export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 export { usePerpsDepositStatus } from './usePerpsDepositStatus';

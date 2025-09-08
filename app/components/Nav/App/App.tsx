@@ -9,7 +9,6 @@ import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
-import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
@@ -75,7 +74,8 @@ import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
+import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
+import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -205,7 +205,6 @@ const OnboardingSuccessFlow = () => (
 const OnboardingNav = () => (
   <Stack.Navigator initialRouteName="Onboarding">
     <Stack.Screen name="Onboarding" component={Onboarding} />
-    <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
     <Stack.Screen
       name="AccountBackupStep1"
@@ -670,8 +669,20 @@ const MultichainAccountDetailsActions = () => {
       }}
     >
       <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
+        component={MultichainAccountActions}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={MultichainEditAccountName}
+        component={EditMultichainAccountName}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME}
+        component={LegacyEditMultichainAccountName}
         initialParams={route?.params}
         options={commonScreenOptions}
       />

@@ -53,6 +53,7 @@ import {
   usePerpsConnection,
   usePerpsPerformance,
   usePerpsTrading,
+  usePerpsNetworkManagement,
 } from '../../hooks';
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
@@ -121,7 +122,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
-
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
@@ -260,16 +261,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
-  const handleAddFundsPress = () => {
-    // Navigate immediately to confirmations screen for instant UI response
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
+  const handleAddFundsPress = async () => {
+    try {
+      // Ensure the network exists before proceeding
+      await ensureArbitrumNetworkExists();
 
-    // Initialize deposit in the background without blocking
-    depositWithConfirmation().catch((error) => {
-      console.error('Failed to initialize deposit:', error);
-    });
+      // Navigate immediately to confirmations screen for instant UI response
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+
+      // Initialize deposit in the background without blocking
+      depositWithConfirmation().catch((error) => {
+        console.error('Failed to initialize deposit:', error);
+      });
+    } catch (error) {
+      console.error('Failed to navigate to deposit:', error);
+    }
   };
 
   const handleTradingViewPress = useCallback(() => {
