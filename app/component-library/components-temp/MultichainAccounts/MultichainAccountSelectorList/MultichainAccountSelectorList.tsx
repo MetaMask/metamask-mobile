@@ -153,13 +153,13 @@ const MultichainAccountSelectorList = ({
 
   // Reset scroll to top when search text changes
   useEffect(() => {
-    if (listRefToUse.current && debouncedSearchText !== '') {
+    if (listRefToUse.current) {
       // Use requestAnimationFrame to ensure the list has finished re-rendering
       requestAnimationFrame(() => {
         listRefToUse.current?.scrollToOffset({ offset: 0, animated: true });
       });
     }
-  }, [debouncedSearchText, flattenedData, listRefToUse]);
+  }, [debouncedSearchText, listRefToUse]);
 
   // Listen for account creation and scroll to new account
   useEffect(() => {
