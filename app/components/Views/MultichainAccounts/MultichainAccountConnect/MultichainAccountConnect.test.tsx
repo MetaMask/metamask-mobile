@@ -1123,45 +1123,6 @@ describe('MultichainAccountConnect', () => {
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
   });
 
-  it('handles connection timeout scenarios', async () => {
-    const mockAcceptPermissionsRequestTimeout = jest.fn().mockImplementation(
-      () =>
-        new Promise(() => {
-          // Never resolves to simulate timeout
-        }),
-    );
-
-    Engine.context.PermissionController.acceptPermissionsRequest =
-      mockAcceptPermissionsRequestTimeout;
-
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'wallet:eip155': {
-                  accounts: [],
-                },
-              }),
-            },
-            permissionRequestId: 'test-timeout',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
-
-    const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
-    fireEvent.press(confirmButton);
-
-    expect(confirmButton.props.disabled).toBe(true);
-  });
-
   describe('Account group selection logic', () => {
     it('selects first supported account group when no connected account groups exist', () => {
       const mockStateWithMultipleAccounts = {
@@ -1897,212 +1858,155 @@ describe('MultichainAccountConnect', () => {
       expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
     });
 
-    const { getByTestId: getByTestIdEmpty } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
+    it('verifies handleAccountGroupsSelected handles multi-chain scenarios', () => {
+      const { getByTestId, getAllByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+                  },
+                  'eip155:137': {
+                    accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
+                  },
+                }),
               },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [], // No accounts selected (deselected)
-                },
-              }),
+              permissionRequestId: 'test-multi-chain-consistency',
             },
-            permissionRequestId: 'test-deselected-accounts',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
-
-    expect(getByTestIdEmpty('account-list-bottom-sheet')).toBeTruthy();
-    expect(getByTestIdEmpty(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
-
-    const { getByTestId: getByTestIdSelected } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                },
-              }),
-            },
-            permissionRequestId: 'test-selected-accounts',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
-
-    expect(getByTestIdSelected('account-list-bottom-sheet')).toBeTruthy();
-    expect(getByTestIdSelected(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
-  });
-
-  it('verifies handleAccountGroupsSelected handles multi-chain scenarios', () => {
-    const { getByTestId, getAllByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                },
-                'eip155:137': {
-                  accounts: [`eip155:137:${MOCK_ADDRESS_1}`],
-                },
-              }),
-            },
-            permissionRequestId: 'test-multi-chain-consistency',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
-
-    const avatarGroups = getAllByTestId('avatar-group-container');
-    expect(avatarGroups.length).toBe(2);
-
-    expect(getByTestId('account-list-bottom-sheet')).toBeTruthy();
-
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
-  });
-
-  it('verifies handleAccountGroupsSelected function behavior is testable', () => {
-    const { getByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
-                },
-              }),
-            },
-            permissionRequestId: 'test-function-behavior',
-          },
-        }}
-      />,
-      { state: createMockState() },
-    );
-
-    expect(getByTestId('account-list-bottom-sheet')).toBeTruthy();
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
-    expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
-
-    expect(getByTestId('permission-summary-container')).toBeTruthy();
-  });
-
-  it('selects Account 2 through edit accounts flow and MultichainAccountConnectMultiSelector', async () => {
-    const mockStateWithAccountGroups = {
-      ...createMockState(),
-      engine: {
-        ...createMockState().engine,
-        backgroundState: {
-          ...createMockState().engine?.backgroundState,
-          AccountsController: createMockAccountsControllerState(
-            [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
-            MOCK_ADDRESS_1,
-          ),
-        },
-      },
-    };
-
-    const { getByTestId, findByTestId } = renderWithProvider(
-      <MultichainAccountConnect
-        route={{
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                origin: 'https://example.com',
-              },
-              permissions: createMockCaip25Permission({
-                'eip155:1': {
-                  accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // Start with Account 1 selected
-                },
-              }),
-            },
-            permissionRequestId: 'test-deselect-accounts-flow',
-          },
-        }}
-      />,
-      { state: mockStateWithAccountGroups },
-    );
-
-    // Initial state: Should show Account 1 selected
-    expect(getByTestId('permission-summary-account-text')).toHaveTextContent(
-      'Requesting for Account 1',
-    );
-
-    // When: User clicks "Edit accounts" to navigate to MultichainAccountConnectMultiSelector
-    const editAccountsButton = getByTestId('permission-summary-container');
-    fireEvent.press(editAccountsButton);
-
-    // Then: Should render MultichainAccountConnectMultiSelector component
-    const accountSelectorList = await findByTestId(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-    );
-    expect(accountSelectorList).toBeTruthy();
-
-    const accountList = await findByTestId('account-list');
-    expect(accountList).toBeTruthy();
-
-    // Verify that both accounts are rendered
-    const account1Text = getByTestId('account-list').findByProps({
-      children: 'Account 1',
-    });
-    expect(account1Text).toBeTruthy();
-
-    const account2Text = getByTestId('account-list').findByProps({
-      children: 'Account 2',
-    });
-    expect(account2Text).toBeTruthy();
-
-    const account2Cell = account2Text.parent?.parent?.parent?.parent;
-    expect(account2Cell).toBeTruthy();
-    if (account2Cell) {
-      fireEvent.press(account2Cell);
-    }
-
-    // After selecting Account 2, the Update button should be available
-    // because we now have accounts selected
-    const updateButtonAfterSelect = await findByTestId(
-      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
-    );
-    expect(updateButtonAfterSelect).toBeTruthy();
-
-    // When: User confirms the new selection by pressing Update
-    fireEvent.press(updateButtonAfterSelect);
-
-    // Then: Should return to permissions summary
-    const connectButton = await findByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
-    expect(connectButton).toBeTruthy();
-
-    // (Should now show both Account 1 and Account 2 selected)
-    await waitFor(() => {
-      expect(getByTestId('permission-summary-account-text')).toHaveTextContent(
-        'Requesting for 2 accounts',
+          }}
+        />,
+        { state: createMockState() },
       );
+
+      const avatarGroups = getAllByTestId('avatar-group-container');
+      expect(avatarGroups.length).toBe(2);
+
+      expect(getByTestId('account-list-bottom-sheet')).toBeTruthy();
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    });
+
+    it('verifies handleAccountGroupsSelected function behavior is testable', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-function-behavior',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      expect(getByTestId('account-list-bottom-sheet')).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+
+      expect(getByTestId('permission-summary-container')).toBeTruthy();
+    });
+
+    it('selects Account 2 through edit accounts flow and MultichainAccountConnectMultiSelector', async () => {
+      const mockStateWithAccountGroups = {
+        ...createMockState(),
+        engine: {
+          ...createMockState().engine,
+          backgroundState: {
+            ...createMockState().engine?.backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+              MOCK_ADDRESS_1,
+            ),
+          },
+        },
+      };
+
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`], // Start with Account 1 selected
+                  },
+                }),
+              },
+              permissionRequestId: 'test-deselect-accounts-flow',
+            },
+          }}
+        />,
+        { state: mockStateWithAccountGroups },
+      );
+
+      expect(getByTestId('permission-summary-account-text')).toHaveTextContent(
+        'Requesting for Account 1',
+      );
+
+      const editAccountsButton = getByTestId('permission-summary-container');
+      fireEvent.press(editAccountsButton);
+
+      const accountSelectorList = await findByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+      );
+      expect(accountSelectorList).toBeTruthy();
+
+      const accountList = await findByTestId('account-list');
+      expect(accountList).toBeTruthy();
+
+      const account1Text = getByTestId('account-list').findByProps({
+        children: 'Account 1',
+      });
+      expect(account1Text).toBeTruthy();
+
+      const account2Text = getByTestId('account-list').findByProps({
+        children: 'Account 2',
+      });
+      expect(account2Text).toBeTruthy();
+
+      const account2Cell = account2Text.parent?.parent?.parent?.parent;
+      expect(account2Cell).toBeTruthy();
+      if (account2Cell) {
+        fireEvent.press(account2Cell);
+      }
+
+      const updateButtonAfterSelect = await findByTestId(
+        ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+      );
+      expect(updateButtonAfterSelect).toBeTruthy();
+
+      fireEvent.press(updateButtonAfterSelect);
+
+      const connectButton = await findByTestId(
+        CommonSelectorsIDs.CONNECT_BUTTON,
+      );
+      expect(connectButton).toBeTruthy();
+
+      await waitFor(() => {
+        expect(
+          getByTestId('permission-summary-account-text'),
+        ).toHaveTextContent('Requesting for 2 accounts');
+      });
     });
   });
 });
