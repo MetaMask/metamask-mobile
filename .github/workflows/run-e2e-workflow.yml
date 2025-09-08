@@ -1,7 +1,7 @@
 # This workflow runs mobile E2E tests for a specific test category.
 # It passes matrix sharding info to the test framework via environment variables.
 
-name: Test Mobile E2E Category
+name: Run E2E
 
 on:
   workflow_call:
@@ -28,17 +28,22 @@ on:
         required: false
         type: number
         default: 1
+      test-timeout-minutes:
+        description: 'The timeout in minutes for the test command'
+        required: false
+        type: number
+        default: 30
 
 jobs:
-
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    runs-on: ${{ inputs.platform == 'ios' && fromJSON('["ghcr.io/cirruslabs/macos-runner:sequoia", "low-priority"]') || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
     env:
+      PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
@@ -55,6 +60,7 @@ jobs:
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
@@ -134,6 +140,19 @@ jobs:
             exit 1
           fi
 
+      - name: Setup iOS artifacts from build job
+        if: ${{ inputs.platform == 'ios' }}
+        run: |
+          echo "🏗 Setting up iOS artifacts from build job..."
+          
+          # Create required directories
+          mkdir -p ios/build/Build/Products/Release-iphonesimulator/
+
+      - name: Download iOS build artifacts
+        if: ${{ inputs.platform == 'ios' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
       - name: Clean environment before tests (iOS only)
         if: ${{ inputs.platform == 'ios' }}
         run: |
@@ -152,6 +171,7 @@ jobs:
           echo "✅ iOS environment cleaned"
 
       - name: Run E2E tests
+        timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: |
           platform="${{ inputs.platform }}"
           test_suite_tag="${{ inputs.test_suite_tag }}"
@@ -181,6 +201,10 @@ jobs:
           ./scripts/run-e2e-tags-gha.sh
           
           echo "✅ Test execution completed"
+        env:
+          JOB_NAME: ${{ inputs.test-suite-name }}
+          RUN_ID: ${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
       - name: Upload test results
         if: always()

@@ -83,6 +83,9 @@ class AuthenticationService {
 
   private async dispatchLogin(): Promise<void> {
     await AccountTreeInitService.initializeAccountTree();
+    const { MultichainAccountService } = Engine.context;
+    await MultichainAccountService.init();
+
     ReduxService.store.dispatch(logIn());
   }
 
@@ -106,6 +109,7 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
+
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
       SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {

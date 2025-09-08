@@ -56,6 +56,17 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+// Mock the selector module
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -164,6 +175,18 @@ describe('PerpsPositionsView', () => {
     (usePerpsLivePositions as jest.Mock).mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+    });
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
     });
 
     // Using real implementations of utility functions (calculateTotalPnL, formatPrice, formatPnl) to test actual behavior
@@ -428,10 +451,9 @@ describe('PerpsPositionsView', () => {
     });
 
     // The close position flow is integrated into the component through
-    // the handleClosePositionClick function which is passed to PerpsPositionCard
-    // as the onClose prop. This function sets the selected position and opens
-    // the PerpsClosePositionBottomSheet. The actual testing of this flow
-    // is covered by the PerpsClosePositionBottomSheet tests.
+    // the close button in PerpsPositionCard navigates to the close position screen.
+    // The navigation and close position flow is now handled by the
+    // PerpsClosePositionView screen.
 
     it('refreshes positions after successful close', async () => {
       // Mock successful close

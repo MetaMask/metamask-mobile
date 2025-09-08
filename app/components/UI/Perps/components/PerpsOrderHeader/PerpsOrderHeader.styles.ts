@@ -19,7 +19,7 @@ export const createStyles = (colors: Theme['colors']) =>
     priceRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
       marginTop: 2,
     },
     headerCenter: {
@@ -34,16 +34,17 @@ export const createStyles = (colors: Theme['colors']) =>
     headerTitle: {
       fontSize: 18,
     },
-    headerPriceChange: {
-      fontSize: 14,
-    },
     marketButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
       paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-      backgroundColor: colors.background.alternative,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
+      paddingVertical: 8,
+      borderRadius: 12,
+      backgroundColor: colors.background.muted,
+    },
+    marketButtonIcon: {
+      marginLeft: 2,
     },
     tokenIcon: {
       width: 24,

@@ -4,6 +4,7 @@ import {
 } from '@metamask/base-controller';
 import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
@@ -12,8 +13,11 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
 import {
   trace,
@@ -23,6 +27,8 @@ import {
 } from '../../../../util/trace';
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -47,6 +53,7 @@ import type {
   OrderFill,
   OrderParams,
   OrderResult,
+  PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
   SubscribeOrderFillsParams,
@@ -62,6 +69,8 @@ import type {
   HistoricalPortfolioResult,
 } from './types';
 import { getEnvironment } from './utils';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.d.cts';
 
 /**
  * Error codes for PerpsController
@@ -87,9 +96,6 @@ const ON_RAMP_GEO_BLOCKING_URLS = {
   DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
   PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
 };
-
-// Unknown is the default/fallback in case the location API call fails
-const DEFAULT_GEO_BLOCKED_REGIONS = ['US', 'CA-ON', 'UNKNOWN'];
 
 // Temporary to avoids estimation failures due to insufficient balance.
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -308,7 +314,9 @@ export type PerpsControllerActions =
 /**
  * External actions the PerpsController can call
  */
-export type AllowedActions = NetworkControllerGetStateAction['type'];
+export type AllowedActions =
+  | NetworkControllerGetStateAction
+  | AuthenticationController.AuthenticationControllerGetBearerToken;
 
 /**
  * External events the PerpsController can subscribe to
@@ -316,16 +324,17 @@ export type AllowedActions = NetworkControllerGetStateAction['type'];
 export type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerTransactionFailedEvent;
+  | TransactionControllerTransactionFailedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
 
 /**
  * PerpsController messenger constraints
  */
 export type PerpsControllerMessenger = RestrictedMessenger<
   'PerpsController',
-  PerpsControllerActions,
+  PerpsControllerActions | AllowedActions,
   PerpsControllerEvents | AllowedEvents,
-  AllowedActions,
+  AllowedActions['type'],
   AllowedEvents['type']
 >;
 
@@ -335,6 +344,12 @@ export type PerpsControllerMessenger = RestrictedMessenger<
 export interface PerpsControllerOptions {
   messenger: PerpsControllerMessenger;
   state?: Partial<PerpsControllerState>;
+  clientConfig?: PerpsControllerConfig;
+}
+
+interface BlockedRegionList {
+  list: string[];
+  source: 'remote' | 'fallback';
 }
 
 /**
@@ -355,13 +370,40 @@ export class PerpsController extends BaseController<
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
 
-  constructor({ messenger, state = {} }: PerpsControllerOptions) {
+  // Geo-location cache
+  private geoLocationCache: { location: string; timestamp: number } | null =
+    null;
+  private geoLocationFetchPromise: Promise<string> | null = null;
+  private readonly GEO_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+  private blockedRegionList: BlockedRegionList = {
+    list: [],
+    source: 'fallback',
+  };
+
+  constructor({
+    messenger,
+    state = {},
+    clientConfig = { fallbackBlockedRegions: [] },
+  }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
       metadata,
       messenger,
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
+
+    // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
+    this.setBlockedRegionList(
+      clientConfig.fallbackBlockedRegions ?? [],
+      'fallback',
+    );
+
+    // RemoteFeatureFlagController state is empty by default so we must wait for it to be populated.
+    this.messagingSystem.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      this.refreshEligibilityOnFeatureFlagChange.bind(this),
+    );
 
     this.providers = new Map();
 
@@ -374,16 +416,43 @@ export class PerpsController extends BaseController<
         timestamp: new Date().toISOString(),
       });
     });
+  }
 
-    this.refreshEligibility().catch((error) => {
-      DevLogger.log('PerpsController: Error refreshing eligibility', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
-    });
+  private setBlockedRegionList(list: string[], source: 'remote' | 'fallback') {
+    // Never downgrade from remote to fallback
+    if (source === 'fallback' && this.blockedRegionList.source === 'remote')
+      return;
+
+    if (Array.isArray(list)) {
+      this.blockedRegionList = {
+        list,
+        source,
+      };
+    }
+
+    this.refreshEligibility();
+  }
+
+  /**
+   * Respond to RemoteFeatureFlagController state changes
+   * Refreshes user eligibility based on geo-blocked regions defined in remote feature flag.
+   * Uses fallback configuration when remote feature flag is undefined.
+   * Note: Initial eligibility is set in the constructor if fallback regions are provided.
+   */
+  private refreshEligibilityOnFeatureFlagChange(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
+    const perpsGeoBlockedRegionsFeatureFlag =
+      remoteFeatureFlagControllerState.remoteFeatureFlags
+        ?.perpsPerpTradingGeoBlockedCountries;
+
+    const remoteBlockedRegions = (
+      perpsGeoBlockedRegionsFeatureFlag as { blockedRegions?: string[] }
+    )?.blockedRegions;
+
+    if (Array.isArray(remoteBlockedRegions)) {
+      this.setBlockedRegionList(remoteBlockedRegions, 'remote');
+    }
   }
 
   /**
@@ -518,6 +587,18 @@ export class PerpsController extends BaseController<
           state.lastUpdateTimestamp = Date.now();
         });
 
+        // Report to data lake (fire-and-forget with retry)
+        this.reportOrderToDataLake({
+          action: 'open',
+          coin: params.coin,
+          sl_price: params.stopLossPrice
+            ? parseFloat(params.stopLossPrice)
+            : undefined,
+          tp_price: params.takeProfitPrice
+            ? parseFloat(params.takeProfitPrice)
+            : undefined,
+        });
+
         // End trace with success data
         endTrace({
           name: TraceName.PerpsOrderExecution,
@@ -611,6 +692,9 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.lastUpdateTimestamp = Date.now();
         });
+
+        // Report to data lake (fire-and-forget with retry)
+        this.reportOrderToDataLake({ action: 'close', coin: params.coin });
 
         endTrace({
           name: TraceName.PerpsClosePosition,
@@ -1737,7 +1821,6 @@ export class PerpsController extends BaseController<
 
   /**
    * Eligibility (Geo-Blocking)
-   * Users in the USA and Ontario (Canada) are not eligible for Perps
    */
 
   /**
@@ -1747,22 +1830,75 @@ export class PerpsController extends BaseController<
    * Example: FR, DE, US-MI, CA-ON
    */
   async #fetchGeoLocation(): Promise<string> {
+    // Check cache first
+    if (this.geoLocationCache) {
+      const cacheAge = Date.now() - this.geoLocationCache.timestamp;
+      if (cacheAge < this.GEO_CACHE_TTL_MS) {
+        DevLogger.log('PerpsController: Using cached geo location', {
+          location: this.geoLocationCache.location,
+          cacheAge: `${(cacheAge / 1000).toFixed(1)}s`,
+        });
+        return this.geoLocationCache.location;
+      }
+    }
+
+    // If already fetching, return the existing promise
+    if (this.geoLocationFetchPromise) {
+      DevLogger.log(
+        'PerpsController: Geo location fetch already in progress, waiting...',
+      );
+      return this.geoLocationFetchPromise;
+    }
+
+    // Start new fetch
+    this.geoLocationFetchPromise = this.#performGeoLocationFetch();
+
+    try {
+      const location = await this.geoLocationFetchPromise;
+      return location;
+    } finally {
+      // Clear the promise after completion (success or failure)
+      this.geoLocationFetchPromise = null;
+    }
+  }
+
+  /**
+   * Perform the actual geo location fetch
+   * Separated to allow proper promise management
+   */
+  async #performGeoLocationFetch(): Promise<string> {
     let location = 'UNKNOWN';
 
     try {
       const environment = getEnvironment();
 
+      DevLogger.log('PerpsController: Fetching geo location from API', {
+        environment,
+      });
+
       const response = await successfulFetch(
         ON_RAMP_GEO_BLOCKING_URLS[environment],
       );
 
-      location = await response?.text();
+      const textResult = await response?.text();
+      location = textResult || 'UNKNOWN';
+
+      // Cache the successful result
+      this.geoLocationCache = {
+        location,
+        timestamp: Date.now(),
+      };
+
+      DevLogger.log('PerpsController: Geo location fetched successfully', {
+        location,
+      });
 
       return location;
     } catch (e) {
       DevLogger.log('PerpsController: Failed to fetch geo location', {
         error: e,
       });
+      // Don't cache failures
       return location;
     }
   }
@@ -1770,20 +1906,22 @@ export class PerpsController extends BaseController<
   /**
    * Refresh eligibility status
    */
-  async refreshEligibility(
-    blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
-  ): Promise<void> {
+  async refreshEligibility(): Promise<void> {
     // Default to false in case of error.
     let isEligible = false;
 
     try {
       DevLogger.log('PerpsController: Refreshing eligibility');
 
+      // Returns UNKNOWN if we can't fetch the geo location
       const geoLocation = await this.#fetchGeoLocation();
 
-      isEligible = blockedLocations.every(
-        (blockedLocation) => !geoLocation.startsWith(blockedLocation),
-      );
+      // Only set to eligible if we have valid geolocation and it's not blocked
+      if (geoLocation !== 'UNKNOWN') {
+        isEligible = this.blockedRegionList.list.every(
+          (geoBlockedRegion) => !geoLocation.startsWith(geoBlockedRegion),
+        );
+      }
     } catch (error) {
       DevLogger.log('PerpsController: Eligibility refresh failed', {
         error:
@@ -1872,5 +2010,172 @@ export class PerpsController extends BaseController<
         mainnet: false,
       };
     });
+  }
+
+  /**
+   * Report order events to data lake API with retry (non-blocking)
+   */
+  private async reportOrderToDataLake(params: {
+    action: 'open' | 'close';
+    coin: string;
+    sl_price?: number;
+    tp_price?: number;
+    retryCount?: number;
+  }): Promise<{ success: boolean; error?: string }> {
+    // Skip data lake reporting for testnet as the API doesn't handle testnet data
+    const isTestnet = this.state.isTestnet;
+    if (isTestnet) {
+      DevLogger.log('DataLake API: Skipping for testnet', {
+        action: params.action,
+        coin: params.coin,
+        network: 'testnet',
+      });
+      return { success: true, error: 'Skipped for testnet' };
+    }
+
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1000;
+    const { action, coin, sl_price, tp_price, retryCount = 0 } = params;
+
+    // Start performance measurement for initial call or log retry
+    const startTime = performance.now();
+
+    // Log the attempt
+    DevLogger.log('DataLake API: Starting order report', {
+      action,
+      coin,
+      attempt: retryCount + 1,
+      maxAttempts: MAX_RETRIES + 1,
+      hasStopLoss: !!sl_price,
+      hasTakeProfit: !!tp_price,
+      timestamp: new Date().toISOString(),
+    });
+
+    try {
+      const token = await this.messagingSystem.call(
+        'AuthenticationController:getBearerToken',
+      );
+      const { AccountTreeController } = Engine.context;
+      const accounts =
+        AccountTreeController.getAccountsFromSelectedAccountGroup();
+      const evmAccount = accounts.find((account) =>
+        account.type.startsWith('eip155:'),
+      );
+
+      if (!evmAccount || !token) {
+        DevLogger.log('DataLake API: Missing requirements', {
+          hasAccount: !!evmAccount,
+          hasToken: !!token,
+          action,
+          coin,
+        });
+        return { success: false, error: 'No account or token available' };
+      }
+
+      const response = await fetch(DATA_LAKE_API_CONFIG.ORDERS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          user_id: evmAccount.address,
+          coin,
+          sl_price,
+          tp_price,
+        }),
+      });
+
+      const duration = performance.now() - startTime;
+
+      if (!response.ok) {
+        throw new Error(`DataLake API error: ${response.status}`);
+      }
+
+      // Consume response body (might be empty for 201, but good to check)
+      const responseBody = await response.text();
+
+      // Success logging and metrics
+      DevLogger.log('DataLake API: Order reported successfully', {
+        action,
+        coin,
+        duration: `${duration.toFixed(0)}ms`,
+        status: response.status,
+        attempt: retryCount + 1,
+        responseBody: responseBody || 'empty',
+      });
+
+      // Report performance metric to Sentry (only on success)
+      if (retryCount === 0) {
+        setMeasurement(
+          PerpsMeasurementName.DATA_LAKE_API_CALL,
+          duration,
+          'millisecond',
+        );
+      }
+
+      return { success: true };
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      DevLogger.log('DataLake API: Request failed', {
+        error: errorMessage,
+        duration: `${duration.toFixed(0)}ms`,
+        retryCount,
+        action,
+        coin,
+        willRetry: retryCount < MAX_RETRIES,
+      });
+
+      // Retry logic
+      if (retryCount < MAX_RETRIES) {
+        const retryDelay = RETRY_DELAY_MS * Math.pow(2, retryCount);
+        DevLogger.log('DataLake API: Scheduling retry', {
+          retryIn: `${retryDelay}ms`,
+          nextAttempt: retryCount + 2,
+          action,
+          coin,
+        });
+
+        setTimeout(() => {
+          this.reportOrderToDataLake({
+            action,
+            coin,
+            sl_price,
+            tp_price,
+            retryCount: retryCount + 1,
+          });
+        }, retryDelay);
+      } else {
+        // Final failure - report to Sentry with performance metric
+        DevLogger.log('DataLake API: All retries exhausted', {
+          action,
+          coin,
+          totalAttempts: retryCount + 1,
+          finalError: errorMessage,
+        });
+
+        // Report total retry duration as a metric
+        const totalRetryDuration =
+          duration + RETRY_DELAY_MS * (Math.pow(2, retryCount) - 1); // Include retry delays
+        setMeasurement(
+          PerpsMeasurementName.DATA_LAKE_API_RETRY,
+          totalRetryDuration,
+          'millisecond',
+        );
+
+        Logger.error(error as Error, {
+          message: 'Failed to report perps order to data lake after retries',
+          action,
+          coin,
+          retryCount,
+          totalDuration: `${totalRetryDuration.toFixed(0)}ms`,
+        });
+      }
+
+      return { success: false, error: errorMessage };
+    }
   }
 }

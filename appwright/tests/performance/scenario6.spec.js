@@ -1,7 +1,5 @@
-import { test, expect } from 'appwright';
-
+import { test, expect } from '../../fixtures/performance-test.js';
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -9,7 +7,6 @@ import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/Creat
 import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import SolanaFeatureSheet from '../../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
@@ -21,9 +18,11 @@ import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionM
 import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { onboardingFlowImportSRP } from '../../utils/Flows.js';
+import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 
-test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
+test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -32,7 +31,6 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
   OnboardingSheet.device = device;
-  SolanaFeatureSheet.device = device;
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
   ImportFromSeedScreen.device = device;
@@ -43,26 +41,26 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   WalletActionModal.device = device;
   SwapScreen.device = device;
   TabBarModal.device = device;
+  BridgeScreen.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
 
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
   );
   swapLoadTimer.start();
   // await TabBarModal.tapActionButton();
-  await WalletActionModal.tapSwapButton();
+  await WalletMainScreen.tapSwapButton();
   swapLoadTimer.stop();
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
-  await SwapScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
-  await SwapScreen.enterSourceTokenAmount('1');
-  await SwapScreen.tapGetQuotes('Ethereum');
+  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
+  await BridgeScreen.enterSourceTokenAmount('1');
+
   swapTimer.start();
-  await SwapScreen.isQuoteDisplayed('Ethereum');
+  await BridgeScreen.isQuoteDisplayed();
   swapTimer.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(swapLoadTimer);
   performanceTracker.addTimer(swapTimer);
   await performanceTracker.attachToTest(testInfo);

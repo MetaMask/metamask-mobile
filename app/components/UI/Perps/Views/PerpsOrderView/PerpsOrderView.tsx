@@ -14,6 +14,7 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -87,6 +88,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
+import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
@@ -134,7 +136,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
 
-  // Ref to prevent double order submission (TAT-1424)
   const isSubmittingRef = useRef(false);
 
   const cachedAccountState = usePerpsAccount();
@@ -214,6 +215,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onPress: () => toastRef?.current?.closeToast(),
           },
         });
+
+        // Add haptic feedback for order confirmed
+        notificationAsync(NotificationFeedbackType.Success);
       },
       onError: (error) => {
         toastRef?.current?.showToast({
@@ -238,6 +242,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onPress: () => toastRef?.current?.closeToast(),
           },
         });
+
+        // Add haptic feedback for order failed
+        notificationAsync(NotificationFeedbackType.Error);
       },
     });
   // Update ref when orderType changes
@@ -438,35 +445,59 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
   /**
-   * Calculate TP/SL display text with percentages
-   * Converts take profit and stop loss prices to percentage distances from current price
+   * Calculate TP/SL display text with RoE percentages
+   * Converts take profit and stop loss prices to RoE (Return on Equity) percentages
    *
    * @returns Formatted string like "TP 10%, SL 5%" or "TP off, SL off"
    *
-   * For TP: Shows the percentage gain from current price to take profit price
-   * For SL: Shows the percentage loss from current price to stop loss price
+   * For TP: Shows the RoE percentage gain at the take profit price
+   * For SL: Shows the RoE percentage loss at the stop loss price
    */
   const tpSlDisplayText = useMemo(() => {
     const price = parseFloat(currentPrice?.price || '0');
     let tpDisplay = strings('perps.order.off');
     let slDisplay = strings('perps.order.off');
 
-    if (orderForm.takeProfitPrice && price > 0) {
-      const tpPrice = parseFloat(orderForm.takeProfitPrice);
-      const tpPercentage = ((tpPrice - price) / price) * 100;
-      const absPercentage = Math.abs(tpPercentage);
-      tpDisplay = `${absPercentage.toFixed(0)}%`;
+    // Calculate proper entry price based on order type
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : price; // fallback to current price for market orders or when no limit price set
+
+    if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
+      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(tpRoE || '0'));
+      tpDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
-    if (orderForm.stopLossPrice && price > 0) {
-      const slPrice = parseFloat(orderForm.stopLossPrice);
-      const slPercentage = ((price - slPrice) / price) * 100;
-      const absPercentage = Math.abs(slPercentage);
-      slDisplay = `${absPercentage.toFixed(0)}%`;
+    if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
+      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(slRoE || '0'));
+      slDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
     return `TP ${tpDisplay}, SL ${slDisplay}`;
-  }, [currentPrice?.price, orderForm.takeProfitPrice, orderForm.stopLossPrice]);
+  }, [
+    currentPrice?.price,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.leverage,
+    orderForm.direction,
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
@@ -659,6 +690,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
         hasNoTimeout: false, // Auto-dismiss after a few seconds
       });
 
+      // Add haptic feedback for order submitted
+      notificationAsync(NotificationFeedbackType.Warning);
+
       // Track trade transaction submitted
       track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED, {
         [PerpsEventProperties.ASSET]: orderForm.asset,
@@ -760,7 +794,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
@@ -777,7 +814,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Default}
+                  >
                     {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
                   </Text>
                 </ListItemColumn>
@@ -791,12 +831,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
                   <ListItemColumn widthType={WidthType.Fill}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.limit_price')}
                     </Text>
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Default}
+                    >
                       {orderForm.limitPrice
                         ? formatPrice(orderForm.limitPrice)
                         : 'Set price'}
@@ -813,7 +859,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.tp_sl')}
                     </Text>
                     <TouchableOpacity
@@ -830,7 +879,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Default}
+                  >
                     {tpSlDisplayText}
                   </Text>
                 </ListItemColumn>
@@ -1004,6 +1056,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         asset={orderForm.asset}
         currentPrice={assetData.price}
         direction={orderForm.direction}
+        leverage={orderForm.leverage}
+        marginRequired={marginRequired}
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
@@ -1085,20 +1139,28 @@ const PerpsOrderViewContentBase: React.FC = () => {
           contentKey={selectedTooltip}
           testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
           key={selectedTooltip}
+          data={
+            selectedTooltip === 'fees'
+              ? {
+                  metamaskFeeRate: feeResults.metamaskFeeRate,
+                  protocolFeeRate: feeResults.protocolFeeRate,
+                }
+              : undefined
+          }
         />
       )}
     </SafeAreaView>
   );
 };
 
-// Enable WDYR tracking BEFORE wrapping with React.memo
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsOrderViewContentBase as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsOrderViewContent',
-  };
-}
+// // Enable WDYR tracking BEFORE wrapping with React.memo
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsOrderViewContentBase as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsOrderViewContent',
+//   };
+// }
 
 // Now wrap with React.memo AFTER setting whyDidYouRender
 const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);

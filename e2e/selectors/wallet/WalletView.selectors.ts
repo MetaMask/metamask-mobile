@@ -33,6 +33,7 @@ export const WalletViewSelectorsIDs = {
   NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
+  SORT_BUTTON: 'token-sort-button',
   SORT_BY: 'sort-by',
   NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
   TOKEN_NETWORK_FILTER: 'token-network-filter',

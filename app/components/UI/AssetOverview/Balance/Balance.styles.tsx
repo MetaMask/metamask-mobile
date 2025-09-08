@@ -44,6 +44,11 @@ const styleSheet = (params: { theme: Theme }) => {
       ...typography.sHeadingMD,
       fontFamily: getFontFamily(TextVariant.HeadingMD),
     } as TextStyle,
+    tokenAmount: {
+      ...typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySM),
+      color: theme.colors.text.alternative,
+    } as TextStyle,
   });
 };
 

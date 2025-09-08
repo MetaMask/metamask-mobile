@@ -5,7 +5,6 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
@@ -22,8 +21,15 @@ import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
 import Gestures from '../../../framework/Gestures';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  SECURITY_ALERTS_REQUEST_BODY,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -43,22 +49,13 @@ const expectedEventNames = [
 
 describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    // Mock gas fees API for Ganache network
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: mockEvents.GET.suggestedGasFeesApiGanache.urlEndpoint,
-      response: mockEvents.GET.suggestedGasFeesApiGanache.response,
-      responseCode: mockEvents.GET.suggestedGasFeesApiGanache.responseCode,
-    });
-
-    // Mock security alerts API for Ganache chain (0x539)
     await setupMockPostRequest(
       mockServer,
-      'https://security-alerts.api.cx.metamask.io/validate/0x539',
-      mockEvents.POST.securityAlertApiValidate.requestBody,
-      mockEvents.POST.securityAlertApiValidate.response,
+      securityAlertsUrl('0x539'),
+      SECURITY_ALERTS_REQUEST_BODY,
+      SECURITY_ALERTS_BENIGN_RESPONSE,
       {
-        statusCode: mockEvents.POST.securityAlertApiValidate.responseCode,
+        statusCode: 201,
       },
     );
 
@@ -86,15 +83,10 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         ignoreFields,
       },
     );
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    );
   };
   let eventsToCheck: EventPayload[];
 
@@ -112,6 +104,9 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withMetaMetricsOptIn()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),

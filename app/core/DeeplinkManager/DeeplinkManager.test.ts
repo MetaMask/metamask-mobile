@@ -1,4 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import NavigationService from '../NavigationService';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
@@ -26,21 +27,15 @@ const mockNavigation = {
   navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
 
-const mockDispatch = jest.fn();
-
 describe('DeeplinkManager', () => {
-  let deeplinkManager = new DeeplinkManager({
-    navigation: mockNavigation,
-    dispatch: mockDispatch,
-  });
+  let deeplinkManager: DeeplinkManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    deeplinkManager = new DeeplinkManager({
-      navigation: mockNavigation,
-      dispatch: mockDispatch,
-    });
+    // Ensure navigation is available before DeeplinkManager is constructed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    NavigationService.navigation = mockNavigation as any;
+    deeplinkManager = new DeeplinkManager();
   });
 
   it('should set, get, and expire a deeplink correctly', () => {

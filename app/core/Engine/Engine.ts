@@ -451,10 +451,11 @@ export class Engine {
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
+      async ({ chainId, endpointUrl, error }) => {
         onRpcEndpointDegraded({
           chainId,
           endpointUrl,
+          error,
           infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
@@ -1227,6 +1228,7 @@ export class Engine {
         allowedEvents: [],
       }),
       fetch,
+      locale: I18n.locale,
     });
 
     // Backwards compatibility for existing references
@@ -1292,7 +1294,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-
     // Notify Snaps that the app is active when the Engine is initialized.
     this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
@@ -1352,13 +1353,13 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'EarnController',
         allowedEvents: [
-          'AccountsController:selectedAccountChange',
+          'AccountTreeController:selectedAccountGroupChange',
           'TransactionController:transactionConfirmed',
           'NetworkController:networkDidChange',
         ],
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         ],
       }),
       addTransactionFn: transactionController.addTransaction.bind(

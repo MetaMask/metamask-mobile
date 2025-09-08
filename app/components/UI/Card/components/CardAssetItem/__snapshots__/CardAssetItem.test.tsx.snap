@@ -511,9 +511,8 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 14,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 22,
                               "paddingHorizontal": 0,
@@ -1047,9 +1046,8 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 14,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 22,
                               "paddingHorizontal": 0,
@@ -1582,9 +1580,8 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 14,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 22,
                               "paddingHorizontal": 0,
@@ -2117,9 +2114,8 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 14,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 22,
                               "paddingHorizontal": 0,
@@ -2652,9 +2648,8 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                           style={
                             {
                               "color": "#686e7d",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 14,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 22,
                               "paddingHorizontal": 0,

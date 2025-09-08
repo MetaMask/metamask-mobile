@@ -252,51 +252,55 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    disabled={false}
-                    onPressIn={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "height": 24,
-                        "marginRight": -8,
-                        "opacity": 1,
-                      }
-                    }
+                  <View
+                    pointerEvents="auto"
                   >
-                    <View
-                      accessibilityRole="checkbox"
+                    <TouchableOpacity
+                      disabled={false}
+                      onPressIn={[Function]}
                       style={
                         {
                           "alignItems": "center",
-                          "backgroundColor": "#4459ff",
-                          "borderColor": "#4459ff",
-                          "borderRadius": 4,
-                          "borderWidth": 2,
-                          "height": 20,
-                          "justifyContent": "center",
-                          "width": 20,
+                          "flexDirection": "row",
+                          "height": 24,
+                          "marginRight": -8,
+                          "opacity": 1,
                         }
                       }
                     >
-                      <SvgMock
-                        color="#ffffff"
-                        fill="currentColor"
-                        height={20}
-                        name="CheckBold"
-                        onPressIn={[Function]}
+                      <View
+                        accessibilityRole="checkbox"
                         style={
                           {
+                            "alignItems": "center",
+                            "backgroundColor": "#4459ff",
+                            "borderColor": "#4459ff",
+                            "borderRadius": 4,
+                            "borderWidth": 2,
                             "height": 20,
+                            "justifyContent": "center",
                             "width": 20,
                           }
                         }
-                        testID="checkbox-icon-component"
-                        width={20}
-                      />
-                    </View>
-                  </TouchableOpacity>
+                      >
+                        <SvgMock
+                          color="#ffffff"
+                          fill="currentColor"
+                          height={20}
+                          name="CheckBold"
+                          onPressIn={[Function]}
+                          style={
+                            {
+                              "height": 20,
+                              "width": 20,
+                            }
+                          }
+                          testID="checkbox-icon-component"
+                          width={20}
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                   <View
                     accessible={false}
                     style={
@@ -425,35 +429,39 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                     }
                   }
                 >
-                  <TouchableOpacity
-                    disabled={false}
-                    onPressIn={[Function]}
-                    style={
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "height": 24,
-                        "marginRight": -8,
-                        "opacity": 1,
-                      }
-                    }
+                  <View
+                    pointerEvents="auto"
                   >
-                    <View
-                      accessibilityRole="checkbox"
+                    <TouchableOpacity
+                      disabled={false}
+                      onPressIn={[Function]}
                       style={
                         {
                           "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderColor": "#121314",
-                          "borderRadius": 4,
-                          "borderWidth": 2,
-                          "height": 20,
-                          "justifyContent": "center",
-                          "width": 20,
+                          "flexDirection": "row",
+                          "height": 24,
+                          "marginRight": -8,
+                          "opacity": 1,
                         }
                       }
-                    />
-                  </TouchableOpacity>
+                    >
+                      <View
+                        accessibilityRole="checkbox"
+                        style={
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "#ffffff",
+                            "borderColor": "#121314",
+                            "borderRadius": 4,
+                            "borderWidth": 2,
+                            "height": 20,
+                            "justifyContent": "center",
+                            "width": 20,
+                          }
+                        }
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <View
                     accessible={false}
                     style={

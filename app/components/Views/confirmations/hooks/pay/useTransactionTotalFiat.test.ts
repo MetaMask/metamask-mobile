@@ -115,6 +115,65 @@ describe('useTransactionTotalFiat', () => {
     );
   });
 
+  it('excludes dust', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: ADDRESS_MOCK,
+          amountFiat: 1.22,
+        },
+        {
+          address: ADDRESS_2_MOCK,
+          amountFiat: 2.33,
+        },
+      ],
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const { result } = runHook({
+      quotes: [
+        {
+          quote: {
+            destAsset: {
+              address: ADDRESS_MOCK,
+            },
+          },
+          sentAmount: {
+            valueInCurrency: '12.34',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '23.45',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '11.22',
+          },
+        },
+        {
+          quote: {
+            destAsset: {
+              address: ADDRESS_2_MOCK,
+            },
+          },
+          sentAmount: {
+            valueInCurrency: '34.56',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '45.67',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '22.33',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '86.02',
+        formatted: '$86.02',
+      }),
+    );
+  });
+
   it('ignores balance cost if matching quote', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [
@@ -137,6 +196,9 @@ describe('useTransactionTotalFiat', () => {
           },
           totalMaxNetworkFee: {
             valueInCurrency: '40',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '1000',
           },
           quote: {
             destAsset: {
@@ -172,5 +234,67 @@ describe('useTransactionTotalFiat', () => {
     });
 
     expect(result.current.totalGasFormatted).toBe('$13.68');
+  });
+
+  it('returns quote network fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '1.23',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '2.34',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.quoteNetworkFee).toBe('3.57');
+  });
+
+  it('returns bridge fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '1',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '2',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.bridgeFeeFormatted).toBe('$30');
   });
 });

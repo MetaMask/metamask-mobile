@@ -31,7 +31,6 @@ export const styleSheet = ({
       borderBottomColor: theme.colors.border.muted,
     },
     backButton: {
-      marginRight: 12,
       padding: 12,
       marginLeft: -12,
       marginTop: -12,

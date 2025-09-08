@@ -12,6 +12,17 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -115,24 +126,25 @@ jest.mock('../PerpsTPSLBottomSheet', () => ({
   },
 }));
 
-// Mock PerpsClosePositionBottomSheet
-jest.mock('../PerpsClosePositionBottomSheet', () => ({
+// Mock PerpsBottomSheetTooltip
+jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
   default: ({
     isVisible,
     onClose,
   }: {
     isVisible: boolean;
-    onClose: () => void;
+    onClose?: () => void;
   }) => {
     if (!isVisible) return null;
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
-      <View testID="perps-close-position-bottomsheet">
-        <TouchableOpacity onPress={onClose}>
-          <Text>Close Position Sheet</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        testID="perps-position-card-geo-block-tooltip"
+        onPress={onClose}
+      >
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
     );
   },
 }));
@@ -182,6 +194,18 @@ describe('PerpsPositionCard', () => {
       '../../utils/pnlCalculations',
     );
     calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   describe('Component Rendering', () => {
@@ -322,8 +346,20 @@ describe('PerpsPositionCard', () => {
       });
     });
 
-    it('opens close position bottom sheet when close button is pressed', () => {
-      // Arrange & Act
+    it('opens close position bottom sheet when close button is pressed and user is eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
+      // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
       // Verify bottom sheet is not visible initially
@@ -341,8 +377,20 @@ describe('PerpsPositionCard', () => {
       ).toBeDefined();
     });
 
-    it('opens TP/SL bottom sheet when edit button is pressed', () => {
-      // Arrange & Act
+    it('opens TP/SL bottom sheet when edit button is pressed and user is eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
+      // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
       // Verify bottom sheet is not visible initially
@@ -593,37 +641,121 @@ describe('PerpsPositionCard', () => {
       expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
     });
 
-    it('renders PerpsClosePositionBottomSheet when isClosePositionVisible is true', () => {
+    it('navigates to close position screen when close button is pressed', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Open the close position bottom sheet
+      // Press the close button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Assert
-      expect(
-        screen.getByTestId('perps-close-position-bottomsheet'),
-      ).toBeOnTheScreen();
+      // Assert - should navigate to close position screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.CLOSE_POSITION,
+        { position: mockPosition },
+      );
     });
 
-    it('handles PerpsClosePositionBottomSheet onClose callback', () => {
+    it('does not show close button when card is collapsed', () => {
+      // Act
+      render(
+        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
+      );
+
+      // Assert - close button should not be visible in collapsed view
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows geo block modal when edit TP/SL button is pressed and user is not eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Open the close position bottom sheet
+      // Press edit button
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - TP/SL bottom sheet should not be shown
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+    });
+
+    it('shows geo block modal when close position button is pressed and user is not eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press close button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Close the bottom sheet
-      fireEvent.press(screen.getByText('Close Position Sheet'));
-
-      // Assert - bottom sheet should be closed (not visible)
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - Close position bottom sheet should not be shown
       expect(
         screen.queryByTestId('perps-close-position-bottomsheet'),
       ).toBeNull();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press edit button to show geo block modal
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Verify modal is shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      // Press the geo block tooltip to close it
+      fireEvent.press(
+        screen.getByTestId('perps-position-card-geo-block-tooltip'),
+      );
+
+      // Assert - Geo block tooltip should be closed
+      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
     });
   });
 });

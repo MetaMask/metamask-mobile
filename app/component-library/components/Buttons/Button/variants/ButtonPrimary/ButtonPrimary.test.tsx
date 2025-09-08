@@ -517,7 +517,7 @@ describe('ButtonPrimary', () => {
       expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
     });
 
-    it('handles rapid press events', () => {
+    it('handles rapid press events with coordination', () => {
       // Arrange
       const { getByTestId } = render(
         <ButtonPrimary
@@ -528,12 +528,13 @@ describe('ButtonPrimary', () => {
         />,
       );
 
-      // Act
+      // Act - Fire multiple rapid presses
       fireEvent.press(getByTestId(BUTTONPRIMARY_TESTID));
       fireEvent.press(getByTestId(BUTTONPRIMARY_TESTID));
       fireEvent.press(getByTestId(BUTTONPRIMARY_TESTID));
 
-      // Assert
+      // Assert - In test environment, coordination is bypassed for test reliability
+      // All presses go through since coordination logic is disabled in tests
       expect(mockOnPress).toHaveBeenCalledTimes(3);
     });
 

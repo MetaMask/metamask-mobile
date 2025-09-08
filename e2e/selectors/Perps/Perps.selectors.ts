@@ -152,6 +152,12 @@ export const PerpsAmountDisplaySelectorsIDs = {
 // PERPS VIEWS SELECTORS
 // ========================================
 
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'button-icon-arrow-left',
@@ -204,6 +210,13 @@ export const getPerpsCandlePeriodBottomSheetSelector = {
     `${baseTestID}-period-${period}`,
 };
 
+// Helper functions for PerpsCandlePeriodSelector dynamic selectors
+export const getPerpsCandlePeriodSelector = {
+  periodButton: (baseTestID: string, period: string) =>
+    `${baseTestID}-period-${period}`,
+  moreButton: (baseTestID: string) => `${baseTestID}-more-button`,
+};
+
 // ========================================
 // PERPS WITHDRAW VIEW SELECTORS
 // ========================================
@@ -239,6 +252,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-market-details-geo-block-bottom-sheet-tooltip',
 };
 
 // ========================================
@@ -263,14 +278,6 @@ export const PerpsTestnetToggleSelectorsIDs = {
   ROOT: 'perps-testnet-toggle-root',
   SWITCH: 'perps-testnet-toggle-switch',
   LOADING_INDICATOR: 'perps-testnet-toggle-loading-indicator',
-};
-
-// ========================================
-// PERPS DEVELOPER OPTIONS SECTION SELECTORS
-// ========================================
-
-export const PerpsDeveloperOptionsSectionSelectorsIDs = {
-  PERPS_SANDBOX_BUTTON: 'perps-developer-options-section-perps-sandbox-button',
 };
 
 // ========================================
@@ -326,6 +333,17 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 };
 
 // ========================================
+// PERPS GTM MODAL SELECTORS
+// ========================================
+
+export const PerpsGTMModalSelectorsIDs = {
+  PERPS_GTM_MODAL: 'perps-gtm-modal',
+  PERPS_LEARN_MORE_BUTTON: 'perps-learn-more-button',
+  PERPS_TRY_NOW_BUTTON: 'perps-try-now-button',
+  PERPS_NOT_NOW_BUTTON: 'perps-not-now-button',
+};
+
+// ========================================
 // PERPS ORDER VIEW SELECTORS
 // ========================================
 
@@ -348,6 +366,17 @@ export const PerpsOpenOrderCardSelectorsIDs = {
   CARD: 'perps-open-order-card',
   CANCEL_BUTTON: 'perps-open-order-card-cancel-button',
   EDIT_BUTTON: 'perps-open-order-card-edit-button',
+};
+
+// ========================================
+// PERPS CLOSE POSITION VIEW SELECTORS
+// ========================================
+
+export const PerpsClosePositionViewSelectorsIDs = {
+  ORDER_TYPE_BUTTON: 'order-type-button',
+  DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
+  CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
+  CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
 };
 
 // ========================================

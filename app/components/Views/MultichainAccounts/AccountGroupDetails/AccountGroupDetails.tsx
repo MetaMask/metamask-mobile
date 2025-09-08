@@ -28,7 +28,10 @@ import { useStyles } from '../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
-import { selectWalletById } from '../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectWalletById,
+  selectAccountGroupById,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   selectInternalAccountListSpreadByScopesByGroupId,
   getWalletIdFromAccountGroup,
@@ -40,6 +43,16 @@ import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import Routes from '../../../../constants/navigation/Routes';
+import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
+
+const createEditAccountNameNavigationDetails = (
+  accountGroup: AccountGroupObject,
+) =>
+  createMultichainAccountDetailActionsModalNavigationDetails({
+    screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+    params: { accountGroup },
+  });
 
 interface AccountGroupDetailsProps {
   route: {
@@ -51,10 +64,16 @@ interface AccountGroupDetailsProps {
 
 export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const navigation = useNavigation();
-  const {
-    accountGroup: { id, metadata, type, accounts },
-  } = props.route.params;
-  const name = useMemo(() => metadata.name, [metadata.name]);
+  const { accountGroup: initialAccountGroup } = props.route.params;
+  const { id } = initialAccountGroup;
+
+  // Use selector to get current account group data from Redux store
+  const accountGroup =
+    useSelector((state: RootState) => selectAccountGroupById(state, id)) ||
+    initialAccountGroup;
+
+  const { metadata, type, accounts } = accountGroup;
+  const groupName = useMemo(() => metadata.name, [metadata.name]);
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
@@ -100,6 +119,16 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
     );
   }, [id, metadata.name, navigation]);
 
+  const navigateToSmartAccount = useCallback(() => {
+    navigation.navigate('SmartAccountDetails', { account });
+  }, [navigation, account]);
+
+  const handleEditAccountName = useCallback(() => {
+    navigation.navigate(
+      ...createEditAccountNameNavigationDetails(accountGroup),
+    );
+  }, [navigation, accountGroup]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
@@ -113,7 +142,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
           />
         }
       >
-        {name}
+        {groupName}
       </HeaderBase>
       <ScrollView
         style={styles.container}
@@ -134,6 +163,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         <TouchableOpacity
           style={styles.accountName}
           testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
+          onPress={handleEditAccountName}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.account_name')}
@@ -144,8 +174,13 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
             gap={8}
           >
             <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {name}
+              {groupName}
             </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
           </Box>
         </TouchableOpacity>
         <TouchableOpacity
@@ -208,6 +243,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         <TouchableOpacity
           style={styles.smartAccount}
           testID={AccountDetailsIds.SMART_ACCOUNT_LINK}
+          onPress={navigateToSmartAccount}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.smart_account')}

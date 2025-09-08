@@ -1,6 +1,13 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { getFeatureFlagValue } from '../env';
+import { Json } from '@metamask/utils';
+
+export const ATTEMPTS_MAX_DEFAULT = 2;
+export const BUFFER_INITIAL_DEFAULT = 0.025;
+export const BUFFER_STEP_DEFAULT = 0.025;
+export const SLIPPAGE_INITIAL_DEFAULT = 0.005;
+export const SLIPPAGE_SUBSEQUENT_DEFAULT = 0.02;
 
 // A type predicate's type must be assignable to its parameter's type
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -12,6 +19,19 @@ export type ConfirmationRedesignRemoteFlags = {
   staking_confirmations: boolean;
   transfer: boolean;
 };
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SendRedesignFlags = {
+  enabled: boolean;
+};
+
+export interface MetaMaskPayFlags {
+  attemptsMax: number;
+  bufferInitial: number;
+  bufferStep: number;
+  slippageInitial: number;
+  slippageSubsequent: number;
+}
 
 /**
  * Determines the enabled state of confirmation redesign features by combining
@@ -96,7 +116,53 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
   };
 };
 
+export const selectSendRedesignFlagsFromRemoteFeatureFlags = (
+  remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
+): SendRedesignFlags => {
+  const remoteValues = remoteFeatureFlags.sendRedesign as SendRedesignFlags;
+
+  const isEnabled = getFeatureFlagValue(
+    process.env.MM_SEND_REDESIGN_ENABLED,
+    remoteValues?.enabled !== false,
+  );
+
+  return {
+    enabled: isEnabled,
+  };
+};
+
 export const selectConfirmationRedesignFlags = createSelector(
   selectRemoteFeatureFlags,
   selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
+);
+
+export const selectSendRedesignFlags = createSelector(
+  selectRemoteFeatureFlags,
+  selectSendRedesignFlagsFromRemoteFeatureFlags,
+);
+
+export const selectMetaMaskPayFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags) => {
+    const metaMaskPayFlags = featureFlags?.confirmation_pay as
+      | Record<string, Json>
+      | undefined;
+
+    const attemptsMax = metaMaskPayFlags?.attemptsMax ?? ATTEMPTS_MAX_DEFAULT;
+    const bufferInitial =
+      metaMaskPayFlags?.bufferInitial ?? BUFFER_INITIAL_DEFAULT;
+    const bufferStep = metaMaskPayFlags?.bufferStep ?? BUFFER_STEP_DEFAULT;
+    const slippageInitial =
+      metaMaskPayFlags?.slippageInitial ?? SLIPPAGE_INITIAL_DEFAULT;
+    const slippageSubsequent =
+      metaMaskPayFlags?.slippageSubsequent ?? SLIPPAGE_SUBSEQUENT_DEFAULT;
+
+    return {
+      attemptsMax,
+      bufferInitial,
+      bufferStep,
+      slippageInitial,
+      slippageSubsequent,
+    } as MetaMaskPayFlags;
+  },
 );

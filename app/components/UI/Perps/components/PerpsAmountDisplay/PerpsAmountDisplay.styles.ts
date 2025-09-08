@@ -5,14 +5,24 @@ const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       alignItems: 'center',
-      paddingVertical: 24,
+      paddingTop: 24,
       paddingHorizontal: 24,
+    },
+    label: {
+      marginBottom: 8,
     },
     amountValue: {
       fontSize: 64,
-      fontWeight: '200',
+      fontWeight: '600',
       color: colors.text.default,
       lineHeight: 72,
+    },
+    amountValueToken: {
+      fontSize: 48,
+      fontWeight: '600',
+      color: colors.text.default,
+      lineHeight: 56,
+      letterSpacing: -0.5,
     },
     amountValueActive: {
       color: colors.primary.default,
@@ -28,7 +38,7 @@ const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
     },
     maxAmount: {
-      marginTop: 8,
+      marginTop: 4,
     },
     warning: {
       marginTop: 12,

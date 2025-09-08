@@ -1,7 +1,6 @@
-import { test, expect } from 'appwright';
+import { test, expect } from '../../fixtures/performance-test.js';
 
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -9,16 +8,13 @@ import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/Creat
 import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import SolanaFeatureSheet from '../../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 
-const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED
-  ? process.env.SOLANA_MODAL_ENABLED
-  : false;
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
     'Time until the user clicks on the "Get Started" button',
@@ -31,7 +27,6 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
   OnboardingSheet.device = device;
-  SolanaFeatureSheet.device = device;
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
   WalletMainScreen.device = device;
@@ -96,13 +91,8 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   timer7.stop();
   timer8.start();
   await OnboardingSucessScreen.tapDone();
-  if (SOLANA_MODAL_ENABLED) {
-    await SolanaFeatureSheet.isVisible();
-    await SolanaFeatureSheet.tapNotNowButton();
-  }
   timer8.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);
