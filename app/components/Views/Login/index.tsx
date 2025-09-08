@@ -555,7 +555,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       if (oauthLoginSuccess) {
-        if (!isMetricsEnabled) {
+        if (!isMetricsEnabled()) {
           await enable();
         }
         await setupSentry();
