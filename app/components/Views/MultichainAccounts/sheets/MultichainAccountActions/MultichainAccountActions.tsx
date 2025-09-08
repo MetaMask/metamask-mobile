@@ -6,24 +6,44 @@ import {
   ParamListBase,
   useRoute,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../../../AccountAction/AccountAction';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
+import { RootState } from '../../../../../reducers';
+import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './MultichainAccountActions.styles';
 import {
   MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
-  // MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
+  MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
 import { createAddressListNavigationDetails } from '../../AddressList/AddressList';
+import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+
+export const createAccountGroupDetailsNavigationDetails =
+  createNavigationDetails<{
+    accountGroup: AccountGroupObject;
+  }>(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS);
+
+export const createEditAccountNameNavigationDetails = createNavigationDetails<{
+  accountGroup: AccountGroupObject;
+}>(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME);
+
+export const createMultichainAccountDetailActionsModalNavigationDetails =
+  createNavigationDetails<{
+    screen: string;
+    params: { accountGroup: AccountGroupObject };
+  }>(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS);
 
 interface MultichainAccountActionsParams {
   accountGroup: AccountGroupObject;
@@ -31,22 +51,45 @@ interface MultichainAccountActionsParams {
 
 const MultichainAccountActions = () => {
   const route = useRoute<RouteProp<ParamListBase, string>>();
-  const { accountGroup } = route.params as MultichainAccountActionsParams;
+  const { accountGroup: initialAccountGroup } =
+    route.params as MultichainAccountActionsParams;
+  const { id } = initialAccountGroup;
+
+  const accountGroup =
+    useSelector((state: RootState) => selectAccountGroupById(state, id)) ||
+    initialAccountGroup;
+
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = React.useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
+  const { navigate, goBack } = useNavigation();
+
+  const handleOnClose = useCallback(() => {
+    // Close the entire modal stack by going back to the parent
+    goBack();
+  }, [goBack]);
 
   const goToAccountDetails = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS, {
+    // Close the modal and navigate to account details
+    goBack();
+    navigate(
+      ...createAccountGroupDetailsNavigationDetails({
         accountGroup,
-      });
-    });
+      }),
+    );
+  }, [navigate, goBack, accountGroup]);
+
+  const goToEditAccountName = useCallback(() => {
+    // Navigate to edit account name sheet within the same modal
+    navigate(
+      ...createEditAccountNameNavigationDetails({
+        accountGroup,
+      }),
+    );
   }, [navigate, accountGroup]);
 
-  // const goToEditAccountName = useCallback(() => null, []); // TODO: To be implemented
-
   const goToAddresses = useCallback(() => {
+    // Close the modal and navigate to address list
+    goBack();
     navigate(
       ...createAddressListNavigationDetails({
         groupId: accountGroup.id,
@@ -55,10 +98,13 @@ const MultichainAccountActions = () => {
         }`,
       }),
     );
-  }, [accountGroup.id, accountGroup.metadata.name, navigate]);
+  }, [accountGroup.id, accountGroup.metadata.name, navigate, goBack]);
 
   return (
     <BottomSheet ref={sheetRef}>
+      <BottomSheetHeader onClose={handleOnClose}>
+        {accountGroup?.metadata?.name || 'Account Group'}
+      </BottomSheetHeader>
       <View style={styles.container}>
         <AccountAction
           actionTitle={strings('account_details.title')}
@@ -67,14 +113,13 @@ const MultichainAccountActions = () => {
           testID={MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS}
           style={styles.accountAction}
         />
-        {/* TODO: Uncomment when account group renaming is supported
         <AccountAction
           actionTitle={strings('account_actions.rename_account')}
           iconName={IconName.Edit}
           onPress={goToEditAccountName}
           testID={MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME}
           style={styles.accountAction}
-        /> */}
+        />
         <AccountAction
           actionTitle={strings('account_actions.addresses')}
           iconName={IconName.Scan}

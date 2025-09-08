@@ -110,6 +110,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
+  get sortButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
+  }
+
   get sortBy(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
   }
@@ -334,7 +338,7 @@ class WalletView {
   }
 
   async tapSortBy(): Promise<void> {
-    await Gestures.waitAndTap(this.sortBy, {
+    await Gestures.waitAndTap(this.sortButton, {
       elemDescription: 'Sort By',
     });
   }
@@ -554,6 +558,16 @@ class WalletView {
   async tapWalletReceiveButton(): Promise<void> {
     await Gestures.waitAndTap(this.walletReceiveButton, {
       elemDescription: 'Wallet Receive Button',
+    });
+  }
+
+  get perpsTab(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  }
+
+  async tapOnPerpsTab(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsTab, {
+      elemDescription: 'Perps Tab Button',
     });
   }
 }

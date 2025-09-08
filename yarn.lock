@@ -1686,11 +1686,6 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@ecies/ciphers@^0.2.3":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@ecies/ciphers/-/ciphers-0.2.4.tgz#20a4e51f61d521e5e311eb49385d93d91087de51"
-  integrity sha512-t+iX+Wf5nRKyNzk8dviW3Ikb/280+aEJAnw9YXvCp2tYGPSkMki+NRY+8aNLmVFv3eNtMdvViPNOPxS8SZNP+w==
-
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
   resolved "https://registry.yarnpkg.com/@egjs/hammerjs/-/hammerjs-2.0.17.tgz#5dc02af75a6a06e4c2db0202cae38c9263895124"
@@ -4921,10 +4916,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^74.3.1":
-  version "74.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-74.3.1.tgz#4a1b329756a4504cd1a0f2e1296b12deb705fe81"
-  integrity sha512-AkyagNlW9+ij5sFJhFEVuZyVn5QvEGui8bLmWt6ZCMckX+L6iY+ytvdmQOG1FQ9pDI/C98sGMcX0eLHkjxmcgw==
+"@metamask/assets-controllers@^74.3.2":
+  version "74.3.2"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-74.3.2.tgz#6fa7564f3912dc02d90ea81a3cc32dcada255f21"
+  integrity sha512-J2xey02mmoelhpi+tF/+IuZZMlCL449gI8+dJhX1VSSVdJ4kwqOWyxdKYsHyqgOD5W8xRTTWMU8+ZDGE2Lsqpw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4979,12 +4974,12 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0":
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
-  integrity sha512-Wd7W2R1lutAeQsTH5qI2AeICGIXJYCfddVxvrPKDbwhl6pMaD3FgJS27PSCXWu++jKs4ODAXljk+Z0QwnaYNFA==
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0":
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.3.0.tgz#d547323192f7e60d37db63ddbc553544bca16a7e"
+  integrity sha512-DsaQIymoS6c5cDD2sysebZ/8iZwFv1mTyk31r0d8cseyRaf7MxUDj7WUf0RTxGUYiWuOy6RjXT+ySM8IJjhqVQ==
   dependencies:
-    "@metamask/messenger" "^0.1.0"
+    "@metamask/messenger" "^0.2.0"
     "@metamask/utils" "^11.4.2"
     immer "^9.0.6"
 
@@ -5538,10 +5533,10 @@
   resolved "https://registry.npmjs.org/@metamask/message-signing-snap/-/message-signing-snap-1.1.2.tgz#701ace646077976ba22feda85e7968a1ea4c8642"
   integrity sha512-TANi87ujo7WwyHubWy0iFoYFIh5t5ztvfZ/OqrA0rdZ2d58+6Bvj89jbi1tFWQPT//azwCF5jwQBnJAIVlAwBQ==
 
-"@metamask/messenger@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/messenger/-/messenger-0.1.0.tgz#3ceb310573b8b32c328a92c67da7199564444523"
-  integrity sha512-UqYOFvPb8CvRML26h/ftrwFhiQiB0VENoRnUlM0Tl9QjGh17un2emyxpsib3c2rdzP5U/VskXH2KlzPBtfFLYw==
+"@metamask/messenger@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/messenger/-/messenger-0.2.0.tgz#2954cc3d893532b11766516ee284997557de8c65"
+  integrity sha512-Ktv9aselR1KH2Nnpj7kulragl4kdCUtLZcuQeAxClV7atn6HmJBmuIYLlTawnRwr8guiKqscAs7EiQQvU0DLiA==
 
 "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.1.1":
   version "3.1.1"
@@ -5553,22 +5548,21 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/mobile-wallet-protocol-core@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.0.6.tgz#5112cd91c571e8c9e97769606cb76cff6383cc96"
-  integrity sha512-/RQwH1IoUTrhIgTn9P+XaWdD6R+JdtqiFGrs0A/D0EBoLV8jWtBhFzBIOzaNDKMGoKR6y3uSvDCDAj3V1tCz7g==
+"@metamask/mobile-wallet-protocol-core@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.1.0.tgz#148a7393fc603af9eed89a1e2517df371eb01018"
+  integrity sha512-YcGPtV/I7GRAjtFhGQa6R+OwGYSrgKrel3PQbnoHPyvrzJ8wYW+ObeFuAHDiS79jbi10ETbDuf/5v/U62StahA==
   dependencies:
     centrifuge "^5.3.5"
-    eciesjs "^0.4.15"
     eventemitter3 "^5.0.1"
     uuid "^11.1.0"
 
-"@metamask/mobile-wallet-protocol-wallet-client@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.0.6.tgz#5862bd975788f27b94f528882726e7aefedeea03"
-  integrity sha512-W/iRXuMvpImAlJLZ8BxtJp3raQZaPB8cR+gBY3Irtb+CUMclmuQL0mlLHs2tz0hLunhXd8rSRrI6W1T0AT4H6A==
+"@metamask/mobile-wallet-protocol-wallet-client@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.1.0.tgz#738fc8fd9a604b079e2c11e9c898a2f99ee5ab8e"
+  integrity sha512-t3UKLP2XJ0vN5LL1nkb3y7neSARrnRlMZk+wmBgICnqHC8+1ebnE41KdeVqaRSfisK/EfmYEXqqob44N/zpy3Q==
   dependencies:
-    "@metamask/mobile-wallet-protocol-core" "^0.0.6"
+    "@metamask/mobile-wallet-protocol-core" "^0.1.0"
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
@@ -6146,10 +6140,10 @@
     ses "^1.14.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^2.3.6":
-  version "2.3.6"
-  resolved "https://registry.npmjs.org/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.6.tgz#5fe6d20d87f07d9bfe0c7a74fbcab6aa5ef19be9"
-  integrity sha512-1w2+j2D3Dh7jhp5dAirhZd+/3Q/ExnAgb3+qAPPWCdaHUkYha86EGMXQd3Yqu0IQewEVYwZ4yK+CJ7gYg34d6A==
+"@metamask/solana-wallet-snap@^2.3.8":
+  version "2.3.8"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.8.tgz#73d9f525d61b24e44a1889352bd1d115314bc59f"
+  integrity sha512-UZnsCrhFVIY2HHOEILwBI2qtlxMTGqzln3kKNVVMGJq7+UmDftHyWbaYbD8go55GkCdaOTOBZ8ZhPsSU+JxDBg==
 
 "@metamask/solana-wallet-standard@^0.5.1":
   version "0.5.1"
@@ -18683,16 +18677,6 @@ eciesjs@^0.3.15:
     futoin-hkdf "^1.5.3"
     secp256k1 "^5.0.1"
 
-eciesjs@^0.4.15:
-  version "0.4.15"
-  resolved "https://registry.yarnpkg.com/eciesjs/-/eciesjs-0.4.15.tgz#8c7191ce425c54627ee5c65328ab54eaa6ed4556"
-  integrity sha512-r6kEJXDKecVOCj2nLMuXK/FCPeurW33+3JRpfXVbjLja3XUYFfD9I/JBreH6sUyzcm3G/YQboBjMla6poKeSdA==
-  dependencies:
-    "@ecies/ciphers" "^0.2.3"
-    "@noble/ciphers" "^1.3.0"
-    "@noble/curves" "^1.9.1"
-    "@noble/hashes" "^1.8.0"
-
 edge-paths@^2.1.0:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/edge-paths/-/edge-paths-2.2.1.tgz#d2d91513225c06514aeac9843bfce546abbf4391"
@@ -20185,6 +20169,16 @@ expo-font@~13.0.4:
   integrity sha512-eAP5hyBgC8gafFtprsz0HMaB795qZfgJWqTmU0NfbSin1wUuVySFMEPMOrTkTgmazU73v4Cb4x7p86jY1XXYUw==
   dependencies:
     fontfaceobserver "^2.1.0"
+
+expo-haptics@~14.0.1:
+  version "14.0.1"
+  resolved "https://registry.yarnpkg.com/expo-haptics/-/expo-haptics-14.0.1.tgz#ff4ead605e33f1917e615c9328af7ac1c34892dc"
+  integrity sha512-V81FZ7xRUfqM6uSI6FA1KnZ+QpEKnISqafob/xEfcx1ymwhm4V3snuLWWFjmAz+XaZQTqlYa8z3QbqEXz7G63w==
+
+expo-image@~2.0.7:
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-2.0.7.tgz#087ca651e3dcd2e92efdda11a6c9e3ad6fddc127"
+  integrity sha512-kv40OIJOkItwznhdqFmKxTMC5O8GkpyTf8ng7Py4Hy6IBiH59dkeP6vUZQhzPhJOm5v1kZK4XldbskBosqzOug==
 
 expo-json-utils@~0.14.0:
   version "0.14.0"

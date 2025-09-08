@@ -1,9 +1,4 @@
 /**
- * Perps view component props
- */
-export interface PerpsViewProps {}
-
-/**
  * Test result states for SDK validation
  */
 export type TestResultStatus =

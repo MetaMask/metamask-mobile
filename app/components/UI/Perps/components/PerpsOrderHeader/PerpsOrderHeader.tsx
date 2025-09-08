@@ -98,7 +98,6 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
             <Text
               variant={TextVariant.BodyMD}
               color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
-              style={styles.headerPriceChange}
             >
               {formatPercentage(priceChange)}
             </Text>
