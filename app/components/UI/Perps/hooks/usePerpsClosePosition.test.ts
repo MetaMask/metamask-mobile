@@ -169,7 +169,7 @@ describe('usePerpsClosePosition', () => {
     it('should handle close position failure', async () => {
       const failureResult: OrderResult = {
         success: false,
-        error: 'Insufficient balance',
+        error: 'perps.close_position.error_unknown',
       };
       mockClosePosition.mockResolvedValue(failureResult);
 
@@ -179,18 +179,18 @@ describe('usePerpsClosePosition', () => {
       await act(async () => {
         await expect(
           result.current.handleClosePosition(mockPosition),
-        ).rejects.toThrow('Insufficient balance');
+        ).rejects.toThrow('perps.close_position.error_unknown');
       });
 
       expect(onError).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Insufficient balance',
+          message: 'perps.close_position.error_unknown',
         }),
       );
       expect(result.current.isClosing).toBe(false);
       expect(result.current.error).toEqual(
         expect.objectContaining({
-          message: 'Insufficient balance',
+          message: 'perps.close_position.error_unknown',
         }),
       );
     });
