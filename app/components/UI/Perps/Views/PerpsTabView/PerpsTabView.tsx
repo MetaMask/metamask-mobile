@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -242,10 +242,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-        >
+        <View style={styles.content}>
           {!isInitialLoading && hasNoPositionsOrOrders ? (
             <View style={styles.firstTimeContent}>
               <View style={styles.firstTimeContainer}>
@@ -285,7 +282,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               <View style={styles.section}>{renderOrdersSection()}</View>
             </View>
           )}
-        </ScrollView>
+        </View>
         {isEligibilityModalVisible && (
           <Modal visible transparent animationType="none" statusBarTranslucent>
             <PerpsBottomSheetTooltip
