@@ -268,7 +268,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     CaipAccountId[]
   >(suggestedCaipAccountIds);
 
-  const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
@@ -571,12 +570,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [setScreen, setSelectedChainIds],
   );
 
-  const hideSheet = useCallback(
-    (callback?: () => void) =>
-      sheetRef?.current?.onCloseBottomSheet?.(callback),
-    [sheetRef],
-  );
-
   const handleConfirm = useCallback(async () => {
     await handleConnect();
     navigation.goBack();
@@ -605,31 +598,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           navigation.goBack();
           break;
         }
-        case USER_INTENT.Import: {
-          navigation.navigate('ImportPrivateKeyView');
-          // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-            ).build(),
-          );
-          break;
-        }
-        case USER_INTENT.ImportSrp: {
-          navigation.navigate('ImportSrpView');
-          break;
-        }
-        case USER_INTENT.ConnectHW: {
-          navigation.navigate('ConnectQRHardwareFlow');
-          // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
-            ).build(),
-          );
-
-          break;
-        }
       }
     };
 
@@ -639,13 +607,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   }, [
     navigation,
     userIntent,
-    sheetRef,
     cancelPermissionRequest,
     permissionRequestId,
     handleConfirm,
-    hideSheet,
-    trackEvent,
-    createEventBuilder,
   ]);
 
   const permissionsSummaryProps = useMemo(
