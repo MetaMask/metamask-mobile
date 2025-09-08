@@ -401,6 +401,7 @@ enum EVENT_NAME {
   CHANGE_DAPP_PERMISSIONS = 'Changed dapp permissions',
 
   // Vault Corruption
+  VAULT_CORRUPTION_DETECTED = 'Vault Corruption Detected',
   VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED = 'Vault Corruption Restore Wallet Screen Viewed',
   VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED = 'Vault Corruption Restore Wallet Button Pressed',
   VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED = 'Vault Corruption Wallet Successfully Restored Screen Viewed',
@@ -1020,6 +1021,7 @@ const events = {
   BROWSER_SWITCH_TAB: generateOpt(EVENT_NAME.BROWSER_SWITCH_TAB),
 
   // Vault corruption
+  VAULT_CORRUPTION_DETECTED: generateOpt(EVENT_NAME.VAULT_CORRUPTION_DETECTED),
   VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
   ),

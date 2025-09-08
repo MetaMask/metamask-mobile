@@ -243,6 +243,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
+    // Track vault corruption handling attempt
+    track(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED, {
+      error_type: 'vault_corruption_handling',
+      context: 'vault_corruption_recovery_attempt',
+      oauth_login: oauthLoginSuccess,
+    });
+
     // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
@@ -278,8 +285,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
     } catch (e: unknown) {
+      // Track vault corruption handling failure
+      track(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED, {
+        error_type: 'vault_corruption_handling_failed',
+        error_message: (e as Error).message,
+        context: 'vault_corruption_recovery_failed',
+        oauth_login: oauthLoginSuccess,
+      });
+
       Logger.error(e as Error);
       setLoading(false);
+
       setError(strings('login.invalid_password'));
     }
   };
@@ -439,6 +455,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
 
     setLoading(false);
+
     setError(strings('login.invalid_password'));
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   };
@@ -488,6 +505,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       containsErrorMessage(loginError, VAULT_ERROR) ||
       containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
     ) {
+      // Track vault corruption detected to Segment
+      track(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED, {
+        error_type: containsErrorMessage(loginError, VAULT_ERROR)
+          ? 'vault_error'
+          : 'json_parse_error',
+        error_message: loginErrorMessage,
+        context: 'login_authentication',
+        oauth_login: oauthLoginSuccess,
+      });
+
       await handleVaultCorruption();
       return;
     }
