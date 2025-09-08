@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
+import {
+  Alert,
+  Text,
+  TextInput,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -17,10 +24,23 @@ import {
   selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getNetworkImageSource,
+} from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Logger from '../../../util/Logger';
 import { TraceName, endTrace, trace } from '../../../util/trace';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,6 +77,29 @@ const createStyles = (colors: any) =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
     },
+    networkSelectorContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 8,
+      marginBottom: 16,
+    },
+    networkSelectorText: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      fontSize: 16,
+    },
+    overlappingAvatarsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    buttonIcon: {
+      marginLeft: 16,
+    },
   });
 
 interface AddCustomCollectibleProps {
@@ -66,11 +109,19 @@ interface AddCustomCollectibleProps {
   collectibleContract?: {
     address: string;
   };
+  setOpenNetworkSelector: (open: boolean) => void;
+  networkId: string;
+  selectedNetwork: string | null;
+  networkClientId: string | null;
 }
 
 const AddCustomCollectible = ({
   navigation,
   collectibleContract,
+  setOpenNetworkSelector,
+  networkId,
+  selectedNetwork,
+  networkClientId,
 }: AddCustomCollectibleProps) => {
   const [mounted, setMounted] = useState<boolean>(true);
   const [address, setAddress] = useState<string>('');
@@ -122,13 +173,14 @@ const AddCustomCollectible = ({
   const validateCustomCollectibleAddress = async (): Promise<boolean> => {
     let validated = true;
     const isValidEthAddress = isValidAddress(address);
+    const clientId = networkClientId || selectedNetworkClientId;
     if (address.length === 0) {
       setWarningAddress(strings('collectible.address_cant_be_empty'));
       validated = false;
     } else if (!isValidEthAddress) {
       setWarningAddress(strings('collectible.address_must_be_valid'));
       validated = false;
-    } else if (!(await isSmartContractAddress(address, chainId))) {
+    } else if (!(await isSmartContractAddress(address, chainId, clientId))) {
       setWarningAddress(strings('collectible.address_must_be_smart_contract'));
       validated = false;
     } else {
@@ -168,6 +220,7 @@ const AddCustomCollectible = ({
         selectedAddress,
         address,
         tokenId,
+        networkClientId,
       );
 
       if (!isOwner)
@@ -204,7 +257,7 @@ const AddCustomCollectible = ({
 
     trace({ name: TraceName.ImportNfts });
 
-    await NftController.addNft(address, tokenId, selectedNetworkClientId);
+    await NftController.addNft(address, tokenId, networkClientId);
 
     endTrace({ name: TraceName.ImportNfts });
 
@@ -244,12 +297,46 @@ const AddCustomCollectible = ({
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
         onConfirmPress={addNft}
-        confirmDisabled={!address || !tokenId}
+        confirmDisabled={!address || !tokenId || !selectedNetwork}
         loading={loading}
         confirmTestID={'add-collectible-button'}
       >
         <View>
           <View style={styles.rowWrapper}>
+            <TouchableOpacity
+              style={styles.networkSelectorContainer}
+              onPress={() => setOpenNetworkSelector(true)}
+              onLongPress={() => setOpenNetworkSelector(true)}
+            >
+              <Text style={styles.networkSelectorText}>
+                {selectedNetwork || strings('networks.select_network')}
+              </Text>
+
+              <View style={styles.overlappingAvatarsContainer}>
+                {selectedNetwork ? (
+                  <Avatar
+                    variant={AvatarVariant.Network}
+                    size={AvatarSize.Sm}
+                    name={selectedNetwork}
+                    imageSource={getNetworkImageSource({
+                      networkType: 'evm',
+                      chainId: networkId,
+                    })}
+                    testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+                  />
+                ) : null}
+
+                <ButtonIcon
+                  iconName={IconName.ArrowDown}
+                  iconColor={IconColor.Default}
+                  testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+                  onPress={() => setOpenNetworkSelector(true)}
+                  accessibilityRole="button"
+                  style={styles.buttonIcon}
+                />
+              </View>
+            </TouchableOpacity>
+
             <Text style={styles.rowTitleText}>
               {strings('collectible.collectible_address')}
             </Text>
