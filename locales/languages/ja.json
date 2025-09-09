@@ -2311,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "アプリに戻る",
+    "postNetworkSwitchTitle": "ネットワークが正常に切り替わりました",
     "description": "サービスの使用を続けるには、アプリに戻ってください。"
   },
   "sdk_feedback_modal": {

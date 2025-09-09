@@ -85,16 +85,16 @@ describe('useTransactionRequiredFiat', () => {
         amountFiat: 15,
         amountRaw: '3000',
         balanceFiat: 100,
-        feeFiat: 0.375,
+        feeFiat: 0.75,
         skipIfBalance: true,
-        totalFiat: 15.375,
+        totalFiat: 15.75,
       },
     ]);
   });
 
   it('returns total fiat value', () => {
     const { totalFiat } = runHook();
-    expect(totalFiat).toBe(23.575);
+    expect(totalFiat).toBe(23.95);
   });
 
   it('supports amount overrides', () => {
@@ -119,9 +119,9 @@ describe('useTransactionRequiredFiat', () => {
         amountFiat: 15,
         amountRaw: '3000',
         balanceFiat: 100,
-        feeFiat: 0.375,
+        feeFiat: 0.75,
         skipIfBalance: true,
-        totalFiat: 15.375,
+        totalFiat: 15.75,
       },
     ]);
   });
