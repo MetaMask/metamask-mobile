@@ -42,9 +42,12 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   });
 
   // quote.gasFee.effective.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
-  const effectiveGasFee = quote?.gasFee.effective
-    ? new BigNumber(quote.gasFee.effective.amount).toFixed()
-    : null;
+  const effectiveGasFee =
+    quote?.gasFee?.effective?.amount &&
+    quote.gasFee.effective.amount !== 'NaN' &&
+    !isNaN(Number(quote.gasFee.effective.amount))
+      ? new BigNumber(quote.gasFee.effective.amount).toFixed()
+      : null;
 
   const atomicGasFee =
     effectiveGasFee && !gasIncluded
