@@ -8,7 +8,6 @@ import type {
 } from '../../component-library/components/Icons/Icon';
 import type { CaipChainId, Json } from '@metamask/utils';
 import type { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
-import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import type { TokenI } from '../../components/UI/Tokens/types';
@@ -19,7 +18,6 @@ import type {
   BridgeToken,
   BridgeViewMode,
 } from '../../components/UI/Bridge/types';
-import type { Nft } from '@metamask/assets-controllers';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
@@ -64,6 +62,7 @@ import { DeveloperOptionsParams } from '../../components/Views/Settings/Develope
 import { BackupAndSyncSettingsParams } from '../../components/Views/Settings/Identity/BackupAndSyncSettings.types';
 import { SecuritySettingsParams } from '../../components/Views/Settings/SecuritySettings/SecuritySettings.types';
 import { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
+import { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -281,7 +280,7 @@ export type RootParamList = {
   SettingsAdvancedFiatOnTestnetsFriction: undefined;
   ShowIpfs: ShowIpfsGatewaySheetParams;
   ShowNftDisplayMedia: undefined;
-  ShowTokenId: undefined;
+  ShowTokenId: ShowTokenIdSheetParams;
   AmbiguousAddress: undefined;
   OriginSpamModal: { origin: string };
   ChangeInSimulationModal: {
