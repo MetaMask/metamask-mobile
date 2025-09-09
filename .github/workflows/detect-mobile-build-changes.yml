@@ -84,31 +84,38 @@ jobs:
           shared="${{ steps.filter.outputs.shared }}"
           ignore="${{ steps.filter.outputs.ignore }}"
           
-          # Calculate final results
-          if [[ "$shared" == 'true' ]]; then
-            # Shared files changed - trigger both platforms
+          # State Machine for Build Decisions:
+          # 1. Purely ignored changes -> Skip both
+          # 2. Shared changes -> Build both
+          # 3. Android-only changes -> Android only
+          # 4. iOS-only changes -> iOS only
+          # 5. Unmatched/new files -> Conservative (Build both)
+
+          # Determine build decisions
+          if [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' ]]; then
+            android_final="false"
+            ios_final="false"
+          elif [[ "$shared" == 'true' ]]; then
             android_final="true"
             ios_final="true"
+          elif [[ "$android" == 'true' && "$ios" != 'true' ]]; then
+            android_final="true"
+            ios_final="false"
+          elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
+            android_final="false"
+            ios_final="true"
           else
-            # Only platform-specific changes - default to true if unmatched
-            android_final="${android:-true}"
-            ios_final="${ios:-true}"
+            android_final="true"
+            ios_final="true"
           fi
-          
-          # Skip builds if no mobile code changed
-          if [[ "$ignore" == 'true' && "$android_final" == 'false' && "$ios_final" == 'false' ]]; then
-            echo "Skipping all mobile builds - changes only affect docs/workflows, no mobile code changed"
-            echo "android_final=false" >> "${GITHUB_OUTPUT}"
-            echo "ios_final=false" >> "${GITHUB_OUTPUT}"
-          else
-            echo "Mobile build decisions:"
-            echo "  Android: $android_final (direct: $android, shared: $shared)"
-            echo "  iOS: $ios_final (direct: $ios, shared: $shared)"
-            
-            echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
-            echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
-          fi
-          
+
+          echo "Mobile build decisions:"
+          echo "  Android: $android_final (direct: $android, shared: $shared, ignore: $ignore)"
+          echo "  iOS: $ios_final (direct: $ios, shared: $shared, ignore: $ignore)"
+
+          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
+          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
+
       - name: Summary
         run: |
           {
