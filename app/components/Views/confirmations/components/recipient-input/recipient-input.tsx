@@ -13,9 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
 import ClipboardManager from '../../../../../core/ClipboardManager';
-import { useToAddressValidation } from '../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
-import { useSendActions } from '../../hooks/send/useSendActions';
 import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
@@ -25,23 +23,14 @@ export const RecipientInput = ({
 }) => {
   const { to, updateTo } = useSendContext();
   const inputRef = useRef<TextInput>(null);
-  const { validateToAddress } = useToAddressValidation();
-  const { setRecipientInputMethodPasted, captureRecipientSelected } =
-    useRecipientSelectionMetrics();
-  const { handleSubmitPress } = useSendActions();
+  const { setRecipientInputMethodPasted } = useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
     try {
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
         const trimmedText = clipboardText.trim();
-        const { error } = await validateToAddress(trimmedText);
-        if (!error) {
-          setRecipientInputMethodPasted();
-          captureRecipientSelected();
-          handleSubmitPress(clipboardText);
-          return;
-        }
+        setRecipientInputMethodPasted();
         updateTo(trimmedText);
         setTimeout(() => {
           inputRef.current?.focus();
@@ -51,14 +40,7 @@ export const RecipientInput = ({
       // Might consider showing an alert here if pasting fails
       // for now just ignore it
     }
-  }, [
-    updateTo,
-    inputRef,
-    validateToAddress,
-    setRecipientInputMethodPasted,
-    captureRecipientSelected,
-    handleSubmitPress,
-  ]);
+  }, [updateTo, inputRef, setRecipientInputMethodPasted]);
 
   const handleClearInput = useCallback(() => {
     updateTo('');

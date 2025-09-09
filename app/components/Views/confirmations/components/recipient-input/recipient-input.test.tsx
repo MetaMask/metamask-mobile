@@ -201,28 +201,7 @@ describe('RecipientInput', () => {
     );
   });
 
-  it('handles paste functionality with valid address and auto-submits', async () => {
-    const mockAddress = '0x1234567890123456789012345678901234567890';
-    mockClipboardManager.getString.mockResolvedValue(mockAddress);
-    mockValidateToAddress.mockResolvedValue({ error: undefined });
-
-    const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
-    );
-
-    const pasteButton = getByText('Paste');
-    fireEvent.press(pasteButton);
-
-    await waitFor(() => {
-      expect(mockClipboardManager.getString).toHaveBeenCalledTimes(1);
-      expect(mockValidateToAddress).toHaveBeenCalledWith(mockAddress);
-      expect(mockSetRecipientInputMethodPasted).toHaveBeenCalledTimes(1);
-      expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
-      expect(mockHandleSubmitPress).toHaveBeenCalledWith(mockAddress);
-    });
-  });
-
-  it('handles paste functionality with invalid address and updates input', async () => {
+  it('handles paste functionality updates input', async () => {
     const mockAddress = '0x1234567890123456789012345678901234567890';
     mockClipboardManager.getString.mockResolvedValue(mockAddress);
     mockValidateToAddress.mockResolvedValue({ error: 'Invalid address' });
@@ -235,9 +214,7 @@ describe('RecipientInput', () => {
     fireEvent.press(pasteButton);
 
     await waitFor(() => {
-      expect(mockValidateToAddress).toHaveBeenCalledWith(mockAddress);
       expect(mockUpdateTo).toHaveBeenCalledWith(mockAddress);
-      expect(mockHandleSubmitPress).not.toHaveBeenCalled();
     });
 
     jest.advanceTimersByTime(100);
@@ -257,7 +234,6 @@ describe('RecipientInput', () => {
     fireEvent.press(pasteButton);
 
     await waitFor(() => {
-      expect(mockValidateToAddress).toHaveBeenCalledWith(trimmedAddress);
       expect(mockUpdateTo).toHaveBeenCalledWith(trimmedAddress);
     });
   });
