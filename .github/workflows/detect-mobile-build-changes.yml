@@ -48,6 +48,7 @@ jobs:
               - 'babel.config.js'                  # Transpilation affects both
               - 'yarn.lock'                        # Dependency changes affect both
               - 'app/**'                           # Shared app files
+              - 'e2e/**'                           # E2E test files (separate from mobile builds)
 
             ignore:
               - '**/*.md'                          # Documentation files
@@ -66,7 +67,6 @@ jobs:
               - 'bitrise.yml'                      # CI config (non-GitHub)
               - 'sonar-project.properties'        # SonarQube config
               - 'sentry*.properties*'              # Sentry configs
-              - 'e2e/**'                          # E2E test files (separate from mobile builds)
               - 'wdio/**'                         # WebDriver test files
               - 'wdio.conf.js'                    # WebDriver config
               - 'appwright/**'                    # Appwright test files
