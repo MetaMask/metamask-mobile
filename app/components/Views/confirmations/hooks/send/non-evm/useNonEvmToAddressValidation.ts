@@ -58,7 +58,7 @@ export const validateToAddress = ({
       internalAccounts,
     })
   ) {
-    return { loading };
+    return {};
   }
 
   if (toAddress && isENS(toAddress)) {
@@ -68,25 +68,22 @@ export const validateToAddress = ({
     }
     if (resolutionResult?.length) {
       return {
-        loading,
         resolvedAddress,
         ...getConfusableCharacterInfo(toAddress, strings),
       };
     }
     return {
-      loading,
       error: strings('send.could_not_resolve_name'),
     };
   }
 
   if (isSolanaSendType && toAddress && !isSolanaAddress(toAddress)) {
     return {
-      loading,
       error: strings('transaction.invalid_address'),
     };
   }
 
-  return { loading };
+  return {};
 };
 
 export const useNonEvmToAddressValidation = () => {
@@ -99,7 +96,7 @@ export const useNonEvmToAddressValidation = () => {
   });
 
   const validateNonEvmToAddress = useCallback(
-    async () =>
+    () =>
       validateToAddress({
         chainId,
         internalAccounts,

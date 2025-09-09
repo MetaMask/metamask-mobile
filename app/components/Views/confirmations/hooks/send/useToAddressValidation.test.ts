@@ -13,9 +13,10 @@ describe('useToAddressValidation', () => {
       mockState,
     );
     expect(result.current).toStrictEqual({
+      loading: true,
+      resolvedAddress: undefined,
       toAddressError: undefined,
       toAddressWarning: undefined,
-      validateToAddress: expect.any(Function),
     });
   });
 });
