@@ -2312,6 +2312,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Voltar ao app",
+    "postNetworkSwitchTitle": "Rede alternada com sucesso",
     "description": "Por favor, volte ao app para continuar usando os serviços relevantes."
   },
   "sdk_feedback_modal": {
