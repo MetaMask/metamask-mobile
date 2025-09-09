@@ -174,15 +174,8 @@ export interface PointsEventDto {
    * Payload of the point earning activity
    * @example 'string'
    */
-  payload: {
-    type: string;
-    token: {
-      symbol: string;
-      decimals: number;
-      amount: number;
-    };
-    direction: string | null;
-  } | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: Record<string, any> | null;
 
   /**
    * Value of the point earning activity
@@ -204,18 +197,6 @@ export interface PointsEventDto {
    * @example '0x1234567890123456789012345678901234567890'
    */
   accountAddress: CaipAccountAddress | null;
-
-  /**
-   * Account ID of the account performing the activity
-   * @example 1234567890
-   */
-  accountId: number;
-
-  /**
-   * Subscription ID of the account performing the activity
-   * @example '01974010-377f-7553-a365-0c33c8130980'
-   */
-  subscriptionId: string;
 }
 
 export interface EstimatePointsDto {
