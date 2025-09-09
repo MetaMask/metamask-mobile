@@ -148,25 +148,25 @@ const TransactionsView = ({
             .filter(([, enabled]) => enabled)
             .map(([chainId]) => chainId);
 
-          return isTransactionOnChains(tx, enabledChainIds, allTransactions);
+          return isTransactionOnChains(tx, enabledChainIds, allTransactionsSorted);
         });
       } else {
         allTransactionsFiltered = isPopularNetwork
           ? allTransactions.filter((tx) => {
-              const popularChainIds = [
-                CHAIN_IDS.MAINNET,
-                CHAIN_IDS.LINEA_MAINNET,
-                ...PopularList.map((n) => n.chainId),
-              ];
-              return isTransactionOnChains(
-                tx,
-                popularChainIds,
-                allTransactions,
-              );
-            })
-          : allTransactions.filter((tx) =>
-              isTransactionOnChains(tx, [chainId], allTransactions),
+            const popularChainIds = [
+              CHAIN_IDS.MAINNET,
+              CHAIN_IDS.LINEA_MAINNET,
+              ...PopularList.map((n) => n.chainId),
+            ];
+            return isTransactionOnChains(
+              tx,
+              popularChainIds,
+              allTransactions,
             );
+          })
+          : allTransactions.filter((tx) =>
+            isTransactionOnChains(tx, [chainId], allTransactionsSorted),
+          );
       }
 
       const submittedTxsFiltered = submittedTxs.filter(
@@ -319,9 +319,9 @@ const mapStateToProps = (state) => {
     chainId,
     tokenNetworkFilter: isRemoveGlobalNetworkSelectorEnabled()
       ? selectEVMEnabledNetworks(state).reduce(
-          (acc, network) => ({ ...acc, [network]: true }),
-          {},
-        )
+        (acc, network) => ({ ...acc, [network]: true }),
+        {},
+      )
       : selectTokenNetworkFilter(state),
   };
 };
