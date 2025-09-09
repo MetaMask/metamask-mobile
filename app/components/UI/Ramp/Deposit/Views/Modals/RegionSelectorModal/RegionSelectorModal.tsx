@@ -22,11 +22,12 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
+import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
 import useAnalytics from '../../../../hooks/useAnalytics';
+import { useRegions } from '../../../hooks/useRegions';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -42,6 +43,7 @@ function RegionSelectorModal() {
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
+  const { regions, isFetching, error } = useRegions();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -51,7 +53,7 @@ function RegionSelectorModal() {
 
   const fuseData = useMemo(
     () =>
-      new Fuse(DEPOSIT_REGIONS, {
+      new Fuse(regions || [], {
         shouldSort: true,
         threshold: 0.2,
         location: 0,
@@ -60,23 +62,25 @@ function RegionSelectorModal() {
         minMatchCharLength: 1,
         keys: ['name'],
       }),
-    [],
+    [regions],
   );
 
   const dataSearchResults = useMemo(() => {
+    if (!regions) return [];
+
     if (searchString.length > 0) {
       const results = fuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
-      return results || [];
+      return results?.map((result) => result.item) || [];
     }
 
-    return [...DEPOSIT_REGIONS].sort((a, b) => {
-      if (a.recommended && !b.recommended) return -1;
-      if (!a.recommended && b.recommended) return 1;
+    return [...regions].sort((a, b) => {
+      if (a.supported && !b.supported) return -1;
+      if (!a.supported && b.supported) return 1;
       return 0;
     });
-  }, [searchString, fuseData]);
+  }, [searchString, fuseData, regions]);
 
   const scrollToTop = useCallback(() => {
     if (listRef?.current) {
@@ -172,13 +176,17 @@ function RegionSelectorModal() {
     () => (
       <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
-          {strings('fiat_on_ramp_aggregator.region.no_region_results', {
-            searchString,
-          })}
+          {isFetching
+            ? 'Loading regions...'
+            : error
+            ? 'Error loading regions'
+            : strings('fiat_on_ramp_aggregator.region.no_region_results', {
+                searchString,
+              })}
         </Text>
       </View>
     ),
-    [searchString, styles.emptyList],
+    [searchString, styles.emptyList, isFetching, error],
   );
 
   const handleSearchTextChange = useCallback(
