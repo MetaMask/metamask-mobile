@@ -82,8 +82,6 @@ import {
   endTrace,
   trace,
   TraceOperation,
-  flushBufferedTraces,
-  updateCachedConsent,
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -483,18 +481,10 @@ class ChoosePassword extends PureComponent {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
         const { metrics, setDataCollectionForMarketing } = this.props;
-        await StorageWrapper.setItem(USE_TERMS, TRUE);
+
+        await metrics.enable();
         await setupSentry();
-        await flushBufferedTraces();
-        updateCachedConsent(true);
-
-        if (!metrics.isEnabled()) {
-          await metrics.enable();
-        }
-
-        if (setDataCollectionForMarketing) {
-          setDataCollectionForMarketing(this.state.isSelected);
-        }
+        setDataCollectionForMarketing(this.state.isSelected);
 
         this.props.navigation.reset({
           index: 0,
