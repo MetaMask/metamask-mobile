@@ -51,10 +51,10 @@ exports[`SnapUIAddress renders Bitcoin address 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -62,8 +62,8 @@ exports[`SnapUIAddress renders Bitcoin address 1`] = `
               <View
                 style={
                   {
-                    "height": NaN,
-                    "width": NaN,
+                    "height": 16,
+                    "width": 16,
                   }
                 }
               />
@@ -145,10 +145,10 @@ exports[`SnapUIAddress renders Bitcoin address with blockie 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -165,7 +165,7 @@ exports[`SnapUIAddress renders Bitcoin address with blockie 1`] = `
                       "flex": 1,
                     },
                     {
-                      "borderRadius": undefined,
+                      "borderRadius": 4,
                     },
                   ]
                 }
@@ -248,10 +248,10 @@ exports[`SnapUIAddress renders Cosmos address 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -259,8 +259,8 @@ exports[`SnapUIAddress renders Cosmos address 1`] = `
               <View
                 style={
                   {
-                    "height": NaN,
-                    "width": NaN,
+                    "height": 16,
+                    "width": 16,
                   }
                 }
               />
@@ -342,10 +342,10 @@ exports[`SnapUIAddress renders Cosmos address with blockie 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -362,7 +362,7 @@ exports[`SnapUIAddress renders Cosmos address with blockie 1`] = `
                       "flex": 1,
                     },
                     {
-                      "borderRadius": undefined,
+                      "borderRadius": 4,
                     },
                   ]
                 }
@@ -445,10 +445,10 @@ exports[`SnapUIAddress renders Ethereum address 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -456,8 +456,8 @@ exports[`SnapUIAddress renders Ethereum address 1`] = `
               <View
                 style={
                   {
-                    "height": NaN,
-                    "width": NaN,
+                    "height": 16,
+                    "width": 16,
                   }
                 }
               />
@@ -539,10 +539,10 @@ exports[`SnapUIAddress renders Ethereum address with blockie 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -559,7 +559,7 @@ exports[`SnapUIAddress renders Ethereum address with blockie 1`] = `
                       "flex": 1,
                     },
                     {
-                      "borderRadius": undefined,
+                      "borderRadius": 4,
                     },
                   ]
                 }
@@ -642,10 +642,10 @@ exports[`SnapUIAddress renders Hedera address 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -653,8 +653,8 @@ exports[`SnapUIAddress renders Hedera address 1`] = `
               <View
                 style={
                   {
-                    "height": NaN,
-                    "width": NaN,
+                    "height": 16,
+                    "width": 16,
                   }
                 }
               />
@@ -736,10 +736,10 @@ exports[`SnapUIAddress renders Hedera address with blockie 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -756,7 +756,7 @@ exports[`SnapUIAddress renders Hedera address with blockie 1`] = `
                       "flex": 1,
                     },
                     {
-                      "borderRadius": undefined,
+                      "borderRadius": 4,
                     },
                   ]
                 }
@@ -839,10 +839,10 @@ exports[`SnapUIAddress renders Polkadot address 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -850,8 +850,8 @@ exports[`SnapUIAddress renders Polkadot address 1`] = `
               <View
                 style={
                   {
-                    "height": NaN,
-                    "width": NaN,
+                    "height": 16,
+                    "width": 16,
                   }
                 }
               />
@@ -933,10 +933,10 @@ exports[`SnapUIAddress renders Polkadot address with blockie 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -953,7 +953,7 @@ exports[`SnapUIAddress renders Polkadot address with blockie 1`] = `
                       "flex": 1,
                     },
                     {
-                      "borderRadius": undefined,
+                      "borderRadius": 4,
                     },
                   ]
                 }
@@ -1036,10 +1036,10 @@ exports[`SnapUIAddress renders Starknet address 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -1047,8 +1047,8 @@ exports[`SnapUIAddress renders Starknet address 1`] = `
               <View
                 style={
                   {
-                    "height": NaN,
-                    "width": NaN,
+                    "height": 16,
+                    "width": 16,
                   }
                 }
               />
@@ -1130,10 +1130,10 @@ exports[`SnapUIAddress renders Starknet address with blockie 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -1150,7 +1150,7 @@ exports[`SnapUIAddress renders Starknet address with blockie 1`] = `
                       "flex": 1,
                     },
                     {
-                      "borderRadius": undefined,
+                      "borderRadius": 4,
                     },
                   ]
                 }
@@ -1233,10 +1233,10 @@ exports[`SnapUIAddress renders legacy Ethereum address 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": undefined,
-                  "height": NaN,
+                  "borderRadius": 4,
+                  "height": 16,
                   "overflow": "hidden",
-                  "width": NaN,
+                  "width": 16,
                 }
               }
               testID="snap-ui-avatar"
@@ -1244,8 +1244,8 @@ exports[`SnapUIAddress renders legacy Ethereum address 1`] = `
               <View
                 style={
                   {
-                    "height": NaN,
-                    "width": NaN,
+                    "height": 16,
+                    "width": 16,
                   }
                 }
               />
