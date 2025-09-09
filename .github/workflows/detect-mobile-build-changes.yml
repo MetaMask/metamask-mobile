@@ -79,26 +79,26 @@ jobs:
               - '!app/**/android/**'               # Exclude Android-specific from iOS
               - '!**/*.android.*'                  # Exclude Android file extensions from iOS
 
-            exclude:
-                - '!**/*.md'                          # Docs don't trigger builds
-                - '!docs/**'                          # Documentation
-                - '!**/*.yml'                         # Configs (exclude if not build-related)
-                - '!.github/**'                       # Workflow changes (unless affecting builds)
+            docs_only:
+                - '**/*.md'                           # Documentation files
+                - 'docs/**'                           # Documentation directory
+                - '**/*.yml'                          # Workflow files  
+                - '.github/**'                        # GitHub workflow changes
 
       - name: Set final outputs
         id: set-outputs
         run: |
-          # Skip builds if exclude filter matched, otherwise use direct results
-          exclude_matched="${{ steps.filter.outputs.exclude }}"
+          # Check if ONLY docs/workflows changed (no code changes)
+          android_result="${{ steps.filter.outputs.android }}"
+          ios_result="${{ steps.filter.outputs.ios }}"
+          docs_only="${{ steps.filter.outputs.docs_only }}"
           
-          if [[ "$exclude_matched" == 'true' ]]; then
-            echo "Skipping all mobile builds - changes only affect excluded files (docs, workflows, etc.)"
+          # Skip builds only if docs/workflows changed AND no mobile code changed
+          if [[ "$docs_only" == 'true' && "$android_result" == 'false' && "$ios_result" == 'false' ]]; then
+            echo "Skipping all mobile builds - changes only affect docs/workflows, no mobile code changed"
             echo "android_final=false" >> "${GITHUB_OUTPUT}"
             echo "ios_final=false" >> "${GITHUB_OUTPUT}"
           else
-            android_result="${{ steps.filter.outputs.android }}"
-            ios_result="${{ steps.filter.outputs.ios }}"
-            
             echo "Mobile build decisions:"
             echo "  Android: $android_result"
             echo "  iOS: $ios_result"
