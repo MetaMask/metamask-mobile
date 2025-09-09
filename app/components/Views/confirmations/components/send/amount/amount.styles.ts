@@ -46,13 +46,13 @@ export const styleSheet = (params: {
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: isNFT ? 100 : 132,
+      marginBottom: 40,
     },
     container: {
       backgroundColor: theme.colors.background.default,
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
-      height: '100%',
+      minHeight: '100%',
     },
     currencyTag: {
       alignSelf: 'center',

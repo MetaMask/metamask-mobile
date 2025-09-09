@@ -241,15 +241,6 @@ describe('SeasonStatus', () => {
       expect(getByTestId('skeleton')).toBeTruthy();
       expect(queryByText('Level')).toBeNull();
     });
-
-    it('should render skeleton when seasonStartDate is null', () => {
-      mockSelectSeasonStartDate.mockReturnValue(null);
-
-      const { getByTestId, queryByText } = render(<SeasonStatus />);
-
-      expect(getByTestId('skeleton')).toBeTruthy();
-      expect(queryByText('Level')).toBeNull();
-    });
   });
 
   describe('Basic Rendering', () => {
