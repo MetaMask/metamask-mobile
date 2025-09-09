@@ -120,12 +120,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
       orderId: order.orderId,
     });
-    if (onCancel) {
-      onCancel(order);
-    } else {
-      // Future: Navigate to order cancellation flow
-      DevLogger.log('PerpsOpenOrderCard: No onCancel handler provided');
-    }
+
+    onCancel?.(order);
   };
 
   return (

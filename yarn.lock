@@ -7309,11 +7309,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@metamask/multichain-account-service@npm:0.6.0"
+"@metamask/multichain-account-service@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@metamask/multichain-account-service@npm:0.7.0"
   dependencies:
-    "@metamask/base-controller": ^8.2.0
+    "@metamask/base-controller": ^8.3.0
     "@metamask/eth-snap-keyring": ^16.1.0
     "@metamask/keyring-api": ^20.1.0
     "@metamask/keyring-internal-api": ^8.1.0
@@ -7322,6 +7322,7 @@ __metadata:
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
     "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.4.2
   peerDependencies:
     "@metamask/account-api": ^0.9.0
     "@metamask/accounts-controller": ^33.0.0
@@ -7329,7 +7330,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 1607730ed92fa02a826fe6c4c39321e30222fc38f72eeb438a4fc5a1887e843ed1ba696430c40b029ae577ce8ac789f9525e81e5c685834d706212c2e8e87d53
+  checksum: 7ddaab5d98a54afad7097e2291ec8ad09df2001be36e1ed52ff00b3da062f6110f1b4e20055831243b0f71d9ce38ace71cb7f34b3de7fbe7672e1ee19ceef82f
   languageName: node
   linkType: hard
 
@@ -33427,7 +33428,7 @@ __metadata:
     "@metamask/mobile-provider": ^3.0.0
     "@metamask/mobile-wallet-protocol-core": ^0.1.0
     "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.0
-    "@metamask/multichain-account-service": ^0.6.0
+    "@metamask/multichain-account-service": ^0.7.0
     "@metamask/multichain-api-client": ^0.6.5
     "@metamask/multichain-api-middleware": ^1.0.0
     "@metamask/multichain-network-controller": ^0.10.0
