@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import type { CandleData } from '../../types';
@@ -16,6 +17,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -61,6 +63,13 @@ const TradingViewChart = React.forwardRef<
     const webViewRef = useRef<WebView>(null);
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
+    const [ohlcData, setOhlcData] = useState<{
+      open: string;
+      high: string;
+      low: string;
+      close: string;
+      time: number;
+    } | null>(null);
 
     // Platform-specific WebView props
     const platformSpecificProps = useMemo(() => {
@@ -69,13 +78,23 @@ const TradingViewChart = React.forwardRef<
         domStorageEnabled: true,
         originWhitelist: ['*'],
         mixedContentMode: 'compatibility' as const,
-        startInLoadingState: true,
+        startInLoadingState: false, // Disable built-in loader to use our skeleton
         scrollEnabled: false,
         showsHorizontalScrollIndicator: false,
         showsVerticalScrollIndicator: false,
         scalesPageToFit: false,
         webviewDebuggingEnabled: __DEV__,
       };
+
+      if (Platform.OS === 'android') {
+        return {
+          ...baseProps,
+          cacheEnabled: true, // Enable caching for better performance
+          incognito: false,
+          androidLayerType: 'hardware' as const,
+          allowsInlineMediaPlayback: false,
+        };
+      }
 
       if (Platform.OS === 'ios') {
         return {
@@ -90,9 +109,6 @@ const TradingViewChart = React.forwardRef<
           dataDetectorTypes: 'none' as const,
         };
       }
-
-      // Android-safe configuration
-      return baseProps;
     }, []);
 
     const htmlContent = useMemo(
@@ -137,6 +153,20 @@ const TradingViewChart = React.forwardRef<
               break;
             case 'WEBVIEW_TEST':
               break;
+            case 'OHLC_DATA':
+              // Trigger haptic feedback only when OHLC data changes (not on every update)
+              if (
+                message.data &&
+                (!ohlcData ||
+                  message.data.open !== ohlcData.open ||
+                  message.data.high !== ohlcData.high ||
+                  message.data.low !== ohlcData.low ||
+                  message.data.close !== ohlcData.close)
+              ) {
+                impactAsync(ImpactFeedbackStyle.Light);
+              }
+              setOhlcData(message.data);
+              break;
             default:
               break;
           }
@@ -147,7 +177,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady],
+      [onChartReady, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts
@@ -294,6 +324,17 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
+          {/* Show skeleton while chart is loading */}
+          {!isChartReady && (
+            <Skeleton
+              height={height}
+              width="100%"
+              style={{ position: 'absolute', zIndex: 10 }} // eslint-disable-line react-native/no-inline-styles
+              testID={`${
+                testID || TradingViewChartSelectorsIDs.CONTAINER
+              }-skeleton`}
+            />
+          )}
           <WebView
             ref={webViewRef}
             source={{ html: htmlContent }}
@@ -310,6 +351,20 @@ const TradingViewChart = React.forwardRef<
             {...platformSpecificProps}
           />
         </Box>
+
+        {/* OHLC Legend */}
+        {ohlcData && (
+          <Box style={styles.ohlcLegend}>
+            <Box style={styles.ohlcRow}>
+              <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
+              <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
+            </Box>
+            <Box style={styles.ohlcRow}>
+              <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
+              <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
+            </Box>
+          </Box>
+        )}
       </Box>
     );
   },

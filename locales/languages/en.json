@@ -548,7 +548,8 @@
     "nfts": "NFTs",
     "show_more_nfts": "Show more NFTs",
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
-    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam."
+    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
+    "could_not_resolve_name": "Couldn't resolve name"
   },
   "deposit": {
     "title": "Deposit",
@@ -910,12 +911,14 @@
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
       },
-      "success_toast": "Deposit Complete",
-      "success_message": "Your balance will update in a few moments",
-      "error_toast": "Deposit Failed",
-      "error_generic": "Something went wrong. Please try again.",
-      "in_progress": "Processing deposit",
-      "processing_message": "Processing your deposit..."
+      "success_toast": "Your perps account was funded",
+      "success_message": "You have {{amount}} available to trade",
+      "error_toast": "Transaction failed",
+      "error_generic": "Funds have been returned to you",
+      "in_progress": "Adding funds to your account",
+      "estimated_processing_time": "Estimated time is {{time}}",
+      "funds_available_momentarily": "Funds will be available momentarily",
+      "your_funds_are_available_to_trade": "Your funds are available to trade"
     },
     "withdrawal": {
       "title": "Withdraw",
@@ -928,7 +931,7 @@
       "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
       "confirm": "Confirm withdrawal",
       "processing_title": "Withdrawal initiated",
-      "processing_description": "Your USDC will arrive in approximately 5 minutes",
+      "eta_will_be_shared_shortly": "ETA will be shared shortly",
       "success_title": "Withdrawal successful",
       "success_description": "Your {{amount}} USDC has been withdrawn from Hyperliquid",
       "network_fee": "Network fee",
@@ -1070,12 +1073,33 @@
         "backToPerps": "Back to Perps"
       },
       "submitted": "Order Submitted",
-      "confirmed": "Order Confirmed"
+      "confirmed": "Order Confirmed",
+      "cancelling_order": "Cancelling order",
+      "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "order_cancelled": "Order cancelled",
+      "failed_to_cancel_order": "Failed to cancel order",
+      "funds_have_been_returned_to_you": "Funds have been returned to you",
+      "funds_are_available_to_trade": "Funds are available to trade",
+      "close_order_still_active": "Close order still active",
+      "order_submitted": "Order submitted",
+      "order_filled": "Order filled",
+      "order_placed": "Order placed",
+      "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "order_failed": "Order failed",
+      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
     },
     "close_position": {
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
+      "position_close_order_placed": "Position close order placed",
+      "partially_closing_position": "Partially closing position",
+      "partial_close_submitted": "Partial close submitted",
+      "position_partially_closed": "Position partially closed",
+      "closing_position": "Closing position",
+      "limit_close_order_cancelled": "Limit close order cancelled",
+      "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
       "margin": "Margin",
       "pnl": "PnL",
@@ -1086,8 +1110,8 @@
       "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
-      "success_description": "Your {{direction}} position for {{asset}} has been closed",
-      "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
+      "position_closed": "Position closed",
+      "funds_are_available_to_trade": "Funds are available to trade",
       "error_title": "Close Position Failed",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
@@ -1169,6 +1193,7 @@
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
+      "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "connectionFailed": {
         "title": "Perps is temporarily offline",
         "description": "We're working to get it back online soon.",
@@ -5441,7 +5466,7 @@
       "name": "Name",
       "save_button": "Save",
       "error": "Failed to edit account name",
-      "error_duplicate_name": "This account name already exists",
+      "error_duplicate_name": "This name is already in use.",
       "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
