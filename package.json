@@ -263,7 +263,7 @@
     "@metamask/multichain-api-client": "^0.6.5",
     "@metamask/multichain-api-middleware": "^1.0.0",
     "@metamask/multichain-network-controller": "^0.10.0",
-    "@metamask/multichain-transactions-controller": "^4.0.1",
+    "@metamask/multichain-transactions-controller": "^5.0.0",
     "@metamask/network-controller": "^24.1.0",
     "@metamask/network-enablement-controller": "^0.4.0",
     "@metamask/notification-services-controller": "^16.0.0",

@@ -5640,14 +5640,14 @@
     "@solana/addresses" "^2.0.0"
     lodash "^4.17.21"
 
-"@metamask/multichain-transactions-controller@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-4.0.1.tgz#029c2fd2dfd73c66eb5bf27cd90613f58eaa0e55"
-  integrity sha512-AyfoUHv2ZD6+BAg69bY6Pla3msKDOKxO0Fe3cexpQSNPqWI8yHaNJdqkpci1RghttXq9GiYRQNs6UQHGs6JKoA==
+"@metamask/multichain-transactions-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-5.0.0.tgz#e22d6e4cd75753079c237a6d4b13d12d42da0458"
+  integrity sha512-lXL+9besuuYoORbtPRPKFZw13/paJa/f4U0GgPfpUP6IBYLafkdVBMg0FJGvsZOE+fcegeBGGXi12iIAVBFlGA==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-internal-api" "^8.0.0"
+    "@metamask/base-controller" "^8.1.0"
+    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-internal-api" "^8.1.0"
     "@metamask/keyring-snap-client" "^7.0.0"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/snaps-sdk" "^9.0.0"
