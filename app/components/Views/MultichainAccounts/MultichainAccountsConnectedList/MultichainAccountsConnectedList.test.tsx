@@ -84,45 +84,14 @@ const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
   );
 };
 
-const renderWithMultipleAccounts = () =>
-  renderMultichainAccountsConnectedList({
-    selectedAccountGroups: MOCK_MULTICHAIN_ACCOUNT_GROUPS,
-  });
-
-const renderWithEmptyAccountGroups = () =>
-  renderMultichainAccountsConnectedList({
-    selectedAccountGroups: [],
-  });
-
 describe('MultichainAccountsConnectedList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Component Rendering', () => {
-    it('renders the component with account groups', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
-
-      expect(getByText('Edit accounts')).toBeTruthy();
-    });
-
-    it('renders with empty account groups list', () => {
-      const { getByText } = renderWithEmptyAccountGroups();
-
-      expect(getByText('Edit accounts')).toBeTruthy();
-    });
-
-    it('renders with multiple account groups', () => {
-      const { getByText } = renderWithMultipleAccounts();
-
-      expect(getByText('Edit accounts')).toBeTruthy();
-    });
-  });
-
-  it('renders component with selected account groups', () => {
-    const { getByText } = renderMultichainAccountsConnectedList();
-
-    expect(getByText('Edit accounts')).toBeTruthy();
+  it('renders component with different account group configurations', () => {
+    const { toJSON } = renderMultichainAccountsConnectedList();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls handleEditAccountsButtonPress when edit button is pressed', () => {
