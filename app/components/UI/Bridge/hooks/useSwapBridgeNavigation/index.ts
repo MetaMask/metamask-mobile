@@ -102,7 +102,7 @@ export const useSwapBridgeNavigation = ({
               symbol: bridgeSourceNativeAsset.symbol,
               image: bridgeSourceNativeAsset.iconUrl ?? '',
               decimals: bridgeSourceNativeAsset.decimals,
-              chainId: isSolanaChainId(effectiveChainId)
+              chainId: isSolanaChainId(effectiveChainId) // TODO: refactor for other non-evm chains
                 ? effectiveChainId
                 : formatChainIdToHex(effectiveChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
             }
