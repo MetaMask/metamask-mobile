@@ -620,7 +620,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           >
             You will be liquidated if price{' '}
             {direction === 'long' ? 'drops' : 'rises'} by{' '}
-            {liquidationDropPercentage.toFixed(1)}%
+            {!isDragging && isCalculating ? (
+              <Skeleton height={16} width={40} />
+            ) : (
+              `${liquidationDropPercentage.toFixed(1)}%`
+            )}
           </Text>
         </View>
 
