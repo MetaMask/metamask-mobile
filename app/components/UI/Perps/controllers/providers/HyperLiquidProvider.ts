@@ -421,10 +421,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.reduceOnly || false,
+        /**
+         * HyperLiquid Time-In-Force (TIF) options:
+         * - 'Gtc' (Good Till Canceled): Standard limit orders that remain active until filled or canceled
+         * - 'Ioc' (Immediate or Cancel): Limit orders that fill immediately or cancel unfilled portion
+         * - 'FrontendMarket': True market orders as used in HyperLiquid UI - USE THIS FOR MARKET ORDERS
+         * - 'Alo' (Add Liquidity Only): Maker-only orders that add liquidity to order book
+         * - 'LiquidationMarket': Similar to IoC, used for liquidation orders
+         *
+         * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
+         * Using 'Ioc' causes market orders to be treated as limit orders by HyperLiquid,
+         * leading to incorrect order type display in transaction history (TAT-1447)
+         */
         t:
           params.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
       };
       orders.push(mainOrder);
@@ -587,10 +599,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.newOrder.reduceOnly || false,
+        // Same TIF logic as placeOrder - see documentation above for details
         t:
           params.newOrder.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.newOrder.clientOrderId
           ? (params.newOrder.clientOrderId as Hex)
           : undefined,
