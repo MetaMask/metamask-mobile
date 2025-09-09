@@ -49,12 +49,17 @@ jobs:
               - 'yarn.lock'                        # Dependency changes affect both
               - 'app/**'                           # Shared app files
               - 'e2e/**'                           # E2E test files (separate from mobile builds)
+              - 'sentry*.properties*'              # Sentry configs
+              - 'wdio/**'                          # WebDriver test files
+              - 'wdio.conf.js'                     # WebDriver config
+              - 'appwright/**'                     # Appwright test files
+
 
             ignore:
               - '**/*.md'                          # Documentation files
               - 'docs/**'                          # Documentation directory
               - '**/*.yml'                         # Workflow files  
-              - '.github/**'                       # GitHub workflow changes
+              #- '.github/**'                       # GitHub workflow changes
               - 'LICENSE'                          # License file
               - 'README.md'                        # Main README
               - 'RELEASE.MD'                       # Release notes
@@ -65,14 +70,10 @@ jobs:
               - 'codecov.yml'                      # Code coverage config
               - 'crowdin.yml'                      # Translation config
               - 'bitrise.yml'                      # CI config (non-GitHub)
-              - 'sonar-project.properties'        # SonarQube config
-              - 'sentry*.properties*'              # Sentry configs
-              - 'wdio/**'                         # WebDriver test files
-              - 'wdio.conf.js'                    # WebDriver config
-              - 'appwright/**'                    # Appwright test files
-              - 'scripts/**'                      # Build/utility scripts
-              - 'patches/**'                      # Dependency patches
-              - 'ppom/**'                         # PPOM sub-project
+              - 'sonar-project.properties'         # SonarQube config
+              - 'scripts/**'                       # Build/utility scripts
+              - 'patches/**'                       # Dependency patches
+              - 'ppom/**'                          # PPOM sub-project
 
       - name: Set final outputs
         id: set-outputs
@@ -89,9 +90,9 @@ jobs:
             android_final="true"
             ios_final="true"
           else
-            # Only platform-specific changes
-            android_final="$android"
-            ios_final="$ios"
+            # Only platform-specific changes - default to true if unmatched
+            android_final="${android:-true}"
+            ios_final="${ios:-true}"
           fi
           
           # Skip builds if no mobile code changed
