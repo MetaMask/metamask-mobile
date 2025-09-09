@@ -432,9 +432,11 @@ jobs:
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
           ANDROID_APP_URL="${{ needs.trigger-onboarding-builds.outputs.browserstack-android-url }}"
-          if [ -z "$ANDROID_APP_URL" ]; then
+          echo "Debug: trigger-onboarding-builds result: ${{ needs.trigger-onboarding-builds.result }}"
+          echo "Debug: Raw Android URL from trigger job: '$ANDROID_APP_URL'"
+          if [ -z "$ANDROID_APP_URL" ] || [ "$ANDROID_APP_URL" = "null" ]; then
             ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
-            echo "ℹ️ Using Android URL from input (trigger job was skipped)"
+            echo "ℹ️ Using Android URL from input (trigger job was skipped or failed)"
           else
             echo "ℹ️ Using Android URL from trigger job"
           fi
@@ -442,12 +444,12 @@ jobs:
           # Validate that we have a BrowserStack URL
           if [ -z "$ANDROID_APP_URL" ]; then
             echo "❌ Error: No Android BrowserStack URL available"
-            echo "Either provide browserstack_app_url_android as input or ensure trigger-imported-wallet-build job runs successfully"
+            echo "Either provide browserstack_app_url_android as input or ensure trigger-onboarding-builds job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.android-version }}"
+          APP_VERSION="${{ needs.trigger-onboarding-builds.outputs.android-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -455,7 +457,7 @@ jobs:
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_ANDROID_APP_URL=$ANDROID_APP_URL"
+            echo "BROWSERSTACK_ANDROID_CLEAN_APP_URL=$ANDROID_APP_URL"
             echo "TEST_PLATFORM=android"
             echo "QA_APP_VERSION=$APP_VERSION"
             echo "BROWSERSTACK_BUILD_NAME=Android-Onboarding-${{ github.ref_name }}-Branch"
@@ -550,10 +552,12 @@ jobs:
           echo "Setting iOS onboarding test environment for device: ${{ matrix.device.name }}"
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
-          IOS_APP_URL="${{ needs.trigger-imported-wallet-build.outputs.browserstack-ios-url }}"
-          if [ -z "$IOS_APP_URL" ]; then
+          IOS_APP_URL="${{ needs.trigger-onboarding-builds.outputs.browserstack-ios-url }}"
+          echo "Debug: trigger-onboarding-builds result: ${{ needs.trigger-onboarding-builds.result }}"
+          echo "Debug: Raw iOS URL from trigger job: '$IOS_APP_URL'"
+          if [ -z "$IOS_APP_URL" ] || [ "$IOS_APP_URL" = "null" ]; then
             IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
-            echo "ℹ️ Using iOS URL from input (trigger job was skipped)"
+            echo "ℹ️ Using iOS URL from input (trigger job was skipped or failed)"
           else
             echo "ℹ️ Using iOS URL from trigger job"
           fi
@@ -561,12 +565,12 @@ jobs:
           # Validate that we have a BrowserStack URL
           if [ -z "$IOS_APP_URL" ]; then
             echo "❌ Error: No iOS BrowserStack URL available"
-            echo "Either provide browserstack_app_url_ios as input or ensure trigger-imported-wallet-build job runs successfully"
+            echo "Either provide browserstack_app_url_ios as input or ensure trigger-onboarding-builds job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.ios-version }}"
+          APP_VERSION="${{ needs.trigger-onboarding-builds.outputs.ios-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -574,7 +578,7 @@ jobs:
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_IOS_APP_URL=$IOS_APP_URL"
+            echo "BROWSERSTACK_IOS_CLEAN_APP_URL=$IOS_APP_URL"
             echo "TEST_PLATFORM=ios"
             echo "QA_APP_VERSION=$APP_VERSION"
             echo "BROWSERSTACK_BUILD_NAME=iOS-Onboarding-${{ github.ref_name }}-Branch"
