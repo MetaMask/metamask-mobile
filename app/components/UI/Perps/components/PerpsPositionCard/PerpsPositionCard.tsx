@@ -95,6 +95,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: marketData,
+        initialTab: 'position',
       },
     });
   };

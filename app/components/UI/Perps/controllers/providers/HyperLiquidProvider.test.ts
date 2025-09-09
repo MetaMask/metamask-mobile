@@ -389,6 +389,17 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
       expect(result.orderId).toBe('123');
+
+      // Verify market orders use FrontendMarket TIF (TAT-1447 fix)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              t: { limit: { tif: 'FrontendMarket' } },
+            }),
+          ],
+        }),
+      );
     });
 
     it('should place a limit order successfully', async () => {
@@ -403,6 +414,42 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(true);
+
+      // Verify limit orders use Gtc TIF (regression test for TAT-1447)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              t: { limit: { tif: 'Gtc' } },
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('should use Gtc TIF for limit orders (regression test)', async () => {
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        price: '51000',
+        orderType: 'limit',
+      };
+
+      await provider.placeOrder(orderParams);
+
+      // Verify that the order was called with Gtc TIF for limit orders
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              a: 0, // BTC asset ID
+              b: true, // isBuy
+              t: { limit: { tif: 'Gtc' } }, // Limit orders use Gtc TIF
+            }),
+          ],
+        }),
+      );
     });
 
     it('should track performance measurements when placing order', async () => {

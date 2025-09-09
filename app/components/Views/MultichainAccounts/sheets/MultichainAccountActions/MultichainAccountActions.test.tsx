@@ -12,6 +12,7 @@ import {
   MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
+import { TraceName, TraceOperation } from '../../../../../util/trace';
 
 const mockAccountGroup: AccountGroupObject = {
   type: AccountGroupType.SingleAccount,
@@ -43,6 +44,10 @@ const mockInternalAccount: InternalAccount = {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
+// Mock trace
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
@@ -51,6 +56,13 @@ jest.mock('@react-navigation/native', () => ({
       accountGroup: mockAccountGroup,
     },
   }),
+}));
+
+// Mock trace functions
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: (options: unknown) => mockTrace(options),
+  endTrace: (options: unknown) => mockEndTrace(options),
 }));
 
 // Mock Engine
@@ -161,8 +173,37 @@ describe('MultichainAccountActions', () => {
       {
         groupId: mockAccountGroup.id,
         title: `Addresses / ${mockAccountGroup.metadata.name}`,
+        onLoad: expect.any(Function),
       },
     );
+
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
+      op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'account.actions',
+      },
+    });
+  });
+
+  it('calls endTrace when onLoad callback is invoked', () => {
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
+    addressesButton.props.onPress();
+
+    // Get the onLoad callback from the navigation call
+    const navigationCallArgs = mockNavigate.mock.calls[0];
+    const navigationParams = navigationCallArgs[1];
+    const onLoadCallback = navigationParams.onLoad;
+
+    // Invoke the onLoad callback
+    onLoadCallback();
+
+    // Verify endTrace was called with correct parameters
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
+    });
   });
 
   it('navigates to edit account name when rename account button is pressed', () => {
