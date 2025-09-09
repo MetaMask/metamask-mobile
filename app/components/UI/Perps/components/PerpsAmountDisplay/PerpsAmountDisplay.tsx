@@ -80,6 +80,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       )}
       <View style={styles.amountRow}>
         <RNText
+          testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
           style={[
             showTokenAmount && tokenAmount && tokenSymbol
               ? styles.amountValueToken
@@ -110,6 +111,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
           style={styles.maxAmount}
+          testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
         >
           {formatPrice(maxAmount, { minimumDecimals: 2, maximumDecimals: 2 })}{' '}
           {strings('perps.order.max')}

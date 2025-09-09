@@ -71,6 +71,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
+import { getFontSizeForInputLength } from './amount.styles';
 const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);
 
 const renderComponent = (mockState?: ProviderValues['state']) => {
@@ -146,7 +147,7 @@ describe('Amount', () => {
     act(() => {
       fireEvent.changeText(getByTestId('send_amount'), '1');
     });
-    expect(getByText('$ 3890.00')).toBeTruthy();
+    expect(getByText('$ 3890')).toBeTruthy();
   });
 
   it('display fiat conversion of amount entered for solana asset', () => {
@@ -160,7 +161,7 @@ describe('Amount', () => {
     act(() => {
       fireEvent.changeText(getByTestId('send_amount'), '1');
     });
-    expect(getByText('$ 175.00')).toBeTruthy();
+    expect(getByText('$ 175')).toBeTruthy();
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', () => {
@@ -212,11 +213,11 @@ describe('Amount', () => {
     act(() => {
       fireEvent.press(getByTestId('fiat_toggle'));
     });
-    expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
+    expect(mockSetAmountInputTypeFiat).toHaveBeenCalled();
     act(() => {
       fireEvent.press(getByTestId('fiat_toggle'));
     });
-    expect(mockSetAmountInputTypeFiat).toHaveBeenCalled();
+    expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
   });
 
   it('fiatmode is not avaialble for NFT', () => {
@@ -525,4 +526,26 @@ describe('Amount', () => {
   //   fireEvent.press(getByText('Continue'));
   //   expect(mockCaptureAmountSelected).toHaveBeenCalled();
   // });
+});
+
+describe('getFontSizeForInputLength', () => {
+  it('renders correct font size using input and symbol length', () => {
+    expect(getFontSizeForInputLength(1, 1)).toEqual(60);
+    expect(getFontSizeForInputLength(5, 1)).toEqual(48);
+    expect(getFontSizeForInputLength(1, 6)).toEqual(48);
+    expect(getFontSizeForInputLength(5, 6)).toEqual(48);
+    expect(getFontSizeForInputLength(6, 6)).toEqual(32);
+    expect(getFontSizeForInputLength(5, 7)).toEqual(32);
+    expect(getFontSizeForInputLength(6, 7)).toEqual(32);
+    expect(getFontSizeForInputLength(9, 7)).toEqual(24);
+    expect(getFontSizeForInputLength(6, 9)).toEqual(24);
+    expect(getFontSizeForInputLength(9, 9)).toEqual(24);
+    expect(getFontSizeForInputLength(12, 9)).toEqual(18);
+    expect(getFontSizeForInputLength(9, 12)).toEqual(18);
+    expect(getFontSizeForInputLength(12, 12)).toEqual(18);
+    expect(getFontSizeForInputLength(16, 12)).toEqual(12);
+    expect(getFontSizeForInputLength(12, 16)).toEqual(12);
+    expect(getFontSizeForInputLength(16, 16)).toEqual(12);
+    expect(getFontSizeForInputLength(18, 18)).toEqual(12);
+  });
 });

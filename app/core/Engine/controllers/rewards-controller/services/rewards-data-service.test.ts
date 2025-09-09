@@ -12,18 +12,26 @@ import type {
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
+import { successfulFetch } from '@metamask/controller-utils';
 
 // Mock dependencies
 jest.mock('../utils/multi-subscription-token-vault');
 jest.mock('../../../../AppConstants', () => ({
   REWARDS_API_URL: 'https://api.rewards.test',
+  IS_DEV: false, // Default to PROD, will be overridden in tests
 }));
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.50.1'),
 }));
+jest.mock('@metamask/controller-utils', () => ({
+  successfulFetch: jest.fn(),
+}));
 
 const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
   typeof getSubscriptionToken
+>;
+const mockSuccessfulFetch = successfulFetch as jest.MockedFunction<
+  typeof successfulFetch
 >;
 
 describe('RewardsDataService', () => {
@@ -49,6 +57,7 @@ describe('RewardsDataService', () => {
       messenger: mockMessenger,
       fetch: mockFetch,
       appType: 'mobile',
+      locale: 'en-US',
     });
   });
 
@@ -81,6 +90,7 @@ describe('RewardsDataService', () => {
       subscription: {
         id: 'test-subscription-id',
         referralCode: 'test-referral-code',
+        accounts: [],
       },
     };
 
@@ -305,6 +315,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: {
+            'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
             'rewards-client-id': 'mobile-7.50.1',
             // Should not include rewards-api-key header
@@ -378,6 +389,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           method: 'GET',
           headers: {
+            'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
             'rewards-api-key': 'test-bearer-token',
             'rewards-client-id': 'mobile-7.50.1',
@@ -598,6 +610,7 @@ describe('RewardsDataService', () => {
     subscription: {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
+      accounts: [],
     },
   };
 
@@ -624,6 +637,536 @@ describe('RewardsDataService', () => {
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
+      );
+    });
+  });
+
+  describe('Accept-Language Header', () => {
+    it('should include Accept-Language header with default locale', async () => {
+      // Arrange - service already initialized with default locale 'en-US'
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xsignature',
+      });
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-login',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+          }),
+        }),
+      );
+    });
+
+    it('should include Accept-Language header with custom locale', async () => {
+      // Arrange - create service with custom locale
+      const customLocaleService = new RewardsDataService({
+        messenger: mockMessenger,
+        fetch: mockFetch,
+        appType: 'mobile',
+        locale: 'es-ES',
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await customLocaleService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xsignature',
+      });
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-login',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Accept-Language': 'es-ES',
+          }),
+        }),
+      );
+    });
+
+    it('should not include Accept-Language header when locale is empty', async () => {
+      // Arrange - create service with empty locale
+      const emptyLocaleService = new RewardsDataService({
+        messenger: mockMessenger,
+        fetch: mockFetch,
+        appType: 'mobile',
+        locale: '',
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await emptyLocaleService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xsignature',
+      });
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-login',
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'Accept-Language': expect.any(String),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('optin', () => {
+    const mockOptinRequest = {
+      challengeId: 'challenge-123',
+      signature: '0xsignature123',
+      referralCode: 'REF123',
+    };
+
+    it('should successfully perform optin', async () => {
+      // Arrange
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOptinResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.optin(mockOptinRequest);
+
+      // Assert
+      expect(result).toEqual(mockOptinResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/login',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockOptinRequest),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
+    it('should handle optin without referral code', async () => {
+      // Arrange
+      const requestWithoutReferral = {
+        challengeId: 'challenge-123',
+        signature: '0xsignature123',
+      };
+
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'AUTO123',
+          accounts: [],
+        },
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOptinResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.optin(requestWithoutReferral);
+
+      // Assert
+      expect(result).toEqual(mockOptinResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/login',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(requestWithoutReferral),
+        }),
+      );
+    });
+
+    it('should handle optin errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(service.optin(mockOptinRequest)).rejects.toThrow(
+        'Optin failed: 400',
+      );
+    });
+
+    it('should handle network errors during optin', async () => {
+      // Arrange
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(service.optin(mockOptinRequest)).rejects.toThrow(
+        'Network error',
+      );
+    });
+  });
+
+  describe('logout', () => {
+    const mockSubscriptionId = 'sub-123';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: 'test-bearer-token',
+      });
+    });
+
+    it('should successfully perform logout', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.logout(mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/logout',
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-api-key': 'test-bearer-token',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
+    it('should perform logout without subscription ID', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.logout();
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/logout',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.not.objectContaining({
+            'rewards-api-key': expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('should handle logout errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 401,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(service.logout(mockSubscriptionId)).rejects.toThrow(
+        'Logout failed: 401',
+      );
+    });
+
+    it('should handle network errors during logout', async () => {
+      // Arrange
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(service.logout(mockSubscriptionId)).rejects.toThrow(
+        'Network error',
+      );
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.logout(mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/logout',
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-api-key': expect.any(String),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('fetchGeoLocation', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should successfully fetch geolocation in DEV environment', async () => {
+      // Arrange
+      const mockLocation = 'US';
+      const mockResponse = {
+        ok: true,
+        text: jest.fn().mockResolvedValue(mockLocation),
+      };
+
+      // Mock AppConstants to use DEV environment
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (AppConstants as any).IS_DEV = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      // Act
+      const result = await service.fetchGeoLocation();
+
+      // Assert
+      expect(result).toBe(mockLocation);
+      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
+        'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+      );
+    });
+
+    it('should successfully fetch geolocation in PROD environment', async () => {
+      // Arrange
+      const mockLocation = 'US';
+      const mockResponse = {
+        ok: true,
+        text: jest.fn().mockResolvedValue(mockLocation),
+      };
+
+      // Mock AppConstants to use PROD environment
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (AppConstants as any).IS_DEV = false;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      // Act
+      const result = await service.fetchGeoLocation();
+
+      // Assert
+      expect(result).toBe(mockLocation);
+      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
+        'https://on-ramp.api.cx.metamask.io/geolocation',
+      );
+    });
+
+    it('should return UNKNOWN when geolocation request fails', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      // Act
+      const result = await service.fetchGeoLocation();
+
+      // Assert
+      expect(result).toBe('UNKNOWN');
+    });
+
+    it('should return UNKNOWN when network error occurs', async () => {
+      // Arrange
+      mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act
+      const result = await service.fetchGeoLocation();
+
+      // Assert
+      expect(result).toBe('UNKNOWN');
+    });
+
+    it('should return UNKNOWN when response text parsing fails', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+        text: jest.fn().mockRejectedValue(new Error('Parse error')),
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      // Act
+      const result = await service.fetchGeoLocation();
+
+      // Assert
+      expect(result).toBe('UNKNOWN');
+    });
+
+    it('should return location string from response', async () => {
+      // Arrange
+      const mockLocation = 'UK';
+      const mockResponse = {
+        ok: true,
+        text: jest.fn().mockResolvedValue(mockLocation),
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      // Act
+      const result = await service.fetchGeoLocation();
+
+      // Assert
+      expect(result).toBe(mockLocation);
+    });
+  });
+
+  describe('validateReferralCode', () => {
+    it('should successfully validate a referral code', async () => {
+      // Arrange
+      const referralCode = 'ABC123';
+      const mockValidationResponse = { valid: true };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateReferralCode(referralCode);
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/referral/validate?code=ABC123',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
+    it('should return invalid response for invalid codes', async () => {
+      // Arrange
+      const referralCode = 'INVALID';
+      const mockValidationResponse = { valid: false };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateReferralCode(referralCode);
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(result.valid).toBe(false);
+    });
+
+    it('should properly encode special characters in referral code', async () => {
+      // Arrange
+      const referralCode = 'A+B/C=';
+      const mockValidationResponse = { valid: true };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateReferralCode(referralCode);
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/referral/validate?code=A%2BB%2FC%3D',
+        expect.any(Object),
+      );
+    });
+
+    it('should handle validation errors', async () => {
+      // Arrange
+      const referralCode = 'ABC123';
+      const mockResponse = {
+        ok: false,
+        status: 400,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(service.validateReferralCode(referralCode)).rejects.toThrow(
+        'Failed to validate referral code. Please try again shortly.',
+      );
+    });
+
+    it('should handle network errors during validation', async () => {
+      // Arrange
+      const referralCode = 'ABC123';
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(service.validateReferralCode(referralCode)).rejects.toThrow(
+        'Network error',
+      );
+    });
+
+    it('should handle timeout errors during validation', async () => {
+      // Arrange
+      const referralCode = 'ABC123';
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      // Act & Assert
+      await expect(service.validateReferralCode(referralCode)).rejects.toThrow(
+        'Request timeout after 10000ms',
       );
     });
   });
