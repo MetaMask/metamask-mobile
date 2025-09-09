@@ -92,6 +92,8 @@ export const createTradingViewChartTemplate = (
                     localization: {
                         priceFormatter: (price) => {
                             // Format price with comma separators
+                            // Note: Using direct Intl here as this runs in WebView context
+                            // where cached formatters from app/util/intl.ts are not available
                             return new Intl.NumberFormat('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PerpsMarketData } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -65,36 +65,55 @@ export const usePerpsMarkets = (
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Cache for parsed volume values to avoid repeated parsing
+  const volumeCache = useRef(new Map<string, number>()).current;
+
   // Helper function to sort markets by volume
   const sortMarketsByVolume = useCallback(
     (marketData: PerpsMarketData[]): PerpsMarketData[] => {
+      // Pre-compiled regex and multipliers for better performance
+      const volumeRegex = /\$?([\d.,]+)([KMBT])?/;
+      const multipliers = { K: 1e3, M: 1e6, B: 1e9, T: 1e12 };
+
       const parseVolume = (volumeStr: string | undefined): number => {
         if (!volumeStr) return -1; // Put undefined at the end
 
-        // Handle special cases
-        if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
-        if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
-
-        // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
-        const suffixMatch = volumeStr.match(/\$?([\d.,]+)([KMBT])?/);
-        if (suffixMatch) {
-          const [, numberPart, suffix] = suffixMatch;
-          const baseValue = parseFloat(numberPart.replace(/,/g, ''));
-
-          if (isNaN(baseValue)) return -1;
-
-          const multipliers: Record<string, number> = {
-            K: 1e3,
-            M: 1e6,
-            B: 1e9,
-            T: 1e12,
-          };
-
-          return suffix ? baseValue * multipliers[suffix] : baseValue;
+        // Check cache first
+        const cachedResult = volumeCache.get(volumeStr);
+        if (cachedResult !== undefined) {
+          return cachedResult;
         }
 
-        // Fallback to currency parser for regular values
-        return parseCurrencyString(volumeStr) || -1;
+        let result: number;
+
+        // Handle special cases
+        if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) {
+          result = -1;
+        } else if (volumeStr === '$<1') {
+          result = 0.5; // Treat as very small but not zero
+        } else {
+          // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
+          const suffixMatch = volumeStr.match(volumeRegex);
+          if (suffixMatch) {
+            const [, numberPart, suffix] = suffixMatch;
+            const baseValue = parseFloat(numberPart.replace(/,/g, ''));
+
+            if (isNaN(baseValue)) {
+              result = -1;
+            } else {
+              result = suffix
+                ? baseValue * multipliers[suffix as keyof typeof multipliers]
+                : baseValue;
+            }
+          } else {
+            // Fallback to currency parser for regular values
+            result = parseCurrencyString(volumeStr) || -1;
+          }
+        }
+
+        // Cache the result
+        volumeCache.set(volumeStr, result);
+        return result;
       };
 
       return [...marketData].sort((a, b) => {
@@ -103,7 +122,7 @@ export const usePerpsMarkets = (
         return volumeB - volumeA; // Descending order
       });
     },
-    [],
+    [volumeCache],
   );
 
   // Manual refresh function
