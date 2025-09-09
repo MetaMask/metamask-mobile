@@ -112,7 +112,16 @@ export const useBridgeQuoteData = ({
 
     const { amount, valueInCurrency } = totalNetworkFee;
 
-    if (!amount || !valueInCurrency) return '-';
+    if (
+      !amount ||
+      !valueInCurrency ||
+      amount === 'NaN' ||
+      valueInCurrency === 'NaN' ||
+      isNaN(Number(amount)) ||
+      isNaN(Number(valueInCurrency))
+    ) {
+      return '-';
+    }
 
     const formattedAmount = `${formatAmount(
       locale,
