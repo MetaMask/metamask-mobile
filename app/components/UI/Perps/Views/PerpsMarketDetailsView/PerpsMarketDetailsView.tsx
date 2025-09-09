@@ -263,6 +263,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleAddFundsPress = async () => {
     try {
+      if (!isEligible) {
+        setIsEligibilityModalVisible(true);
+        return;
+      }
+
       // Ensure the network exists before proceeding
       await ensureArbitrumNetworkExists();
 

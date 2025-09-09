@@ -1,14 +1,13 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectTransactionState } from '../../../../../reducers/transaction';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
+import { useMaxValueMode } from '../../hooks/useMaxValueMode';
 import { useTokenAsset } from '../../hooks/useTokenAsset';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { Hero } from '../UI/hero';
@@ -52,8 +51,7 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
   });
-
-  const { maxValueMode } = useSelector(selectTransactionState);
+  const { maxValueMode } = useMaxValueMode();
 
   const { amountPrecise, amount, fiat, isNative } = useTokenAmount({
     amountWei,
