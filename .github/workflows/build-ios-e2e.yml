@@ -58,7 +58,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache Xcode derived data
-        uses: actions/cache@v4
+        uses: cirruslabs/cache@0ea6c28a9b52ff2a1a01354742d8fbe0c4599693
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
