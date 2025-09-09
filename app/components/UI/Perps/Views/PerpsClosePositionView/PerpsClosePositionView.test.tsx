@@ -942,23 +942,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Tooltip Management', () => {
-    it('handles tooltip interactions for estimated PnL', () => {
-      // Arrange
-      const { getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Act - Find the estimated PnL label
-      const pnlLabel = getByText(strings('perps.close_position.estimated_pnl'));
-
-      // Assert - Tooltip trigger should be available
-      expect(pnlLabel).toBeDefined();
-    });
-
     it('handles tooltip interactions for closing fees', () => {
       // Arrange
       const { getByText } = renderWithProvider(
@@ -1776,13 +1759,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Find tooltip triggers
-      const estimatedPnlLabel = getByText(
-        strings('perps.close_position.estimated_pnl'),
-      );
       const feesLabel = getByText(strings('perps.close_position.fees'));
 
       // Tooltips should be available
-      expect(estimatedPnlLabel).toBeDefined();
       expect(feesLabel).toBeDefined();
 
       // Note: The actual tooltip press is handled by Icon press,
