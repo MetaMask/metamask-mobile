@@ -127,11 +127,52 @@ export const createTradingViewChartTemplate = (
                     },
                     localization: {
                         priceFormatter: (price) => {
-                            // Format price with comma separators
-                            return new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }).format(price);
+                            // Smart decimal precision based on price value and range
+                            const absPrice = Math.abs(price);
+                            
+                            if (absPrice >= 1000) {
+                                // For large values (like ETH), show no decimals
+                                return new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
+                                }).format(price);
+                            } else if (absPrice >= 100) {
+                                // For medium values, show 1 decimal place
+                                return new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 1,
+                                    maximumFractionDigits: 1
+                                }).format(price);
+                            } else if (absPrice >= 1) {
+                                // For small values, show 2 decimal places
+                                return new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }).format(price);
+                            } else if (absPrice >= 0.01) {
+                                // For very small values, show 4 decimal places
+                                return new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 4,
+                                    maximumFractionDigits: 4
+                                }).format(price);
+                            } else {
+                                // For extremely small values (like PUMP-USD), show 6 decimal places
+                                return new Intl.NumberFormat('en-US', {
+                                    minimumFractionDigits: 6,
+                                    maximumFractionDigits: 6
+                                }).format(price);
+                            }
+                        },
+                        timeFormatter: (time) => {
+                            // Format time in user's local timezone for crosshair labels
+                            const date = new Date(time * 1000);
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                            });
                         }
                     },
                     grid: {
