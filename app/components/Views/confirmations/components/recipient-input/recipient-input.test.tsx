@@ -55,6 +55,7 @@ describe('RecipientInput', () => {
   const mockUpdateTo = jest.fn();
   const mockValidateToAddress = jest.fn();
   const mockSetRecipientInputMethodPasted = jest.fn();
+  const mockSetRecipientInputMethodManual = jest.fn();
   const mockCaptureRecipientSelected = jest.fn();
   const mockHandleSubmitPress = jest.fn();
 
@@ -197,11 +198,20 @@ describe('RecipientInput', () => {
     expect(() => getByDisplayValue('0x123...')).toThrow();
   });
 
-  it('calls updateTo when text input changes', () => {
+  it('calls requires callbacks when text input changes', () => {
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: jest.fn(),
+      setRecipientInputMethodManual: mockSetRecipientInputMethodManual,
+      setRecipientInputMethodPasted: jest.fn(),
+      setRecipientInputMethodSelectAccount: jest.fn(),
+      setRecipientInputMethodSelectContact: jest.fn(),
+    });
+
+    const mockSetPastedRecipient = jest.fn();
     const { getByPlaceholderText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setPastedRecipient={noop}
+        setPastedRecipient={mockSetPastedRecipient}
       />,
     );
 
@@ -214,17 +224,20 @@ describe('RecipientInput', () => {
     expect(mockUpdateTo).toHaveBeenCalledWith(
       '0x1234567890123456789012345678901234567890',
     );
+    expect(mockSetPastedRecipient).toHaveBeenCalledWith(undefined);
+    expect(mockSetRecipientInputMethodManual).toHaveBeenCalled();
   });
 
   it('handles paste functionality updates input', async () => {
     const mockAddress = '0x1234567890123456789012345678901234567890';
     mockClipboardManager.getString.mockResolvedValue(mockAddress);
     mockValidateToAddress.mockResolvedValue({ error: 'Invalid address' });
+    const mockSetPastedRecipient = jest.fn();
 
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setPastedRecipient={noop}
+        setPastedRecipient={mockSetPastedRecipient}
       />,
     );
 
@@ -233,6 +246,7 @@ describe('RecipientInput', () => {
 
     await waitFor(() => {
       expect(mockUpdateTo).toHaveBeenCalledWith(mockAddress);
+      expect(mockSetPastedRecipient).toHaveBeenCalledWith(mockAddress);
     });
 
     jest.advanceTimersByTime(100);
