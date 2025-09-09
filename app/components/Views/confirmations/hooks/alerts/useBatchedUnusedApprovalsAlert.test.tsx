@@ -70,25 +70,6 @@ const unusedApprovalsAlert = [
   },
 ];
 
-// function runHook(transactionMeta?: TransactionMeta, preferenceState?: Partial<PreferencesState>) {
-//   const { result, rerender } = renderHookWithProvider(useBatchedUnusedApprovalsAlert, {
-//     state: {
-//       ...getAppStateForConfirmation(transactionMeta ?? batchApprovalConfirmation),
-//       engine: {
-//         backgroundState: {
-//           RemoteFeatureFlagController: {
-//             remoteFeatureFlags: {
-//               nonZeroUnusedApprovals: ['https://allowed-origin.com'],
-//             },
-//           },
-//           ...(preferenceState ?? {}),
-//         },
-//       },
-//     },
-//   });
-//   return { result, rerender };
-// }
-
 function runHook(
   transactionMeta?: TransactionMeta,
   preferenceState?: Partial<PreferencesState>,
