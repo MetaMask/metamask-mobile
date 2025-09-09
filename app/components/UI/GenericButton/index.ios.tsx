@@ -42,4 +42,3 @@ const GenericButton: React.FC<GenericButtonProps> = (props) => (
 );
 
 export default GenericButton;
-
