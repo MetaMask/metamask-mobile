@@ -170,10 +170,10 @@ describe('DeepLinkModal', () => {
       { state: {} },
     );
 
-    const title = getByText(/This page doesn't exist/i);
-    const description = getByText(
-      /We can't find the page you are looking for./i,
-    );
+      const title = getByText(/This page doesn't exist/i);
+      const description = getByText(
+        /We can't find the page you're looking for./i,
+      );
     const goToHomeButton = getByText('Go to the home page');
     const storeLinkText = getByText(
       "Update to the latest version of MetaMask and we'll take you to the right place.",
@@ -184,7 +184,7 @@ describe('DeepLinkModal', () => {
     expect(description).toBeOnTheScreen();
     expect(goToHomeButton).toBeOnTheScreen();
     expect(storeLinkText).toBeOnTheScreen();
-    expect(checkbox).not.toBeOnTheScreen();
+    expect(checkbox).not.toBeOnTheScreen(); // Checkbox only for private link
 
     const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
