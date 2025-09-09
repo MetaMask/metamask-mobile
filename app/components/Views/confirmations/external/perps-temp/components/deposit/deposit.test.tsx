@@ -21,6 +21,7 @@ jest.mock('../../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/usePerpsDepositView');
 jest.mock('../../../../hooks/useTokenAmount');
 jest.mock('../../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../../hooks/pay/useTransactionBridgeQuotes');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
