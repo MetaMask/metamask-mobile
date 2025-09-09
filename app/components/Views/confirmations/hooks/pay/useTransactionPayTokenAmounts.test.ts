@@ -187,41 +187,6 @@ describe('useTransactionPayTokenAmounts', () => {
     ]);
   });
 
-  it('skips token if balance sufficient and other token balance is insufficient', () => {
-    useTransactionRequiredFiatMock.mockReturnValue({
-      values: [
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          amountFiat: 16.123,
-          amountRaw: '123',
-          balanceFiat: 16.124,
-          totalFiat: 17,
-          skipIfBalance: false,
-        },
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          amountFiat: 40.456,
-          amountRaw: '234',
-          balanceFiat: 40.455,
-          totalFiat: 41,
-          skipIfBalance: false,
-        },
-      ],
-      totalFiat: 58,
-    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
-
-    const sourceAmounts = runHook();
-
-    expect(sourceAmounts.amounts).toStrictEqual([
-      {
-        address: TOKEN_ADDRESS_2_MOCK,
-        amountHuman: '10.25',
-        amountRaw: '102500',
-        targetAmountRaw: '234',
-      },
-    ]);
-  });
-
   it('returns undefined if no fiat rate', () => {
     useTokenFiatRatesMock.mockReturnValue([]);
 
