@@ -13,6 +13,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
+import {
+  collectConfusables,
+  getConfusablesExplanations,
+  hasZeroWidthPoints,
+} from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
 import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
@@ -252,4 +257,33 @@ export const convertCurrency = (
     targetDecimalValue,
     false,
   );
+};
+
+export const getConfusableCharacterInfo = (
+  toAddress: string,
+  strings: (key: string) => string,
+) => {
+  const confusableCollection = collectConfusables(toAddress);
+  if (confusableCollection.length) {
+    const invalidAddressMessage = strings('transaction.invalid_address');
+    const confusableCharacterWarningMessage = `${strings(
+      'transaction.confusable_msg',
+    )} - ${getConfusablesExplanations(confusableCollection)}`;
+    const invisibleCharacterWarningMessage = strings(
+      'send.invisible_character_error',
+    );
+    const isError = confusableCollection.some(hasZeroWidthPoints);
+    if (isError) {
+      // Show ERROR for zero-width characters (more important than warning)
+      return {
+        error: invalidAddressMessage,
+        warning: invisibleCharacterWarningMessage,
+      };
+    }
+    // Show WARNING for confusable characters
+    return {
+      warning: confusableCharacterWarningMessage,
+    };
+  }
+  return {};
 };
