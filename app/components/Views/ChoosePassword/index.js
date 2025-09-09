@@ -53,7 +53,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -301,12 +300,6 @@ class ChoosePassword extends PureComponent {
     );
   };
 
-  termsOfUse = async () => {
-    if (this.props.navigation) {
-      await navigateTermsOfUse(this.props.navigation.navigate);
-    }
-  };
-
   async componentDidMount() {
     const { route } = this.props;
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -344,7 +337,6 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {
