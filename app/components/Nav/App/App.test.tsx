@@ -13,7 +13,6 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
 } from '../../../constants/storage';
-import { strings } from '../../../../locales/i18n';
 import {
   NavigationContainer,
   NavigationState,
@@ -113,7 +112,7 @@ const mockRoutes = [
             index: 0,
             routes: [
               {
-                name: 'OnboardingCarousel',
+                name: 'Onboarding',
                 params: {},
               },
             ],
@@ -539,52 +538,6 @@ describe('App', () => {
       });
     });
   });
-  describe('OnboardingRootNav', () => {
-    it('renders the very first onboarding screen when you navigate into OnboardingRootNav', async () => {
-      const routeState = {
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            state: {
-              index: 0,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.NAV,
-                  state: {
-                    index: 0,
-                    routes: [
-                      {
-                        name: 'OnboardingCarousel',
-                        params: {},
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      };
-      const mockStore = configureMockStore();
-      const store = mockStore(initialState);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer initialState={routeState}>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      const { getByText } = render(<App />, { wrapper: Providers });
-
-      expect(
-        getByText(strings('onboarding_carousel.get_started')),
-      ).toBeTruthy();
-    });
-  });
 
   describe('Renders multichain account details', () => {
     const mockLoggedInState = {
@@ -717,6 +670,7 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByText('Account Group')).toBeTruthy();
+        expect(getByText('Account name')).toBeTruthy();
       });
     });
 
