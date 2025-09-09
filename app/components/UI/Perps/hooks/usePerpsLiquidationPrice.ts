@@ -84,13 +84,18 @@ export const usePerpsLiquidationPrice = (
   );
 
   useEffect(() => {
+    // Set calculating to true immediately when parameters change
+    if (entryPrice > 0 && leverage > 0 && asset) {
+      setIsCalculating(true);
+    }
+
     calculatePrice();
 
     // Cleanup debounced function on unmount
     return () => {
       calculatePrice.cancel();
     };
-  }, [calculatePrice]);
+  }, [calculatePrice, entryPrice, leverage, asset]);
 
   return {
     liquidationPrice,

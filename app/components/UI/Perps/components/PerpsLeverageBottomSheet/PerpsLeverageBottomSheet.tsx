@@ -61,6 +61,7 @@ import {
   PERFORMANCE_CONFIG,
 } from '../../constants/perpsConfig';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -352,17 +353,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   );
 
   // Always use tempLeverage for precise API calls (debounced)
-  const { liquidationPrice: apiLiquidationPrice } = usePerpsLiquidationPrice(
-    {
-      entryPrice,
-      leverage: tempLeverage, // Final leverage value for API calls
-      direction,
-      asset,
-    },
-    {
-      debounceMs: PERFORMANCE_CONFIG.LIQUIDATION_PRICE_DEBOUNCE_MS, // Debounced for performance
-    },
-  );
+  const { liquidationPrice: apiLiquidationPrice, isCalculating } =
+    usePerpsLiquidationPrice(
+      {
+        entryPrice,
+        leverage: tempLeverage, // Final leverage value for API calls
+        direction,
+        asset,
+      },
+      {
+        debounceMs: PERFORMANCE_CONFIG.LIQUIDATION_PRICE_DEBOUNCE_MS, // Debounced for performance
+      },
+    );
 
   // Calculate theoretical liquidation price for immediate drag feedback
   const theoreticalLiquidationPrice = useMemo(() => {
@@ -381,6 +383,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   }, [entryPrice, direction, isDragging, draggingLeverage, tempLeverage]);
 
   // Use theoretical price during drag for immediate feedback, API price when settled
+  // Show skeleton while API is calculating (not dragging and calculating)
   const dynamicLiquidationPrice = isDragging
     ? theoreticalLiquidationPrice
     : parseFloat(apiLiquidationPrice) || theoreticalLiquidationPrice;
@@ -638,12 +641,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   color={warningStyles.priceColor}
                   style={styles.priceIcon}
                 />
-                <Text
-                  variant={TextVariant.BodyMD}
-                  style={{ color: warningStyles.priceColor }}
-                >
-                  {formatPrice(dynamicLiquidationPrice)}
-                </Text>
+                {!isDragging && isCalculating ? (
+                  <Skeleton height={20} width={80} />
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    style={{ color: warningStyles.priceColor }}
+                  >
+                    {formatPrice(dynamicLiquidationPrice)}
+                  </Text>
+                )}
               </View>
             </View>
             <View style={styles.priceRow}>
