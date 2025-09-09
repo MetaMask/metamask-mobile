@@ -342,6 +342,7 @@ describe('PerpsPositionCard', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: expect.any(Object),
+          initialTab: 'position',
         },
       });
     });
