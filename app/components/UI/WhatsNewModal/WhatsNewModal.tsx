@@ -269,7 +269,12 @@ const WhatsNewModal = () => {
           );
         case SlideContentType.CAROUSEL_IMAGES:
           return (
-            <View style={styles.slideImageContainer}>
+            <View
+              style={[
+                styles.slideImageContainer,
+                elementInfo.images.length === 1 && styles.marginBottom,
+              ]}
+            >
               <ScrollView
                 ref={imageCarouselRef}
                 horizontal

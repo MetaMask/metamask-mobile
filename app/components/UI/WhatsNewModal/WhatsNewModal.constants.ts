@@ -20,10 +20,6 @@ export const whatsNew: WhatsNew = {
             image: require('../../../images/whats_new_remove_gns.png'),
             alt: 'Token view with All networks dropdown',
           },
-          {
-            image: require('../../../images/whats_new_mask_icons.png'),
-            alt: 'Account view with mask icons',
-          },
         ],
       },
       {

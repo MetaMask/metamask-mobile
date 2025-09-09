@@ -46,6 +46,9 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       borderRadius: 10,
       marginBottom: 16,
     },
+    marginBottom: {
+      marginBottom: 0,
+    },
     slideTitle: {
       marginBottom: 12,
     },
