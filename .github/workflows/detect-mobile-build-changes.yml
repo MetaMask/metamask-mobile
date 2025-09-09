@@ -54,6 +54,25 @@ jobs:
               - 'docs/**'                          # Documentation directory
               - '**/*.yml'                         # Workflow files  
               - '.github/**'                       # GitHub workflow changes
+              - 'LICENSE'                          # License file
+              - 'README.md'                        # Main README
+              - 'RELEASE.MD'                       # Release notes
+              - 'CHANGELOG.md'                     # Changelog
+              - 'attribution.txt'                  # Attribution file
+              - '*.svg'                            # SVG files (like architecture.svg)
+              - '*.png'                            # PNG files (like logo.png, image.png)
+              - 'codecov.yml'                      # Code coverage config
+              - 'crowdin.yml'                      # Translation config
+              - 'bitrise.yml'                      # CI config (non-GitHub)
+              - 'sonar-project.properties'        # SonarQube config
+              - 'sentry*.properties*'              # Sentry configs
+              - 'e2e/**'                          # E2E test files (separate from mobile builds)
+              - 'wdio/**'                         # WebDriver test files
+              - 'wdio.conf.js'                    # WebDriver config
+              - 'appwright/**'                    # Appwright test files
+              - 'scripts/**'                      # Build/utility scripts
+              - 'patches/**'                      # Dependency patches
+              - 'ppom/**'                         # PPOM sub-project
 
       - name: Set final outputs
         id: set-outputs
