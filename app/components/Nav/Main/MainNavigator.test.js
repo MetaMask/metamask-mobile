@@ -101,6 +101,13 @@ describe('MainNavigator - Rewards Integration', () => {
             },
           },
         },
+        RewardsController: {
+          activeAccount: {
+            subscriptionId: null,
+            account: 'eip155:1:0x123',
+            hasOptedIn: false,
+          },
+        },
       },
     },
   });

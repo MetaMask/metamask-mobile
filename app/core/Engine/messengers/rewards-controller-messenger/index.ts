@@ -52,7 +52,7 @@ export type RewardsControllerMessenger = RestrictedMessenger<
   RewardsControllerActions | AllowedActions,
   RewardsControllerEvents | AllowedEvents,
   AllowedActions['type'],
-  AllowedEvents['type']
+  AllowedEvents['type'] // ← This was wrong!
 >;
 
 export function getRewardsControllerMessenger(
