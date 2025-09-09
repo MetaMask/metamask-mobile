@@ -570,6 +570,16 @@ class WalletView {
       elemDescription: 'Perps Tab Button',
     });
   }
+
+  async verifyTokenNetworkFilterText(expectedText: string): Promise<void> {
+    await Assertions.expectElementToHaveLabel(
+      this.tokenNetworkFilter,
+      expectedText,
+      {
+        description: `token network filter should display "${expectedText}"`,
+      },
+    );
+  }
 }
 
 export default new WalletView();

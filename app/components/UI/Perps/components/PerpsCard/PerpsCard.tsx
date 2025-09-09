@@ -77,17 +77,19 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       // Find the market data for this symbol
       const market = markets.find((m) => m.symbol === symbol);
       if (market) {
+        const initialTab = order ? 'orders' : position ? 'position' : undefined;
         // Navigate to market details with the full market data
         // When navigating from a tab, we need to navigate through the root stack
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
             market,
+            initialTab,
           },
         });
       }
     }
-  }, [onPress, markets, symbol, navigation]);
+  }, [onPress, markets, symbol, navigation, order, position]);
 
   if (!position && !order) {
     return null;
