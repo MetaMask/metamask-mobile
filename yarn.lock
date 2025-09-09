@@ -4916,8 +4916,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@file:../core/packages/assets-controllers":
-  version "68.2.0"
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@74.3.3-preview-2855aa0":
+  version "74.3.3-preview-2855aa0"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-74.3.3-preview-2855aa0.tgz#3995acc1809d9a5b9a375ecb8a7a17dd2aeaaba0"
+  integrity sha512-+tuql496bjEsacsvofzJ0vvO34QgbjQ64/vfG46LGdt+Rdxl9eWGSpS7pOKpERkbgDFBU2iLkFEug0tliJ3E7Q==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4926,16 +4928,17 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.3"
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^13.0.0"
+    "@metamask/polling-controller" "^14.0.0"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-utils" "^9.4.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/snaps-sdk" "^9.0.0"
+    "@metamask/snaps-utils" "^11.0.0"
+    "@metamask/utils" "^11.4.2"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
@@ -4963,12 +4966,14 @@
     json-stable-stringify-without-jsonify "^1.0.1"
     loglevel "^1.9.2"
 
-"@metamask/backend-platform@file:../core/packages/backend-platform":
-  version "1.0.0"
+"@metamask/backend-platform@npm:@metamask-previews/backend-platform@0.0.0-preview-2855aa0":
+  version "0.0.0-preview-2855aa0"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/backend-platform/-/backend-platform-0.0.0-preview-2855aa0.tgz#518266b0a2caece92dd994b2eeb40f65b9c53cc1"
+  integrity sha512-wB0KFZqIutYr6MBrWiGbs4AEE/wbV9yFx68AoMrlJUCzaB9ImifjnLBPOpUuBemGZrsZ/pRGd/MnRv0jBHGF5Q==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/base-controller" "^8.3.0"
+    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/utils" "^11.4.2"
 
 "@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.1.1":
   version "7.1.1"
