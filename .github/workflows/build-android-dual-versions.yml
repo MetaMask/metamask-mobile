@@ -9,22 +9,22 @@ on:
     outputs:
       with-srp-apk-uploaded:
         description: 'Whether the with-SRP APK was successfully uploaded'
-        value: ${{ jobs.build-android-dual.outputs.with-srp-apk-uploaded }}
+        value: ${{ jobs.collect-results.outputs.with-srp-apk-uploaded }}
       without-srp-apk-uploaded:
         description: 'Whether the without-SRP APK was successfully uploaded'
-        value: ${{ jobs.build-android-dual.outputs.without-srp-apk-uploaded }}
+        value: ${{ jobs.collect-results.outputs.without-srp-apk-uploaded }}
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
-        value: ${{ jobs.build-android-dual.outputs.with-srp-browserstack-url }}
+        value: ${{ jobs.collect-results.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url:
         description: 'BrowserStack URL for without-SRP version'
-        value: ${{ jobs.build-android-dual.outputs.without-srp-browserstack-url }}
+        value: ${{ jobs.collect-results.outputs.without-srp-browserstack-url }}
       with-srp-version:
         description: 'App version for with-SRP build'
-        value: ${{ jobs.build-android-dual.outputs.with-srp-version }}
+        value: ${{ jobs.collect-results.outputs.with-srp-version }}
       without-srp-version:
         description: 'App version for without-SRP build'
-        value: ${{ jobs.build-android-dual.outputs.without-srp-version }}
+        value: ${{ jobs.collect-results.outputs.without-srp-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -46,13 +46,7 @@ jobs:
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
-    outputs:
-      with-srp-apk-uploaded: ${{ steps.build-results.outputs.with-srp-apk-uploaded }}
-      without-srp-apk-uploaded: ${{ steps.build-results.outputs.without-srp-apk-uploaded }}
-      with-srp-browserstack-url: ${{ steps.browserstack-results.outputs.with-srp-browserstack-url }}
-      without-srp-browserstack-url: ${{ steps.browserstack-results.outputs.without-srp-browserstack-url }}
-      with-srp-version: ${{ steps.build-results.outputs.with-srp-version }}
-      without-srp-version: ${{ steps.build-results.outputs.without-srp-version }}
+    # No outputs - these will be provided by the collect-results job
     
     strategy:
       fail-fast: false
@@ -166,19 +160,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-android-dual
     if: always() && (needs.build-android-dual.result == 'success' || needs.build-android-dual.result == 'partial_success')
+    outputs:
+      with-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.with-srp-browserstack-url }}
+      without-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-browserstack-url }}
+      with-srp-app-id: ${{ steps.browserstack-upload.outputs.with-srp-app-id }}
+      without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version-file: '.nvmrc'
+      #     cache: 'yarn'
       
-      - name: Install dependencies
-        run: yarn setup
+      # - name: Install dependencies
+      #   run: yarn setup
       
       - name: Download APK Artifacts
         uses: actions/download-artifact@v4
@@ -349,20 +348,33 @@ jobs:
             echo "Overall Status: UNKNOWN - Unexpected state"
           fi
           
+          # Determine if APKs were uploaded based on URLs
+          if [ -n "$WITH_SRP_URL" ] && [ "$WITH_SRP_URL" != "null" ] && [ "$WITH_SRP_URL" != "" ]; then
+            WITH_SRP_UPLOADED="true"
+          else
+            WITH_SRP_UPLOADED="false"
+          fi
+          
+          if [ -n "$WITHOUT_SRP_URL" ] && [ "$WITHOUT_SRP_URL" != "null" ] && [ "$WITHOUT_SRP_URL" != "" ]; then
+            WITHOUT_SRP_UPLOADED="true"
+          else
+            WITHOUT_SRP_UPLOADED="false"
+          fi
+          
           # Set outputs
           {
-            echo "with-srp-apk-uploaded=${{ needs.build-android-dual.outputs.with-srp-apk-uploaded }}"
-            echo "without-srp-apk-uploaded=${{ needs.build-android-dual.outputs.without-srp-apk-uploaded }}"
+            echo "with-srp-apk-uploaded=$WITH_SRP_UPLOADED"
+            echo "without-srp-apk-uploaded=$WITHOUT_SRP_UPLOADED"
             echo "with-srp-browserstack-url=$WITH_SRP_URL"
             echo "without-srp-browserstack-url=$WITHOUT_SRP_URL"
-            echo "with-srp-version=${{ needs.build-android-dual.outputs.with-srp-version }}"
-            echo "without-srp-version=${{ needs.build-android-dual.outputs.without-srp-version }}"
+            echo "with-srp-version=Manual-Build"
+            echo "without-srp-version=Manual-Build"
             echo "overall-status=$OVERALL_STATUS"
           } >> "$GITHUB_OUTPUT"
           
           echo "📋 Final Results:"
-          echo "  With-SRP APK Uploaded: ${{ needs.build-android-dual.outputs.with-srp-apk-uploaded }}"
-          echo "  Without-SRP APK Uploaded: ${{ needs.build-android-dual.outputs.without-srp-apk-uploaded }}"
+          echo "  With-SRP APK Uploaded: $WITH_SRP_UPLOADED"
+          echo "  Without-SRP APK Uploaded: $WITHOUT_SRP_UPLOADED"
           echo "  With-SRP BrowserStack URL: $WITH_SRP_URL"
           echo "  Without-SRP BrowserStack URL: $WITHOUT_SRP_URL"
           echo "  Overall Status: $OVERALL_STATUS"

@@ -73,7 +73,7 @@ jobs:
     name: Build Dual Android Versions
     uses: ./.github/workflows/build-android-dual-versions.yml
     # Only run if Android URLs are not provided
-    if: ${{ !inputs.browserstack_app_url_android_with_srp || !inputs.browserstack_app_url_android_without_srp }}
+    if: ${{ !inputs.browserstack_app_url_android_with_srp && !inputs.browserstack_app_url_android_without_srp }}
     secrets: inherit
 
   # Android Tests - With SRP (Pre-imported wallet)
