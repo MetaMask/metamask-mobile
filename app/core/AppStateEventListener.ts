@@ -8,13 +8,18 @@ import ReduxService from './redux';
 import generateDeviceAnalyticsMetaData from '../util/metrics';
 import generateUserSettingsAnalyticsMetaData from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
+export interface DeepLinkWithProps {
+  uri?: string;
+  overrideOrigin?: string;
+}
+
 export class AppStateEventListener {
   private appStateSubscription:
     | ReturnType<typeof AppState.addEventListener>
     | undefined = undefined;
   // TODO: The AppStateEventListener should be feature agnostic and shouldn't include deeplinks. Abstract this into a deeplink service instead
-  public currentDeeplink: string | null = null;
-  public pendingDeeplink: string | null = null;
+  public currentDeeplink: DeepLinkWithProps | null = null;
+  public pendingDeeplink: DeepLinkWithProps | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -32,7 +37,7 @@ export class AppStateEventListener {
     );
   }
 
-  public setCurrentDeeplink(deeplink: string | null) {
+  public setCurrentDeeplink(deeplink: DeepLinkWithProps | null) {
     this.currentDeeplink = deeplink;
     this.pendingDeeplink = deeplink;
   }
@@ -54,7 +59,7 @@ export class AppStateEventListener {
   private processAppStateChange = () => {
     try {
       const attribution = processAttribution({
-        currentDeeplink: this.currentDeeplink,
+        currentDeeplink: this.currentDeeplink?.uri ?? null,
         store: ReduxService.store,
       });
       const metrics = MetaMetrics.getInstance();

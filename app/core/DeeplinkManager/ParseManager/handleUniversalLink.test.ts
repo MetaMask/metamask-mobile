@@ -664,18 +664,20 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('interstitial whitelist', () => {
-    const whitelistedUrls = [
-      'https://link.metamask.io/perps-asset?symbol=ETH',
+    const whitelistedOrigins = [
+      AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
     ] as const;
 
-    it.each(whitelistedUrls)(
-      'skips interstitial modal for whitelisted URL: %s',
-      async (testUrl) => {
-        const parsedUrl = new URL(testUrl);
+    it.each(whitelistedOrigins)(
+      'skips interstitial modal for whitelisted origins: %s',
+      async (testOrigin) => {
+        const parsedUrl = new URL(
+          'https://link.metamask.io/perps-asset?symbol=ETH',
+        );
         const testUrlObj = {
           ...urlObj,
           hostname: parsedUrl.hostname,
-          href: testUrl,
+          href: 'https://link.metamask.io/perps-asset?symbol=ETH',
           pathname: parsedUrl.pathname,
         };
 
@@ -684,8 +686,8 @@ describe('handleUniversalLinks', () => {
           handled,
           urlObj: testUrlObj,
           browserCallBack: mockBrowserCallBack,
-          url: testUrl,
-          source: 'test-source',
+          url: 'https://link.metamask.io/perps-asset?symbol=ETH',
+          source: testOrigin,
         });
 
         expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
@@ -694,22 +696,23 @@ describe('handleUniversalLinks', () => {
       },
     );
 
-    it('shows interstitial modal for non-whitelisted URLs', async () => {
-      const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
-      const nonWhitelistedUrlObj = {
+    it('shows interstitial modal for non-whitelisted origins', async () => {
+      const nonWhitelistedOrigin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+      const urlStr = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+      const nonWhitelistedOriginObj = {
         ...urlObj,
         hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-        href: nonWhitelistedUrl,
+        href: urlStr,
         pathname: `/${ACTIONS.DAPP}/example.com`,
       };
 
       await handleUniversalLink({
         instance,
         handled,
-        urlObj: nonWhitelistedUrlObj,
+        urlObj: nonWhitelistedOriginObj,
         browserCallBack: mockBrowserCallBack,
-        url: nonWhitelistedUrl,
-        source: 'test-source',
+        url: urlStr,
+        source: nonWhitelistedOrigin,
       });
 
       expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({

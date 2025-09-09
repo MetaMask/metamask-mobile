@@ -21,6 +21,7 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
+import AppConstants from '../AppConstants';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -174,13 +175,19 @@ class DeeplinkManager {
 
     FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
       if (deeplink) {
-        handleDeeplink({ uri: deeplink });
+        handleDeeplink({
+          uri: deeplink,
+          overrideOrigin: AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+        });
       }
     });
 
     FCMService.onClickPushNotificationWhenAppSuspended((deeplink) => {
       if (deeplink) {
-        handleDeeplink({ uri: deeplink });
+        handleDeeplink({
+          uri: deeplink,
+          overrideOrigin: AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+        });
       }
     });
 

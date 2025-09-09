@@ -187,12 +187,14 @@ export function* handleDeeplinkSaga() {
     }
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
+    const deeplinkUri = deeplink?.uri;
 
-    if (deeplink) {
+    if (deeplinkUri) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        SharedDeeplinkManager.parse(deeplinkUri, {
+          origin:
+            deeplink.overrideOrigin ?? AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
       AppStateEventProcessor.clearPendingDeeplink();

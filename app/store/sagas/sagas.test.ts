@@ -355,7 +355,7 @@ describe('handleDeeplinkSaga', () => {
   describe('with deeplink', () => {
     describe('when app is locked', () => {
       it('should skip handling deeplink', async () => {
-        AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+        AppStateEventProcessor.pendingDeeplink = { uri: 'dummy-deeplink' };
 
         // Triggered by CHECK_FOR_DEEPLINK action
         await expectSaga(handleDeeplinkSaga)
@@ -389,7 +389,7 @@ describe('handleDeeplinkSaga', () => {
     describe('when app is unlocked', () => {
       describe('when completed onboarding is false', () => {
         it('should skip handling deeplink', async () => {
-          AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+          AppStateEventProcessor.pendingDeeplink = { uri: 'dummy-deeplink' };
 
           // Triggered by SET_COMPLETED_ONBOARDING action
           await expectSaga(handleDeeplinkSaga)
@@ -409,7 +409,7 @@ describe('handleDeeplinkSaga', () => {
       });
       describe('when completed onboarding is passed in and true', () => {
         it('should parse deeplink', async () => {
-          AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+          AppStateEventProcessor.pendingDeeplink = { uri: 'dummy-deeplink' };
           Engine.context.KeyringController.isUnlocked = jest
             .fn()
             .mockReturnValue(true);
@@ -432,7 +432,7 @@ describe('handleDeeplinkSaga', () => {
       });
       describe('when completed onboarding is true in Redux state', () => {
         it('should parse deeplink', async () => {
-          AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+          AppStateEventProcessor.pendingDeeplink = { uri: 'dummy-deeplink' };
           Engine.context.KeyringController.isUnlocked = jest
             .fn()
             .mockReturnValue(true);

@@ -36,9 +36,9 @@ enum SUPPORTED_ACTIONS {
   WC = ACTIONS.WC,
 }
 
-const interstitialWhitelist = [
-  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
-] as const;
+const interstitialWhitelistOrigins: string[] = [
+  AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
+];
 
 async function handleUniversalLink({
   instance,
@@ -127,8 +127,7 @@ async function handleUniversalLink({
     const sanitizedAction = actionName?.replace(/-/g, ' ');
     const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
-    const validatedUrlString = validatedUrl.toString();
-    if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
+    if (interstitialWhitelistOrigins.includes(source)) {
       resolve(true);
       return;
     }

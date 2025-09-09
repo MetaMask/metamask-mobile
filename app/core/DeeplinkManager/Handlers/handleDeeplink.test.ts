@@ -43,7 +43,7 @@ describe('handleDeeplink', () => {
 
     handleDeeplink({ uri: testUri });
 
-    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri);
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith({ uri: testUri });
     expect(mockCheckForDeeplink).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
     expect(mockLoggerError).not.toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe('handleDeeplink', () => {
 
     handleDeeplink({ uri: complexUri });
 
-    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(complexUri);
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith({ uri: complexUri });
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
   });
 
@@ -111,7 +111,7 @@ describe('handleDeeplink', () => {
 
     handleDeeplink({ uri: testUri });
 
-    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri);
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith({ uri: testUri });
     expect(mockLoggerError).toHaveBeenCalledWith(
       mockError,
       'Deeplink: Error parsing deeplink',
