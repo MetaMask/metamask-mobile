@@ -5441,7 +5441,7 @@
       "name": "Name",
       "save_button": "Save",
       "error": "Failed to edit account name",
-      "error_duplicate_name": "This account name already exists",
+      "error_duplicate_name": "This name is already in use.",
       "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {

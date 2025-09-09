@@ -80,8 +80,15 @@ export const EditMultichainAccountName = () => {
       const { AccountTreeController } = Engine.context;
       AccountTreeController.setAccountGroupName(accountGroup.id, accountName);
       navigation.goBack();
-    } catch {
-      setError(strings('multichain_accounts.edit_account_name.error'));
+    } catch (error: unknown) {
+      const errorMessage = error as Error;
+      if (errorMessage.message.includes('name already exists')) {
+        setError(
+          strings('multichain_accounts.edit_account_name.error_duplicate_name'),
+        );
+      } else {
+        setError(strings('multichain_accounts.edit_account_name.error'));
+      }
     }
   }, [accountName, accountGroup, navigation]);
 
