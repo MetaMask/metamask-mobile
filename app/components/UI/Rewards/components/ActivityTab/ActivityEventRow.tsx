@@ -8,6 +8,7 @@ import {
   Icon,
   IconSize,
   BoxJustifyContent,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getEventDetails, formatRewardsDate } from '../../utils/formatUtils';
@@ -44,11 +45,22 @@ export const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({
             gap={1}
           >
             <Text>{eventDetails.title}</Text>
-            <Box borderWidth={1} twClassName="ml-1 px-1 rounded-md">
-              <Text variant={TextVariant.BodyXs}>{`+100%`}</Text>
-            </Box>
           </Box>
-          <Text>{`+${event.value}`}</Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.End}
+          >
+            <Text>{`+${event.value}`}</Text>
+            {event.bonus?.bips && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextMuted}
+                twClassName="ml-1"
+              >
+                +{event.bonus?.bips / 100}%
+              </Text>
+            )}
+          </Box>
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
