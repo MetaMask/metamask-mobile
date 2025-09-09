@@ -2,10 +2,12 @@ import BigNumber from 'bignumber.js';
 import {
   NestedTransactionMetadata,
   SimulationData,
+  SimulationErrorCode,
   SimulationTokenBalanceChange,
   SimulationTokenStandard,
   TransactionMeta,
 } from '@metamask/transaction-controller';
+import { PreferencesState } from '@metamask/preferences-controller';
 import { Hex } from '@metamask/utils';
 import { waitFor } from '@testing-library/react-native';
 
@@ -68,13 +70,53 @@ const unusedApprovalsAlert = [
   },
 ];
 
-function runHook(transactionMeta?: TransactionMeta) {
+// function runHook(transactionMeta?: TransactionMeta, preferenceState?: Partial<PreferencesState>) {
+//   const { result, rerender } = renderHookWithProvider(useBatchedUnusedApprovalsAlert, {
+//     state: {
+//       ...getAppStateForConfirmation(transactionMeta ?? batchApprovalConfirmation),
+//       engine: {
+//         backgroundState: {
+//           RemoteFeatureFlagController: {
+//             remoteFeatureFlags: {
+//               nonZeroUnusedApprovals: ['https://allowed-origin.com'],
+//             },
+//           },
+//           ...(preferenceState ?? {}),
+//         },
+//       },
+//     },
+//   });
+//   return { result, rerender };
+// }
+
+function runHook(
+  transactionMeta?: TransactionMeta,
+  preferenceState?: Partial<PreferencesState>,
+) {
+  const state = getAppStateForConfirmation(
+    transactionMeta ?? batchApprovalConfirmation,
+  );
   const { result, rerender } = renderHookWithProvider(
     useBatchedUnusedApprovalsAlert,
     {
-      state: getAppStateForConfirmation(
-        transactionMeta ?? batchApprovalConfirmation,
-      ),
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...state.engine.backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...state.engine.backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                nonZeroUnusedApprovals: ['https://allowed-origin.com'],
+              },
+            },
+            ...preferenceState,
+          },
+        },
+      },
     },
   );
   return { result, rerender };
@@ -660,6 +702,115 @@ describe('useBatchedUnusedApprovalsAlert', () => {
 
       await waitFor(() => {
         expect(result.current).toEqual(unusedApprovalsAlert);
+      });
+    });
+  });
+
+  describe('simulation errors', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
+        .mockReturnValue({
+          name: ApproveMethod.APPROVE,
+          amountOrTokenId: new BigNumber('1000'),
+          tokenAddress: undefined,
+          isRevokeAll: false,
+        });
+    });
+    it('does not show alert when simulation is disabled via preferences', async () => {
+      const { result } = runHook(
+        { ...batchApprovalConfirmation, simulationData: undefined },
+        { preferencesController: { useTransactionSimulations: false } },
+      );
+      await waitFor(() => {
+        expect(result.current).toEqual([]);
+      });
+    });
+
+    it.each([
+      SimulationErrorCode.ChainNotSupported,
+      SimulationErrorCode.Disabled,
+    ])(
+      'does not show alert when simulation returned error %s',
+      async (errorCode) => {
+        const simulationData: SimulationData = {
+          error: { code: errorCode },
+        } as SimulationData;
+
+        const { result } = runHook({
+          ...batchApprovalConfirmation,
+          simulationData,
+        });
+
+        await waitFor(() => {
+          expect(result.current).toEqual([]);
+        });
+      },
+    );
+
+    it('shows alert when simulation is enabled and supported', async () => {
+      const simulationData: SimulationData = {
+        tokenBalanceChanges: [{ address: TOKEN_ADDRESS_1, isDecrease: true }],
+      } as SimulationData;
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        simulationData,
+      });
+      await waitFor(() => {
+        expect(result.current).toEqual(unusedApprovalsAlert);
+      });
+    });
+  });
+
+  describe('Non zero unused approvals', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
+        .mockReturnValue({
+          name: ApproveMethod.APPROVE,
+          amountOrTokenId: new BigNumber('1000'),
+          tokenAddress: undefined,
+          isRevokeAll: false,
+        });
+    });
+
+    it('does not show alert when origin is in the allow list', async () => {
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        origin: 'https://allowed-origin.com',
+      });
+      await waitFor(() => {
+        expect(result.current).toEqual([]);
+      });
+    });
+
+    it('shows alert when origin is not in the allow list', async () => {
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        origin: 'https://not-allowed-origin.com',
+      });
+      await waitFor(() => {
+        expect(result.current).toEqual(unusedApprovalsAlert);
+      });
+    });
+
+    it('shows alert when allow list is empty', async () => {
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        origin: 'https://not-allowed-origin.com',
+      });
+      await waitFor(() => {
+        expect(result.current).toEqual(unusedApprovalsAlert);
+      });
+    });
+
+    it('does not show alert when origin is undefined', async () => {
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        origin: undefined,
+      });
+      await waitFor(() => {
+        expect(result.current).toEqual([]);
       });
     });
   });

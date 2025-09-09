@@ -10,6 +10,7 @@ import {
   ATTEMPTS_MAX_DEFAULT,
   SLIPPAGE_DEFAULT,
   BUFFER_SUBSEQUENT_DEFAULT,
+  selectNonZeroUnusedApprovalsAllowList,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -371,5 +372,104 @@ describe('MetaMask Pay Feature Flags', () => {
       };
 
     expect(selectMetaMaskPayFlags(state).slippage).toEqual(0.123);
+  });
+});
+
+describe('Non-Zero Unused Approvals Allow List', () => {
+  const mockedStateWithAllowList = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            nonZeroUnusedApprovals: [
+              'https://example.com',
+              'https://another-example.com',
+            ],
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  };
+
+  const mockedStateWithoutAllowList = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            nonZeroUnusedApprovals: [],
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  };
+
+  const mockedStateUndefinedAllowList = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            nonZeroUnusedApprovals: undefined,
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  };
+  it('returns the allow list when set in remote feature flags', () => {
+    const result = selectNonZeroUnusedApprovalsAllowList(
+      mockedStateWithAllowList,
+    );
+    expect(result).toEqual([
+      'https://example.com',
+      'https://another-example.com',
+    ]);
+  });
+
+  it('returns an empty array when the list is empty in remote feature flags', () => {
+    const result = selectNonZeroUnusedApprovalsAllowList(
+      mockedStateWithoutAllowList,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('returns an empty array when the allow list is undefined in remote feature flags', () => {
+    const result = selectNonZeroUnusedApprovalsAllowList(
+      mockedStateUndefinedAllowList,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('handles cases where RemoteFeatureFlagController is undefined', () => {
+    const undefinedFeatureFlagState = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: undefined,
+        },
+      },
+    };
+
+    const result = selectNonZeroUnusedApprovalsAllowList(
+      undefinedFeatureFlagState,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('handles cases where remoteFeatureFlags is undefined', () => {
+    const undefinedFeatureFlagsState = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: undefined,
+          },
+        },
+      },
+    };
+
+    const result = selectNonZeroUnusedApprovalsAllowList(
+      undefinedFeatureFlagsState,
+    );
+    expect(result).toEqual([]);
   });
 });

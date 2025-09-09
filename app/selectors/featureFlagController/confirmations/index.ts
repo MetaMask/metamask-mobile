@@ -165,3 +165,15 @@ export const selectMetaMaskPayFlags = createSelector(
     } as MetaMaskPayFlags;
   },
 );
+
+/**
+ * Selector to get the allow list for non-zero unused approvals from remote feature flags.
+ *
+ * @param state - The MetaMask state object
+ * @returns {string[]} Array of URL strings for the allow list
+ */
+export const selectNonZeroUnusedApprovalsAllowList = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>) =>
+    remoteFeatureFlags?.nonZeroUnusedApprovals ?? [],
+);

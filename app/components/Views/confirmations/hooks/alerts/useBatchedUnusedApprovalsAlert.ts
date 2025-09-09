@@ -2,8 +2,10 @@ import { Hex } from '@metamask/utils';
 import {
   NestedTransactionMetadata,
   SimulationTokenBalanceChange,
+  SimulationErrorCode,
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import { TokenStandard } from '../../../../UI/SimulationDetails/types';
@@ -18,6 +20,8 @@ import {
   ParsedApprovalTransactionData,
 } from '../../utils/approvals';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+import { selectNonZeroUnusedApprovalsAllowList } from '../../../../../selectors/featureFlagController/confirmations';
 
 function getParsedDataAndTokenAddress(transaction: NestedTransactionMetadata): {
   parseResult?: ParsedApprovalTransactionData;
@@ -169,10 +173,26 @@ function findUnusedApprovals(approvals: Hex[], tokenOutflows: Hex[]): Hex[] {
 
 export const useBatchedUnusedApprovalsAlert = () => {
   const transactionMetadata = useTransactionMetadataRequest();
+  const nonZeroUnusedApprovalsAllowList = useSelector(
+    selectNonZeroUnusedApprovalsAllowList,
+  ) as string[] | undefined;
 
   const nestedTransactions = transactionMetadata?.nestedTransactions;
   const simulationDataArray =
     transactionMetadata?.simulationData?.tokenBalanceChanges;
+  const simulationData = transactionMetadata?.simulationData;
+  const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
+  // Check if simulation ran successfully and is supported on users preferences
+  const isSimulationSupported =
+    isSimulationEnabled &&
+    ![
+      SimulationErrorCode.ChainNotSupported,
+      SimulationErrorCode.Disabled,
+    ].includes(simulationData?.error?.code as SimulationErrorCode);
+  // Skip alert if the origin is in the allow list
+  const skipAlertOriginAllowed = nonZeroUnusedApprovalsAllowList?.includes(
+    transactionMetadata?.origin ?? '',
+  );
 
   const { value: approvals } = useAsyncResult(async () => {
     if (!nestedTransactions?.length) {
@@ -199,7 +219,10 @@ export const useBatchedUnusedApprovalsAlert = () => {
   }, [approvals, tokenOutflows]);
 
   const shouldShowAlert =
-    unusedApprovals.length > 0 && Boolean(transactionMetadata?.simulationData);
+    unusedApprovals.length > 0 &&
+    Boolean(simulationData) &&
+    isSimulationSupported &&
+    !skipAlertOriginAllowed;
 
   return useMemo(() => {
     if (!shouldShowAlert) {
