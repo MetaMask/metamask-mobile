@@ -117,6 +117,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import RewardsView from '../../UI/Rewards/Views/RewardsView';
 import ReferralRewardsView from '../../UI/Rewards/Views/RewardsReferralView';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
+import TradeWalletActions from '../../Views/TradeWalletActions';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -532,6 +533,10 @@ const HomeTabs = () => {
       tabBarIconKey: TabBarIconKey.Actions,
       rootScreenName: Routes.MODAL.WALLET_ACTIONS,
     },
+    trade: {
+      tabBarIconKey: TabBarIconKey.Trade,
+      rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
+    },
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
       callback: () => {
@@ -628,9 +633,14 @@ const HomeTabs = () => {
         component={BrowserFlow}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-      <Tab.Screen
+      {/* <Tab.Screen
         name={Routes.MODAL.WALLET_ACTIONS}
         options={options.actions}
+        component={WalletTabModalFlow}
+      /> */}
+      <Tab.Screen
+        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+        options={options.trade}
         component={WalletTabModalFlow}
       />
       <Tab.Screen

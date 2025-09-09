@@ -479,6 +479,7 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
+    "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards"
   },
@@ -5299,7 +5300,7 @@
     "user_cancelled_title": "Login cancelled",
     "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
     "user_cancelled_button": "Try again",
-  
+
     "google_login_no_credential_title": "Google login failed",
     "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
     "google_login_no_credential_button": "Try again",

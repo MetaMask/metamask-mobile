@@ -154,6 +154,7 @@ import { PayWithModal } from '../../Views/confirmations/components/modals/pay-wi
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
+import TradeWalletActions from '../../Views/TradeWalletActions';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -342,6 +343,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+      component={TradeWalletActions}
     />
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
