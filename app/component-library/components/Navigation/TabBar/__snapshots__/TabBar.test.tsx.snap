@@ -259,7 +259,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <View
-          accessibilityLabel=""
+          accessibilityLabel="Trade"
           accessibilityRole="button"
           accessibilityState={
             {
@@ -293,32 +293,45 @@ exports[`TabBar renders correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#4459ff",
-              "borderRadius": 9999,
-              "height": 45,
+              "backgroundColor": "transparent",
               "justifyContent": "center",
               "paddingBottom": 4,
-              "paddingLeft": 4,
-              "paddingRight": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
               "paddingTop": 4,
-              "width": 45,
             }
           }
           testID="tab-bar-item-Actions"
         >
           <SvgMock
-            color="#ffffff"
+            color="#686e7d"
             fill="currentColor"
-            height={20}
+            height={24}
             name="SwapVertical"
             style={
               {
-                "height": 20,
-                "width": 20,
+                "height": 24,
+                "width": 24,
               }
             }
-            width={20}
+            width={24}
           />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Trade
+          </Text>
         </View>
       </View>
     </View>
