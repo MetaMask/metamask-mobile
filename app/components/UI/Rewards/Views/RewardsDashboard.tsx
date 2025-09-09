@@ -23,23 +23,21 @@ import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { Alert } from 'react-native';
 import { RewardsTab } from '../../../../reducers/rewards/types';
-import {
-  selectActiveTab,
-  selectSubscriptionId,
-} from '../../../../reducers/rewards/selectors';
-import { useRewardsEngineControllerSync } from '../hooks/useRewardsEngineControllerSync';
+import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
-const RewardsView: React.FC = () => {
+const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
   const activeTab = useSelector(selectActiveTab);
-  const subscriptionId = useSelector(selectSubscriptionId);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
 
   // Sync rewards controller state with UI store
-  useRewardsEngineControllerSync();
+  useSeasonStatus();
 
   // Set navigation title
   useEffect(() => {
@@ -164,4 +162,4 @@ const RewardsView: React.FC = () => {
   );
 };
 
-export default RewardsView;
+export default RewardsDashboard;
