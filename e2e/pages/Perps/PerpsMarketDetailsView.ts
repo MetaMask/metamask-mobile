@@ -5,6 +5,7 @@ import {
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import Utilities from '../../framework/Utilities';
 
 class PerpsMarketDetailsView {
   // Container elements
@@ -184,6 +185,17 @@ class PerpsMarketDetailsView {
 
   async waitForChartToLoad() {
     await Gestures.waitAndTap(this.candlestickChart);
+  }
+
+  // Ensures the screen is ready (scroll view exists and UI is stable) before scrolling
+  async waitForScreenReady() {
+    await Utilities.waitForReadyState(
+      this.scrollView as unknown as DetoxElement,
+      {
+        checkStability: true,
+        elemDescription: 'Perps market details scroll view',
+      },
+    );
   }
 
   async scrollToBottom() {

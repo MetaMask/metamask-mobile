@@ -4,11 +4,13 @@ import {
   PerpsOrderViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsPositionDetailsViewSelectorsIDs,
   getPerpsTPSLBottomSheetSelector,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 
 class PerpsView {
   get closePositionButton() {
@@ -42,6 +44,12 @@ class PerpsView {
   get closePositionBottomSheetButton() {
     return Matchers.getElementByID(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+  }
+
+  get closePositionBottomSheet() {
+    return Matchers.getElementByID(
+      PerpsPositionDetailsViewSelectorsIDs.CLOSE_POSITION_BOTTOMSHEET,
     );
   }
 
@@ -186,6 +194,8 @@ class PerpsView {
   async tapClosePositionButton() {
     await Gestures.waitAndTap(this.closePositionButton, {
       elemDescription: 'Close position button',
+      checkStability: true,
+      timeout: 10000,
     });
   }
 
@@ -230,8 +240,20 @@ class PerpsView {
   }
 
   async tapClosePositionBottomSheetButton() {
+    // Wait robustly until the confirm button appears (sheet open + layout ready)
+    await Utilities.waitUntil(
+      async () =>
+        await Utilities.isElementVisible(
+          this.closePositionBottomSheetButton as unknown as DetoxElement,
+          400,
+        ),
+      { interval: 200, timeout: 7000 },
+    );
     await Gestures.waitAndTap(this.closePositionBottomSheetButton, {
       elemDescription: 'Close position bottom sheet button',
+      checkStability: true,
+      timeout: 10000,
+      waitForElementToDisappear: true,
     });
   }
 
