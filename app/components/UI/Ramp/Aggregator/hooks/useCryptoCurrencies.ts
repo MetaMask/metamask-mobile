@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
+import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 
 export default function useCryptoCurrencies() {
   const {
@@ -14,6 +16,8 @@ export default function useCryptoCurrencies() {
     intent,
     setIntent,
   } = useRampSDK();
+
+  const rampNetworks = useSelector(getRampNetworks);
 
   const [
     {
@@ -35,8 +39,11 @@ export default function useCryptoCurrencies() {
       !errorCryptoCurrencies &&
       sdkCryptoCurrencies
     ) {
-      const filteredTokens = sdkCryptoCurrencies.filter(
-        (token) => token.network?.chainId === selectedChainId,
+      const rampNetworkChainIds = rampNetworks.map(
+        (network) => network.chainId,
+      );
+      const filteredTokens = sdkCryptoCurrencies.filter((token) =>
+        rampNetworkChainIds.includes(token.network?.chainId),
       );
       return filteredTokens;
     }
@@ -45,7 +52,7 @@ export default function useCryptoCurrencies() {
     errorCryptoCurrencies,
     isFetchingCryptoCurrencies,
     sdkCryptoCurrencies,
-    selectedChainId,
+    rampNetworks,
   ]);
 
   /**
@@ -69,15 +76,25 @@ export default function useCryptoCurrencies() {
 
       if (
         !selectedAsset ||
-        `${selectedAsset.network?.chainId}` !== selectedChainId ||
         !cryptoCurrencies.find(
-          (token) => token.address === selectedAsset.address,
+          (token) =>
+            token.address === selectedAsset.address &&
+            token.network?.chainId === selectedAsset.network?.chainId,
         )
       ) {
-        const nativeAsset = cryptoCurrencies.find(
+        const nativeAssetForCurrentChain = cryptoCurrencies.find(
+          (a) =>
+            a.address === NATIVE_ADDRESS &&
+            a.network?.chainId === selectedChainId,
+        );
+        const fallbackNativeAsset = cryptoCurrencies.find(
           (a) => a.address === NATIVE_ADDRESS,
         );
-        setSelectedAsset(nativeAsset || cryptoCurrencies?.[0]);
+        setSelectedAsset(
+          nativeAssetForCurrentChain ||
+            fallbackNativeAsset ||
+            cryptoCurrencies?.[0],
+        );
       }
     }
   }, [
