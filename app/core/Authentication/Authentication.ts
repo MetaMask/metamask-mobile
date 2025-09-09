@@ -68,6 +68,8 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -573,7 +575,6 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
-
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -610,10 +611,34 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      const errorMessage = (e as Error).message;
+
+      // Track authentication failures that could indicate vault/keychain issues to Segment
+      const isVaultRelated =
+        errorMessage.includes('vault') ||
+        errorMessage.includes('keyring') ||
+        errorMessage.includes('Cannot unlock') ||
+        errorMessage.includes('decrypt');
+
+      if (isVaultRelated) {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.VAULT_CORRUPTION_DETECTED,
+          )
+            .addProperties({
+              error_type: 'authentication_service_failure',
+              error_message: errorMessage,
+              context: 'app_triggered_auth_failed',
+              bio_state_machine_id: bioStateMachineId,
+            })
+            .build(),
+        );
+      }
+
       ReduxService.store.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
-        (e as Error).message,
+        errorMessage,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
         this.authData,
       );
