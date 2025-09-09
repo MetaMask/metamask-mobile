@@ -12,6 +12,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod } from '../../constants/chartConfig';
 import { getPerpsCandlePeriodSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 
 // Default candle periods with preset values
 const DEFAULT_CANDLE_PERIODS = [
@@ -72,7 +73,7 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
           >
             <Text
               variant={TextVariant.BodySm}
-              twClassName={isSelected ? 'text-text-default' : 'text-text-muted'}
+              twClassName={isSelected ? 'text-text-default' : 'text-text-alternative'}
             >
               {period.label}
             </Text>
@@ -84,7 +85,7 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
       <Pressable
         style={({ pressed }) =>
           tw.style(
-            'px-3 py-1.5 rounded-lg mx-0.5 items-center justify-center bg-background-default',
+            'px-3 py-1.5 rounded-lg mx-0.5 items-center justify-center bg-background-default flex-row',
             pressed && 'opacity-70',
           )
         }
@@ -93,9 +94,10 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
           testID ? getPerpsCandlePeriodSelector.moreButton(testID) : undefined
         }
       >
-        <Text variant={TextVariant.BodySm} twClassName="text-text-muted">
+        <Text variant={TextVariant.BodySm} twClassName="text-text-alternative mr-1">
           {strings('perps.chart.candle_period_selector.show_more')}
         </Text>
+        <Icon name={IconName.ArrowDown} size={IconSize.Xs}  color={IconColor.Alternative}  />
       </Pressable>
     </Box>
   );

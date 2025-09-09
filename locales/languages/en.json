@@ -1232,7 +1232,7 @@
         "title": "Market Details",
         "error_message": "Market data not found. Please go back and try again."
       },
-      "statistics": "Statistics",
+      "statistics": "Overview",
       "24hr_high": "24hr high",
       "24hr_low": "24hr low",
       "24h_volume": "24hr volume",

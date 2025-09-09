@@ -146,7 +146,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         <View style={styles.headerLeft}>
           <View style={styles.headerRow}>
             {/* Show order type or direction */}
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {order.detailedOrderType || derivedData.direction}
             </Text>
             {/* Fill percentage badge with icon */}
@@ -169,7 +169,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 </View>
               )}
           </View>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
             {formatTransactionDate(order.timestamp)}
           </Text>
         </View>
@@ -180,7 +180,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
               {formatPrice(derivedData.sizeInUSD)}
             </Text>
           </View>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
             {formatPositionSize(order.originalSize)} {order.symbol}
           </Text>
         </View>
@@ -276,7 +276,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
             disabled={disabled}
-            style={[styles.footerButton, styles.footerButtonExpanded]}
+            style={[styles.footerButton]}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>
