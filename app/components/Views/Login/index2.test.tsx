@@ -1125,6 +1125,14 @@ describe('Login test suite 2', () => {
       mockIsDeletingInProgress.mockReturnValue(false);
       mockIsEnabled.mockReturnValue(true);
 
+      // Set up route params for non-OAuth login scenario
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
       const seedlessError = new Error(
         'SeedlessOnboardingController - OAuth rehydration failed',
       );
