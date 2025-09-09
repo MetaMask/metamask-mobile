@@ -349,7 +349,6 @@ jobs:
       [
         check-diff,
         dedupe,
-        detect-changes,
         scripts,
         unit-tests,
         check-workflows,
