@@ -3,6 +3,7 @@ import {
   AccountListBottomSheetSelectorsIDs,
   AccountListBottomSheetSelectorsText,
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
+import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
@@ -38,6 +39,12 @@ class AccountListBottomSheet {
     );
   }
 
+  get createAccount(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+    );
+  }
+
   get addEthereumAccountButton(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
@@ -56,13 +63,8 @@ class AccountListBottomSheet {
     );
   }
 
-  async getAccountElementByAccountName(
-    accountName: string,
-  ): Promise<DetoxElement> {
-    return Matchers.getElementByIDAndLabel(
-      CellComponentSelectorsIDs.BASE_TITLE,
-      accountName,
-    );
+  getAccountElementByAccountName(accountName: string): DetoxElement {
+    return Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName);
   }
 
   async getSelectElement(index: number): DetoxElement {
@@ -122,9 +124,9 @@ class AccountListBottomSheet {
     });
   }
 
-  async tapAddEthereumAccountButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addEthereumAccountButton, {
-      elemDescription: 'Add Ethereum Account button',
+  async tapCreateEthereumAccount(): Promise<void> {
+    await Gestures.waitAndTap(this.createAccount, {
+      elemDescription: 'Create account link',
     });
   }
 
@@ -154,9 +156,10 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
-    const name = Matchers.getElementByText(accountName);
-
-    await Gestures.waitAndTap(name);
+    const element = this.getAccountElementByAccountName(accountName);
+    await Gestures.waitAndTap(element, {
+      elemDescription: `tap account with name: ${accountName}`,
+    });
   }
 
   async scrollToAccount(index: number): Promise<void> {
