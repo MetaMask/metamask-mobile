@@ -1,6 +1,7 @@
 import { IconName } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { isNullOrUndefined } from '@metamask/utils';
 
 /**
  * Formats a timestamp for rewards date
@@ -38,34 +39,47 @@ const getPerpsEventDirection = (direction: string) => {
   }
 };
 
+const getPerpsEventTitle = (event: PointsEventDto): string => {
+  const { payload } = event;
+
+  switch (payload?.type) {
+    case PerpsEventType.TAKE_PROFIT:
+      return strings('rewards.events.take_profit');
+    case PerpsEventType.CLOSE_POSITION:
+      return strings('rewards.events.close_position');
+    case PerpsEventType.STOP_LOSS:
+      return strings('rewards.events.stop_loss');
+    case PerpsEventType.OPEN_POSITION:
+      return strings('rewards.events.open_position');
+    default:
+      return strings('rewards.events.uncategorized_event');
+  }
+};
+
 const getPerpsEventDetails = (event: PointsEventDto): string | undefined => {
   const { payload } = event;
 
   if (
-    payload &&
-    typeof payload === 'object' &&
-    'token' in payload &&
-    typeof payload.token === 'object' &&
-    payload.token &&
-    'symbol' in payload.token &&
-    'decimals' in payload.token &&
-    'amount' in payload.token &&
-    'type' in payload
-  ) {
-    const { amount, decimals, symbol } = payload.token;
-    switch (payload.type) {
-      case PerpsEventType.OPEN_POSITION:
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return `${getPerpsEventDirection((payload as any).direction)} ${
-          (amount as number) / (decimals as number)
-        } ${symbol}`;
-      case PerpsEventType.CLOSE_POSITION:
-      case PerpsEventType.TAKE_PROFIT:
-      case PerpsEventType.STOP_LOSS:
-        return `$${symbol} ${(amount as number) / (decimals as number)}`;
-      default:
-        return undefined;
-    }
+    isNullOrUndefined(payload?.token?.amount) ||
+    isNullOrUndefined(payload?.token?.decimals) ||
+    isNullOrUndefined(payload?.token?.symbol)
+  )
+    return undefined;
+
+  const { amount, decimals, symbol } = payload.token;
+
+  switch (payload.type) {
+    case PerpsEventType.OPEN_POSITION:
+      if (isNullOrUndefined(payload.direction)) return undefined;
+      return `${getPerpsEventDirection(payload.direction)} ${
+        (amount as number) / (decimals as number)
+      } ${symbol}`;
+    case PerpsEventType.CLOSE_POSITION:
+    case PerpsEventType.TAKE_PROFIT:
+    case PerpsEventType.STOP_LOSS:
+      return `$${symbol} ${(amount as number) / (decimals as number)}`;
+    default:
+      return undefined;
   }
 };
 
@@ -85,9 +99,9 @@ export const getEventDetails = (
       };
     case 'PERPS':
       return {
-        title: strings('rewards.events.perps'),
+        title: getPerpsEventTitle(event),
         details: getPerpsEventDetails(event),
-        icon: IconName.Chart,
+        icon: IconName.Candlestick,
       };
     case 'REFERRAL':
       return {

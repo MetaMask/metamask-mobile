@@ -5574,6 +5574,10 @@
       "sign_up_bonus": "Sign up bonus",
       "loyalty_bonus": "Loyalty bonus",
       "one_time_bonus": "One-time bonus",
+      "open_position": "Opened position",
+      "close_position": "Closed position",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
       "uncategorized_event": "Uncategorized event"
     },
 
