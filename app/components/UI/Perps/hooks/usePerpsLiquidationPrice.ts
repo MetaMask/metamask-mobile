@@ -30,12 +30,11 @@ export const usePerpsLiquidationPrice = (
   const [error, setError] = useState<string | null>(null);
 
   const debounceMs = options?.debounceMs ?? 0;
+  const { entryPrice, leverage, direction, asset } = params;
 
   const calculatePrice = useMemo(
     () =>
       debounce(async () => {
-        const { entryPrice, leverage, direction, asset } = params;
-
         // Skip calculation if invalid parameters
         if (entryPrice <= 0 || leverage <= 0 || !asset) {
           setLiquidationPrice('0.00');
@@ -74,7 +73,14 @@ export const usePerpsLiquidationPrice = (
           setIsCalculating(false);
         }
       }, debounceMs),
-    [params, calculateLiquidationPrice, debounceMs],
+    [
+      entryPrice,
+      leverage,
+      direction,
+      asset,
+      calculateLiquidationPrice,
+      debounceMs,
+    ],
   );
 
   useEffect(() => {
