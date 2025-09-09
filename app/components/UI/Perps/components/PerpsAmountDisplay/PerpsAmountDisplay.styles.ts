@@ -12,7 +12,7 @@ const createStyles = (colors: Theme['colors']) =>
       marginBottom: 8,
     },
     amountValue: {
-      fontSize: 64,
+      fontSize: 54,
       fontWeight: '600',
       color: colors.text.default,
       lineHeight: 72,
@@ -25,15 +25,15 @@ const createStyles = (colors: Theme['colors']) =>
       letterSpacing: -0.5,
     },
     amountValueActive: {
-      color: colors.primary.default,
+      color: colors.text.default,
     },
     amountValueError: {
       color: colors.error.default,
     },
     cursor: {
       width: 2,
-      height: 64,
-      backgroundColor: colors.primary.default,
+      height: 54,
+      backgroundColor: colors.text.default,
       marginLeft: 4,
     },
     amountRow: {

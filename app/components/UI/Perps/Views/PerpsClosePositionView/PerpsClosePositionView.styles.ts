@@ -81,8 +81,10 @@ export const createStyles = (theme: Theme) => {
       gap: 4,
     },
     totalRow: {
-      marginTop: 8,
-      paddingTop: 8,
+      marginTop: 12,
+      paddingTop: 20,
+      borderTopColor: colors.border.muted,
+      borderTopWidth: 1,
     },
     validationSection: {
       paddingHorizontal: 16,
@@ -110,6 +112,32 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       paddingVertical: 16,
       gap: 12,
+    },
+    footerWithSummary: {
+      paddingTop: 0,
+    },
+    summaryContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+      gap: 4,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingVertical: 4,
+    },
+    summaryLabel: {
+      flex: 1,
+    },
+    summaryValue: {
+      flexShrink: 0,
+      alignItems: 'flex-end',
+    },
+    summaryTotalRow: {
+      marginTop: 4,
+      paddingTop: 8,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
     },
@@ -157,6 +185,13 @@ export const createStyles = (theme: Theme) => {
       marginRight: -6, // Compensate for padding to keep visual alignment
       marginTop: -10, // Keep icon at same vertical position
       marginBottom: -10, // Keep icon at same vertical position
+    },
+    merginAmountContainer: {
+      alignItems: 'flex-end',
+    },
+    inclusiveFeeRow: {
+      flexDirection: 'row',
+      gap: 4,
     },
   });
 };

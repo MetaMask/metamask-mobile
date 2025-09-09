@@ -255,10 +255,13 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
           {showPercentageLabels &&
             percentageSteps.map((percent) => {
               // Don't show dots at 0% and 100%
-              if (percent === 0 || percent === 100) return null;
+              // if (percent === 0 || percent === 100) return null;
 
               let dotStyle;
               switch (percent) {
+                case 0:
+                  dotStyle = styles.percentageDot0;
+                  break;
                 case 25:
                   dotStyle = styles.percentageDot25;
                   break;
@@ -267,6 +270,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
                   break;
                 case 75:
                   dotStyle = styles.percentageDot75;
+                  break;
+                case 100:
+                  dotStyle = styles.percentageDot100;
                   break;
                 default:
                   dotStyle = {};
