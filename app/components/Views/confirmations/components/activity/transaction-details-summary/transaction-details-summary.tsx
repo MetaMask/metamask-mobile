@@ -29,6 +29,7 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 import { useNavigation } from '@react-navigation/native';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -70,6 +71,11 @@ function SummaryLine({
   const { styles } = useStyles(styleSheet, { isLast });
   const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
   const navigation = useNavigation();
+  const allBridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
+  const approvalBridgeHistory = Object.values(allBridgeHistory).find(
+    (h) => h.approvalTxId === transaction.id,
+  );
 
   const { chainId: chainIdHex, hash: txHash } = transaction;
   const chainId = parseInt(chainIdHex, 16);
@@ -95,7 +101,11 @@ function SummaryLine({
     transaction.submittedTime ?? transaction.time,
   );
 
-  const title = getLineTitle(transaction, bridgeHistory.bridgeTxHistoryItem);
+  const title = getLineTitle(
+    transaction,
+    bridgeHistory.bridgeTxHistoryItem,
+    approvalBridgeHistory,
+  );
 
   if (!title) {
     return null;
@@ -159,16 +169,22 @@ function getDateString(timestamp: number): string {
 function getLineTitle(
   transactionMeta: TransactionMeta,
   bridgeHistory?: BridgeHistoryItem,
+  approvalBridgeHistory?: BridgeHistoryItem,
 ): string | undefined {
   const { type } = transactionMeta;
   const sourceSymbol = bridgeHistory?.quote.srcAsset.symbol;
   const targetSymbol = bridgeHistory?.quote.destAsset.symbol;
+  const approveSymbol = approvalBridgeHistory?.quote.srcAsset.symbol;
 
   switch (type) {
     case TransactionType.bridge:
       return strings('transaction_details.summary_title.bridge', {
         sourceSymbol,
         targetSymbol,
+      });
+    case TransactionType.bridgeApproval:
+      return strings('transaction_details.summary_title.bridge_approval', {
+        approveSymbol,
       });
     case TransactionType.perpsDeposit:
       return strings('transaction_details.summary_title.perps_deposit');
