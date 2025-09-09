@@ -2,6 +2,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
+import { formatUnits } from 'viem';
 
 /**
  * Formats a timestamp for rewards date
@@ -83,6 +84,32 @@ const getPerpsEventDetails = (event: PointsEventDto): string | undefined => {
   }
 };
 
+/**
+ * Formats a swap event details
+ * @param event - The swap event
+ * @returns The swap event details
+ */
+const getSwapEventDetails = (event: PointsEventDto): string | undefined => {
+  const { payload } = event;
+
+  if (
+    isNullOrUndefined(payload?.srcAsset?.amount) ||
+    isNullOrUndefined(payload?.srcAsset?.decimals) ||
+    isNullOrUndefined(payload?.srcAsset?.symbol)
+  )
+    return undefined;
+
+  const { amount, decimals, symbol } = payload.srcAsset;
+  const formattedAmount = formatUnits(BigInt(amount), decimals);
+
+  return `${formattedAmount} ${symbol} to ${payload.destAsset.symbol}`;
+};
+
+/**
+ * Formats an event details
+ * @param event - The event
+ * @returns The event details
+ */
 export const getEventDetails = (
   event: PointsEventDto,
 ): {
@@ -94,7 +121,7 @@ export const getEventDetails = (
     case 'SWAP':
       return {
         title: strings('rewards.events.swap'),
-        details: '0.0 ETH to USDC',
+        details: getSwapEventDetails(event),
         icon: IconName.SwapVertical,
       };
     case 'PERPS':
@@ -107,7 +134,7 @@ export const getEventDetails = (
       return {
         title: 'Referral action',
         details: undefined,
-        icon: IconName.People,
+        icon: IconName.UserCircleAdd,
       };
     case 'SIGN_UP_BONUS':
       return {

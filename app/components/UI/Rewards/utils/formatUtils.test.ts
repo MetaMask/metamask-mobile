@@ -45,14 +45,23 @@ describe('formatUtils', () => {
       value: 100,
       bonus: null,
       accountAddress: null,
-      accountId: 123,
-      subscriptionId: 'test-subscription',
     });
 
     describe('SWAP events', () => {
       it('returns correct details for SWAP event', () => {
         // Given a SWAP event
-        const event = createMockEvent('SWAP');
+        const event = createMockEvent('SWAP', {
+          srcAsset: {
+            symbol: 'ETH',
+            amount: 420000000000,
+            decimals: 9,
+          },
+          destAsset: {
+            symbol: 'USDC',
+            amount: 1000000,
+            decimals: 6,
+          },
+        });
 
         // When getting event details
         const result = getEventDetails(event);
@@ -60,7 +69,7 @@ describe('formatUtils', () => {
         // Then it should return swap details
         expect(result).toEqual({
           title: 'Swap',
-          details: '0.0 ETH to USDC',
+          details: '420 ETH to USDC',
           icon: IconName.SwapVertical,
         });
       });
@@ -247,7 +256,7 @@ describe('formatUtils', () => {
         expect(result).toEqual({
           title: 'Referral action',
           details: undefined,
-          icon: IconName.People,
+          icon: IconName.UserCircleAdd,
         });
       });
     });
