@@ -198,7 +198,7 @@ export class HyperLiquidSubscriptionService {
             }
           });
 
-          DevLogger.log('🔍 Cached funding rates from initial market data:', {
+          DevLogger.log('Cached funding rates from initial market data:', {
             cachedCount: perpsMeta.universe.filter((_asset, index) => {
               const assetCtx = assetCtxs[1][index];
               return assetCtx && 'funding' in assetCtx;
