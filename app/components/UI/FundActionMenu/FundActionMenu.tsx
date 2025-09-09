@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import BottomSheet, {
@@ -26,18 +26,17 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import Routes from '../../../constants/navigation/Routes';
 
 // Types
-import type {
-  FundActionMenuRouteProp,
-  ActionConfig,
-} from './FundActionMenu.types';
+import type { ActionConfig } from './FundActionMenu.types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
-const FundActionMenu = () => {
+type FundActionMenuProps = StackScreenProps<RootParamList, 'FundActionMenu'>;
+
+const FundActionMenu = ({ route }: FundActionMenuProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
-  const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
   const assetContext = route.params?.asset;

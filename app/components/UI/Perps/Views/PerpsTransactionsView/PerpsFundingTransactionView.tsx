@@ -1,8 +1,4 @@
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
@@ -23,22 +19,26 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
-import { PerpsNavigationParamList } from '../../types/navigation';
-import {
-  PerpsFundingTransactionRouteProp,
-  PerpsTransaction,
-} from '../../types/transactionHistory';
+import { PerpsTransaction } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsFundingTransactionView.styles';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../../../util/navigation/types';
 
-const PerpsFundingTransactionView: React.FC = () => {
+type PerpsFundingTransactionViewProps = StackScreenProps<
+  RootParamList,
+  'PerpsFundingTransaction'
+>;
+
+const PerpsFundingTransactionView: React.FC<
+  PerpsFundingTransactionViewProps
+> = ({ route }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route = useRoute<PerpsFundingTransactionRouteProp>();
+  const navigation = useNavigation();
 
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,

@@ -1,9 +1,5 @@
 import { Hex } from '@metamask/utils';
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -46,7 +42,6 @@ import {
 } from '../../utils/tempLending';
 import { EARN_INPUT_VIEW_ACTIONS } from '../EarnInputView/EarnInputView.types';
 import styleSheet from './EarnWithdrawInputView.styles';
-import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import BN from 'bnjs4';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { TokenI } from '../../../Tokens/types';
@@ -58,9 +53,12 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-const EarnWithdrawInputView = () => {
-  const route = useRoute<EarnWithdrawInputViewProps['route']>();
+type EarnWithdrawInputViewProps = StackScreenProps<RootParamList, 'Unstake'>;
+
+const EarnWithdrawInputView = ({ route }: EarnWithdrawInputViewProps) => {
   const { token } = route.params;
 
   const isStablecoinLendingEnabled = useSelector(

@@ -25,18 +25,24 @@ import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
-import { PerpsNavigationParamList } from '../../types/navigation';
-import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-const PerpsOrderTransactionView: React.FC = () => {
+type PerpsOrderTransactionViewProps = StackScreenProps<
+  RootParamList,
+  'PerpsOrderTransaction'
+>;
+
+const PerpsOrderTransactionView: React.FC<PerpsOrderTransactionViewProps> = ({
+  route,
+}) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route = useRoute<PerpsOrderTransactionRouteProp>();
+  const navigation = useNavigation();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,
   )('eip155:1');

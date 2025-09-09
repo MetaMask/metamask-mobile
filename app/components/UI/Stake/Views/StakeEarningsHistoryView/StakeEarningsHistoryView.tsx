@@ -1,4 +1,4 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -6,12 +6,19 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeEarningsHistoryView.styles';
-import { StakeEarningsHistoryViewRouteParams } from './StakeEarningsHistoryView.types';
 import EarningsHistory from '../../../Earn/components/Earnings/EarningsHistory/EarningsHistory';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-const StakeEarningsHistoryView = () => {
+type StakeEarningsHistoryViewProps = StackScreenProps<
+  RootParamList,
+  'EarningsHistory'
+>;
+
+const StakeEarningsHistoryView: React.FC<StakeEarningsHistoryViewProps> = ({
+  route,
+}) => {
   const navigation = useNavigation();
-  const route = useRoute<StakeEarningsHistoryViewRouteParams>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { asset } = route.params;
 

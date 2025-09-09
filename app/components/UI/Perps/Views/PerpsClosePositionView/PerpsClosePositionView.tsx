@@ -1,12 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  type NavigationProp,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -27,7 +22,6 @@ import { TooltipSizes } from '../../../../../component-library/components-temp/K
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import type { OrderType, Position } from '../../controllers/types';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
   usePerpsOrderFees,
@@ -57,14 +51,21 @@ import { PerpsClosePositionViewSelectorsIDs } from '../../../../../../e2e/select
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-const PerpsClosePositionView: React.FC = () => {
+type PerpsClosePositionViewProps = StackScreenProps<
+  RootParamList,
+  'PerpsClosePosition'
+>;
+
+const PerpsClosePositionView: React.FC<PerpsClosePositionViewProps> = ({
+  route,
+}) => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route =
-    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
-  const { position } = route.params as { position: Position };
+  const navigation = useNavigation();
+  const position = route.params.position;
 
   const hasTrackedCloseView = useRef(false);
   const { track } = usePerpsEventTracking();

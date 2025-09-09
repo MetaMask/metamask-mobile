@@ -1,16 +1,10 @@
 // Third party dependencies
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  useRoute,
-  useNavigation,
-  RouteProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { InteractionManager, SafeAreaView } from 'react-native';
 
 // External dependencies
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { View } from 'react-native-animatable';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
@@ -41,20 +35,15 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
-interface RootNavigationParamList extends ParamListBase {
-  EditAccountName: {
-    selectedAccount: InternalAccount;
-  };
-}
-
-type EditAccountNameRouteProp = RouteProp<
-  RootNavigationParamList,
+type EditAccountNameRouteProp = StackScreenProps<
+  RootParamList,
   'EditAccountName'
 >;
 
-const EditAccountName = () => {
-  const route = useRoute<EditAccountNameRouteProp>();
+const EditAccountName = ({ route }: EditAccountNameRouteProp) => {
   const { selectedAccount } = route.params;
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();

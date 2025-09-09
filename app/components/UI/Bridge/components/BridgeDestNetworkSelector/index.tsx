@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Box } from '../../../Box/Box';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -17,10 +17,16 @@ import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode } from '../../types';
+import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack';
+import {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../util/navigation/types';
 
-export interface BridgeDestNetworkSelectorRouteParams {
-  shouldGoToTokens?: boolean;
-}
+type BridgeDestNetworkSelectorProps = StackScreenProps<
+  RootParamList,
+  'BridgeDestNetworkSelector'
+>;
 
 const createStyles = () =>
   StyleSheet.create({
@@ -29,13 +35,11 @@ const createStyles = () =>
     },
   });
 
-export const BridgeDestNetworkSelector: React.FC = () => {
+export const BridgeDestNetworkSelector: React.FC<
+  BridgeDestNetworkSelectorProps
+> = ({ route }) => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
-  const route =
-    useRoute<
-      RouteProp<{ params: BridgeDestNetworkSelectorRouteParams }, 'params'>
-    >();
   const dispatch = useDispatch();
   const enabledDestChains = useSelector(selectEnabledDestChains);
   const currentChainId = useSelector(selectChainId);

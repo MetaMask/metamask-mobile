@@ -4,12 +4,7 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -28,25 +23,17 @@ import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from '../../../../../../e2e/selectors/MultichainAccounts/ShareAddressQR.selectors';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation';
 
-interface RootNavigationParamList extends ParamListBase {
-  ShareAddressQR: {
-    address: string;
-    networkName: string;
-    chainId: string;
-    accountName: string;
-  };
-}
-
-type ShareAddressQRRouteProp = RouteProp<
-  RootNavigationParamList,
+type ShareAddressQRRouteProp = StackScreenProps<
+  RootParamList,
   'ShareAddressQR'
 >;
 
-export const ShareAddressQR = () => {
+export const ShareAddressQR = ({ route }: ShareAddressQRRouteProp) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
-  const route = useRoute<ShareAddressQRRouteProp>();
   const { address, networkName, accountName, chainId } = route.params;
   const navigation = useNavigation();
   const { toBlockExplorer } = useBlockExplorer();

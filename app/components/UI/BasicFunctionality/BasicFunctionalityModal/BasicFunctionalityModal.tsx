@@ -32,16 +32,15 @@ import { useEnableNotifications } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation';
 
-interface Props {
-  route: {
-    params: {
-      caller: string;
-    };
-  };
-}
+type BasicFunctionalityModalProps = StackScreenProps<
+  RootParamList,
+  'BasicFunctionality'
+>;
 
-const BasicFunctionalityModal = ({ route }: Props) => {
+const BasicFunctionalityModal = ({ route }: BasicFunctionalityModalProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -92,8 +91,8 @@ const BasicFunctionalityModal = ({ route }: Props) => {
       );
     });
     if (
-      route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
-      route.params.caller === Routes.NOTIFICATIONS.OPT_IN
+      route.params?.caller === Routes.SETTINGS.NOTIFICATIONS ||
+      route.params?.caller === Routes.NOTIFICATIONS.OPT_IN
     ) {
       await enableNotificationsFromModal();
     }

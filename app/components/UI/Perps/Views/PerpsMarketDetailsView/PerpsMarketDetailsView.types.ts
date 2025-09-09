@@ -1,6 +1,4 @@
-export interface PerpsMarketDetailsViewProps {
-  // Empty for now, will receive market data from navigation params
-}
+import { PerpsMarketData } from '../../controllers/types';
 
 export interface MarketStatistics {
   high24h: string;
@@ -10,3 +8,8 @@ export interface MarketStatistics {
   fundingRate: string;
   countdown: string;
 }
+
+export type MarketDetailsRouteParams = {
+  market: PerpsMarketData;
+  isNavigationFromOrderSuccess?: boolean;
+};

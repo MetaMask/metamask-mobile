@@ -23,7 +23,6 @@ import Button, {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
   selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
@@ -183,7 +182,7 @@ export const TokenInputArea = forwardRef<
         screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
         params: {
           shouldGoToTokens: true,
-        } as BridgeDestNetworkSelectorRouteParams,
+        },
       });
     };
 

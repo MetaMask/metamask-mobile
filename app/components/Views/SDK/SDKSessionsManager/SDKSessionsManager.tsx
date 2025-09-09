@@ -1,4 +1,3 @@
-import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +5,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Button, {
   ButtonVariants,
@@ -23,12 +22,13 @@ import { RootState } from '../../../../reducers';
 import { SDKSelectorsIDs } from '../../../../../e2e/selectors/Settings/SDK.selectors';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation';
 
-interface SDKSessionsManagerProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: StackNavigationProp<any>;
-}
+type SDKSessionsManagerProps = StackScreenProps<
+  RootParamList,
+  'SDKSessionsManager'
+>;
 
 const createStyles = (
   colors: ThemeColors,
@@ -65,10 +65,9 @@ const createStyles = (
     disconnectAllContainer: {},
   });
 
-const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
+const SDKSessionsManager = ({ route }: SDKSessionsManagerProps) => {
   const safeAreaInsets = useSafeAreaInsets();
-  const route =
-    useRoute<RouteProp<{ params: { trigger?: number } }, 'params'>>();
+  const navigation = useNavigation();
 
   const { connections, dappConnections } = useSelector(
     (state: RootState) => state.sdk,
@@ -79,16 +78,13 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
 
-  const { navigate } = useNavigation();
-
   const toggleClearMMSDKConnectionModal = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SDK_DISCONNECT,
     });
-  }, [navigate]);
+  }, [navigation]);
 
   useEffect(() => {
-    const { navigation } = props;
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('app_settings.manage_sdk_connections_title'),
@@ -97,7 +93,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
         colors,
       ),
     );
-  }, [props, colors]);
+  }, [navigation, colors]);
 
   const renderSDKSessions = useCallback(
     () => (

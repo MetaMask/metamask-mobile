@@ -4,7 +4,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -42,23 +42,13 @@ import BN from 'bnjs4';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { EVM_SCOPE } from '../../constants/networks';
 import Logger from '../../../../../util/Logger';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-export interface LendingDepositViewRouteParams {
-  token?: TokenI;
-  amountTokenMinimalUnit?: string;
-  amountFiat?: string;
-  annualRewardsToken?: string;
-  annualRewardsFiat?: string;
-  action?: Extract<EARN_LENDING_ACTIONS, 'ALLOWANCE_INCREASE' | 'DEPOSIT'>;
-  lendingContractAddress?: string;
-  lendingProtocol?: string;
-  networkName?: string;
-  allowanceMinimalTokenUnit?: string;
-}
-
-export interface EarnLendingDepositConfirmationViewProps {
-  route: RouteProp<{ params: LendingDepositViewRouteParams }, 'params'>;
-}
+type EarnLendingDepositConfirmationViewProps = StackScreenProps<
+  RootParamList,
+  'EarnLendingDepositConfirmation'
+>;
 
 const Steps = {
   ALLOWANCE_RESET: 0,
@@ -66,11 +56,11 @@ const Steps = {
   DEPOSIT: 2,
 };
 
-const EarnLendingDepositConfirmationView = () => {
+const EarnLendingDepositConfirmationView = ({
+  route,
+}: EarnLendingDepositConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const { params } =
-    useRoute<EarnLendingDepositConfirmationViewProps['route']>();
 
   const {
     token,
@@ -80,7 +70,7 @@ const EarnLendingDepositConfirmationView = () => {
     lendingProtocol,
     action,
     allowanceMinimalTokenUnit,
-  } = params;
+  } = route.params;
 
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();

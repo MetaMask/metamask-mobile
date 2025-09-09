@@ -13,6 +13,10 @@ import { PerpsTransaction } from './transactionHistory';
 export interface PerpsNavigationParamList extends ParamListBase {
   [key: string]: object | undefined;
 
+  PerpsTutorial: {
+    isFromDeeplink: boolean;
+  };
+
   // Order flow routes
   PerpsOrder: {
     direction: 'long' | 'short';
@@ -21,6 +25,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     size?: string;
     price?: string;
     orderType?: OrderType;
+    amount?: string;
   };
 
   PerpsOrderSuccess: {

@@ -2,14 +2,8 @@ import React, { useCallback, useState } from 'react';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
@@ -28,22 +22,17 @@ import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import { TextInput } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation';
 
-interface RootNavigationParamList extends ParamListBase {
-  MultichainEditAccountName: {
-    account: InternalAccount;
-  };
-}
-
-type EditAccountNameRouteProp = RouteProp<
-  RootNavigationParamList,
+type MultchainEditAccountNameProps = StackScreenProps<
+  RootParamList,
   'MultichainEditAccountName'
 >;
 
-export const EditAccountName = () => {
+export const EditAccountName = ({ route }: MultchainEditAccountNameProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = useTheme();
-  const route = useRoute<EditAccountNameRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
   const [accountName, setAccountName] = useState(account.metadata.name);

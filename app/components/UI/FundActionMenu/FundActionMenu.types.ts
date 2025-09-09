@@ -11,11 +11,6 @@ export interface FundActionMenuParams {
   };
 }
 
-export type FundActionMenuRouteProp = RouteProp<
-  { FundActionMenu: FundActionMenuParams },
-  'FundActionMenu'
->;
-
 export interface ActionConfig {
   type: 'deposit' | 'buy' | 'sell';
   label: string;

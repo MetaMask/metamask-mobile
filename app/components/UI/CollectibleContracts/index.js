@@ -186,7 +186,6 @@ const CollectibleContracts = ({
   selectedAddress,
   chainId,
   networkType,
-  navigation,
   collectibleContracts,
   collectibles: allCollectibles,
   isNftFetchingProgress,
@@ -198,6 +197,7 @@ const CollectibleContracts = ({
 }) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
+  const navigation = useNavigation();
 
   if (isFirstRender.current) {
     trace({ name: TraceName.CollectibleContractsComponent });

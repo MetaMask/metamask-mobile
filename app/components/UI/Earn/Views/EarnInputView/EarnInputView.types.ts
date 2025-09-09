@@ -1,4 +1,3 @@
-import { RouteProp } from '@react-navigation/native';
 import { TokenI } from '../../../Tokens/types';
 
 export enum EARN_INPUT_VIEW_ACTIONS {
@@ -6,10 +5,6 @@ export enum EARN_INPUT_VIEW_ACTIONS {
   WITHDRAW = 'WITHDRAW',
 }
 
-interface EarnInputViewRouteParams {
+export type EarnInputViewRouteParams = {
   token: TokenI;
-}
-
-export interface EarnInputViewProps {
-  route: RouteProp<{ params: EarnInputViewRouteParams }, 'params'>;
-}
+};

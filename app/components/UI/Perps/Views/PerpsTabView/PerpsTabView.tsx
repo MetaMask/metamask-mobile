@@ -1,4 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,7 +30,6 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsAccount,
   usePerpsConnection,
@@ -49,7 +48,7 @@ interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
   );

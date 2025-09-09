@@ -1,9 +1,4 @@
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-  RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -30,12 +25,12 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
@@ -97,15 +92,16 @@ const tutorialScreens: TutorialScreen[] = [
   },
 ];
 
-interface PerpsTutorialRouteParams {
-  isFromDeeplink?: boolean;
-}
+type PerpsTutorialCarouselProps = StackScreenProps<
+  RootParamList,
+  'PerpsTutorial'
+>;
 
-const PerpsTutorialCarousel: React.FC = () => {
+const PerpsTutorialCarousel: React.FC<PerpsTutorialCarouselProps> = ({
+  route,
+}) => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route =
-    useRoute<RouteProp<{ params: PerpsTutorialRouteParams }, 'params'>>();
+  const navigation = useNavigation();
   const isFromDeeplink = route.params?.isFromDeeplink || false;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
@@ -223,6 +219,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isFromDeeplink) {
       // Navigate to wallet home first
       navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET_VIEW,
         params: { initialTab: 'perps', shouldSelectPerpsTab: true },
       });
     } else {

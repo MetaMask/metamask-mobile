@@ -22,13 +22,9 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import {
-  OnboardingActionTypes,
-  saveOnboardingEvent as saveEvent,
-} from '../../../actions/onboarding';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import { useDispatch } from 'react-redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -80,11 +76,11 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import OAuthService from '../../../core/OAuthService/OAuthService';
@@ -104,26 +100,21 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import FOX_LOGO from '../../../images/branding/fox.png';
-import type { NavigatableRootParamList } from '../../../util/navigation';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../util/navigation';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
 const EmptyRecordConstant = {};
 
-interface LoginRouteParams {
-  locked: boolean;
-  oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: unknown;
-}
-
-interface LoginProps {
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
-}
+type LoginProps = StackScreenProps<RootParamList, 'Login'>;
 
 /**
  * View where returning users can authenticate
  */
-const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
+const Login: React.FC<LoginProps> = ({ route }) => {
   const [disabledInput, setDisabledInput] = useState(false);
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -144,7 +135,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation =
     useNavigation<StackNavigationProp<NavigatableRootParamList, 'Login'>>();
-  const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -152,6 +142,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
+  const dispatch = useDispatch();
+  const saveOnboardingEvent = (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs));
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -786,9 +779,4 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   );
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(saveEvent(eventArgs)),
-});
-
-export default connect(null, mapDispatchToProps)(Login);
+export default Login;

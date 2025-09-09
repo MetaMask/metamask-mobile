@@ -23,6 +23,8 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -40,17 +42,7 @@ const createStyles = (
     },
   });
 
-interface SDKDisconnectModalProps {
-  route: {
-    params: {
-      channelId?: string;
-      account?: string;
-      accountName?: string;
-      dapp?: string;
-      accountsLength?: number;
-    };
-  };
-}
+type SDKDisconnectModalProps = StackScreenProps<RootParamList, 'SDKDisconnect'>;
 
 const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   const { params } = route;

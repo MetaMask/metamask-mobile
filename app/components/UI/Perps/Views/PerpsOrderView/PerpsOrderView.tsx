@@ -1,9 +1,4 @@
-import {
-  useNavigation,
-  useRoute,
-  type NavigationProp,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useContext,
@@ -67,11 +62,7 @@ import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
-import type {
-  OrderParams,
-  OrderType,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import type { OrderParams, OrderType } from '../../controllers/types';
 import {
   usePerpsAccount,
   usePerpsLiquidationPrice,
@@ -88,22 +79,10 @@ import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import createStyles from './PerpsOrderView.styles';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-// Navigation params interface
-interface OrderRouteParams {
-  direction?: 'long' | 'short';
-  asset?: string;
-  amount?: string;
-  leverage?: number;
-  // Modal return values
-  leverageUpdate?: number;
-  orderTypeUpdate?: OrderType;
-  tpslUpdate?: {
-    takeProfitPrice?: string;
-    stopLossPrice?: string;
-  };
-  limitPriceUpdate?: string;
-}
+type PerpsOrderViewProps = StackScreenProps<RootParamList, 'PerpsOrder'>;
 
 /**
  * PerpsOrderViewContentBase
@@ -117,7 +96,7 @@ interface OrderRouteParams {
  * - Comprehensive order validation
  */
 const PerpsOrderViewContentBase: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
 
   const styles = createStyles(colors);
@@ -1131,9 +1110,7 @@ const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);
 // Set display name for debugging
 PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 // Main component that wraps content with context providers
-const PerpsOrderView: React.FC = () => {
-  const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
-
+const PerpsOrderView: React.FC<PerpsOrderViewProps> = ({ route }) => {
   // Get navigation params to pass to context provider
   const {
     direction = 'long',

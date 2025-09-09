@@ -49,6 +49,8 @@ import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
 import { sortByHighestBalance, sortByHighestRewards } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
+import { RootParamList } from '../../../../../util/navigation';
+import { StackScreenProps } from '@react-navigation/stack';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -77,18 +79,9 @@ const EarnTokenListSkeletonPlaceholder = () => (
   </View>
 );
 
-interface EarnTokenListViewRouteParams {
-  tokenFilter: {
-    includeReceiptTokens: boolean;
-  };
-  onItemPressScreen: string;
-}
+type EarnTokenListProps = StackScreenProps<RootParamList, 'EarnTokenList'>;
 
-export interface EarnTokenListProps {
-  route: RouteProp<{ params: EarnTokenListViewRouteParams }, 'params'>;
-}
-
-const EarnTokenList = () => {
+const EarnTokenList = ({ route: { params } }: EarnTokenListProps) => {
   // Start polling lending networks when this component mounts and stops when it unmounts
   // This is currently the main component that needs data cross chain on boot
   useEarnNetworkPolling();
@@ -98,7 +91,6 @@ const EarnTokenList = () => {
   const { createEventBuilder, trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
-  const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const traceEndedRef = useRef(false);
 
@@ -354,13 +346,13 @@ const EarnTokenList = () => {
  * Temporary wrapper to prevent rending if feature flags aren't enabled.
  * We can delete this wrapped once these feature flags are removed.
  */
-const EarnTokenListWrapper = () => {
+const EarnTokenListWrapper = (props: EarnTokenListProps) => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
 
   if (isStablecoinLendingEnabled && isPortfolioViewEnabled()) {
-    return <EarnTokenList />;
+    return <EarnTokenList {...props} />;
   }
 
   return <></>;

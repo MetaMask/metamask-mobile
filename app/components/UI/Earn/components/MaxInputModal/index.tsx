@@ -14,17 +14,14 @@ import Button, {
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import createMaxInputModalStyles from './MaxInputModal.styles';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
 const styles = createMaxInputModalStyles();
 
-interface MaxInputModalRouteParams {
-  handleMaxPress: () => void;
-}
+type MaxInputModalProps = StackScreenProps<RootParamList, 'MaxInput'>;
 
-const MaxInputModal = () => {
-  const route =
-    useRoute<RouteProp<{ params: MaxInputModalRouteParams }, 'params'>>();
+const MaxInputModal = ({ route }: MaxInputModalProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const { handleMaxPress } = route.params;

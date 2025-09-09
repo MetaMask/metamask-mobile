@@ -1,4 +1,11 @@
-import type { IconColor, IconName } from '@metamask/design-system-react-native';
+import type {
+  IconColor as DSIconColor,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
+import type {
+  IconColor,
+  IconName as IconName,
+} from '../../component-library/components/Icons/Icon';
 import type { CaipChainId, Json } from '@metamask/utils';
 import type { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
@@ -34,6 +41,13 @@ import { AccountStatusParams } from '../../components/Views/AccountStatus/types'
 import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
 import { EarnTokenDetails } from '../../components/UI/Earn/types/lending.types';
 import { NetworkSelectorRouteParams } from '../../components/Views/NetworkSelector/types';
+import { EarnInputViewRouteParams } from '../../components/UI/Earn/Views/EarnInputView/EarnInputView.types';
+import { LendingDepositViewRouteParams } from '../../components/UI/Earn/Views/EarnLendingDepositConfirmationView/types';
+import { EarnWithdrawInputViewParams } from '../../components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.types';
+import { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
+import { PerpsRouteParams } from '../../components/UI/Perps/controllers/types';
+import { PerpsOrderViewParams } from '../../components/UI/Perps/Views/PerpsOrderView/types';
+import { StakeEarningsHistoryViewParams } from '../../components/UI/Stake/Views/StakeEarningsHistoryView/StakeEarningsHistoryView.types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -106,7 +120,7 @@ export type RootParamList = {
 
   // Modal Screens
   WalletActions: undefined;
-  FundActionMenu: undefined;
+  FundActionMenu: FundActionMenuParams;
   DeleteWalletModal:
     | {
         oauthLoginSuccess?: boolean;
@@ -175,7 +189,7 @@ export type RootParamList = {
     description: string | React.ReactNode;
     customButton?: React.ReactNode;
     type: 'success' | 'error';
-    icon?: IconName;
+    icon?: IconName | DSIconName;
     secondaryButtonLabel?: string;
     onSecondaryButtonPress?: () => void;
     primaryButtonLabel?: string;
@@ -185,7 +199,7 @@ export type RootParamList = {
     closeOnSecondaryButtonPress?: boolean;
     reverseButtonOrder?: boolean;
     descriptionAlign?: 'center' | 'left';
-    iconColor?: IconColor;
+    iconColor?: IconColor | DSIconColor;
   };
   AccountSelector: AccountSelectorParams | undefined;
   AddressSelector: AddressSelectorParams;
@@ -206,13 +220,15 @@ export type RootParamList = {
   };
   ExperienceEnhancer: undefined;
   DataCollection: undefined;
-  SDKDisconnect: {
-    channelId?: string;
-    account?: string;
-    accountName?: string;
-    dapp?: string;
-    accountsLength?: number;
-  };
+  SDKDisconnect:
+    | {
+        channelId?: string;
+        account?: string;
+        accountName?: string;
+        dapp?: string;
+        accountsLength?: number;
+      }
+    | undefined;
   AccountConnect: {
     hostInfo: any;
     permissionRequestId: string;
@@ -239,9 +255,11 @@ export type RootParamList = {
   TokenSort: undefined;
   TokenFilter: undefined;
   NetworkManager: undefined;
-  BasicFunctionality: {
-    caller: string;
-  };
+  BasicFunctionality:
+    | {
+        caller: string;
+      }
+    | undefined;
   ConfirmTurnOnBackupAndSync: undefined;
   ResetNotifications: undefined;
   ReturnToDappModal: undefined;
@@ -406,21 +424,9 @@ export type RootParamList = {
     market?: any;
   };
   PerpsPositions: undefined;
-  PerpsOrder: {
-    direction?: 'long' | 'short';
-    asset?: string;
-    amount?: string;
-    leverage?: number;
-    leverageUpdate?: number;
-    orderTypeUpdate?: any;
-    tpslUpdate?: {
-      takeProfitPrice?: string;
-      stopLossPrice?: string;
-    };
-    limitPriceUpdate?: string;
-  };
-  PerpsClosePosition: undefined;
-  PerpsTutorial: undefined;
+  PerpsOrder: PerpsOrderViewParams;
+  PerpsClosePosition: PerpsRouteParams<'PerpsClosePosition'>;
+  PerpsTutorial: PerpsRouteParams<'PerpsTutorial'> | undefined;
   PerpsModals: undefined;
   PerpsQuoteExpiredModal: undefined;
   PerpsBalanceModal: undefined;
@@ -583,38 +589,46 @@ export type RootParamList = {
   DepositConfigurationModal: undefined;
 
   // Staking Routes
-  Stake: {
-    token: TokenI;
-  };
+  Stake: EarnInputViewRouteParams;
   StakeConfirmation: {
     amountWei: string;
     amountFiat: string;
-    annualRewardsETH: string;
+    annualRewardsToken?: string;
+    annualRewardsETH?: string;
     annualRewardsFiat: string;
     annualRewardRate: string;
-    chainId: string;
+    chainId?: string;
   };
-  Unstake: {
-    token: TokenI;
-  };
+  Unstake: EarnWithdrawInputViewParams;
   UnstakeConfirmation: UnstakeConfirmationParams;
-  EarningsHistory: undefined;
+  EarningsHistory: StakeEarningsHistoryViewParams;
   Claim: undefined;
   LearnMore: {
     chainId?: string | Hex;
   };
-  MaxInput: undefined;
+  MaxInput: {
+    handleMaxPress: () => void;
+  };
   GasImpact: {
     amountWei: string;
     amountFiat: string;
-    annualRewardsETH: string;
+    annualRewardsToken?: string;
+    annualRewardsETH?: string;
     annualRewardsFiat: string;
     annualRewardRate: string;
     estimatedGasFee: string;
     estimatedGasFeePercentage: string;
-    chainId: string;
+    chainId?: string;
   };
-  EarnTokenList: undefined;
+  EarnTokenList: {
+    tokenFilter: {
+      includeNativeTokens?: boolean;
+      includeStakingTokens?: boolean;
+      includeLendingTokens?: boolean;
+      includeReceiptTokens?: boolean;
+    };
+    onItemPressScreen: string;
+  };
 
   // Send Routes
   Amount: undefined;
@@ -695,7 +709,7 @@ export type RootParamList = {
   // Settings Flow Screens
   Settings: undefined;
   AdvancedSettings: undefined;
-  SDKSessionsManager: undefined;
+  SDKSessionsManager: { trigger?: number } | undefined;
   PermissionsManager: undefined;
   NetworksSettings: undefined;
   CompanySettings: undefined;
@@ -752,9 +766,9 @@ export type RootParamList = {
   OfflineMode: undefined;
 
   // Perps Transaction Views
-  PerpsPositionTransaction: undefined;
-  PerpsOrderTransaction: undefined;
-  PerpsFundingTransaction: undefined;
+  PerpsPositionTransaction: PerpsRouteParams<'PerpsPositionTransaction'>;
+  PerpsOrderTransaction: PerpsRouteParams<'PerpsOrderTransaction'>;
+  PerpsFundingTransaction: PerpsRouteParams<'PerpsFundingTransaction'>;
 
   // Identity
   TurnOnBackupAndSync: undefined;
@@ -762,7 +776,7 @@ export type RootParamList = {
   // Earn Flow Screens
   EarnScreens: undefined;
   EarnModals: undefined;
-  EarnLendingDepositConfirmation: undefined;
+  EarnLendingDepositConfirmation: LendingDepositViewRouteParams;
   EarnLendingWithdrawalConfirmation: EarnWithdrawalConfirmationViewRouteParams;
   EarnLendingMaxWithdrawalModal: undefined;
   EarnLendingLearnMoreModal: {

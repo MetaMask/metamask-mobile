@@ -64,6 +64,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           />
           <RewardsCard
             rewardRate={route.params.annualRewardRate}
+            // @ts-expect-error - TODO: Handle when annualRewardsToken is not defined
             rewardsEth={route.params.annualRewardsETH}
             rewardsFiat={route.params.annualRewardsFiat}
           />

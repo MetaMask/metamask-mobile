@@ -2,11 +2,7 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { formatEther } from 'ethers/lib/utils';
 import { debounce } from 'lodash';
@@ -59,10 +55,7 @@ import {
   generateLendingDepositTransaction,
 } from '../../utils/tempLending';
 import styleSheet from './EarnInputView.styles';
-import {
-  EARN_INPUT_VIEW_ACTIONS,
-  EarnInputViewProps,
-} from './EarnInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from './EarnInputView.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
@@ -71,11 +64,14 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-const EarnInputView = () => {
+type EarnInputViewProps = StackScreenProps<RootParamList, 'Stake'>;
+
+const EarnInputView = ({ route }: EarnInputViewProps) => {
   // navigation hooks
   const navigation = useNavigation();
-  const route = useRoute<EarnInputViewProps['route']>();
   const { token } = route.params;
 
   // We want to keep track of the last quick amount pressed before navigating to review.

@@ -75,13 +75,3 @@ export type PerpsPositionTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,
   'PerpsPositionTransaction'
 >;
-
-export type PerpsOrderTransactionRouteProp = RouteProp<
-  PerpsNavigationParamList,
-  'PerpsOrderTransaction'
->;
-
-export type PerpsFundingTransactionRouteProp = RouteProp<
-  PerpsNavigationParamList,
-  'PerpsFundingTransaction'
->;

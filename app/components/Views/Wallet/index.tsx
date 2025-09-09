@@ -18,7 +18,7 @@ import {
 import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import TabBar from '../../../component-library/components-temp/TabBar';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
@@ -32,14 +32,7 @@ import { baseStyles } from '../../../styles/common';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
 
-import {
-  NavigationProp,
-  ParamListBase,
-  RouteProp,
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -172,6 +165,8 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import type { RootParamList } from '../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -209,25 +204,13 @@ const createStyles = ({ colors }: Theme) =>
     },
   });
 
-interface WalletProps {
-  navigation: NavigationProp<ParamListBase>;
-  storePrivacyPolicyShownDate: () => void;
-  shouldShowNewPrivacyToast: boolean;
-  currentRouteName: string;
-  storePrivacyPolicyClickedOrClosed: () => void;
-  showNftFetchingLoadingIndicator: () => void;
-  hideNftFetchingLoadingIndicator: () => void;
-}
-interface WalletTokensTabViewProps {
-  navigation: WalletProps['navigation'];
+type WalletProps = StackScreenProps<RootParamList, 'WalletView'>;
+
+type WalletTokensTabViewProps = {
   onChangeTab: (value: ChangeTabProperties) => void;
   defiEnabled: boolean;
   collectiblesEnabled: boolean;
-  navigationParams?: {
-    shouldSelectPerpsTab?: boolean;
-    initialTab?: string;
-  };
-}
+} & WalletProps['route']['params'];
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -236,15 +219,16 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => isPerpsFlagEnabled && isEvmSelected,
     [isPerpsFlagEnabled, isEvmSelected],
   );
+  const navigation = useNavigation();
 
   const {
-    navigation,
     onChangeTab,
     defiEnabled,
     collectiblesEnabled,
-    navigationParams,
+    shouldSelectPerpsTab,
+    initialTab,
   } = props;
-  const route = useRoute<RouteProp<ParamListBase, string>>();
+
   // Type augmentation needed as @types/react-native-scrollable-tab-view doesn't expose goToPage method
   const scrollableTabViewRef = useRef<
     ScrollableTabView & { goToPage: (pageNumber: number) => void }
@@ -274,36 +258,32 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
-      navigation,
     }),
-    [navigation],
+    [],
   );
 
   const perpsTabProps = useMemo(
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
-      navigation,
     }),
-    [navigation],
+    [],
   );
 
   const defiPositionsTabProps = useMemo(
     () => ({
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
-      navigation,
     }),
-    [navigation],
+    [],
   );
 
   const collectibleContractsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
-      navigation,
     }),
-    [navigation],
+    [],
   );
 
   // Handle tab changes and track current index
@@ -335,11 +315,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
   useFocusEffect(
     useCallback(() => {
-      // Check both navigationParams prop and route params for tab selection
-      const params = navigationParams;
-      const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
-      const initialTab = params?.initialTab;
-
       if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
         // Calculate the index of the Perps tab
         // Tokens is always at index 0, Perps is at index 1 when enabled
@@ -361,7 +336,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
         return () => clearTimeout(timer);
       }
-    }, [route.params, isPerpsEnabled, navigationParams, navigation]),
+    }, [isPerpsEnabled, shouldSelectPerpsTab, initialTab, navigation]),
   );
 
   return (
@@ -402,16 +377,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 /**
  * Main view for the wallet
  */
-const Wallet = ({
-  navigation,
-  storePrivacyPolicyShownDate,
-  shouldShowNewPrivacyToast,
-  storePrivacyPolicyClickedOrClosed,
-  showNftFetchingLoadingIndicator,
-  hideNftFetchingLoadingIndicator,
-}: WalletProps) => {
-  const { navigate } = useNavigation();
-  const route = useRoute<RouteProp<ParamListBase, string>>();
+const Wallet = ({ route }: WalletProps) => {
+  const navigation = useNavigation();
+  const { navigate } = navigation;
   const walletRef = useRef(null);
   const theme = useTheme();
 
@@ -421,7 +389,18 @@ const Wallet = ({
   const { colors } = theme;
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
+  const storePrivacyPolicyShownDate = () =>
+    dispatch(storePrivacyPolicyShownDateAction(Date.now()));
+  const storePrivacyPolicyClickedOrClosed = () =>
+    dispatch(storePrivacyPolicyClickedOrClosedAction());
+  const showNftFetchingLoadingIndicator = () =>
+    dispatch(showNftFetchingLoadingIndicatorAction());
+  const hideNftFetchingLoadingIndicator = () =>
+    dispatch(hideNftFetchingLoadingIndicatorAction());
 
+  const shouldShowNewPrivacyToast = useSelector(
+    shouldShowNewPrivacyToastSelector,
+  );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -1101,11 +1080,10 @@ const Wallet = ({
           )}
 
           <WalletTokensTabView
-            navigation={navigation}
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
-            navigationParams={route.params}
+            {...route.params}
           />
         </>
       </View>
@@ -1151,23 +1129,4 @@ const Wallet = ({
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any) => ({
-  shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
-});
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapDispatchToProps = (dispatch: any) => ({
-  storePrivacyPolicyShownDate: () =>
-    dispatch(storePrivacyPolicyShownDateAction(Date.now())),
-  storePrivacyPolicyClickedOrClosed: () =>
-    dispatch(storePrivacyPolicyClickedOrClosedAction()),
-  showNftFetchingLoadingIndicator: () =>
-    dispatch(showNftFetchingLoadingIndicatorAction()),
-  hideNftFetchingLoadingIndicator: () =>
-    dispatch(hideNftFetchingLoadingIndicatorAction()),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
+export default Wallet;

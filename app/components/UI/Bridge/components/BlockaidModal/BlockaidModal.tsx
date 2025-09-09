@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -15,6 +15,8 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
+import { RootParamList } from '../../../../../util/navigation/types';
+import { StackScreenProps } from '@react-navigation/stack';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -30,17 +32,11 @@ const createStyles = () =>
     },
   });
 
-interface BlockaidModalRouteParams {
-  errorMessage: string;
-  errorType: 'validation' | 'simulation';
-}
+type BlockaidModalProps = StackScreenProps<RootParamList, 'BlockaidModal'>;
 
-const BlockaidModal = () => {
-  const navigation = useNavigation();
+const BlockaidModal = ({ route, navigation }: BlockaidModalProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
-  const route =
-    useRoute<RouteProp<{ params: BlockaidModalRouteParams }, 'params'>>();
   const { errorMessage, errorType } = route.params;
 
   const handleClose = () => {

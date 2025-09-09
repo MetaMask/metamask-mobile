@@ -4,13 +4,7 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -26,19 +20,14 @@ import { getFormattedAddressFromInternalAccount } from '../../../../../core/Mult
 import { getMultichainBlockExplorer } from '../../../../../core/Multichain/networks';
 import { ShareAddressIds } from '../../../../../../e2e/selectors/MultichainAccounts/ShareAddress.selectors';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation';
 
-interface RootNavigationParamList extends ParamListBase {
-  ShareAddress: {
-    account: InternalAccount;
-  };
-}
+type ShareAddressRouteProp = StackScreenProps<RootParamList, 'ShareAddress'>;
 
-type ShareAddressRouteProp = RouteProp<RootNavigationParamList, 'ShareAddress'>;
-
-export const ShareAddress = () => {
+export const ShareAddress = ({ route }: ShareAddressRouteProp) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
-  const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);

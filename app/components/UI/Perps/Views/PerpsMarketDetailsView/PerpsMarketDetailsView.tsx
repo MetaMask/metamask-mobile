@@ -1,9 +1,4 @@
-import {
-  useNavigation,
-  useRoute,
-  type NavigationProp,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useMemo,
@@ -31,10 +26,6 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
-import type {
-  PerpsMarketData,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
@@ -44,7 +35,6 @@ import {
   CandlePeriod,
 } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
-import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -67,16 +57,18 @@ import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import type { RootParamList } from '../../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
 
-interface MarketDetailsRouteParams {
-  market: PerpsMarketData;
-  isNavigationFromOrderSuccess?: boolean;
-}
+type PerpsMarketDetailsViewProps = StackScreenProps<
+  RootParamList,
+  'PerpsMarketDetails'
+>;
 
-const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route =
-    useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
+const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
+  route,
+}) => {
+  const navigation = useNavigation();
   const { market, isNavigationFromOrderSuccess } = route.params || {};
   const { track } = usePerpsEventTracking();
 

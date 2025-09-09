@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import PerpsTabView from './PerpsTabView';
 
 interface PerpsTabViewWithProviderProps {
-  navigation?: NavigationProp<ParamListBase>;
   tabLabel?: string;
   isVisible?: boolean;
   onVisibilityChange?: (callback: (visible: boolean) => void) => void;
