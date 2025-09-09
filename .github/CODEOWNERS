@@ -149,8 +149,6 @@ app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
-e2e/**/Perps/**                      @MetaMask/qa
-e2e/**/perps/**                      @MetaMask/qa
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
