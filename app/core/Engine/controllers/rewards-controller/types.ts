@@ -230,16 +230,17 @@ export type SeasonStatusState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
-  hasOptedIn: boolean;
+  hasOptedIn?: boolean;
   subscriptionId: string | null;
-  lastAuthTime: number;
+  lastCheckedAuth: number;
+  lastCheckedAuthError: boolean;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
-  lastAuthenticatedAccount: RewardsAccountState | null;
+  activeAccount: RewardsAccountState | null;
   accounts: { [account: CaipAccountId]: RewardsAccountState };
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
