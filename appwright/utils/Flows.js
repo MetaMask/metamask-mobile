@@ -13,6 +13,7 @@ import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessSc
 import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
+import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
 
 /**
  * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
@@ -152,54 +153,16 @@ export async function login(device, scenarioType) {
   const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
-  await LoginScreen.typePassword(password);
+  await LoginScreen.typePassword('qwertyui');
   await LoginScreen.tapUnlockButton();
-
+  await tapPerpsBottomSheetGotItButton(device);
   // Wait for app to settle after unlock
   await dismissSystemDialogs(device);
-
-  // Handle iOS notification permission dialog for production builds
-  // autoAcceptAlerts capability should handle this, but add fallback for reliability
-  // try {
-  //   // Wait briefly for any system dialog to appear (production builds trigger notification requests)
-  //   let dialogHandled = false;
-  //   for (let i = 0; i < 5; i++) {
-  //     await device.waitForTimeout(1000);
-
-  //     try {
-  //       // Try common iOS permission dialog selectors
-  //       const dialogSelectors = [
-  //         '//*[@name="Allow"]',
-  //         '//*[@name="OK"]',
-  //         '//*[@name="Allow Notifications"]',
-  //         '//*[@label="Allow"]',
-  //         '//*[@label="OK"]'
-  //       ];
-
-  //       for (const selector of dialogSelectors) {
-  //         try {
-  //           const allowButton = await device.findElement('xpath', selector);
-  //           if (allowButton) {
-  //             await device.tap(allowButton);
-  //             console.log(`Tapped iOS permission dialog button: ${selector}`);
-  //             dialogHandled = true;
-  //             break;
-  //           }
-  //         } catch (e) {
-  //           // Continue to next selector
-  //         }
-  //       }
-
-  //       if (dialogHandled) break;
-  //     } catch (error) {
-  //       // Continue waiting
-  //     }
-  //   }
-
-  //   if (!dialogHandled) {
-  //     console.log('No iOS permission dialog found - autoAcceptAlerts may have handled it');
-  //   }
-  // } catch (error) {
-  //   console.debug('Error handling iOS permission dialog:', error.message);
-  // }
+}
+async function tapPerpsBottomSheetGotItButton(device) {
+  const button = await AppwrightSelectors.getElementByID(
+    device,
+    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+  );
+  await button.tap();
 }
