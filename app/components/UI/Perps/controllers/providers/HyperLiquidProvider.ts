@@ -82,6 +82,7 @@ import type {
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
 } from '../types';
+import { PERPS_ERROR_CODES } from '../PerpsController';
 
 /**
  * HyperLiquid provider implementation
@@ -113,6 +114,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       ttl: number;
     }
   >();
+
+  // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
+  private readonly ERROR_MAPPINGS = {
+    'isolated position does not have sufficient margin available to decrease leverage':
+      PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+  };
 
   constructor(options: { isTestnet?: boolean } = {}) {
     const isTestnet = options.isTestnet || false;
@@ -162,6 +169,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
       assetCount: meta.universe.length,
       coins: Array.from(this.coinToAssetId.keys()),
     });
+  }
+
+  /**
+   * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
+   */
+  private mapError(error: unknown): Error {
+    const message = error instanceof Error ? error.message : String(error);
+
+    for (const [pattern, code] of Object.entries(this.ERROR_MAPPINGS)) {
+      if (message.toLowerCase().includes(pattern.toLowerCase())) {
+        return new Error(code);
+      }
+    }
+
+    // Return original error to preserve stack trace for unmapped errors
+    return error instanceof Error ? error : new Error(String(error));
   }
 
   /**
@@ -398,10 +421,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.reduceOnly || false,
+        /**
+         * HyperLiquid Time-In-Force (TIF) options:
+         * - 'Gtc' (Good Till Canceled): Standard limit orders that remain active until filled or canceled
+         * - 'Ioc' (Immediate or Cancel): Limit orders that fill immediately or cancel unfilled portion
+         * - 'FrontendMarket': True market orders as used in HyperLiquid UI - USE THIS FOR MARKET ORDERS
+         * - 'Alo' (Add Liquidity Only): Maker-only orders that add liquidity to order book
+         * - 'LiquidationMarket': Similar to IoC, used for liquidation orders
+         *
+         * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
+         * Using 'Ioc' causes market orders to be treated as limit orders by HyperLiquid,
+         * leading to incorrect order type display in transaction history (TAT-1447)
+         */
         t:
           params.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
       };
       orders.push(mainOrder);
@@ -489,7 +524,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       };
     } catch (error) {
       DevLogger.log('Order placement failed:', error);
-      return createErrorResult(error, { success: false });
+      const mappedError = this.mapError(error);
+      return createErrorResult(mappedError, { success: false });
     }
   }
 
@@ -563,10 +599,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.newOrder.reduceOnly || false,
+        // Same TIF logic as placeOrder - see documentation above for details
         t:
           params.newOrder.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.newOrder.clientOrderId
           ? (params.newOrder.clientOrderId as Hex)
           : undefined,

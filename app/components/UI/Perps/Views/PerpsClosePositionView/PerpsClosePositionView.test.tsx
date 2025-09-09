@@ -1026,8 +1026,8 @@ describe('PerpsClosePositionView', () => {
       // Arrange
       let successCallback: (() => void) | undefined;
       usePerpsClosePositionMock.mockImplementation(
-        ({ onSuccess }: { onSuccess: () => void }) => {
-          successCallback = onSuccess;
+        (options?: { onSuccess?: () => void }) => {
+          successCallback = options?.onSuccess;
           return {
             handleClosePosition: async () => {
               if (successCallback) successCallback();
