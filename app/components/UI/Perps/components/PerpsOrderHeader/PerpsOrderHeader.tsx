@@ -28,6 +28,7 @@ interface PerpsOrderHeaderProps {
   orderType: OrderType;
   direction?: 'long' | 'short';
   onBack?: () => void;
+  title?: string;
   onOrderTypePress?: () => void;
 }
 
@@ -39,6 +40,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   direction = 'long',
   onBack,
   onOrderTypePress,
+  title,
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -88,7 +90,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           style={styles.headerTitle}
           testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
         >
-          {direction === 'long' ? 'Long' : 'Short'} {asset}
+          {title || `${direction === 'long' ? 'Long' : 'Short'} ${asset}`}
         </Text>
         <View style={styles.priceRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

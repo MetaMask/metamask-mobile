@@ -27,6 +27,9 @@ const createStyles = (colors: Theme['colors']) =>
     amountValueActive: {
       color: colors.primary.default,
     },
+    amountValueError: {
+      color: colors.error.default,
+    },
     cursor: {
       width: 2,
       height: 64,

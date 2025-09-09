@@ -68,8 +68,6 @@ export const createStyles = (theme: Theme) => {
     detailsSection: {
       paddingHorizontal: 16,
       paddingVertical: 16,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
     },
     detailRow: {
       flexDirection: 'row',
@@ -144,6 +142,21 @@ export const createStyles = (theme: Theme) => {
     },
     marketButtonIcon: {
       marginLeft: 2,
+    },
+    detailListItem: {
+      borderRadius: 12,
+    },
+    detailLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    infoIcon: {
+      marginLeft: 0,
+      padding: 10, // Increases touch target from 20x20 to 40x40 for better accessibility
+      marginRight: -6, // Compensate for padding to keep visual alignment
+      marginTop: -10, // Keep icon at same vertical position
+      marginBottom: -10, // Keep icon at same vertical position
     },
   });
 };
