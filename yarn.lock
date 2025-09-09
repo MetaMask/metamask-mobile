@@ -4988,7 +4988,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
   integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
-"@metamask/bridge-controller@file:../../projects/core/packages/bridge-controller":
+"@metamask/bridge-controller@file:../core/packages/bridge-controller":
   version "42.0.0"
   dependencies:
     "@ethersproject/address" "^5.7.0"
@@ -5008,7 +5008,7 @@
     reselect "^5.1.1"
     uuid "^8.3.2"
 
-"@metamask/bridge-status-controller@file:../../projects/core/packages/bridge-status-controller":
+"@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller":
   version "42.0.0"
   dependencies:
     "@metamask/base-controller" "^8.3.0"
@@ -6263,7 +6263,7 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/transaction-controller@file:../../projects/core/packages/transaction-controller":
+"@metamask/transaction-controller@file:../core/packages/transaction-controller":
   version "60.2.0"
   dependencies:
     "@ethereumjs/common" "^4.4.0"
