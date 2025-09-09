@@ -488,7 +488,7 @@ class ChoosePassword extends PureComponent {
         await flushBufferedTraces();
         updateCachedConsent(true);
 
-        if (metrics?.enable) {
+        if (!metrics.isEnabled()) {
           await metrics.enable();
         }
 

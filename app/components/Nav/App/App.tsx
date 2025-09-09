@@ -26,6 +26,7 @@ import { useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -151,6 +152,7 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
+import { useMetrics } from '../../hooks/useMetrics';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 
 const clearStackNavigatorOptions = {
@@ -1004,7 +1006,7 @@ const App: React.FC = () => {
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
-
+  const { isEnabled: checkMetricsEnabled } = useMetrics();
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1066,6 +1068,32 @@ const App: React.FC = () => {
             },
           );
 
+          // Only show metrics optin for SRP users
+          if (!isSeedlessOnboardingLoginFlow) {
+            const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+              OPTIN_META_METRICS_UI_SEEN,
+            );
+
+            if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
+              const resetParams = {
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.ROOT_NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.NAV,
+                      params: {
+                        screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      },
+                    },
+                  },
+                ],
+              };
+              navigation.reset(resetParams);
+              return;
+            }
+          }
+
+          // Navigate to home for both SRP users (who have seen metrics) and social login users
           navigation.reset({
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           });
