@@ -46,7 +46,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - name: Deduplicate dependencies
         run: yarn deduplicate
       - name: Print error if duplicates found
@@ -64,7 +65,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - name: Run @lavamoat/git-safe-dependencies
         run: yarn git-safe-dependencies
   scripts:
@@ -86,7 +88,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -108,7 +111,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
@@ -141,7 +145,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
