@@ -13,6 +13,7 @@ import {
   TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
+  PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
@@ -113,6 +114,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       timestamp: number;
       ttl: number;
     }
+  >();
+
+  // Cache for max leverage values to avoid excessive API calls
+  private maxLeverageCache = new Map<
+    string,
+    { value: number; timestamp: number }
   >();
 
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
@@ -2113,6 +2120,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getMaxLeverage(asset: string): Promise<number> {
     try {
+      // Check cache first
+      const cached = this.maxLeverageCache.get(asset);
+      const now = Date.now();
+
+      if (
+        cached &&
+        now - cached.timestamp <
+          PERFORMANCE_CONFIG.MAX_LEVERAGE_CACHE_DURATION_MS
+      ) {
+        return cached.value;
+      }
+
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
@@ -2133,6 +2152,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
+
+      // Cache the result
+      this.maxLeverageCache.set(asset, {
+        value: assetInfo.maxLeverage,
+        timestamp: now,
+      });
 
       return assetInfo.maxLeverage;
     } catch (error) {

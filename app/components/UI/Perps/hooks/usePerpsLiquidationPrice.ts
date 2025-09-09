@@ -29,7 +29,7 @@ export const usePerpsLiquidationPrice = (
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debounceMs = options?.debounceMs ?? 300;
+  const debounceMs = options?.debounceMs ?? 0;
 
   const calculatePrice = useMemo(
     () =>

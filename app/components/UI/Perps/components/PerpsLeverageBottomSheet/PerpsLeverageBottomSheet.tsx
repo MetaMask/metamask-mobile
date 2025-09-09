@@ -56,7 +56,10 @@ import {
   LEVERAGE_COLORS,
   getLeverageRiskLevel,
 } from '../../constants/leverageColors';
-import { LEVERAGE_SLIDER_CONFIG } from '../../constants/perpsConfig';
+import {
+  LEVERAGE_SLIDER_CONFIG,
+  PERFORMANCE_CONFIG,
+} from '../../constants/perpsConfig';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 
 interface PerpsLeverageBottomSheetProps {
@@ -348,24 +351,39 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     [orderType, limitPrice, currentPrice],
   );
 
-  // Use the final leverage value for API calls, not the dragging value
-  const leverageForCalculation = isDragging ? tempLeverage : tempLeverage;
+  // Always use tempLeverage for precise API calls (debounced)
+  const { liquidationPrice: apiLiquidationPrice } = usePerpsLiquidationPrice(
+    {
+      entryPrice,
+      leverage: tempLeverage, // Final leverage value for API calls
+      direction,
+      asset,
+    },
+    {
+      debounceMs: PERFORMANCE_CONFIG.LIQUIDATION_PRICE_DEBOUNCE_MS, // Debounced for performance
+    },
+  );
 
-  const { liquidationPrice: calculatedLiquidationPrice } =
-    usePerpsLiquidationPrice(
-      {
-        entryPrice,
-        leverage: leverageForCalculation,
-        direction,
-        asset,
-      },
-      {
-        debounceMs: 500, // Use longer debounce for better performance during slider drag
-      },
-    );
+  // Calculate theoretical liquidation price for immediate drag feedback
+  const theoreticalLiquidationPrice = useMemo(() => {
+    const leverageToUse = isDragging ? draggingLeverage : tempLeverage;
 
-  // Use calculated liquidation price, converting from string to number
-  const dynamicLiquidationPrice = parseFloat(calculatedLiquidationPrice) || 0;
+    if (!entryPrice || leverageToUse <= 0) return 0;
+
+    // Standard isolated margin liquidation price calculation for immediate feedback
+    // This provides accurate theoretical values during drag, API provides precise values after
+    const liquidationMultiplier =
+      direction === 'long'
+        ? 1 - 1 / leverageToUse // Long: liquidation when price drops by 1/leverage
+        : 1 + 1 / leverageToUse; // Short: liquidation when price rises by 1/leverage
+
+    return entryPrice * liquidationMultiplier;
+  }, [entryPrice, direction, isDragging, draggingLeverage, tempLeverage]);
+
+  // Use theoretical price during drag for immediate feedback, API price when settled
+  const dynamicLiquidationPrice = isDragging
+    ? theoreticalLiquidationPrice
+    : parseFloat(apiLiquidationPrice) || theoreticalLiquidationPrice;
 
   // Track screen load performance
   usePerpsScreenTracking({
