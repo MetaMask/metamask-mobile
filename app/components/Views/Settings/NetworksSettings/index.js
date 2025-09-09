@@ -276,10 +276,11 @@ class NetworksSettings extends PureComponent {
           <TouchableOpacity
             key={`network-${i}`}
             onPress={() => this.onNetworkPress(networkTypeOrRpcUrl)}
-            onLongPress={() =>
-              isCustomRPC ||
-              (isSelectedNetwork && this.showRemoveMenu(networkTypeOrRpcUrl))
-            }
+            onLongPress={() => {
+              if (isCustomRPC && !isSelectedNetwork) {
+                this.showRemoveMenu(networkTypeOrRpcUrl);
+              }
+            }}
           >
             <View
               style={{
@@ -307,15 +308,14 @@ class NetworksSettings extends PureComponent {
                   </View>
                 ))}
               <Text style={styles.networkLabel}>{name}</Text>
-              {!isCustomRPC ||
-                (isSelectedNetwork && (
-                  <FontAwesome
-                    name="lock"
-                    size={20}
-                    color={colors.icon.default}
-                    style={styles.icon}
-                  />
-                ))}
+              {(!isCustomRPC || isSelectedNetwork) && (
+                <FontAwesome
+                  name="lock"
+                  size={20}
+                  color={colors.icon.default}
+                  style={styles.icon}
+                />
+              )}
             </View>
           </TouchableOpacity>
         )}

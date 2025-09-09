@@ -928,6 +928,29 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 >
                                   Sepolia
                                 </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  selectable={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
                               </View>
                             </TouchableOpacity>
                           </View>
@@ -969,6 +992,29 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   }
                                 >
                                   Linea Sepolia
+                                </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  selectable={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -1012,6 +1058,29 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 >
                                   Mega Testnet
                                 </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  selectable={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
                               </View>
                             </TouchableOpacity>
                           </View>
@@ -1053,6 +1122,29 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   }
                                 >
                                   Monad Testnet
+                                </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  selectable={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
                                 </Text>
                               </View>
                             </TouchableOpacity>
