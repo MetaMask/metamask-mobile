@@ -157,12 +157,7 @@ const PerpsClosePositionView: React.FC = () => {
     isPartialClose,
   });
 
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      navigation.goBack();
-    },
-  });
+  const { handleClosePosition, isClosing } = usePerpsClosePosition();
 
   // Track position close screen viewed event
   useEffect(() => {
@@ -265,6 +260,9 @@ const PerpsClosePositionView: React.FC = () => {
     if (orderType === 'limit' && !limitPrice) {
       return;
     }
+
+    // Go back immediately to close the position screen
+    navigation.goBack();
 
     await handleClosePosition(
       position,
@@ -447,20 +445,22 @@ const PerpsClosePositionView: React.FC = () => {
           </Text>
         </View>
         <TouchableOpacity
-          style={styles.orderTypeButton}
           onPress={() => setIsOrderTypeVisible(true)}
           testID={PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON}
         >
-          <Text variant={TextVariant.BodyMD}>
-            {orderType === 'market'
-              ? strings('perps.order.market')
-              : strings('perps.order.limit')}
-          </Text>
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Xs}
-            color={IconColor.Alternative}
-          />
+          <View style={styles.marketButton}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {orderType === 'market'
+                ? strings('perps.order.market')
+                : strings('perps.order.limit')}
+            </Text>
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Xs}
+              color={IconColor.Default}
+              style={styles.marketButtonIcon}
+            />
+          </View>
         </TouchableOpacity>
       </View>
 

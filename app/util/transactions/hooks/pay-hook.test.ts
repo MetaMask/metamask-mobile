@@ -1,5 +1,8 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { TransactionBridgeQuote } from '../../../components/Views/confirmations/utils/bridge';
+import {
+  TransactionBridgeQuote,
+  refreshQuote,
+} from '../../../components/Views/confirmations/utils/bridge';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { PayHook } from './pay-hook';
 import { Messenger } from '@metamask/base-controller';
@@ -16,6 +19,7 @@ import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransac
 
 jest.mock('../../../selectors/smartTransactionsController');
 jest.mock('../../transaction-controller');
+jest.mock('../../../components/Views/confirmations/utils/bridge');
 
 const TRANSACTION_ID_MOCK = '123-456';
 const BRIDGE_TRANSACTION_ID_MOCK = '456-789';
@@ -61,6 +65,8 @@ describe('Pay Publish Hook', () => {
     BridgeStatusController['submitTx']
   > = jest.fn();
 
+  const refreshQuoteMock = jest.mocked(refreshQuote);
+
   function runHook() {
     return hook.getHook()(TRANSACTION_META_MOCK, '0x1234');
   }
@@ -85,7 +91,7 @@ describe('Pay Publish Hook', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
     baseMessenger = new Messenger<
       BridgeStatusControllerActions,
@@ -132,6 +138,8 @@ describe('Pay Publish Hook', () => {
     });
 
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
+
+    refreshQuoteMock.mockImplementation(async (_quote) => _quote);
   });
 
   it('submits matching quotes to bridge status controller', async () => {
@@ -213,5 +221,11 @@ describe('Pay Publish Hook', () => {
     expect(result).toEqual({
       transactionHash: undefined,
     });
+  });
+
+  it('refreshes quote if subsequent bridge transaction', async () => {
+    await runHook();
+
+    expect(refreshQuoteMock).toHaveBeenCalledWith(QUOTE_2_MOCK);
   });
 });

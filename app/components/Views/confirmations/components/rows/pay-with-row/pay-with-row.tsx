@@ -33,7 +33,7 @@ export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { totalFiat } = useTransactionRequiredFiat();
+  const { totalFiat } = useTransactionRequiredFiat({ log: true });
 
   useTransactionBridgeQuotes();
 

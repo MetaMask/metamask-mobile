@@ -13,6 +13,7 @@ import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
 import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
+import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 
 interface PerpsConnectionContextValue {
@@ -31,6 +32,7 @@ const PerpsConnectionContext =
 interface PerpsConnectionProviderProps {
   children: React.ReactNode;
   isVisible?: boolean;
+  isFullScreen?: boolean;
 }
 
 /**
@@ -41,7 +43,7 @@ interface PerpsConnectionProviderProps {
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
-> = ({ children, isVisible }) => {
+> = ({ children, isVisible, isFullScreen = false }) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );
@@ -57,6 +59,19 @@ export const PerpsConnectionProvider: React.FC<
 
   // Poll connection state to sync with singleton
   useEffect(() => {
+    // Skip polling in E2E mode to prevent timer interference
+    if (isE2E) {
+      // Set mock connected state for E2E
+      setConnectionState({
+        isConnected: true,
+        isConnecting: false,
+        isInitialized: true,
+        isDisconnecting: false,
+        error: null,
+      });
+      return;
+    }
+
     const updateState = () => {
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState((prevState) => {
@@ -194,23 +209,30 @@ export const PerpsConnectionProvider: React.FC<
   // This ensures NO Perps screen can render when there's a connection error
   if (connectionState.error) {
     // Determine if back button should be shown based on navigation context
-    // For now, only show back button after retry failures (conservative approach)
-    // This prevents showing back button in wallet tabs while ensuring escape route exists
-    const shouldShowBackButton = retryAttempts > 0;
+    // Always show back button when in full screen mode (e.g., stack navigator)
+    // Also show it after retry attempts for other contexts
+    const shouldShowBackButton = isFullScreen || retryAttempts > 0;
 
     const handleRetry = async () => {
+      // Increment retry attempts first to ensure back button shows immediately
       setRetryAttempts((prev) => prev + 1);
 
       try {
-        resetError(); // Clear normal errors
-        await connect(); // Attempt reconnection
+        // Attempt to connect directly using the singleton
+        // This will either succeed or throw an error
+        await PerpsConnectionManager.connect();
 
-        // Reset retry attempts on successful connection
+        // If we reach here, connection succeeded
+        // Reset retry attempts and let polling update the state
         setRetryAttempts(0);
       } catch (err) {
         // Keep retry attempts count for showing back button after failed attempts
         console.error('Retry connection failed:', err);
       }
+
+      // Force update to get the latest error state
+      const state = PerpsConnectionManager.getConnectionState();
+      setConnectionState(state);
     };
 
     return (

@@ -39,18 +39,13 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
       {/* Loading Spinner */}
       <ActivityIndicator
         size="large"
-        color={colors.text.muted}
+        color={colors.text.alternative}
         style={tw.style('mb-6')}
       />
 
       {/* Main Text */}
       <Text variant={TextVariant.HeadingMd} twClassName="text-default mb-2">
         {strings('perps.connection.connecting_to_perps')}
-      </Text>
-
-      {/* Subtext */}
-      <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-        {strings('perps.connection.perps_will_be_available_shortly')}
       </Text>
     </Box>
   );

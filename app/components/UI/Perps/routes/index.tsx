@@ -46,7 +46,7 @@ const PerpsModalStack = () => (
 );
 
 const PerpsScreenStack = () => (
-  <PerpsConnectionProvider>
+  <PerpsConnectionProvider isFullScreen>
     <PerpsStreamProvider>
       <Stack.Navigator initialRouteName={Routes.PERPS.TRADING_VIEW}>
         {/* Redirect to wallet perps tab */}
@@ -65,6 +65,7 @@ const PerpsScreenStack = () => (
           options={{
             title: strings('perps.markets.title'),
             headerShown: false,
+            animationEnabled: false,
           }}
         />
 

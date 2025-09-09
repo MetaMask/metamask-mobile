@@ -25,6 +25,9 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
+import { getOrderDirection } from '../../utils/orderUtils';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { OrderDirection } from '../../types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   symbol,
@@ -39,6 +42,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasUserInteracted = useRef(false);
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -163,19 +168,64 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const handleOrderCancel = useCallback(async (orderToCancel: Order) => {
-    try {
-      DevLogger.log('Canceling order:', orderToCancel.orderId);
-      const controller = Engine.context.PerpsController;
-      await controller.cancelOrder({
-        orderId: orderToCancel.orderId,
-        coin: orderToCancel.symbol,
-      });
-      DevLogger.log('Order cancellation request sent');
-    } catch (error) {
-      DevLogger.log('Failed to cancel order:', error);
-    }
-  }, []);
+  const handleOrderCancel = useCallback(
+    async (orderToCancel: Order) => {
+      try {
+        DevLogger.log('Canceling order:', orderToCancel.orderId);
+        const controller = Engine.context.PerpsController;
+
+        const orderDirection = getOrderDirection(
+          orderToCancel.side,
+          position?.size,
+        );
+
+        showToast(
+          PerpsToastOptions.orderManagement.limit.cancellationInProgress(
+            orderDirection as OrderDirection,
+            orderToCancel.remainingSize,
+            orderToCancel.symbol,
+          ),
+        );
+
+        const result = await controller.cancelOrder({
+          orderId: orderToCancel.orderId,
+          coin: orderToCancel.symbol,
+        });
+
+        if (result.success) {
+          if (orderToCancel.reduceOnly) {
+            // Distinction is important since reduce-only orders don't require margin.
+            // So we shouldn't display "Your funds are available to trade" in the toast.
+            showToast(
+              PerpsToastOptions.orderManagement.limit.reduceOnlyClose
+                .cancellationSuccess,
+            );
+          } else {
+            // In regular limit order, funds are "locked up" and the "funds are available to trade" text in toast makes sense.
+            showToast(
+              PerpsToastOptions.orderManagement.limit.cancellationSuccess,
+            );
+          }
+          return;
+        }
+
+        // Open order cancellation failed
+        // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
+        if (orderToCancel.reduceOnly) {
+          showToast(
+            PerpsToastOptions.orderManagement.limit.reduceOnlyClose
+              .cancellationFailed,
+          );
+        } else {
+          // Display "Funds have been returned to you" toast
+          showToast(PerpsToastOptions.orderManagement.limit.cancellationFailed);
+        }
+      } catch (error) {
+        DevLogger.log('Failed to cancel order:', error);
+      }
+    },
+    [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
+  );
 
   const renderTooltipModal = useCallback(() => {
     if (!selectedTooltip) return null;
