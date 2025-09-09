@@ -285,7 +285,7 @@
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-analytics": "0.0.5",
     "@metamask/sdk-communication-layer": "0.33.0",
-    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@3.0.0-preview-c2598d9e",
+    "@metamask/seedless-onboarding-controller": "^4.0.0",
     "@metamask/selected-network-controller": "^22.1.0",
     "@metamask/signature-controller": "^32.0.0",
     "@metamask/slip44": "^4.2.0",

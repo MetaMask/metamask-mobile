@@ -63,7 +63,7 @@ class AuthTokenHandler {
     };
 
     const response = await fetch(
-      `${loginHandler.options.authServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
+      `${loginHandler.options.authServerUrl}${AUTH_SERVER_RENEW_PATH}`,
       {
         method: 'POST',
         headers: {
@@ -74,7 +74,7 @@ class AuthTokenHandler {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to revoke refresh token');
+      throw new Error('Failed to renew refresh token - ' + response.statusText);
     }
 
     const responseData = await response.json();
@@ -96,7 +96,7 @@ class AuthTokenHandler {
     };
 
     const response = await fetch(
-      `${loginHandler.options.authServerUrl}${AUTH_SERVER_RENEW_PATH}`,
+      `${loginHandler.options.authServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
       {
         method: 'POST',
         headers: {
@@ -107,7 +107,9 @@ class AuthTokenHandler {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to revoke refresh token');
+      throw new Error(
+        'Failed to revoke refresh token - ' + response.statusText,
+      );
     }
 
     return;
