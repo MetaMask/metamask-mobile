@@ -155,11 +155,11 @@ export const Recipient = () => {
                 size={ButtonBaseSize.Lg}
                 onPress={handleReview}
                 twClassName="w-full"
-                isDanger={Boolean(toAddressError)}
+                isDanger={!loading && Boolean(toAddressError)}
                 disabled={
                   Boolean(toAddressError) || isSubmittingTransaction || loading
                 }
-                isLoading={isSubmittingTransaction}
+                isLoading={isSubmittingTransaction || loading}
               >
                 {isReviewButtonDisabled
                   ? toAddressError

@@ -36,6 +36,5 @@ export const useToAddressValidation = () => {
     resolvedAddress,
     toAddressError,
     toAddressWarning,
-    validateToAddress,
   };
 };
