@@ -50,6 +50,7 @@ jobs:
               - 'app/constants/android/**'         # Android constants
               - 'app/components/**/android/**'     # Android UI components
               - 'app/util/**/android/**'           # Android utilities
+              - '**/*.android.*'                   # Android-specific file extensions (e.g., .android.tsx)
               - 'package.json'                     # If native deps change
               
  
@@ -65,6 +66,7 @@ jobs:
               - 'app/constants/ios/**'             # iOS constants
               - 'app/components/**/ios/**'         # iOS UI components
               - 'app/util/**/ios/**'               # iOS utilities
+              - '**/*.ios.*'                       # iOS-specific file extensions (e.g., .ios.tsx)
               - 'package.json'                     # If native deps change
               
               
@@ -74,6 +76,10 @@ jobs:
               - 'babel.config.js'                  # Transpilation changes
               - 'yarn.lock'                        # Dependency changes
               - 'app/**'                           # App files
+              - '!app/**/ios/**'                   # Exclude iOS-specific
+              - '!app/**/android/**'               # Exclude Android-specific
+              - '!**/*.ios.*'                      # Exclude iOS file extensions
+              - '!**/*.android.*'                  # Exclude Android file extensions
 
 
             exclude:
