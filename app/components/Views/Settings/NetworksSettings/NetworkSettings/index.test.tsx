@@ -1076,7 +1076,7 @@ describe('NetworkSettings', () => {
       expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
     });
 
-    it('should not validate the symbol when ticker is whitelisted for chainId', async () => {
+    it('should not show symbol warning for whitelisted ticker', async () => {
       const instance = wrapper.instance();
 
       // Set up state with a whitelisted symbol combination
