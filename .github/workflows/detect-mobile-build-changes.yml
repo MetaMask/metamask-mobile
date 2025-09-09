@@ -93,25 +93,26 @@ jobs:
 
           # Determine build decisions
           if [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' ]]; then
+            echo "Ignoring - no mobile code changes"
             android_final="false"
             ios_final="false"
           elif [[ "$shared" == 'true' ]]; then
+            echo "Building both platforms"
             android_final="true"
             ios_final="true"
           elif [[ "$android" == 'true' && "$ios" != 'true' ]]; then
+            echo "Building Android only"
             android_final="true"
             ios_final="false"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
+            echo "Building iOS only"
             android_final="false"
             ios_final="true"
           else
+            echo "Building both platforms (conservative)"
             android_final="true"
             ios_final="true"
           fi
-
-          echo "Mobile build decisions:"
-          echo "  Android: $android_final (direct: $android, shared: $shared, ignore: $ignore)"
-          echo "  iOS: $ios_final (direct: $ios, shared: $shared, ignore: $ignore)"
 
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
           echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
