@@ -209,7 +209,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
 
@@ -226,7 +226,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
     const mockState: DeepPartial<RootState> = {
@@ -339,7 +339,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
 
@@ -356,7 +356,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
     const mockState: DeepPartial<RootState> = {
@@ -707,7 +707,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '1',
         tokenURI: 'https://token.uri/1',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
 
@@ -813,7 +813,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '1',
         tokenURI: 'https://token.uri/1',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
 
@@ -929,7 +929,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '1',
         tokenURI: 'https://token.uri/1',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
 
@@ -1244,7 +1244,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '1',
         tokenURI: 'https://token.uri/1',
-        chainId: '0x1',
+        chainId: 1,
       },
     ];
 
