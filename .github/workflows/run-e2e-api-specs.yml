@@ -49,12 +49,12 @@ jobs:
           corepack prepare yarn@3.8.7 --activate
 
       - name: Install JavaScript dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
         env:
           NODE_OPTIONS: --max-old-space-size=4096
 
-      - name: Install Detox CLI
-        run: yarn global add detox-cli
+      - name: Verify Detox CLI
+        run: yarn detox --version
 
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
