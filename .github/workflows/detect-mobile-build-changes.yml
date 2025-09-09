@@ -36,75 +36,59 @@ jobs:
         with:
           filters: |
             android:
-              - '!**/*.ios.*'                      # Exclude iOS file extensions from Android
-              - '!app/**/ios/**'                   # Exclude iOS-specific from Android
               - 'android/**'                       # All Android project files
-              - 'android/app/build.gradle'         # Gradle build files
-              - 'android/gradlew'                  # Gradle wrapper
-              - 'android/settings.gradle'          # Gradle settings
-              - 'app/**/android/**'                # Android-specific app code
-              - 'core/**/android/**'               # Android-specific core modules
-              - 'app/configs/android/**'           # Android configs
-              - 'app/constants/android/**'         # Android constants
-              - 'app/components/**/android/**'     # Android UI components
-              - 'app/util/**/android/**'           # Android utilities
               - '**/*.android.*'                   # Android-specific file extensions (e.g., .android.tsx)
+
+            ios:
+              - 'ios/**'                           # All iOS project files
+              - '**/*.ios.*'                       # iOS-specific file extensions (e.g., .ios.tsx)
+
+            shared:
               - 'package.json'                     # If native deps change
               - 'metro.config.js'                  # Metro bundler affects both
               - 'tsconfig.json'                    # TypeScript config affects both
               - 'babel.config.js'                  # Transpilation affects both
               - 'yarn.lock'                        # Dependency changes affect both
-              - 'app/**'                           # Shared app files affect both
-              
-
-            ios:
-              - '!**/*.android.*'                  # Exclude Android file extensions from iOS
-              - '!app/**/android/**'               # Exclude Android-specific from iOS
-              - 'ios/**'                           # All iOS project files
-              - 'Podfile'                          # CocoaPods dependencies
-              - 'Podfile.lock'                     # Pod lockfile
-              - '**/*.xcodeproj/**'                # Xcode project files
-              - '**/*.xcworkspace/**'              # Xcode workspace
-              - 'app/**/ios/**'                    # iOS-specific app code
-              - 'core/**/ios/**'                   # iOS-specific core modules
-              - 'app/configs/ios/**'               # iOS configs
-              - 'app/constants/ios/**'             # iOS constants
-              - 'app/components/**/ios/**'         # iOS UI components
-              - 'app/util/**/ios/**'               # iOS utilities
-              - '**/*.ios.*'                       # iOS-specific file extensions (e.g., .ios.tsx)
-              - 'package.json'                     # If native deps change
-              - 'metro.config.js'                  # Metro bundler affects both
-              - 'tsconfig.json'                    # TypeScript config affects both
-              - 'babel.config.js'                  # Transpilation affects both
-              - 'yarn.lock'                        # Dependency changes affects both
-              - 'app/**'                           # Shared app files affect both
+              - 'app/**'                           # Shared app files
 
             docs_only:
-                - '**/*.md'                           # Documentation files
-                - 'docs/**'                           # Documentation directory
-                - '**/*.yml'                          # Workflow files  
-                - '.github/**'                        # GitHub workflow changes
+              - '**/*.md'                          # Documentation files
+              - 'docs/**'                          # Documentation directory
+              - '**/*.yml'                         # Workflow files  
+              - '.github/**'                       # GitHub workflow changes
 
       - name: Set final outputs
         id: set-outputs
         run: |
-          # Check if ONLY docs/workflows changed (no code changes)
-          android_result="${{ steps.filter.outputs.android }}"
-          ios_result="${{ steps.filter.outputs.ios }}"
+          # Get individual filter results
+          android="${{ steps.filter.outputs.android }}"
+          ios="${{ steps.filter.outputs.ios }}"
+          shared="${{ steps.filter.outputs.shared }}"
           docs_only="${{ steps.filter.outputs.docs_only }}"
           
+          # Calculate final results
+          if [[ "$shared" == 'true' ]]; then
+            # Shared files changed - trigger both platforms
+            android_final="true"
+            ios_final="true"
+          else
+            # Only platform-specific changes
+            android_final="$android"
+            ios_final="$ios"
+          fi
+          
           # Skip builds only if docs/workflows changed AND no mobile code changed
-          if [[ "$docs_only" == 'true' && "$android_result" == 'false' && "$ios_result" == 'false' ]]; then
+          if [[ "$docs_only" == 'true' && "$android_final" == 'false' && "$ios_final" == 'false' ]]; then
             echo "Skipping all mobile builds - changes only affect docs/workflows, no mobile code changed"
             echo "android_final=false" >> "${GITHUB_OUTPUT}"
             echo "ios_final=false" >> "${GITHUB_OUTPUT}"
           else
             echo "Mobile build decisions:"
-            echo "  Android: $android_result"
-            echo "  iOS: $ios_result"
+            echo "  Android: $android_final (direct: $android, shared: $shared)"
+            echo "  iOS: $ios_final (direct: $ios, shared: $shared)"
             
-            echo "android_final=$android_result" >> "${GITHUB_OUTPUT}"
-            echo "ios_final=$ios_result" >> "${GITHUB_OUTPUT}"
+            echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
+            echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
           fi
           
       - name: Summary
