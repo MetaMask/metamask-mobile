@@ -92,11 +92,19 @@ jobs:
           exclude_matched="${{ steps.filter.outputs.exclude }}"
           
           if [[ "$exclude_matched" == 'true' ]]; then
+            echo "Skipping all mobile builds - changes only affect excluded files (docs, workflows, etc.)"
             echo "android_final=false" >> "${GITHUB_OUTPUT}"
             echo "ios_final=false" >> "${GITHUB_OUTPUT}"
           else
-            echo "android_final=${{ steps.filter.outputs.android }}" >> "${GITHUB_OUTPUT}"
-            echo "ios_final=${{ steps.filter.outputs.ios }}" >> "${GITHUB_OUTPUT}"
+            android_result="${{ steps.filter.outputs.android }}"
+            ios_result="${{ steps.filter.outputs.ios }}"
+            
+            echo "Mobile build decisions:"
+            echo "  Android: $android_result"
+            echo "  iOS: $ios_result"
+            
+            echo "android_final=$android_result" >> "${GITHUB_OUTPUT}"
+            echo "ios_final=$ios_result" >> "${GITHUB_OUTPUT}"
           fi
           
       - name: Summary
