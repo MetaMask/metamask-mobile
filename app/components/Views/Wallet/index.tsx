@@ -475,7 +475,7 @@ const Wallet = ({
             isTestNet(network.chainId) || network.chainId === SolScope.Mainnet,
         );
       }
-      return false;
+      return true;
     }
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       return enabledNetworks.some((network) => isTestNet(network));
