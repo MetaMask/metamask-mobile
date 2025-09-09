@@ -209,10 +209,12 @@ const DeepLinkModal = () => {
       Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
     Linking.openURL(storeUrl).catch((error) => {
       console.warn('Error opening MetaMask store:', error);
-      console.warn(`💡 Note: This error is expected in iOS Simulator
+      if (__DEV__) {
+        console.warn(`💡 Note: This error is expected in iOS Simulator
    because itms-apps:// URLs require the App Store app
    which is not available in the simulator.
    Test on a real device to verify App Store opening works correctly.`);
+      }
     });
   }, []);
 
