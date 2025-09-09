@@ -57,12 +57,17 @@ describe('PerpsCard', () => {
         {
           symbol: 'ETH',
           name: 'Ethereum',
-          price: '3000',
-          priceChange24h: '2.5',
-          volume24h: '1000000',
-          marketCap: '1000000000',
+          maxLeverage: '50',
+          price: '$3,000.00',
+          change24h: '+$150.00',
+          change24hPercent: '+5.0%',
+          volume: '$1.2B',
         },
       ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
     });
   });
 
@@ -134,6 +139,10 @@ describe('PerpsCard', () => {
       // Arrange
       mockUsePerpsMarkets.mockReturnValue({
         markets: [],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
       });
 
       // Act
@@ -155,12 +164,17 @@ describe('PerpsCard', () => {
           {
             symbol: 'BTC', // Different symbol from position.coin (ETH)
             name: 'Bitcoin',
-            price: '50000',
-            priceChange24h: '1.5',
-            volume24h: '500000',
-            marketCap: '500000000',
+            maxLeverage: '25',
+            price: '$50,000.00',
+            change24h: '+$1,250.00',
+            change24hPercent: '+2.5%',
+            volume: '$2.1B',
           },
         ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
       });
 
       // Act
