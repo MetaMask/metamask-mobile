@@ -7,8 +7,8 @@ import {
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useFocusEffect } from '@react-navigation/native';
 
-import { doENSLookup } from '../../../../../../util/ENSUtils';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
@@ -22,19 +22,16 @@ import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRec
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
-import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
-import { useFocusEffect } from '@react-navigation/native';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
-  const { to, updateTo, chainId } = useSendContext();
+  const { to, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
-  const { isEvmSendType } = useSendType();
   const accounts = useAccounts();
   const contacts = useContacts();
   const {
@@ -44,7 +41,8 @@ export const Recipient = () => {
     setRecipientInputMethodSelectContact,
   } = useRecipientSelectionMetrics();
   const styles = styleSheet();
-  const { toAddressError, toAddressWarning } = useToAddressValidation();
+  const { toAddressError, toAddressWarning, loading, resolvedAddress } =
+    useToAddressValidation();
   const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
@@ -63,21 +61,15 @@ export const Recipient = () => {
       return;
     }
     setIsSubmittingTransaction(true);
-
-    let resolvedEnsAddress = to;
-    if (isEvmSendType) {
-      resolvedEnsAddress = await doENSLookup(to, chainId);
-    }
-    handleSubmitPress(resolvedEnsAddress || to);
+    handleSubmitPress(resolvedAddress || to);
     setRecipientInputMethodManual();
     captureRecipientSelected();
   }, [
     to,
-    chainId,
-    isEvmSendType,
     toAddressError,
     handleSubmitPress,
     captureRecipientSelected,
+    resolvedAddress,
     setRecipientInputMethodManual,
   ]);
 
@@ -164,7 +156,9 @@ export const Recipient = () => {
                 onPress={handleReview}
                 twClassName="w-full"
                 isDanger={Boolean(toAddressError)}
-                disabled={Boolean(toAddressError) || isSubmittingTransaction}
+                disabled={
+                  Boolean(toAddressError) || isSubmittingTransaction || loading
+                }
                 isLoading={isSubmittingTransaction}
               >
                 {isReviewButtonDisabled
