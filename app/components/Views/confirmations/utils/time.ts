@@ -5,7 +5,6 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
   language: 'shortEn',
   languages: {
     shortEn: {
-      h: () => 'hr',
       m: () => 'min',
       s: () => 'sec',
     },
