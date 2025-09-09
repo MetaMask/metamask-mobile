@@ -52,8 +52,15 @@ jobs:
               - 'app/util/**/android/**'           # Android utilities
               - '**/*.android.*'                   # Android-specific file extensions (e.g., .android.tsx)
               - 'package.json'                     # If native deps change
+              - 'metro.config.js'                  # Metro bundler affects both
+              - 'tsconfig.json'                    # TypeScript config affects both
+              - 'babel.config.js'                  # Transpilation affects both
+              - 'yarn.lock'                        # Dependency changes affect both
+              - 'app/**'                           # Shared app files affect both
+              - '!app/**/android/**'                   # Exclude iOS-specific from Android
+              - '!**/*.android.*'                      # Exclude iOS file extensions from Android
               
- 
+
             ios:
               - 'ios/**'                           # All iOS project files
               - 'Podfile'                          # CocoaPods dependencies
@@ -68,19 +75,13 @@ jobs:
               - 'app/util/**/ios/**'               # iOS utilities
               - '**/*.ios.*'                       # iOS-specific file extensions (e.g., .ios.tsx)
               - 'package.json'                     # If native deps change
-              
-              
-            shared:
-              - 'metro.config.js'                  # Metro bundler
-              - 'tsconfig.json'                    # TypeScript config
-              - 'babel.config.js'                  # Transpilation changes
-              - 'yarn.lock'                        # Dependency changes
-              - 'app/**'                           # App files
-              - '!app/**/ios/**'                   # Exclude iOS-specific
-              - '!app/**/android/**'               # Exclude Android-specific
-              - '!**/*.ios.*'                      # Exclude iOS file extensions
-              - '!**/*.android.*'                  # Exclude Android file extensions
-
+              - 'metro.config.js'                  # Metro bundler affects both
+              - 'tsconfig.json'                    # TypeScript config affects both
+              - 'babel.config.js'                  # Transpilation affects both
+              - 'yarn.lock'                        # Dependency changes affect both
+              - 'app/**'                           # Shared app files affect both
+              - '!app/**/ios/**'               # Exclude Android-specific from iOS
+              - '!**/*.ios.*'                  # Exclude Android file extensions from iOS
 
             exclude:
                 - '!**/*.md'                          # Docs don't trigger builds
@@ -94,16 +95,10 @@ jobs:
           # Get filter results
           android_direct="${{ steps.filter.outputs.android }}"
           ios_direct="${{ steps.filter.outputs.ios }}"
-          shared_changed="${{ steps.filter.outputs.shared }}"
           
-          # Apply shared logic: if shared files changed, both platforms should build
-          if [[ "$shared_changed" == 'true' ]]; then
-            android_final="true"
-            ios_final="true"
-          else
-            android_final="$android_direct"
-            ios_final="$ios_direct"
-          fi
+          # Use direct results without forcing both platforms
+          android_final="$android_direct"
+          ios_final="$ios_direct"
           
           # Set outputs
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
