@@ -13,7 +13,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import {
+  fromTokenMinimalUnit,
+  isNumberValue,
+} from '../../../../../util/number';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
@@ -115,10 +118,8 @@ export const useBridgeQuoteData = ({
     if (
       amount == null ||
       valueInCurrency == null ||
-      amount === 'NaN' ||
-      valueInCurrency === 'NaN' ||
-      isNaN(Number(amount)) ||
-      isNaN(Number(valueInCurrency))
+      !isNumberValue(amount) ||
+      !isNumberValue(valueInCurrency)
     ) {
       return '-';
     }
