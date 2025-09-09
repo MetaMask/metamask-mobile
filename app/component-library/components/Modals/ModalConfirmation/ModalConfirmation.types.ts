@@ -1,10 +1,9 @@
-import { StackScreenProps } from '@react-navigation/stack';
-import { RootParamList } from '../../../../util/navigation';
-
-/**
- * ModalConfirmation component props.
- */
-export type ModalConfirmationProps = StackScreenProps<
-  RootParamList,
-  'ModalConfirmation'
->;
+export type ModalConfirmationParams = {
+  title: string;
+  description: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  isDanger?: boolean;
+};

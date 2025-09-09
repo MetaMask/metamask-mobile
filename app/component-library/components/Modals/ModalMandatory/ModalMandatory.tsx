@@ -29,12 +29,15 @@ import {
   WEBVIEW_SCROLL_END_EVENT,
   WEBVIEW_SCROLL_NOT_END_EVENT,
 } from './ModalMandatory.constants';
-import { MandatoryModalProps } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import { throttle } from 'lodash';
+import type { RootParamList } from '../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
+
+type MandatoryModalProps = StackScreenProps<RootParamList, 'ModalMandatory'>;
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();

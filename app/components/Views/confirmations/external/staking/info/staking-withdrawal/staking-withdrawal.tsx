@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -17,8 +16,19 @@ import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-
 import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
 import { TraceName } from '../../../../../../../util/trace';
 import { useStakingTransactionTracing } from '../../../../../../UI/Stake/hooks/useStakingTransactionTracing';
+import type { RouteProp } from '@react-navigation/native';
+import type { RootParamList } from '../../../../../../../util/navigation/types';
 
-const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
+type StakingWithdrawalRouteProp = RouteProp<
+  RootParamList,
+  'RedesignedConfirmations' | 'ConfirmationRequestModal'
+>;
+
+type StakingWithdrawalProps = {
+  route: StakingWithdrawalRouteProp;
+};
+
+const StakingWithdrawal = ({ route }: StakingWithdrawalProps) => {
   const amountWei = route?.params?.amountWei;
 
   useNavbar(strings('stake.unstake'));

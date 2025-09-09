@@ -2,15 +2,13 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { BaseWalletDetails } from './BaseWalletDetails';
 import { selectWalletById } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountWalletId } from '@metamask/account-api';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface WalletDetailsProps {
-  route: {
-    params: {
-      walletId: AccountWalletId;
-    };
-  };
-}
+type WalletDetailsProps = StackScreenProps<
+  RootParamList,
+  'MultichainWalletDetails'
+>;
 
 export const WalletDetails = (props: WalletDetailsProps) => {
   const { walletId } = props.route.params;

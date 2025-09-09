@@ -11,7 +11,6 @@ import { useStyles } from '../../../../component-library/hooks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { AccountsList } from './AccountsList';
-import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 
@@ -34,8 +33,18 @@ import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../../UI/Perps/constants/perpsConfig';
+import type { RootParamList } from '../../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
 
-const NotificationsSettings = ({ navigation, route }: Props) => {
+type NotificationsSettingsProps = StackScreenProps<
+  RootParamList,
+  'NotificationsSettings'
+>;
+
+const NotificationsSettings = ({
+  navigation,
+  route,
+}: NotificationsSettingsProps) => {
   const theme = useTheme();
 
   const isMetamaskNotificationsEnabled = useSelector(

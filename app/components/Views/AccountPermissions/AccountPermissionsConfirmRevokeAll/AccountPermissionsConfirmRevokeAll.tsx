@@ -20,17 +20,13 @@ import Logger from '../../../../util/Logger';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface AccountPermissionsConfirmRevokeAllProps {
-  route: {
-    params: {
-      hostInfo: {
-        metadata: { origin: string };
-      };
-      onRevokeAll?: () => void;
-    };
-  };
-}
+type AccountPermissionsConfirmRevokeAllProps = StackScreenProps<
+  RootParamList,
+  'RevokeAllAccountPermissions'
+>;
 
 const AccountPermissionsConfirmRevokeAll = (
   props: AccountPermissionsConfirmRevokeAllProps,

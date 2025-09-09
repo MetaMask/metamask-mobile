@@ -63,7 +63,8 @@ import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
-import { TokenI } from '../../UI/Tokens/types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -114,18 +115,10 @@ const createStyles = (colors: Colors) =>
     warningBannerLink: { color: colors.primary.default },
   });
 
-interface Props {
-  route: {
-    params: {
-      address: Hex;
-      chainId: Hex;
-      asset: TokenI;
-    };
-  };
-}
+type AssetDetailsProps = StackScreenProps<RootParamList, 'AssetDetails'>;
 
-const AssetDetails = (props: Props) => {
-  const { address, chainId: networkId, asset } = props.route.params;
+const AssetDetails = ({ route }: AssetDetailsProps) => {
+  const { address, chainId: networkId, asset } = route.params;
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);

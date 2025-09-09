@@ -84,6 +84,7 @@ enum RouteNames {
   MaxBrowserTabsModal = 'MaxBrowserTabsModal',
   DeepLinkModal = 'DeepLinkModal',
   MultichainAccountDetailActions = 'MultichainAccountDetailActions',
+  MultichainRevealPrivateCredential = 'MultichainRevealPrivateCredential',
 
   // Onboarding Routes
   OnboardingRootNav = 'OnboardingRootNav',
@@ -165,7 +166,6 @@ enum RouteNames {
   ShareAddress = 'ShareAddress',
   ShareAddressQR = 'ShareAddressQR',
   DeleteAccount = 'DeleteAccount',
-  RevealPrivateCredential = 'RevealPrivateCredential',
   RevealSRPCredential = 'RevealSRPCredential',
   SRPRevealQuizInMultichainAccountDetails = 'SRPRevealQuizInMultichainAccountDetails',
   SmartAccount = 'SmartAccount',
@@ -467,7 +467,7 @@ const Routes = {
       SHARE_ADDRESS: RouteNames.ShareAddress,
       SHARE_ADDRESS_QR: RouteNames.ShareAddressQR,
       DELETE_ACCOUNT: RouteNames.DeleteAccount,
-      REVEAL_PRIVATE_CREDENTIAL: RouteNames.RevealPrivateCredential,
+      REVEAL_PRIVATE_CREDENTIAL: RouteNames.MultichainRevealPrivateCredential,
       REVEAL_SRP_CREDENTIAL: RouteNames.RevealSRPCredential,
       SRP_REVEAL_QUIZ: RouteNames.SRPRevealQuizInMultichainAccountDetails,
       SMART_ACCOUNT: RouteNames.SmartAccount,

@@ -1,15 +1,19 @@
 /* eslint-disable no-console */
 // Internal dependencies.
-import {
-  MandatoryModalParams,
-  MandatoryModalProps,
-} from './ModalMandatory.types';
+import type { RouteProp } from '@react-navigation/native';
+import type { RootParamList } from '../../../../util/navigation/types';
+import { StackScreenProps } from '@react-navigation/stack';
 
 export const WEBVIEW_SCROLL_END_EVENT = 'end';
 export const WEBVIEW_SCROLL_NOT_END_EVENT = '!end';
 
 // Sample consts
-const SAMPLE_MODALMANDATORY_PARAMS_PROPS: MandatoryModalParams = {
+const SAMPLE_MODALMANDATORY_PARAMS_PROPS: RouteProp<
+  RootParamList,
+  'ModalMandatory'
+> = {
+  key: 'ModalMandatory',
+  name: 'ModalMandatory',
   params: {
     body: {
       source: 'WebView',
@@ -27,6 +31,8 @@ const SAMPLE_MODALMANDATORY_PARAMS_PROPS: MandatoryModalParams = {
     },
   },
 };
-export const SAMPLE_MODALMANDATORY_PROPS: MandatoryModalProps = {
+export const SAMPLE_MODALMANDATORY_PROPS: Partial<
+  StackScreenProps<RootParamList, 'ModalMandatory'>
+> = {
   route: SAMPLE_MODALMANDATORY_PARAMS_PROPS,
 };

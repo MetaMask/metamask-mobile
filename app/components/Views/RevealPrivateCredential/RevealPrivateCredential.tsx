@@ -10,9 +10,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
-import { RouteProp, ParamListBase } from '@react-navigation/native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,32 +74,23 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
 export const PRIVATE_KEY = 'private_key';
 
-interface RootStackParamList extends ParamListBase {
-  RevealPrivateCredential: {
-    credentialName: string;
-    shouldUpdateNav?: boolean;
-    selectedAccount?: InternalAccount;
-    keyringId?: string;
-  };
-}
-
-type RevealPrivateCredentialRouteProp = RouteProp<
-  RootStackParamList,
-  'RevealPrivateCredential'
->;
-
-interface IRevealPrivateCredentialProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-  credentialName: string;
-  cancel: () => void;
-  route: RevealPrivateCredentialRouteProp;
+type RevealPrivateCredentialProps = Omit<
+  StackScreenProps<RootParamList, 'RevealPrivateCredentialView'>,
+  'navigation'
+> & {
+  credentialName?: string;
+  cancel?: () => void;
   showCancelButton?: boolean;
-}
+  navigation: StackNavigationProp<RootParamList>;
+};
 
 const RevealPrivateCredential = ({
   navigation,
@@ -109,7 +98,7 @@ const RevealPrivateCredential = ({
   cancel,
   route,
   showCancelButton,
-}: IRevealPrivateCredentialProps) => {
+}: RevealPrivateCredentialProps) => {
   const hasNavigation = !!navigation;
   // TODO - Refactor or split RevealPrivateCredential when used in Nav stack vs outside of it
   const shouldUpdateNav = route?.params?.shouldUpdateNav;

@@ -51,10 +51,7 @@ import {
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 // Internal dependencies.
-import {
-  AccountPermissionsProps,
-  AccountPermissionsScreens,
-} from './AccountPermissions.types';
+import { AccountPermissionsScreens } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import { USER_INTENT } from '../../../constants/permissions';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
@@ -92,8 +89,15 @@ import styleSheet from './AccountPermissions.styles';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
 import { trace, endTrace, TraceName } from '../../../util/trace';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
-const AccountPermissions = (props: AccountPermissionsProps) => {
+type AccountPermissionsProps = StackScreenProps<
+  RootParamList,
+  'AccountPermissions'
+>;
+
+const AccountPermissions = ({ route }: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -104,7 +108,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     isRenderedAsBottomSheet = true,
     initialScreen = AccountPermissionsScreens.Connected,
     isNonDappNetworkSwitch = false,
-  } = props.route.params;
+  } = route.params;
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -310,7 +314,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
             origin: urlWithProtocol && new URL(urlWithProtocol).origin,
           },
         },
-        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
+        onRevokeAll: !isRenderedAsBottomSheet ? onRevokeAllHandler : undefined,
       },
     });
     endTrace({ name: TraceName.DisconnectAllAccountPermissions });

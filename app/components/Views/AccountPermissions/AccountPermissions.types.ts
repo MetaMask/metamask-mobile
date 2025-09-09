@@ -12,21 +12,11 @@ export enum AccountPermissionsScreens {
   AddAccount = 'AddAccount',
 }
 
-/**
- * AccountPermissions props.
- */
-export interface AccountPermissionsProps {
-  /**
-   * Props that are passed in while navigating to screen.
-   */
-  route: {
-    params: {
-      hostInfo: {
-        metadata: { origin: string };
-      };
-      isRenderedAsBottomSheet?: boolean;
-      initialScreen?: AccountPermissionsScreens;
-      isNonDappNetworkSwitch?: boolean;
-    };
+export type AccountPermissionsParams = {
+  hostInfo: {
+    metadata: { origin: string };
   };
-}
+  isRenderedAsBottomSheet?: boolean;
+  initialScreen?: AccountPermissionsScreens;
+  isNonDappNetworkSwitch?: boolean;
+};

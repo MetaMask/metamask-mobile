@@ -30,35 +30,23 @@ import {
   isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
-import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
+import { BrowserTab } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 interface Option {
   label: string;
   onPress: () => void;
   icon: IconName;
 }
 
-interface Props {
-  route: {
-    params: {
-      address: string;
-      isNativeCurrency: boolean;
-      chainId: string;
-      asset: TokenI;
-    };
-  };
-}
+type AssetOptionsProps = StackScreenProps<RootParamList, 'AssetOptions'>;
 
-const AssetOptions = (props: Props) => {
-  const {
-    address,
-    isNativeCurrency,
-    chainId: networkId,
-    asset,
-  } = props.route.params;
+const AssetOptions = ({ route }: AssetOptionsProps) => {
+  const { address, isNativeCurrency, chainId: networkId, asset } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -139,8 +127,8 @@ const AssetOptions = (props: Props) => {
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
       navigation.navigate('AssetDetails', {
-        address,
-        chainId: networkId,
+        address: address as Hex,
+        chainId: networkId as Hex,
         asset,
       });
     });

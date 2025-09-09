@@ -23,11 +23,7 @@ import ErrorView from '../../../components/ErrorView';
 
 type WebviewModalProps = StackScreenProps<RootParamList, 'DepositWebviewModal'>;
 
-function WebviewModal({
-  route,
-}:
-  | WebviewModalProps
-  | { route: { params: WebviewModalProps['route']['params'] } }) {
+function WebviewModal({ route }: WebviewModalProps) {
   const { sourceUrl, handleNavigationStateChange } = route.params;
   const sheetRef = useRef<BottomSheetRef>(null);
   const previousUrlRef = useRef<string | null>(null);

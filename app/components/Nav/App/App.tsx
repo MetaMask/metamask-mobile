@@ -584,7 +584,7 @@ const MultichainAccountDetailsActions = () => {
         options={commonScreenOptions}
       />
       <Stack.Screen
-        name="RevealPrivateCredential"
+        name="MultichainRevealPrivateCredential"
         component={RevealPrivateKey}
         initialParams={route?.params}
       />

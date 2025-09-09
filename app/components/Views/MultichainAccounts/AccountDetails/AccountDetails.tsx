@@ -12,20 +12,19 @@ import PrivateKeyAccountDetails from './AccountTypes/PrivateKeyAccountDetails';
 import HardwareAccountDetails from './AccountTypes/HardwareAccountDetails';
 import { isHardwareAccount } from '../../../../util/address';
 import SnapAccountDetails from './AccountTypes/SnapAccountDetails';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface AccountDetailsProps {
-  route: {
-    params: {
-      account: InternalAccount;
-    };
-  };
-}
+type AccountDetailsProps = StackScreenProps<
+  RootParamList,
+  'MultichainAccountDetails'
+>;
 
-export const AccountDetails = (props: AccountDetailsProps) => {
+export const AccountDetails = ({ route }: AccountDetailsProps) => {
   const navigation = useNavigation();
   const {
     account: { address },
-  } = props.route.params;
+  } = route.params;
   const account: InternalAccount | undefined = useSelector((state: RootState) =>
     getMemoizedInternalAccountByAddress(state, address),
   );

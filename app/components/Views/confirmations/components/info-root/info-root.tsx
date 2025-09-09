@@ -1,7 +1,6 @@
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
-import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
@@ -20,6 +19,8 @@ import Approve from '../info/approve';
 import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDeposit } from '../../external/perps-temp/components/deposit';
+import { RouteProp } from '@react-navigation/native';
+import { RootParamList } from '../../../../../util/navigation/types';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -64,8 +65,13 @@ const ConfirmationInfoComponentMap = {
   [ApprovalType.TransactionBatch]: () => TransactionBatch,
 };
 
+type InfoPropsRouteProp = RouteProp<
+  RootParamList,
+  'RedesignedConfirmations' | 'ConfirmationRequestModal'
+>;
+
 interface InfoProps {
-  route?: UnstakeConfirmationViewProps['route'];
+  route?: InfoPropsRouteProp;
 }
 
 const Info = ({ route }: InfoProps) => {
@@ -111,12 +117,8 @@ const Info = ({ route }: InfoProps) => {
     ].includes(transactionType)
   ) {
     const StakingComponentWithArgs =
-      InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
-    return (
-      <StakingComponentWithArgs
-        route={route as UnstakeConfirmationViewProps['route']}
-      />
-    );
+      InfoComponent as React.ComponentType<InfoProps>;
+    return <StakingComponentWithArgs route={route} />;
   }
 
   const GenericComponent = InfoComponent as React.ComponentType<

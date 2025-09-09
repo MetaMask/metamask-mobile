@@ -23,6 +23,8 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-origin-button';
 export const CONTINUE_BUTTON_TEST_ID = 'continue-origin-button';
@@ -160,11 +162,9 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
   );
 };
 
-const OriginSpamModal = ({
-  route,
-}: {
-  route: { params: { origin: string } };
-}) => {
+type OriginSpamModalProps = StackScreenProps<RootParamList, 'OriginSpamModal'>;
+
+const OriginSpamModal = ({ route }: OriginSpamModalProps) => {
   const dispatch = useDispatch();
   const { origin } = route.params;
   const styles = createStyles();

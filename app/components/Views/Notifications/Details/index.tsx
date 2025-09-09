@@ -1,13 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import {
-  INotification,
-  isNotificationsFeatureEnabled,
-} from '../../../../util/notifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
-
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -24,17 +19,18 @@ import ModalHeader from './Headers';
 import ModalFooter from './Footers';
 import { toLocaleDate } from '../../../../util/date';
 import { NotificationDetailsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationDetailsView.selectors';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface Props {
-  navigation: NavigationProp<ParamListBase>;
-  route: {
-    params: {
-      notification: INotification;
-    };
-  };
-}
+type NotificationsDetailsProps = StackScreenProps<
+  RootParamList,
+  'NotificationsDetails'
+>;
 
-const NotificationsDetails = ({ route, navigation }: Props) => {
+const NotificationsDetails = ({
+  route,
+  navigation,
+}: NotificationsDetailsProps) => {
   const { notification } = route.params;
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
@@ -124,7 +120,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   );
 };
 
-const NotificationDetailsContainer = (props: Props) => {
+const NotificationDetailsContainer = (props: NotificationsDetailsProps) => {
   if (!isNotificationsFeatureEnabled()) {
     return null;
   }

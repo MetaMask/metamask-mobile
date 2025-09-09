@@ -17,17 +17,16 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './ConnectionDetails.styles';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation/types';
 
-interface ConnectionDetailsProps {
-  route: {
-    params: {
-      connectionDateTime?: number;
-    };
-  };
-}
+type ConnectionDetailsProps = StackScreenProps<
+  RootParamList,
+  'ConnectionDetails'
+>;
 
-const ConnectionDetails = (props: ConnectionDetailsProps) => {
-  const { connectionDateTime = 123456789 } = props.route.params;
+const ConnectionDetails = ({ route }: ConnectionDetailsProps) => {
+  const { connectionDateTime = 123456789 } = route.params;
 
   const { styles } = useStyles(styleSheet, {});
 

@@ -8,7 +8,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
   ButtonVariants,
@@ -26,11 +25,21 @@ import {
   getVersion,
   getBuildNumber,
 } from 'react-native-device-info';
+import type { RootParamList } from '../../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
+
+type ExperimentalSettingsProps = StackScreenProps<
+  RootParamList,
+  'ExperimentalSettings'
+>;
 
 /**
  * Main view for app Experimental Settings
  */
-const ExperimentalSettings = ({ navigation, route }: Props) => {
+const ExperimentalSettings = ({
+  navigation,
+  route,
+}: ExperimentalSettingsProps) => {
   const performanceMetrics = useSelector(selectPerformanceMetrics);
 
   const isFullScreenModal = route?.params?.isFullScreenModal;

@@ -12,12 +12,21 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import { ModalConfirmationProps } from './ModalConfirmation.types';
 import stylesheet from './ModalConfirmation.styles';
 import {
   MODAL_CONFIRMATION_DANGER_BUTTON_ID,
   MODAL_CONFIRMATION_NORMAL_BUTTON_ID,
 } from './ModalConfirmation.constants';
+import type { RootParamList } from '../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
+
+/**
+ * ModalConfirmation component props.
+ */
+type ModalConfirmationProps = StackScreenProps<
+  RootParamList,
+  'ModalConfirmation'
+>;
 
 const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
   const {

@@ -7,17 +7,20 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styleSheet from './RevealPrivateKey.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import type { StackScreenProps } from '@react-navigation/stack';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
 import type { RootParamList } from '../../../../../util/navigation';
 
 type RevealPrivateKeyProp = StackScreenProps<
   RootParamList,
-  'RevealPrivateCredential'
+  'MultichainRevealPrivateCredential'
 >;
 
 export const RevealPrivateKey = ({ route }: RevealPrivateKeyProp) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const { account } = route.params;
   const handleOnBack = () => {
     navigation.goBack();
@@ -34,8 +37,8 @@ export const RevealPrivateKey = ({ route }: RevealPrivateKeyProp) => {
         navigation={navigation}
         cancel={handleOnBack}
         route={{
-          key: 'RevealPrivateCredential',
-          name: 'RevealPrivateCredential',
+          key: 'RevealPrivateCredentialView',
+          name: 'RevealPrivateCredentialView',
           params: {
             credentialName: PRIVATE_KEY,
             shouldUpdateNav: false,

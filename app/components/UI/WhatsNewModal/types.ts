@@ -1,4 +1,9 @@
+import { StackNavigationProp } from '@react-navigation/stack';
 import { ImageSourcePropType } from 'react-native';
+import {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../util/navigation';
 
 interface SlideImage {
   type: 'image';
@@ -29,9 +34,9 @@ interface SlideButton {
   type: 'button';
   buttonType: SlideButtonType;
   buttonText: string;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onPress: (props: { navigation: any }) => void;
+  onPress: (props: {
+    navigation: StackNavigationProp<NavigatableRootParamList>;
+  }) => void;
 }
 
 type SlideContentType =

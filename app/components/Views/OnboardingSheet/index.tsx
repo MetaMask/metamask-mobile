@@ -19,20 +19,8 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
-
-export interface OnboardingSheetParams {
-  onPressCreate?: () => void;
-  onPressImport?: () => void;
-  onPressContinueWithGoogle?: (createWallet: boolean) => void;
-  onPressContinueWithApple?: (createWallet: boolean) => void;
-  createWallet?: boolean;
-}
-
-export interface OnboardingSheetProps {
-  route: {
-    params: OnboardingSheetParams;
-  };
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../util/navigation';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -72,6 +60,8 @@ const createStyles = (colors: Colors) =>
       columnGap: 8,
     },
   });
+
+type OnboardingSheetProps = StackScreenProps<RootParamList, 'OnboardingSheet'>;
 
 const OnboardingSheet = (props: OnboardingSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);

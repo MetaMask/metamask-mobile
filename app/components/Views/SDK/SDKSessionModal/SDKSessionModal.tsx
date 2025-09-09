@@ -34,6 +34,8 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 import { toFormattedAddress } from '../../../../util/address';
+import type { RootParamList } from '../../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -71,19 +73,13 @@ const createStyles = (
       justifyContent: 'center',
     },
   });
-interface SDKSEssionMoodalProps {
-  route: {
-    params: {
-      channelId?: string;
-      icon?: string;
-      urlOrTitle: string;
-      version?: string;
-      platform?: string;
-    };
-  };
-}
 
-const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
+type SDKSessionModalProps = StackScreenProps<
+  RootParamList,
+  'SDKManageConnections'
+>;
+
+const SDKSessionModal = ({ route }: SDKSessionModalProps) => {
   const { params } = route;
   const { channelId, icon, urlOrTitle, version, platform } = params;
 

@@ -6,11 +6,8 @@ import type {
   IconColor,
   IconName as IconName,
 } from '../../component-library/components/Icons/Icon';
-import type { CaipChainId, Json } from '@metamask/utils';
-import type { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { AccountGroupId, AccountWalletId } from '@metamask/account-api';
-import type { TokenI } from '../../components/UI/Tokens/types';
+import type { AccountGroupId } from '@metamask/account-api';
 import type { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { BasicInfoFormData } from '../../components/UI/Ramp/Deposit/Views/BasicInfo/BasicInfo';
 import type { AddressFormData } from '../../components/UI/Ramp/Deposit/Views/EnterAddress/EnterAddress';
@@ -64,6 +61,28 @@ import { SecuritySettingsParams } from '../../components/Views/Settings/Security
 import { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import { LoginParams } from '../../components/Views/Login/types';
+import { ModalConfirmationParams } from '../../component-library/components/Modals/ModalConfirmation/ModalConfirmation.types';
+import { MandatoryModalParams } from '../../component-library/components/Modals/ModalMandatory/ModalMandatory.types';
+import { BridgeTransactionDetailsParams } from '../../components/UI/Bridge/components/TransactionDetails/TransactionDetails.types';
+import { AccountPermissionsParams } from '../../components/Views/AccountPermissions/AccountPermissions.types';
+import { AccountPermissionsConfirmRevokeAllParams } from '../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll/AccountPermissionsConfirmRevokeAll.test';
+import { ConnectionDetailsParams } from '../../components/Views/AccountPermissions/ConnectionDetails/ConnectionDetails.types';
+import { AddNewAccountBottomSheetParams } from '../../components/Views/AddNewAccount/AddNewAccountBottomSheet.types';
+import { AssetDetailsParams } from '../../components/Views/AssetDetails/AssetDetails.types';
+import { AssetLoaderParams } from '../../components/Views/AssetLoader/types';
+import { AssetOptionsParams } from '../../components/Views/AssetOptions/AssetOptions.types';
+import { ChangeInSimulationModalParams } from '../../components/Views/ChangeInSimulationModal/ChangeInSimulationModal.types';
+import { AccountDetailsParams } from '../../components/Views/MultichainAccounts/AccountDetails/AccountDetails.types';
+import { WalletDetailsParams } from '../../components/Views/MultichainAccounts/WalletDetails/WalletDetails.types';
+import { NotificationsDetailsParams } from '../../components/Views/Notifications/Details/types';
+import { OnboardingSheetParams } from '../../components/Views/OnboardingSheet/types';
+import { OriginSpamModalParams } from '../../components/Views/OriginSpamModal/OriginSpamModal.types';
+import { MultichainRevealPrivateCredentialParams } from '../../components/Views/MultichainAccounts/sheets/RevealPrivateKey/RevealPrivateKey.types';
+import { RevealPrivateCredentialParams } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
+import { SDKSessionModalParams } from '../../components/Views/SDK/SDKSessionModal/SDKSessionModal.types';
+import { ExperimentalSettingsParams } from '../../components/Views/Settings/ExperimentalSettings/ExperimentalSettings.types';
+import { NotificationsSettingsParams } from '../../components/Views/Settings/NotificationsSettings/NotificationsSettings.types';
+import { TooltipModalParams } from '../../components/Views/TooltipModal/ToolTipModal.types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -77,7 +96,7 @@ export type RootParamList = {
   DefaultSettings: undefined;
   GeneralSettings: undefined;
   AssetsSettings: undefined;
-  SecuritySettings: SecuritySettingsParams;
+  SecuritySettings: SecuritySettingsParams | undefined;
   OnboardingSuccessFlow: undefined;
   OnboardingNav: undefined;
   HomeNav: undefined;
@@ -135,37 +154,8 @@ export type RootParamList = {
         isResetWallet?: boolean;
       }
     | undefined;
-  ModalConfirmation: {
-    title: string;
-    description: string;
-    onConfirm?: () => void;
-    onCancel?: () => void;
-    cancelLabel?: string;
-    confirmLabel?: string;
-    isDanger?: boolean;
-  };
-  ModalMandatory: {
-    containerTestId: string;
-    buttonTestId: string;
-    buttonText: string;
-    checkboxText: string;
-    headerTitle: string;
-    onAccept: () => Promise<void> | (() => void);
-    footerHelpText: string;
-    body:
-      | {
-          source: 'WebView';
-          html?: string;
-          uri?: string;
-        }
-      | {
-          source: 'Node';
-          component: () => React.ReactNode;
-        };
-    onRender?: () => void;
-    isScrollToEndNeeded: boolean;
-    scrollEndBottomMargin: number;
-  };
+  ModalConfirmation: ModalConfirmationParams;
+  ModalMandatory: MandatoryModalParams;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
   OptionsSheet: OptionsSheetParams;
@@ -178,13 +168,7 @@ export type RootParamList = {
   RootModalFlow: undefined;
 
   // Sheet Screens
-  OnboardingSheet: {
-    onPressCreate?: () => void;
-    onPressImport?: () => void;
-    onPressContinueWithGoogle?: (createWallet: boolean) => void;
-    onPressContinueWithApple?: (createWallet: boolean) => void;
-    createWallet?: boolean;
-  };
+  OnboardingSheet: OnboardingSheetParams;
   SeedphraseModal: undefined;
   SkipAccountSecurityModal: {
     onConfirm?: () => void;
@@ -211,21 +195,10 @@ export type RootParamList = {
   };
   AccountSelector: AccountSelectorParams | undefined;
   AddressSelector: AddressSelectorParams;
-  AddAccount:
-    | {
-        scope: CaipChainId;
-        clientType: WalletClientType;
-      }
-    | undefined;
+  AddAccount: AddNewAccountBottomSheetParams | undefined;
   SDKLoading: undefined;
   SDKFeedback: undefined;
-  SDKManageConnections: {
-    channelId?: string;
-    icon?: string;
-    urlOrTitle: string;
-    version?: string;
-    platform?: string;
-  };
+  SDKManageConnections: SDKSessionModalParams;
   ExperienceEnhancer: undefined;
   DataCollection: undefined;
   SDKDisconnect:
@@ -241,23 +214,9 @@ export type RootParamList = {
     hostInfo: any;
     permissionRequestId: string;
   };
-  AccountPermissions: {
-    hostInfo: {
-      metadata: { origin: string };
-    };
-    isRenderedAsBottomSheet?: boolean;
-    initialScreen?: any;
-    isNonDappNetworkSwitch?: boolean;
-  };
-  RevokeAllAccountPermissions: {
-    hostInfo: {
-      metadata: { origin: string };
-    };
-    onRevokeAll?: () => void;
-  };
-  ConnectionDetails: {
-    connectionDateTime?: number;
-  };
+  AccountPermissions: AccountPermissionsParams;
+  RevokeAllAccountPermissions: AccountPermissionsConfirmRevokeAllParams;
+  ConnectionDetails: ConnectionDetailsParams;
   PermittedNetworksInfoSheet: undefined;
   NetworkSelector: NetworkSelectorRouteParams | undefined;
   TokenSort: undefined;
@@ -277,12 +236,9 @@ export type RootParamList = {
   ShowNftDisplayMedia: undefined;
   ShowTokenId: ShowTokenIdSheetParams;
   AmbiguousAddress: undefined;
-  OriginSpamModal: { origin: string };
-  ChangeInSimulationModal: {
-    onProceed: () => void;
-    onReject: () => void;
-  };
-  TooltipModal: { title: string; tooltip: string | any };
+  OriginSpamModal: OriginSpamModalParams;
+  ChangeInSimulationModal: ChangeInSimulationModalParams;
+  TooltipModal: TooltipModalParams;
   SelectSRP: undefined;
 
   // Multichain Account Sheets
@@ -302,9 +258,7 @@ export type RootParamList = {
     account: InternalAccount;
   };
   SRPRevealQuizInMultichainAccountDetails: SRPQuizParams | undefined;
-  RevealPrivateCredential: {
-    account: InternalAccount;
-  };
+  MultichainRevealPrivateCredential: MultichainRevealPrivateCredentialParams;
   RevealSRPCredential: {
     account: InternalAccount;
   };
@@ -313,12 +267,7 @@ export type RootParamList = {
   AssetHideConfirmation: {
     onConfirm: () => void;
   };
-  AssetOptions: {
-    address: string;
-    isNativeCurrency: boolean;
-    chainId: string;
-    asset: any;
-  };
+  AssetOptions: AssetOptionsParams;
   NftOptions: NftOptionsParams;
 
   // Hardware Wallet
@@ -336,15 +285,11 @@ export type RootParamList = {
   ImportSRPView: undefined;
 
   // Multichain Accounts
-  MultichainAccountDetails: {
-    account: InternalAccount;
-  };
+  MultichainAccountDetails: AccountDetailsParams;
   MultichainAccountGroupDetails: {
     accountGroup: AccountGroupObject;
   };
-  MultichainWalletDetails: {
-    walletId: AccountWalletId;
-  };
+  MultichainWalletDetails: WalletDetailsParams;
   MultichainAddressList: {
     groupId: AccountGroupId;
     title: string;
@@ -414,7 +359,7 @@ export type RootParamList = {
   PriceImpactWarningModal: {
     isGasIncluded: boolean;
   };
-  BridgeTransactionDetails: undefined;
+  BridgeTransactionDetails: BridgeTransactionDetailsParams;
 
   // Perps Routes
   Perps: undefined;
@@ -648,11 +593,7 @@ export type RootParamList = {
     // Additional params that components access
     [key: string]: any; // Asset component accesses full route.params as asset
   };
-  AssetDetails: {
-    address: Hex;
-    chainId: Hex;
-    asset: TokenI;
-  };
+  AssetDetails: AssetDetailsParams;
   SendView: undefined;
   SendFlowView: undefined;
   AddBookmarkView: undefined;
@@ -719,27 +660,23 @@ export type RootParamList = {
   CompanySettings: undefined;
   ContactsSettings: undefined;
   ContactForm: undefined;
+  ExperimentalSettings: ExperimentalSettingsParams;
   AccountPermissionsAsFullScreen: { initialScreen?: any };
   WalletConnectSessionsView: undefined;
   ResetPassword: undefined;
   WalletRecovery: undefined;
   AesCryptoTestForm: undefined;
   EnterPasswordSimple: { onPasswordSet: (password: string) => void };
-  NotificationsSettings: undefined;
+  NotificationsSettings: NotificationsSettingsParams;
   BackupAndSyncSettings: BackupAndSyncSettingsParams | undefined;
   DeveloperOptions: DeveloperOptionsParams | undefined;
-  RevealPrivateCredentialView: {
-    credentialName: string;
-    shouldUpdateNav?: boolean;
-    selectedAccount?: InternalAccount;
-    keyringId?: Json;
-  };
+  RevealPrivateCredentialView: RevealPrivateCredentialParams;
 
   // Notification Flow Screens
   NotificationsOptInStack: undefined;
   OptInStack: undefined;
   OptIn: undefined;
-  NotificationsDetails: undefined;
+  NotificationsDetails: NotificationsDetailsParams;
 
   // Browser Flow Screens
   BrowserTabHome: undefined;
@@ -751,10 +688,7 @@ export type RootParamList = {
     timestamp?: number;
   };
   AssetView: undefined;
-  AssetLoader: {
-    chainId: string;
-    address: string;
-  };
+  AssetLoader: AssetLoaderParams;
 
   // Payment Flow Screens
   PaymentRequest: undefined;

@@ -9,21 +9,15 @@ import { RootState } from '../../../reducers';
 import { selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './styles';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
-export interface AssetLoaderProps {
-  route: {
-    params: {
-      address: string;
-      chainId: Hex;
-    };
-  };
-}
+type AssetLoaderProps = StackScreenProps<RootParamList, 'AssetLoader'>;
 
 export const AssetLoader: React.FC<AssetLoaderProps> = ({
-  route: {
-    params: { address, chainId },
-  },
-}) => {
+  route,
+}: AssetLoaderProps) => {
+  const { address, chainId } = route.params;
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, chainId, address),
   );

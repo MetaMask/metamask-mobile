@@ -41,7 +41,8 @@ import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StatusResponse } from '@metamask/bridge-status-controller';
-// import { renderShortAddress } from '../../../../../util/address';
+import type { RootParamList } from '../../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -89,14 +90,10 @@ const styles = StyleSheet.create({
   },
 });
 
-interface BridgeTransactionDetailsProps {
-  route: {
-    params: {
-      evmTxMeta?: TransactionMeta;
-      multiChainTx?: Transaction;
-    };
-  };
-}
+type BridgeTransactionDetailsProps = StackScreenProps<
+  RootParamList,
+  'BridgeTransactionDetails'
+>;
 
 const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.PENDING]: TextColor.Warning,
@@ -150,13 +147,13 @@ const getStatusColor = ({
   return TextColor.Error;
 };
 
-export const BridgeTransactionDetails = (
-  props: BridgeTransactionDetailsProps,
-) => {
+export const BridgeTransactionDetails = ({
+  route,
+}: BridgeTransactionDetailsProps) => {
   const navigation = useNavigation();
 
-  const evmTxMeta = props.route.params.evmTxMeta;
-  const multiChainTx = props.route.params.multiChainTx;
+  const evmTxMeta = route.params.evmTxMeta;
+  const multiChainTx = route.params.multiChainTx;
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta,
@@ -398,8 +395,8 @@ export const BridgeTransactionDetails = (
               navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
                 screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
                 params: {
-                  evmTxMeta: props.route.params.evmTxMeta,
-                  multiChainTx: props.route.params.multiChainTx,
+                  evmTxMeta: route.params.evmTxMeta,
+                  multiChainTx: route.params.multiChainTx,
                 },
               });
             }
