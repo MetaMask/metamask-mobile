@@ -176,6 +176,27 @@ describe('EditMultichainAccountName', () => {
       expect(getByText('Failed to edit account name')).toBeTruthy();
     });
 
+    it('shows duplicate name error when account name already exists', () => {
+      mockSetAccountGroupName.mockImplementation(() => {
+        throw new Error('name already exists');
+      });
+
+      const { getByTestId, getByText } = render();
+
+      const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
+      const saveButton = getByTestId(EditAccountNameIds.SAVE_BUTTON);
+
+      fireEvent.changeText(nameInput, 'Existing Group Name');
+      fireEvent.press(saveButton);
+
+      expect(mockSetAccountGroupName).toHaveBeenCalledWith(
+        mockAccountGroup.id,
+        'Existing Group Name',
+      );
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getByText('This name is already in use.')).toBeTruthy();
+    });
+
     it('clears error when input changes after error', () => {
       mockSetAccountGroupName.mockImplementation(() => {
         throw new Error('Duplicate name');

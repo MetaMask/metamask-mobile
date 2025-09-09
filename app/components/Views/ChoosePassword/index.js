@@ -55,7 +55,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -305,12 +304,6 @@ class ChoosePassword extends PureComponent {
     );
   };
 
-  termsOfUse = async () => {
-    if (this.props.navigation) {
-      await navigateTermsOfUse(this.props.navigation.navigate);
-    }
-  };
-
   async componentDidMount() {
     const { route } = this.props;
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -348,7 +341,6 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -440,8 +432,10 @@ class ChoosePassword extends PureComponent {
     }
 
     const provider = this.props.route.params?.provider;
+    const accountType = provider ? `metamask_${provider}` : 'metamask';
+
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: provider ? `metamask_${provider}` : 'metamask',
+      account_type: accountType,
     });
 
     try {
@@ -454,6 +448,18 @@ class ChoosePassword extends PureComponent {
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
+
+      const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
+      trace({
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+        tags: {
+          is_social_login: Boolean(provider),
+          account_type: accountType,
+          biometrics_enabled: Boolean(this.state.biometryType),
+        },
+      });
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -514,13 +520,14 @@ class ChoosePassword extends PureComponent {
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
+      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (error) {
       try {
         await this.recreateVault('');
