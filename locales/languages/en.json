@@ -1120,7 +1120,7 @@
       "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
       "no_amount_selected": "Please select an amount to close",
-      "limit_price_required_toast_message": "Since you didn't add a limit price, you are now placing a Market order"
+      "limit_price_required_toast_message": "You're now placing a market order, since you didn't add a limit price."
     },
     "tpsl": {
       "title": "Take profit and stop loss",

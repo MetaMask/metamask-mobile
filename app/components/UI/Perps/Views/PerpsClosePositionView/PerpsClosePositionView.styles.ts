@@ -61,7 +61,7 @@ export const createStyles = (theme: Theme) => {
     },
     detailItem: {
       marginBottom: 8,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       overflow: 'hidden',
     },
