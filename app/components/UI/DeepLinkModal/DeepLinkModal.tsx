@@ -6,8 +6,18 @@ import React, {
   memo,
   useMemo,
 } from 'react';
-import { View, Image } from 'react-native';
+import {
+  View,
+  Image,
+  Linking,
+  Pressable,
+  Platform,
+  ImageStyle,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import styleSheet from './DeepLinkModal.styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -31,6 +41,8 @@ import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import Routes from '../../../constants/navigation/Routes';
+import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import {
   IconColor,
   IconName,
@@ -58,9 +70,57 @@ const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   );
 });
 
+const ModalDescription = memo<{
+  linkType: DeepLinkModalLinkType;
+  description: string;
+  onOpenMetaMaskStore: () => void;
+  styles: Record<string, ImageStyle & ViewStyle & TextStyle>;
+}>(({ linkType, description, onOpenMetaMaskStore, styles }) => {
+  const updateToStoreLink = strings(
+    'deep_link_modal.invalid.update_to_store_link',
+  );
+  const wellTakeYouToRightPlace = strings(
+    'deep_link_modal.invalid.well_take_you_to_right_place',
+  );
+
+  return (
+    <View style={styles.description}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.description}
+      >
+        {description}
+      </Text>
+      {linkType === DeepLinkModalLinkType.INVALID && (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.storeLinkContainer}
+        >
+          <Pressable
+            onPress={onOpenMetaMaskStore}
+            style={styles.storeLinkPressable}
+          >
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Primary}
+              style={styles.storeLink}
+            >
+              {updateToStoreLink}
+            </Text>
+          </Pressable>
+          {wellTakeYouToRightPlace}
+        </Text>
+      )}
+    </View>
+  );
+});
+
 const DeepLinkModal = () => {
   const params = useParams<DeepLinkModalParams>();
   const { linkType, onBack } = params;
+  const navigation = useNavigation();
 
   const pageTitle =
     params.linkType !== DeepLinkModalLinkType.INVALID
@@ -79,6 +139,7 @@ const DeepLinkModal = () => {
         title: string;
         description: string;
         checkboxLabel?: string;
+        buttonLabel?: string;
         event: IMetaMetricsEvent;
         eventContinue?: IMetaMetricsEvent;
         eventDismiss: IMetaMetricsEvent;
@@ -107,6 +168,7 @@ const DeepLinkModal = () => {
       [DeepLinkModalLinkType.INVALID]: {
         title: strings('deep_link_modal.invalid.title'),
         description: strings('deep_link_modal.invalid.description'),
+        buttonLabel: strings('deep_link_modal.go_to_home_button'),
         event: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_VIEWED,
         eventDismiss: MetaMetricsEvents.DEEP_LINK_INVALID_MODAL_DISMISSED,
       },
@@ -141,21 +203,42 @@ const DeepLinkModal = () => {
     });
   }, [trackEvent, createEventBuilder, linkType, LINK_TYPE_MAP, onBack]);
 
+  const openMetaMaskStore = useCallback(() => {
+    // Open appropriate store based on platform
+    const storeUrl =
+      Platform.OS === 'ios' ? MM_APP_STORE_LINK : MM_PLAY_STORE_LINK;
+    Linking.openURL(storeUrl).catch((error) => {
+      console.warn('Error opening MetaMask store:', error);
+      console.warn(`💡 Note: This error is expected in iOS Simulator
+   because itms-apps:// URLs require the App Store app
+   which is not available in the simulator.
+   Test on a real device to verify App Store opening works correctly.`);
+    });
+  }, []);
+
   const onContinuePressed = useCallback(() => {
-    if (linkType === DeepLinkModalLinkType.INVALID) {
-      return;
-    }
     dismissModal(() => {
-      const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
-      if (eventContinue) {
-        trackEvent(
-          createEventBuilder(eventContinue)
-            .addProperties({
-              ...generateDeviceAnalyticsMetaData(),
-              pageTitle,
-            })
-            .build(),
-        );
+      if (linkType === DeepLinkModalLinkType.INVALID) {
+        // Navigate to home page for invalid links
+        navigation.navigate(Routes.WALLET.HOME, {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        });
+      } else {
+        // Track analytics for valid links
+        const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
+        if (eventContinue) {
+          trackEvent(
+            createEventBuilder(eventContinue)
+              .addProperties({
+                ...generateDeviceAnalyticsMetaData(),
+                pageTitle,
+              })
+              .build(),
+          );
+        }
       }
       params.onContinue();
     });
@@ -166,6 +249,7 @@ const DeepLinkModal = () => {
     pageTitle,
     LINK_TYPE_MAP,
     params,
+    navigation,
   ]);
 
   const onDontRemindMeAgainPressed = useCallback(() => {
@@ -184,7 +268,6 @@ const DeepLinkModal = () => {
   }, [isChecked, trackEvent, createEventBuilder, dispatch]);
 
   const shouldShowCheckbox = linkType === 'private';
-  const shouldShowPrimaryButton = linkType !== 'invalid';
 
   return (
     <BottomSheet
@@ -206,13 +289,12 @@ const DeepLinkModal = () => {
         <Text variant={TextVariant.HeadingLG} style={styles.title}>
           {LINK_TYPE_MAP[linkType].title}
         </Text>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.description}
-        >
-          {LINK_TYPE_MAP[linkType].description}
-        </Text>
+        <ModalDescription
+          linkType={linkType}
+          description={LINK_TYPE_MAP[linkType].description}
+          onOpenMetaMaskStore={openMetaMaskStore}
+          styles={styles}
+        />
       </ScrollView>
       {shouldShowCheckbox && (
         <Box style={styles.checkboxContainer}>
@@ -223,16 +305,17 @@ const DeepLinkModal = () => {
           />
         </Box>
       )}
-      {shouldShowPrimaryButton && (
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('deep_link_modal.continue_button')}
-          onPress={onContinuePressed}
-          style={styles.actionButtonMargin}
-        />
-      )}
+      <Button
+        variant={ButtonVariants.Primary}
+        size={ButtonSize.Lg}
+        width={ButtonWidthTypes.Full}
+        label={
+          LINK_TYPE_MAP[linkType].buttonLabel ||
+          strings('deep_link_modal.continue_button')
+        }
+        onPress={onContinuePressed}
+        style={styles.actionButtonMargin}
+      />
     </BottomSheet>
   );
 };

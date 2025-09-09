@@ -35,6 +35,16 @@ const styleSheet = (params: { theme: Theme }) => {
     description: {
       textAlign: 'center',
     },
+    storeLink: {
+      textDecorationLine: 'underline',
+    },
+    storeLinkPressable: {
+      alignSelf: 'flex-start',
+    },
+    storeLinkContainer: {
+      marginTop: 16,
+      textAlign: 'center',
+    },
     foxImageContainer: {
       alignItems: 'center',
       marginBottom: 40,
