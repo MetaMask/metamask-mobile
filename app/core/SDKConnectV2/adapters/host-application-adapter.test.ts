@@ -57,6 +57,7 @@ describe('HostApplicationAdapter', () => {
     expect(adapter).toBeDefined();
     expect(() => adapter.showLoading()).not.toThrow();
     expect(() => adapter.hideLoading()).not.toThrow();
+    expect(() => adapter.showAlert()).not.toThrow();
     expect(() => adapter.showOTPModal()).not.toThrow();
   });
 

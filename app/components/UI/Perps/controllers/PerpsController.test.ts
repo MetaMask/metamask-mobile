@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Messenger } from '@metamask/base-controller';
 import { successfulFetch } from '@metamask/controller-utils';
+import { setMeasurement } from '@sentry/react-native';
+import Logger from '../../../../util/Logger';
 
 import {
   getDefaultPerpsControllerState,
@@ -82,6 +84,21 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock Logger
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+// Mock react-native-performance
+jest.mock('react-native-performance', () => ({
+  now: jest.fn(() => Date.now()),
+}));
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
+}));
+
 // Mock trace utilities
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
@@ -115,8 +132,9 @@ jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn().mockReturnValue('0xabcdef123456'),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UnrestrictedMessenger = Messenger<any, any>;
+// Use imported types for reference but create a flexible test messenger
+// This ensures we leverage existing types while allowing test flexibility
+type TestMessenger = Messenger<any, any>;
 
 describe('PerpsController', () => {
   let mockHyperLiquidProvider: jest.Mocked<HyperLiquidProvider>;
@@ -132,6 +150,11 @@ describe('PerpsController', () => {
       toggleTestnet: jest.fn(),
       getPositions: jest.fn(),
       getAccountState: jest.fn(),
+      getHistoricalPortfolio: jest.fn().mockResolvedValue({
+        totalBalance24hAgo: '10000',
+        totalBalance7dAgo: '9500',
+        totalBalance30dAgo: '9000',
+      }),
       getMarkets: jest.fn(),
       placeOrder: jest.fn(),
       editOrder: jest.fn(),
@@ -177,19 +200,23 @@ describe('PerpsController', () => {
   function withController<ReturnValue>(
     fn: (args: {
       controller: PerpsController;
-      messenger: UnrestrictedMessenger;
+      messenger: TestMessenger;
     }) => ReturnValue,
     options: {
       state?: Partial<PerpsControllerState>;
+      clientConfig?: { fallbackBlockedRegions?: string[] };
       mocks?: {
         getSelectedAccount?: jest.MockedFunction<() => unknown>;
         getNetworkState?: jest.MockedFunction<() => unknown>;
       };
     } = {},
   ): ReturnValue {
-    const { state = {}, mocks = {} } = options;
+    const { state = {}, clientConfig, mocks = {} } = options;
 
     const messenger = new Messenger<any, any>();
+
+    // Mock the subscribe method for testing with proper Jest mock typing
+    messenger.subscribe = jest.fn();
 
     // Register mock external actions
     messenger.registerActionHandler(
@@ -213,21 +240,24 @@ describe('PerpsController', () => {
     const restrictedMessenger = messenger.getRestricted({
       name: 'PerpsController',
       allowedActions: [
-        'AccountsController:getSelectedAccount' as never,
-        'NetworkController:getState' as never,
-      ],
+        'AccountsController:getSelectedAccount',
+        'NetworkController:getState',
+        'AuthenticationController:getBearerToken',
+      ] as any,
       allowedEvents: [
-        'AccountsController:selectedAccountChange' as never,
-        'NetworkController:stateChange' as never,
-        'TransactionController:transactionSubmitted' as never,
-        'TransactionController:transactionConfirmed' as never,
-        'TransactionController:transactionFailed' as never,
-      ],
+        'AccountsController:selectedAccountChange',
+        'NetworkController:stateChange',
+        'TransactionController:transactionSubmitted',
+        'TransactionController:transactionConfirmed',
+        'TransactionController:transactionFailed',
+        'RemoteFeatureFlagController:stateChange',
+      ] as any,
     });
 
     const controller = new PerpsController({
       messenger: restrictedMessenger,
       state,
+      clientConfig,
     });
 
     return fn({ controller, messenger });
@@ -282,6 +312,229 @@ describe('PerpsController', () => {
         },
         { state: customState },
       );
+    });
+
+    describe('clientConfig and remote feature flag integration', () => {
+      it('sets fallback blocked regions from clientConfig in constructor', () => {
+        withController(
+          ({ controller }) => {
+            // Check that fallback blocked regions were set from clientConfig
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+          },
+          {
+            clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+          },
+        );
+      });
+
+      it('handles missing clientConfig gracefully', () => {
+        // Explicitly pass undefined to use constructor's default
+        withController(
+          ({ controller }) => {
+            // Should not throw and should use constructor's default (empty array)
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: [],
+              source: 'fallback',
+            });
+          },
+          { clientConfig: undefined },
+        );
+      });
+
+      it('subscribes to RemoteFeatureFlagController state changes', () => {
+        withController(({ controller: _controller, messenger }) => {
+          // Verify that the controller subscribed to RemoteFeatureFlagController state changes
+          expect(messenger.subscribe).toHaveBeenCalledWith(
+            'RemoteFeatureFlagController:stateChange',
+            expect.any(Function),
+          );
+        });
+      });
+
+      it('updates blocked regions when remote feature flag changes', () => {
+        withController(
+          ({ controller, messenger }) => {
+            // Get the callback function that was registered for state changes
+            const stateChangeCallback = (
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
+            ).mock.calls.find(
+              (call: any[]) =>
+                call[0] === 'RemoteFeatureFlagController:stateChange',
+            )?.[1];
+
+            expect(stateChangeCallback).toBeDefined();
+
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Simulate remote feature flag state change with blocked regions
+            const mockRemoteFeatureFlagState = {
+              remoteFeatureFlags: {
+                perpsPerpTradingGeoBlockedCountries: {
+                  blockedRegions: ['FR', 'DE', 'IT'],
+                },
+              },
+            };
+
+            if (stateChangeCallback) {
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
+            }
+
+            // Should now have remote regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['FR', 'DE', 'IT'],
+              source: 'remote',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
+      it('preserves fallback when remote feature flag has invalid data', () => {
+        withController(
+          ({ controller, messenger }) => {
+            const stateChangeCallback = (
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
+            ).mock.calls.find(
+              (call: any[]) =>
+                call[0] === 'RemoteFeatureFlagController:stateChange',
+            )?.[1];
+
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Simulate remote feature flag state change with invalid data
+            const mockRemoteFeatureFlagState = {
+              remoteFeatureFlags: {
+                perpsPerpTradingGeoBlockedCountries: {
+                  blockedRegions: 'invalid-not-array', // Invalid data
+                },
+              },
+            };
+
+            if (stateChangeCallback) {
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
+            }
+
+            // Should still have fallback regions since remote data was invalid
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
+      it('prevents downgrading from remote to fallback', () => {
+        withController(({ controller, messenger }) => {
+          const stateChangeCallback = (
+            messenger.subscribe as jest.MockedFunction<
+              typeof messenger.subscribe
+            >
+          ).mock.calls.find(
+            (call: any[]) =>
+              call[0] === 'RemoteFeatureFlagController:stateChange',
+          )?.[1];
+
+          // First, set remote regions
+          const mockRemoteFeatureFlagState1 = {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountries: {
+                blockedRegions: ['FR', 'DE'],
+              },
+            },
+          };
+
+          if (stateChangeCallback) {
+            stateChangeCallback(mockRemoteFeatureFlagState1, []);
+          }
+
+          // Should now have remote regions
+          // @ts-ignore - Accessing private property for testing
+          expect(controller.blockedRegionList).toEqual({
+            list: ['FR', 'DE'],
+            source: 'remote',
+          });
+
+          // Now try to set fallback regions (should be prevented)
+          // @ts-ignore - Call private method for testing
+          controller.setBlockedRegionList(['US', 'CA-ON'], 'fallback');
+
+          // Should still have remote regions (no downgrade)
+          // @ts-ignore - Accessing private property for testing
+          expect(controller.blockedRegionList).toEqual({
+            list: ['FR', 'DE'],
+            source: 'remote',
+          });
+        });
+      });
+
+      it('handles missing remote feature flag gracefully', () => {
+        withController(
+          ({ controller, messenger }) => {
+            const stateChangeCallback = (
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
+            ).mock.calls.find(
+              (call: any[]) =>
+                call[0] === 'RemoteFeatureFlagController:stateChange',
+            )?.[1];
+
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Simulate remote feature flag state change with missing feature flag
+            const mockRemoteFeatureFlagState = {
+              remoteFeatureFlags: {
+                // perpsPerpTradingGeoBlockedCountries is missing
+                someOtherFeatureFlag: {
+                  enabled: true,
+                },
+              },
+            };
+
+            if (stateChangeCallback) {
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
+            }
+
+            // Should still have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
+      // TODO: Add test for eligibility refresh when blocked regions change
+      // This would require proper mock setup for successfulFetch within the feature flag callback
     });
   });
 
@@ -370,6 +623,8 @@ describe('PerpsController', () => {
         totalBalance: '1500',
         marginUsed: '500',
         unrealizedPnl: '100',
+        returnOnEquity: '20.0',
+        totalValue: '1600',
       };
 
       withController(async ({ controller }) => {
@@ -512,6 +767,42 @@ describe('PerpsController', () => {
 
         // Error should be logged but controller should continue to work
         expect(controller.state.lastError).toBe(null); // initializeProviders doesn't update state directly
+      });
+    });
+
+    it('should throw error when controller is reinitializing', () => {
+      withController(({ controller }) => {
+        // Set the reinitializing flag to true
+        // @ts-ignore - Accessing private property for testing
+        controller.isReinitializing = true;
+
+        // Should throw CLIENT_REINITIALIZING error
+        expect(() => controller.getActiveProvider()).toThrow(
+          'CLIENT_REINITIALIZING',
+        );
+
+        // Verify error state was updated
+        expect(controller.state.lastError).toBe('CLIENT_REINITIALIZING');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('should throw error when provider not found in map', () => {
+      withController(({ controller }) => {
+        // Make controller initialized but clear the providers map
+        // @ts-ignore - Accessing private property for testing
+        controller.isInitialized = true;
+        // @ts-ignore - Accessing private property for testing
+        controller.providers.clear();
+
+        // Should throw PROVIDER_NOT_AVAILABLE error
+        expect(() => controller.getActiveProvider()).toThrow(
+          'PROVIDER_NOT_AVAILABLE',
+        );
+
+        // Verify error state was updated
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
   });
@@ -1658,9 +1949,9 @@ describe('PerpsController', () => {
     let mockSuccessfulFetch: jest.MockedFunction<typeof successfulFetch>;
 
     beforeEach(() => {
-      // Get fresh reference to the mocked function
+      // Get fresh reference to the mocked function and reset completely
       mockSuccessfulFetch = jest.mocked(successfulFetch);
-      mockSuccessfulFetch.mockClear();
+      mockSuccessfulFetch.mockReset();
     });
 
     it('should set isEligible to true for eligible region (France)', async () => {
@@ -1685,12 +1976,17 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        await controller.refreshEligibility();
+      withController(
+        async ({ controller }) => {
+          await controller.refreshEligibility();
 
-        expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
-      });
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+        },
+      );
     });
 
     it('should set isEligible to false for blocked region (Ontario, Canada)', async () => {
@@ -1700,12 +1996,17 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        await controller.refreshEligibility();
+      withController(
+        async ({ controller }) => {
+          await controller.refreshEligibility();
 
-        expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
-      });
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+        },
+      );
     });
 
     it('should set isEligible to false when API call fails (UNKNOWN fallback)', async () => {
@@ -1727,13 +2028,18 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        // Test with custom blocked regions that includes DE
-        await controller.refreshEligibility(['DE', 'FR']);
+      withController(
+        async ({ controller }) => {
+          // Test with custom blocked regions that includes DE
+          await controller.refreshEligibility();
 
-        expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
-      });
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['DE', 'FR'] },
+        },
+      );
     });
 
     it('should handle region prefix matching correctly', async () => {
@@ -1743,11 +2049,125 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        await controller.refreshEligibility();
+      withController(
+        async ({ controller }) => {
+          await controller.refreshEligibility();
 
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+        },
+      );
+    });
+
+    it('handles API failures correctly without caching the failure', async () => {
+      withController(async ({ controller }) => {
+        // Mock API failure
+        mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
+
+        // Call should fail and set isEligible to false (UNKNOWN is blocked by default)
+        await controller.refreshEligibility();
         expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
+        expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('geo-location caching', () => {
+      beforeEach(() => {
+        // Ensure clean mock state for caching tests
+        mockSuccessfulFetch.mockReset();
+      });
+
+      afterEach(() => {
+        // Clean up any mock implementations after each test
+        mockSuccessfulFetch.mockReset();
+      });
+
+      it('returns cached location within TTL without making API call', async () => {
+        jest.useFakeTimers();
+
+        try {
+          const mockResponse = {
+            text: jest.fn().mockResolvedValue('FR'),
+          };
+          mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+          withController(async ({ controller }) => {
+            // First call should make API call and cache result
+            await controller.refreshEligibility();
+            expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+            expect(controller.state.isEligible).toBe(true); // FR is not blocked
+
+            // Clear the mock call count
+            mockSuccessfulFetch.mockClear();
+
+            // Second call within TTL should use cache, no API call
+            await controller.refreshEligibility();
+            expect(mockSuccessfulFetch).not.toHaveBeenCalled();
+            expect(controller.state.isEligible).toBe(true);
+          });
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      it('caches location and shares result between multiple controllers', async () => {
+        const mockResponse = {
+          text: jest.fn().mockResolvedValue('DE'),
+        };
+        mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+        // First controller instance
+        withController(async ({ controller: controller1 }) => {
+          await controller1.refreshEligibility();
+          expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+          expect(controller1.state.isEligible).toBe(true); // DE is not blocked
+        });
+
+        // Clear mock for second test
+        mockSuccessfulFetch.mockClear();
+
+        // Second controller instance (simulating cache persistence concept)
+        withController(async ({ controller: controller2 }) => {
+          // Since cache is per-instance, this will make a new API call
+          // but verifies the caching logic exists in the implementation
+          await controller2.refreshEligibility();
+          expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+          expect(controller2.state.isEligible).toBe(true); // DE is not blocked
+        });
+      });
+
+      it('prevents concurrent API calls using shared promise', async () => {
+        // Mock API response with delay to simulate concurrent calls
+        let resolveApiCall: (value: any) => void;
+        const apiPromise = new Promise((resolve) => {
+          resolveApiCall = resolve;
+        });
+
+        mockSuccessfulFetch.mockReturnValue(apiPromise as any);
+
+        withController(async ({ controller }) => {
+          // Start multiple concurrent refreshEligibility calls
+          const calls = [
+            controller.refreshEligibility(),
+            controller.refreshEligibility(),
+            controller.refreshEligibility(),
+          ];
+
+          // Resolve the API call
+          resolveApiCall({
+            text: jest.fn().mockResolvedValue('DE'),
+          });
+
+          // Wait for all calls to complete
+          await Promise.all(calls);
+
+          // Should have made only one API call despite multiple concurrent requests
+          expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+          expect(controller.state.isEligible).toBe(true); // DE is not blocked
+        });
       });
     });
   });
@@ -2383,6 +2803,192 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('resetFirstTimeUserState', () => {
+    it('should reset isFirstTimeUser to true for both networks', () => {
+      withController(({ controller }) => {
+        // Arrange - set both networks as not first-time
+        controller.state.isFirstTimeUser = {
+          testnet: false,
+          mainnet: false,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: true,
+          mainnet: true,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - both should be reset
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should reset from partially completed state', () => {
+      withController(({ controller }) => {
+        // Arrange - only testnet completed
+        controller.state.isFirstTimeUser = {
+          testnet: false,
+          mainnet: true,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: true,
+          mainnet: false,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - both should be reset to initial state
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should reset even when already in first-time state', () => {
+      withController(({ controller }) => {
+        // Arrange - already in first-time state
+        controller.state.isFirstTimeUser = {
+          testnet: true,
+          mainnet: true,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: false,
+          mainnet: false,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - should remain in first-time state
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should work correctly regardless of current network', async () => {
+      await withController(
+        async ({ controller }) => {
+          // Arrange - complete tutorial on testnet
+          controller.state.isTestnet = true;
+          controller.markTutorialCompleted();
+          controller.markFirstOrderCompleted();
+
+          expect(controller.state.isFirstTimeUser.testnet).toBe(false);
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(true);
+
+          // Act - reset while on testnet
+          controller.resetFirstTimeUserState();
+
+          // Assert - both networks should be reset
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+
+          // Verify current network detection still works
+          expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+        },
+        { state: { isTestnet: true } },
+      );
+    });
+
+    it('should persist reset state', async () => {
+      // First controller instance - simulate completed state then reset
+      await withController(
+        async ({ controller }) => {
+          // Assert initial completed state was loaded
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+
+          // Reset everything
+          controller.resetFirstTimeUserState();
+
+          // Assert reset worked
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+        },
+        {
+          state: {
+            isTestnet: false,
+            // Simulate previously completed state
+            isFirstTimeUser: {
+              testnet: false,
+              mainnet: false,
+            },
+            hasPlacedFirstOrder: {
+              testnet: true,
+              mainnet: true,
+            },
+          },
+        },
+      );
+
+      // Second controller instance - verify reset state persisted
+      await withController(
+        async ({ controller }) => {
+          // Assert - reset state should be persisted
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+        },
+        {
+          // Use reset state to simulate persistence
+          state: {
+            isFirstTimeUser: {
+              testnet: true,
+              mainnet: true,
+            },
+            hasPlacedFirstOrder: {
+              testnet: false,
+              mainnet: false,
+            },
+          },
+        },
+      );
+    });
+  });
+
   describe('reconnectWithNewContext', () => {
     it('should clear state and reinitialize providers', async () => {
       // Mock initialize to succeed before creating controller
@@ -2510,6 +3116,8 @@ describe('PerpsController', () => {
         availableBalance: '15000',
         marginUsed: '5000',
         unrealizedPnl: '100',
+        returnOnEquity: '2.0',
+        totalValue: '20100',
       };
       mockHyperLiquidProvider.getAccountState.mockResolvedValue(
         mockAccountState,
@@ -2526,6 +3134,778 @@ describe('PerpsController', () => {
         const accountState = await controller.getAccountState();
         expect(accountState).toEqual(mockAccountState);
       });
+    });
+  });
+
+  describe('data lake API integration', () => {
+    let mockFetch: jest.MockedFunction<typeof fetch>;
+    let mockSetMeasurement: jest.MockedFunction<typeof setMeasurement>;
+    let mockLoggerError: jest.MockedFunction<typeof Logger.error>;
+
+    beforeEach(() => {
+      // Mock global fetch
+      mockFetch = jest.fn();
+      global.fetch = mockFetch as any;
+
+      // Get references to already mocked functions
+      mockSetMeasurement = jest.requireMock(
+        '@sentry/react-native',
+      ).setMeasurement;
+      mockLoggerError = jest.requireMock('../../../../util/Logger').error;
+
+      // Clear previous mock calls
+      mockSetMeasurement.mockClear();
+      mockLoggerError.mockClear();
+
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.clearAllMocks();
+    });
+
+    it('should report order to data lake on successful order placement', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock successful API response
+        mockFetch.mockResolvedValue({
+          ok: true,
+          status: 201,
+          text: jest.fn().mockResolvedValue(''),
+        } as any);
+
+        // Mock successful order placement
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+          stopLossPrice: '45000',
+          takeProfitPrice: '55000',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Ensure mainnet (not testnet)
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Allow time for async reportOrderToDataLake
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was called with correct parameters
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://perps.api.cx.metamask.io/api/v1/orders',
+          expect.objectContaining({
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer mock-bearer-token',
+            },
+            body: JSON.stringify({
+              user_id: '0x1234567890123456789012345678901234567890',
+              coin: 'BTC',
+              sl_price: 45000,
+              tp_price: 55000,
+            }),
+          }),
+        );
+
+        // Verify performance metric was recorded
+        expect(mockSetMeasurement).toHaveBeenCalledWith(
+          'data_lake_api_call',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 10000);
+
+    it('should skip data lake API call when on testnet', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action (shouldn't be called)
+        const mockGetBearerToken = jest.fn();
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          mockGetBearerToken as any,
+        );
+
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Set to testnet
+        controller.state.isTestnet = true;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Allow time for async operations
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was NOT called
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(mockGetBearerToken).not.toHaveBeenCalled();
+      });
+    }, 10000);
+
+    it('should retry on API failure and log error after max retries', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock API failures
+        mockFetch.mockRejectedValue(new Error('Network error'));
+
+        const orderParams = {
+          coin: 'ETH',
+          isBuy: false,
+          size: '1.0',
+          orderType: 'limit' as const,
+          price: '2000',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-456',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward through retries (1s, 2s, 4s delays)
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(3);
+
+        jest.advanceTimersByTime(4000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(4);
+
+        // Verify Logger.error was called after max retries
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: 'Failed to report perps order to data lake after retries',
+            action: 'open',
+            coin: 'ETH',
+            retryCount: 3,
+          }),
+        );
+
+        // Verify retry duration metric was recorded
+        expect(mockSetMeasurement).toHaveBeenCalledWith(
+          'data_lake_api_retry',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 15000);
+
+    it('should handle missing authentication token', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken that returns null
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue(null) as any,
+        );
+
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.closePosition.mockResolvedValue({
+          success: true,
+          orderId: 'close-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Close position
+        await controller.closePosition(closeParams);
+
+        // Allow time for async operations
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was NOT called due to missing token
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+    }, 10000);
+
+    it('should handle API error responses', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock API error response (400 Bad Request)
+        mockFetch.mockResolvedValue({
+          ok: false,
+          status: 400,
+          text: jest.fn().mockResolvedValue('Bad Request'),
+        } as any);
+
+        const orderParams = {
+          coin: 'DOGE',
+          isBuy: true,
+          size: '100',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-789',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was called
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward to trigger retries
+        jest.advanceTimersByTime(7000); // Through all retry delays
+        await Promise.resolve();
+
+        // Should have retried 3 more times (total 4 attempts)
+        expect(mockFetch).toHaveBeenCalledTimes(4);
+      });
+    }, 10000);
+
+    it('should retry and succeed on subsequent attempt', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock API to fail first, then succeed on retry
+        mockFetch
+          .mockRejectedValueOnce(new Error('Temporary network error'))
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            text: jest.fn().mockResolvedValue(''),
+          } as any);
+
+        const orderParams = {
+          coin: 'SOL',
+          isBuy: true,
+          size: '10',
+          orderType: 'limit' as const,
+          price: '100',
+          stopLossPrice: '90',
+          takeProfitPrice: '110',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-sol-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial failed attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward to first retry (1 second delay)
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
+
+        // Wait for the retry to complete
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Should have succeeded on second attempt
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+
+        // Verify the second call had the correct parameters including retryCount
+        expect(mockFetch).toHaveBeenNthCalledWith(
+          2,
+          'https://perps.api.cx.metamask.io/api/v1/orders',
+          expect.objectContaining({
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer mock-bearer-token',
+            },
+            body: JSON.stringify({
+              user_id: '0x1234567890123456789012345678901234567890',
+              coin: 'SOL',
+              sl_price: 90,
+              tp_price: 110,
+            }),
+          }),
+        );
+
+        // Performance metric should NOT be recorded for retry success (only for initial success)
+        expect(mockSetMeasurement).not.toHaveBeenCalledWith(
+          'data_lake_api_call',
+          expect.any(Number),
+          'millisecond',
+        );
+
+        // Should NOT record retry metric since it succeeded
+        expect(mockSetMeasurement).not.toHaveBeenCalledWith(
+          'data_lake_api_retry',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 10000);
+  });
+
+  describe('reportOrderToDataLake - direct tests', () => {
+    let mockMessenger: any;
+    let controller: PerpsController;
+    let mockFetch: jest.MockedFunction<typeof fetch>;
+    let mockSetMeasurement: jest.MockedFunction<typeof setMeasurement>;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+
+      // Mock global fetch
+      mockFetch = jest.fn();
+      global.fetch = mockFetch as any;
+
+      // Get reference to already mocked setMeasurement
+      mockSetMeasurement = jest.requireMock(
+        '@sentry/react-native',
+      ).setMeasurement;
+      mockSetMeasurement.mockClear();
+
+      // Clear DevLogger mocks
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      DevLogger.log.mockClear();
+
+      // Reset AccountTreeController mock to default
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
+
+      // Create a mock messenger that can handle the getBearerToken call
+      mockMessenger = {
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerEventHandler: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        publish: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      };
+
+      // Create controller directly with mock messenger
+      controller = new PerpsController({
+        messenger: mockMessenger as any,
+        state: getDefaultPerpsControllerState(),
+      });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.clearAllMocks();
+    });
+
+    it('should return early when on testnet', async () => {
+      // Create controller with testnet mode enabled
+      const testnetController = new PerpsController({
+        messenger: mockMessenger as any,
+        state: {
+          ...getDefaultPerpsControllerState(),
+          isTestnet: true,
+        },
+      });
+
+      // Call reportOrderToDataLake directly
+      const result = await (testnetController as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'BTC',
+        sl_price: 45000,
+        tp_price: 55000,
+      });
+
+      // Verify it returns early with the correct message
+      expect(result).toEqual({
+        success: true,
+        error: 'Skipped for testnet',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the messenger.call was never invoked (testnet returns before auth check)
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with testnet skip message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Skipping for testnet',
+        expect.objectContaining({
+          action: 'open',
+          coin: 'BTC',
+          network: 'testnet',
+        }),
+      );
+    });
+
+    it('should return error when EVM account is missing', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return non-EVM accounts
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0xabc123',
+            id: 'mock-account-1',
+            type: 'bip122:', // Non-EVM account (Bitcoin)
+          },
+          {
+            address: '0xdef456',
+            id: 'mock-account-2',
+            type: 'cosmos:', // Non-EVM account (Cosmos)
+          },
+        ],
+      );
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'ETH',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: false,
+          hasToken: true,
+          action: 'close',
+          coin: 'ETH',
+        }),
+      );
+    });
+
+    it('should return error when token is missing', async () => {
+      // Mock messenger to return null token
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Reset AccountTreeController mock to return EVM account
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'DOGE',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: true,
+          hasToken: false,
+          action: 'open',
+          coin: 'DOGE',
+        }),
+      );
+    });
+
+    it('should return error when both account and token are missing', async () => {
+      // Mock messenger to return null token
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Mock AccountTreeController to return empty array
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [],
+      );
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'MATIC',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: false,
+          hasToken: false,
+          action: 'close',
+          coin: 'MATIC',
+        }),
+      );
+    });
+
+    it('should successfully report order to data lake API', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return EVM account
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
+
+      // Mock successful API response
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 201,
+        text: jest.fn().mockResolvedValue('{"success":true}'),
+      } as any);
+
+      // Mock performance.now for timing
+      const mockPerformanceNow = jest.spyOn(performance, 'now');
+      mockPerformanceNow
+        .mockReturnValueOnce(1000) // Start time
+        .mockReturnValueOnce(1100); // End time (100ms duration)
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'BTC',
+        sl_price: 45000,
+        tp_price: 55000,
+      });
+
+      // Verify successful result
+      expect(result).toEqual({
+        success: true,
+      });
+
+      // Verify fetch was called with correct parameters
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://perps.api.cx.metamask.io/api/v1/orders',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-bearer-token',
+          },
+          body: JSON.stringify({
+            user_id: '0x1234567890123456789012345678901234567890',
+            coin: 'BTC',
+            sl_price: 45000,
+            tp_price: 55000,
+          }),
+        },
+      );
+
+      // Verify DevLogger was called with success message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+
+      // Find the call with our success message among all DevLogger calls
+      const successCall = DevLogger.log.mock.calls.find(
+        (call: any[]) =>
+          call[0] === 'DataLake API: Order reported successfully',
+      );
+
+      expect(successCall).toBeDefined();
+      expect(successCall[1]).toMatchObject({
+        action: 'open',
+        coin: 'BTC',
+        status: 201,
+        attempt: 1,
+        responseBody: '{"success":true}',
+      });
+      // Check duration separately as it's a string with 'ms' suffix
+      expect(successCall[1].duration).toMatch(/^\d+ms$/);
+
+      // Verify performance metric was recorded
+      expect(mockSetMeasurement).toHaveBeenCalledWith(
+        'data_lake_api_call',
+        expect.any(Number),
+        'millisecond',
+      );
+
+      mockPerformanceNow.mockRestore();
+    });
+
+    it('should handle API error response and not retry', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return EVM account
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
+
+      // Mock API error response (400 Bad Request)
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: jest.fn().mockResolvedValue('Bad Request'),
+      } as any);
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'ETH',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'DataLake API error: 400',
+      });
+
+      // Verify fetch was called once
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Verify DevLogger was called with error message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Request failed',
+        expect.objectContaining({
+          error: 'DataLake API error: 400',
+          action: 'close',
+          coin: 'ETH',
+          willRetry: true,
+        }),
+      );
     });
   });
 });

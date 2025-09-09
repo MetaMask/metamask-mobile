@@ -7,12 +7,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 import styleSheet from './PerpsMarketRowItem.styles';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import type { PerpsMarketData } from '../../controllers/types';
 import {
@@ -23,10 +18,10 @@ import {
 } from '../../utils/formatUtils';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
@@ -100,21 +95,21 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handlePress}
+      testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
+    >
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
-          {assetUrl ? (
-            <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
-          ) : (
-            <Avatar
-              variant={AvatarVariant.Token}
-              name={displayMarket.symbol}
-              size={AvatarSize.Md}
-              testID={getPerpsMarketRowItemSelector.rowItem(
-                displayMarket.symbol,
-              )}
-            />
-          )}
+          <PerpsTokenLogo
+            symbol={displayMarket.symbol}
+            size={32}
+            recyclingKey={displayMarket.symbol}
+            testID={getPerpsMarketRowItemSelector.tokenLogo(
+              displayMarket.symbol,
+            )}
+          />
         </View>
 
         <View style={styles.tokenInfo}>
@@ -122,15 +117,11 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {displayMarket.symbol}
             </Text>
-            <View style={styles.leverageContainer}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {displayMarket.maxLeverage}
-              </Text>
-            </View>
+            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
           <Text
             variant={TextVariant.BodySM}
-            color={TextColor.Muted}
+            color={TextColor.Alternative}
             style={styles.tokenVolume}
           >
             {displayMarket.volume}

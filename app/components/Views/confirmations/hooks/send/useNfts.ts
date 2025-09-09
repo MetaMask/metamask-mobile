@@ -9,16 +9,16 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { Nft } from '../../types/token';
+import { useSendScope } from './useSendScope';
 
-// This is a temporary hook to get the NFTs for the EVM account.
-// It will be replaced with the new NFTs hook when the selector is ready.
 export function useEVMNfts(): Nft[] {
-  const { NftController } = Engine.context;
+  const { NftController, AssetsContractController, NetworkController } =
+    Engine.context;
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const allNFTS = useSelector(selectAllNfts);
-
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
+  const { isSolanaOnly } = useSendScope();
 
   const evmAccount = selectedAccountGroup?.accounts
     .map((accountId) => internalAccountsById[accountId])
@@ -59,7 +59,12 @@ export function useEVMNfts(): Nft[] {
 
       for (const nft of rawNfts) {
         if (nft.collection) {
-          const transformed = transformNftWithCollection(nft);
+          const transformed = await transformNftWithCollection(
+            nft,
+            evmAccount.address,
+            AssetsContractController,
+            NetworkController,
+          );
           if (transformed) {
             transformedResults.push(transformed);
           }
@@ -75,7 +80,6 @@ export function useEVMNfts(): Nft[] {
           }
           acc[nft.chainId].push(nft);
           return acc;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }, {} as Record<string, typeof missingCollectionNfts>);
 
         for (const [chainId, nfts] of Object.entries(groupedByChain)) {
@@ -104,8 +108,12 @@ export function useEVMNfts(): Nft[] {
               const collection = collectionsMap.get(nft.address.toLowerCase());
               if (collection) {
                 const nftWithCollection = { ...nft, collection };
-                const transformed =
-                  transformNftWithCollection(nftWithCollection);
+                const transformed = await transformNftWithCollection(
+                  nftWithCollection,
+                  evmAccount.address,
+                  AssetsContractController,
+                  NetworkController,
+                );
                 if (transformed) {
                   transformedResults.push(transformed);
                 }
@@ -121,11 +129,27 @@ export function useEVMNfts(): Nft[] {
         }
       }
 
-      setTransformedNfts(transformedResults);
+      // Filter ERC1155 NFTs temporarily
+      // This will be removed with https://github.com/MetaMask/metamask-mobile/issues/18923
+      const filteredResults = transformedResults.filter(
+        (nft) => nft.standard !== 'ERC1155',
+      );
+
+      setTransformedNfts(filteredResults);
     };
 
     processNfts();
-  }, [evmAccount, allNFTS, NftController]);
+  }, [
+    evmAccount,
+    allNFTS,
+    NftController,
+    AssetsContractController,
+    NetworkController,
+  ]);
+
+  if (isSolanaOnly) {
+    return [];
+  }
 
   return transformedNfts;
 }
@@ -141,8 +165,15 @@ function getValidImageUrl(
   return undefined;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function transformNftWithCollection(nft: any): Nft | null {
+async function transformNftWithCollection(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  nft: any,
+  userAddress: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  assetsContractController: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  networkController: any,
+): Promise<Nft | null> {
   const { standard, tokenId, chainId, accountId, collection } = nft;
 
   if (!standard || !tokenId || !chainId || !accountId) {
@@ -151,6 +182,7 @@ function transformNftWithCollection(nft: any): Nft | null {
 
   let name;
   let image;
+  let balance;
 
   const collectionName = collection?.name || undefined;
 
@@ -170,6 +202,22 @@ function transformNftWithCollection(nft: any): Nft | null {
       collection?.imageUrl,
       collection?.sampleImages?.[0],
     ]);
+
+    try {
+      const networkClientId =
+        networkController.findNetworkClientIdByChainId(chainId);
+
+      const balanceResult = await assetsContractController.getERC1155BalanceOf(
+        userAddress,
+        nft.address,
+        nft.tokenId,
+        networkClientId,
+      );
+      balance = balanceResult.toString();
+    } catch (error) {
+      console.warn('Failed to fetch ERC1155 balance', error);
+      balance = '0';
+    }
   }
 
   return {
@@ -182,5 +230,6 @@ function transformNftWithCollection(nft: any): Nft | null {
     tokenId,
     accountId,
     networkBadgeSource: getNetworkBadgeSource(chainId as Hex),
+    balance,
   };
 }

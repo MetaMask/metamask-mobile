@@ -12,6 +12,29 @@ import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTr
 import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
 import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
+import { getFeatureFlagDeviceKey } from '../reducers/swaps/utils';
+
+export const isSmartTransactionEnabledWithNetworkFeatureFlag =
+  (swapsChainFeatureFlags: {
+    smartTransactions?: {
+      mobileActive?: boolean;
+      extensionActive?: boolean;
+      mobileActiveIOS?: boolean;
+      mobileActiveAndroid?: boolean;
+      mobileActiveIos?: boolean;
+    };
+  }) => {
+    const featureFlagDeviceKey = getFeatureFlagDeviceKey(); // returns mobileActive, mobileActiveIOS or mobileActiveAndroid
+
+    // The API can return mobileActiveIos instead of mobileActiveIOS
+    if (
+      featureFlagDeviceKey === 'mobileActiveIOS' &&
+      !swapsChainFeatureFlags?.smartTransactions?.mobileActiveIOS
+    ) {
+      return swapsChainFeatureFlags?.smartTransactions?.mobileActiveIos;
+    }
+    return swapsChainFeatureFlags?.smartTransactions?.[featureFlagDeviceKey];
+  };
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
@@ -21,6 +44,30 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     (state: RootState, chainId?: Hex) =>
       selectRpcUrlByChainId(state, chainId || selectEvmChainId(state)),
     swapsSmartTxFlagEnabled,
+    (state: RootState, chainId?: Hex) => {
+      const effectiveChainId = chainId || selectEvmChainId(state);
+      const swapsState = state.swaps;
+
+      // Handle case where swaps state is undefined (e.g., in tests)
+      if (!swapsState) {
+        return {
+          smartTransactions: {
+            mobileActive: false,
+            extensionActive: false,
+            mobileActiveIOS: false,
+            mobileActiveAndroid: false,
+          },
+        };
+      }
+
+      return {
+        smartTransactions: {
+          ...(swapsState.featureFlags?.smartTransactions || {}),
+          ...(swapsState[effectiveChainId]?.featureFlags?.smartTransactions ||
+            {}),
+        },
+      };
+    },
     (state: RootState) =>
       state.engine.backgroundState.SmartTransactionsController
         .smartTransactionsState?.liveness,
@@ -31,6 +78,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     transactionChainId,
     providerConfigRpcUrl,
     smartTransactionsFeatureFlagEnabled,
+    swapsChainFeatureFlags,
     smartTransactionsLiveness,
   ) => {
     const effectiveChainId = transactionChainId || globalChainId;
@@ -39,10 +87,14 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
       : false;
     const isAllowedNetwork =
       getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
+    const isNetworkAllowedWithFeatureFlags =
+      isSmartTransactionEnabledWithNetworkFeatureFlag(swapsChainFeatureFlags);
+
     return Boolean(
       isAllowedNetwork &&
         !addressIsHardwareAccount &&
         getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
+        isNetworkAllowedWithFeatureFlags &&
         smartTransactionsFeatureFlagEnabled &&
         smartTransactionsLiveness,
     );

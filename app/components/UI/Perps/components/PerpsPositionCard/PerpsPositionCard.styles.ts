@@ -14,7 +14,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.alternative, // Darker contrasting background
+      backgroundColor: colors.background.section,
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
@@ -41,12 +41,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
-      backgroundColor: colors.background.alternative,
-    },
-    tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
     },
     headerLeft: {
       flex: 1,
@@ -94,7 +88,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerButton: {
       flex: 1,
-      borderColor: colors.border.default,
     },
   });
 };

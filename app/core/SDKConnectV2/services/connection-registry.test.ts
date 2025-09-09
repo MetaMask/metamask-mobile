@@ -32,7 +32,7 @@ const mockConnectionRequest: ConnectionRequest = {
 };
 
 // A valid deeplink URL containing the encoded connection request
-const validDeeplink = `metamask://connect/mwp/${encodeURIComponent(
+const validDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
   JSON.stringify(mockConnectionRequest),
 )}`;
 
@@ -79,7 +79,10 @@ describe('ConnectionRegistry', () => {
     it('should successfully handle the full connection happy path', async () => {
       await registry.handleConnectDeeplink(validDeeplink);
 
+      // UI loading state is properly managed
       expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
+
+      // Connection is created and established with correct parameters
       expect(Connection.create).toHaveBeenCalledWith(
         mockConnectionRequest,
         mockKeyManager,
@@ -88,23 +91,55 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection.connect).toHaveBeenCalledWith(
         mockConnectionRequest.sessionRequest,
       );
+
+      // Connection data is persisted to storage
       expect(mockStore.save).toHaveBeenCalledWith({
         id: mockConnection.id,
         metadata: mockConnection.metadata,
       });
+
+      // UI is synchronized with the new connection
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
         mockConnection,
       ]);
       expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
     });
 
+    it('should handle invalid URL gracefully', async () => {
+      const invalidDeeplink = 'invalid-url';
+      await registry.handleConnectDeeplink(invalidDeeplink);
+
+      // Error alert is shown
+      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
+        'Connection Error',
+        'The connection request failed. Please try again.',
+      );
+
+      // Nothing else happens
+      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
+      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+    });
+
     it('should call hideLoading and not save anything if the URL is invalid', async () => {
-      const invalidDeeplink = 'metamask://connect/mwp/not-json';
+      const invalidDeeplink = 'metamask://connect/mwp?p=not-json';
 
       await registry.handleConnectDeeplink(invalidDeeplink);
 
-      expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
+      // Error alert is shown
+      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
+        'Connection Error',
+        'The connection request failed. Please try again.',
+      );
+
+      // Nothing else happens
+      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
       expect(Connection.create).not.toHaveBeenCalled();
+
+      // No data is persisted or UI updates made for invalid requests
+      expect(mockConnection.disconnect).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
       expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
       expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
@@ -118,10 +153,18 @@ describe('ConnectionRegistry', () => {
 
       await registry.handleConnectDeeplink(validDeeplink);
 
+      // Connection creation is attempted but fails during handshake
+      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
+        'Connection Error',
+        'The connection request failed. Please try again.',
+      );
+
+      // Nothing else happens
       expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
       expect(Connection.create).toHaveBeenCalledTimes(1);
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
 
+      // Failed connection is cleaned up properly
       expect(disconnectSpy).toHaveBeenCalledWith(mockConnection.id);
       expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
@@ -133,16 +176,30 @@ describe('ConnectionRegistry', () => {
   });
 
   describe('disconnect', () => {
+    it('should handle a non-existent connection', async () => {
+      await registry.disconnect('non-existent-id');
+
+      // Gracefully handles cleanup for non-existent connections
+      expect(mockStore.delete).toHaveBeenCalledWith('non-existent-id');
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
+    });
+
     it('should disconnect a session, delete it from the store, and update the UI', async () => {
+      // Given: an established connection
       await registry.handleConnectDeeplink(validDeeplink);
 
       jest.clearAllMocks();
 
+      // When: disconnecting the connection
       await registry.disconnect(mockConnection.id);
 
+      // Then: connection is properly terminated
       expect(mockConnection.disconnect).toHaveBeenCalledTimes(1);
+
+      // Connection data is removed from storage
       expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
-      // The final sync should be with an empty list
+
+      // UI reflects the disconnection
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledTimes(1);
     });

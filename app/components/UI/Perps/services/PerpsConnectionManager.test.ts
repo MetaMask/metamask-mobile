@@ -48,6 +48,7 @@ const mockStreamManagerInstance = {
   orders: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -76,6 +77,7 @@ const resetManager = (manager: unknown) => {
     unsubscribeFromStore: (() => void) | null;
     previousAddress: string | undefined;
     previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
+    error: string | null;
   };
   m.isConnected = false;
   m.isConnecting = false;
@@ -85,6 +87,7 @@ const resetManager = (manager: unknown) => {
   m.unsubscribeFromStore = null;
   m.previousAddress = undefined;
   m.previousPerpsNetwork = undefined;
+  m.error = null;
 };
 
 describe('PerpsConnectionManager', () => {
@@ -108,10 +111,12 @@ describe('PerpsConnectionManager', () => {
     mockStreamManagerInstance.orders.clearCache.mockClear();
     mockStreamManagerInstance.account.clearCache.mockClear();
     mockStreamManagerInstance.marketData.clearCache.mockClear();
+    mockStreamManagerInstance.prices.clearCache.mockClear();
     mockStreamManagerInstance.positions.prewarm.mockClear();
     mockStreamManagerInstance.orders.prewarm.mockClear();
     mockStreamManagerInstance.account.prewarm.mockClear();
     mockStreamManagerInstance.marketData.prewarm.mockClear();
+    mockStreamManagerInstance.prices.prewarm.mockClear();
 
     // Reset the singleton instance state
     resetManager(PerpsConnectionManager);
@@ -207,6 +212,7 @@ describe('PerpsConnectionManager', () => {
       expect(state.isConnected).toBe(false);
       expect(state.isInitialized).toBe(false);
       expect(state.isConnecting).toBe(false);
+      expect(state.error).toBe('Connection failed');
     });
 
     it('should detect and handle stale connections', async () => {
@@ -396,6 +402,7 @@ describe('PerpsConnectionManager', () => {
         isConnecting: false,
         isInitialized: false,
         isDisconnecting: false,
+        error: null,
       });
     });
 
@@ -604,6 +611,7 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.prices.clearCache).toHaveBeenCalled();
     });
 
     it('should reinitialize controller with new context', async () => {

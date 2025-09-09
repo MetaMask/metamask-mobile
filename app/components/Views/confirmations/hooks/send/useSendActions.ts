@@ -4,15 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Routes from '../../../../../constants/navigation/Routes';
+import { AssetType } from '../../types/token';
 import { sendMultichainTransactionForReview } from '../../utils/multichain-snaps';
 import { submitEvmTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
-import { AssetType } from '../../types/token';
 
 export const useSendActions = () => {
-  const { asset, chainId, fromAccount, from, to, value } = useSendContext();
+  const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
+    useSendContext();
   const navigation = useNavigation();
   const { isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
@@ -36,6 +37,11 @@ export const useSendActions = () => {
         });
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            params: {
+              maxValueMode,
+            },
+          },
         );
       } else {
         await sendMultichainTransactionForReview(
@@ -43,14 +49,24 @@ export const useSendActions = () => {
           {
             fromAccountId: fromAccount?.id as string,
             toAddress: toAddress as string,
-            assetId: asset.address as CaipAssetType,
+            assetId: (asset as AssetType)?.assetId as CaipAssetType,
             amount: value as string,
           },
         );
         navigation.navigate(Routes.WALLET_VIEW);
       }
     },
-    [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value],
+    [
+      asset,
+      chainId,
+      navigation,
+      fromAccount,
+      from,
+      isEvmSendType,
+      maxValueMode,
+      to,
+      value,
+    ],
   );
 
   const handleCancelPress = useCallback(() => {

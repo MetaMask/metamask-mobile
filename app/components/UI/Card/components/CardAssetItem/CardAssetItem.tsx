@@ -35,14 +35,12 @@ import { useAssetBalance } from '../../hooks/useAssetBalance';
 interface CardAssetItemProps {
   assetKey: CardTokenAllowance;
   privacyMode: boolean;
-  disabled?: boolean;
   onPress?: (asset: TokenI) => void;
 }
 
 const CardAssetItem: React.FC<CardAssetItemProps> = ({
   assetKey,
   onPress,
-  disabled = false,
   privacyMode,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -135,7 +133,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   return (
     <AssetElement
       onPress={onPress}
-      disabled={disabled}
+      disabled
       asset={asset}
       balance={mainBalance}
       secondaryBalance={secondaryBalance}

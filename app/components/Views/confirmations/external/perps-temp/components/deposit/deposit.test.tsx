@@ -12,6 +12,7 @@ import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selecto
 import { useTransactionPayToken } from '../../../../hooks/pay/useTransactionPayToken';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { useTokenAsset } from '../../../../hooks/useTokenAsset';
+import { useTokenAmount } from '../../../../hooks/useTokenAmount';
 
 jest.mock('../../../../hooks/ui/useNavbar');
 jest.mock('../../../../../../UI/Bridge/hooks/useTokensWithBalance');
@@ -20,6 +21,9 @@ jest.mock('../../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/usePerpsDepositView');
 jest.mock('../../../../hooks/useTokenAsset');
+jest.mock('../../../../hooks/useTokenAmount');
+jest.mock('../../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../../hooks/pay/useTransactionBridgeQuotes');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -40,6 +44,7 @@ describe('PerpsDeposit', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const usePerpsDepositViewMock = jest.mocked(usePerpsDepositView);
   const useTokenAssetMock = jest.mocked(useTokenAsset);
+  const useTokenAmountMock = jest.mocked(useTokenAmount);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -53,17 +58,20 @@ describe('PerpsDeposit', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: '0x123',
-        chainId: '0x1',
         balance: '0',
         balanceFiat: '0',
+        balanceRaw: '0',
+        chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
+        tokenFiatAmount: 0,
       },
       setPayToken: noop,
     });
 
     usePerpsDepositViewMock.mockReturnValue({
       isFullView: false,
+      isPayTokenSelected: false,
     });
 
     useTokenAssetMock.mockReturnValue({
@@ -71,6 +79,11 @@ describe('PerpsDeposit', () => {
         address: '0xabc',
       },
     } as ReturnType<typeof useTokenAsset>);
+
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '1',
+      updateTokenAmount: noop,
+    } as unknown as ReturnType<typeof useTokenAmount>);
   });
 
   it('renders pay token', () => {

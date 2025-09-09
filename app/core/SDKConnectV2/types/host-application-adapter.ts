@@ -20,6 +20,13 @@ export interface IHostApplicationAdapter {
   hideLoading(): void;
 
   /**
+   * Displays a global, non-interactive alert.
+   * @param title The title of the alert.
+   * @param message The message to display in the alert.
+   */
+  showAlert(title: string, message: string): void;
+
+  /**
    * Displays a modal for the user to enter a One-Time Password (OTP).
    * @returns A promise that resolves when the user has entered the OTP.
    */

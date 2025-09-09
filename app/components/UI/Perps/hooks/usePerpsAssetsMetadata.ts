@@ -1,10 +1,16 @@
 import { useEffect, useState, useMemo } from 'react';
 // import { useTheme } from '../../../../util/theme'; // Available for future dark mode support
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+
+// Cache for validated asset URLs to prevent repeated HEAD requests
+const assetUrlCache = new Map<
+  string,
+  { url: string; valid: boolean; timestamp: number }
+>();
 
 export const usePerpsAssetMetadata = (assetSymbol: string | undefined) => {
   const [assetUrl, setAssetUrl] = useState('');
-  const [error, setError] = useState<string | null>(null);
   // Note: useTheme() is available here for future dark mode logo support
   // const { colors } = useTheme();
 
@@ -19,35 +25,58 @@ export const usePerpsAssetMetadata = (assetSymbol: string | undefined) => {
   useEffect(() => {
     if (!assetSymbol || !url) {
       setAssetUrl('');
-      setError(null);
       return;
     }
 
-    // Validate asset URL exists
+    // Check cache first
+    const cached = assetUrlCache.get(assetSymbol.toUpperCase());
+    const now = Date.now();
+
+    if (
+      cached &&
+      now - cached.timestamp <
+        PERFORMANCE_CONFIG.ASSET_METADATA_CACHE_DURATION_MS
+    ) {
+      if (cached.valid) {
+        setAssetUrl(cached.url);
+      } else {
+        setAssetUrl('');
+      }
+      return;
+    }
+
+    // Validate asset URL exists (not in cache or cache expired)
     fetch(url, { method: 'HEAD' })
       .then((response) => {
-        if (response.ok) {
+        const isValid = response.ok;
+        assetUrlCache.set(assetSymbol.toUpperCase(), {
+          url,
+          valid: isValid,
+          timestamp: now,
+        });
+
+        if (isValid) {
           setAssetUrl(url);
-          setError(null);
         } else {
           console.warn(
             `Asset icon not found for ${assetSymbol}:`,
             response.status,
           );
-          setError('Asset icon not found');
           setAssetUrl(''); // Clear the URL to trigger fallback
         }
       })
       .catch((err) => {
         console.warn(`Failed to load asset icon for ${assetSymbol}:`, err);
-        setError('Failed to load asset icon');
+        assetUrlCache.set(assetSymbol.toUpperCase(), {
+          url,
+          valid: false,
+          timestamp: now,
+        });
         setAssetUrl(''); // Clear the URL to trigger fallback
       });
   }, [assetSymbol, url]);
 
   return {
     assetUrl,
-    error,
-    hasError: !!error,
   };
 };

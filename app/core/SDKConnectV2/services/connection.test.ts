@@ -38,7 +38,7 @@ describe('Connection', () => {
       id: 'test-session-id',
       dappPublicKey: 'dapp_pub_key',
       walletPublicKey: 'wallet_pub_key',
-      channel: { type: 'websocket', id: 'channel-id' },
+      channel: 'channel-id',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     metadata: {

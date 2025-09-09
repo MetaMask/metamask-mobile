@@ -612,6 +612,7 @@ const RevealPrivateCredential = ({
           color={colors.error.default}
           name={IconName.EyeSlash}
           size={IconSize.Lg}
+          style={styles.icon}
         />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
@@ -664,6 +665,7 @@ const RevealPrivateCredential = ({
         showsVerticalScrollIndicator={false}
       >
         <View>
+          {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
           <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
@@ -688,9 +690,7 @@ const RevealPrivateCredential = ({
           {unlocked ? (
             renderTabView(credentialSlug)
           ) : (
-            <View style={[styles.rowWrapper, styles.stretch]}>
-              {renderPasswordEntry()}
-            </View>
+            <View style={styles.rowWrapper}>{renderPasswordEntry()}</View>
           )}
         </View>
       </ActionView>

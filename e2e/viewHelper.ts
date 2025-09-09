@@ -22,16 +22,20 @@ import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
-import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './utils/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
+import { createLogger } from './framework/logger';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+
+const logger = createLogger({
+  name: 'ViewHelper',
+});
 
 /**
  * Accepts the terms of use modal.
@@ -76,16 +80,11 @@ export const closeOnboardingModals = async (fromResetWallet = false) => {
       description: 'Toast Modal should not be visible',
     });
   } catch {
-    // eslint-disable-next-line no-console
-    console.log('The marketing toast is not visible');
+    logger.error('The marketing toast is not visible');
   }
 
   if (!fromResetWallet) {
-    // Handle Solana New feature sheet
-    await Assertions.expectElementToBeVisible(
-      SolanaNewFeatureSheet.notNowButton,
-    );
-    await SolanaNewFeatureSheet.tapNotNowButton();
+    // Nothing to do here for now
   }
 };
 
@@ -106,10 +105,7 @@ export const skipNotificationsDeviceSettings = async () => {
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    /* eslint-disable no-console */
-
-    console.log('The notification device alert modal is not visible');
+    logger.error('The notification device alert modal is not visible');
   }
 };
 
@@ -131,9 +127,7 @@ export const dismissProtectYourWalletModal: () => Promise<void> = async () => {
       ProtectYourWalletModal.collapseWalletModal,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    // eslint-disable-next-line no-console
-    console.log('The protect your wallet modal is not visible');
+    logger.error('The protect your wallet modal is not visible');
   }
 };
 
@@ -208,15 +202,18 @@ export const importWalletWithRecoveryPhrase = async ({
       await MetaMetricsOptIn.tapNoThanksButton();
     }
   }
+  // Dealing with flakiness
+  await device.disableSynchronization();
+
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  // await skipNotificationsDeviceSettings();
-
-  // dealing with flakiness on bitrise.
+  // Dealing with flakiness
+  // Workaround for token list hanging
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -288,14 +285,17 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
+  await device.disableSynchronization(); // Detox is hanging after wallet creation
+
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
 };
 
 /**
@@ -371,8 +371,7 @@ export const switchToSepoliaNetwork = async () => {
     await Assertions.expectElementToBeVisible(ToastModal.container);
     await Assertions.expectElementToNotBeVisible(ToastModal.container);
   } catch {
-    // eslint-disable-next-line no-console
-    console.log('Toast is not visible');
+    logger.error('Toast is not visible');
   }
 };
 
@@ -394,6 +393,22 @@ export const loginToApp = async (password?: string) => {
     description: 'Login View password input should be visible',
   });
   await LoginView.enterPassword(PASSWORD);
+
+  // Wait for wallet to load and perform pull-to-refresh to ensure token list is updated
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description: 'Wallet container should be visible after login',
+  });
+
+  await device.disableSynchronization(); // Workaround for tokens list hanging after login
+  try {
+    await WalletView.pullToRefreshTokensList();
+    logger.debug('Pull-to-refresh completed after login');
+    await device.enableSynchronization();
+  } catch (error) {
+    logger.warn('Pull-to-refresh failed after login:', error);
+    // Continue even if pull-to-refresh fails
+    await device.enableSynchronization();
+  }
 };
 
 /**

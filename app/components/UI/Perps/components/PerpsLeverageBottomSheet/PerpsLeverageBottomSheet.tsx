@@ -19,6 +19,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -51,6 +52,12 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
+import {
+  LEVERAGE_COLORS,
+  getLeverageRiskLevel,
+} from '../../constants/leverageColors';
+import { LEVERAGE_SLIDER_CONFIG } from '../../constants/perpsConfig';
+import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -60,12 +67,29 @@ interface PerpsLeverageBottomSheetProps {
   minLeverage: number;
   maxLeverage: number;
   currentPrice: number;
-  liquidationPrice: number;
   direction: 'long' | 'short';
   asset?: string;
+  limitPrice?: string;
+  orderType?: 'market' | 'limit';
 }
 
-// Custom Leverage Slider Component
+/**
+ * LeverageSlider Component
+ * A custom slider for selecting leverage values with visual risk indication
+ *
+ * @param value - Current leverage value
+ * @param onValueChange - Callback when leverage changes
+ * @param minValue - Minimum leverage (typically 1)
+ * @param maxValue - Maximum leverage (varies by market)
+ * @param colors - Theme colors
+ * @param onInteraction - Optional callback when user interacts with slider
+ *
+ * Features:
+ * - Gradient background indicating risk levels (green to red)
+ * - Smooth drag and tap gestures
+ * - Dynamic tick marks based on max leverage
+ * - Real-time value updates during drag
+ */
 const LeverageSlider: React.FC<{
   value: number;
   onValueChange: (value: number) => void;
@@ -81,6 +105,8 @@ const LeverageSlider: React.FC<{
   const thumbScale = useSharedValue(1);
   const widthRef = useRef(0);
   const [gradientWidth, setGradientWidth] = useState(300);
+  // Track previous value for threshold detection
+  const previousValueRef = useRef(value);
 
   const positionToValue = useCallback(
     (position: number, width: number) => {
@@ -118,6 +144,8 @@ const LeverageSlider: React.FC<{
       // Direct assignment for instant update, no spring animation
       translateX.value = newPosition;
     }
+    // Update previous value ref when value changes externally
+    previousValueRef.current = value;
   }, [value, minValue, maxValue, translateX]);
 
   const progressStyle = useAnimatedStyle(() => ({
@@ -136,10 +164,42 @@ const LeverageSlider: React.FC<{
     [onValueChange, onInteraction],
   );
 
+  // Haptic feedback callbacks
+  const triggerHapticFeedback = useCallback(
+    (impactStyle: ImpactFeedbackStyle) => {
+      impactAsync(impactStyle);
+    },
+    [],
+  );
+
+  // Check if value crosses leverage thresholds
+  const checkThresholdCrossing = useCallback(
+    (newValue: number) => {
+      const prevValue = previousValueRef.current;
+      // Define leverage thresholds based on risk levels
+      const thresholds = [2, 5, 10];
+
+      for (const threshold of thresholds) {
+        // Check if we crossed the threshold in either direction
+        if (
+          (prevValue < threshold && newValue >= threshold) ||
+          (prevValue > threshold && newValue <= threshold)
+        ) {
+          runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          break;
+        }
+      }
+
+      previousValueRef.current = newValue;
+    },
+    [triggerHapticFeedback],
+  );
+
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
       thumbScale.value = 1.1; // Subtle scale effect, instant
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
@@ -147,12 +207,14 @@ const LeverageSlider: React.FC<{
       // Real-time value update during drag
       const currentValue = positionToValue(newPosition, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+      runOnJS(checkThresholdCrossing)(currentValue);
     })
     .onEnd(() => {
       isPressed.value = false;
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onFinalize(() => {
       isPressed.value = false;
@@ -164,21 +226,25 @@ const LeverageSlider: React.FC<{
     translateX.value = newPosition; // Direct assignment for instant response
     const newValue = positionToValue(newPosition, sliderWidth.value);
     runOnJS(updateValue)(newValue);
+    runOnJS(checkThresholdCrossing)(newValue);
+    runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
   });
 
   const composed = Gesture.Simultaneous(tapGesture, panGesture);
 
-  // Generate tick marks based on max leverage
+  // Generate tick marks based on max leverage using configuration constants
   const tickMarks = useMemo(() => {
     const marks = [];
-    let step = 10;
+    let step: number = LEVERAGE_SLIDER_CONFIG.TICK_STEP_MEDIUM;
 
-    if (maxValue <= 20) {
-      step = 5;
-    } else if (maxValue <= 50) {
-      step = 10;
+    if (maxValue <= LEVERAGE_SLIDER_CONFIG.MAX_LEVERAGE_LOW_THRESHOLD) {
+      step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_LOW;
+    } else if (
+      maxValue <= LEVERAGE_SLIDER_CONFIG.MAX_LEVERAGE_MEDIUM_THRESHOLD
+    ) {
+      step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_MEDIUM;
     } else {
-      step = 20;
+      step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_HIGH;
     }
 
     // Ensure we don't generate marks beyond maxValue
@@ -197,14 +263,14 @@ const LeverageSlider: React.FC<{
         <View style={styles.leverageTrack} onLayout={handleLayout}>
           {/* Progress bar with clipped gradient */}
           <Animated.View style={[styles.progressContainer, progressStyle]}>
-            {/* TODO: update to design tokens to avoid hardcoding colors */}
+            {/* Using leverage risk colors - will be replaced with design tokens */}
             <LinearGradient
               colors={[
-                '#4CAF50',
-                '#8BC34A',
-                '#CDDC39',
+                LEVERAGE_COLORS.SAFE,
+                LEVERAGE_COLORS.SAFE_LIGHT,
+                LEVERAGE_COLORS.CAUTION,
                 colors.warning.default,
-                '#FF6B35',
+                LEVERAGE_COLORS.MEDIUM,
                 colors.error.default,
               ]}
               start={{ x: 0, y: 0 }}
@@ -224,7 +290,7 @@ const LeverageSlider: React.FC<{
           {/* Thumb */}
           <Animated.View
             style={[styles.leverageThumb, thumbStyle]}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           />
         </View>
       </GestureDetector>
@@ -240,9 +306,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   minLeverage,
   maxLeverage,
   currentPrice,
-  liquidationPrice,
   direction,
   asset = '',
+  limitPrice,
+  orderType = 'market',
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -251,6 +318,27 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
   const { track } = usePerpsEventTracking();
   const hasTrackedLeverageView = useRef(false);
+
+  // Dynamically calculate liquidation price based on tempLeverage
+  // Use limit price for limit orders, market price for market orders
+  const entryPrice = useMemo(
+    () =>
+      orderType === 'limit' && limitPrice
+        ? parseFloat(limitPrice)
+        : currentPrice,
+    [orderType, limitPrice, currentPrice],
+  );
+
+  const { liquidationPrice: calculatedLiquidationPrice } =
+    usePerpsLiquidationPrice({
+      entryPrice,
+      leverage: tempLeverage,
+      direction,
+      asset,
+    });
+
+  // Use calculated liquidation price, converting from string to number
+  const dynamicLiquidationPrice = parseFloat(calculatedLiquidationPrice) || 0;
 
   // Track screen load performance
   usePerpsScreenTracking({
@@ -291,17 +379,39 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     onClose();
   };
 
-  // Calculate liquidation percentage drop from the actual liquidation price
-  // This uses the provider-calculated liquidation price, making it protocol-agnostic
+  /**
+   * Calculate liquidation percentage distance from current price
+   * This is protocol-agnostic, using the provider's calculated liquidation price
+   *
+   * @returns Percentage distance to liquidation (e.g., 20 means 20% price movement to liquidation)
+   *
+   * For long positions: Shows how much price needs to drop to trigger liquidation
+   * For short positions: Shows how much price needs to rise to trigger liquidation
+   */
   const liquidationDropPercentage = useMemo(() => {
-    if (currentPrice === 0 || liquidationPrice === 0) return 0;
+    // Validate inputs
+    if (currentPrice === 0 || !currentPrice) return 0;
 
-    // Calculate the percentage difference between current price and liquidation price
+    // Special case for 1x leverage - theoretical 100% price movement to liquidation
+    if (tempLeverage === 1) {
+      return 100; // Show 100% for 1x leverage
+    }
+
+    // If liquidation price is invalid/still calculating, use theoretical calculation
+    if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
+      // Theoretical calculation: 1 / leverage * 100
+      // For 2x: 50%, for 5x: 20%, for 10x: 10%, etc.
+      const theoreticalPercentage = (1 / tempLeverage) * 100;
+      return theoreticalPercentage >= 99.9 ? 100 : theoreticalPercentage;
+    }
+
+    // Use actual liquidation price when available
     const percentageDrop =
-      (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
+      (Math.abs(currentPrice - dynamicLiquidationPrice) / currentPrice) * 100;
 
-    return percentageDrop;
-  }, [currentPrice, liquidationPrice]);
+    // Return 100% for very high percentages, otherwise return calculated value
+    return percentageDrop >= 99.9 ? 100 : percentageDrop;
+  }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {
@@ -314,40 +424,73 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     return filtered;
   }, [maxLeverage]);
 
-  // Determine leverage risk level for text color
+  /**
+   * Determine leverage risk level for text color
+   * Maps leverage percentage to appropriate style matching the gradient colors
+   * @returns Style object for leverage text color
+   */
   const getLeverageTextStyle = useCallback(() => {
     const percentage =
       (tempLeverage - minLeverage) / (maxLeverage - minLeverage);
+    const riskLevel = getLeverageRiskLevel(percentage);
 
-    if (percentage < 0.4) {
-      return styles.leverageTextLow;
-    } else if (percentage < 0.7) {
-      return styles.leverageTextMedium;
+    switch (riskLevel) {
+      case 'safe':
+        return styles.leverageTextSafe;
+      case 'caution':
+        return styles.leverageTextCaution;
+      case 'medium':
+        return styles.leverageTextMedium;
+      case 'high':
+      default:
+        return styles.leverageTextHigh;
     }
-    return styles.leverageTextHigh;
   }, [tempLeverage, minLeverage, maxLeverage, styles]);
 
-  // Determine warning text style and icon color based on leverage
+  /**
+   * Determine warning styles based on leverage risk level
+   * Returns appropriate styles for warning container, text, icon, and price colors
+   * Colors match the gradient to provide visual consistency
+   *
+   * @returns Object containing textStyle, containerStyle, iconColor, and priceColor
+   */
   const getWarningStyles = useCallback(() => {
     const percentage =
       (tempLeverage - minLeverage) / (maxLeverage - minLeverage);
+    const riskLevel = getLeverageRiskLevel(percentage);
 
-    if (percentage < 0.4) {
-      return {
-        textStyle: styles.warningTextLow,
-        iconColor: IconColor.Warning,
-      };
-    } else if (percentage < 0.7) {
-      return {
-        textStyle: styles.warningTextMedium,
-        iconColor: IconColor.Warning,
-      };
+    switch (riskLevel) {
+      case 'safe':
+        return {
+          textStyle: styles.warningTextSafe,
+          containerStyle: styles.warningContainerSafe,
+          iconColor: IconColor.Success,
+          priceColor: LEVERAGE_COLORS.SAFE,
+        };
+      case 'caution':
+        return {
+          textStyle: styles.warningTextCaution,
+          containerStyle: styles.warningContainerCaution,
+          iconColor: IconColor.Warning,
+          priceColor: LEVERAGE_COLORS.CAUTION,
+        };
+      case 'medium':
+        return {
+          textStyle: styles.warningTextMedium,
+          containerStyle: styles.warningContainerMedium,
+          iconColor: IconColor.Warning,
+          priceColor: LEVERAGE_COLORS.MEDIUM,
+        };
+      case 'high':
+      default:
+        return {
+          textStyle: styles.warningTextHigh,
+          containerStyle: styles.warningContainerHigh,
+          iconColor: IconColor.Error,
+          priceColor: colors.error.default,
+        };
     }
-    return {
-      textStyle: styles.warningTextHigh,
-      iconColor: IconColor.Error,
-    };
-  }, [tempLeverage, minLeverage, maxLeverage, styles]);
+  }, [tempLeverage, minLeverage, maxLeverage, styles, colors]);
 
   const warningStyles = getWarningStyles();
 
@@ -386,14 +529,17 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         </View>
 
         {/* Liquidation warning */}
-        <View style={styles.warningContainer}>
+        <View style={[styles.warningContainer, warningStyles.containerStyle]}>
           <Icon
             name={IconName.Danger}
             size={IconSize.Sm}
             color={warningStyles.iconColor}
             style={styles.warningIcon}
           />
-          <Text variant={TextVariant.BodyMD} style={warningStyles.textStyle}>
+          <Text
+            variant={TextVariant.BodySM}
+            style={[warningStyles.textStyle, styles.warningText]}
+          >
             You will be liquidated if price{' '}
             {direction === 'long' ? 'drops' : 'rises'} by{' '}
             {liquidationDropPercentage.toFixed(1)}%
@@ -404,27 +550,33 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         {currentPrice ? (
           <View style={styles.priceInfoContainer}>
             <View style={styles.priceRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={{ color: warningStyles.priceColor }}
+              >
                 {strings('perps.order.leverage_modal.liquidation_price')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(liquidationPrice)}
-              </Text>
+              <View style={styles.priceValueContainer}>
+                <Icon
+                  name={IconName.Danger}
+                  size={IconSize.Xs}
+                  color={warningStyles.priceColor}
+                  style={styles.priceIcon}
+                />
+                <Text
+                  variant={TextVariant.BodyMD}
+                  style={{ color: warningStyles.priceColor }}
+                >
+                  {formatPrice(dynamicLiquidationPrice)}
+                </Text>
+              </View>
             </View>
             <View style={styles.priceRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.order.leverage_modal.entry_price')}
+                {strings('perps.order.leverage_modal.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPrice(currentPrice)}
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.order.leverage_modal.liquidation_distance')}
-              </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {liquidationDropPercentage.toFixed(2)}%
               </Text>
             </View>
           </View>
@@ -455,6 +607,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               {minLeverage}x
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {Math.floor((minLeverage + maxLeverage) / 2)}x
+            </Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {maxLeverage}x
             </Text>
           </View>
@@ -472,6 +627,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               onPress={() => {
                 setTempLeverage(value);
                 setInputMethod('preset');
+                // Add haptic feedback for quick select buttons
+                impactAsync(ImpactFeedbackStyle.Light);
               }}
             >
               <Text

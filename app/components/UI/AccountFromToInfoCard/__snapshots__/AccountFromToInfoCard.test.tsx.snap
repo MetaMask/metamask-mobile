@@ -290,7 +290,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   <Image
                     onError={[Function]}
                     resizeMode="contain"
-                    source={1}
+                    source={10}
                     style={
                       {
                         "height": 32,

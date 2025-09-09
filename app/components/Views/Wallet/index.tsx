@@ -1,106 +1,115 @@
+import type { Theme } from '@metamask/design-tokens';
 import React, {
-  useEffect,
-  useRef,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from 'react';
+
 import {
   ActivityIndicator,
-  StyleSheet as RNStyleSheet,
-  View,
   Linking,
+  StyleSheet as RNStyleSheet,
   TextStyle,
+  View,
 } from 'react-native';
-import type { Theme } from '@metamask/design-tokens';
-import { connect, useSelector, useDispatch } from 'react-redux';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
-import { baseStyles } from '../../../styles/common';
-import Tokens from '../../UI/Tokens';
-import { getWalletNavbarOptions } from '../../UI/Navbar';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import TabBar from '../../../component-library/components-temp/TabBar';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
-  storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
+  storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../reducers/legalNotices';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import { baseStyles } from '../../../styles/common';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
+import { getWalletNavbarOptions } from '../../UI/Navbar';
+import Tokens from '../../UI/Tokens';
 
+import {
+  NavigationProp,
+  ParamListBase,
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import CustomText, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
-import Engine from '../../../core/Engine';
-import CollectibleContracts from '../../UI/CollectibleContracts';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import ErrorBoundary from '../ErrorBoundary';
-import { useTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import {
-  getDecimalChainId,
-  getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
-  isTestNet,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
-import {
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  selectNetworkClientId,
-  selectNetworkConfigurations,
-  selectProviderConfig,
-  selectNativeCurrencyByChainId,
-} from '../../../selectors/networkController';
-import {
-  selectNetworkName,
-  selectNetworkImageSource,
-} from '../../../selectors/networkInfos';
-import {
-  selectAllDetectedTokensFlat,
-  selectDetectedTokens,
-} from '../../../selectors/tokensController';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import CustomText, {
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
-import usePrevious from '../../hooks/usePrevious';
+import {
+  hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
+  showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
+} from '../../../reducers/collectibles';
 import {
   selectSelectedInternalAccount,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
+import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import {
-  hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
-  showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
-} from '../../../reducers/collectibles';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+  selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectNativeCurrencyByChainId,
+  selectNetworkClientId,
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import {
-  getMetamaskNotificationsUnreadCount,
+  selectNetworkImageSource,
+  selectNetworkName,
+} from '../../../selectors/networkInfos';
+import {
   getMetamaskNotificationsReadCount,
+  getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { useAccountName } from '../../hooks/useAccountName';
+import {
+  selectAllDetectedTokensFlat,
+  selectDetectedTokens,
+} from '../../../selectors/tokensController';
+import {
+  getDecimalChainId,
+  getIsNetworkOnboarded,
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+  isTestNet,
+} from '../../../util/networks';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
+import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
+import { useAccountName } from '../../hooks/useAccountName';
+import usePrevious from '../../hooks/usePrevious';
+import CollectibleContracts from '../../UI/CollectibleContracts';
+import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
+import ErrorBoundary from '../ErrorBoundary';
 
+import { Nft, Token } from '@metamask/assets-controllers';
+import { Hex } from '@metamask/utils';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
@@ -108,65 +117,65 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
-  selectTokenNetworkFilter,
   selectUseTokenDetection,
+  selectTokenNetworkFilter,
 } from '../../../selectors/preferencesController';
-import { TokenI } from '../../UI/Tokens/types';
-import { Hex } from '@metamask/utils';
-import { Nft, Token } from '@metamask/assets-controllers';
-import { Carousel } from '../../UI/Carousel';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
-import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { Carousel } from '../../UI/Carousel';
+import { TokenI } from '../../UI/Tokens/types';
+
 import { cloneDeep } from 'lodash';
-import { prepareNftDetectionEvents } from '../../../util/assets';
-import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
+import { toFormattedAddress } from '../../../util/address';
+import { prepareNftDetectionEvents } from '../../../util/assets';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import {
-  useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
+import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
-import { newAssetTransaction } from '../../../actions/transaction';
-import { getEther } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import {
   selectIsSwapsLive,
   selectIsUnifiedSwapsEnabled,
 } from '../../../core/redux/slices/bridge';
+import { getEther } from '../../../util/transactions';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { isSwapsAllowed } from '../../UI/Swaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import {
-  useNetworksByNamespace,
-  NetworkType,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { selectIsCardholder } from '../../../core/redux/slices/card';
-import { selectIsConnectionRemoved } from '../../../reducers/user';
+import { setIsConnectionRemoved } from '../../../actions/user';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { setIsConnectionRemoved } from '../../../actions/user';
+import { selectIsCardholder } from '../../../core/redux/slices/card';
+import { selectIsConnectionRemoved } from '../../../reducers/user';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import {
+  selectPerpsEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
+} from '../../UI/Perps';
+import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
+import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -213,143 +222,188 @@ interface WalletProps {
   showNftFetchingLoadingIndicator: () => void;
   hideNftFetchingLoadingIndicator: () => void;
 }
+interface WalletTokensTabViewProps {
+  navigation: WalletProps['navigation'];
+  onChangeTab: (value: ChangeTabProperties) => void;
+  defiEnabled: boolean;
+  collectiblesEnabled: boolean;
+  navigationParams?: {
+    shouldSelectPerpsTab?: boolean;
+    initialTab?: string;
+  };
+}
 
-const WalletTokensTabView = React.memo(
-  (props: {
-    navigation: WalletProps['navigation'];
-    onChangeTab: (value: ChangeTabProperties) => void;
-    defiEnabled: boolean;
-    collectiblesEnabled: boolean;
-  }) => {
-    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
-    const [currentTabIndex, setCurrentTabIndex] = React.useState(0);
+const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isPerpsEnabled = useMemo(
+    () => isPerpsFlagEnabled && isEvmSelected,
+    [isPerpsFlagEnabled, isEvmSelected],
+  );
 
-    const theme = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+  const {
+    navigation,
+    onChangeTab,
+    defiEnabled,
+    collectiblesEnabled,
+    navigationParams,
+  } = props;
+  const route = useRoute<RouteProp<ParamListBase, string>>();
+  // Type augmentation needed as @types/react-native-scrollable-tab-view doesn't expose goToPage method
+  const scrollableTabViewRef = useRef<
+    ScrollableTabView & { goToPage: (pageNumber: number) => void }
+  >(null);
 
-    const renderTabBar = useCallback(
-      (tabBarProps: Record<string, unknown>) => (
-        <TabBar
-          style={styles.tabBar}
-          {...tabBarProps}
-          tabStyle={styles.tabStyle}
-          textStyle={{
-            ...(theme.typography.sBodySMBold as TextStyle),
-          }}
-        />
-      ),
-      [styles, theme],
-    );
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
-    const tokensTabProps = useMemo(
-      () => ({
-        key: 'tokens-tab',
-        tabLabel: strings('wallet.tokens'),
-        navigation,
-      }),
-      [navigation],
-    );
+  // Track current tab index for Perps visibility
+  const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
-    const perpsTabProps = useMemo(
-      () => ({
-        key: 'perps-tab',
-        tabLabel: strings('wallet.perps'),
-        navigation,
-      }),
-      [navigation],
-    );
+  const renderTabBar = useCallback(
+    (tabBarProps: Record<string, unknown>) => (
+      <TabBar
+        style={styles.tabBar}
+        {...tabBarProps}
+        tabStyle={styles.tabStyle}
+        textStyle={{
+          ...(theme.typography.sBodySMBold as TextStyle),
+        }}
+      />
+    ),
+    [styles, theme],
+  );
 
-    const defiPositionsTabProps = useMemo(
-      () => ({
-        key: 'defi-tab',
-        tabLabel: strings('wallet.defi'),
-        navigation,
-      }),
-      [navigation],
-    );
+  const tokensTabProps = useMemo(
+    () => ({
+      key: 'tokens-tab',
+      tabLabel: strings('wallet.tokens'),
+      navigation,
+    }),
+    [navigation],
+  );
 
-    const collectibleContractsTabProps = useMemo(
-      () => ({
-        key: 'nfts-tab',
-        tabLabel: strings('wallet.collectibles'),
-        navigation,
-      }),
-      [navigation],
-    );
+  const perpsTabProps = useMemo(
+    () => ({
+      key: 'perps-tab',
+      tabLabel: strings('wallet.perps'),
+      navigation,
+    }),
+    [navigation],
+  );
 
-    const handleTabChange = useCallback(
-      (changeTabProperties: ChangeTabProperties) => {
-        const newIndex = changeTabProperties.i;
-        const tabLabel = changeTabProperties.ref?.props?.tabLabel;
-        DevLogger.log('WalletTabView: Tab changed', {
-          newIndex,
-          tabLabel,
-          isPerpsTab: tabLabel === strings('wallet.perps'),
-          previousIndex: currentTabIndex,
-        });
-        setCurrentTabIndex(newIndex);
-        onChangeTab(changeTabProperties);
-      },
-      [onChangeTab, currentTabIndex],
-    );
+  const defiPositionsTabProps = useMemo(
+    () => ({
+      key: 'defi-tab',
+      tabLabel: strings('wallet.defi'),
+      navigation,
+    }),
+    [navigation],
+  );
 
-    // Calculate Perps tab index dynamically based on what tabs are enabled
-    // Tokens is always index 0, Perps is index 1 if enabled
-    const perpsTabIndex = isPerpsEnabled ? 1 : -1;
-    const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
+  const collectibleContractsTabProps = useMemo(
+    () => ({
+      key: 'nfts-tab',
+      tabLabel: strings('wallet.collectibles'),
+      navigation,
+    }),
+    [navigation],
+  );
 
-    // Store the visibility update callback from PerpsTabView
-    const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
-      null,
-    );
+  // Handle tab changes and track current index
+  const handleTabChange = useCallback(
+    (changeTabProperties: ChangeTabProperties) => {
+      setCurrentTabIndex(changeTabProperties.i);
+      onChangeTab(changeTabProperties);
+    },
+    [onChangeTab],
+  );
 
-    // Update Perps visibility when tab changes
-    useEffect(() => {
-      if (isPerpsEnabled && perpsVisibilityCallback.current) {
-        DevLogger.log('WalletTabView: Updating Perps visibility', {
-          currentTabIndex,
-          perpsTabIndex,
-          isPerpsTabVisible,
-        });
-        perpsVisibilityCallback.current(isPerpsTabVisible);
+  // Calculate Perps tab visibility
+  const perpsTabIndex = isPerpsEnabled ? 1 : -1;
+  const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
+
+  // Store the visibility update callback from PerpsTabView
+  const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
+    null,
+  );
+
+  // Update Perps visibility when tab changes
+  useEffect(() => {
+    if (isPerpsEnabled && perpsVisibilityCallback.current) {
+      perpsVisibilityCallback.current(isPerpsTabVisible);
+    }
+  }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
+
+  // Handle tab selection from navigation params (e.g., from deeplinks)
+  // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
+  useFocusEffect(
+    useCallback(() => {
+      // Check both navigationParams prop and route params for tab selection
+      // Type assertion needed as route params are not strongly typed in navigation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const params = navigationParams || (route.params as any);
+      const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
+      const initialTab = params?.initialTab;
+
+      if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
+        // Calculate the index of the Perps tab
+        // Tokens is always at index 0, Perps is at index 1 when enabled
+        const targetPerpsTabIndex = 1;
+
+        // Small delay ensures the ScrollableTabView is fully rendered before selection
+        const timer = setTimeout(() => {
+          scrollableTabViewRef.current?.goToPage(targetPerpsTabIndex);
+
+          // Clear the params to prevent re-selection on subsequent focuses
+          // This is important for navigation state management
+          if (navigation?.setParams) {
+            navigation.setParams({
+              shouldSelectPerpsTab: false,
+              initialTab: undefined,
+            });
+          }
+        }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+
+        return () => clearTimeout(timer);
       }
-    }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
+    }, [route.params, isPerpsEnabled, navigationParams, navigation]),
+  );
 
-    return (
-      <View style={styles.tabContainer}>
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          onChangeTab={handleTabChange}
-        >
-          <Tokens {...tokensTabProps} key={tokensTabProps.key} />
-          {isPerpsEnabled && (
-            <PerpsTabView
-              {...perpsTabProps}
-              key={perpsTabProps.key}
-              isVisible={isPerpsTabVisible}
-              onVisibilityChange={(callback) => {
-                perpsVisibilityCallback.current = callback;
-              }}
-            />
-          )}
-          {defiEnabled && (
-            <DeFiPositionsList
-              {...defiPositionsTabProps}
-              key={defiPositionsTabProps.key}
-            />
-          )}
-          {collectiblesEnabled && (
-            <CollectibleContracts
-              {...collectibleContractsTabProps}
-              key={collectibleContractsTabProps.key}
-            />
-          )}
-        </ScrollableTabView>
-      </View>
-    );
-  },
-);
+  return (
+    <View style={styles.tabContainer}>
+      <ScrollableTabView
+        ref={scrollableTabViewRef}
+        renderTabBar={renderTabBar}
+        onChangeTab={handleTabChange}
+      >
+        <Tokens {...tokensTabProps} key={tokensTabProps.key} />
+        {isPerpsEnabled && (
+          <PerpsTabView
+            {...perpsTabProps}
+            key={perpsTabProps.key}
+            isVisible={isPerpsTabVisible}
+            onVisibilityChange={(callback) => {
+              perpsVisibilityCallback.current = callback;
+            }}
+          />
+        )}
+        {defiEnabled && (
+          <DeFiPositionsList
+            {...defiPositionsTabProps}
+            key={defiPositionsTabProps.key}
+          />
+        )}
+        {collectiblesEnabled && (
+          <CollectibleContracts
+            {...collectibleContractsTabProps}
+            key={collectibleContractsTabProps.key}
+          />
+        )}
+      </ScrollableTabView>
+    </View>
+  );
+});
 
 /**
  * Main view for the wallet
@@ -363,8 +417,15 @@ const Wallet = ({
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
   const { navigate } = useNavigation();
+  const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
   const theme = useTheme();
+
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsGTMModalEnabled = useSelector(
+    selectPerpsGtmOnboardingModalEnabledFlag,
+  );
+
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -375,9 +436,6 @@ const Wallet = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
-  );
-  const solanaOnboardingModalEnabled = useSelector(
-    selectSolanaOnboardingModalEnabled,
   );
 
   /**
@@ -395,6 +453,17 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
+  const enabledNetworks = useSelector(selectEVMEnabledNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const enabledNetworksHasTestNet = useMemo(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      return enabledNetworks.some((network) => isTestNet(network));
+    }
+    return Object.keys(tokenNetworkFilter).some((network) =>
+      isTestNet(network),
+    );
+  }, [enabledNetworks, tokenNetworkFilter]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -402,7 +471,6 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const [isNetworkRampSupported] = useRampNetwork();
   const swapsIsLive = useSelector((state: RootState) =>
     selectIsSwapsLive(state, chainId),
   );
@@ -432,7 +500,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayFundButton = isNetworkRampSupported;
+  const displayFundButton = true;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -547,23 +615,21 @@ const Wallet = ({
     navigate,
   ]);
 
-  const checkAndNavigateToSolanaFeature = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(
-      SOLANA_FEATURE_MODAL_SHOWN,
-    );
+  const checkAndNavigateToPerpsGTM = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
 
     if (hasSeenModal !== 'true') {
-      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
+      navigate(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.GTM_MODAL,
+      });
     }
   }, [navigate]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    if (solanaOnboardingModalEnabled) {
-      checkAndNavigateToSolanaFeature();
+    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
+      checkAndNavigateToPerpsGTM();
     }
-  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
-  ///: END:ONLY_INCLUDE_IF
+  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
   useEffect(() => {
     addTraitsToUser({
@@ -656,13 +722,13 @@ const Wallet = ({
     networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -720,7 +786,7 @@ const Wallet = ({
     ) {
       selectNetwork(chainId);
     }
-  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
+  }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
 
   useEffect(() => {
     handleNetworkFilter();
@@ -783,6 +849,7 @@ const Wallet = ({
   );
 
   const isCardholder = useSelector(selectIsCardholder);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -805,6 +872,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         isCardholder,
+        isRewardsEnabled,
       ),
     );
   }, [
@@ -820,6 +888,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     isCardholder,
+    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -1006,7 +1075,7 @@ const Wallet = ({
 
   const defiEnabled =
     isEvmSelected &&
-    !isTestNet(chainId) &&
+    !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
@@ -1053,12 +1122,16 @@ const Wallet = ({
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
             receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
           />
-          <Carousel style={styles.carouselContainer} />
+          {isCarouselBannersEnabled && (
+            <Carousel style={styles.carouselContainer} />
+          )}
+
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
+            navigationParams={route.params}
           />
         </>
       </View>
@@ -1082,6 +1155,8 @@ const Wallet = ({
       swapsIsLive,
       onReceive,
       onSend,
+      route.params,
+      isCarouselBannersEnabled,
     ],
   );
   const renderLoader = useCallback(

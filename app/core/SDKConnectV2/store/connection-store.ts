@@ -1,10 +1,13 @@
 import { IConnectionStore } from '../types/connection-store';
 import { PersistedConnection } from '../types/persisted-connection';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageWrapper from '../../../store/storage-wrapper';
 
 /**
  * An implementation of IConnectionStore to persist
  * the metadata of established dApp connections.
+ * Uses StorageWrapper for better performance, with fallback to AsyncStorage
+ * for batch operations (getAllKeys, multiGet) that aren't available in StorageWrapper.
  */
 export class ConnectionStore implements IConnectionStore {
   private readonly prefix: string;
@@ -18,14 +21,14 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async save(connection: PersistedConnection): Promise<void> {
-    await AsyncStorage.setItem(
+    await StorageWrapper.setItem(
       this.getKey(connection.id),
       JSON.stringify(connection),
     );
   }
 
   async get(id: string): Promise<PersistedConnection | null> {
-    const json = await AsyncStorage.getItem(this.getKey(id));
+    const json = await StorageWrapper.getItem(this.getKey(id));
     return json ? (JSON.parse(json) as PersistedConnection) : null;
   }
 
@@ -48,6 +51,6 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   async delete(id: string): Promise<void> {
-    await AsyncStorage.removeItem(this.getKey(id));
+    await StorageWrapper.removeItem(this.getKey(id));
   }
 }

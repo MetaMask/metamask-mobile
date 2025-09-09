@@ -10,6 +10,7 @@ import { useStyles } from '../../../component-library/hooks';
 // Internal dependencies.
 import styleSheet from './Skeleton.styles';
 import { SkeletonProps } from './Skeleton.types';
+import { isE2E } from '../../../util/test/utils';
 
 const Skeleton: React.FC<SkeletonProps> = ({
   height,
@@ -51,7 +52,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
 
   useEffect(() => {
     // Only start animation if no children are present or if children should be hidden
-    if (!children || hideChildren) {
+    if (!isE2E && (!children || hideChildren)) {
       startAnimation();
     }
 

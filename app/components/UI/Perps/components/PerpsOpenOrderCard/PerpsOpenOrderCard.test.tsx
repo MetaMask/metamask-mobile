@@ -5,27 +5,41 @@ import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
 import type { Order } from '../../controllers/types';
 
-// Mock asset metadata hook
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: jest.fn().mockReturnValue({
-    assetUrl: 'https://example.com/eth.png',
-  }),
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
 }));
 
-// Mock RemoteImage
-jest.mock('../../../../Base/RemoteImage', () => ({
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+// Mock PerpsBottomSheetTooltip
+jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
-  default: ({
-    _source,
-    style,
-    testID,
-  }: {
-    _source: unknown;
-    style: unknown;
-    testID?: string;
-  }) => {
+  default: ({ onClose, testID }: { onClose: () => void; testID: string }) => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity testID={testID} onPress={onClose}>
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
+    );
+  },
+}));
+
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: ({ size, testID }: { size: number; testID?: string }) => {
     const { View } = jest.requireActual('react-native');
-    return <View testID={testID || 'remote-image'} style={style} />;
+    return (
+      <View
+        testID={testID || 'perps-token-logo'}
+        style={{ width: size, height: size }}
+      />
+    );
   },
 }));
 
@@ -54,6 +68,18 @@ describe('PerpsOpenOrderCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   describe('Component Rendering', () => {
@@ -69,13 +95,13 @@ describe('PerpsOpenOrderCard', () => {
       it('renders with icon when showIcon is true', () => {
         render(<PerpsOpenOrderCard order={mockOrder} showIcon />);
 
-        expect(screen.getByTestId('remote-image')).toBeOnTheScreen();
+        expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
       });
 
       it('renders without icon when showIcon is false', () => {
         render(<PerpsOpenOrderCard order={mockOrder} showIcon={false} />);
 
-        expect(screen.queryByTestId('remote-image')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
       });
 
       it('renders right accessory when provided', () => {
@@ -197,7 +223,19 @@ describe('PerpsOpenOrderCard', () => {
   });
 
   describe('User Interactions', () => {
-    it('calls onCancel when cancel button is pressed', () => {
+    it('calls onCancel when cancel button is pressed and user is eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
       render(
         <PerpsOpenOrderCard
           order={mockOrder}
@@ -240,6 +278,74 @@ describe('PerpsOpenOrderCard', () => {
       // Check that the button has disabled prop
       expect(cancelButton.props.disabled).toBe(true);
     });
+
+    it('shows geo block modal when cancel button is pressed and user is not eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onCancel={mockOnCancel}
+          expanded
+        />,
+      );
+
+      // Press cancel button
+      fireEvent.press(
+        screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - onCancel should not be called
+      expect(mockOnCancel).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onCancel={mockOnCancel}
+          expanded
+        />,
+      );
+
+      // Press cancel button to show geo block modal
+      fireEvent.press(
+        screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      // Verify modal is shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      // Press the geo block tooltip to close it
+      fireEvent.press(screen.getByText('Geo Block Tooltip'));
+
+      // Assert - Geo block tooltip should be closed
+      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
+    });
   });
 
   describe('Data Formatting and Edge Cases', () => {
@@ -252,7 +358,7 @@ describe('PerpsOpenOrderCard', () => {
       render(<PerpsOpenOrderCard order={orderWithoutTP} expanded />);
 
       // Should find "not set" text in the component
-      expect(screen.getByText('Not Set')).toBeOnTheScreen();
+      expect(screen.getByText('Not set')).toBeOnTheScreen();
     });
 
     it('handles missing stop loss price', () => {
@@ -264,7 +370,7 @@ describe('PerpsOpenOrderCard', () => {
       render(<PerpsOpenOrderCard order={orderWithoutSL} expanded />);
 
       // Should find "not set" text in the component
-      expect(screen.getByText('Not Set')).toBeOnTheScreen();
+      expect(screen.getByText('Not set')).toBeOnTheScreen();
     });
 
     it('handles zero original size for fill percentage calculation', () => {
@@ -307,16 +413,11 @@ describe('PerpsOpenOrderCard', () => {
       expect(screen.getByText('Market Order')).toBeOnTheScreen();
     });
 
-    it('renders correctly without asset URL', () => {
-      const mockUsePerpsAssetMetadata = jest.requireMock(
-        '../../hooks/usePerpsAssetsMetadata',
-      ).usePerpsAssetMetadata;
-      mockUsePerpsAssetMetadata.mockReturnValueOnce({ assetUrl: null });
-
+    it('renders correctly with PerpsTokenLogo handling asset URLs internally', () => {
       render(<PerpsOpenOrderCard order={mockOrder} showIcon />);
 
-      // Should show fallback icon when no asset URL
-      expect(screen.queryByTestId('remote-image')).not.toBeOnTheScreen();
+      // Should show PerpsTokenLogo which handles asset URLs internally
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
     });
   });
 

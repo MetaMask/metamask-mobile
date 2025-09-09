@@ -15,7 +15,6 @@ import { RootState } from '../../../reducers';
 import { AssetsContractController } from '@metamask/assets-controllers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../util/test/keyringControllerTestUtils';
-import { NetworkStatus, RpcEndpointType } from '@metamask/network-controller';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -58,35 +57,6 @@ const mockInitialState: DeepPartial<RootState> = {
         vault: 'mock-vault',
         ...MOCK_KEYRING_CONTROLLER_STATE,
         isUnlocked: true,
-      },
-      NetworkController: {
-        selectedNetworkClientId: 'mainnet',
-        networksMetadata: {
-          mainnet: {
-            EIPS: {
-              1559: true,
-            },
-            status: NetworkStatus.Available,
-          },
-        },
-        networkConfigurationsByChainId: {
-          [CHAIN_IDS.MAINNET]: {
-            chainId: CHAIN_IDS.MAINNET,
-            name: 'Ethereum Main Network',
-            nativeCurrency: 'ETH',
-            defaultRpcEndpointIndex: 0,
-            rpcEndpoints: [
-              {
-                networkClientId: 'mainnet',
-                type: RpcEndpointType.Infura,
-                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-              },
-            ],
-          },
-        },
-      },
-      MultichainNetworkController: {
-        isEvmSelected: true,
       },
     },
   },
@@ -136,13 +106,6 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
-
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  getNetworkNameFromProviderConfig: jest.fn(() => NETWORK_NAME_MOCK),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
-  isPerDappSelectedNetworkEnabled: jest.fn(() => false),
-}));
 
 jest.mock('../../Views/confirmations/hooks/useNetworkInfo', () => ({
   __esModule: true,

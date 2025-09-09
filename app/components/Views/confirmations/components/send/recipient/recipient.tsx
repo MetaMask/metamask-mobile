@@ -5,31 +5,36 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
-  FontWeight,
-  TextColor,
-  TextVariant,
-  Text,
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
+import { doENSLookup } from '../../../../../../util/ENSUtils';
+import Banner, {
+  BannerAlertSeverity,
+  BannerVariant,
+} from '../../../../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
+import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
+import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
-  const { to, updateTo } = useSendContext();
+  const { to, updateTo, chainId } = useSendContext();
   const { handleSubmitPress } = useSendActions();
+  const { isEvmSendType } = useSendType();
   const accounts = useAccounts();
   const contacts = useContacts();
   const {
@@ -39,18 +44,37 @@ export const Recipient = () => {
     setRecipientInputMethodSelectContact,
   } = useRecipientSelectionMetrics();
   const styles = styleSheet();
-  const { toAddressError } = useToAddressValidation();
+  const { toAddressError, toAddressWarning } = useToAddressValidation();
   const isReviewButtonDisabled = Boolean(toAddressError);
+  // This hook needs to be called to update ERC721 NFTs in send flow
+  // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
+  useRouteParams();
+  // This submission lifecycle state prevents adding multiple transactions
+  const [isSubmittingTransaction, setIsSubmittingTransaction] = useState(false);
+  // Reset the submitting state when the user returns to the recipient page
+  useFocusEffect(
+    useCallback(() => {
+      setIsSubmittingTransaction(false);
+    }, []),
+  );
 
-  const handleReview = useCallback(() => {
+  const handleReview = useCallback(async () => {
     if (toAddressError) {
       return;
     }
-    handleSubmitPress(to);
+    setIsSubmittingTransaction(true);
+
+    let resolvedEnsAddress = to;
+    if (isEvmSendType) {
+      resolvedEnsAddress = await doENSLookup(to, chainId);
+    }
+    handleSubmitPress(resolvedEnsAddress || to);
     setRecipientInputMethodManual();
     captureRecipientSelected();
   }, [
     to,
+    chainId,
+    isEvmSendType,
     toAddressError,
     handleSubmitPress,
     captureRecipientSelected,
@@ -64,6 +88,7 @@ export const Recipient = () => {
           | typeof RecipientInputMethod.SelectContact,
       ) =>
       (recipient: RecipientType) => {
+        setIsSubmittingTransaction(true);
         const selectedAddress = recipient.address;
         setIsRecipientSelectedFromList(true);
         updateTo(selectedAddress);
@@ -96,49 +121,51 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
           />
           <ScrollView>
-            <Text
-              twClassName="m-4"
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('send.accounts')}
-            </Text>
             <RecipientList
               data={accounts}
               onRecipientSelected={onRecipientSelected(
                 RecipientInputMethod.SelectAccount,
               )}
+              disabled={isSubmittingTransaction}
             />
             {contacts.length > 0 && (
-              <>
-                <Text
-                  twClassName="m-4"
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings('send.contacts')}
-                </Text>
-                <RecipientList
-                  data={contacts}
-                  onRecipientSelected={onRecipientSelected(
-                    RecipientInputMethod.SelectContact,
-                  )}
-                  emptyMessage={strings('send.no_contacts_found')}
-                />
-              </>
+              <RecipientList
+                isContactList
+                data={contacts}
+                onRecipientSelected={onRecipientSelected(
+                  RecipientInputMethod.SelectContact,
+                )}
+                emptyMessage={strings('send.no_contacts_found')}
+                disabled={isSubmittingTransaction}
+              />
             )}
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
+              {toAddressWarning && (
+                <Banner
+                  testID="to-address-warning-banner"
+                  variant={BannerVariant.Alert}
+                  severity={
+                    // Confusable character validation is send both error and warning for invisible characters
+                    // hence we are showing error for invisible characters
+                    toAddressError && toAddressWarning
+                      ? BannerAlertSeverity.Error
+                      : BannerAlertSeverity.Warning
+                  }
+                  style={styles.banner}
+                  title={toAddressWarning}
+                />
+              )}
               <Button
+                testID="review-button-send"
                 variant={ButtonVariant.Primary}
                 size={ButtonBaseSize.Lg}
                 onPress={handleReview}
                 twClassName="w-full"
                 isDanger={Boolean(toAddressError)}
-                disabled={Boolean(toAddressError)}
+                disabled={Boolean(toAddressError) || isSubmittingTransaction}
+                isLoading={isSubmittingTransaction}
               >
                 {isReviewButtonDisabled
                   ? toAddressError

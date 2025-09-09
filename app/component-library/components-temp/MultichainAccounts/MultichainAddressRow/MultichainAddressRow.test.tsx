@@ -10,7 +10,7 @@ import {
   MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from './MultichainAddressRow.constants';
-import { IconName } from '../../../components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 // Mock useCopyClipboard hook
 jest.mock(
@@ -153,7 +153,7 @@ describe('MultichainAddressRow', () => {
     const mockIconCallback = jest.fn();
     const icons = [
       {
-        name: IconName.Apple,
+        name: IconName.Add,
         callback: mockIconCallback,
         testId: 'custom-icon-test-id',
       },

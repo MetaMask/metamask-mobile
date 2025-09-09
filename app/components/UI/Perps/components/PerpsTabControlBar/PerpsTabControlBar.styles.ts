@@ -7,29 +7,81 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     wrapper: {
+      flexDirection: 'column',
+      gap: 1,
+      paddingVertical: 8,
+      width: '100%',
+    },
+    pillContainerTop: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 8,
-      backgroundColor: colors.background.default,
-      width: '100%',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background.section,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
     },
-    balanceContainer: {
+    pillContainerBottom: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background.section,
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
+    },
+    pillContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background.section,
+      borderRadius: 12,
+    },
+    leftSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
       flex: 1,
     },
-    titleText: {
-      marginBottom: 4,
+    rightSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
-    arrowContainer: {
-      marginLeft: 12,
+    titleText: {},
+    valueText: {
+      marginRight: 8,
+      fontWeight: 500,
+    },
+    pnlValueText: {
+      fontWeight: 500,
+    },
+    infoIcon: {
+      marginLeft: 4,
+    },
+    // Deprecated - kept for backward compatibility
+    balanceContainer: {
+      flex: 1,
     },
     balanceText: {
       borderRadius: 4,
       paddingHorizontal: 4,
     },
-    balanceRow: {
+    contentContainer: {
+      flex: 1,
       flexDirection: 'row',
-      alignItems: 'center',
+      gap: 24,
+    },
+    balanceSection: {
+      flex: 1,
+    },
+    pnlSection: {
+      flex: 1,
+    },
+    arrowContainer: {
+      marginLeft: 12,
     },
   });
 };

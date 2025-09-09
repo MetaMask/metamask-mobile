@@ -18,6 +18,7 @@ import {
   stopMockServer,
   validateLiveRequests,
 } from '../../api-mocking/mock-server';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -344,6 +345,10 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
+
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
 
@@ -455,8 +460,6 @@ export async function withFixtures(
     logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
-    validateLiveRequests(mockServer);
-
     if (endTestfn) {
       // Pass the mockServer to the endTestfn if it exists as we may want
       // to capture events before cleanup
@@ -477,6 +480,8 @@ export async function withFixtures(
     }
 
     await stopFixtureServer(fixtureServer);
+    // Validate live requests
+    validateLiveRequests(mockServer);
   }
 }
 

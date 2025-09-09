@@ -171,8 +171,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   useEffect(() => {
     if (isAccountSelector) {
       trace({
-        name: TraceName.AccountList,
-        op: TraceOperation.AccountList,
+        name: TraceName.ShowAccountList,
+        op: TraceOperation.AccountUi,
         tags: getTraceTags(store.getState()),
       });
     }
@@ -182,7 +182,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const onOpen = useCallback(() => {
     if (isAccountSelector) {
       endTrace({
-        name: TraceName.AccountList,
+        name: TraceName.ShowAccountList,
       });
     }
   }, [isAccountSelector]);
@@ -210,7 +210,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         {isMultichainAccountsState2Enabled && selectedAccountGroup ? (
           <MultichainAccountSelectorList
             onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroup={selectedAccountGroup}
+            selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
         ) : (

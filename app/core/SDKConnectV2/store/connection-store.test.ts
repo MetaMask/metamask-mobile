@@ -1,8 +1,17 @@
 import { ConnectionStore } from './connection-store';
 import { PersistedConnection } from '../types/persisted-connection';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageWrapper from '../../../store/storage-wrapper';
 
 jest.mock('@react-native-async-storage/async-storage');
+jest.mock('../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
 
 describe('ConnectionStore', () => {
   let store: ConnectionStore;
@@ -36,7 +45,7 @@ describe('ConnectionStore', () => {
 
     await store.save(connection);
 
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       'test-prefix/test-id',
       JSON.stringify(connection),
     );
@@ -58,20 +67,21 @@ describe('ConnectionStore', () => {
       },
     };
 
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
       JSON.stringify(connection),
     );
 
     const result = await store.get('test-id');
 
-    expect(AsyncStorage.getItem).toHaveBeenCalledWith('test-prefix/test-id');
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith('test-prefix/test-id');
     expect(result).toEqual(connection);
   });
 
   it('should return null when connection not found', async () => {
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(null);
     const result = await store.get('non-existent');
 
-    expect(AsyncStorage.getItem).toHaveBeenCalledWith(
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith(
       'test-prefix/non-existent',
     );
     expect(result).toBeNull();
@@ -128,6 +138,8 @@ describe('ConnectionStore', () => {
   it('should delete a connection', async () => {
     await store.delete('test-id');
 
-    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('test-prefix/test-id');
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+      'test-prefix/test-id',
+    );
   });
 });

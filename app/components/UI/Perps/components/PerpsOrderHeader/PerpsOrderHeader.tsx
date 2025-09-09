@@ -1,31 +1,32 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../../util/theme';
+import React, { useCallback, useMemo } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
+import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import TokenIcon from '../../../Swaps/components/TokenIcon';
-import { formatPrice, formatPercentage } from '../../utils/formatUtils';
-import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
-import type { OrderType } from '../../controllers/types';
-import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { createStyles } from './PerpsOrderHeader.styles';
+import { useTheme } from '../../../../../util/theme';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import type { OrderType } from '../../controllers/types';
+import { formatPercentage, formatPrice } from '../../utils/formatUtils';
+import { createStyles } from './PerpsOrderHeader.styles';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
   priceChange: number;
   orderType: OrderType;
+  direction?: 'long' | 'short';
   onBack?: () => void;
   onOrderTypePress?: () => void;
 }
@@ -35,6 +36,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   price,
   priceChange,
   orderType,
+  direction = 'long',
   onBack,
   onOrderTypePress,
 }) => {
@@ -57,12 +59,6 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     // Note: onOrderTypePress callback is now required
   }, [onOrderTypePress]);
 
-  // Get asset icon URL from Hyperliquid
-  const assetIconUrl = useMemo(
-    () => `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${asset.toLowerCase()}.png`,
-    [asset],
-  );
-
   // Format price display with edge case handling
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
@@ -81,30 +77,27 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   return (
     <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
       <ButtonIcon
-        iconName={IconName.ArrowLeft}
+        iconName={IconName.Arrow2Left}
         onPress={handleBack}
         iconColor={IconColor.Default}
-        size={ButtonIconSizes.Sm}
+        size={ButtonIconSizes.Md}
       />
-      <View style={styles.headerCenter}>
-        <View style={styles.headerCenterRow}>
-          <TokenIcon
-            symbol={asset}
-            icon={assetIconUrl}
-            style={styles.tokenIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingMD}
-            style={styles.headerTitle}
-            testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
-          >
-            {asset} {formattedPrice}
+      <View style={styles.headerLeft}>
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.headerTitle}
+          testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
+        >
+          {direction === 'long' ? 'Long' : 'Short'} {asset}
+        </Text>
+        <View style={styles.priceRow}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {formattedPrice}
           </Text>
           {price > 0 && (
             <Text
               variant={TextVariant.BodyMD}
               color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
-              style={styles.headerPriceChange}
             >
               {formatPercentage(priceChange)}
             </Text>
@@ -113,9 +106,17 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       </View>
       <TouchableOpacity onPress={handleOrderTypePress}>
         <View style={styles.marketButton}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {orderType === 'market' ? 'Market' : 'Limit'}
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {orderType === 'market'
+              ? strings('perps.order.market')
+              : strings('perps.order.limit')}
           </Text>
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Xs}
+            color={IconColor.Default}
+            style={styles.marketButtonIcon}
+          />
         </View>
       </TouchableOpacity>
     </View>
