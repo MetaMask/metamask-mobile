@@ -7,6 +7,7 @@ import { createMockNotificationEthSent } from '@metamask/notification-services-c
 
 import FCMService from './FCMService';
 import { EVENT_NAME, MetaMetrics } from '../../../core/Analytics';
+import { NativeModules, Platform } from 'react-native';
 
 // Firebase Mock
 jest.mock('@react-native-firebase/messaging', () => {
@@ -69,6 +70,16 @@ const arrangeFirebaseMocks = () => {
     mockDeleteToken,
     mockOnMessage,
     mockGetInitialNotification,
+  };
+};
+
+const arrangeNativeModuleMocks = () => {
+  const mockNativeModuleGetInitialNotification = jest.fn();
+  NativeModules.NotificationModule = {
+    getInitialNotification: mockNativeModuleGetInitialNotification,
+  };
+  return {
+    mockNativeModuleGetInitialNotification,
   };
 };
 
@@ -297,7 +308,8 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
     });
   });
 });
-describe('FCMService - onClickPushNotification', () => {
+
+describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -305,8 +317,10 @@ describe('FCMService - onClickPushNotification', () => {
   const arrangeMocks = () => {
     const mockTrackEvent = jest.spyOn(MetaMetrics.getInstance(), 'trackEvent');
     const firebaseMocks = arrangeFirebaseMocks();
+    const nativeModuleMocks = arrangeNativeModuleMocks();
     return {
       ...firebaseMocks,
+      ...nativeModuleMocks,
       mockTrackEvent,
     };
   };
@@ -318,52 +332,99 @@ describe('FCMService - onClickPushNotification', () => {
       data,
     } as unknown as FirebaseMessagingTypes.RemoteMessage);
 
-  const arrangeAct = async (data?: null | Record<string, unknown>) => {
-    const mocks = arrangeMocks();
-    const mockNotification =
-      data === null ? null : createMockRemoteMessage(data);
-    mocks.mockGetInitialNotification.mockResolvedValue(mockNotification);
-    const result = await FCMService.onClickPushNotification();
-    return { result, mocks };
-  };
+  const platformTestConfigs = [
+    {
+      platform: 'android' as const,
+      mockSetup: (
+        mocks: ReturnType<typeof arrangeMocks>,
+        notification: FirebaseMessagingTypes.RemoteMessage | null,
+      ) => {
+        mocks.mockNativeModuleGetInitialNotification.mockResolvedValue(
+          notification,
+        );
+      },
+      assertMockInitialNotificationCalled: (
+        mocks: ReturnType<typeof arrangeMocks>,
+      ) => {
+        expect(mocks.mockNativeModuleGetInitialNotification).toHaveBeenCalled();
+        expect(mocks.mockGetInitialNotification).not.toHaveBeenCalled();
+      },
+    },
+    {
+      platform: 'ios' as const,
+      mockSetup: (
+        mocks: ReturnType<typeof arrangeMocks>,
+        notification: FirebaseMessagingTypes.RemoteMessage | null,
+      ) => {
+        mocks.mockGetInitialNotification.mockResolvedValue(notification);
+      },
+      assertMockInitialNotificationCalled: (
+        mocks: ReturnType<typeof arrangeMocks>,
+      ) => {
+        expect(mocks.mockGetInitialNotification).toHaveBeenCalled();
+        expect(
+          mocks.mockNativeModuleGetInitialNotification,
+        ).not.toHaveBeenCalled();
+      },
+    },
+  ];
 
-  it('returns deeplink when notification has deeplink data', async () => {
-    const { result, mocks } = await arrangeAct({
-      kind: 'take_profit_executed',
-      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-    });
+  describe.each(platformTestConfigs)(
+    '$platform Platform',
+    ({ platform, mockSetup, assertMockInitialNotificationCalled }) => {
+      beforeEach(() => {
+        Platform.OS = platform;
+      });
 
-    expect(result).toBe('https://test.metamask.io/perps-asset?symbol=ETH');
-    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
-        properties: expect.objectContaining({
+      const arrangeAct = async (data?: null | Record<string, unknown>) => {
+        const mocks = arrangeMocks();
+        const mockNotification =
+          data === null ? null : createMockRemoteMessage(data);
+        mockSetup(mocks, mockNotification);
+        const result = await FCMService.onClickPushNotificationWhenAppClosed();
+        return { result, mocks };
+      };
+
+      it('returns deeplink when notification has deeplink data', async () => {
+        const testData = {
           kind: 'take_profit_executed',
           deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-        }),
-      }),
-    );
-  });
+        };
 
-  it('tracks click event, but does not return deeplink', async () => {
-    const { result, mocks } = await arrangeAct({
-      kind: 'take_profit_executed',
-    });
+        const { result, mocks } = await arrangeAct(testData);
 
-    expect(result).toBeFalsy();
-    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
-        properties: expect.objectContaining({
-          kind: 'take_profit_executed',
-        }),
-      }),
-    );
-  });
+        expect(result).toBe('https://test.metamask.io/perps-asset?symbol=ETH');
+        assertMockInitialNotificationCalled(mocks);
+        expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+            properties: expect.objectContaining(testData),
+          }),
+        );
+      });
 
-  it('does not track event or returns deeplink if notification is null', async () => {
-    const { result, mocks } = await arrangeAct(null);
-    expect(result).toBeFalsy();
-    expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
-  });
+      it('tracks click event but does not return deeplink when no deeplink present', async () => {
+        const testData = { kind: 'take_profit_executed' };
+
+        const { result, mocks } = await arrangeAct(testData);
+
+        expect(result).toBeFalsy();
+        assertMockInitialNotificationCalled(mocks);
+        expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+            properties: expect.objectContaining(testData),
+          }),
+        );
+      });
+
+      it('does not track event or return deeplink when notification is null', async () => {
+        const { result, mocks } = await arrangeAct(null);
+
+        expect(result).toBeFalsy();
+        assertMockInitialNotificationCalled(mocks);
+        expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
+      });
+    },
+  );
 });

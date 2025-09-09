@@ -172,7 +172,7 @@ class DeeplinkManager {
       }
     };
 
-    FCMService.onClickPushNotification().then((deeplink) => {
+    FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
       if (deeplink) {
         handleDeeplink({ uri: deeplink });
       }

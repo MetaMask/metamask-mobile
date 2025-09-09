@@ -7,10 +7,26 @@ import {
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
+import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
+
+async function getInitialNotification() {
+  // I tried so many different approaches, but unable to @react-native-firebase to track the initial open intent from a push notification
+  // So using a custom native module that stores the intent and returns "similiar-ish" data to the RemoteMessage
+  if (Platform.OS === 'android') {
+    const { NotificationModule } = NativeModules;
+    const remoteMessage: FirebaseMessagingTypes.RemoteMessage | null =
+      await NotificationModule.getInitialNotification();
+    return remoteMessage;
+  }
+
+  const remoteMessage: FirebaseMessagingTypes.RemoteMessage | null =
+    await messaging().getInitialNotification();
+  return remoteMessage;
+}
 
 type UnsubscribeFunc = () => void;
 
@@ -181,12 +197,9 @@ class FCMService {
     this.#hasRegisteredForeground = null;
   };
 
-  onClickPushNotification = async () => {
+  onClickPushNotificationWhenAppClosed = async () => {
     try {
-      const remoteMessage = await messaging().getInitialNotification();
-      Logger.log('FCMService.onClickPushNotification invoked', {
-        remoteMessage,
-      });
+      const remoteMessage = await getInitialNotification();
 
       // Track Event - Push Click
       if (remoteMessage?.data) {
