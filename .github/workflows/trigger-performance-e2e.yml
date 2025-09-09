@@ -125,7 +125,8 @@ jobs:
           cache: 'yarn'
       
       - name: Install dependencies
-        run: yarn setup
+        run: yarn install --immutable
+        run: yarn setup:ci
       
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
@@ -201,7 +202,8 @@ jobs:
           cache: 'yarn'
       
       - name: Install dependencies
-        run: yarn setup
+        run: yarn install --immutable
+        run: yarn setup:ci
       
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
