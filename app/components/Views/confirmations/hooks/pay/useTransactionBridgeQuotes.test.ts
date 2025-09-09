@@ -15,15 +15,25 @@ import {
   ATTEMPTS_MAX_DEFAULT,
   BUFFER_INITIAL_DEFAULT,
   BUFFER_STEP_DEFAULT,
-  SLIPPAGE_INITIAL_DEFAULT,
-  SLIPPAGE_SUBSEQUENT_DEFAULT,
+  BUFFER_SUBSEQUENT_DEFAULT,
+  SLIPPAGE_DEFAULT,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { initialState } from '../../../../UI/Bridge/_mocks_/initialState';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./useTransactionPayTokenAmounts');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../utils/bridge');
 jest.mock('../../context/alert-system-context');
+
+jest.mock(
+  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
+  () => ({
+    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  }),
+);
+
+jest.useFakeTimers();
 
 const TRANSACTION_ID_MOCK = '1234-5678';
 const CHAIN_ID_SOURCE_MOCK = '0x1';
@@ -43,8 +53,9 @@ const QUOTE_MOCK = {
 } as TransactionBridgeQuote;
 
 function runHook() {
-  return renderHookWithProvider(useTransactionBridgeQuotes, { state: {} })
-    .result;
+  return renderHookWithProvider(useTransactionBridgeQuotes, {
+    state: initialState,
+  });
 }
 
 describe('useTransactionBridgeQuotes', () => {
@@ -115,9 +126,9 @@ describe('useTransactionBridgeQuotes', () => {
         attemptsMax: ATTEMPTS_MAX_DEFAULT,
         bufferInitial: BUFFER_INITIAL_DEFAULT,
         bufferStep: BUFFER_STEP_DEFAULT,
+        bufferSubsequent: BUFFER_SUBSEQUENT_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
-        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
-        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
+        slippage: SLIPPAGE_DEFAULT,
         sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
@@ -130,9 +141,9 @@ describe('useTransactionBridgeQuotes', () => {
         attemptsMax: ATTEMPTS_MAX_DEFAULT,
         bufferInitial: BUFFER_INITIAL_DEFAULT,
         bufferStep: BUFFER_STEP_DEFAULT,
+        bufferSubsequent: BUFFER_SUBSEQUENT_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
-        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
-        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
+        slippage: SLIPPAGE_DEFAULT,
         sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
@@ -145,7 +156,7 @@ describe('useTransactionBridgeQuotes', () => {
   });
 
   it('returns bridge quotes', async () => {
-    const result = runHook();
+    const { result } = runHook();
 
     await act(async () => {
       // Intentionally empty
@@ -177,7 +188,7 @@ describe('useTransactionBridgeQuotes', () => {
       payToken: undefined,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
-    const result = runHook();
+    const { result } = runHook();
 
     await act(async () => {
       // Intentionally empty
@@ -196,7 +207,7 @@ describe('useTransactionBridgeQuotes', () => {
       ],
     } as unknown as ReturnType<typeof useAlerts>);
 
-    const result = runHook();
+    const { result } = runHook();
 
     await act(async () => {
       // Intentionally empty
@@ -217,7 +228,7 @@ describe('useTransactionBridgeQuotes', () => {
         ],
       } as unknown as ReturnType<typeof useAlerts>);
 
-      const result = runHook();
+      const { result } = runHook();
 
       await act(async () => {
         // Intentionally empty
@@ -226,4 +237,24 @@ describe('useTransactionBridgeQuotes', () => {
       expect(result.current.quotes).toStrictEqual([QUOTE_MOCK, QUOTE_MOCK]);
     },
   );
+
+  it('refreshes quotes', async () => {
+    runHook();
+
+    await act(async () => {
+      // Intentionally empty
+    });
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(29000);
+    });
+
+    expect(getBridgeQuotesMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(2000);
+    });
+
+    expect(getBridgeQuotesMock).toHaveBeenCalledTimes(2);
+  });
 });
