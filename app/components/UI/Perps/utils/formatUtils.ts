@@ -2,6 +2,10 @@
  * Shared formatting utilities for Perps components
  */
 import { formatWithThreshold } from '../../../../util/assets';
+import {
+  getIntlDateTimeFormatter,
+  getIntlNumberFormatter,
+} from '../../../../util/intl';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -83,7 +87,7 @@ export const formatPnl = (pnl: string | number): string => {
     return '$0.00';
   }
 
-  const formatted = new Intl.NumberFormat('en-US', {
+  const formatted = getIntlNumberFormatter('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
@@ -363,12 +367,12 @@ export const parsePercentageString = (formattedValue: string): number => {
  */
 export const formatTransactionDate = (timestamp: number): string => {
   const date = new Date(timestamp);
-  const dateStr = new Intl.DateTimeFormat('en-US', {
+  const dateStr = getIntlDateTimeFormatter('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   }).format(date);
-  const timeStr = new Intl.DateTimeFormat('en-US', {
+  const timeStr = getIntlDateTimeFormatter('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -406,10 +410,10 @@ export const formatDateSection = (timestamp: number): string => {
     return 'Yesterday';
   }
 
-  const month = new Intl.DateTimeFormat('en-US', {
+  const month = getIntlDateTimeFormatter('en-US', {
     month: 'short',
   }).format(new Date(timestamp));
-  const day = new Intl.DateTimeFormat('en-US', {
+  const day = getIntlDateTimeFormatter('en-US', {
     day: 'numeric',
   }).format(new Date(timestamp));
 
