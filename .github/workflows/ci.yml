@@ -344,7 +344,7 @@ jobs:
   all-jobs-pass-merge-pr:
     name: All jobs pass
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' }}
+    if: ${{ github.event_name != 'merge_group' && !cancelled() }}
     needs:
       [
         check-diff,
@@ -354,7 +354,7 @@ jobs:
         check-workflows,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
-        detect-changes,
+        e2e-smoke-tests-android,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
