@@ -89,7 +89,10 @@ const PerpsMarketListHeader = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.listHeader}>
+    <View
+      style={styles.listHeader}
+      testID={PerpsMarketListViewSelectorsIDs.LIST_HEADER}
+    >
       <View style={styles.listHeaderLeft}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {strings('perps.volume')}
@@ -424,6 +427,7 @@ const PerpsMarketListView = ({
               iconName={IconName.Arrow2Left}
               size={ButtonIconSizes.Md}
               onPress={handleBackPressed}
+              testID={PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON}
             />
           </View>
           <Text

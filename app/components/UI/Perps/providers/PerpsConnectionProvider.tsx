@@ -13,6 +13,7 @@ import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
 import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
+import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 
 interface PerpsConnectionContextValue {
@@ -58,6 +59,19 @@ export const PerpsConnectionProvider: React.FC<
 
   // Poll connection state to sync with singleton
   useEffect(() => {
+    // Skip polling in E2E mode to prevent timer interference
+    if (isE2E) {
+      // Set mock connected state for E2E
+      setConnectionState({
+        isConnected: true,
+        isConnecting: false,
+        isInitialized: true,
+        isDisconnecting: false,
+        error: null,
+      });
+      return;
+    }
+
     const updateState = () => {
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState((prevState) => {
