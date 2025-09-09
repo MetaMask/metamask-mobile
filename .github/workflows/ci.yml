@@ -166,17 +166,24 @@ jobs:
             echo "No changes detected"
           fi
 
+  detect-changes:
+    name: "Detect Mobile Build Changes"
+    if: ${{ github.event_name != 'merge_group' }}
+    uses: ./.github/workflows/detect-mobile-build-changes.yml
+
   build-android-apks:
     name: "Build Android APKs"
-    if: ${{ github.event_name != 'merge_group' }}
+    if: ${{ github.event_name != 'merge_group' && needs.detect-changes.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
+    needs: [detect-changes]
     uses: ./.github/workflows/build-android-e2e.yml
     secrets: inherit
 
   e2e-smoke-tests-android:
     name: "Android E2E Smoke Tests"
+    if: ${{ github.event_name != 'merge_group' && needs.detect-changes.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
@@ -342,6 +349,7 @@ jobs:
       [
         check-diff,
         dedupe,
+        detect-changes,
         scripts,
         unit-tests,
         check-workflows,
