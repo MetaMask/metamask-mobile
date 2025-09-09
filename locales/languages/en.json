@@ -159,7 +159,7 @@
     "success": "Success",
     "continue_with_google": "Continue with Google",
     "continue_with_apple": "Continue with Apple",
-    "or": "OR",
+    "or": "or",
     "import_existing_wallet": "Import existing wallet",
     "bottom_sheet_title": "Choose an option to continue",
     "continue_with_srp": "Use Secret Recovery Phrase",
@@ -170,7 +170,11 @@
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
     "import_using_srp": "Import using Secret Recovery Phrase",
-    "import_using_srp_social_login": "I have an existing wallet"
+    "import_using_srp_social_login": "I have an existing wallet",
+    "by_continuing": "By continuing, you agree to MetaMask's",
+    "terms_of_use": "Terms of use",
+    "privacy_notice": "Privacy notice",
+    "and": "and"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -544,7 +548,8 @@
     "nfts": "NFTs",
     "show_more_nfts": "Show more NFTs",
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
-    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam."
+    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
+    "could_not_resolve_name": "Couldn't resolve name"
   },
   "deposit": {
     "title": "Deposit",
@@ -906,12 +911,14 @@
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
       },
-      "success_toast": "Deposit Complete",
-      "success_message": "Your balance will update in a few moments",
-      "error_toast": "Deposit Failed",
-      "error_generic": "Something went wrong. Please try again.",
-      "in_progress": "Processing deposit",
-      "processing_message": "Processing your deposit..."
+      "success_toast": "Your perps account was funded",
+      "success_message": "You have {{amount}} available to trade",
+      "error_toast": "Transaction failed",
+      "error_generic": "Funds have been returned to you",
+      "in_progress": "Adding funds to your account",
+      "estimated_processing_time": "Estimated time is {{time}}",
+      "funds_available_momentarily": "Funds will be available momentarily",
+      "your_funds_are_available_to_trade": "Your funds are available to trade"
     },
     "withdrawal": {
       "title": "Withdraw",
@@ -924,7 +931,7 @@
       "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
       "confirm": "Confirm withdrawal",
       "processing_title": "Withdrawal initiated",
-      "processing_description": "Your USDC will arrive in approximately 5 minutes",
+      "eta_will_be_shared_shortly": "ETA will be shared shortly",
       "success_title": "Withdrawal successful",
       "success_description": "Your {{amount}} USDC has been withdrawn from Hyperliquid",
       "network_fee": "Network fee",
@@ -1066,12 +1073,33 @@
         "backToPerps": "Back to Perps"
       },
       "submitted": "Order Submitted",
-      "confirmed": "Order Confirmed"
+      "confirmed": "Order Confirmed",
+      "cancelling_order": "Cancelling order",
+      "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "order_cancelled": "Order cancelled",
+      "failed_to_cancel_order": "Failed to cancel order",
+      "funds_have_been_returned_to_you": "Funds have been returned to you",
+      "funds_are_available_to_trade": "Funds are available to trade",
+      "close_order_still_active": "Close order still active",
+      "order_submitted": "Order submitted",
+      "order_filled": "Order filled",
+      "order_placed": "Order placed",
+      "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "order_failed": "Order failed",
+      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
     },
     "close_position": {
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
+      "position_close_order_placed": "Position close order placed",
+      "partially_closing_position": "Partially closing position",
+      "partial_close_submitted": "Partial close submitted",
+      "position_partially_closed": "Position partially closed",
+      "closing_position": "Closing position",
+      "limit_close_order_cancelled": "Limit close order cancelled",
+      "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
       "margin": "Margin",
       "pnl": "PnL",
@@ -1082,8 +1110,8 @@
       "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
-      "success_description": "Your {{direction}} position for {{asset}} has been closed",
-      "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
+      "position_closed": "Position closed",
+      "funds_are_available_to_trade": "Funds are available to trade",
       "error_title": "Close Position Failed",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
@@ -1165,6 +1193,7 @@
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
+      "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "connectionFailed": {
         "title": "Perps is temporarily offline",
         "description": "We're working to get it back online soon.",
@@ -2340,6 +2369,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Return to app",
+    "postNetworkSwitchTitle": "Network successfully switched",
     "description": "Please return to the app to continue using their services."
   },
   "sdk_feedback_modal": {
@@ -5294,7 +5324,7 @@
     "user_cancelled_title": "Login cancelled",
     "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
     "user_cancelled_button": "Try again",
-  
+
     "google_login_no_credential_title": "Google login failed",
     "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
     "google_login_no_credential_button": "Try again",
@@ -5431,7 +5461,7 @@
       "name": "Name",
       "save_button": "Save",
       "error": "Failed to edit account name",
-      "error_duplicate_name": "This account name already exists",
+      "error_duplicate_name": "This name is already in use.",
       "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
@@ -5542,9 +5572,13 @@
     "close": "Close"
   },
   "rewards": {
+    "auth_fail_title": "Unknown Error.",
+    "auth_fail_description": "An unknown error occurred while authenticating this account with the rewards program. Please try again later.",
+    "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "Coming soon",
     "not_implemented_season_summary": "Season Summary Coming Soon",
     "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
+
     "referral_rewards_title": "Referrals",
     "points": "Points",
     "point": "Point",
@@ -5554,11 +5588,50 @@
     "season_ended": "Season ended",
     "main_title": "Rewards",
     "referral_title": "Referrals",
+
     "tab_overview_title": "Overview",
     "tab_activity_title": "Activity",
     "tab_levels_title": "Levels",
+
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
+
+    "onboarding": {
+      "not_supported_region_title": "Region not supported",
+      "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
+      "not_supported_account_needed_title": "Ethereum account needed",
+      "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
+      "not_supported_confirm": "Got it",
+
+      "intro_title_1": "Season 1",
+      "intro_title_2": "is Live",
+      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_confirm": "Claim 250 points",
+      "intro_confirm_geo_loading": "Checking region...",
+      "intro_skip": "Not now",
+
+      "step_confirm": "Next",
+
+      "step1_title": "Earn points on every trade",
+      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
+
+      "step2_title": "Level up for bigger perks",
+      "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+
+      "step3_title": "Exclusive seasonal rewards",
+      "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
+
+      "step4_title": "You'll earn 250 points when you sign up!",
+      "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
+      "step4_title_referral_validating": "Validating referral code...",
+      "step4_referral_bonus_description": "Use a referral code to earn 250 points",
+      "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_confirm": "Claim points",
+      "step4_confirm_loading": "Claiming points...",
+      "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
+      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
+      "step4_legal_disclaimer_learn_more": "Learn more."
+    },
 
     "referral": {
       "actions": {

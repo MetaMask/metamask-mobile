@@ -84,6 +84,7 @@ describe('perps controller init', () => {
       perpsBalances: {},
       pendingOrders: [],
       depositInProgress: false,
+      lastDepositTransactionId: null,
       lastDepositResult: null,
       lastError: null,
       lastUpdateTimestamp: Date.now(),

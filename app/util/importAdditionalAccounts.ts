@@ -10,6 +10,7 @@ import { setIsAccountSyncingReadyToBeDispatched } from '../actions/identity';
 import { trace, endTrace, TraceName, TraceOperation } from './trace';
 import { getTraceTags } from './sentry/tags';
 import { store } from '../store';
+import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
 
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
@@ -36,6 +37,13 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
  * Add additional accounts in the wallet based on balance
  */
 export default async (maxAccounts: number = MAX, index: number = 0) => {
+  if (isMultichainAccountsState2Enabled()) {
+    // We're not running EVM discovery on its own if state 2 is enabled. The discovery
+    // will be run on every account providers (EVM included) prior to that point.
+    // See: Authentication.ts
+    return;
+  }
+
   try {
     const { KeyringController } = Engine.context;
     const ethQuery = getGlobalEthQuery();

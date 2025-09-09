@@ -9,9 +9,9 @@ import type {
   PerpsDiscountData,
   LoginDto,
   SeasonStatusDto,
-  SubscriptionReferralDetailsDto,
   GenerateChallengeDto,
   ChallengeResponseDto,
+  SubscriptionReferralDetailsDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';

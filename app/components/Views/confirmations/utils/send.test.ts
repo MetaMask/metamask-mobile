@@ -2,6 +2,9 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+
+// eslint-disable-next-line import/no-namespace
+import * as ConfusablesUtils from '../../../../util/confusables';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
 // eslint-disable-next-line import/no-namespace
@@ -9,10 +12,12 @@ import * as EngineNetworkUtils from '../../../../util/networks/engineNetworkUtil
 import { AssetType, TokenStandard } from '../types/token';
 import { InitSendLocation } from '../constants/send';
 import {
+  convertCurrency,
   formatToFixedDecimals,
   fromBNWithDecimals,
   fromHexWithDecimals,
   fromTokenMinUnits,
+  getConfusableCharacterInfo,
   getLayer1GasFeeForSend,
   handleSendPageNavigation,
   prepareEVMTransaction,
@@ -281,5 +286,37 @@ describe('getLayer1GasFeeForSend', () => {
       value: '10',
     });
     expect(mockGetLayer1GasFee).toHaveBeenCalled();
+  });
+});
+
+describe('convertCurrency', () => {
+  it('apply conversion rate to passed value', () => {
+    expect(convertCurrency('120.75', 0.5, 4, 2)).toEqual('60.37');
+    expect(convertCurrency('120.75', 0.25, 4, 4)).toEqual('30.1875');
+    expect(convertCurrency('0.01', 10, 4, 0)).toEqual('0');
+  });
+});
+
+describe('getConfusableCharacterInfo', () => {
+  it('returns empty object if there is no error', async () => {
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual(
+      {},
+    );
+  });
+
+  it('returns warning for confusables', async () => {
+    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual({
+      warning: "transaction.confusable_msg - 'ⅼ' is similar to 'l'",
+    });
+  });
+
+  it('returns error and warning for confusables if it has hasZeroWidthPoints', async () => {
+    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
+    jest.spyOn(ConfusablesUtils, 'hasZeroWidthPoints').mockReturnValue(true);
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual({
+      error: 'transaction.invalid_address',
+      warning: 'send.invisible_character_error',
+    });
   });
 });
