@@ -198,13 +198,45 @@ jobs:
         run: |
           echo "📱 Uploading APKs to BrowserStack..."
           
-          # Find the APK files
-          WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" | head -1)
-          WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" | head -1)
+          # List artifacts directory structure for debugging
+          echo "Artifacts directory structure:"
+          find ./artifacts -type f -name "*.apk" | head -10
+          echo "Full artifacts directory tree:"
+          find ./artifacts -type d | head -20
+          
+          # Find the APK files in their subdirectories
+          WITH_SRP_APK=$(find ./artifacts -path "*/app-prod-release-with-srp.apk/app-prod-release.apk" | head -1)
+          WITHOUT_SRP_APK=$(find ./artifacts -path "*/app-prod-release-without-srp.apk/app-prod-release.apk" | head -1)
+          
+          # Fallback: if not found in subdirectories, try direct search
+          if [ -z "$WITH_SRP_APK" ]; then
+            echo "⚠️ With-SRP APK not found in subdirectory, trying direct search..."
+            WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" | head -1)
+          fi
+          
+          if [ -z "$WITHOUT_SRP_APK" ]; then
+            echo "⚠️ Without-SRP APK not found in subdirectory, trying direct search..."
+            WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" | head -1)
+          fi
           
           echo "Found APKs:"
           echo "  With SRP: $WITH_SRP_APK"
           echo "  Without SRP: $WITHOUT_SRP_APK"
+          
+          # Verify files exist and are readable
+          if [ -n "$WITH_SRP_APK" ] && [ -f "$WITH_SRP_APK" ]; then
+            echo "✅ With-SRP APK file exists and is readable"
+            ls -la "$WITH_SRP_APK"
+          else
+            echo "❌ With-SRP APK file not found or not readable"
+          fi
+          
+          if [ -n "$WITHOUT_SRP_APK" ] && [ -f "$WITHOUT_SRP_APK" ]; then
+            echo "✅ Without-SRP APK file exists and is readable"
+            ls -la "$WITHOUT_SRP_APK"
+          else
+            echo "❌ Without-SRP APK file not found or not readable"
+          fi
           
           # Upload with-SRP APK
           if [ -f "$WITH_SRP_APK" ]; then
