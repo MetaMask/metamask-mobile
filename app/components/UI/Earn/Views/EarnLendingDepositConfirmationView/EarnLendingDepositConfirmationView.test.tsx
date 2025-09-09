@@ -1251,6 +1251,180 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(approveButton.props.disabled).toBe(false);
   });
 
+  it('handles missing protocol or chainId during approval flow', async () => {
+    const routeParamsWithApproveAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+    // Mock earnToken with missing protocol
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      earnTokenPair: {
+        earnToken: {
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            market: {
+              protocol: undefined, // Missing protocol
+              underlying: { address: MOCK_USDC_MAINNET_ASSET.address },
+            },
+          },
+        },
+        outputToken: undefined,
+      },
+      getTokenSnapshot: jest.fn(),
+      tokenSnapshot: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const approveButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(approveButton);
+    });
+
+    // Should not attempt transaction when protocol is missing
+    expect(mockExecuteLendingTokenApprove).not.toHaveBeenCalled();
+
+    // Button should remain enabled since no loading state was set
+    expect(approveButton.props.disabled).toBe(false);
+  });
+
+  it('handles errors during approval flow and logs them', async () => {
+    const routeParamsWithApproveAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+    const testError = new Error('Allowance increase failed');
+    mockExecuteLendingTokenApprove.mockRejectedValue(testError);
+
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // intentionally empty
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const approveButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(approveButton);
+    });
+
+    expect(mockExecuteLendingTokenApprove).toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Error should be logged with specific message
+    expect(loggerSpy).toHaveBeenCalledWith(
+      testError,
+      '[increaseTokenAllowance] Lending deposit failed',
+    );
+
+    loggerSpy.mockRestore();
+  });
+
+  it('handles errors during allowance reset and logs them', async () => {
+    const routeParamsWithResetAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+        token: MOCK_USDT_MAINNET_ASSET,
+        amountTokenMinimalUnit: '5000000',
+        // Existing non-zero allowance will trigger reset
+        allowanceMinimalTokenUnit: '1000000',
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithResetAction);
+
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      earnTokenPair: {
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDT_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDT_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: MOCK_AUSDT_MAINNET_ASSET.address,
+              },
+            },
+          },
+        },
+      },
+      getTokenSnapshot: jest.fn(),
+    });
+
+    const testError = new Error('Allowance reset failed');
+    mockExecuteLendingTokenApprove.mockRejectedValue(testError);
+
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // intentionally empty
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const resetButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(resetButton);
+    });
+
+    expect(mockExecuteLendingTokenApprove).toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Error should be logged with specific message
+    expect(loggerSpy).toHaveBeenCalledWith(
+      testError,
+      '[resetTokenAllowance] Lending deposit failed',
+    );
+
+    expect(resetButton.props.disabled).toBe(false);
+
+    loggerSpy.mockRestore();
+  });
+
   it('handles empty transaction response during deposit flow', async () => {
     // Mock returning empty transaction
     mockExecuteLendingDeposit.mockResolvedValue({} as Result);
