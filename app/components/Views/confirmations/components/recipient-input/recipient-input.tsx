@@ -36,6 +36,7 @@ export const RecipientInput = ({
         setRecipientInputMethodPasted();
         updateTo(trimmedText);
         setPastedRecipient(trimmedText);
+        await ClipboardManager.setString();
         setTimeout(() => {
           inputRef.current?.focus();
         }, 100);
@@ -56,15 +57,11 @@ export const RecipientInput = ({
 
   const handleTextChange = useCallback(
     async (toAddress: string) => {
-      const pastedText = await handlePaste();
-      if (pastedText) {
-        return;
-      }
       updateTo(toAddress);
       setRecipientInputMethodManual();
       setPastedRecipient(undefined);
     },
-    [handlePaste, setPastedRecipient, setRecipientInputMethodManual, updateTo],
+    [setPastedRecipient, setRecipientInputMethodManual, updateTo],
   );
 
   const defaultStartAccessory = useMemo(
