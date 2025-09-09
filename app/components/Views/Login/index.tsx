@@ -109,7 +109,7 @@ import type {
 // using a constant will prevent this
 const EmptyRecordConstant = {};
 
-type LoginProps = StackScreenProps<RootParamList, 'Login'>;
+type LoginProps = StackScreenProps<RootParamList, 'Login' | 'Rehydrate'>;
 
 /**
  * View where returning users can authenticate

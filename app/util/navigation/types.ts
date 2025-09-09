@@ -63,6 +63,7 @@ import { BackupAndSyncSettingsParams } from '../../components/Views/Settings/Ide
 import { SecuritySettingsParams } from '../../components/Views/Settings/SecuritySettings/SecuritySettings.types';
 import { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
+import { LoginParams } from '../../components/Views/Login/types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -80,13 +81,7 @@ export type RootParamList = {
   OnboardingSuccessFlow: undefined;
   OnboardingNav: undefined;
   HomeNav: undefined;
-  Login:
-    | {
-        locked: boolean;
-        oauthLoginSuccess?: boolean;
-        onboardingTraceCtx?: unknown;
-      }
-    | undefined;
+  Login: LoginParams | undefined;
   OnboardingRootNav: undefined;
   ImportFromSecretRecoveryPhrase: undefined;
   OptinMetrics: undefined;
@@ -103,7 +98,7 @@ export type RootParamList = {
   AccountStatus: AccountStatusParams;
   AccountAlreadyExists: AccountStatusParams;
   AccountNotFound: AccountStatusParams;
-  Rehydrate: undefined;
+  Rehydrate: LoginParams;
 
   Webview: undefined;
   SimpleWebview: { url?: string; title?: string };
