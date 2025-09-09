@@ -44,7 +44,7 @@ describe('GasFeeFiatRow', () => {
     jest.resetAllMocks();
 
     useTransactionTotalFiatMock.mockReturnValue({
-      totalGasFormatted: GAS_FEE_FIAT_MOCK,
+      totalNativeEstimatedFormatted: GAS_FEE_FIAT_MOCK,
     } as ReturnType<typeof useTransactionTotalFiat>);
   });
 

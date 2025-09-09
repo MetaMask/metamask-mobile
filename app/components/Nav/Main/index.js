@@ -53,7 +53,6 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
   selectIsAllNetworks,
@@ -386,12 +385,18 @@ const Main = (props) => {
       previousNetworkValues.length &&
       currentNetworkValues.length !== previousNetworkValues.length
     ) {
-      // Find the newly added network
+      // Find the newly added network by comparing chainIds
       const newNetwork = currentNetworkValues.find(
-        (network) => !previousNetworkValues.includes(network),
+        (network) =>
+          !previousNetworkValues.some(
+            (prev) => prev.chainId === network.chainId,
+          ),
       );
       const deletedNetwork = previousNetworkValues.find(
-        (network) => !currentNetworkValues.includes(network),
+        (network) =>
+          !currentNetworkValues.some(
+            (curr) => curr.chainId === network.chainId,
+          ),
       );
 
       toastRef?.current?.showToast({
@@ -456,16 +461,6 @@ const Main = (props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionChangeHandler]);
-
-  const termsOfUse = useCallback(async () => {
-    if (props.navigation) {
-      await navigateTermsOfUse(props.navigation.navigate);
-    }
-  }, [props.navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
 
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(GOERLI_DEPRECATED_ARTICLE);

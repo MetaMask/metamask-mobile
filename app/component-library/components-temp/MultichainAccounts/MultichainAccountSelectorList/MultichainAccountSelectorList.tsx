@@ -151,6 +151,20 @@ const MultichainAccountSelectorList = ({
     return items;
   }, [filteredWalletSections]);
 
+  // Reset scroll to top when search text changes
+  useEffect(() => {
+    if (listRefToUse.current) {
+      // Use requestAnimationFrame to ensure the list has finished re-rendering
+      const animationFrameId = requestAnimationFrame(() => {
+        listRefToUse.current?.scrollToOffset({ offset: 0, animated: false });
+      });
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
+    }
+  }, [debouncedSearchText, listRefToUse]);
+
   // Listen for account creation and scroll to new account
   useEffect(() => {
     if (lastCreatedAccountId && listRefToUse.current) {

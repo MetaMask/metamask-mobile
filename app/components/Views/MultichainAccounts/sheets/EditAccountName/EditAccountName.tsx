@@ -30,14 +30,14 @@ import { TextInput } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
-  MultichainEditAccountName: {
+  EditMultichainAccountName: {
     account: InternalAccount;
   };
 }
 
 type EditAccountNameRouteProp = RouteProp<
   RootNavigationParamList,
-  'MultichainEditAccountName'
+  'EditMultichainAccountName'
 >;
 
 export const EditAccountName = () => {
