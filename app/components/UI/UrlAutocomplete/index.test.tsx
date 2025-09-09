@@ -16,12 +16,45 @@ const defaultState = {
     backgroundState: {
       PreferencesController: {
         isIpfsGatewayEnabled: false,
+        tokenNetworkFilter: {
+          '0x1': 'true',
+        },
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
       },
       MultichainNetworkController: {
         isEvmSelected: true,
+        multichainNetworkConfigurationsByChainId: {},
+      },
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: {
+            EIPS: {
+              1559: true,
+            },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            nativeCurrency: 'ETH',
+            name: 'Ethereum Mainnet',
+          },
+        },
+        providerConfig: {
+          chainId: '0x1',
+          ticker: 'ETH',
+          rpcPrefs: { blockExplorerUrl: 'https://etherscan.io' },
+          type: 'infura',
+        },
       },
     },
   },
