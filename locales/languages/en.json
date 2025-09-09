@@ -2363,6 +2363,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Return to app",
+    "postNetworkSwitchTitle": "Network successfully switched",
     "description": "Please return to the app to continue using their services."
   },
   "sdk_feedback_modal": {
