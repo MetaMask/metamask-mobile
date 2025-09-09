@@ -68,6 +68,10 @@ export interface CarouselProps {
    * Additional style for the container
    */
   style?: ViewStyle;
+  /**
+   * Optional dummy data for testing purposes
+   */
+  dummyData?: CarouselSlide[];
 }
 
 export interface CarouselStyleSheetVars {

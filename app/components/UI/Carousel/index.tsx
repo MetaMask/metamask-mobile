@@ -1,10 +1,17 @@
-import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
+import React, {
+  useState,
+  useCallback,
+  FC,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
 import {
   Pressable,
   Linking,
   Image as RNImage,
-  FlatList,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -15,11 +22,9 @@ import {
   Text,
   TextVariant,
   TextColor,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   FontWeight,
   ButtonIcon,
+  ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -49,9 +54,7 @@ const MAX_CAROUSEL_SLIDES = 8;
 // Constants from original styles
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
-const CAROUSEL_HEIGHT = 66;
-const DOTS_HEIGHT = 18;
-const PEEK_WIDTH = 5;
+const BANNER_HEIGHT = 100;
 
 function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
   const placed: (CarouselSlide | undefined)[] = [];
@@ -78,15 +81,21 @@ function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
   return placed.filter(Boolean) as CarouselSlide[];
 }
 
-const CarouselComponent: FC<CarouselProps> = ({ style }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
+const CarouselComponent: FC<CarouselProps> = ({ style, dummyData }) => {
   const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
   const [regularContentfulSlides, setRegularContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [showGrayBox, setShowGrayBox] = useState(true);
+  const [isCarouselVisible, setIsCarouselVisible] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideUpAnim = useRef(new Animated.Value(0)).current;
+  const grayBoxScaleY = useRef(new Animated.Value(1)).current; // 1 = full height, 0 = collapsed
+  const carouselScaleY = useRef(new Animated.Value(1)).current; // For fold-up animation
+  const isAnimating = useRef(false);
   const isContentfulCarouselEnabled = useSelector(
     selectContentfulCarouselEnabledFlag,
   );
@@ -165,6 +174,17 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   );
 
   const slidesConfig = useMemo(() => {
+    // If dummy data is provided, use it instead of Contentful data
+    if (dummyData && dummyData.length > 0) {
+      return dummyData.map((s: CarouselSlide): CarouselSlide => {
+        const withNav = applyLocalNavigation(s);
+        if (withNav.variableName === 'fund' && isZeroBalance) {
+          return { ...withNav, undismissable: withNav.undismissable || true };
+        }
+        return withNav;
+      });
+    }
+
     const patch = (s: CarouselSlide): CarouselSlide => {
       const withNav = applyLocalNavigation(s);
       if (withNav.variableName === 'fund' && isZeroBalance) {
@@ -177,6 +197,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     const regular = orderByCardPlacement(regularContentfulSlides.map(patch));
     return [...priority, ...regular];
   }, [
+    dummyData,
     applyLocalNavigation,
     isZeroBalance,
     priorityContentfulSlides,
@@ -208,7 +229,56 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  const isSingleSlide = visibleSlides.length === 1;
+  // Ensure activeSlideIndex is within bounds after filtering
+  const safeActiveSlideIndex = Math.min(
+    activeSlideIndex,
+    visibleSlides.length - 1,
+  );
+  const currentSlide = visibleSlides[safeActiveSlideIndex];
+
+  // Reset index if it's out of bounds
+  useEffect(() => {
+    if (activeSlideIndex >= visibleSlides.length && visibleSlides.length > 0) {
+      setActiveSlideIndex(0);
+    }
+  }, [activeSlideIndex, visibleSlides.length]);
+
+  // Function to animate gray box hiding with fold-up effect
+  const animateGrayBoxHide = useCallback(() => {
+    Animated.timing(grayBoxScaleY, {
+      toValue: 0, // Collapse height from bottom to top
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      // Just hide the box, don't reset scale until we need to show it again
+      setShowGrayBox(false);
+    });
+  }, [grayBoxScaleY]);
+
+  // Function to show gray box (with reset)
+  const showGrayBoxAnimated = useCallback(() => {
+    // Reset scale to full size before showing
+    grayBoxScaleY.setValue(1);
+    setShowGrayBox(true);
+  }, [grayBoxScaleY]);
+
+  // Update gray box visibility based on available slides (but not during animations)
+  useEffect(() => {
+    if (!isAnimating.current) {
+      const shouldShowGrayBox = safeActiveSlideIndex < visibleSlides.length - 1;
+
+      if (!showGrayBox && shouldShowGrayBox) {
+        // Show immediately when new slides become available
+        showGrayBoxAnimated();
+      }
+      // Note: We don't auto-hide here anymore - handleClose manages hiding with animation
+    }
+  }, [
+    safeActiveSlideIndex,
+    visibleSlides.length,
+    showGrayBox,
+    showGrayBoxAnimated,
+  ]);
 
   const openUrl =
     (href: string): (() => Promise<void>) =>
@@ -270,76 +340,166 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
   const handleClose = useCallback(
     (slideId: string) => {
-      dispatch(dismissBanner(slideId));
+      // Prevent multiple rapid clicks during animation
+      if (isAnimating.current) {
+        return;
+      }
+
+      // Calculate if there are more slides BEFORE dispatching the dismissal
+      // This prevents race conditions caused by state updates
+      const currentHasMoreSlides =
+        safeActiveSlideIndex < visibleSlides.length - 1;
+
+      isAnimating.current = true;
+
+      if (currentHasMoreSlides) {
+        // Check if this will be the last slide after dismissal
+        const willBeLastSlide =
+          safeActiveSlideIndex >= visibleSlides.length - 2;
+        if (willBeLastSlide) {
+          // Animate gray box hiding before slide transition
+          animateGrayBoxHide();
+        }
+
+        // Step 1: Fade out current slide FIRST
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => {
+          // Step 2: AFTER fade out is complete, dismiss the banner and show next slide
+          dispatch(dismissBanner(slideId));
+
+          // Step 3: Use requestAnimationFrame to ensure new slide is rendered
+          requestAnimationFrame(() => {
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }).start(() => {
+              isAnimating.current = false;
+            });
+          });
+        });
+      } else {
+        // No more slides - fold up the entire carousel
+        // First fade out the content
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => {
+          // Dismiss banner
+          dispatch(dismissBanner(slideId));
+
+          // Then fold up the entire carousel
+          Animated.timing(carouselScaleY, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => {
+            // Hide carousel after fold animation completes
+            setIsCarouselVisible(false);
+            isAnimating.current = false;
+          });
+        });
+      }
     },
-    [dispatch],
+    [
+      dispatch,
+      safeActiveSlideIndex,
+      visibleSlides.length,
+      fadeAnim,
+      slideUpAnim,
+      carouselScaleY,
+      animateGrayBoxHide,
+    ],
   );
 
-  const renderBannerSlides = useCallback(
-    ({ item: slide }: { item: CarouselSlide }) => (
-      <Pressable
+  const renderCurrentSlideWithFade = useCallback(
+    (slide: CarouselSlide) => (
+      <Box
         key={slide.id}
-        testID={`carousel-slide-${slide.id}`}
-        style={({ pressed }) => ({
-          backgroundColor: pressed
-            ? tw.color('bg-muted-pressed')
-            : tw.color('bg-muted'),
-          borderRadius: 8,
-          height: CAROUSEL_HEIGHT,
-          width: BANNER_WIDTH,
-          marginHorizontal: PEEK_WIDTH,
-          position: 'relative',
-          overflow: 'hidden',
-          paddingLeft: 0,
-        })}
-        onPress={() => handleSlideClick(slide.id, slide.navigation)}
+        style={tw.style(
+          'rounded-xl relative overflow-hidden border border-muted',
+          {
+            height: BANNER_HEIGHT,
+            width: BANNER_WIDTH,
+          },
+        )}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
-          twClassName="w-full h-full"
+        <Animated.View
+          style={{
+            opacity: fadeAnim,
+          }}
         >
-          <Box
-            style={tw.style('overflow-hidden justify-center items-center', {
-              width: 66,
-              height: 66,
-            })}
+          <Pressable
+            testID={`carousel-slide-${slide.id}`}
+            style={({ pressed }) =>
+              tw.style(
+                'bg-default rounded-xl px-4',
+                {
+                  height: BANNER_HEIGHT,
+                  width: BANNER_WIDTH,
+                },
+                pressed && 'bg-default-pressed',
+              )
+            }
+            onPress={() => handleSlideClick(slide.id, slide.navigation)}
           >
-            <RNImage
-              source={slide.image ? { uri: slide.image } : { uri: undefined }}
-              style={tw.style({ width: 66, height: 66 })}
-              resizeMode="contain"
-            />
-          </Box>
-          <Box twClassName="flex-1 justify-center py-3 pl-3">
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              testID={`carousel-slide-${slide.id}-title`}
-              numberOfLines={1}
-            >
-              {slide.title}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {slide.description}
-            </Text>
-          </Box>
-          {!slide.undismissable && (
-            <ButtonIcon
-              iconName={IconName.Close}
-              onPress={() => handleClose(slide.id)}
-              testID={`carousel-slide-${slide.id}-close-button`}
-              twClassName="m-1"
-            />
-          )}
-        </Box>
-      </Pressable>
+            <Box twClassName="w-full h-full flex-row gap-4 items-center">
+              <Box
+                style={tw.style(
+                  'overflow-hidden justify-center items-center self-center rounded-xl bg-muted',
+                  {
+                    width: 72,
+                    height: 72,
+                  },
+                )}
+              >
+                <RNImage
+                  source={
+                    slide.image ? { uri: slide.image } : { uri: undefined }
+                  }
+                  style={tw.style({ width: 72, height: 72 })}
+                  resizeMode="contain"
+                />
+              </Box>
+              <Box twClassName="flex-1 h-[72px] justify-start">
+                <Box twClassName="flex-row items-center justify-between">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    testID={`carousel-slide-${slide.id}-title`}
+                    numberOfLines={1}
+                  >
+                    {slide.title}
+                  </Text>
+                  <ButtonIcon
+                    iconName={IconName.Close}
+                    size={ButtonIconSize.Sm}
+                    onPress={() => handleClose(slide.id)}
+                    testID={`carousel-slide-${slide.id}-close-button`}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  />
+                </Box>
+                <Box twClassName="pt-1">
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                    numberOfLines={2}
+                  >
+                    {slide.description}
+                  </Text>
+                </Box>
+              </Box>
+            </Box>
+          </Pressable>
+        </Animated.View>
+      </Box>
     ),
-    [tw, handleSlideClick, handleClose],
+    [tw, handleSlideClick, handleClose, fadeAnim],
   );
 
   // Track banner display events when visible slides change
@@ -356,72 +516,92 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     });
   }, [visibleSlides, trackEvent, createEventBuilder]);
 
-  const renderProgressDots = useMemo(
-    () => (
-      <Box
-        testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Center}
-        alignItems={BoxAlignItems.End}
-        style={{
-          height: DOTS_HEIGHT,
-        }}
-        twClassName="gap-2"
-      >
-        {visibleSlides.map((slide: CarouselSlide, index: number) => (
-          <Box
-            key={slide.id}
-            style={tw.style({
-              width: 6,
-              height: 6,
-              borderRadius: 3,
-              backgroundColor:
-                selectedIndex === index
-                  ? tw.color('bg-icon-default')
-                  : tw.color('bg-icon-muted'),
-              margin: 0,
-            })}
-          />
-        ))}
-      </Box>
-    ),
-    [visibleSlides, selectedIndex, tw],
-  );
+  // Track current slide display
+  useEffect(() => {
+    if (currentSlide) {
+      trackEvent(
+        createEventBuilder({
+          category: 'Banner Display',
+          properties: {
+            name: currentSlide.variableName ?? currentSlide.id,
+          },
+        }).build(),
+      );
+    }
+  }, [currentSlide, trackEvent, createEventBuilder]);
 
-  if (visibleSlides.length === 0) {
+  if (
+    !isCarouselVisible ||
+    (visibleSlides.length === 0 && !isAnimating.current)
+  ) {
     return null;
   }
 
   return (
-    <Box
-      style={tw.style(
-        'self-center overflow-visible',
+    <Animated.View
+      style={[
+        tw.style('mx-4'),
         {
-          width: BANNER_WIDTH + PEEK_WIDTH * 2,
-          height: CAROUSEL_HEIGHT + DOTS_HEIGHT,
+          transform: [
+            { translateY: slideUpAnim },
+            { scaleY: carouselScaleY },
+            {
+              translateY: carouselScaleY.interpolate({
+                inputRange: [0, 1],
+                outputRange: [-(BANNER_HEIGHT + 6) / 2, 0], // Center the fold animation
+              }),
+            },
+          ],
         },
         style,
-      )}
+      ]}
     >
-      <Box style={tw.style('overflow-visible', { height: CAROUSEL_HEIGHT })}>
-        <FlatList
-          data={visibleSlides}
-          renderItem={renderBannerSlides}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(scrollEvent) => {
-            const newIndex = Math.round(
-              scrollEvent.nativeEvent.contentOffset.x /
-                scrollEvent.nativeEvent.layoutMeasurement.width,
-            );
-            setSelectedIndex(newIndex);
-          }}
-          testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
-        />
+      <Box style={{ height: BANNER_HEIGHT + 6 }}>
+        {showGrayBox && (
+          <Animated.View
+            style={[
+              tw.style(
+                'absolute mx-[6px] bg-background-default-pressed rounded-b-xl border-b border-l border-r border-muted',
+                {
+                  top: BANNER_HEIGHT - 2, // Position at bottom of main slide
+                  height: 8, // Only show the 6px that should be visible
+                  width: BANNER_WIDTH - 12,
+                },
+              ),
+              {
+                transform: [
+                  { scaleY: grayBoxScaleY }, // Collapse from bottom to top
+                  {
+                    translateY: grayBoxScaleY.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-4, 0], // Move up slightly as it collapses to maintain bottom alignment
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+        )}
+        <Box style={{ height: BANNER_HEIGHT }}>
+          <Box testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}>
+            {currentSlide ? (
+              renderCurrentSlideWithFade(currentSlide)
+            ) : (
+              // Show empty card during fold animation
+              <Box
+                style={tw.style(
+                  'rounded-xl relative overflow-hidden border border-muted',
+                  {
+                    height: BANNER_HEIGHT,
+                    width: BANNER_WIDTH,
+                  },
+                )}
+              />
+            )}
+          </Box>
+        </Box>
       </Box>
-      {!isSingleSlide && renderProgressDots}
-    </Box>
+    </Animated.View>
   );
 };
 
