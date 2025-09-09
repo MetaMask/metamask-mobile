@@ -149,6 +149,8 @@ app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
+e2e/**/Perps/**                      @MetaMask/qa
+e2e/**/perps/**                      @MetaMask/qa
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
@@ -222,8 +224,6 @@ e2e/framework/                               @MetaMask/qa
 e2e/pages/                                   @MetaMask/qa
 e2e/utils/                                   @MetaMask/qa
 e2e/viewHelper.ts                            @MetaMask/qa
-e2e/**/Perps/**                              @MetaMask/qa
-e2e/**/perps/**                              @MetaMask/qa
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
