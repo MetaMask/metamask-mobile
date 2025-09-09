@@ -16,9 +16,6 @@ on:
       ios_changed:
         description: 'Whether iOS-impacting files changed'
         value: ${{ jobs.detect.outputs.ios }}
-      any_changed:
-        description: 'Whether either platform requires a build'
-        value: ${{ jobs.detect.outputs.any }}
 
 jobs:
   detect:
@@ -27,7 +24,6 @@ jobs:
     outputs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
-      any: ${{ steps.set-outputs.outputs.any_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,8 +53,8 @@ jobs:
               - 'babel.config.js'                  # Transpilation affects both
               - 'yarn.lock'                        # Dependency changes affect both
               - 'app/**'                           # Shared app files affect both
-              - '!app/**/android/**'                   # Exclude iOS-specific from Android
-              - '!**/*.android.*'                      # Exclude iOS file extensions from Android
+              - '!app/**/ios/**'                   # Exclude iOS-specific from Android
+              - '!**/*.ios.*'                      # Exclude iOS file extensions from Android
               
 
             ios:
@@ -80,8 +76,8 @@ jobs:
               - 'babel.config.js'                  # Transpilation affects both
               - 'yarn.lock'                        # Dependency changes affect both
               - 'app/**'                           # Shared app files affect both
-              - '!app/**/ios/**'               # Exclude Android-specific from iOS
-              - '!**/*.ios.*'                  # Exclude Android file extensions from iOS
+              - '!app/**/android/**'               # Exclude Android-specific from iOS
+              - '!**/*.android.*'                  # Exclude Android file extensions from iOS
 
             exclude:
                 - '!**/*.md'                          # Docs don't trigger builds
@@ -92,29 +88,20 @@ jobs:
       - name: Set final outputs
         id: set-outputs
         run: |
-          # Get filter results
-          android_direct="${{ steps.filter.outputs.android }}"
-          ios_direct="${{ steps.filter.outputs.ios }}"
+          # Skip builds if exclude filter matched, otherwise use direct results
+          exclude_matched="${{ steps.filter.outputs.exclude }}"
           
-          # Use direct results without forcing both platforms
-          android_final="$android_direct"
-          ios_final="$ios_direct"
-          
-          # Set outputs
-          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
-          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
-          
-          # Set any_changed
-          if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
-            echo "any_changed=true" >> "${GITHUB_OUTPUT}"
+          if [[ "$exclude_matched" == 'true' ]]; then
+            echo "android_final=false" >> "${GITHUB_OUTPUT}"
+            echo "ios_final=false" >> "${GITHUB_OUTPUT}"
           else
-            echo "any_changed=false" >> "${GITHUB_OUTPUT}"
+            echo "android_final=${{ steps.filter.outputs.android }}" >> "${GITHUB_OUTPUT}"
+            echo "ios_final=${{ steps.filter.outputs.ios }}" >> "${GITHUB_OUTPUT}"
           fi
-
+          
       - name: Summary
         run: |
           {
             echo "Android changed: ${{ steps.set-outputs.outputs.android_final }}"
             echo "iOS changed: ${{ steps.set-outputs.outputs.ios_final }}"
-            echo "Any changed (iOS and Android): ${{ steps.set-outputs.outputs.any_changed }}"
           } >> "${GITHUB_STEP_SUMMARY}"
