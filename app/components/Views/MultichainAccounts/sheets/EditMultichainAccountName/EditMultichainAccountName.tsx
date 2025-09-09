@@ -82,7 +82,7 @@ export const EditMultichainAccountName = () => {
       navigation.goBack();
     } catch (error: unknown) {
       const errorMessage = error as Error;
-      if (errorMessage.message.includes('name already exists')) {
+      if (errorMessage?.message?.includes('name already exists')) {
         setError(
           strings('multichain_accounts.edit_account_name.error_duplicate_name'),
         );
