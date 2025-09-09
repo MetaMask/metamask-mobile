@@ -541,7 +541,8 @@
     "nfts": "NFTs",
     "show_more_nfts": "Show more NFTs",
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
-    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam."
+    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
+    "could_not_resolve_name": "Couldn't resolve name"
   },
   "deposit": {
     "title": "Deposit",
