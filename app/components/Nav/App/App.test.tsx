@@ -362,6 +362,105 @@ describe('App', () => {
       });
     });
 
+    describe('SRP vs Social Login user differentiation', () => {
+      beforeEach(() => {
+        jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      });
+
+      it('shows metrics optin for SRP users when not seen before', async () => {
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined,
+              },
+            },
+          },
+        };
+
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return false;
+            }
+            return null;
+          });
+
+        // Mock useMetrics hook to return false for isEnabled
+        jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+          useMetrics: () => ({
+            isEnabled: jest.fn().mockReturnValue(false),
+          }),
+        }));
+
+        // Act
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        await waitFor(() => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [
+              {
+                name: Routes.ONBOARDING.ROOT_NAV,
+                params: {
+                  screen: Routes.ONBOARDING.NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.OPTIN_METRICS,
+                  },
+                },
+              },
+            ],
+          });
+        });
+      });
+
+      it('navigates directly to home for SRP users when metrics UI already seen', async () => {
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined,
+              },
+            },
+          },
+        };
+
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return true;
+            }
+            return null;
+          });
+
+        // Act
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        await waitFor(() => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        });
+      });
+    });
+
     describe('Seedless onboarding password outdated check', () => {
       const LoggerMock = jest.requireMock('../../../util/Logger');
 
