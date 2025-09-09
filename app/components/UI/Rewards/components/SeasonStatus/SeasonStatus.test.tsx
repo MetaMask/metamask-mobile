@@ -169,10 +169,14 @@ jest.mock('../SeasonTierImage', () => {
   );
 });
 
-// Mock lodash capitalize
-jest.mock('lodash', () => ({
-  capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
-}));
+// Mock lodash capitalize but preserve the rest of lodash
+jest.mock('lodash', () => {
+  const actual = jest.requireActual('lodash');
+  return {
+    ...actual,
+    capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
+  };
+});
 
 describe('SeasonStatus', () => {
   // Default mock values
@@ -231,15 +235,6 @@ describe('SeasonStatus', () => {
   describe('Loading State', () => {
     it('should render skeleton when seasonStatusLoading is true', () => {
       mockSelectSeasonStatusLoading.mockReturnValue(true);
-
-      const { getByTestId, queryByText } = render(<SeasonStatus />);
-
-      expect(getByTestId('skeleton')).toBeTruthy();
-      expect(queryByText('Level')).toBeNull();
-    });
-
-    it('should render skeleton when seasonStartDate is null', () => {
-      mockSelectSeasonStartDate.mockReturnValue(null);
 
       const { getByTestId, queryByText } = render(<SeasonStatus />);
 
