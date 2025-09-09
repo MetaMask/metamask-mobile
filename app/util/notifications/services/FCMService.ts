@@ -28,6 +28,24 @@ async function getInitialNotification() {
   return remoteMessage;
 }
 
+function analyticsTrackPushClickEvent(
+  remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
+) {
+  try {
+    if (remoteMessage?.data) {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
+        )
+          .addProperties({ ...(remoteMessage.data as JsonMap) })
+          .build(),
+      );
+    }
+  } catch {
+    // Do Nothing
+  }
+}
+
 type UnsubscribeFunc = () => void;
 
 /**
@@ -200,28 +218,26 @@ class FCMService {
   onClickPushNotificationWhenAppClosed = async () => {
     try {
       const remoteMessage = await getInitialNotification();
-
-      // Track Event - Push Click
-      if (remoteMessage?.data) {
-        try {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
-            )
-              .addProperties({ ...(remoteMessage.data as JsonMap) })
-              .build(),
-          );
-        } catch {
-          // Do Nothing
-        }
-      }
-
-      // Return DeepLink
+      analyticsTrackPushClickEvent(remoteMessage);
       const deeplink = remoteMessage?.data?.deeplink?.toString();
       return deeplink;
-    } catch (e) {
+    } catch {
       return null;
     }
+  };
+
+  onClickPushNotificationWhenAppSuspended = (
+    deeplinkCallback: (deeplink?: string) => void,
+  ) => {
+    messaging().onNotificationOpenedApp((remoteMessage) => {
+      try {
+        analyticsTrackPushClickEvent(remoteMessage);
+        const deeplink = remoteMessage?.data?.deeplink?.toString();
+        deeplinkCallback(deeplink);
+      } catch {
+        // Do nothing
+      }
+    });
   };
 }
 export default new FCMService();

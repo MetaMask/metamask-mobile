@@ -20,6 +20,7 @@ jest.mock('@react-native-firebase/messaging', () => {
   const setBackgroundMessageHandler = jest.fn();
   const onMessage = jest.fn();
   const getInitialNotification = jest.fn();
+  const onNotificationOpenedApp = jest.fn();
 
   // Messaging() function mock
   const mockMessaging = jest.fn(() => ({
@@ -31,6 +32,7 @@ jest.mock('@react-native-firebase/messaging', () => {
     setBackgroundMessageHandler,
     onMessage,
     getInitialNotification,
+    onNotificationOpenedApp,
   }));
 
   // Retain the messaging properties
@@ -62,6 +64,9 @@ const arrangeFirebaseMocks = () => {
   const mockGetInitialNotification = jest.mocked(
     messaging().getInitialNotification,
   );
+  const mockOnNotificationOpenedApp = jest.mocked(
+    messaging().onNotificationOpenedApp,
+  );
 
   return {
     mockHasPermission,
@@ -70,6 +75,7 @@ const arrangeFirebaseMocks = () => {
     mockDeleteToken,
     mockOnMessage,
     mockGetInitialNotification,
+    mockOnNotificationOpenedApp,
   };
 };
 
@@ -427,4 +433,111 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
       });
     },
   );
+});
+
+describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const arrangeMocks = () => {
+    const mockTrackEvent = jest.spyOn(MetaMetrics.getInstance(), 'trackEvent');
+    const firebaseMocks = arrangeFirebaseMocks();
+    const deeplinkCallback = jest.fn();
+    return {
+      ...firebaseMocks,
+      mockTrackEvent,
+      deeplinkCallback,
+    };
+  };
+
+  const createMockRemoteMessage = (
+    data?: unknown,
+  ): FirebaseMessagingTypes.RemoteMessage =>
+    ({
+      data,
+    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+
+  const arrangeAct = (
+    testData: unknown,
+    overrideMocks?: (mocks: ReturnType<typeof arrangeMocks>) => void,
+  ) => {
+    const mocks = arrangeMocks();
+    overrideMocks?.(mocks);
+    const mockNotification =
+      testData === null ? null : createMockRemoteMessage(testData);
+
+    // Act - Setup listener & Call handler (simulate notification opened)
+    FCMService.onClickPushNotificationWhenAppSuspended(mocks.deeplinkCallback);
+    const notificationHandler =
+      mocks.mockOnNotificationOpenedApp.mock.calls[0][0];
+    notificationHandler(
+      mockNotification as FirebaseMessagingTypes.RemoteMessage,
+    );
+
+    return { mocks, deeplinkCallback: mocks.deeplinkCallback };
+  };
+
+  it('calls deeplink callback with deeplink when notification has deeplink data', () => {
+    const testData = {
+      kind: 'take_profit_executed',
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    };
+
+    const { mocks, deeplinkCallback } = arrangeAct(testData);
+
+    expect(deeplinkCallback).toHaveBeenCalledWith(
+      'https://test.metamask.io/perps-asset?symbol=ETH',
+    );
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: expect.objectContaining(testData),
+      }),
+    );
+  });
+
+  it('calls deeplink callback with undefined when notification has no deeplink', () => {
+    const testData = { kind: 'take_profit_executed' };
+
+    const { mocks, deeplinkCallback } = arrangeAct(testData);
+
+    expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: expect.objectContaining(testData),
+      }),
+    );
+  });
+
+  it('calls deeplink callback with undefined when notification has null data', () => {
+    const { mocks, deeplinkCallback } = arrangeAct(null);
+
+    expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
+    expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('handles deeplink callback that throws an error gracefully', () => {
+    const testData = {
+      kind: 'take_profit_executed',
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    };
+
+    expect(() => {
+      const { mocks } = arrangeAct(testData, (m) => {
+        m.deeplinkCallback.mockImplementation(() => {
+          throw new Error('Callback error');
+        });
+      });
+
+      // Assert - Analytics should still be tracked even if callback fails
+      expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+          properties: expect.objectContaining(testData),
+        }),
+      );
+    }).not.toThrow();
+  });
 });

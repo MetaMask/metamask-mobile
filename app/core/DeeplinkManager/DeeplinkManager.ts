@@ -178,6 +178,12 @@ class DeeplinkManager {
       }
     });
 
+    FCMService.onClickPushNotificationWhenAppSuspended((deeplink) => {
+      if (deeplink) {
+        handleDeeplink({ uri: deeplink });
+      }
+    });
+
     Linking.getInitialURL().then((url) => {
       if (!url) {
         return;
