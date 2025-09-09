@@ -174,7 +174,15 @@ export interface PointsEventDto {
    * Payload of the point earning activity
    * @example 'string'
    */
-  payload?: object | null;
+  payload: {
+    type: string;
+    token: {
+      symbol: string;
+      decimals: number;
+      amount: number;
+    };
+    direction: string | null;
+  } | null;
 
   /**
    * Value of the point earning activity
