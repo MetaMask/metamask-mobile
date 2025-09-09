@@ -218,8 +218,8 @@ describe('tokenUtils', () => {
     });
 
     it('returns undefined for string without colon (not CAIP format)', () => {
-      // @ts-expect-error - Testing edge case with invalid input
       const nonCaipString = 'notacaipformat';
+      // @ts-expect-error - Testing edge case with invalid input
       const result = getDefaultDestToken(nonCaipString);
 
       expect(result).toBeUndefined();
