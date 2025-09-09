@@ -3,6 +3,9 @@ import { RegressionAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import SettingsView from '../../pages/Settings/SettingsView';
+import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -26,7 +29,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 describe(
   RegressionAccounts('Change Account Name - Multichain Account Details'),
   () => {
-    it('renames an account and verifies the new name is updated with multichain account details enabled', async () => {
+    it('renames an account and verifies the new name persists after locking and unlocking the wallet with multichain account details enabled', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
@@ -44,6 +47,9 @@ describe(
           );
           await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
 
+          // Dismiss the account list modal to access navigation buttons
+          await AccountListBottomSheet.swipeToDismissAccountsModal();
+
           // Verify updated name appears in wallet view
           await Assertions.expectElementToHaveText(
             WalletView.accountName,
@@ -53,13 +59,27 @@ describe(
             },
           );
 
-          // Multichain account details functionality verified successfully
-          // Note: Lock/unlock testing skipped due to settings layout changes with multichain feature flag
+          // Lock wallet
+          await Assertions.expectElementToBeVisible(
+            TabBarComponent.tabBarSettingButton,
+          );
+          await TabBarComponent.tapSettings();
+          await SettingsView.scrollToLockButton();
+          await SettingsView.tapLock();
+          await SettingsView.tapYesAlertButton();
+          await Assertions.expectElementToBeVisible(LoginView.container);
+
+          // Unlock wallet and verify updated name persists
+          await loginToApp();
+          await Assertions.expectElementToHaveText(
+            WalletView.accountName,
+            NEW_ACCOUNT_NAME,
+          );
         },
       );
     });
 
-    it('import an account, edits the name, and verifies the new name is updated with multichain account details enabled', async () => {
+    it('import an account, edits the name, and verifies the new name persists after locking and unlocking the wallet with multichain account details enabled', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
@@ -85,6 +105,9 @@ describe(
             NEW_IMPORTED_ACCOUNT_NAME,
           );
 
+          // Dismiss the account list modal to access navigation buttons
+          await AccountListBottomSheet.swipeToDismissAccountsModal();
+
           // Verify updated name appears in wallet view
           await Assertions.expectElementToHaveText(
             WalletView.accountName,
@@ -95,8 +118,22 @@ describe(
             },
           );
 
-          // Multichain account details functionality verified successfully
-          // Note: Lock/unlock testing skipped due to settings layout changes with multichain feature flag
+          // Lock wallet
+          await Assertions.expectElementToBeVisible(
+            TabBarComponent.tabBarSettingButton,
+          );
+          await TabBarComponent.tapSettings();
+          await SettingsView.scrollToLockButton();
+          await SettingsView.tapLock();
+          await SettingsView.tapYesAlertButton();
+          await Assertions.expectElementToBeVisible(LoginView.container);
+
+          // Unlock wallet and verify updated name persists
+          await loginToApp();
+          await Assertions.expectElementToHaveText(
+            WalletView.accountName,
+            NEW_IMPORTED_ACCOUNT_NAME,
+          );
         },
       );
     });
