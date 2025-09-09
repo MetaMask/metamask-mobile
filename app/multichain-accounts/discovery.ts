@@ -9,6 +9,10 @@ export async function discoverAndCreateAccounts(
   // HACK: Force Snap keyring instantiation.
   await Engine.getSnapKeyring();
 
+  // NOTE: For now, we need to upcast this type, because for now it uses the
+  // `MultichainAccountWallet` type from the `account-api` (which is not aligned
+  // with the one coming from the service).
+  // TODO: Once both types are re-aligned, we will be able to remove this type-cast.
   const wallet =
     Engine.context.MultichainAccountService.getMultichainAccountWallet({
       entropySource,
