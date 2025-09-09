@@ -440,8 +440,10 @@ class ChoosePassword extends PureComponent {
     }
 
     const provider = this.props.route.params?.provider;
+    const accountType = provider ? `metamask_${provider}` : 'metamask';
+
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: provider ? `metamask_${provider}` : 'metamask',
+      account_type: accountType,
     });
 
     try {
@@ -454,6 +456,18 @@ class ChoosePassword extends PureComponent {
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
+
+      const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
+      trace({
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+        tags: {
+          is_social_login: Boolean(provider),
+          account_type: accountType,
+          biometrics_enabled: Boolean(this.state.biometryType),
+        },
+      });
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -503,13 +517,14 @@ class ChoosePassword extends PureComponent {
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
+      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (error) {
       try {
         await this.recreateVault('');

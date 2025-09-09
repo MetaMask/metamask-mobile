@@ -86,6 +86,7 @@ export const WalletViewSelectorsText = {
   IMPORT_TOKENS: `${enContent.wallet.no_available_tokens} ${enContent.wallet.add_tokens}`,
   NFTS_TAB: enContent.wallet.collectibles,
   TOKENS_TAB: enContent.wallet.tokens,
+  PERPS_TAB: enContent.wallet.perps,
   HIDE_TOKENS: enContent.wallet.remove,
   STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',

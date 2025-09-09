@@ -1,0 +1,34 @@
+# Temporary workflow to monitor iOS builds and E2E tests
+
+name: TEMPORARY iOS Workflow
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+  schedule:
+    - cron: '0 2-6 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+
+jobs:
+  build-ios-apps:
+    name: "Build iOS Apps"
+    if: ${{ github.event_name != 'merge_group' }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  e2e-smoke-tests-ios:
+    name: "iOS E2E Smoke Tests"
+    permissions:
+      contents: read
+      id-token: write
+    needs: [build-ios-apps]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    secrets: inherit
