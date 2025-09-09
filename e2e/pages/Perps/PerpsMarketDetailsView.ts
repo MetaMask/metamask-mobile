@@ -109,7 +109,7 @@ class PerpsMarketDetailsView {
   }
 
   // Scroll view
-  get scrollView() {
+  get scrollView(): DetoxElement {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
     );
@@ -189,17 +189,14 @@ class PerpsMarketDetailsView {
 
   // Ensures the screen is ready (scroll view exists and UI is stable) before scrolling
   async waitForScreenReady() {
-    await Utilities.waitForReadyState(
-      this.scrollView as unknown as DetoxElement,
-      {
-        checkStability: true,
-        elemDescription: 'Perps market details scroll view',
-      },
-    );
+    await Utilities.waitForReadyState(this.scrollView, {
+      checkStability: true,
+      elemDescription: 'Perps market details scroll view',
+    });
   }
 
   async scrollToBottom() {
-    await Gestures.swipe(this.scrollView as unknown as DetoxElement, 'up', {
+    await Gestures.swipe(this.scrollView, 'up', {
       speed: 'fast',
       percentage: 0.7,
       elemDescription: 'Perps market details scroll down',
