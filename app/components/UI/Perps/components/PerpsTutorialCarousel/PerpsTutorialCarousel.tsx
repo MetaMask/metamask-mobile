@@ -34,7 +34,11 @@ import {
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
+import {
+  usePerpsFirstTimeUser,
+  usePerpsTrading,
+  usePerpsNetworkManagement,
+} from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
@@ -42,6 +46,7 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
+import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   INTRO = 'Intro_Perps_v03 2',
@@ -124,6 +129,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
@@ -132,6 +138,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const hasTrackedViewed = useRef(false);
   const hasTrackedStarted = useRef(false);
   const tutorialStartTime = useRef(Date.now());
+  const continueDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -145,8 +152,13 @@ const PerpsTutorialCarousel: React.FC = () => {
     [currentTab, tutorialScreens.length],
   );
 
+  const shouldShowSkipButton = useMemo(
+    () => !isLastScreen || isEligible,
+    [isLastScreen, isEligible],
+  );
+
   const { styles } = useStyles(createStyles, {
-    shouldShowSkipButton: !isLastScreen || isEligible,
+    shouldShowSkipButton,
   });
 
   // Track tutorial viewed on mount
@@ -160,6 +172,17 @@ const PerpsTutorialCarousel: React.FC = () => {
       hasTrackedViewed.current = true;
     }
   }, [track]);
+
+  // Cleanup timeout on unmount
+  useEffect(
+    () => () => {
+      if (continueDebounceRef.current) {
+        clearTimeout(continueDebounceRef.current);
+        continueDebounceRef.current = null;
+      }
+    },
+    [],
+  );
 
   const handleTabChange = useCallback(
     (obj: { i: number }) => {
@@ -178,7 +201,39 @@ const PerpsTutorialCarousel: React.FC = () => {
     [track],
   );
 
-  const handleContinue = useCallback(() => {
+  const navigateToWalletPerpsTab = useCallback(() => {
+    // Navigate to wallet home first (using global navigation service like deeplink handler)
+    NavigationService.navigation.navigate(Routes.WALLET.HOME);
+    // The timeout is REQUIRED - React Navigation needs time to:
+    // 1. Complete the navigation transition
+    // 2. Mount the Wallet component
+    // 3. Make navigation context available for setParams
+    // Without this delay, the tab selection will fail
+    setTimeout(() => {
+      NavigationService.navigation.setParams({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
+    }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+  }, []);
+
+  const navigateToMarketsList = useCallback(() => {
+    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKETS,
+    });
+  }, []);
+
+  const handleContinue = useCallback(async () => {
+    // Prevent double-tap on Android - if timeout exists, we're still debouncing
+    if (continueDebounceRef.current) {
+      return;
+    }
+
+    // Set debounce timeout
+    continueDebounceRef.current = setTimeout(() => {
+      continueDebounceRef.current = null;
+    }, 100);
+
     if (isLastScreen) {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
@@ -189,6 +244,11 @@ const PerpsTutorialCarousel: React.FC = () => {
         [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
         [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
       });
+
+      // We need to enable Arbitrum for desposits to work
+      // Arbitrum One is already added for all users as a default network
+      // For devs on testnet, Arbitrum Sepolia will be added/enabled
+      await ensureArbitrumNetworkExists();
 
       // Mark tutorial as completed
       markTutorialCompleted();
@@ -209,7 +269,12 @@ const PerpsTutorialCarousel: React.FC = () => {
         return;
       }
 
-      navigation.goBack();
+      if (isFromGTMModal) {
+        navigateToWalletPerpsTab();
+        return;
+      }
+
+      navigateToMarketsList();
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
@@ -234,6 +299,10 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigation,
     depositWithConfirmation,
     tutorialScreens.length,
+    ensureArbitrumNetworkExists,
+    isFromGTMModal,
+    navigateToWalletPerpsTab,
+    navigateToMarketsList,
   ]);
 
   const handleSkip = useCallback(() => {
@@ -254,31 +323,19 @@ const PerpsTutorialCarousel: React.FC = () => {
 
     // Navigate based on deeplink/gtm modal flag
     if (isFromDeeplink || isFromGTMModal) {
-      // Navigate to wallet home first (using global navigation service like deeplink handler)
-      NavigationService.navigation.navigate(Routes.WALLET.HOME);
-
-      // The timeout is REQUIRED - React Navigation needs time to:
-      // 1. Complete the navigation transition
-      // 2. Mount the Wallet component
-      // 3. Make navigation context available for setParams
-      // Without this delay, the tab selection will fail
-      setTimeout(() => {
-        NavigationService.navigation.setParams({
-          initialTab: 'perps',
-          shouldSelectPerpsTab: true,
-        });
-      }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+      navigateToWalletPerpsTab();
     } else {
-      navigation.goBack();
+      navigateToMarketsList();
     }
   }, [
     isLastScreen,
     markTutorialCompleted,
-    navigation,
     currentTab,
     track,
     isFromGTMModal,
     isFromDeeplink,
+    navigateToWalletPerpsTab,
+    navigateToMarketsList,
   ]);
 
   const renderTabBar = () => <View />;
@@ -377,10 +434,15 @@ const PerpsTutorialCarousel: React.FC = () => {
             label={buttonLabel}
             onPress={handleContinue}
             size={ButtonSize.Lg}
+            testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
             style={styles.continueButton}
           />
           <View style={styles.skipButton}>
-            <TouchableOpacity onPress={handleSkip} disabled={!isEligible}>
+            <TouchableOpacity
+              onPress={handleSkip}
+              disabled={!isEligible}
+              testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
+            >
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Alternative}

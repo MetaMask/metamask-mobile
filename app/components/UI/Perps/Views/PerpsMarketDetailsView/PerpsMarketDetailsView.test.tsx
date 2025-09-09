@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -221,6 +221,9 @@ jest.mock('../../hooks', () => ({
     getAccountState: jest.fn(),
     depositWithConfirmation: jest.fn(() => Promise.resolve()),
     withdrawWithConfirmation: jest.fn(),
+  })),
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
@@ -864,7 +867,7 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Navigation functionality', () => {
-    it('navigates to long order screen when long button is pressed and user is eligible', () => {
+    it('navigates to long order screen when long button is pressed and user is eligible', async () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
@@ -888,7 +891,9 @@ describe('PerpsMarketDetailsView', () => {
       const longButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
       );
-      fireEvent.press(longButton);
+      await act(async () => {
+        fireEvent.press(longButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
@@ -897,7 +902,7 @@ describe('PerpsMarketDetailsView', () => {
       });
     });
 
-    it('navigates to short order screen when short button is pressed and user is eligible', () => {
+    it('navigates to short order screen when short button is pressed and user is eligible', async () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
@@ -921,7 +926,9 @@ describe('PerpsMarketDetailsView', () => {
       const shortButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
       );
-      fireEvent.press(shortButton);
+      await act(async () => {
+        fireEvent.press(shortButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
@@ -930,7 +937,7 @@ describe('PerpsMarketDetailsView', () => {
       });
     });
 
-    it('navigates to deposit screen when add funds button is pressed', () => {
+    it('navigates to deposit screen when add funds button is pressed', async () => {
       // Set zero balance to show add funds button
       mockUsePerpsAccount.mockReturnValue({
         availableBalance: '0.00',
@@ -951,7 +958,9 @@ describe('PerpsMarketDetailsView', () => {
       const addFundsButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
       );
-      fireEvent.press(addFundsButton);
+      await act(async () => {
+        fireEvent.press(addFundsButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
@@ -1014,6 +1023,45 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
       );
       fireEvent.press(shortButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows geo block modal when add funds button is pressed and user is not eligible', () => {
+      // Set user as not eligible
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set zero balance to show add funds button
+      mockUsePerpsAccount.mockReturnValue({
+        availableBalance: '0.00',
+        totalBalance: '0.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
 
       expect(getByText('Geo Block Tooltip')).toBeTruthy();
       expect(mockNavigate).not.toHaveBeenCalled();

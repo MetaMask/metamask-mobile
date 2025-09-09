@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     wrapper: {
       flexDirection: 'column',
-      gap: 2,
+      gap: 1,
       paddingVertical: 8,
       width: '100%',
     },
@@ -53,6 +53,9 @@ const styleSheet = (params: { theme: Theme }) => {
     titleText: {},
     valueText: {
       marginRight: 8,
+      fontWeight: 500,
+    },
+    pnlValueText: {
       fontWeight: 500,
     },
     infoIcon: {
