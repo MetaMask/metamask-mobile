@@ -162,10 +162,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * file and works together with the --active-arch-only flag of react-native run-android.
  */
 def reactNativeArchitectures() {
-    // Check environment variable first, then gradle property
-    def envValue = System.getenv("REACT_NATIVE_ARCHITECTURES")
-    def propValue = project.getProperties().get("reactNativeArchitectures")
-    def value = envValue ?: propValue
+    def value = project.getProperties().get("reactNativeArchitectures")
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
