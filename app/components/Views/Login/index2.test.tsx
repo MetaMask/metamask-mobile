@@ -1,7 +1,7 @@
 import React from 'react';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import Login from './index';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, screen, waitFor } from '@testing-library/react-native';
 import { VAULT_ERROR } from './constants';
 
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -23,12 +23,16 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
+import {
+  BIOMETRY_CHOICE_DISABLED,
+  OPTIN_META_METRICS_UI_SEEN,
+} from '../../../constants/storage';
 import { EndTraceRequest, TraceName } from '../../../util/trace';
 import ReduxService from '../../../core/redux/ReduxService';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 const mockEngine = jest.mocked(Engine);
 
@@ -842,6 +846,143 @@ describe('Login test suite 2', () => {
       });
 
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+    });
+  });
+
+  describe('Global Password changed', () => {
+    it('show biometric when password is not outdated', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'mock-vault',
+              passwordOutdatedCache: {
+                isExpiredPwd: false,
+                timestamp: 1718332800,
+              },
+            },
+          },
+        },
+      };
+      // mock redux service
+      jest.spyOn(ReduxService, 'store', 'get').mockImplementation(() => ({
+        dispatch: jest.fn(),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
+        getState: jest.fn().mockReturnValue(mockState),
+      }));
+
+      // mock storage wrapper
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return false;
+        return null;
+      });
+
+      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
+
+      jest.spyOn(Authentication, 'getType').mockImplementation(async () => ({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      }));
+
+      renderWithProvider(<Login />, {
+        // @ts-expect-error - mock state
+        state: mockState,
+      });
+
+      expect(
+        screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
+      ).not.toBeTruthy();
+
+      expect(
+        screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
+      ).not.toBeTruthy();
+
+      await waitFor(
+        () => {
+          expect(
+            screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
+          ).toBeTruthy();
+
+          expect(
+            screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
+          ).toBeTruthy();
+        },
+        { timeout: 4000 },
+      );
+    });
+
+    it('show error and disable biometric accesory when password is outdated', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'mock-vault',
+              passwordOutdatedCache: {
+                isExpiredPwd: true,
+                timestamp: 1718332800,
+              },
+            },
+          },
+        },
+      };
+
+      // mock storage wrapper
+      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return false;
+        return null;
+      });
+
+      jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
+
+      jest.spyOn(Authentication, 'getType').mockImplementation(async () => ({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      }));
+
+      renderWithProvider(<Login />, {
+        // @ts-expect-error - mock state
+        state: mockState,
+      });
+
+      const errorElement = screen.queryByTestId(
+        LoginViewSelectors.PASSWORD_ERROR,
+      );
+      expect(errorElement).toBeTruthy();
+      expect(errorElement?.children[0]).toEqual(
+        strings('login.seedless_password_outdated'),
+      );
+
+      expect(
+        screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
+      ).not.toBeTruthy();
+
+      expect(
+        screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
+      ).not.toBeTruthy();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
+        ).toBeTruthy();
+
+        expect(
+          screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
+        ).not.toBeTruthy();
+      });
     });
   });
 });
