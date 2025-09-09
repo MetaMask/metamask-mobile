@@ -7,7 +7,6 @@ import {
   SimulationTokenStandard,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { PreferencesState } from '@metamask/preferences-controller';
 import { Hex } from '@metamask/utils';
 import { waitFor } from '@testing-library/react-native';
 
@@ -29,6 +28,7 @@ import { Severity } from '../../types/alerts';
 import { ApproveMethod } from '../../types/approve';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { TokenStandard } from '../../../../UI/SimulationDetails/types';
+import { RootState } from '../../../../../reducers';
 
 const TOKEN_ADDRESS_1 = '0x1234567890123456789012345678901234567890' as Hex;
 const TOKEN_ADDRESS_2 = '0x2345678901234567890123456789012345678901' as Hex;
@@ -72,7 +72,7 @@ const unusedApprovalsAlert = [
 
 function runHook(
   transactionMeta?: TransactionMeta,
-  preferenceState?: Partial<PreferencesState>,
+  preferenceState?: Partial<RootState>,
 ) {
   const state = getAppStateForConfirmation(
     transactionMeta ?? batchApprovalConfirmation,
@@ -701,7 +701,9 @@ describe('useBatchedUnusedApprovalsAlert', () => {
     it('does not show alert when simulation is disabled via preferences', async () => {
       const { result } = runHook(
         { ...batchApprovalConfirmation, simulationData: undefined },
-        { preferencesController: { useTransactionSimulations: false } },
+        {
+          PreferencesController: { useTransactionSimulations: false },
+        } as unknown as Partial<RootState>,
       );
       await waitFor(() => {
         expect(result.current).toEqual([]);

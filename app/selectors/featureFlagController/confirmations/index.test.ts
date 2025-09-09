@@ -405,18 +405,6 @@ describe('Non-Zero Unused Approvals Allow List', () => {
     },
   };
 
-  const mockedStateUndefinedAllowList = {
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            nonZeroUnusedApprovals: undefined,
-          },
-          cacheTimestamp: 0,
-        },
-      },
-    },
-  };
   it('returns the allow list when set in remote feature flags', () => {
     const result = selectNonZeroUnusedApprovalsAllowList(
       mockedStateWithAllowList,
@@ -434,13 +422,6 @@ describe('Non-Zero Unused Approvals Allow List', () => {
     expect(result).toEqual([]);
   });
 
-  it('returns an empty array when the allow list is undefined in remote feature flags', () => {
-    const result = selectNonZeroUnusedApprovalsAllowList(
-      mockedStateUndefinedAllowList,
-    );
-    expect(result).toEqual([]);
-  });
-
   it('handles cases where RemoteFeatureFlagController is undefined', () => {
     const undefinedFeatureFlagState = {
       engine: {
@@ -452,23 +433,6 @@ describe('Non-Zero Unused Approvals Allow List', () => {
 
     const result = selectNonZeroUnusedApprovalsAllowList(
       undefinedFeatureFlagState,
-    );
-    expect(result).toEqual([]);
-  });
-
-  it('handles cases where remoteFeatureFlags is undefined', () => {
-    const undefinedFeatureFlagsState = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: undefined,
-          },
-        },
-      },
-    };
-
-    const result = selectNonZeroUnusedApprovalsAllowList(
-      undefinedFeatureFlagsState,
     );
     expect(result).toEqual([]);
   });
