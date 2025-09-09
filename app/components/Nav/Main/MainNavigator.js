@@ -530,10 +530,6 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
-    actions: {
-      tabBarIconKey: TabBarIconKey.Actions,
-      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
-    },
     trade: {
       tabBarIconKey: TabBarIconKey.Trade,
       rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
@@ -640,11 +636,6 @@ const HomeTabs = () => {
         component={BrowserFlow}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-      {/* <Tab.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        options={options.actions}
-        component={WalletTabModalFlow}
-      /> */}
       <Tab.Screen
         name={Routes.MODAL.TRADE_WALLET_ACTIONS}
         options={options.trade}
