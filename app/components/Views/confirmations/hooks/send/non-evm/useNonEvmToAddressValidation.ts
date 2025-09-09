@@ -10,8 +10,8 @@ import { selectInternalAccounts } from '../../../../../../selectors/accountsCont
 import { useSnapNameResolution } from '../../../../../Snaps/hooks/useSnapNameResolution';
 import { getConfusableCharacterInfo } from '../../../utils/send';
 import { useSendContext } from '../../../context/send-context';
+import { useSendType } from '../useSendType';
 
-// todo: this should go away as we use snap for name mapping
 export const shouldSkipValidation = ({
   toAddress,
   chainId,
@@ -36,13 +36,21 @@ export const shouldSkipValidation = ({
   return false;
 };
 
-export const validateToAddress = (
-  internalAccounts: InternalAccount[],
-  toAddress?: string,
-  chainId?: string,
-  loading?: boolean,
-  resolutionResult?: AddressResolution[],
-) => {
+export const validateToAddress = ({
+  chainId,
+  internalAccounts,
+  isSolanaSendType,
+  toAddress,
+  loading,
+  resolutionResult,
+}: {
+  chainId?: string;
+  internalAccounts: InternalAccount[];
+  isSolanaSendType?: boolean;
+  toAddress?: string;
+  loading?: boolean;
+  resolutionResult?: AddressResolution[];
+}) => {
   if (
     shouldSkipValidation({
       toAddress,
@@ -71,7 +79,7 @@ export const validateToAddress = (
     };
   }
 
-  if (toAddress && !isSolanaAddress(toAddress)) {
+  if (isSolanaSendType && toAddress && !isSolanaAddress(toAddress)) {
     return {
       loading,
       error: strings('transaction.invalid_address'),
@@ -81,18 +89,27 @@ export const validateToAddress = (
   return { loading };
 };
 
-export const useSolanaToAddressValidation = () => {
+export const useNonEvmToAddressValidation = () => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const { chainId, to } = useSendContext();
+  const { isSolanaSendType } = useSendType();
   const { results, loading } = useSnapNameResolution({
     chainId: chainId ?? '',
     domain: to ?? '',
   });
 
-  const validateSolanaToAddress = useCallback(
-    () => validateToAddress(internalAccounts, to, chainId, loading, results),
-    [chainId, internalAccounts, loading, results, to],
+  const validateNonEvmToAddress = useCallback(
+    async () =>
+      validateToAddress({
+        chainId,
+        internalAccounts,
+        isSolanaSendType,
+        toAddress: to,
+        loading,
+        resolutionResult: results,
+      }),
+    [chainId, isSolanaSendType, internalAccounts, loading, results, to],
   );
 
-  return { validateSolanaToAddress };
+  return { validateNonEvmToAddress };
 };

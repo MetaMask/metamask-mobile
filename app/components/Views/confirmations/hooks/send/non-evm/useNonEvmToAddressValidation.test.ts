@@ -3,9 +3,9 @@ import { renderHookWithProvider } from '../../../../../../util/test/renderWithPr
 import { evmSendStateMock } from '../../../__mocks__/send.mock';
 import {
   shouldSkipValidation,
-  useSolanaToAddressValidation,
+  useNonEvmToAddressValidation,
   validateToAddress,
-} from './useSolanaToAddressValidation';
+} from './useNonEvmToAddressValidation';
 
 const mockState = {
   state: evmSendStateMock,
@@ -84,9 +84,9 @@ describe('validateToAddress', () => {
 describe('useSolanaToAddressValidation', () => {
   it('return fields for to address error and warning', () => {
     const { result } = renderHookWithProvider(
-      () => useSolanaToAddressValidation(),
+      () => useNonEvmToAddressValidation(),
       mockState,
     );
-    expect(result.current.validateSolanaToAddress).toBeDefined();
+    expect(result.current.validateNonEvmToAddress).toBeDefined();
   });
 });

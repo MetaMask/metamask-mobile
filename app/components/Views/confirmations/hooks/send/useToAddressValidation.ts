@@ -2,30 +2,20 @@ import { useCallback } from 'react';
 
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
-import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
+import { useNonEvmToAddressValidation } from './non-evm/useNonEvmToAddressValidation';
 import { useSendType } from './useSendType';
 
-// todo: to address validation assumees `to` is the input from the user
-// depending on implementation we may need to have 2 fields for recipient `toInput` and `toResolved`
 export const useToAddressValidation = () => {
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType } = useSendType();
   const { validateEvmToAddress } = useEvmToAddressValidation();
-  const { validateSolanaToAddress } = useSolanaToAddressValidation();
+  const { validateNonEvmToAddress } = useNonEvmToAddressValidation();
 
   const validateToAddress = useCallback(async () => {
     if (isEvmSendType) {
       return await validateEvmToAddress();
     }
-    if (isSolanaSendType) {
-      return validateSolanaToAddress();
-    }
-    return {};
-  }, [
-    isEvmSendType,
-    isSolanaSendType,
-    validateEvmToAddress,
-    validateSolanaToAddress,
-  ]);
+    return validateNonEvmToAddress();
+  }, [isEvmSendType, validateEvmToAddress, validateNonEvmToAddress]);
 
   const { value, pending } = useAsyncResult<{
     error?: string;
