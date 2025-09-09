@@ -375,4 +375,45 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
 
     expect(result).toEqual(false);
   });
+
+  it('returns false if hash matches required transaction of alternate transaction', () => {
+    const transaction = {
+      id: '123',
+      hash: '0xabc',
+      chainId: '0x2',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '456',
+        chainId: '0x1',
+        requiredTransactionIds: ['789'],
+      },
+      {
+        id: '789',
+        chainId: '0x1',
+        requiredTransactionIds: ['123'],
+        hash: '0xabc',
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    expect(result).toEqual(false);
+  });
 });

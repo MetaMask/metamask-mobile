@@ -89,11 +89,21 @@ export const filterByAddressAndNetwork = (
     txParams: { from, to },
   } = tx;
 
-  const isRequiredTransaction = allTransactions?.some((t) =>
-    t.requiredTransactionIds?.includes(transactionId),
-  );
+  const requiredTransactionIds = allTransactions
+    ?.map((t) => t.requiredTransactionIds ?? [])
+    .flat();
+
+  const isRequiredTransaction = requiredTransactionIds?.includes(transactionId);
 
   if (isRequiredTransaction) {
+    return false;
+  }
+
+  const requiredTransactionHashes = allTransactions
+    ?.filter((t) => requiredTransactionIds?.includes(t.id) && t.hash)
+    .map((t) => t.hash?.toLowerCase());
+
+  if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
     return false;
   }
 
