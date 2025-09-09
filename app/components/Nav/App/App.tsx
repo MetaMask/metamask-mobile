@@ -251,6 +251,7 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="Rehydrate"
+      // Reconsider if a duplicate Login screen is needed here
       component={Login}
       options={{ headerShown: false }}
     />
