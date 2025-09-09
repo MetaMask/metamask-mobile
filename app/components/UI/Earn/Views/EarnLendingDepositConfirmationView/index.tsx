@@ -606,8 +606,12 @@ const EarnLendingDepositConfirmationView = () => {
       }
 
       return allowanceResetTransaction;
-    } catch (e) {
+    } catch (error) {
       unsetAllowanceResetLoadingState();
+      Logger.error(
+        error as Error,
+        '[resetTokenAllowance] Lending deposit failed',
+      );
     }
   };
 
@@ -642,8 +646,12 @@ const EarnLendingDepositConfirmationView = () => {
       }
 
       return allowanceIncreaseTransaction;
-    } catch (e) {
+    } catch (error) {
       unsetAllowanceIncreaseLoadingState();
+      Logger.error(
+        error as Error,
+        '[increaseTokenAllowance] Lending deposit failed',
+      );
     }
   };
 
@@ -689,7 +697,7 @@ const EarnLendingDepositConfirmationView = () => {
       }
 
       return depositTransaction;
-    } catch (error: Error | unknown) {
+    } catch (error) {
       unsetDepositLoadingState();
       Logger.error(error as Error, '[depositTokens] Lending deposit failed');
       return;
