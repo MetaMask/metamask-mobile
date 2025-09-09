@@ -105,6 +105,8 @@ jobs:
           MM_NOTIFICATIONS_UI_ENABLED: "true"
           MM_SECURITY_ALERTS_API_ENABLED: "true"
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          # Architecture optimization for BrowserStack builds
+          REACT_NATIVE_ARCHITECTURES: "arm64-v8a"
           # Conditionally set SRP and password based on build type
           ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.TEST_SRP_1 || '' }}
           PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
