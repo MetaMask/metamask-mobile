@@ -76,9 +76,9 @@ export class ConnectionRegistry {
    */
   public async disconnect(id: string): Promise<void> {
     await this.connections.get(id)?.disconnect();
-    await this.hostapp.revokePermissions(id);
     await this.store.delete(id);
     this.connections.delete(id);
+    this.hostapp.revokePermissions(id);
     this.hostapp.syncConnectionList(Array.from(this.connections.values()));
   }
 
