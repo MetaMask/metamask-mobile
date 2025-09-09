@@ -104,7 +104,6 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     if (widthRef.current > 0) {
       // Handle case where min and max are equal (e.g., zero balance)
       const range = maximumValue - minimumValue;
-      // const percentage = range === 0 ? 0 : (value - minimumValue) / range;
       const percentage =
         range === 0 ? 0 : Math.min(1, (value - minimumValue) / range);
       const newPosition = percentage * widthRef.current;
