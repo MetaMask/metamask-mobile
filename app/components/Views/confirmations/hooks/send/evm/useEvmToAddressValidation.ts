@@ -155,16 +155,15 @@ export const useEvmToAddressValidation = () => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const { chainId, to } = useSendContext();
 
-  const validateEvmToAddress = useCallback(
-    async () =>
-      await validateToAddress({
-        toAddress: to as Hex,
-        chainId: chainId as Hex,
-        addressBook,
-        internalAccounts,
-      }),
-    [addressBook, chainId, internalAccounts, to],
-  );
+  const validateEvmToAddress = useCallback(async () => {
+    const result = await validateToAddress({
+      toAddress: to as Hex,
+      chainId: chainId as Hex,
+      addressBook,
+      internalAccounts,
+    });
+    return { ...result, toAddressValidated: to };
+  }, [addressBook, chainId, internalAccounts, to]);
 
   return { validateEvmToAddress };
 };

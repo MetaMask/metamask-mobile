@@ -95,18 +95,17 @@ export const useNonEvmToAddressValidation = () => {
     domain: to ?? '',
   });
 
-  const validateNonEvmToAddress = useCallback(
-    () =>
-      validateToAddress({
-        chainId,
-        internalAccounts,
-        isSolanaSendType,
-        toAddress: to,
-        loading,
-        resolutionResult: results,
-      }),
-    [chainId, isSolanaSendType, internalAccounts, loading, results, to],
-  );
+  const validateNonEvmToAddress = useCallback(() => {
+    const result = validateToAddress({
+      chainId,
+      internalAccounts,
+      isSolanaSendType,
+      toAddress: to,
+      loading,
+      resolutionResult: results,
+    });
+    return { ...result, toAddressValidated: to };
+  }, [chainId, isSolanaSendType, internalAccounts, loading, results, to]);
 
   return { validateNonEvmToAddress };
 };

@@ -18,6 +18,7 @@ export const useToAddressValidation = () => {
   }, [isEvmSendType, validateEvmToAddress, validateNonEvmToAddress]);
 
   const { value, pending } = useAsyncResult<{
+    toAddressValidated?: string;
     error?: string;
     warning?: string;
     loading?: boolean;
@@ -25,6 +26,7 @@ export const useToAddressValidation = () => {
   }>(async () => validateToAddress(), [validateToAddress]);
 
   const {
+    toAddressValidated,
     error: toAddressError,
     warning: toAddressWarning,
     loading = false,
@@ -35,6 +37,7 @@ export const useToAddressValidation = () => {
     loading: loading || pending,
     resolvedAddress,
     toAddressError,
+    toAddressValidated,
     toAddressWarning,
   };
 };

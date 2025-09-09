@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import {
   Box,
@@ -30,19 +30,24 @@ import { styleSheet } from './recipient.styles';
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
+  const [pastedRecipient, setPastedRecipient] = useState<string>();
   const { to, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
   const {
     captureRecipientSelected,
-    setRecipientInputMethodManual,
     setRecipientInputMethodSelectAccount,
     setRecipientInputMethodSelectContact,
   } = useRecipientSelectionMetrics();
   const styles = styleSheet();
-  const { toAddressError, toAddressWarning, loading, resolvedAddress } =
-    useToAddressValidation();
+  const {
+    toAddressError,
+    toAddressWarning,
+    toAddressValidated,
+    loading,
+    resolvedAddress,
+  } = useToAddressValidation();
   const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
@@ -60,9 +65,9 @@ export const Recipient = () => {
     if (toAddressError) {
       return;
     }
+    setPastedRecipient(undefined);
     setIsSubmittingTransaction(true);
     handleSubmitPress(resolvedAddress || to);
-    setRecipientInputMethodManual();
     captureRecipientSelected();
   }, [
     to,
@@ -70,7 +75,24 @@ export const Recipient = () => {
     handleSubmitPress,
     captureRecipientSelected,
     resolvedAddress,
-    setRecipientInputMethodManual,
+    setPastedRecipient,
+  ]);
+
+  useEffect(() => {
+    if (
+      pastedRecipient &&
+      pastedRecipient === toAddressValidated &&
+      !toAddressError &&
+      !loading
+    ) {
+      handleReview();
+    }
+  }, [
+    handleReview,
+    pastedRecipient,
+    toAddressValidated,
+    toAddressError,
+    loading,
   ]);
 
   const onRecipientSelected = useCallback(
@@ -111,6 +133,7 @@ export const Recipient = () => {
         <Box twClassName="flex-1">
           <RecipientInput
             isRecipientSelectedFromList={isRecipientSelectedFromList}
+            setPastedRecipient={setPastedRecipient}
           />
           <ScrollView>
             <RecipientList

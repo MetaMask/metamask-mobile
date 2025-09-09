@@ -18,12 +18,15 @@ import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
+  setPastedRecipient,
 }: {
   isRecipientSelectedFromList: boolean;
+  setPastedRecipient: (recipient?: string) => void;
 }) => {
   const { to, updateTo } = useSendContext();
   const inputRef = useRef<TextInput>(null);
-  const { setRecipientInputMethodPasted } = useRecipientSelectionMetrics();
+  const { setRecipientInputMethodManual, setRecipientInputMethodPasted } =
+    useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
     try {
@@ -32,15 +35,17 @@ export const RecipientInput = ({
         const trimmedText = clipboardText.trim();
         setRecipientInputMethodPasted();
         updateTo(trimmedText);
+        setPastedRecipient(trimmedText);
         setTimeout(() => {
           inputRef.current?.focus();
         }, 100);
+        return true;
       }
     } catch (error) {
       // Might consider showing an alert here if pasting fails
       // for now just ignore it
     }
-  }, [updateTo, inputRef, setRecipientInputMethodPasted]);
+  }, [updateTo, inputRef, setPastedRecipient, setRecipientInputMethodPasted]);
 
   const handleClearInput = useCallback(() => {
     updateTo('');
@@ -48,6 +53,19 @@ export const RecipientInput = ({
       inputRef.current?.blur();
     }, 100);
   }, [updateTo, inputRef]);
+
+  const handleTextChange = useCallback(
+    async (toAddress: string) => {
+      const pastedText = await handlePaste();
+      if (pastedText) {
+        return;
+      }
+      updateTo(toAddress);
+      setRecipientInputMethodManual();
+      setPastedRecipient(undefined);
+    },
+    [handlePaste, setPastedRecipient, setRecipientInputMethodManual, updateTo],
+  );
 
   const defaultStartAccessory = useMemo(
     () => <Text color={TextColor.TextAlternative}>{strings('send.to')}</Text>,
@@ -85,7 +103,7 @@ export const RecipientInput = ({
         autoCorrect={false}
         ref={inputRef}
         value={isRecipientSelectedFromList ? '' : to}
-        onChangeText={updateTo}
+        onChangeText={handleTextChange}
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="none"
