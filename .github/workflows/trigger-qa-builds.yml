@@ -78,20 +78,6 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies
-        run: yarn setup
-      
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      
       - name: Trigger Bitrise QA Builds
         env:
           BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
@@ -384,20 +370,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-      
-      - name: Install dependencies
-        run: yarn setup
-      
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
       
       - name: Trigger Bitrise Onboarding QA Builds
         env:
