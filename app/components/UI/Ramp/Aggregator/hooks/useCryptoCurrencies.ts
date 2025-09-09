@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { getRampNetworks } from '../../../../../reducers/fiatOrders';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { isCaipChainId } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { toHex } from '@metamask/controller-utils';
 
 export default function useCryptoCurrencies() {
   const {
@@ -17,7 +20,9 @@ export default function useCryptoCurrencies() {
     setIntent,
   } = useRampSDK();
 
-  const rampNetworks = useSelector(getRampNetworks);
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const [
     {
@@ -39,12 +44,15 @@ export default function useCryptoCurrencies() {
       !errorCryptoCurrencies &&
       sdkCryptoCurrencies
     ) {
-      const rampNetworkChainIds = rampNetworks.map(
-        (network) => network.chainId,
-      );
-      const filteredTokens = sdkCryptoCurrencies.filter((token) =>
-        rampNetworkChainIds.includes(token.network?.chainId),
-      );
+      const filteredTokens = sdkCryptoCurrencies.filter((token) => {
+        if (!token.network?.chainId) return false;
+
+        const tokenCaipChainId = isCaipChainId(token.network.chainId)
+          ? token.network.chainId
+          : toEvmCaipChainId(toHex(token.network.chainId));
+
+        return networksByCaipChainId[tokenCaipChainId] !== undefined;
+      });
       return filteredTokens;
     }
     return null;
@@ -52,7 +60,7 @@ export default function useCryptoCurrencies() {
     errorCryptoCurrencies,
     isFetchingCryptoCurrencies,
     sdkCryptoCurrencies,
-    rampNetworks,
+    networksByCaipChainId,
   ]);
 
   /**
