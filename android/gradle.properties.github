@@ -35,10 +35,10 @@ android.enablePngCrunchInReleaseBuilds=true
 # Use this property to specify which architecture you want to build.
 # You can also override it from the CLI using
 # ./gradlew <task> -PreactNativeArchitectures=x86_64
-# Conditional architecture based on workflow:
-# - For dual versions workflow (BrowserStack): arm64-v8a only for faster builds
-# - For other workflows: x86_64 for emulator compatibility
-reactNativeArchitectures=${REACT_NATIVE_ARCHITECTURES:-x86_64}
+# Default to x86_64 for emulator compatibility
+# This can be overridden by setting REACT_NATIVE_ARCHITECTURES environment variable
+# The build.gradle script will use the environment variable if set, otherwise use this default
+reactNativeArchitectures=x86_64
 
 # Use this property to enable support to the new architecture.
 # This will allow you to use TurboModules and the Fabric render in
