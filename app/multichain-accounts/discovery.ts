@@ -16,6 +16,6 @@ export async function discoverAndCreateAccounts(
 
   const result = await wallet.discoverAndCreateAccounts();
 
-  // Compute the number of discovered accounts accross all account providers.
+  // Compute the number of discovered accounts across all account providers.
   return Object.values(result).reduce((acc, discovered) => acc + discovered, 0);
 }
