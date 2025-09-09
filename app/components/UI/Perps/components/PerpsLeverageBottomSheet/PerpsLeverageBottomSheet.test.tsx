@@ -542,6 +542,7 @@ describe('PerpsLeverageBottomSheet', () => {
           direction: defaultProps.direction,
           asset: defaultProps.asset,
         }),
+        expect.objectContaining({ debounceMs: 500 }),
       );
     });
 
@@ -580,6 +581,7 @@ describe('PerpsLeverageBottomSheet', () => {
           direction: defaultProps.direction,
           asset: defaultProps.asset,
         }),
+        expect.objectContaining({ debounceMs: 500 }),
       );
     });
   });
