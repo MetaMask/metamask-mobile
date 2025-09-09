@@ -184,10 +184,11 @@ describe('Recipient', () => {
     mockUseContacts.mockReturnValue(mockContacts);
 
     mockUseToAddressValidation.mockReturnValue({
-      toAddressError: undefined,
-      toAddressWarning: undefined,
       loading: false,
       resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
@@ -296,10 +297,11 @@ describe('Recipient', () => {
     });
 
     mockUseToAddressValidation.mockReturnValue({
-      toAddressError: undefined,
-      toAddressWarning: undefined,
       loading: false,
       resolvedAddress: 'some_dummy_address',
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
     });
 
     mockUseSendContext.mockReturnValue({
@@ -385,10 +387,11 @@ describe('Recipient', () => {
 
   it('renders warning banner when toAddressWarning is present', () => {
     mockUseToAddressValidation.mockReturnValue({
-      toAddressError: undefined,
-      toAddressWarning: 'Warning',
       loading: false,
       resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: 'Warning',
     });
 
     mockUseSendContext.mockReturnValue({
@@ -411,10 +414,11 @@ describe('Recipient', () => {
 
   it('renders warning banner and disabled button when toAddressWarning and toAddressError is present', () => {
     mockUseToAddressValidation.mockReturnValue({
-      toAddressError: 'Error',
-      toAddressWarning: 'Warning',
       loading: false,
       resolvedAddress: undefined,
+      toAddressError: 'Error',
+      toAddressValidated: undefined,
+      toAddressWarning: 'Warning',
     });
 
     mockUseSendContext.mockReturnValue({
@@ -447,10 +451,11 @@ describe('Recipient', () => {
     });
 
     mockUseToAddressValidation.mockReturnValue({
-      toAddressError: undefined,
-      toAddressWarning: undefined,
       loading: true,
       resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: 'Warning',
     });
 
     mockUseSendContext.mockReturnValue({

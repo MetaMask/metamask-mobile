@@ -41,6 +41,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+const noop = () => undefined;
+
 const mockClipboardManager = jest.mocked(ClipboardManager);
 const mockUseSendContext = jest.mocked(useSendContext);
 const mockUseToAddressValidation = jest.mocked(useToAddressValidation);
@@ -76,10 +78,11 @@ describe('RecipientInput', () => {
     });
 
     mockUseToAddressValidation.mockReturnValue({
-      toAddressError: undefined,
-      toAddressWarning: undefined,
       loading: false,
       resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
@@ -104,7 +107,10 @@ describe('RecipientInput', () => {
 
   it('renders with default placeholder and "To" label', () => {
     const { getByText, getByPlaceholderText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('To')).toBeOnTheScreen();
@@ -113,7 +119,10 @@ describe('RecipientInput', () => {
 
   it('displays paste button when input is empty', () => {
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Paste')).toBeOnTheScreen();
@@ -135,7 +144,10 @@ describe('RecipientInput', () => {
     });
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Clear')).toBeOnTheScreen();
@@ -157,7 +169,7 @@ describe('RecipientInput', () => {
     });
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList />,
+      <RecipientInput isRecipientSelectedFromList setPastedRecipient={noop} />,
     );
 
     expect(getByText('Paste')).toBeOnTheScreen();
@@ -179,7 +191,7 @@ describe('RecipientInput', () => {
     });
 
     const { getByDisplayValue } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList />,
+      <RecipientInput isRecipientSelectedFromList setPastedRecipient={noop} />,
     );
 
     expect(() => getByDisplayValue('0x123...')).toThrow();
@@ -187,7 +199,10 @@ describe('RecipientInput', () => {
 
   it('calls updateTo when text input changes', () => {
     const { getByPlaceholderText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     const textInput = getByPlaceholderText('Enter address to send to');
@@ -207,7 +222,10 @@ describe('RecipientInput', () => {
     mockValidateToAddress.mockResolvedValue({ error: 'Invalid address' });
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     const pasteButton = getByText('Paste');
@@ -227,7 +245,10 @@ describe('RecipientInput', () => {
     mockValidateToAddress.mockResolvedValue({ error: 'Invalid address' });
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     const pasteButton = getByText('Paste');
@@ -242,7 +263,10 @@ describe('RecipientInput', () => {
     mockClipboardManager.getString.mockResolvedValue('');
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     const pasteButton = getByText('Paste');
@@ -261,7 +285,10 @@ describe('RecipientInput', () => {
     );
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     const pasteButton = getByText('Paste');
@@ -290,7 +317,10 @@ describe('RecipientInput', () => {
     });
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     const clearButton = getByText('Clear');
@@ -317,18 +347,26 @@ describe('RecipientInput', () => {
     });
 
     const { getByText, rerender } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Clear')).toBeOnTheScreen();
 
-    rerender(<RecipientInput isRecipientSelectedFromList />);
+    rerender(
+      <RecipientInput isRecipientSelectedFromList setPastedRecipient={noop} />,
+    );
     expect(getByText('Paste')).toBeOnTheScreen();
   });
 
   it('maintains correct button state transition from empty to filled input', () => {
     const { getByText, rerender } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList={false} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Paste')).toBeOnTheScreen();
@@ -347,7 +385,12 @@ describe('RecipientInput', () => {
       value: undefined,
     });
 
-    rerender(<RecipientInput isRecipientSelectedFromList={false} />);
+    rerender(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        setPastedRecipient={noop}
+      />,
+    );
 
     expect(getByText('Clear')).toBeOnTheScreen();
   });

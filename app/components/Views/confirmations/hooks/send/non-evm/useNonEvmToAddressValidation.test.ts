@@ -131,6 +131,7 @@ describe('useSolanaToAddressValidation', () => {
     );
     expect(result.current.validateNonEvmToAddress()).toStrictEqual({
       resolvedAddress: 'dummy_address',
+      toAddressValidated: 'test.sol',
     });
   });
 
@@ -157,6 +158,7 @@ describe('useSolanaToAddressValidation', () => {
       error: 'dummy_error',
       warning: 'dummy_warning',
       resolvedAddress: 'dummy_address',
+      toAddressValidated: 'test.sol',
     });
   });
 
@@ -174,6 +176,7 @@ describe('useSolanaToAddressValidation', () => {
     );
     expect(result.current.validateNonEvmToAddress()).toStrictEqual({
       loading: true,
+      toAddressValidated: 'test.sol',
     });
   });
 });

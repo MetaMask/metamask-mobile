@@ -16,6 +16,7 @@ describe('useToAddressValidation', () => {
       loading: true,
       resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
   });

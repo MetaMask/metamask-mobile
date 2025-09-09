@@ -36,7 +36,6 @@ export const RecipientInput = ({
         setRecipientInputMethodPasted();
         updateTo(trimmedText);
         setPastedRecipient(trimmedText);
-        await ClipboardManager.setString();
         setTimeout(() => {
           inputRef.current?.focus();
         }, 100);
