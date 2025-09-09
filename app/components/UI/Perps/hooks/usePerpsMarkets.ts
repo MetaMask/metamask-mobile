@@ -1,15 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PerpsMarketData } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { parseCurrencyString } from '../utils/formatUtils';
 
+type PerpsMarketDataWithVolumeNumber = PerpsMarketData & {
+  volumeNumber: number;
+};
+
 export interface UsePerpsMarketsResult {
   /**
    * Transformed market data ready for UI consumption
    */
-  markets: PerpsMarketData[];
+  markets: PerpsMarketDataWithVolumeNumber[];
   /**
    * Loading state for initial data fetch
    */
@@ -46,6 +50,49 @@ export interface UsePerpsMarketsOptions {
   skipInitialFetch?: boolean;
 }
 
+const multipliers: Record<string, number> = {
+  K: 1e3,
+  M: 1e6,
+  B: 1e9,
+  T: 1e12,
+} as const;
+
+// Pre-compiled regex for better performance - avoids regex compilation on every call
+const VOLUME_SUFFIX_REGEX = /\$?([\d.,]+)([KMBT])?/;
+
+// Helper function to remove commas using for loop (~2x faster than regex for short strings)
+const removeCommas = (str: string): string => {
+  let result = '';
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (char !== ',') result += char;
+  }
+  return result;
+};
+
+export const parseVolume = (volumeStr: string | undefined): number => {
+  if (!volumeStr) return -1; // Put undefined at the end
+
+  // Handle special cases
+  if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
+  if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
+
+  // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
+  const suffixMatch = volumeStr.match(VOLUME_SUFFIX_REGEX);
+  if (suffixMatch) {
+    const [, numberPart, suffix] = suffixMatch;
+    const baseValue = parseFloat(removeCommas(numberPart));
+
+    if (isNaN(baseValue)) return -1;
+
+    return suffix ? baseValue * multipliers[suffix] : baseValue;
+  }
+
+  // Fallback to currency parser for regular values
+  return parseCurrencyString(volumeStr) || -1;
+};
+
 /**
  * Custom hook to fetch and manage Perps market data from the active provider
  * Uses the StreamManager's marketData channel for caching and deduplication
@@ -60,69 +107,23 @@ export const usePerpsMarkets = (
   } = options;
 
   const streamManager = usePerpsStream();
-  const [markets, setMarkets] = useState<PerpsMarketData[]>([]);
+  const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cache for parsed volume values to avoid repeated parsing
-  const volumeCache = useRef(new Map<string, number>()).current;
-
   // Helper function to sort markets by volume
   const sortMarketsByVolume = useCallback(
-    (marketData: PerpsMarketData[]): PerpsMarketData[] => {
-      // Pre-compiled regex and multipliers for better performance
-      const volumeRegex = /\$?([\d.,]+)([KMBT])?/;
-      const multipliers = { K: 1e3, M: 1e6, B: 1e9, T: 1e12 };
-
-      const parseVolume = (volumeStr: string | undefined): number => {
-        if (!volumeStr) return -1; // Put undefined at the end
-
-        // Check cache first
-        const cachedResult = volumeCache.get(volumeStr);
-        if (cachedResult !== undefined) {
-          return cachedResult;
-        }
-
-        let result: number;
-
-        // Handle special cases
-        if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) {
-          result = -1;
-        } else if (volumeStr === '$<1') {
-          result = 0.5; // Treat as very small but not zero
-        } else {
-          // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
-          const suffixMatch = volumeStr.match(volumeRegex);
-          if (suffixMatch) {
-            const [, numberPart, suffix] = suffixMatch;
-            const baseValue = parseFloat(numberPart.replace(/,/g, ''));
-
-            if (isNaN(baseValue)) {
-              result = -1;
-            } else {
-              result = suffix
-                ? baseValue * multipliers[suffix as keyof typeof multipliers]
-                : baseValue;
-            }
-          } else {
-            // Fallback to currency parser for regular values
-            result = parseCurrencyString(volumeStr) || -1;
-          }
-        }
-
-        // Cache the result
-        volumeCache.set(volumeStr, result);
-        return result;
-      };
-
-      return [...marketData].sort((a, b) => {
-        const volumeA = parseVolume(a.volume);
-        const volumeB = parseVolume(b.volume);
-        return volumeB - volumeA; // Descending order
-      });
-    },
-    [volumeCache],
+    (marketData: PerpsMarketData[]): PerpsMarketDataWithVolumeNumber[] =>
+      marketData
+        // pregenerate volumeNumber for sorting to avoid recalculating it on every sort
+        .map((item) => ({ ...item, volumeNumber: parseVolume(item.volume) }))
+        .sort((a, b) => {
+          const volumeA = a.volumeNumber;
+          const volumeB = b.volumeNumber;
+          return volumeB - volumeA;
+        }),
+    [],
   );
 
   // Manual refresh function
