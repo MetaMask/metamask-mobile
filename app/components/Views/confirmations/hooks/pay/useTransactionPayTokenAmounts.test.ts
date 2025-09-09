@@ -40,8 +40,16 @@ describe('useTransactionPayTokenAmounts', () => {
 
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [
-        { address: TOKEN_ADDRESS_1_MOCK, totalFiat: 16.123 },
-        { address: TOKEN_ADDRESS_2_MOCK, totalFiat: 40.456 },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          amountRaw: '123',
+          totalFiat: 16.123,
+        },
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          amountRaw: '234',
+          totalFiat: 40.456,
+        },
       ],
       totalFiat: 56.579,
     } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
@@ -53,6 +61,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: tokenAddress1Mock,
         balance: '123.456',
         balanceFiat: '123.456',
+        balanceRaw: '1234560',
         chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'TST',
@@ -70,11 +79,13 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_1_MOCK,
         amountHuman: '4.03075',
         amountRaw: '40308',
+        targetAmountRaw: '123',
       },
       {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.114',
         amountRaw: '101140',
+        targetAmountRaw: '234',
       },
     ]);
   });
@@ -85,6 +96,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_2_MOCK,
           amountFiat: 40.455,
+          amountRaw: '234',
           balanceFiat: 40.456,
           totalFiat: 41,
           skipIfBalance: false,
@@ -100,6 +112,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountRaw: '234',
       },
     ]);
   });
@@ -110,6 +123,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_1_MOCK,
           amountFiat: 16.123,
+          amountRaw: '123',
           balanceFiat: 16.124,
           totalFiat: 17,
           skipIfBalance: true,
@@ -117,6 +131,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_2_MOCK,
           amountFiat: 40.456,
+          amountRaw: '234',
           balanceFiat: 40.455,
           totalFiat: 41,
           skipIfBalance: false,
@@ -132,6 +147,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountRaw: '234',
       },
     ]);
   });
@@ -142,12 +158,14 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: tokenAddress1Mock,
           amountFiat: 16.123,
+          amountRaw: '123',
           balanceFiat: 16.124,
           totalFiat: 17,
           skipIfBalance: false,
         },
         {
           address: TOKEN_ADDRESS_2_MOCK,
+          amountRaw: '234',
           amountFiat: 40.456,
           balanceFiat: 40.455,
           totalFiat: 41,
@@ -164,6 +182,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountRaw: '234',
       },
     ]);
   });
@@ -174,6 +193,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_1_MOCK,
           amountFiat: 16.123,
+          amountRaw: '123',
           balanceFiat: 16.124,
           totalFiat: 17,
           skipIfBalance: false,
@@ -181,6 +201,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_2_MOCK,
           amountFiat: 40.456,
+          amountRaw: '234',
           balanceFiat: 40.455,
           totalFiat: 41,
           skipIfBalance: false,
@@ -196,6 +217,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountRaw: '234',
       },
     ]);
   });

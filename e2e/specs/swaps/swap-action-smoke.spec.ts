@@ -4,7 +4,7 @@ import SoftAssert from '../../utils/SoftAssert';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import { SmokeTrade } from '../../tags.js';
+import { SmokeTrade } from '../../tags';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';

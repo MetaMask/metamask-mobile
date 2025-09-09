@@ -21,6 +21,7 @@ class PerpsConnectionManagerClass {
   private isConnecting = false;
   private isInitialized = false;
   private isDisconnecting = false;
+  private error: string | null = null;
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
   private disconnectPromise: Promise<void> | null = null;
@@ -119,6 +120,41 @@ class PerpsConnectionManagerClass {
     return PerpsConnectionManagerClass.instance;
   }
 
+  /**
+   * Set error state
+   */
+  private setError(error: string | Error): void {
+    const errorMessage = error instanceof Error ? error.message : error;
+    this.error = errorMessage;
+    DevLogger.log('PerpsConnectionManager: Error set', errorMessage);
+  }
+
+  /**
+   * Clear error state
+   */
+  private clearError(): void {
+    if (this.error) {
+      DevLogger.log('PerpsConnectionManager: Error cleared');
+      this.error = null;
+    }
+  }
+
+  /**
+   * Reset error state (public method for UI)
+   */
+  resetError(): void {
+    this.clearError();
+  }
+
+  /**
+   * Force an error state for development/testing purposes only
+   */
+  forceError(error: string): void {
+    if (__DEV__) {
+      this.setError(error);
+    }
+  }
+
   async connect(): Promise<void> {
     // Wait if we're still disconnecting
     if (this.isDisconnecting && this.disconnectPromise) {
@@ -157,6 +193,8 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           'PerpsConnectionManager: Connection is already active and healthy',
         );
+        // Clear any previous errors on successful connection
+        this.clearError();
         return Promise.resolve();
       } catch (error) {
         // Connection is stale, reset state and reconnect
@@ -170,6 +208,8 @@ class PerpsConnectionManagerClass {
     }
 
     this.isConnecting = true;
+    // Clear previous errors when starting connection attempt
+    this.clearError();
 
     this.initPromise = (async () => {
       try {
@@ -203,6 +243,8 @@ class PerpsConnectionManagerClass {
 
         this.isConnected = true;
         this.isConnecting = false;
+        // Clear errors on successful connection
+        this.clearError();
         DevLogger.log('PerpsConnectionManager: Successfully connected');
 
         // Pre-load positions and orders subscriptions to populate cache
@@ -211,6 +253,10 @@ class PerpsConnectionManagerClass {
         this.isConnecting = false;
         this.isConnected = false;
         this.isInitialized = false;
+        // Set error state for UI
+        this.setError(
+          error instanceof Error ? error : new Error(String(error)),
+        );
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -247,6 +293,8 @@ class PerpsConnectionManagerClass {
       this.isInitialized = false;
       this.isConnecting = false;
       this.hasPreloaded = false;
+      // Clear previous errors when starting reconnection attempt
+      this.clearError();
 
       // Force the controller to reinitialize with new context
       await Engine.context.PerpsController.reconnectWithNewContext();
@@ -283,6 +331,8 @@ class PerpsConnectionManagerClass {
       this.isConnected = true;
       this.isInitialized = true;
       this.isConnecting = false;
+      // Clear errors on successful reconnection
+      this.clearError();
       DevLogger.log(
         'PerpsConnectionManager: Successfully reconnected with new context',
       );
@@ -293,6 +343,8 @@ class PerpsConnectionManagerClass {
       this.isConnecting = false;
       this.isConnected = false;
       this.isInitialized = false;
+      // Set error state for UI - this is critical for reliability
+      this.setError(error instanceof Error ? error : new Error(String(error)));
       DevLogger.log(
         'PerpsConnectionManager: Reconnection with new context failed',
         error,
@@ -332,6 +384,7 @@ class PerpsConnectionManagerClass {
             this.isInitialized = false;
             this.isConnecting = false;
             this.hasPreloaded = false; // Reset pre-load flag on disconnect
+            this.clearError(); // Clear any errors on disconnect
 
             await Engine.context.PerpsController.disconnect();
 
@@ -490,6 +543,7 @@ class PerpsConnectionManagerClass {
       isConnecting: this.isConnecting,
       isInitialized: this.isInitialized,
       isDisconnecting: this.isDisconnecting,
+      error: this.error,
     };
   }
 

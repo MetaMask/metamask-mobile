@@ -4,11 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../../../reducers';
-import {
-  balanceToFiatNumber,
-  getCurrencySymbol,
-  limitToMaximumDecimalPlaces,
-} from '../../../../../util/number';
+import { getCurrencySymbol, isDecimal } from '../../../../../util/number';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import {
   selectConversionRateByChainId,
@@ -17,6 +13,7 @@ import {
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
+import { convertCurrency } from '../../utils/send';
 
 interface ConversionArgs {
   amount?: string;
@@ -32,8 +29,18 @@ export const getFiatValueFn = ({
   conversionRate,
   decimals,
   exchangeRate,
-}: ConversionArgs) =>
-  balanceToFiatNumber(amount ?? 0, conversionRate ?? 1, exchangeRate, decimals);
+}: ConversionArgs) => {
+  if (!amount || !isDecimal(amount)) {
+    return '0';
+  }
+
+  return convertCurrency(
+    amount ?? '0',
+    (conversionRate ?? 1) * (exchangeRate ?? 1),
+    decimals,
+    2,
+  ).toString();
+};
 
 export const getFiatDisplayValueFn = ({
   amount,
@@ -47,7 +54,7 @@ export const getFiatDisplayValueFn = ({
         exchangeRate,
         amount: amount ?? '0',
         decimals: 2,
-      }).toFixed(2)
+      })
     : '0.00';
   return `${getCurrencySymbol(currentCurrency)} ${amt}`;
 };
@@ -58,10 +65,16 @@ export const getNativeValueFn = ({
   decimals,
   exchangeRate,
 }: ConversionArgs) => {
-  let amt = amount ? parseFloat(amount) : 0;
-  amt = Number.isNaN(amt) ? 0 : amt;
-  const nativeValue = amt / ((conversionRate ?? 1) * exchangeRate);
-  return limitToMaximumDecimalPlaces(nativeValue, decimals ?? 0);
+  if (!amount || !isDecimal(amount)) {
+    return '0';
+  }
+
+  return convertCurrency(
+    amount ?? '0',
+    1 / ((conversionRate ?? 1) * (exchangeRate ?? 1)),
+    2,
+    decimals,
+  ).toString();
 };
 
 export const getNativeDisplayValueFn = ({
@@ -70,7 +83,7 @@ export const getNativeDisplayValueFn = ({
   conversionRate,
   exchangeRate,
 }: ConversionArgs) =>
-  `${asset?.symbol} ${getNativeValueFn({
+  `${asset?.ticker ?? asset?.symbol} ${getNativeValueFn({
     conversionRate,
     exchangeRate,
     amount: amount ?? '0',
@@ -100,13 +113,16 @@ export const useCurrencyConversions = () => {
     if (!asset?.address) {
       return 0;
     }
+    if ((asset as AssetType)?.fiat?.conversionRate) {
+      return (asset as AssetType)?.fiat?.conversionRate ?? 0;
+    }
     if (isEvmAddress(asset?.address)) {
       return conversionRateEvm ?? 0;
     }
     return parseFloat(
       multichainAssetsRates[asset?.address as CaipAssetType]?.rate ?? 0,
     );
-  }, [asset?.address, conversionRateEvm, multichainAssetsRates]);
+  }, [asset, conversionRateEvm, multichainAssetsRates]);
 
   const getFiatDisplayValue = useCallback(
     (amount: string) =>
@@ -135,9 +151,10 @@ export const useCurrencyConversions = () => {
       getFiatValueFn({
         conversionRate,
         exchangeRate,
+        decimals: (asset as AssetType)?.decimals,
         amount,
       }),
-    [conversionRate, exchangeRate],
+    [asset, conversionRate, exchangeRate],
   );
 
   const getNativeValue = useCallback(
@@ -146,8 +163,9 @@ export const useCurrencyConversions = () => {
         conversionRate,
         exchangeRate,
         amount,
+        decimals: (asset as AssetType)?.decimals,
       }),
-    [conversionRate, exchangeRate],
+    [asset, conversionRate, exchangeRate],
   );
 
   return {

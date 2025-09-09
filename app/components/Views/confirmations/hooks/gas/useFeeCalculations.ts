@@ -52,7 +52,7 @@ export const useFeeCalculations = (
   maxFeeNativePrecise: string | null;
   maxFeeNativeHex: string | null;
 } => {
-  const { chainId, gasLimitNoBuffer, layer1GasFee, networkClientId } =
+  const { chainId, gasLimitNoBuffer, gasUsed, layer1GasFee, networkClientId } =
     transactionMeta;
 
   const { nativeCurrency } =
@@ -70,6 +70,18 @@ export const useFeeCalculations = (
     useEIP1559TxFees(transactionMeta);
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
   const shouldHideFiat = isTestNet(chainId as Hex) && !showFiatOnTestnets;
+
+  // `gasUsed` is the gas limit actually used by the transaction in the
+  // simulation environment.
+  const optimizedGasLimit =
+    gasUsed ||
+    // While estimating gas for the transaction we add 50% gas limit buffer.
+    // With `gasLimitNoBuffer` that buffer is removed. see PR
+    // https://github.com/MetaMask/metamask-extension/pull/29502 for more
+    // details.
+    gasLimitNoBuffer ||
+    transactionMeta?.txParams?.gas ||
+    HEX_ZERO;
 
   const estimatedBaseFee = (gasFeeEstimates as GasFeeEstimates)
     ?.estimatedBaseFee;
@@ -120,17 +132,17 @@ export const useFeeCalculations = (
       calculateGasEstimateCallback({
         feePerGas: maxFeePerGas,
         priorityFeePerGas: maxPriorityFeePerGas,
-        gas: gasLimitNoBuffer ?? HEX_ZERO,
+        gas: optimizedGasLimit,
         shouldUseEIP1559FeeLogic: supportsEIP1559,
         gasPrice: txParamsGasPrice,
       }),
     [
-      txParamsGasPrice,
+      calculateGasEstimateCallback,
       maxFeePerGas,
       maxPriorityFeePerGas,
+      optimizedGasLimit,
       supportsEIP1559,
-      calculateGasEstimateCallback,
-      gasLimitNoBuffer,
+      txParamsGasPrice,
     ],
   );
 

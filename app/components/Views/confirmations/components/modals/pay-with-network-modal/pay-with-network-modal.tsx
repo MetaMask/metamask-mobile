@@ -17,5 +17,5 @@ export function PayWithNetworkModal() {
     [dispatch, navigation],
   );
 
-  return <BridgeSourceNetworkSelector onApply={handleApply} />;
+  return <BridgeSourceNetworkSelector onApply={handleApply} isEvmOnly />;
 }

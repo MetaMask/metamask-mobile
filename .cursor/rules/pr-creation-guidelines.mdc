@@ -131,7 +131,7 @@ Apply labels to enable automation and proper routing. Some labels can block merg
 - **QA labels**:
   - `needs-qa` (blocks merging until QA passes)
   - `No QA Needed`
-  - `Run E2E Smoke`
+  - `Run Smoke E2E`
   - `No E2E Smoke Needed`
   - `Spot check on release build`
 - **Blocking labels** (cannot merge while applied): `needs-qa`, `issues-found`, `blocked`, `DO-NOT-MERGE`
