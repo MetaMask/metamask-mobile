@@ -231,7 +231,7 @@ describe('PerpsTabControlBar', () => {
       expect(screen.getByText('+$50.75 (0.00%)')).toBeOnTheScreen(); // Formatted PnL
     });
 
-    it('renders both balance and PnL pills when has orders', async () => {
+    it('renders only balance pill when has orders only', async () => {
       jest
         .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
         .mockReturnValue({
@@ -242,7 +242,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar hasPositions={false} hasOrders />);
 
       expect(screen.getByText('Available Balance')).toBeOnTheScreen();
-      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
     it('hides balance pill when balance is zero and no positions/orders', async () => {

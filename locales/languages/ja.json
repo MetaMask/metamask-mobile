@@ -1318,8 +1318,7 @@
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
-      "perps_sandbox_button": "Perps Sandbox"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
     },
     "transactions": {
       "title": "Perps",
@@ -2312,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "アプリに戻る",
+    "postNetworkSwitchTitle": "ネットワークが正常に切り替わりました",
     "description": "サービスの使用を続けるには、アプリに戻ってください。"
   },
   "sdk_feedback_modal": {

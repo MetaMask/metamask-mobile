@@ -1318,8 +1318,7 @@
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
-      "perps_sandbox_button": "Perps Sandbox"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
     },
     "transactions": {
       "title": "Perps",
@@ -2312,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Quay lại ứng dụng",
+    "postNetworkSwitchTitle": "Đã chuyển mạng thành công",
     "description": "Vui lòng quay lại ứng dụng để tiếp tục sử dụng các dịch vụ của họ."
   },
   "sdk_feedback_modal": {

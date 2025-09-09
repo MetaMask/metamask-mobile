@@ -10,6 +10,7 @@ import type {
   PerpsMarketData,
 } from '../controllers/types';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -269,6 +270,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    */
   public async prewarm(): Promise<() => void> {
     if (this.prewarmUnsubscribe) {
+      DevLogger.log('PriceStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -314,7 +316,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         },
       });
 
-      return this.prewarmUnsubscribe;
+      // Return a cleanup function that properly clears internal state
+      return () => {
+        DevLogger.log('PriceStreamChannel: Cleaning up prewarm subscription');
+        this.cleanupPrewarm();
+      };
     } catch (error) {
       DevLogger.log('PriceStreamChannel: Failed to prewarm prices', error);
       // Return no-op cleanup function
@@ -369,6 +375,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
    */
   public prewarm(): () => void {
     if (this.prewarmUnsubscribe) {
+      DevLogger.log('OrderStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -380,7 +387,11 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
       throttleMs: 0, // No throttle for pre-warm
     });
 
-    return this.prewarmUnsubscribe;
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('OrderStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
   }
 
   /**
@@ -434,6 +445,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
    */
   public prewarm(): () => void {
     if (this.prewarmUnsubscribe) {
+      DevLogger.log('PositionStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -445,7 +457,11 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       throttleMs: 0, // No throttle for pre-warm
     });
 
-    return this.prewarmUnsubscribe;
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('PositionStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
   }
 
   public clearCache(): void {
@@ -530,6 +546,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
    */
   public prewarm(): () => void {
     if (this.prewarmUnsubscribe) {
+      DevLogger.log('AccountStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -541,7 +558,11 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       throttleMs: 0, // No throttle for pre-warm
     });
 
-    return this.prewarmUnsubscribe;
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('AccountStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
   }
 
   /**
@@ -717,11 +738,26 @@ const PerpsStreamContext = createContext<PerpsStreamManager | null>(null);
 export const PerpsStreamProvider: React.FC<{
   children: React.ReactNode;
   testStreamManager?: PerpsStreamManager; // Only for testing
-}> = ({ children, testStreamManager }) => (
-  <PerpsStreamContext.Provider value={testStreamManager || streamManager}>
-    {children}
-  </PerpsStreamContext.Provider>
-);
+}> = ({ children, testStreamManager }) => {
+  // Check for E2E mock stream manager
+  const e2eMockStreamManager =
+    getE2EMockStreamManager() as PerpsStreamManager | null;
+
+  const selectedManager: PerpsStreamManager =
+    testStreamManager || e2eMockStreamManager || streamManager;
+
+  DevLogger.log('PerpsStreamProvider: Using stream manager:', {
+    isTestManager: !!testStreamManager,
+    isE2EMockManager: !!e2eMockStreamManager,
+    isRealManager: selectedManager === streamManager,
+  });
+
+  return (
+    <PerpsStreamContext.Provider value={selectedManager}>
+      {children}
+    </PerpsStreamContext.Provider>
+  );
+};
 
 export const usePerpsStream = () => {
   const context = useContext(PerpsStreamContext);

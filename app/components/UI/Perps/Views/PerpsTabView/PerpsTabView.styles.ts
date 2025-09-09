@@ -6,6 +6,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
+    tradeInfoContainer: {
+      paddingBottom: 12,
+    },
     firstTimeIcon: {
       width: 48,
       height: 48,
@@ -19,9 +22,10 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
     },
-    section: {
-      marginBottom: 24,
+    contentContainer: {
+      flexGrow: 1,
     },
+    section: {},
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -29,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
     },
     sectionTitle: {
-      paddingTop: 8,
+      paddingTop: 16,
     },
     emptyContainer: {
       padding: 24,
@@ -50,6 +54,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     firstTimeContent: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -93,7 +98,8 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'flex-end',
     },
     startTradeCTA: {
-      marginVertical: 4,
+      paddingVertical: 12,
+      marginVertical: 2,
       borderRadius: 8,
     },
     startTradeContent: {
