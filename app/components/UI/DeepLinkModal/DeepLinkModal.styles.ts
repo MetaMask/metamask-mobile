@@ -38,9 +38,6 @@ const styleSheet = (params: { theme: Theme }) => {
     storeLink: {
       textDecorationLine: 'underline',
     },
-    storeLinkPressable: {
-      alignSelf: 'flex-start',
-    },
     storeLinkContainer: {
       marginTop: 16,
       textAlign: 'center',

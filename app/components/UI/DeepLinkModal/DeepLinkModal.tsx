@@ -98,18 +98,14 @@ const ModalDescription = memo<{
           color={TextColor.Alternative}
           style={styles.storeLinkContainer}
         >
-          <Pressable
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Primary}
+            style={styles.storeLink}
             onPress={onOpenMetaMaskStore}
-            style={styles.storeLinkPressable}
           >
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
-              style={styles.storeLink}
-            >
-              {updateToStoreLink}
-            </Text>
-          </Pressable>
+            {updateToStoreLink}
+          </Text>
           {wellTakeYouToRightPlace}
         </Text>
       )}
