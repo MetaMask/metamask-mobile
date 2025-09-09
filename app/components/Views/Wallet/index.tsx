@@ -140,7 +140,6 @@ import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
-import { swapsUtils } from '@metamask/swaps-controller';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -505,14 +504,6 @@ const Wallet = ({
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    sourceToken: {
-      address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-      chainId: chainId as Hex,
-      decimals: 18,
-      symbol: nativeCurrency || 'ETH',
-      name: nativeCurrency || 'Ethereum',
-      image: '',
-    },
   });
 
   // Hook for handling non-EVM asset sending
