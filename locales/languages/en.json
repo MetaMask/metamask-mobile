@@ -1337,11 +1337,11 @@
       },
       "receive": {
         "title": "Receive",
-        "content": "The amount of USDC you'll receive in your wallet after withdrawal."
+        "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
       },
       "withdrawal_fees": {
         "title": "Provider Fee",
-        "content": "A network fee charged for processing your withdrawal transaction."
+        "content": "A flat fee charged by the provider on each withdrawal."
       },
       "tp_sl": {
         "title": "Take Profit & Stop Loss",
