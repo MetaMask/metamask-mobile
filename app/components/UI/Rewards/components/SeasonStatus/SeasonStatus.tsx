@@ -20,7 +20,6 @@ import {
   selectSeasonTiers,
   selectBalanceTotal,
   selectSeasonEndDate,
-  selectSeasonStartDate,
   selectNextTierPointsNeeded,
   selectCurrentTier,
   selectNextTier,
@@ -54,7 +53,6 @@ const SeasonStatus: React.FC = () => {
   const balanceTotal = useSelector(selectBalanceTotal);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
   const seasonEndDate = useSelector(selectSeasonEndDate);
-  const seasonStartDate = useSelector(selectSeasonStartDate);
   const theme = useTheme();
 
   const progress = React.useMemo(() => {
@@ -94,7 +92,7 @@ const SeasonStatus: React.FC = () => {
     return tiers.findIndex((tier) => tier.id === currentTier.id) + 1;
   }, [tiers, currentTier]);
 
-  if (seasonStatusLoading || !seasonStartDate || !currentTier) {
+  if (seasonStatusLoading) {
     return <Skeleton height={115} width="100%" />;
   }
 

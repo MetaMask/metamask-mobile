@@ -455,7 +455,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
@@ -1094,7 +1094,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
