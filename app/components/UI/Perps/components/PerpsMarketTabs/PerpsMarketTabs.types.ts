@@ -17,6 +17,10 @@ export interface PerpsMarketTabsProps {
   onActiveTabChange?: (tabId: string) => void;
   activeTabId?: string;
   /**
+   * Initial tab to select when component mounts
+   */
+  initialTab?: 'position' | 'orders' | 'statistics';
+  /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */
   nextFundingTime?: number;
