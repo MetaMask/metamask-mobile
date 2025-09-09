@@ -39,11 +39,17 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import { useParams } from '../../../../util/navigation/navUtils';
 import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
 
 import styleSheet from './styles';
-import type { Params as PrivateKeyListParams, AddressItem } from './types';
+import type { AddressItem } from './types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation';
+
+type PrivateKeyListProps = StackScreenProps<
+  RootParamList,
+  'MultichainPrivateKeyList'
+>;
 
 /**
  * Check if the account has the private key available according to its keyring type.
@@ -59,12 +65,9 @@ const hasPrivateKeyAvailable = (account: InternalAccount) =>
 /**
  * AddressList component displays a list of addresses spread by scopes.
  *
- * @param props - Component properties.
- * @returns {JSX.Element} The rendered component.
  */
-export const PrivateKeyList = () => {
-  const { groupId, title } = useParams<PrivateKeyListParams>();
-
+export const PrivateKeyList = ({ route }: PrivateKeyListProps) => {
+  const { groupId, title } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const [password, setPassword] = useState<string>('');

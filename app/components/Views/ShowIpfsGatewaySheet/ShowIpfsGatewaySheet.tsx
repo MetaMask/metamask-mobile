@@ -10,17 +10,19 @@ import Text from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import { useParams } from '../../../util/navigation/navUtils';
-import { ShowIpfsGatewaySheetParams } from './ShowIpfsGatewaySheet.types';
 import SheetActionView from '../../../components/UI/SheetActionView';
 
 // Internal dependencies
 import createStyles from './ShowIpfsGatewaySheet.styles';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
-const ShowIpfsGatewaySheet = () => {
+type ShowIpfsGatewaySheetProps = StackScreenProps<RootParamList, 'ShowIpfs'>;
+
+const ShowIpfsGatewaySheet = ({ route }: ShowIpfsGatewaySheetProps) => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { setIpfsBannerVisible } = useParams<ShowIpfsGatewaySheetParams>();
+  const { setIpfsBannerVisible } = route.params;
   const handleSheetDismiss = () => null;
 
   const onConfirm = () => {

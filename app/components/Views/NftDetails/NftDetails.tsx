@@ -8,11 +8,9 @@ import {
 import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NftDetails.styles';
 import Routes from '../../../constants/navigation/Routes';
-import { NftDetailsParams } from './NftDetails.types';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import StyledButton from '../../../components/UI/StyledButton';
 import NftDetailsBox from './NftDetailsBox';
@@ -52,10 +50,14 @@ import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
-const NftDetails = () => {
+type NftDetailsProps = StackScreenProps<RootParamList, 'NftDetails'>;
+
+const NftDetails = ({ route }: NftDetailsProps) => {
   const navigation = useNavigation();
-  const { collectible } = useParams<NftDetailsParams>();
+  const { collectible } = route.params;
   const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);

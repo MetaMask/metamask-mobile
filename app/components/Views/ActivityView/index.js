@@ -32,7 +32,6 @@ import {
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { useParams } from '../../../util/navigation/navUtils';
 import {
   isRemoveGlobalNetworkSelectorEnabled,
   getNetworkImageSource,
@@ -120,7 +119,7 @@ const createStyles = (params) => {
   });
 };
 
-const ActivityView = () => {
+const ActivityView = ({ route }) => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -150,7 +149,7 @@ const ActivityView = () => {
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const tabViewRef = useRef();
-  const params = useParams();
+  const params = route.params;
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(
     () => perpsEnabledFlag && isEvmSelected,

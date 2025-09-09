@@ -19,20 +19,26 @@ import { getNetworkImageSource } from '../../../../../../util/networks';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { useTransactionRequiredTokens } from '../../../hooks/pay/useTransactionRequiredTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 
-export function PayWithModal() {
+type PayWithModalProps = StackScreenProps<
+  RootParamList,
+  'ConfirmationPayWithModal'
+>;
+
+export function PayWithModal({ route }: PayWithModalProps) {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const navigation = useNavigation();
   const { payToken, setPayToken } = useTransactionPayToken();
-  const { minimumFiatBalance } = useParams<{ minimumFiatBalance?: number }>();
+  const { minimumFiatBalance } = route.params;
   const { chainId: transactionChainId } = useTransactionMetadataRequest() ?? {};
   const requiredTokens = useTransactionRequiredTokens();
 

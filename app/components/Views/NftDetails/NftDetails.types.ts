@@ -1,9 +1,9 @@
 import { Nft } from '@metamask/assets-controllers';
 import { StyleProp, ViewProps, ViewStyle } from 'react-native';
 
-export interface NftDetailsParams {
+export type NftDetailsParams = {
   collectible: Nft;
-}
+};
 
 export interface NftDetailsInformationRowProps extends ViewProps {
   title: string;

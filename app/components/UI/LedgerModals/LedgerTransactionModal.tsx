@@ -4,31 +4,18 @@ import Engine from '../../../core/Engine';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { createStyles } from './styles';
-import { useParams } from '../../../util/navigation/navUtils';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { speedUpTransaction } from '../../../util/transaction-controller';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
+import { LedgerReplacementTxTypes } from './LedgerTransactionModal.types';
 
-export enum LedgerReplacementTxTypes {
-  SPEED_UP = 'speedUp',
-  CANCEL = 'cancel',
-}
+type LedgerTransactionModalProps = StackScreenProps<
+  RootParamList,
+  'LedgerTransactionModal'
+>;
 
-export interface ReplacementTxParams {
-  type: LedgerReplacementTxTypes;
-  eip1559GasFee?: {
-    maxFeePerGas?: string;
-    maxPriorityFeePerGas?: string;
-  };
-}
-
-export interface LedgerTransactionModalParams {
-  onConfirmationComplete: (confirmed: boolean) => void;
-  transactionId: string;
-  deviceId: string;
-  replacementParams?: ReplacementTxParams;
-}
-
-const LedgerTransactionModal = () => {
+const LedgerTransactionModal = ({ route }: LedgerTransactionModalProps) => {
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
@@ -37,7 +24,7 @@ const LedgerTransactionModal = () => {
   const { TransactionController, ApprovalController } = Engine.context as any;
 
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
-    useParams<LedgerTransactionModalParams>();
+    route.params;
 
   const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
 

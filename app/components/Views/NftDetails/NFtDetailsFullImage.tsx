@@ -2,15 +2,20 @@ import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { getNftFullImageNavbarOptions } from '../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NftDetails.styles';
-import { NftDetailsParams } from './NftDetails.types';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
-const NftDetailsFullImage = () => {
+type NftDetailsFullImageProps = StackScreenProps<
+  RootParamList,
+  'NftDetailsFullImage'
+>;
+
+const NftDetailsFullImage = ({ route }: NftDetailsFullImageProps) => {
   const navigation = useNavigation();
-  const { collectible } = useParams<NftDetailsParams>();
+  const { collectible } = route.params;
 
   const {
     styles,

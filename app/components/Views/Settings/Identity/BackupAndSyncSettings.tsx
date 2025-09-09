@@ -6,29 +6,31 @@ import {
 } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
-
 import { useTheme } from '../../../../util/theme';
-
 import { useStyles } from '../../../../component-library/hooks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
-
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import styleSheet, {
   styles as navigationOptionsStyles,
 } from './BackupAndSyncSettings.styles';
-import { useParams } from '../../../../util/navigation/navUtils';
 import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import BackupAndSyncFeaturesToggles from '../../../UI/Identity/BackupAndSyncFeaturesToggles/BackupAndSyncFeaturesToggles';
 import { strings } from '../../../../../locales/i18n';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation';
 
-const BackupAndSyncSettings = () => {
+type BackupAndSyncSettingsProps = StackScreenProps<
+  RootParamList,
+  'BackupAndSyncSettings'
+>;
+
+const BackupAndSyncSettings = ({ route }: BackupAndSyncSettingsProps) => {
   const navigation = useNavigation();
   const theme = useTheme();
-  const params = useParams<{ isFullScreenModal: boolean }>();
+  const params = route.params;
   const isFullScreenModal = params?.isFullScreenModal;
   // Style
   const { colors } = theme;

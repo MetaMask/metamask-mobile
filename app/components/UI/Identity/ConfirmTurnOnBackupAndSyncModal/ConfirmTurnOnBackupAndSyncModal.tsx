@@ -13,14 +13,20 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import ModalContent from '../../Notification/Modal';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
-import { useParams } from '../../../../util/navigation/navUtils';
-import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncToggle/BackupAndSyncToggle';
 import { InteractionManager } from 'react-native';
+import type { RootParamList } from '../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
 
-const ConfirmTurnOnBackupAndSyncModal = () => {
+type ConfirmTurnOnBackupAndSyncModalProps = StackScreenProps<
+  RootParamList,
+  'ConfirmTurnOnBackupAndSync'
+>;
+
+const ConfirmTurnOnBackupAndSyncModal = ({
+  route,
+}: ConfirmTurnOnBackupAndSyncModalProps) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
-    useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
+  const { enableBackupAndSync, trackEnableBackupAndSyncEvent } = route.params;
 
   const dispatch = useDispatch();
 

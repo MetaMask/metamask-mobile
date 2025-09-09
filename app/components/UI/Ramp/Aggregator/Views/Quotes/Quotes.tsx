@@ -11,8 +11,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
-  CryptoCurrency,
-  FiatCurrency,
   ProviderBuyFeatureBrowserEnum,
   QuoteResponse,
   SellQuoteResponse,
@@ -46,7 +44,6 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import LoadingAnimation from '../../components/LoadingAnimation';
 import useInterval from '../../../../../hooks/useInterval';
@@ -58,16 +55,15 @@ import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import { endTrace, TraceName } from '../../../../../../util/trace';
-export interface QuotesParams {
-  amount: number | string;
-  asset: CryptoCurrency;
-  fiatCurrency: FiatCurrency;
-}
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 
-function Quotes() {
+type QuotesProps = StackScreenProps<RootParamList, 'Quotes'>;
+
+function Quotes({ route }: QuotesProps) {
+  const { params } = route;
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
-  const params = useParams<QuotesParams>();
 
   const {
     selectedPaymentMethodId,

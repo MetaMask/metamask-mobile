@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useParams } from '../../../util/navigation/navUtils';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
@@ -35,6 +34,8 @@ import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 import { Hex } from '@metamask/utils';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
 const RenderBalance = (asset: {
   symbol: string;
@@ -67,11 +68,10 @@ const RenderBalance = (asset: {
   );
 };
 
-const ConfirmAddAsset = () => {
-  const { selectedAsset, networkName, addTokenList } =
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useParams<any>();
+type ConfirmAddAssetProps = StackScreenProps<RootParamList, 'ConfirmAddAsset'>;
+
+const ConfirmAddAsset = ({ route }: ConfirmAddAssetProps) => {
+  const { selectedAsset, networkName, addTokenList } = route.params;
 
   const { colors } = useTheme();
   const styles = createStyles(colors);

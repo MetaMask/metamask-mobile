@@ -40,10 +40,8 @@ import Text from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './AddAsset.styles';
-import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
@@ -59,6 +57,8 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
 export enum FilterOption {
   AllNetworks,
@@ -70,6 +70,8 @@ export interface FilterHandlerParams {
   allNetworksEnabled: Record<string, boolean>;
   chainId: string;
 }
+
+type AddAssetProps = StackScreenProps<RootParamList, 'AddAsset'>;
 
 export const handleFilterControlsPress = ({
   option,
@@ -91,9 +93,9 @@ export const handleFilterControlsPress = ({
   }
 };
 
-const AddAsset = () => {
+const AddAsset = ({ route }: AddAssetProps) => {
   const navigation = useNavigation();
-  const { assetType, collectibleContract } = useParams<AddAssetParams>();
+  const { assetType, collectibleContract } = route.params;
 
   const {
     styles,

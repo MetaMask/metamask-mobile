@@ -11,14 +11,16 @@ import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
 import createStyles from './ShowTokenIdSheet.styles';
-import { useParams } from '../../../util/navigation/navUtils';
-import { ShowTokenIdSheetParams } from './ShowTokenIdSheet.types';
 import { View } from 'react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
-const ShowTokenIdSheet = () => {
+type ShowTokenIdSheetProps = StackScreenProps<RootParamList, 'ShowTokenId'>;
+
+const ShowTokenIdSheet = ({ route }: ShowTokenIdSheetProps) => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { tokenId } = useParams<ShowTokenIdSheetParams>();
+  const { tokenId } = route.params;
 
   return (
     <BottomSheet ref={sheetRef}>

@@ -13,7 +13,6 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import type { TokenI } from '../../components/UI/Tokens/types';
 import type { BuyQuote } from '@consensys/native-ramps-sdk';
-import type { CryptoCurrency, FiatCurrency } from '@consensys/on-ramp-sdk';
 import type { BasicInfoFormData } from '../../components/UI/Ramp/Deposit/Views/BasicInfo/BasicInfo';
 import type { AddressFormData } from '../../components/UI/Ramp/Deposit/Views/EnterAddress/EnterAddress';
 import type {
@@ -48,6 +47,23 @@ import { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundAct
 import { PerpsRouteParams } from '../../components/UI/Perps/controllers/types';
 import { PerpsOrderViewParams } from '../../components/UI/Perps/Views/PerpsOrderView/types';
 import { StakeEarningsHistoryViewParams } from '../../components/UI/Stake/Views/StakeEarningsHistoryView/StakeEarningsHistoryView.types';
+import { CollectibleModalParams } from '../../components/UI/CollectibleModal/CollectibleModal.types';
+import { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DefiProtocolPositionDetails.types';
+import { ConfirmTurnOnBackupAndSyncModalParams } from '../../components/UI/Identity/ConfirmTurnOnBackupAndSyncModal/types';
+import { LedgerMessageSignModalParams } from '../../components/UI/LedgerModals/LedgerMessageSignModal.types';
+import { LedgerTransactionModalParams } from '../../components/UI/LedgerModals/LedgerTransactionModal.types';
+import { QuotesParams } from '../../components/UI/Ramp/Aggregator/Views/Quotes/Quotes.types';
+import { ActivationKeyFormParams } from '../../components/UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm.types';
+import { AddAssetParams } from '../../components/Views/AddAsset/AddAsset.types';
+import { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.types';
+import { PrivateKeyListParams } from '../../components/Views/MultichainAccounts/PrivateKeyList/types';
+import { NftDetailsParams } from '../../components/Views/NftDetails/NftDetails.types';
+import { NftOptionsParams } from '../../components/Views/NftOptions/NftOptions.types';
+import { RestoreWalletParams } from '../../components/Views/RestoreWallet/RestoreWallet.test';
+import { DeveloperOptionsParams } from '../../components/Views/Settings/DeveloperOptions/DeveloperOptions.types';
+import { BackupAndSyncSettingsParams } from '../../components/Views/Settings/Identity/BackupAndSyncSettings.types';
+import { SecuritySettingsParams } from '../../components/Views/Settings/SecuritySettings/SecuritySettings.types';
+import { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -61,7 +77,7 @@ export type RootParamList = {
   DefaultSettings: undefined;
   GeneralSettings: undefined;
   AssetsSettings: undefined;
-  SecuritySettings: undefined;
+  SecuritySettings: SecuritySettingsParams;
   OnboardingSuccessFlow: undefined;
   OnboardingNav: undefined;
   HomeNav: undefined;
@@ -97,9 +113,7 @@ export type RootParamList = {
   QRTabSwitcher: QRTabSwitcherParams;
 
   // Vault Recovery
-  RestoreWallet: {
-    previousScreen: string;
-  };
+  RestoreWallet: RestoreWalletParams;
   WalletRestored: undefined;
   WalletResetNeeded: undefined;
 
@@ -260,12 +274,12 @@ export type RootParamList = {
         caller: string;
       }
     | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync: ConfirmTurnOnBackupAndSyncModalParams;
   ResetNotifications: undefined;
   ReturnToDappModal: undefined;
   AccountActions: { selectedAccount: InternalAccount };
   SettingsAdvancedFiatOnTestnetsFriction: undefined;
-  ShowIpfs: undefined;
+  ShowIpfs: ShowIpfsGatewaySheetParams;
   ShowNftDisplayMedia: undefined;
   ShowTokenId: undefined;
   AmbiguousAddress: undefined;
@@ -311,9 +325,7 @@ export type RootParamList = {
     chainId: string;
     asset: any;
   };
-  NftOptions: {
-    collectible: Collectible;
-  };
+  NftOptions: NftOptionsParams;
 
   // Hardware Wallet
   ConnectHardwareWalletFlow: undefined;
@@ -343,10 +355,7 @@ export type RootParamList = {
     groupId: AccountGroupId;
     title: string;
   };
-  MultichainPrivateKeyList: {
-    title: string;
-    groupId: AccountGroupId;
-  };
+  MultichainPrivateKeyList: PrivateKeyListParams;
   MultichainAccountActions: {
     accountGroup: AccountGroupObject;
   };
@@ -360,7 +369,7 @@ export type RootParamList = {
     address: string;
   };
   SmartAccountOptIn: undefined;
-  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithModal: PayWithModalParams;
   ConfirmationPayWithNetworkModal: undefined;
 
   // Main App Screens
@@ -369,18 +378,17 @@ export type RootParamList = {
   EditAccountName: {
     selectedAccount: InternalAccount;
   };
-  TransactionsView: undefined;
+  TransactionsView:
+    | {
+        redirectToOrders?: boolean;
+        redirectToPerpsTransactions?: boolean;
+      }
+    | undefined;
   TransactionDetails: undefined;
 
   // Ledger Modals
-  LedgerTransactionModal: undefined;
-  LedgerMessageSignModal: {
-    messageParams: any;
-    onConfirmationComplete: (confirmed: boolean, rawSignature?: any) => void;
-    version: any;
-    type: any;
-    deviceId: string;
-  };
+  LedgerTransactionModal: LedgerTransactionModalParams;
+  LedgerMessageSignModal: LedgerMessageSignModalParams;
 
   // Bridge Routes
   Bridge: undefined;
@@ -451,11 +459,7 @@ export type RootParamList = {
         quote?: BuyQuote;
       }
     | undefined;
-  Quotes: {
-    amount: number | string;
-    asset: CryptoCurrency;
-    fiatCurrency: FiatCurrency;
-  };
+  Quotes: QuotesParams;
   Checkout: {
     url: string;
     customOrderId?: string;
@@ -478,12 +482,7 @@ export type RootParamList = {
     orderId?: string;
     redirectToSendTransaction?: boolean;
   };
-  RampActivationKeyForm: {
-    onSubmit: (key: string, label: string, active: boolean) => void;
-    key: string;
-    active: boolean;
-    label: string;
-  };
+  RampActivationKeyForm: ActivationKeyFormParams;
   SendTransaction: {
     orderId: string;
   };
@@ -644,7 +643,7 @@ export type RootParamList = {
   Main: undefined;
   ReviewModal: undefined;
   Home: undefined;
-  CollectiblesDetails: { contractName: string; collectible: Nft };
+  CollectiblesDetails: CollectibleModalParams;
   DeprecatedNetworkDetails: undefined;
   Asset: {
     address?: string;
@@ -665,8 +664,8 @@ export type RootParamList = {
   AddBookmarkView: undefined;
   OfflineModeView: undefined;
   NotificationsView: undefined;
-  NftDetails: { collectible: Nft };
-  NftDetailsFullImage: { collectible: Nft };
+  NftDetails: NftDetailsParams;
+  NftDetailsFullImage: NftDetailsParams;
   PaymentRequestView: undefined;
   Swaps:
     | {
@@ -678,7 +677,7 @@ export type RootParamList = {
   SwapsAmountView: undefined;
   SwapsQuotesView: undefined;
   SetPasswordFlow: undefined;
-  DeFiProtocolPositionDetails: undefined;
+  DeFiProtocolPositionDetails: DeFiProtocolPositionDetailsParams;
   CardRoutes: undefined;
   StakeScreens: undefined;
   StakeModals: undefined;
@@ -702,9 +701,20 @@ export type RootParamList = {
   WalletTabStackFlow: {
     screen: string;
   };
-  AddAsset: undefined;
+  AddAsset: AddAssetParams;
   Collectible: undefined;
-  ConfirmAddAsset: undefined;
+  ConfirmAddAsset: {
+    selectedAsset: {
+      address: string;
+      symbol: string;
+      decimals: number;
+      iconUrl: string;
+      name: string;
+      chainId: string;
+    }[];
+    networkName: string;
+    addTokenList: () => Promise<void>;
+  };
 
   // Settings Flow Screens
   Settings: undefined;
@@ -720,10 +730,10 @@ export type RootParamList = {
   ResetPassword: undefined;
   WalletRecovery: undefined;
   AesCryptoTestForm: undefined;
-  EnterPasswordSimple: undefined;
+  EnterPasswordSimple: { onPasswordSet: (password: string) => void };
   NotificationsSettings: undefined;
-  BackupAndSyncSettings: undefined;
-  DeveloperOptions: undefined;
+  BackupAndSyncSettings: BackupAndSyncSettingsParams | undefined;
+  DeveloperOptions: DeveloperOptionsParams | undefined;
   RevealPrivateCredentialView: {
     credentialName: string;
     shouldUpdateNav?: boolean;
@@ -738,6 +748,7 @@ export type RootParamList = {
   NotificationsDetails: undefined;
 
   // Browser Flow Screens
+  BrowserTabHome: undefined;
   BrowserView: {
     url?: string; // Component accesses props.route?.params?.url
     linkType?: string; // Component accesses props.route?.params?.linkType

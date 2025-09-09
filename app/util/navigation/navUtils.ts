@@ -8,6 +8,12 @@ export type NavigationDetails<T extends NavigationParams = NavigationParams> =
   readonly [string, T];
 
 type RouteParams<T extends object> = RouteProp<{ route: T }, 'route'>;
+
+/**
+ * Gets the params from the navigation route.
+ *
+ * @deprecated Use props.route in screens or useRoute in hooks if types are known
+ */
 export const useParams = <
   T extends object | undefined,
   Strict extends boolean = false,

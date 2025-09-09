@@ -31,11 +31,6 @@ interface Props {
   trackBackupAndSyncToggleEventOverride?: (newValue: boolean) => void;
 }
 
-export interface ConfirmTurnOnBackupAndSyncModalNavigateParams {
-  enableBackupAndSync: () => Promise<void>;
-  trackEnableBackupAndSyncEvent: () => void;
-}
-
 const BackupAndSyncToggle = ({
   trackBackupAndSyncToggleEventOverride,
 }: Readonly<Props>) => {

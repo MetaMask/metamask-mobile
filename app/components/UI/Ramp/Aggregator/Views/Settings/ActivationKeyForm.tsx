@@ -16,29 +16,23 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 
 import { getNavigationOptionsTitle } from '../../../../Navbar';
-import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { regex } from '../../../../../../util/regex';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 
 // Internal dependencies
 import styles from './Settings.styles';
 
-interface ActivationKeyFormParams {
-  onSubmit: (key: string, label: string, active: boolean) => void;
-  key: string;
-  active: boolean;
-  label: string;
-}
+type ActivationKeyFormProps = StackScreenProps<
+  RootParamList,
+  'RampActivationKeyForm'
+>;
 
-function ActivationKeyForm() {
+function ActivationKeyForm({ route }: ActivationKeyFormProps) {
   const navigation = useNavigation();
-  const {
-    key,
-    label: initialLabel,
-    active,
-    onSubmit,
-  } = useParams<ActivationKeyFormParams>();
+  const { key, label: initialLabel, active, onSubmit } = route.params;
   const [activationKey, setActivationKey] = useState(key ?? '');
   const [label, setLabel] = useState(initialLabel ?? '');
   const { colors } = useTheme();

@@ -22,7 +22,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import Routes from '../../../constants/navigation/Routes';
 import {
   useMetrics,
@@ -30,16 +29,12 @@ import {
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { toHex } from '@metamask/controller-utils';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
-interface Props {
-  route: {
-    params: {
-      collectible: Collectible;
-    };
-  };
-}
+type NftOptionsProps = StackScreenProps<RootParamList, 'NftOptions'>;
 
-const NftOptions = (props: Props) => {
+const NftOptions = (props: NftOptionsProps) => {
   const { collectible } = props.route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
@@ -98,6 +93,7 @@ const NftOptions = (props: Props) => {
 
   const removeNft = () => {
     const { NftController } = Engine.context;
+    // @ts-expect-error - Handle undefined chainId case
     const nftChainNetwork = networkConfigurations[toHex(collectible.chainId)];
     const nftNetworkClientId =
       nftChainNetwork?.rpcEndpoints?.[nftChainNetwork?.defaultRpcEndpointIndex]

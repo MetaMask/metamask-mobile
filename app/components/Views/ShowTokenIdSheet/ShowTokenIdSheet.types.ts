@@ -1,3 +1,3 @@
-export interface ShowTokenIdSheetParams {
+export type ShowTokenIdSheetParams = {
   tokenId: string;
-}
+};

@@ -20,9 +20,7 @@ import {
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
 import styles from './CollectibleModal.styles';
-import { CollectibleModalParams } from './CollectibleModal.types';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
@@ -31,14 +29,21 @@ import { Nft } from '@metamask/assets-controllers';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
+import type { RootParamList } from '../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
 
-const CollectibleModal = () => {
+type CollectibleModalProps = StackScreenProps<
+  RootParamList,
+  'CollectiblesDetails'
+>;
+
+const CollectibleModal = ({ route }: CollectibleModalProps) => {
+  const { contractName, collectible } = route.params;
+
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectChainId);
-
-  const { contractName, collectible } = useParams<CollectibleModalParams>();
 
   const modalRef = useRef<ReusableModalRef>(null);
 

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { createStyles } from './styles';
-import { useParams } from '../../../util/navigation/navUtils';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,29 +10,15 @@ import { RootState } from '../../../reducers';
 
 import { RPCStageTypes, iEventGroup } from '../../../reducers/rpcEvents';
 import { resetEventStage } from '../../../actions/rpcEvents';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
-export interface LedgerMessageSignModalParams {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  messageParams: any;
-  onConfirmationComplete: (
-    confirmed: boolean,
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rawSignature?: any,
-  ) => Promise<void>;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  version: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deviceId: any;
-}
+type LedgerMessageSignModalProps = StackScreenProps<
+  RootParamList,
+  'LedgerMessageSignModal'
+>;
 
-const LedgerMessageSignModal = () => {
+const LedgerMessageSignModal = ({ route }: LedgerMessageSignModalProps) => {
   const dispatch = useDispatch();
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
@@ -42,8 +27,7 @@ const LedgerMessageSignModal = () => {
     (state: RootState) => state.rpcEvents,
   );
 
-  const { onConfirmationComplete, deviceId } =
-    useParams<LedgerMessageSignModalParams>();
+  const { onConfirmationComplete, deviceId } = route.params;
 
   const dismissModal = useCallback(() => {
     modalRef?.current?.dismissModal();

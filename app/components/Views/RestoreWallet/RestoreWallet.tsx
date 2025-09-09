@@ -7,24 +7,23 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StyledButton from '../../UI/StyledButton';
-import { useParams } from '../../../util/navigation/navUtils';
 import EngineService from '../../../core/EngineService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
-interface RestoreWalletParams {
-  previousScreen: string;
-}
 
-const RestoreWallet = () => {
+type RestoreWalletProps = StackScreenProps<RootParamList, 'RestoreWallet'>;
+
+const RestoreWallet = ({ route }: RestoreWalletProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useAppThemeFromContext();
   const styles = createStyles(colors);
@@ -34,7 +33,7 @@ const RestoreWallet = () => {
   const { replace } = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
-  const { previousScreen } = useParams<RestoreWalletParams>();
+  const { previousScreen } = route.params;
 
   useEffect(() => {
     trackEvent(

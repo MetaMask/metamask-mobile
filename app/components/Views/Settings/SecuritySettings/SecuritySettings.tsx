@@ -50,9 +50,8 @@ import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
 import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
-import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
+import { HeadingProps } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../../util/navigation/navUtils';
 import {
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
@@ -83,6 +82,10 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation';
+
+type SettingsProps = StackScreenProps<RootParamList, 'SecuritySettings'>;
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -96,13 +99,13 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   );
 };
 
-const Settings: React.FC = () => {
+const Settings: React.FC<SettingsProps> = ({ route }) => {
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
   const navigation = useNavigation();
-  const params = useParams<SecuritySettingsParams>();
+  const { params } = route;
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =

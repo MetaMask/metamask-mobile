@@ -10,9 +10,9 @@ export interface HeadingProps {
   children: React.ReactNode;
 }
 
-export interface SecuritySettingsParams {
+export type SecuritySettingsParams = {
   scrollToDetectNFTs?: boolean;
-}
+};
 
 export interface EtherscanNetworksType {
   [key: string]: { domain: string; subdomain: string; networkId: string };

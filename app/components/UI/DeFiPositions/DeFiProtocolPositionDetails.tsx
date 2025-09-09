@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
-import { GroupedDeFiPositions } from '@metamask/assets-controllers';
-import { ImageSourcePropType, View } from 'react-native';
+import { View } from 'react-native';
 import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../Navbar';
 import Text, {
   TextColor,
@@ -21,21 +19,24 @@ import SensitiveText, {
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
+
+type DeFiProtocolPositionDetailsProps = StackScreenProps<
+  RootParamList,
+  'DeFiProtocolPositionDetails'
+>;
 
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';
 
-interface DeFiProtocolPositionDetailsParams {
-  protocolAggregate: GroupedDeFiPositions['protocols'][number];
-  networkIconAvatar: ImageSourcePropType | undefined;
-}
-
-const DeFiProtocolPositionDetails: React.FC = () => {
+const DeFiProtocolPositionDetails: React.FC<
+  DeFiProtocolPositionDetailsProps
+> = ({ route }) => {
   const { styles } = useStyles(styleSheet, undefined);
   const navigation = useNavigation();
 
-  const { protocolAggregate, networkIconAvatar } =
-    useParams<DeFiProtocolPositionDetailsParams>();
+  const { protocolAggregate, networkIconAvatar } = route.params;
   const privacyMode = useSelector(selectPrivacyMode);
 
   useEffect(() => {
