@@ -1031,7 +1031,7 @@ class AuthenticationService {
     if (!success) {
       const errorMessage = (seedlessSyncError as Error).message;
       Logger.log(
-        seedlessSyncError as Error,
+        seedlessSyncError,
         `error while submitting global password: ${errorMessage}`,
       );
 
