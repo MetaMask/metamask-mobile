@@ -21,6 +21,7 @@ import {
   formatPnl,
   formatPercentage,
 } from '../../utils/formatUtils';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
 
 interface PerpsTabControlBarProps {
@@ -151,6 +152,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         <TouchableOpacity
           style={balancePillContainerStyle}
           onPress={handlePress}
+          testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
         >
           <View style={styles.leftSection}>
             <Text
@@ -167,6 +169,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
                 style={styles.valueText}
                 variant={TextVariant.HeadingSM}
                 color={TextColor.Default}
+                testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
               >
                 {formatPerpsFiat(availableBalance)}
               </Text>

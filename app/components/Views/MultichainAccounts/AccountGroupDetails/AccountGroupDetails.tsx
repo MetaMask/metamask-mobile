@@ -43,6 +43,12 @@ import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
 
@@ -109,12 +115,22 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   );
 
   const navigateToAddressList = useCallback(() => {
+    // Start the trace before navigating to the address list so that the
+    // navigation and render time are included in the trace.
+    trace({
+      name: TraceName.ShowAccountAddressList,
+      op: TraceOperation.AccountUi,
+    });
+
     navigation.navigate(
       ...createAddressListNavigationDetails({
         groupId: id,
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           metadata.name
         }`,
+        onLoad: () => {
+          endTrace({ name: TraceName.ShowAccountAddressList });
+        },
       }),
     );
   }, [id, metadata.name, navigation]);
