@@ -21,7 +21,6 @@ import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
-import { TabBarProps } from './TabBar.types';
 import {
   ICON_BY_TAB_BAR_ICON_KEY,
   LABEL_BY_TAB_BAR_ICON_KEY,
@@ -29,7 +28,10 @@ import {
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
-const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
+// Internal dependencies.
+import type { CustomTabBarProps, TabBarRoute } from './TabBar.types';
+
+const TabBar = ({ state, descriptors, navigation }: CustomTabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
@@ -38,7 +40,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const tw = useTailwind();
 
   const renderTabBarItem = useCallback(
-    (route: { name: string; key: string }, index: number) => {
+    (route: TabBarRoute, index: number) => {
       const { options } = descriptors[route.key];
       const tabBarIconKey = options.tabBarIconKey;
       //TODO: use another option on add it to the prop interface
@@ -121,7 +123,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   );
 
   const renderTabBarItems = useCallback(
-    () => state.routes.map(renderTabBarItem),
+    () => state.routes.map((route, index) => renderTabBarItem(route, index)),
     [state, renderTabBarItem],
   );
 

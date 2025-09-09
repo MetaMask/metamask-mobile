@@ -1,10 +1,12 @@
 // Third party dependencies.
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type {
+  Descriptor,
+  ParamListBase,
+  RouteProp,
+} from '@react-navigation/native';
 import {
-  BottomTabBarOptions,
-  BottomTabBarProps,
-} from '@react-navigation/bottom-tabs';
-import {
-  BottomTabDescriptor,
+  BottomTabNavigationProp,
   BottomTabNavigationOptions,
 } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
@@ -30,21 +32,24 @@ export type IconByTabBarIconKey = {
   [key in TabBarIconKey]: IconName;
 };
 
-interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
-  options: BottomTabNavigationOptions & {
-    tabBarIconKey: TabBarIconKey;
-    callback: () => void;
-    rootScreenName: string;
-  };
-}
-
-type TabBarOptions = BottomTabBarOptions & {
-  descriptors: {
-    [key: string]: ExtendedBottomTabDescriptor;
-  };
-};
-
 /**
  * TabBar component props.
  */
-export type TabBarProps = BottomTabBarProps<TabBarOptions>;
+export type CustomTabBarProps = {
+  state: BottomTabBarProps['state'];
+  descriptors: {
+    [key: string]: Descriptor<
+      BottomTabNavigationOptions & {
+        tabBarIconKey: TabBarIconKey;
+        callback: () => void;
+        rootScreenName: string;
+      },
+      BottomTabNavigationProp<ParamListBase>,
+      RouteProp<ParamListBase>
+    >;
+  };
+  navigation: BottomTabBarProps['navigation'];
+  insets: BottomTabBarProps['insets'];
+};
+
+export type TabBarRoute = BottomTabBarProps['state']['routes'][number];
