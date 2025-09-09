@@ -1,6 +1,8 @@
 import type { Position, Order } from '../../controllers/types';
 import { usePerpsMarketStats } from '../../hooks';
 
+export type PerpsTabId = 'position' | 'orders' | 'statistics';
+
 export interface TabViewProps {
   tabLabel: string;
 }
@@ -19,7 +21,7 @@ export interface PerpsMarketTabsProps {
   /**
    * Initial tab to select when component mounts
    */
-  initialTab?: 'position' | 'orders' | 'statistics';
+  initialTab?: PerpsTabId;
   /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */

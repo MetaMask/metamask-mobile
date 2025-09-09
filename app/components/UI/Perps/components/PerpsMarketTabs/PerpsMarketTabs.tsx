@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
-import { PerpsMarketTabsProps } from './PerpsMarketTabs.types';
+import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -90,14 +90,16 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   }, [position, unfilledOrders.length]);
 
   // Initialize with initialTab or statistics by default
-  const [activeTabId, setActiveTabId] = useState(initialTab || 'statistics');
+  const [activeTabId, setActiveTabId] = useState<PerpsTabId>(
+    initialTab || 'statistics',
+  );
 
   // Handle initialTab when it becomes available after data loads
   useEffect(() => {
     if (initialTab && !hasUserInteracted.current && !hasSetInitialTab.current) {
       const availableTabs = tabs.map((t) => t.id);
       if (availableTabs.includes(initialTab)) {
-        setActiveTabId(initialTab as 'position' | 'orders' | 'statistics');
+        setActiveTabId(initialTab as PerpsTabId);
         onActiveTabChange?.(initialTab);
         hasSetInitialTab.current = true;
       }
@@ -144,7 +146,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         previousTab: activeTabId,
         isLoadingPosition,
       });
-      setActiveTabId(targetTabId);
+      setActiveTabId(targetTabId as PerpsTabId);
       onActiveTabChange?.(targetTabId);
     }
   }, [
@@ -161,7 +163,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!tabIds.includes(activeTabId)) {
       // Switch to first available tab if current tab is hidden
       const newTabId = tabs[0]?.id || 'statistics';
-      setActiveTabId(newTabId);
+      setActiveTabId(newTabId as PerpsTabId);
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
@@ -170,7 +172,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const handleTabChange = useCallback(
     (tabId: string) => {
       hasUserInteracted.current = true; // Mark that user has interacted
-      setActiveTabId(tabId);
+      setActiveTabId(tabId as PerpsTabId);
       onActiveTabChange?.(tabId);
     },
     [onActiveTabChange],

@@ -57,6 +57,7 @@ import {
 } from '../../hooks';
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
@@ -75,6 +76,7 @@ import ButtonSemantic, {
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  initialTab?: PerpsTabId;
   isNavigationFromOrderSuccess?: boolean;
 }
 
