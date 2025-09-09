@@ -1309,7 +1309,7 @@ describe('Authentication', () => {
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
+      expect(Logger.log).toHaveBeenCalledWith(expect.any(Error), 'unknown');
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
@@ -1342,7 +1342,7 @@ describe('Authentication', () => {
 
       expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(importError);
+      expect(Logger.log).toHaveBeenCalledWith(importError);
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
@@ -1417,7 +1417,7 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(Logger.log).toHaveBeenCalledWith(error);
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });

@@ -977,7 +977,7 @@ class AuthenticationService {
               }
             } catch (error) {
               // catch error to prevent unable to login
-              Logger.log(error as Error);
+              Logger.log(error);
             }
           }
         }
@@ -994,7 +994,7 @@ class AuthenticationService {
       }
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
-      Logger.log(error as Error);
+      Logger.log(error);
       throw error;
     }
   };
@@ -1113,7 +1113,7 @@ class AuthenticationService {
         });
       return isSeedlessPasswordOutdated;
     } catch (error) {
-      Logger.log(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      Logger.log(error, 'Error in checkIsSeedlessPasswordOutdated');
       return false;
     }
   };
