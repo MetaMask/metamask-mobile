@@ -21,7 +21,7 @@ const ACM_ERRORS_REGEX = {
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   readonly #scope = ['email', 'profile', 'openid'];
 
-  private retries: number = 0;
+  private retried: boolean = false;
 
   protected clientId: string;
 
@@ -85,8 +85,8 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             OAuthErrorType.UserCancelled,
           );
         } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
-          if (this.retries === 0) {
-            this.retries++;
+          if (!this.retried) {
+            this.retried = true;
             return await this.login();
           }
           throw new OAuthError(
@@ -96,8 +96,8 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         } else if (
           ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
         ) {
-          if (this.retries === 0) {
-            this.retries++;
+          if (!this.retried) {
+            this.retried = true;
             return await this.login();
           }
           throw new OAuthError(
