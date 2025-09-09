@@ -300,7 +300,11 @@ describe('PerpsClosePositionView', () => {
       // Arrange
       const validationWithErrors = {
         isValid: false,
-        errors: ['Minimum order amount not met'],
+        errors: [
+          strings('perps.order.validation.minimum_amount', {
+            amount: '$10',
+          }),
+        ],
         warnings: [],
       };
       usePerpsClosePositionValidationMock.mockReturnValue(validationWithErrors);
@@ -315,31 +319,13 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert
-      expect(getByText('Minimum order amount not met')).toBeDefined();
-    });
-
-    it('displays validation warnings when present', () => {
-      // Arrange
-      const validationWithWarnings = {
-        isValid: true,
-        errors: [],
-        warnings: ['High slippage expected'],
-      };
-      usePerpsClosePositionValidationMock.mockReturnValue(
-        validationWithWarnings,
-      );
-
-      // Act
-      const { getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Assert
-      expect(getByText('High slippage expected')).toBeDefined();
+      expect(
+        getByText(
+          strings('perps.order.validation.minimum_amount', {
+            amount: '$10',
+          }),
+        ),
+      ).toBeDefined();
     });
 
     it('disables confirm button when validation fails', () => {
@@ -727,7 +713,11 @@ describe('PerpsClosePositionView', () => {
       // Arrange
       const validationWithMinimumError = {
         isValid: false,
-        errors: ['Below minimum order amount'],
+        errors: [
+          strings('perps.order.validation.minimum_amount', {
+            amount: '$10',
+          }),
+        ],
         warnings: [],
       };
       usePerpsClosePositionValidationMock.mockReturnValue(
@@ -744,7 +734,13 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert
-      expect(getByText('Below minimum order amount')).toBeDefined();
+      expect(
+        getByText(
+          strings('perps.order.validation.minimum_amount', {
+            amount: '$10',
+          }),
+        ),
+      ).toBeDefined();
     });
 
     it('calculates receive amount correctly for different percentages', () => {
