@@ -205,6 +205,32 @@ describe('MultiSRP Actions', () => {
       });
     });
 
+    it('(state 2) - gracefully handle errors during discovery with new SRP', async () => {
+      // Arrange
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        getAccounts: () => [testAddress],
+        id: 'keyring-id-123',
+      });
+      mockDiscoverAndCreateAccounts.mockRejectedValue(
+        new Error('Discovery failed'),
+      );
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(testMnemonic);
+
+      // Assert
+      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
+        'keyring-id-123',
+      );
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 0, // Discovery has failed.
+      });
+    });
+
     it('throws error when attempting to import an already imported mnemonic', async () => {
       // Arrange
       const existingMnemonicCodePoints = new Uint16Array(
