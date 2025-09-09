@@ -541,7 +541,7 @@ describe('useAccountGroupsForPermissions', () => {
       const requestedCaipAccountIds: CaipAccountId[] = [
         `eip155:1:${mockEvmAccount2.address}` as CaipAccountId,
       ];
-      const requestedCaipChainIds: CaipChainId[] = ['eip155:1' as CaipChainId];
+      const requestedCaipChainIds: CaipChainId[] = [];
       const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
 
       const { result } = renderHookWithStore(
