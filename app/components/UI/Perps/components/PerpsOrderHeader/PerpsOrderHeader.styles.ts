@@ -34,16 +34,17 @@ export const createStyles = (colors: Theme['colors']) =>
     headerTitle: {
       fontSize: 18,
     },
-    headerPriceChange: {
-      fontSize: 16,
-    },
     marketButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
       paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
+      paddingVertical: 8,
+      borderRadius: 12,
       backgroundColor: colors.background.muted,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
+    },
+    marketButtonIcon: {
+      marginLeft: 2,
     },
     tokenIcon: {
       width: 24,

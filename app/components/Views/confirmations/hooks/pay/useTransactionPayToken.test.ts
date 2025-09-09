@@ -11,10 +11,10 @@ import {
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { BridgeToken } from '../../../../UI/Bridge/types';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 
-jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
+jest.mock('../tokens/useTokenWithBalance');
 
 const STATE_MOCK = merge(
   simpleSendTransactionControllerMock,
@@ -58,14 +58,15 @@ function runHook({
 }
 
 describe('useTransactionPayToken', () => {
-  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
+  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
 
   beforeEach(() => {
     jest.resetAllMocks();
-    useTokensWithBalanceMock.mockReturnValue([BRIDGE_TOKEN_MOCK]);
+    useTokenWithBalanceMock.mockReturnValue(BRIDGE_TOKEN_MOCK as never);
   });
 
   it('returns undefined if no state', () => {
+    useTokenWithBalanceMock.mockReset();
     const { result } = runHook();
     expect(result.current.payToken).toBeUndefined();
   });
@@ -75,7 +76,10 @@ describe('useTransactionPayToken', () => {
       payToken: PAY_TOKEN_MOCK,
     });
 
-    expect(result.current.payToken).toStrictEqual(BRIDGE_TOKEN_MOCK);
+    expect(result.current.payToken).toStrictEqual({
+      ...BRIDGE_TOKEN_MOCK,
+      balanceRaw: '1234560',
+    });
   });
 
   it('sets token in state', () => {

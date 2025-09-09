@@ -16,12 +16,15 @@ import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { CardSDK } from '../sdk/CardSDK';
 import { ARBITRARY_ALLOWANCE } from '../constants';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
   selectCardPriorityToken,
   selectCardPriorityTokenLastFetched,
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
 } from '../../../../core/redux/slices/card';
+import Engine from '../../../../core/Engine';
+import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -104,8 +107,6 @@ const fetchAllowances = async (
  * This hook implements a caching strategy where if the priority token was fetched less than 5 minutes ago,
  * it returns the cached value. Otherwise, it fetches a new priority token from the Card SDK.
  *
- * @param {string} [address] - Ethereum address of the user whose card token priority is to be fetched.
- * @param {boolean} [shouldFetch=true] - Whether the hook should attempt to fetch if cache is stale.
  * @returns {{
  * fetchPriorityToken: () => Promise<CardTokenAllowance | null>,
  * isLoading: boolean,
@@ -118,19 +119,23 @@ const fetchAllowances = async (
  * - error: any error encountered while fetching
  * - priorityToken: the cached or newly fetched priority token
  */
-export const useGetPriorityCardToken = (
-  selectedAddress?: string,
-  shouldFetch: boolean = true,
-) => {
+export const useGetPriorityCardToken = () => {
   const dispatch = useDispatch();
+  const { TokensController, NetworkController } = Engine.context;
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingAddToken, setIsLoadingAddToken] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
   // Extract controller state
   const allTokenBalances = useSelector(selectAllTokenBalances);
-  const priorityToken = useSelector(selectCardPriorityToken);
-  const lastFetched = useSelector(selectCardPriorityTokenLastFetched);
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:0',
+  )?.address;
+  const priorityToken = useSelector(selectCardPriorityToken(selectedAddress));
+  const lastFetched = useSelector(
+    selectCardPriorityTokenLastFetched(selectedAddress),
+  );
 
   // Helper to check if cache is still valid (less than 5 minutes old)
   const isCacheValid = useCallback(() => {
@@ -208,22 +213,52 @@ export const useGetPriorityCardToken = (
             } as CardTokenAllowance;
 
             // Update cache with fallback token
-            dispatch(setCardPriorityToken(fallbackToken));
-            dispatch(setCardPriorityTokenLastFetched(new Date()));
+            dispatch(
+              setCardPriorityToken({
+                address: selectedAddress,
+                token: fallbackToken,
+              }),
+            );
+            dispatch(
+              setCardPriorityTokenLastFetched({
+                address: selectedAddress,
+                lastFetched: new Date(),
+              }),
+            );
 
             return fallbackToken;
           }
 
-          dispatch(setCardPriorityToken(null));
-          dispatch(setCardPriorityTokenLastFetched(new Date()));
+          dispatch(
+            setCardPriorityToken({
+              address: selectedAddress,
+              token: null,
+            }),
+          );
+          dispatch(
+            setCardPriorityTokenLastFetched({
+              address: selectedAddress,
+              lastFetched: new Date(),
+            }),
+          );
           return null;
         }
 
         const validAllowances = filterNonZeroAllowances(cardTokenAllowances);
         if (validAllowances.length === 0) {
           const defaultToken = cardTokenAllowances[0] || null;
-          dispatch(setCardPriorityToken(defaultToken));
-          dispatch(setCardPriorityTokenLastFetched(new Date()));
+          dispatch(
+            setCardPriorityToken({
+              address: selectedAddress,
+              token: defaultToken,
+            }),
+          );
+          dispatch(
+            setCardPriorityTokenLastFetched({
+              address: selectedAddress,
+              lastFetched: new Date(),
+            }),
+          );
           return defaultToken;
         }
 
@@ -278,8 +313,18 @@ export const useGetPriorityCardToken = (
         }
 
         // Update cache with the final token and current timestamp
-        dispatch(setCardPriorityToken(finalToken));
-        dispatch(setCardPriorityTokenLastFetched(new Date()));
+        dispatch(
+          setCardPriorityToken({
+            address: selectedAddress,
+            token: finalToken,
+          }),
+        );
+        dispatch(
+          setCardPriorityTokenLastFetched({
+            address: selectedAddress,
+            lastFetched: new Date(),
+          }),
+        );
 
         return finalToken;
       } catch (err) {
@@ -297,7 +342,7 @@ export const useGetPriorityCardToken = (
     }, [sdk, selectedAddress, getBalancesForChain, dispatch]);
 
   useEffect(() => {
-    if (!selectedAddress || !shouldFetch) {
+    if (!selectedAddress) {
       return;
     }
 
@@ -310,20 +355,86 @@ export const useGetPriorityCardToken = (
     fetchPriorityToken();
   }, [
     selectedAddress,
-    shouldFetch,
     cacheIsValid,
     priorityToken,
     fetchPriorityToken,
     lastFetched,
   ]);
 
+  // Add priorityToken to the TokenListController if it exists
+  useEffect(() => {
+    let isCancelled = false;
+
+    const addToken = async () => {
+      try {
+        if (priorityToken && !isCancelled) {
+          const { allTokens } = TokensController.state;
+          const allTokensPerChain =
+            allTokens[priorityToken.chainId as Hex] || {};
+          const allTokensPerAddress =
+            allTokensPerChain[selectedAddress?.toLowerCase() as Hex] || [];
+          const isNotOnAllTokens = !allTokensPerAddress?.find(
+            (token) =>
+              token.address?.toLowerCase() ===
+              priorityToken.address?.toLowerCase(),
+          );
+
+          if (isNotOnAllTokens && !isCancelled) {
+            const iconUrl = buildTokenIconUrl(
+              priorityToken.chainId,
+              priorityToken.address,
+            );
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(
+                priorityToken.chainId as Hex,
+              );
+            setIsLoadingAddToken(true);
+            await TokensController.addToken({
+              address: priorityToken.address,
+              symbol: priorityToken.symbol as string,
+              decimals: priorityToken.decimals as number,
+              name: priorityToken.name as string,
+              image: iconUrl,
+              networkClientId,
+            });
+            if (!isCancelled) {
+              setIsLoadingAddToken(false);
+            }
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          const normalizedError =
+            err instanceof Error ? err : new Error(String(err));
+          Logger.error(
+            normalizedError,
+            'useGetPriorityCardToken::error adding priority token',
+          );
+          setIsLoadingAddToken(false);
+          setError(true);
+        }
+      }
+    };
+
+    addToken();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [priorityToken, TokensController, NetworkController, selectedAddress]);
+
   // Determine if we should show loading state
   // Only show loading if we're actively fetching AND don't have cached data
   const shouldShowLoading = isLoading && (!priorityToken || !cacheIsValid);
 
+  const isLoadingFinal = useMemo(
+    () => isLoadingAddToken || shouldShowLoading,
+    [isLoadingAddToken, shouldShowLoading],
+  );
+
   return {
     fetchPriorityToken,
-    isLoading: shouldShowLoading,
+    isLoading: isLoadingFinal,
     error,
     priorityToken,
   };

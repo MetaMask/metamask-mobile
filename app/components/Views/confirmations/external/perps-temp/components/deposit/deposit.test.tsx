@@ -23,6 +23,7 @@ jest.mock('../../hooks/usePerpsDepositView');
 jest.mock('../../../../hooks/useTokenAsset');
 jest.mock('../../../../hooks/useTokenAmount');
 jest.mock('../../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../../hooks/pay/useTransactionBridgeQuotes');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -57,17 +58,20 @@ describe('PerpsDeposit', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         address: '0x123',
-        chainId: '0x1',
         balance: '0',
         balanceFiat: '0',
+        balanceRaw: '0',
+        chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
+        tokenFiatAmount: 0,
       },
       setPayToken: noop,
     });
 
     usePerpsDepositViewMock.mockReturnValue({
       isFullView: false,
+      isPayTokenSelected: false,
     });
 
     useTokenAssetMock.mockReturnValue({

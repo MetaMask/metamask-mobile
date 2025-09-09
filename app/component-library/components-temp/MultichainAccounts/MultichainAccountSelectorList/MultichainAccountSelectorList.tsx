@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -151,6 +152,20 @@ const MultichainAccountSelectorList = ({
     return items;
   }, [filteredWalletSections]);
 
+  // Reset scroll to top when search text changes
+  useEffect(() => {
+    if (listRefToUse.current) {
+      // Use requestAnimationFrame to ensure the list has finished re-rendering
+      const animationFrameId = requestAnimationFrame(() => {
+        listRefToUse.current?.scrollToOffset({ offset: 0, animated: false });
+      });
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
+    }
+  }, [debouncedSearchText, listRefToUse]);
+
   // Listen for account creation and scroll to new account
   useEffect(() => {
     if (lastCreatedAccountId && listRefToUse.current) {
@@ -176,13 +191,12 @@ const MultichainAccountSelectorList = ({
     setLastCreatedAccountId(newAccountId);
   }, []);
 
-  // Handle account selection with debouncing to prevent rapid successive calls
+  // Handle account selection/deselection toggle
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
-      if (selectedIdSet.has(accountGroup.id)) return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedIdSet],
+    [onSelectAccount],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
@@ -283,6 +297,9 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
+            renderScrollComponent={
+              ScrollView as React.ComponentType<ScrollViewProps>
+            }
             {...props}
           />
         )}

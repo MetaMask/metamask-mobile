@@ -3,17 +3,25 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
+import { noop } from 'lodash';
 
-const log = createProjectLogger('transaction-pay');
+const logger = createProjectLogger('transaction-pay');
 
 /**
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
-export function useTransactionPayTokenAmounts() {
+export function useTransactionPayTokenAmounts({
+  amountOverrides,
+  log: isLoggingEnabled,
+}: {
+  amountOverrides?: Record<Hex, string>;
+  log?: boolean;
+} = {}) {
   const { payToken } = useTransactionPayToken();
   const { address, chainId, decimals } = payToken ?? {};
+  const log = isLoggingEnabled ? logger : noop;
 
   const fiatRequests = useMemo(() => {
     if (!address || !chainId) {
@@ -28,8 +36,16 @@ export function useTransactionPayTokenAmounts() {
     ];
   }, [address, chainId]);
 
+  const safeAmountOverrides = useDeepMemo(
+    () => amountOverrides,
+    [amountOverrides],
+  );
+
   const tokenFiatRate = useTokenFiatRates(fiatRequests)[0];
-  const { values } = useTransactionRequiredFiat();
+
+  const { values } = useTransactionRequiredFiat({
+    amountOverrides: safeAmountOverrides,
+  });
 
   const amounts = useDeepMemo(() => {
     if (!address || !chainId || !tokenFiatRate || !decimals) {
@@ -38,6 +54,7 @@ export function useTransactionPayTokenAmounts() {
 
     return values
       .filter((value) => {
+        const { address: currentAddress } = value;
         const hasBalance = value.balanceFiat > value.amountFiat;
 
         const isSameTokenSelected =
@@ -45,7 +62,7 @@ export function useTransactionPayTokenAmounts() {
 
         const hasOtherTokenWithoutBalance = values.some(
           (v) =>
-            v.address.toLowerCase() !== address.toLowerCase() &&
+            v.address.toLowerCase() !== currentAddress.toLowerCase() &&
             v.balanceFiat < v.amountFiat,
         );
 
@@ -73,13 +90,18 @@ export function useTransactionPayTokenAmounts() {
         return true;
       })
       .map((value) => {
-        const amountHuman = new BigNumber(value.totalFiat).div(tokenFiatRate);
-        const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
+        const amountHumanValue = new BigNumber(value.totalFiat).div(
+          tokenFiatRate,
+        );
+
+        const amountHuman = amountHumanValue.toString(10);
+        const amountRaw = amountHumanValue.shiftedBy(decimals).toFixed(0);
 
         return {
           address: value.address,
-          amountHuman: amountHuman.toString(10),
+          amountHuman,
           amountRaw,
+          targetAmountRaw: value.amountRaw,
         };
       });
   }, [address, chainId, decimals, tokenFiatRate, values]);
@@ -104,7 +126,7 @@ export function useTransactionPayTokenAmounts() {
       totalHuman,
       totalRaw,
     });
-  }, [amounts, totalHuman, totalRaw]);
+  }, [amounts, log, totalHuman, totalRaw]);
 
   return {
     amounts,

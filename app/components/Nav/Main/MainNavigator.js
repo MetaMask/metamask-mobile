@@ -47,6 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -102,6 +103,7 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -113,6 +115,9 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
+import { useRewardsAuth } from '../../UI/Rewards/hooks/useRewardsAuth';
+import ErrorModal from '../../UI/Rewards/components/ErrorModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -223,6 +228,10 @@ const TransactionsHome = () => (
       component={ActivityView}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
+    />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
       name={Routes.DEPOSIT.ORDER_DETAILS}
@@ -235,6 +244,26 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
       component={BridgeTransactionDetails}
+    />
+  </Stack.Navigator>
+);
+
+const RewardsHome = () => {
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
+  if (!isRewardsEnabled) {
+    return null;
+  }
+
+  return <RewardsNavigator />;
+};
+
+const RewardsModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_ERROR_MODAL}
+      component={ErrorModal}
     />
   </Stack.Navigator>
 );
@@ -333,6 +362,7 @@ const SettingsFlow = () => (
       component={SecuritySettings}
       options={SecuritySettings.navigationOptions}
     />
+
     <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
     <Stack.Screen
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
@@ -462,11 +492,18 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
+const UnmountOnBlurComponent = (children) => (
+  <UnmountOnBlur>{children}</UnmountOnBlur>
+);
+
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
+  const { hasAccountedOptedIn } = useRewardsAuth();
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -525,6 +562,15 @@ const HomeTabs = () => {
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
     },
+    rewards: {
+      tabBarIconKey: TabBarIconKey.Rewards,
+      callback: () => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
+        );
+      },
+      rootScreenName: Routes.REWARDS_VIEW,
+    },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
@@ -558,6 +604,12 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
+    const currentRoute = state.routes[state.index];
+    // Hide tab bar for rewards onboarding splash screen
+    if (currentRoute.name === Routes.REWARDS_VIEW && !hasAccountedOptedIn) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar
@@ -594,13 +646,21 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-
-      <Tab.Screen
-        name={Routes.SETTINGS_VIEW}
-        options={options.settings}
-        component={SettingsFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {isRewardsEnabled ? (
+        <Tab.Screen
+          name={Routes.REWARDS_VIEW}
+          options={options.rewards}
+          component={RewardsHome}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      )}
     </Tab.Navigator>
   );
 };
@@ -768,7 +828,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -809,6 +869,7 @@ const MainNavigator = () => {
   const { enabled: isSendRedesignEnabled } = useSelector(
     selectSendRedesignFlags,
   );
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   return (
     <Stack.Navigator
@@ -845,6 +906,13 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      {isRewardsEnabled && (
+        <Stack.Screen
+          name={Routes.SETTINGS_VIEW}
+          component={SettingsFlow}
+          options={{ headerShown: false }}
+        />
+      )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
@@ -901,7 +969,13 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.ROOT}
+            component={PerpsScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}

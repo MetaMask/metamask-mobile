@@ -7,8 +7,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
-  getOnboardingCarouselNavbarOptions,
   getOnboardingNavbarOptions,
+  getSettingsNavigationOptions,
   getTransparentOnboardingNavbarOptions,
   getWalletNavbarOptions,
 } from '.';
@@ -146,18 +146,6 @@ describe('getDepositNavbarOptions', () => {
     const headerLeftComponent = options.headerLeft();
     headerLeftComponent.props.onPress();
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('getOnboardingCarouselNavbarOptions', () => {
-  it('render onboarding carousel navbar options with default props', () => {
-    const options = getOnboardingCarouselNavbarOptions();
-    expect(options).toBeDefined();
-  });
-
-  it('render onboarding carousel navbar options with custom background color', () => {
-    const options = getOnboardingCarouselNavbarOptions('red');
-    expect(options.headerStyle.backgroundColor).toBe('red');
   });
 });
 
@@ -508,6 +496,174 @@ describe('getWalletNavbarOptions', () => {
         // Call the header function with minimal props to ensure it doesn't throw
         const headerComponent = options.header({});
         expect(headerComponent).toBeDefined();
+      }).not.toThrow();
+    });
+  });
+});
+
+describe('getSettingsNavigationOptions', () => {
+  const mockTitle = 'Settings';
+  const mockThemeColors = {
+    background: {
+      default: '#FFFFFF',
+    },
+  };
+
+  describe('Basic Functionality', () => {
+    it('should return navigation options object', () => {
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+
+      expect(options).toBeDefined();
+      expect(typeof options).toBe('object');
+    });
+
+    it('should set headerLeft to null', () => {
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+
+      expect(options.headerLeft).toBeNull();
+    });
+
+    it('should return headerTitle as a function', () => {
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+
+      expect(options.headerTitle).toBeDefined();
+      expect(typeof options.headerTitle).toBe('function');
+    });
+
+    it('should include headerStyle with correct background color', () => {
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+
+      expect(options.headerStyle).toBeDefined();
+      expect(options.headerStyle.backgroundColor).toBe(
+        mockThemeColors.background.default,
+      );
+    });
+
+    it('should set transparent shadow and elevation', () => {
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+
+      expect(options.headerStyle.shadowColor).toBe('transparent');
+      expect(options.headerStyle.elevation).toBe(0);
+    });
+  });
+
+  describe('HeaderTitle Component', () => {
+    it('should render MorphText component with correct props', () => {
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+      const HeaderTitleComponent = options.headerTitle;
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <HeaderTitleComponent />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      expect(getByText(mockTitle)).toBeDefined();
+    });
+
+    it('should display the provided title text', () => {
+      const customTitle = 'Custom Settings Title';
+      const options = getSettingsNavigationOptions(
+        customTitle,
+        mockThemeColors,
+      );
+      const HeaderTitleComponent = options.headerTitle;
+
+      const { getByText } = renderWithProvider(<HeaderTitleComponent />, {
+        state: { engine: { backgroundState } },
+      });
+
+      expect(getByText(customTitle)).toBeDefined();
+    });
+  });
+
+  describe('Parameter Validation', () => {
+    it('should handle different title types', () => {
+      const titles = ['Settings', 'Privacy & Security', 'Networks', ''];
+
+      titles.forEach((title) => {
+        expect(() => {
+          const options = getSettingsNavigationOptions(title, mockThemeColors);
+          expect(options).toBeDefined();
+          expect(options.headerTitle).toBeDefined();
+        }).not.toThrow();
+      });
+    });
+
+    it('should handle different theme colors', () => {
+      const themeVariations = [
+        { background: { default: '#000000' } },
+        { background: { default: '#FFFFFF' } },
+        { background: { default: '#F5F5F5' } },
+      ];
+
+      themeVariations.forEach((theme) => {
+        expect(() => {
+          const options = getSettingsNavigationOptions(mockTitle, theme);
+          expect(options).toBeDefined();
+          expect(options.headerStyle.backgroundColor).toBe(
+            theme.background.default,
+          );
+        }).not.toThrow();
+      });
+    });
+
+    it('should handle undefined or null parameters gracefully', () => {
+      // Test with undefined title
+      expect(() => {
+        const options = getSettingsNavigationOptions(
+          undefined,
+          mockThemeColors,
+        );
+        expect(options).toBeDefined();
+      }).not.toThrow();
+
+      // Test with null title
+      expect(() => {
+        const options = getSettingsNavigationOptions(null, mockThemeColors);
+        expect(options).toBeDefined();
+      }).not.toThrow();
+    });
+  });
+
+  describe('Return Value Structure', () => {
+    it('should return object with expected properties', () => {
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+
+      expect(options).toMatchObject({
+        headerLeft: null,
+        headerTitle: expect.any(Function),
+        headerStyle: expect.objectContaining({
+          backgroundColor: expect.any(String),
+          shadowColor: 'transparent',
+          elevation: 0,
+        }),
+      });
+    });
+
+    it('should maintain consistent structure across different inputs', () => {
+      const options1 = getSettingsNavigationOptions('Title 1', mockThemeColors);
+      const options2 = getSettingsNavigationOptions('Title 2', {
+        background: { default: '#000000' },
+      });
+
+      expect(Object.keys(options1)).toEqual(Object.keys(options2));
+      expect(typeof options1.headerTitle).toBe(typeof options2.headerTitle);
+      expect(options1.headerLeft).toBe(options2.headerLeft);
+    });
+  });
+
+  describe('Integration', () => {
+    it('should work with React Navigation stack', () => {
+      const Stack = createStackNavigator();
+      const options = getSettingsNavigationOptions(mockTitle, mockThemeColors);
+
+      expect(() => {
+        renderWithProvider(
+          <Stack.Navigator>
+            <Stack.Screen name="Settings" component={View} options={options} />
+          </Stack.Navigator>,
+          { state: { engine: { backgroundState } } },
+        );
       }).not.toThrow();
     });
   });

@@ -318,7 +318,7 @@ describe('transactionTransforms', () => {
         type: 'funding',
         category: 'funding_fee',
         title: 'Received funding fee',
-        subtitle: '',
+        subtitle: 'ETH',
         timestamp: 1640995200000,
         asset: 'ETH',
         fundingAmount: {

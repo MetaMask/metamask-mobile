@@ -32,6 +32,7 @@ jest.mock('../../../../util/address', () => ({
 const mockAccountGroup = createMockAccountGroup(
   'keyring:test-wallet/0',
   'Test Account Group',
+  ['account-1'],
 );
 const mockAccount = createMockInternalAccount(
   'account-1',
@@ -298,6 +299,38 @@ describe('AccountGroupDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(expect.any(String), {
       groupId: mockAccountGroup.id,
       title: `Addresses / ${mockAccountGroup.metadata.name}`,
+      onLoad: expect.any(Function),
     });
+  });
+
+  it('navigates to Smart Account Details when Smart Account link is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+
+    const smartAccountLink = getByTestId(AccountDetailsIds.SMART_ACCOUNT_LINK);
+    fireEvent.press(smartAccountLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith('SmartAccountDetails', {
+      account: expect.any(Object),
+    });
+  });
+
+  it('navigates to edit account name when account name is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+    const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
+    fireEvent.press(accountNameLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'EditMultichainAccountName',
+        params: { accountGroup: mockAccountGroup },
+      },
+    );
   });
 });

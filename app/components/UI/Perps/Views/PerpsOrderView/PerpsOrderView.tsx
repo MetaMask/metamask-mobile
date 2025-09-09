@@ -14,7 +14,13 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsOrderViewSelectorsIDs,
+  PerpsGeneralSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+
+import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -87,6 +93,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
+import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
@@ -211,8 +218,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
             label: strings('perps.order.error.dismiss'),
             variant: ButtonVariants.Secondary,
             onPress: () => toastRef?.current?.closeToast(),
+            testID: PerpsGeneralSelectorsIDs.ORDER_SUCCESS_TOAST_DISMISS_BUTTON,
           },
         });
+
+        // Add haptic feedback for order confirmed
+        notificationAsync(NotificationFeedbackType.Success);
       },
       onError: (error) => {
         toastRef?.current?.showToast({
@@ -237,6 +248,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onPress: () => toastRef?.current?.closeToast(),
           },
         });
+
+        // Add haptic feedback for order failed
+        notificationAsync(NotificationFeedbackType.Error);
       },
     });
   // Update ref when orderType changes
@@ -423,49 +437,85 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const marginRequired = calculations.marginRequired;
 
   // Memoize liquidation price params to prevent infinite recalculation
-  const liquidationPriceParams = useMemo(
-    () => ({
-      entryPrice: assetData.price,
+  const liquidationPriceParams = useMemo(() => {
+    // Use limit price for limit orders, market price for market orders
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : assetData.price;
+
+    return {
+      entryPrice,
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
-    }),
-    [assetData.price, orderForm.leverage, orderForm.direction, orderForm.asset],
-  );
+    };
+  }, [
+    assetData.price,
+    orderForm.leverage,
+    orderForm.direction,
+    orderForm.asset,
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
   /**
-   * Calculate TP/SL display text with percentages
-   * Converts take profit and stop loss prices to percentage distances from current price
+   * Calculate TP/SL display text with RoE percentages
+   * Converts take profit and stop loss prices to RoE (Return on Equity) percentages
    *
    * @returns Formatted string like "TP 10%, SL 5%" or "TP off, SL off"
    *
-   * For TP: Shows the percentage gain from current price to take profit price
-   * For SL: Shows the percentage loss from current price to stop loss price
+   * For TP: Shows the RoE percentage gain at the take profit price
+   * For SL: Shows the RoE percentage loss at the stop loss price
    */
   const tpSlDisplayText = useMemo(() => {
     const price = parseFloat(currentPrice?.price || '0');
     let tpDisplay = strings('perps.order.off');
     let slDisplay = strings('perps.order.off');
 
-    if (orderForm.takeProfitPrice && price > 0) {
-      const tpPrice = parseFloat(orderForm.takeProfitPrice);
-      const tpPercentage = ((tpPrice - price) / price) * 100;
-      const absPercentage = Math.abs(tpPercentage);
-      tpDisplay = `${absPercentage.toFixed(0)}%`;
+    // Calculate proper entry price based on order type
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : price; // fallback to current price for market orders or when no limit price set
+
+    if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
+      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(tpRoE || '0'));
+      tpDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
-    if (orderForm.stopLossPrice && price > 0) {
-      const slPrice = parseFloat(orderForm.stopLossPrice);
-      const slPercentage = ((price - slPrice) / price) * 100;
-      const absPercentage = Math.abs(slPercentage);
-      slDisplay = `${absPercentage.toFixed(0)}%`;
+    if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
+      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(slRoE || '0'));
+      slDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
     return `TP ${tpDisplay}, SL ${slDisplay}`;
-  }, [currentPrice?.price, orderForm.takeProfitPrice, orderForm.stopLossPrice]);
+  }, [
+    currentPrice?.price,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.leverage,
+    orderForm.direction,
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
@@ -658,6 +708,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
         hasNoTimeout: false, // Auto-dismiss after a few seconds
       });
 
+      // Add haptic feedback for order submitted
+      notificationAsync(NotificationFeedbackType.Warning);
+
       // Track trade transaction submitted
       track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED, {
         [PerpsEventProperties.ASSET]: orderForm.asset,
@@ -759,7 +812,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
@@ -776,7 +832,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Default}
+                  >
                     {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
                   </Text>
                 </ListItemColumn>
@@ -790,12 +849,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
                   <ListItemColumn widthType={WidthType.Fill}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.limit_price')}
                     </Text>
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Default}
+                    >
                       {orderForm.limitPrice
                         ? formatPrice(orderForm.limitPrice)
                         : 'Set price'}
@@ -808,11 +873,17 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Combined TP/SL row */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
+            <TouchableOpacity
+              onPress={() => setIsTPSLVisible(true)}
+              testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+            >
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.tp_sl')}
                     </Text>
                     <TouchableOpacity
@@ -829,7 +900,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Default}
+                  >
                     {tpSlDisplayText}
                   </Text>
                 </ListItemColumn>
@@ -915,7 +989,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}
       {isInputFocused && (
-        <View style={styles.bottomSection}>
+        <View
+          style={styles.bottomSection}
+          testID={PerpsOrderViewSelectorsIDs.KEYPAD}
+        >
           <View style={styles.percentageButtonsContainer}>
             <Button
               variant={ButtonVariants.Secondary}
@@ -1003,6 +1080,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         asset={orderForm.asset}
         currentPrice={assetData.price}
         direction={orderForm.direction}
+        leverage={orderForm.leverage}
+        marginRequired={marginRequired}
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
@@ -1044,6 +1123,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         currentPrice={assetData.price}
         direction={orderForm.direction}
         asset={orderForm.asset}
+        limitPrice={orderForm.limitPrice}
+        orderType={orderForm.type}
       />
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet

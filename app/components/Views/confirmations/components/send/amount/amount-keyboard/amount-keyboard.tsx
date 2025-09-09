@@ -57,7 +57,7 @@ export const AmountKeyboard = ({
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
       );
-      updateValue(percentageAmount);
+      updateValue(percentageAmount, percentage === 100);
       if (percentage === 100) {
         setAmountInputMethodPressedMax();
       }
@@ -108,6 +108,7 @@ export const AmountKeyboard = ({
           />
         ) : undefined
       }
+      enableEmptyValueString
       hideDoneButton
       onChange={updateToNewAmount}
       onPercentagePress={updateToPercentageAmount}

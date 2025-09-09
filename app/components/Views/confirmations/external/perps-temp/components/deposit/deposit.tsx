@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { PayWithRow } from '../../../../components/rows/pay-with-row';
 import useNavbar from '../../../../hooks/ui/useNavbar';
 import { EditAmount } from '../../../../components/edit-amount';
@@ -7,41 +7,48 @@ import { PayTokenAmount } from '../../../../components/pay-token-amount';
 import { TotalRow } from '../../../../components/rows/total-row';
 import InfoSection from '../../../../components/UI/info-row/info-section/info-section';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
-import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 import AlertBanner from '../../../../components/alert-banner';
-import { Box } from '../../../../../../UI/Box/Box';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
+import { BridgeFeeRow } from '../../../../components/rows/bridge-fee-row';
 
 export function PerpsDeposit() {
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [inputChanged, setInputChanged] = useState(false);
+  useNavbar(strings('confirm.title.perps_deposit'));
+  useClearConfirmationOnBackSwipe();
 
-  const { isFullView } = usePerpsDepositView({
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [pendingTokenAmount, setPendingTokenAmount] = useState<string>();
+  const alerts = usePerpsDepositAlerts({ pendingTokenAmount });
+
+  const { isFullView, isPayTokenSelected } = usePerpsDepositView({
     isKeyboardVisible,
   });
 
-  useNavbar(strings('confirm.title.perps_deposit'));
-  useClearConfirmationOnBackSwipe();
+  const handleChange = useCallback((amount: string) => {
+    setPendingTokenAmount(amount);
+  }, []);
 
   return (
     <>
       <EditAmount
+        alerts={alerts}
         autoKeyboard
+        onChange={handleChange}
         onKeyboardShow={() => setIsKeyboardVisible(true)}
         onKeyboardHide={() => setIsKeyboardVisible(false)}
-        onKeyboardDone={() => setInputChanged(true)}
       >
         {(amountHuman) => (
           <>
-            <Box gap={16}>
-              {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
-              <PayTokenAmount amountHuman={amountHuman} />
-            </Box>
-            {!isKeyboardVisible && (
-              <AlertBanner field={RowAlertKey.PayWith} inline />
+            <PayTokenAmount amountHuman={amountHuman} />
+            {!isKeyboardVisible && isPayTokenSelected && (
+              <AlertBanner
+                blockingFields
+                excludeFields={[RowAlertKey.Amount]}
+                inline
+              />
             )}
             <InfoSection>
               <PayWithRow />
@@ -49,6 +56,7 @@ export function PerpsDeposit() {
             {isFullView && (
               <InfoSection>
                 <GasFeeFiatRow />
+                <BridgeFeeRow />
                 <BridgeTimeRow />
                 <TotalRow />
               </InfoSection>

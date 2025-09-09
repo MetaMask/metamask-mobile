@@ -37,6 +37,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
@@ -61,7 +64,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.tapERC20TransferButton();
 
         // Tap confirm button
-        await TestDApp.tapConfirmButton();
+        await TestDApp.tapConfirmButtonToDisappear();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();

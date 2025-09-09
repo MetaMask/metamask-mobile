@@ -19,6 +19,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -68,6 +69,8 @@ interface PerpsLeverageBottomSheetProps {
   currentPrice: number;
   direction: 'long' | 'short';
   asset?: string;
+  limitPrice?: string;
+  orderType?: 'market' | 'limit';
 }
 
 /**
@@ -102,6 +105,8 @@ const LeverageSlider: React.FC<{
   const thumbScale = useSharedValue(1);
   const widthRef = useRef(0);
   const [gradientWidth, setGradientWidth] = useState(300);
+  // Track previous value for threshold detection
+  const previousValueRef = useRef(value);
 
   const positionToValue = useCallback(
     (position: number, width: number) => {
@@ -139,6 +144,8 @@ const LeverageSlider: React.FC<{
       // Direct assignment for instant update, no spring animation
       translateX.value = newPosition;
     }
+    // Update previous value ref when value changes externally
+    previousValueRef.current = value;
   }, [value, minValue, maxValue, translateX]);
 
   const progressStyle = useAnimatedStyle(() => ({
@@ -157,10 +164,42 @@ const LeverageSlider: React.FC<{
     [onValueChange, onInteraction],
   );
 
+  // Haptic feedback callbacks
+  const triggerHapticFeedback = useCallback(
+    (impactStyle: ImpactFeedbackStyle) => {
+      impactAsync(impactStyle);
+    },
+    [],
+  );
+
+  // Check if value crosses leverage thresholds
+  const checkThresholdCrossing = useCallback(
+    (newValue: number) => {
+      const prevValue = previousValueRef.current;
+      // Define leverage thresholds based on risk levels
+      const thresholds = [2, 5, 10];
+
+      for (const threshold of thresholds) {
+        // Check if we crossed the threshold in either direction
+        if (
+          (prevValue < threshold && newValue >= threshold) ||
+          (prevValue > threshold && newValue <= threshold)
+        ) {
+          runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          break;
+        }
+      }
+
+      previousValueRef.current = newValue;
+    },
+    [triggerHapticFeedback],
+  );
+
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
       thumbScale.value = 1.1; // Subtle scale effect, instant
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
@@ -168,12 +207,14 @@ const LeverageSlider: React.FC<{
       // Real-time value update during drag
       const currentValue = positionToValue(newPosition, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+      runOnJS(checkThresholdCrossing)(currentValue);
     })
     .onEnd(() => {
       isPressed.value = false;
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onFinalize(() => {
       isPressed.value = false;
@@ -185,6 +226,8 @@ const LeverageSlider: React.FC<{
     translateX.value = newPosition; // Direct assignment for instant response
     const newValue = positionToValue(newPosition, sliderWidth.value);
     runOnJS(updateValue)(newValue);
+    runOnJS(checkThresholdCrossing)(newValue);
+    runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
   });
 
   const composed = Gesture.Simultaneous(tapGesture, panGesture);
@@ -265,6 +308,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   currentPrice,
   direction,
   asset = '',
+  limitPrice,
+  orderType = 'market',
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -275,9 +320,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const hasTrackedLeverageView = useRef(false);
 
   // Dynamically calculate liquidation price based on tempLeverage
+  // Use limit price for limit orders, market price for market orders
+  const entryPrice = useMemo(
+    () =>
+      orderType === 'limit' && limitPrice
+        ? parseFloat(limitPrice)
+        : currentPrice,
+    [orderType, limitPrice, currentPrice],
+  );
+
   const { liquidationPrice: calculatedLiquidationPrice } =
     usePerpsLiquidationPrice({
-      entryPrice: currentPrice,
+      entryPrice,
       leverage: tempLeverage,
       direction,
       asset,
@@ -335,14 +389,29 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
    * For short positions: Shows how much price needs to rise to trigger liquidation
    */
   const liquidationDropPercentage = useMemo(() => {
-    if (currentPrice === 0 || dynamicLiquidationPrice === 0) return 0;
+    // Validate inputs
+    if (currentPrice === 0 || !currentPrice) return 0;
 
-    // Calculate the percentage difference between current price and liquidation price
+    // Special case for 1x leverage - theoretical 100% price movement to liquidation
+    if (tempLeverage === 1) {
+      return 100; // Show 100% for 1x leverage
+    }
+
+    // If liquidation price is invalid/still calculating, use theoretical calculation
+    if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
+      // Theoretical calculation: 1 / leverage * 100
+      // For 2x: 50%, for 5x: 20%, for 10x: 10%, etc.
+      const theoreticalPercentage = (1 / tempLeverage) * 100;
+      return theoreticalPercentage >= 99.9 ? 100 : theoreticalPercentage;
+    }
+
+    // Use actual liquidation price when available
     const percentageDrop =
       (Math.abs(currentPrice - dynamicLiquidationPrice) / currentPrice) * 100;
 
-    return percentageDrop;
-  }, [currentPrice, dynamicLiquidationPrice]);
+    // Return 100% for very high percentages, otherwise return calculated value
+    return percentageDrop >= 99.9 ? 100 : percentageDrop;
+  }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {
@@ -558,6 +627,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               onPress={() => {
                 setTempLeverage(value);
                 setInputMethod('preset');
+                // Add haptic feedback for quick select buttons
+                impactAsync(ImpactFeedbackStyle.Light);
               }}
             >
               <Text

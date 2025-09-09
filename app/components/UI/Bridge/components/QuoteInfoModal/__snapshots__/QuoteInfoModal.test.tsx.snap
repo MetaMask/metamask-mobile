@@ -242,7 +242,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               }
             }
           >
-            This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.
+            This quote offers the best return from our search. It's based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.
           </Text>
         </View>
       </View>
