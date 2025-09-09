@@ -1458,6 +1458,115 @@ describe('HyperLiquidProvider', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(0);
     });
+
+    describe('error mapping integration', () => {
+      it('should map HyperLiquid leverage error in placeOrder to ORDER_LEVERAGE_REDUCTION_FAILED', async () => {
+        // Mock placeOrder to throw the specific HyperLiquid error
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest
+            .fn()
+            .mockRejectedValue(
+              new Error(
+                'isolated position does not have sufficient margin available to decrease leverage',
+              ),
+            ),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
+      });
+
+      it('should map case insensitive HyperLiquid error', async () => {
+        // Mock with uppercase version
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest
+            .fn()
+            .mockRejectedValue(
+              new Error(
+                'ISOLATED POSITION DOES NOT HAVE SUFFICIENT MARGIN AVAILABLE TO DECREASE LEVERAGE',
+              ),
+            ),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
+      });
+
+      it('should map partial error message containing the pattern', async () => {
+        // Mock with longer error message containing the pattern
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest
+            .fn()
+            .mockRejectedValue(
+              new Error(
+                'API Error: isolated position does not have sufficient margin available to decrease leverage. Please check your position.',
+              ),
+            ),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
+      });
+
+      it('should preserve original error message for unmapped errors', async () => {
+        // Mock with an unmapped error
+        const originalError = new Error('Some other HyperLiquid API error');
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest.fn().mockRejectedValue(originalError),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Some other HyperLiquid API error');
+      });
+    });
   });
 
   describe('Edge Cases', () => {
