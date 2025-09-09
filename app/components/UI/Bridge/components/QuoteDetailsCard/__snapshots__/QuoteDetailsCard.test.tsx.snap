@@ -445,7 +445,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 Solana
                               </Text>
                             </View>
-                            <SvgMock
+                            <MetamaskRewardsPointsSvg
                               color="#121314"
                               fill="currentColor"
                               height={16}
@@ -552,7 +552,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               onPress={[Function]}
                               testID="expand-quote-details"
                             >
-                              <SvgMock
+                              <MetamaskRewardsPointsSvg
                                 color="#b7bbc8"
                                 fill="currentColor"
                                 height={16}
@@ -855,7 +855,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       }
                                     }
                                   >
-                                    <SvgMock
+                                    <MetamaskRewardsPointsSvg
                                       color="#b7bbc8"
                                       fill="currentColor"
                                       height={16}
@@ -899,6 +899,9 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    adjustsFontSizeToFit={true}
+                                    minimumFontScale={0.5}
+                                    numberOfLines={1}
                                     style={
                                       {
                                         "color": "#121314",
@@ -908,7 +911,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "lineHeight": 24,
                                       }
                                     }
-                                    testID="label"
                                   >
                                     1 ETH = 24.4 USDC
                                   </Text>
@@ -1111,7 +1113,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                       >
                                         Slippage
                                       </Text>
-                                      <SvgMock
+                                      <MetamaskRewardsPointsSvg
                                         color="#b7bbc8"
                                         fill="currentColor"
                                         height={16}
@@ -1648,7 +1650,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 Solana
                               </Text>
                             </View>
-                            <SvgMock
+                            <MetamaskRewardsPointsSvg
                               color="#121314"
                               fill="currentColor"
                               height={16}
@@ -1755,7 +1757,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               onPress={[Function]}
                               testID="expand-quote-details"
                             >
-                              <SvgMock
+                              <MetamaskRewardsPointsSvg
                                 color="#b7bbc8"
                                 fill="currentColor"
                                 height={16}
@@ -2058,7 +2060,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                       }
                                     }
                                   >
-                                    <SvgMock
+                                    <MetamaskRewardsPointsSvg
                                       color="#b7bbc8"
                                       fill="currentColor"
                                       height={16}
@@ -2102,6 +2104,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    adjustsFontSizeToFit={true}
+                                    minimumFontScale={0.5}
+                                    numberOfLines={1}
                                     style={
                                       {
                                         "color": "#121314",
@@ -2111,7 +2116,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                         "lineHeight": 24,
                                       }
                                     }
-                                    testID="label"
                                   >
                                     1 ETH = 24.4 USDC
                                   </Text>
