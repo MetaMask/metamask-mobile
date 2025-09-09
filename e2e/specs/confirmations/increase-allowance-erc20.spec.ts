@@ -1,42 +1,37 @@
-'use strict';
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
-
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
-  beforeAll(async () => {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.reverseServerPort();
-    }
-  });
-
   it('from a dApp', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+      );
     };
 
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -44,14 +39,11 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        smartContract: HST_CONTRACT,
+        smartContracts: [HST_CONTRACT],
         testSpecificMock,
       },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const hstAddress = await contractRegistry.getContractAddress(
+      async ({ contractRegistry }) => {
+        const hstAddress = await contractRegistry?.getContractAddress(
           HST_CONTRACT,
         );
         await loginToApp();
@@ -64,14 +56,14 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
         await TestDApp.tapIncreaseAllowanceButton();
 
         //Input custom token amount
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           ContractApprovalBottomSheet.approveTokenAmount,
         );
         await ContractApprovalBottomSheet.clearInput();
         await ContractApprovalBottomSheet.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           ContractApprovalBottomSheet.approveTokenAmount,
           '2',
         );
@@ -85,10 +77,10 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
         await TabBarComponent.tapActivity();
 
         // Assert that the ERC20 activity is an increase allowance and it is confirmed
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           ActivitiesViewSelectorsText.INCREASE_ALLOWANCE_METHOD,
         );
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },

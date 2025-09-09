@@ -1,62 +1,72 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { ExportCredentialsIds } from '../../selectors/MultichainAccounts/ExportCredentials.selectors';
 import { RevealSeedViewSelectorsIDs } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
-import { IndexableNativeElement } from 'detox/detox';
 
 class ExportCredentials {
-  get srpInfoContainer() {
+  get srpInfoContainer(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.CONTAINER);
   }
 
-  get revealContainer() {
+  get revealContainer(): DetoxElement {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
 
-  get exportPrivateKeyButton() {
+  get exportPrivateKeyButton(): DetoxElement {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
   }
 
-  get exportSrpButton() {
+  get exportSrpButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 
-  get passwordInput() {
+  get passwordInput(): DetoxElement {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-    ) as Promise<IndexableNativeElement>;
+    );
   }
 
-  get nextButton() {
+  get nextButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.NEXT_BUTTON);
   }
 
-  get learnMoreButton() {
+  get learnMoreButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.LEARN_MORE_BUTTON);
   }
 
-  async tapExportPrivateKeyButton() {
-    await Gestures.waitAndTap(this.exportPrivateKeyButton);
+  async tapExportPrivateKeyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.exportPrivateKeyButton, {
+      elemDescription: 'Export Private Key Button in Export Credentials',
+    });
   }
 
-  async tapExportSrpButton() {
-    await Gestures.waitAndTap(this.exportSrpButton);
+  async tapExportSrpButton(): Promise<void> {
+    await Gestures.waitAndTap(this.exportSrpButton, {
+      elemDescription: 'Export SRP Button in Export Credentials',
+    });
   }
 
-  async enterPassword(password: string) {
-    await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
+  async enterPassword(password: string): Promise<void> {
+    await Gestures.typeText(this.passwordInput, password, {
+      elemDescription: 'Password Input in Export Credentials',
+      hideKeyboard: true,
+    });
   }
 
-  async tapNextButton() {
-    await Gestures.waitAndTap(this.nextButton);
+  async tapNextButton(): Promise<void> {
+    await Gestures.waitAndTap(this.nextButton, {
+      elemDescription: 'Next Button in Export Credentials',
+    });
   }
 
-  async tapLearnMoreButton() {
-    await Gestures.waitAndTap(this.learnMoreButton);
+  async tapLearnMoreButton(): Promise<void> {
+    await Gestures.waitAndTap(this.learnMoreButton, {
+      elemDescription: 'Learn More Button in Export Credentials',
+    });
   }
 }
 

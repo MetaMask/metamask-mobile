@@ -43,7 +43,7 @@ app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-pla
 app/core/DeeplinkManager   @MetaMask/mobile-platform
 
 # Platform & Snaps Code Fencing File
-metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
+metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
@@ -51,10 +51,11 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card
+app/core/redux/slices/card/          @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
-app/components/Views/confirmations/external/staking          @MetaMask/confirmations @MetaMask/metamask-earn                
+app/components/Views/confirmations/external/staking          @MetaMask/confirmations @MetaMask/metamask-earn
 app/core/Engine/controllers/approval-controller             @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
 app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
@@ -114,12 +115,12 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 app/components/hooks/useTokenSearchDiscovery @MetaMask/portfolio
 app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 
-# Snaps Team
-**/snaps/**                          @MetaMask/snaps-devs
-**/Snaps/**                          @MetaMask/snaps-devs
+# Core Platform Team
+**/snaps/**                          @MetaMask/core-platform
+**/Snaps/**                          @MetaMask/core-platform
 
-# Co-owned by Confirmations team and Snaps team
-app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-devs
+# Co-owned by Confirmations team and Core Platform team
+app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/core-platform
 
 # Wallet API Platform Team
 app/core/RPCMethods/                 @MetaMask/wallet-api-platform-engineers
@@ -132,6 +133,14 @@ app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-earn
 app/selectors/earnController         @MetaMask/metamask-earn
 **/Earn/**                           @MetaMask/metamask-earn
 **/earn/**                           @MetaMask/metamask-earn
+
+# Rewards Team
+app/core/Engine/controllers/rewards-controller @MetaMask/rewards
+app/core/Engine/messengers/rewards-controller-messenger @MetaMask/rewards
+app/selectors/rewardscontroller.ts   @MetaMask/rewards
+app/selectors/featureFlagController/rewards @MetaMask/rewards
+**/Rewards/**                        @MetaMask/rewards
+**/rewards/**                        @MetaMask/rewards
 
 # Perps Team
 app/components/UI/Perps/             @MetaMask/perps
@@ -146,6 +155,7 @@ app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
 app/components/hooks/useSafeChains.ts @MetaMask/metamask-assets
+app/components/UI/Assets @MetaMask/metamask-assets
 app/components/UI/AssetOverview @MetaMask/metamask-assets
 app/components/UI/Collectibles @MetaMask/metamask-assets
 app/components/UI/CollectibleContractElement @MetaMask/metamask-assets
@@ -172,6 +182,7 @@ app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
 app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
 app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
+app/selectors/assets @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions @MetaMask/wallet-ux
@@ -203,6 +214,14 @@ app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
+
+# QA Team - E2E Framework
+e2e/api-mocking/                             @MetaMask/qa
+e2e/fixtures/                                @MetaMask/qa
+e2e/framework/                               @MetaMask/qa
+e2e/pages/                                   @MetaMask/qa
+e2e/utils/                                   @MetaMask/qa
+e2e/viewHelper.ts                            @MetaMask/qa
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

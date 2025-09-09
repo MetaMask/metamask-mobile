@@ -1,12 +1,16 @@
 import { Theme } from '../../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+import { getOtpCellSize } from '../../../utils/getOtpCellSize';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
+  const finalBoxSize = getOtpCellSize();
+
   return StyleSheet.create({
     title: {
       marginTop: 24,
+      fontWeight: 'bold',
     },
     description: {
       marginTop: 8,
@@ -17,8 +21,8 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 5,
     },
     cellRoot: {
-      width: 50,
-      height: 50,
+      width: finalBoxSize,
+      height: finalBoxSize,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: theme.colors.background.muted,

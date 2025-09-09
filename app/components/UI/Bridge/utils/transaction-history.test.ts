@@ -1,11 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import '../_mocks_/initialState';
 import {
   decodeBridgeTx,
   decodeSwapsTx,
   getSwapBridgeTxActivityTitle,
+  handleUnifiedSwapsTxHistoryItemClick,
 } from './transaction-history';
-import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import {
+  BridgeHistoryItem,
+  MAX_ATTEMPTS,
+} from '@metamask/bridge-status-controller';
 import { ChainId, StatusTypes } from '@metamask/bridge-controller';
+import { TransactionType } from '@metamask/transaction-controller';
+import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
+
+// Mock dependencies
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    BridgeStatusController: {
+      restartPollingForFailedAttempts: jest.fn(),
+    },
+  },
+}));
 
 describe('getBridgeTxActivityTitle', () => {
   it('should return undefined when destChainName is not found in NETWORK_TO_SHORT_NETWORK_NAME_MAP', () => {
@@ -14,6 +31,7 @@ describe('getBridgeTxActivityTitle', () => {
       account: '0x123',
       quote: {
         requestId: 'test-request-id',
+        minDestTokenAmount: '1000000000000000000',
         srcChainId: 1,
         srcAsset: {
           chainId: 1,
@@ -81,6 +99,7 @@ describe('getBridgeTxActivityTitle', () => {
       account: '0x123',
       quote: {
         requestId: 'test-request-id',
+        minDestTokenAmount: '1000000000000000000',
         srcChainId: 1,
         srcAsset: {
           chainId: 1,
@@ -145,6 +164,7 @@ describe('getBridgeTxActivityTitle', () => {
       account: '0x123',
       quote: {
         requestId: 'test-request-id',
+        minDestTokenAmount: '1000000000000000000',
         srcChainId: 1,
         srcAsset: {
           chainId: 1,
@@ -621,5 +641,223 @@ describe('decodeBridgeTx', () => {
       },
       {},
     ]);
+  });
+});
+
+describe('handleUnifiedSwapsTxHistoryItemClick', () => {
+  const mockNavigation = {
+    navigate: jest.fn(),
+  };
+
+  const mockTx = {
+    id: 'test-tx-id',
+    type: TransactionType.bridge,
+    txParams: {
+      from: '0x123',
+      to: '0x456',
+    },
+  };
+
+  const mockBridgeTxHistoryItem: BridgeHistoryItem = {
+    txMetaId: 'test-tx-id',
+    account: '0x123',
+    quote: {
+      requestId: 'test-request-id',
+      minDestTokenAmount: '1000000000000000000',
+      srcChainId: 1,
+      srcAsset: {
+        chainId: 1,
+        address: '0x123',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+        assetId: 'eip155:1/erc20:0x123',
+      },
+      destChainId: 10,
+      destAsset: {
+        chainId: 10,
+        address: '0x456',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+        assetId: 'eip155:10/erc20:0x456',
+      },
+      srcTokenAmount: '1000000000000000000',
+      destTokenAmount: '2000000000000000000',
+      feeData: {
+        metabridge: {
+          amount: '0',
+          asset: {
+            chainId: 1,
+            address: '0x123',
+            decimals: 18,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            assetId: 'eip155:1/erc20:0x123',
+          },
+        },
+      },
+      bridgeId: 'test-bridge',
+      bridges: [],
+      steps: [],
+    },
+    status: {
+      srcChain: {
+        chainId: 1,
+      },
+      destChain: {
+        chainId: 10,
+      },
+      status: StatusTypes.PENDING,
+    },
+    startTime: Date.now(),
+    estimatedProcessingTimeInSeconds: 300,
+    slippagePercentage: 0,
+    hasApprovalTx: false,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('navigates to bridge transaction details with correct parameters', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = mockTx as any;
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
+
+    // Assert
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      { evmTxMeta: tx },
+    );
+  });
+
+  it('resets attempts when bridge transaction has reached max attempts', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = { ...mockTx, type: TransactionType.bridge } as any;
+    const bridgeTxHistoryItem = {
+      ...mockBridgeTxHistoryItem,
+      attempts: { counter: MAX_ATTEMPTS, lastAttemptTime: Date.now() },
+    };
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+
+    // Assert
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).toHaveBeenCalledWith({
+      txMetaId: bridgeTxHistoryItem.txMetaId,
+    });
+  });
+
+  it('resets attempts when bridge transaction has exceeded max attempts', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = { ...mockTx, type: TransactionType.bridge } as any;
+    const bridgeTxHistoryItem = {
+      ...mockBridgeTxHistoryItem,
+      attempts: { counter: MAX_ATTEMPTS + 1, lastAttemptTime: Date.now() },
+    };
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+
+    // Assert
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).toHaveBeenCalledWith({
+      txMetaId: bridgeTxHistoryItem.txMetaId,
+    });
+  });
+
+  it('does not reset attempts when transaction is not a bridge transaction', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = { ...mockTx, type: TransactionType.swap } as any;
+    const bridgeTxHistoryItem = {
+      ...mockBridgeTxHistoryItem,
+      attempts: { counter: MAX_ATTEMPTS, lastAttemptTime: Date.now() },
+    };
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+
+    // Assert
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not reset attempts when no bridge transaction history item is provided', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = { ...mockTx, type: TransactionType.bridge } as any;
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
+
+    // Assert
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not reset attempts when attempts counter is below max attempts', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = { ...mockTx, type: TransactionType.bridge } as any;
+    const bridgeTxHistoryItem = {
+      ...mockBridgeTxHistoryItem,
+      attempts: { counter: MAX_ATTEMPTS - 1, lastAttemptTime: Date.now() },
+    };
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+
+    // Assert
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not reset attempts when attempts is undefined', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = { ...mockTx, type: TransactionType.bridge } as any;
+    const bridgeTxHistoryItem = {
+      ...mockBridgeTxHistoryItem,
+      attempts: undefined,
+    };
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
+
+    // Assert
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('still navigates even when reset attempts conditions are not met', () => {
+    // Arrange
+    const navigation = mockNavigation as any;
+    const tx = { ...mockTx, type: TransactionType.swap } as any;
+
+    // Act
+    handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
+
+    // Assert
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      { evmTxMeta: tx },
+    );
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
   });
 });

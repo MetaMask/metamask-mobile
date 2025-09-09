@@ -37,7 +37,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
-import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS } from '../../constants';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 interface DepositOrderContentProps {
@@ -106,38 +105,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     order.currency,
   );
 
-  let subtitle = strings('deposit.order_processing.description');
-
-  if (order.state === FIAT_ORDER_STATES.COMPLETED) {
-    subtitle = strings('deposit.order_processing.success_description', {
-      amount: order.amount,
-      currency: order.currency,
-    });
-  } else if (order.state === FIAT_ORDER_STATES.FAILED) {
-    if (
-      hasDepositOrderField(order.data, 'statusDescription') &&
-      order.data.statusDescription
-    ) {
-      subtitle = order.data.statusDescription;
-    } else {
-      subtitle = strings('deposit.order_processing.error_description');
-    }
-  } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
-    subtitle = strings('deposit.order_processing.cancel_order_description');
-  } else if (
-    order.state === FIAT_ORDER_STATES.PENDING &&
-    hasDepositOrderField(order.data, 'paymentMethod')
-  ) {
-    const paymentMethodId = order.data.paymentMethod;
-    const isManualBankTransfer = MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
-      (method) => method.id === paymentMethodId,
-    );
-
-    if (isManualBankTransfer) {
-      subtitle = strings('deposit.order_processing.bank_transfer_description');
-    }
-  }
-
   return (
     <>
       <View style={styles.mainSection}>
@@ -185,13 +152,16 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           {order.cryptoAmount} {order.cryptocurrency}
         </Text>
 
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-          style={styles.subtitle}
-        >
-          {subtitle}
-        </Text>
+        {hasDepositOrderField(order.data, 'statusDescription') &&
+        order.data.statusDescription ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            style={styles.subtitle}
+          >
+            {order.data.statusDescription}
+          </Text>
+        ) : null}
       </View>
 
       <View style={styles.detailsContainer}>

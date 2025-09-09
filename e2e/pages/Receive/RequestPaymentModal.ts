@@ -1,6 +1,6 @@
 import { RequestPaymentModalSelectorsIDs } from '../../selectors/Receive/RequestPaymentModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class RequestPaymentModal {
   get requestPaymentButton(): DetoxElement {
@@ -12,7 +12,9 @@ class RequestPaymentModal {
   }
 
   async tapRequestPaymentButton(): Promise<void> {
-    await Gestures.waitAndTap(this.requestPaymentButton);
+    await Gestures.waitAndTap(this.requestPaymentButton, {
+      elemDescription: 'Request Payment Button in Request Payment Modal',
+    });
   }
 }
 

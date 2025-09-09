@@ -8,6 +8,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_NOTIFICATIONS_BUTTON: 'wallet-notifications-button',
   WALLET_TOKEN_DETECTION_LINK_BUTTON: 'wallet-token-detection-link-button',
   TOTAL_BALANCE_TEXT: 'total-balance-text',
+  CARD_BUTTON: 'card-button',
   STAKE_BUTTON: 'stake-button',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
@@ -32,6 +33,7 @@ export const WalletViewSelectorsIDs = {
   NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
+  SORT_BUTTON: 'token-sort-button',
   SORT_BY: 'sort-by',
   NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
   TOKEN_NETWORK_FILTER: 'token-network-filter',
@@ -72,12 +74,19 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
+  // Wallet-specific action buttons to avoid conflicts with TokenOverview
+  WALLET_FUND_BUTTON: 'wallet-fund-button',
+  WALLET_SWAP_BUTTON: 'wallet-swap-button',
+  WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
+  WALLET_SEND_BUTTON: 'wallet-send-button',
+  WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
 } as const;
 
 export const WalletViewSelectorsText = {
   IMPORT_TOKENS: `${enContent.wallet.no_available_tokens} ${enContent.wallet.add_tokens}`,
   NFTS_TAB: enContent.wallet.collectibles,
   TOKENS_TAB: enContent.wallet.tokens,
+  PERPS_TAB: enContent.wallet.perps,
   HIDE_TOKENS: enContent.wallet.remove,
   STAKED_ETHEREUM: enContent.stake.staked_ethereum,
   DEFAULT_TOKEN: 'Ethereum',

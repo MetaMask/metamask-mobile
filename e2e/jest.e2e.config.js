@@ -2,7 +2,7 @@
 require('dotenv').config({ path: '.e2e.env' });
 
 // Determine maxWorkers based on environment
-let workers = process.env.CI ? 3 : 1;
+let workers = process.env.GITHUB_CI ? 2 : process.env.CI ? 3 : 1;
 
 // Set maxWorkers to 1 for performance workflows
 if (process.env.BITRISE_TRIGGERED_WORKFLOW_ID) {
@@ -29,6 +29,7 @@ module.exports = {
       'jest-junit',
       {
         outputDirectory: './e2e/reports',
+        classNameTemplate: '{filepath}',
       },
     ],
   ],

@@ -22,7 +22,25 @@ import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
-import Logger from '../../../util/Logger';
+import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  default: {
+    fetch: jest.fn(),
+    addEventListener: jest.fn(() => jest.fn()), // unsubscribe fn
+  },
+  NetInfoStateType: {
+    none: 'none',
+    wifi: 'wifi',
+    cellular: 'cellular',
+    unknown: 'unknown',
+  },
+}));
+
+import NetInfo, { NetInfoStateType } from '@react-native-community/netinfo';
+
+const mockNetInfoFetch = NetInfo.fetch as jest.Mock;
 
 const mockInitialState = {
   engine: {
@@ -69,30 +87,12 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
 }));
 
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
-  handleOAuthLogin: jest.fn(),
+  handleOAuthLogin: jest.fn().mockResolvedValue({
+    type: 'success',
+    existingUser: false,
+    accountName: 'test@example.com',
+  }),
   resetOauthState: jest.fn(),
-}));
-
-jest.mock('../../../core/OAuthService/error', () => ({
-  OAuthError: class OAuthError extends Error {
-    code: string;
-    constructor(code: string) {
-      super();
-      this.code = code;
-    }
-  },
-  OAuthErrorType: {
-    UnknownError: 'unknown_error',
-    UserCancelled: 'user_cancelled',
-    UserDismissed: 'user_dismissed',
-    LoginError: 'login_error',
-    InvalidProvider: 'invalid_provider',
-    UnsupportedPlatform: 'unsupported_platform',
-    LoginInProgress: 'login_in_progress',
-    AuthServerError: 'auth_server_error',
-    InvalidGetAuthTokenParams: 'invalid_get_auth_token_params',
-    InvalidOauthStateError: 'invalid_oauth_state_error',
-  },
 }));
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -300,6 +300,8 @@ describe('Onboarding', () => {
   describe('Create wallet flow', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
+      mockNavigate.mockReset();
+      mockNetInfoFetch.mockReset();
     });
 
     it('should navigate to onboarding sheet when create wallet is pressed for new user', async () => {
@@ -365,6 +367,73 @@ describe('Onboarding', () => {
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           onboardingTraceCtx: expect.any(Object),
+        }),
+      );
+    });
+
+    it('should navigate to offline error sheet when there is no internet', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      mockNetInfoFetch.mockResolvedValue({
+        type: NetInfoStateType.none,
+        isConnected: false,
+        isInternetReachable: false,
+        details: null,
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      expect(navCall).toBeDefined();
+
+      const googleOAuthFunction =
+        navCall?.[1]?.params?.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.no_internet_connection_title'),
+            description: strings(
+              'error_sheet.no_internet_connection_description',
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings('error_sheet.no_internet_connection_button'),
+            primaryButtonLabel: strings(
+              'error_sheet.no_internet_connection_button',
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          }),
         }),
       );
     });
@@ -569,9 +638,6 @@ describe('Onboarding', () => {
     const mockCreateLoginHandler = jest.requireMock(
       '../../../core/OAuthService/OAuthLoginHandlers',
     ).createLoginHandler;
-    const { OAuthError, OAuthErrorType } = jest.requireMock(
-      '../../../core/OAuthService/error',
-    );
 
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
@@ -682,7 +748,7 @@ describe('Onboarding', () => {
     });
 
     it('should show error sheet for OAuth user cancellation', async () => {
-      const cancelError = new OAuthError(OAuthErrorType.UserCancelled);
+      const cancelError = new OAuthError('', OAuthErrorType.UserCancelled);
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(cancelError);
 
@@ -728,8 +794,8 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should show error sheet for OAuth user dismissal', async () => {
-      const dismissError = new OAuthError(OAuthErrorType.UserDismissed);
+    it('do not show error sheet for OAuth user dismissal', async () => {
+      const dismissError = new OAuthError('', OAuthErrorType.UserDismissed);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
 
@@ -760,7 +826,7 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -864,6 +930,118 @@ describe('Onboarding', () => {
         }),
       );
     });
+
+    it('should show error sheet for OAuth when no credential is available in Android', async () => {
+      const noCredentialError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginNoCredential,
+      );
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(noCredentialError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.google_login_no_credential_title'),
+            description: strings(
+              'error_sheet.google_login_no_credential_description',
+            ),
+            descriptionAlign: 'center',
+            buttonLabel: strings(
+              'error_sheet.google_login_no_credential_button',
+            ),
+            type: 'error',
+          }),
+        }),
+      );
+    });
+
+    it('should show error sheet for OAuth when no matching credential in Android', async () => {
+      const noCredentialError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginNoMatchingCredential,
+      );
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(noCredentialError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.google_login_no_credential_title'),
+            description: strings(
+              'error_sheet.google_login_no_credential_description',
+            ),
+            descriptionAlign: 'center',
+            buttonLabel: strings(
+              'error_sheet.google_login_no_credential_button',
+            ),
+            type: 'error',
+          }),
+        }),
+      );
+    });
   });
 
   describe('ErrorBoundary Tests', () => {
@@ -873,9 +1051,6 @@ describe('Onboarding', () => {
     const mockCreateLoginHandler = jest.requireMock(
       '../../../core/OAuthService/OAuthLoginHandlers',
     ).createLoginHandler;
-    const { OAuthError, OAuthErrorType } = jest.requireMock(
-      '../../../core/OAuthService/error',
-    );
 
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
@@ -888,12 +1063,12 @@ describe('Onboarding', () => {
     });
 
     it('should trigger ErrorBoundary for OAuth login failures when analytics disabled', async () => {
-      const loggerErrorSpy = jest.spyOn(Logger, 'error');
       mockMetricsIsEnabled.mockReturnValueOnce(false);
-      const dismissError = new OAuthError(OAuthErrorType.AuthServerError);
+      const serverError = new OAuthError('', OAuthErrorType.AuthServerError);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(serverError);
 
+      mockNavigate.mockClear();
       const { getByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
@@ -921,16 +1096,6 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      // Verify that the built-in ErrorBoundary caught the error and rendered its fallback UI
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'OAuth login failed: ',
-        }),
-        expect.objectContaining({
-          View: 'Onboarding',
-          ErrorBoundary: true,
-        }),
-      );
       expect(mockTrackEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({
           name: 'Error Screen Viewed',
@@ -940,7 +1105,7 @@ describe('Onboarding', () => {
 
     it('should not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
       mockMetricsIsEnabled.mockReturnValue(true);
-      const dismissError = new OAuthError(OAuthErrorType.AuthServerError);
+      const dismissError = new OAuthError('', OAuthErrorType.AuthServerError);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
 

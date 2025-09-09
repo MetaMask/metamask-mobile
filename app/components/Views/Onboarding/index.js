@@ -41,6 +41,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
   TraceOperation,
@@ -205,6 +206,15 @@ const createStyles = (colors) =>
       borderColor: colors.border.muted,
       borderWidth: 1,
       color: colors.text.default,
+    },
+    blackButton: {
+      backgroundColor: importedColors.btnBlack,
+    },
+    blackButtonText: {
+      color: importedColors.btnBlackText,
+    },
+    inverseBlackButton: {
+      backgroundColor: importedColors.btnBlackInverse,
     },
   });
 
@@ -490,6 +500,33 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
+    // check for internet connection
+    try {
+      const netState = await NetInfo.fetch();
+      if (!netState.isConnected || netState.isInternetReachable === false) {
+        this.props.navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Network check failed:', error);
+    }
+
+    // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
 
     if (createWallet) {
@@ -510,14 +547,21 @@ class Onboarding extends PureComponent {
     });
 
     const action = async () => {
+      this.props.setLoading();
       const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
       ).catch((error) => {
-        this.handleLoginError(error, 'google');
+        this.props.unsetLoading();
+        this.handleLoginError(error, provider);
         return { type: 'error', error, existingUser: false };
       });
       this.handlePostSocialLogin(result, createWallet, provider);
+
+      // delay unset loading to avoid flash of loading state
+      setTimeout(() => {
+        this.props.unsetLoading();
+      }, 1000);
     };
     this.handleExistingUser(action);
   };
@@ -532,16 +576,34 @@ class Onboarding extends PureComponent {
     if (error instanceof OAuthError) {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
-        error.code !== OAuthErrorType.UserCancelled &&
-        error.code !== OAuthErrorType.UserDismissed
+        error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed ||
+        error.code === OAuthErrorType.GoogleLoginError ||
+        error.code === OAuthErrorType.AppleLoginError
       ) {
-        this.handleOAuthLoginError(error);
-        return;
-      }
-      if (error.code === OAuthErrorType.UserCancelled) {
         // QA: do not show error sheet if user cancelled
         return;
+      } else if (
+        error.code === OAuthErrorType.GoogleLoginNoCredential ||
+        error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+      ) {
+        // de-escalate google no credential error
+        const errorMessage = 'google_login_no_credential';
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.${errorMessage}_title`),
+            description: strings(`error_sheet.${errorMessage}_description`),
+            descriptionAlign: 'center',
+            buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+            type: 'error',
+          },
+        });
+        return;
       }
+      // unexpected oauth login error
+      this.handleOAuthLoginError(error);
+      return;
     }
 
     const errorMessage = 'oauth_error';
@@ -650,7 +712,9 @@ class Onboarding extends PureComponent {
         </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
+          <Text style={styles.loadingText} color={importedColors.btnBlack}>
+            {this.props.loadingMsg}
+          </Text>
         </View>
       </View>
     );
@@ -687,9 +751,17 @@ class Onboarding extends PureComponent {
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={strings('onboarding.start_exploring_now')}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={importedColors.btnBlackText}
+              >
+                {strings('onboarding.start_exploring_now')}
+              </Text>
+            }
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            style={styles.blackButton}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -707,6 +779,7 @@ class Onboarding extends PureComponent {
                   : strings('onboarding.import_using_srp')}
               </Text>
             }
+            style={styles.inverseBlackButton}
           />
         </View>
       </View>

@@ -11,17 +11,18 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
+import type { BridgeRouteParams } from './index';
 import { createBridgeTestState } from '../../testUtils';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
-import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
-import { BridgeViewMode } from '../../types';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { BridgeViewMode } from '../../types';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -167,6 +168,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         yOffset: 0,
         isSelected: true,
         caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        scopes: ['eip155:0', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
       },
     ],
     ensByAccountAddress: {
@@ -209,9 +211,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 const mockNavigate = jest.fn();
 const mockRoute = {
   params: {
-    bridgeViewMode: BridgeViewMode.Bridge, // Default to bridge mode using enum
     sourcePage: 'test',
-  },
+  } as BridgeRouteParams,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -529,13 +530,14 @@ describe('BridgeView', () => {
 
   describe('Solana Swap', () => {
     it('should set slippage to undefined when isSolanaSwap is true', async () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0',
@@ -607,13 +609,14 @@ describe('BridgeView', () => {
     });
 
     it('displays "Insufficient funds" when amount exceeds balance', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: true,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
       });
@@ -659,13 +662,14 @@ describe('BridgeView', () => {
     });
 
     it('displays Continue button and Terms link when amount is valid', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -694,13 +698,14 @@ describe('BridgeView', () => {
     });
 
     it('should handle "Confirm Bridge" button press', async () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -726,13 +731,14 @@ describe('BridgeView', () => {
     });
 
     it('should handle Terms & Conditions press', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -863,6 +869,7 @@ describe('BridgeView', () => {
       const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
       jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
 
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState(
         {
           bridgeControllerOverrides: {
@@ -870,7 +877,7 @@ describe('BridgeView', () => {
               insufficientBal: false,
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuotes[0] as unknown as QuoteResponse],
+            quotes: [mockQuote as unknown as QuoteResponse],
             quotesLastFetched: 12,
           },
           bridgeReducerOverrides: {
@@ -1002,10 +1009,11 @@ describe('BridgeView', () => {
   });
 
   describe('handleContinue - Blockaid Validation', () => {
-    const mockQuote = mockQuotes[0] as unknown as QuoteResponse;
+    let mockQuote: QuoteResponse;
 
     beforeEach(() => {
       jest.clearAllMocks();
+      mockQuote = mockQuoteWithMetadata as unknown as QuoteResponse;
       mockValidateBridgeTx.mockResolvedValue({
         result: { validation: { reason: null } },
         error: null,
@@ -1015,18 +1023,7 @@ describe('BridgeView', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(false);
     });
 
-    it('should navigate to blockaid modal on validation error for Solana swap', async () => {
-      // Mock validation result with validation error
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'ERROR',
-        result: {
-          validation: {
-            reason: 'Transaction may result in loss of funds',
-          },
-        },
-        error: null,
-      });
-
+    it('should submit transaction for Solana swap', async () => {
       // Set route params for swap mode
       mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
 
@@ -1079,35 +1076,17 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockValidateBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
-        });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-          params: {
-            errorType: 'validation',
-            errorMessage: 'Transaction may result in loss of funds',
-          },
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
-
-      // Should not submit the transaction
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('should navigate to blockaid modal on simulation error for Solana to EVM bridge', async () => {
-      // Mock validation result with simulation error
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'ERROR',
-        result: {
-          validation: {
-            reason: null,
-          },
-        },
-        error: 'Simulation failed',
-      });
-
+    it('should submit transaction for Solana to EVM bridge', async () => {
       // Set route params for bridge mode
       mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
 
@@ -1163,35 +1142,17 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockValidateBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
-        });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-          params: {
-            errorType: 'simulation',
-            errorMessage: 'Simulation failed',
-          },
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
-
-      // Should not submit the transaction
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('should prioritize validation error over simulation error', async () => {
-      // Mock validation result with both validation and simulation errors
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'ERROR',
-        result: {
-          validation: {
-            reason: 'Transaction may result in loss of funds',
-          },
-        },
-        error: 'Simulation failed',
-      });
-
+    it('should proceed with transaction when continue is pressed', async () => {
       // Set route params for swap mode
       mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
 
@@ -1244,102 +1205,17 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-          params: {
-            errorType: 'validation', // Should prioritize validation over simulation
-            errorMessage: 'Transaction may result in loss of funds',
-          },
-        });
-      });
-    });
-
-    it('should proceed with transaction when no validation errors', async () => {
-      // Mock validation result with no errors
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'SUCCESS',
-        result: {
-          validation: {
-            reason: null,
-          },
-        },
-        error: null,
-      });
-
-      // Set route params for swap mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-          destToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-          isLoading: false,
-        }));
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_swap'));
       await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await waitFor(() => {
-        expect(mockValidateBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
-        });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-      });
-
-      // Should not navigate to blockaid modal
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-        params: expect.any(Object),
       });
     });
 
     it('should skip validation for non-Solana transactions', async () => {
-      // Set route params for bridge mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
-
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
@@ -1389,15 +1265,166 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       });
+    });
+  });
 
-      // Should not call validation for non-Solana transactions
-      expect(mockValidateBridgeTx).not.toHaveBeenCalled();
+  describe('deep link parameter handling', () => {
+    const mockDeepLinkSourceToken = {
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chainId: '0x1' as Hex,
+      decimals: 6,
+      name: 'USD Coin',
+      symbol: 'USDC',
+    };
+
+    const mockDeepLinkDestToken = {
+      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      chainId: '0x1' as Hex,
+      decimals: 6,
+      name: 'Tether USD',
+      symbol: 'USDT',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset route params to default for deep link testing
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+      } as BridgeRouteParams;
+    });
+
+    it('uses sourceToken from route params when provided', async () => {
+      mockRoute.params.sourceToken = mockDeepLinkSourceToken;
+
+      // Update the mock state to include the deep link source token
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockDeepLinkSourceToken,
+        },
+      };
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Should display the deep link token symbol
+      expect(getByText('USDC')).toBeTruthy();
+    });
+
+    it('uses destToken from route params when provided', () => {
+      mockRoute.params.destToken = mockDeepLinkDestToken;
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display the deep link dest token symbol
+      expect(getByText('USDT')).toBeTruthy();
+    });
+
+    it('uses sourceAmount from route params when provided', () => {
+      // Need to provide a source token for the amount to be set
+      mockRoute.params.sourceToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        image: '',
+        name: 'Ether',
+        symbol: 'ETH',
+      };
+      mockRoute.params.sourceAmount = '1000000';
+
+      // Update the mock state to include the source token and amount
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockRoute.params.sourceToken,
+          sourceAmount: '1000000',
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Should display the deep link amount in the input
+      const input = getByTestId('source-token-area-input');
+      expect(input.props.value).toBe('1000000');
+    });
+
+    it('uses all deep link params when all are provided', async () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        sourceToken: mockDeepLinkSourceToken,
+        destToken: mockDeepLinkDestToken,
+        sourceAmount: '1000000',
+      } as BridgeRouteParams;
+
+      // Update the mock state to include the deep link tokens and amount
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockDeepLinkSourceToken,
+          destToken: mockDeepLinkDestToken,
+          sourceAmount: '1000000',
+        },
+      };
+
+      const { getByText, getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Should display all deep link data
+      expect(getByText('USDC')).toBeTruthy();
+      expect(getByText('USDT')).toBeTruthy();
+      const input = getByTestId('source-token-area-input');
+      expect(input.props.value).toBe('1000000');
+    });
+
+    it('falls back to Redux state when deep link params are not provided', () => {
+      // Ensure no deep link params are set
+      mockRoute.params = {
+        sourcePage: 'test',
+      } as BridgeRouteParams;
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display default ETH token from Redux state
+      expect(getByText('ETH')).toBeTruthy();
     });
   });
 });

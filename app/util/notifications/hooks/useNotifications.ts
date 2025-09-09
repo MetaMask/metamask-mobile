@@ -18,6 +18,10 @@ import {
 } from '../../../selectors/notifications';
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
+import {
+  setUserHasTurnedOffNotificationsOnce,
+  updateNotificationSubscriptionExpiration,
+} from '../constants/notification-storage-keys';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -105,10 +109,11 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
+    await enableNotificationsHelper().catch((e) => setError(e));
     await togglePushNotification(true).catch(() => {
       /* Do Nothing */
     });
-    await enableNotificationsHelper().catch((e) => setError(e));
+    await updateNotificationSubscriptionExpiration();
   }, [togglePushNotification]);
 
   const contiguousLoading = useContiguousLoading(loading, pushLoading);
@@ -144,6 +149,7 @@ export function useDisableNotifications() {
       Logger.error(e);
       setError(`Failed to disable push notifications`);
     });
+    await setUserHasTurnedOffNotificationsOnce();
   }, [togglePushNotification]);
 
   return {

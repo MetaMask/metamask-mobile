@@ -55,7 +55,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -101,29 +100,29 @@ const createStyles = (colors) =>
       flexDirection: 'column',
     },
     loadingWrapper: {
-      paddingHorizontal: 40,
-      paddingBottom: 30,
+      paddingHorizontal: 16,
       alignItems: 'center',
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignContent: 'center',
       flex: 1,
+      rowGap: 24,
     },
     foxWrapper: {
-      width: Device.isIos() ? 90 : 80,
-      height: Device.isIos() ? 90 : 80,
-      marginTop: 30,
-      marginBottom: 30,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
     image: {
       alignSelf: 'center',
-      width: 80,
-      height: 80,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
-    title: {
-      justifyContent: 'flex-start',
-      textAlign: 'flex-start',
-      fontSize: 32,
-    },
-    subtitle: {
-      textAlign: 'center',
+    loadingTextContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      rowGap: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     field: {
       position: 'relative',
@@ -283,7 +282,7 @@ class ChoosePassword extends PureComponent {
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={this.state.loading ? colors.icon.muted : colors.icon.default}
+          color={colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>
@@ -297,18 +296,12 @@ class ChoosePassword extends PureComponent {
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: this.headerLeft,
+          headerLeft: this.state.loading ? () => <View /> : this.headerLeft,
         },
         colors,
         false,
       ),
     );
-  };
-
-  termsOfUse = async () => {
-    if (this.props.navigation) {
-      await navigateTermsOfUse(this.props.navigation.navigate);
-    }
   };
 
   async componentDidMount() {
@@ -348,7 +341,6 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -440,8 +432,10 @@ class ChoosePassword extends PureComponent {
     }
 
     const provider = this.props.route.params?.provider;
+    const accountType = provider ? `metamask_${provider}` : 'metamask';
+
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: provider ? `metamask_${provider}` : 'metamask',
+      account_type: accountType,
     });
 
     try {
@@ -454,6 +448,18 @@ class ChoosePassword extends PureComponent {
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
+
+      const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
+      trace({
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+        tags: {
+          is_social_login: Boolean(provider),
+          account_type: accountType,
+          biometrics_enabled: Boolean(this.state.biometryType),
+        },
+      });
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -476,7 +482,6 @@ class ChoosePassword extends PureComponent {
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-      this.setState({ loading: false });
 
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
@@ -515,13 +520,14 @@ class ChoosePassword extends PureComponent {
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
-        password_strength: getPasswordStrengthWord(this.state.passwordStrength),
+        account_type: accountType,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
+      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (error) {
       try {
         await this.recreateVault('');
@@ -705,13 +711,20 @@ class ChoosePassword extends PureComponent {
   };
 
   learnMore = () => {
-    const learnMoreUrl =
+    let learnMoreUrl =
       'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
+
+    if (this.getOauth2LoginSuccess()) {
+      learnMoreUrl =
+        'https://support.metamask.io/configure/wallet/passwords-and-metamask/';
+    }
+
     this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
       url: learnMoreUrl,
     });
+
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -765,21 +778,26 @@ class ChoosePassword extends PureComponent {
               />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.title}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-            >
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-              {strings('create_wallet.subtitle')}
-            </Text>
+            <View style={styles.loadingTextContainer}>
+              <Text
+                variant={TextVariant.HeadingLG}
+                color={colors.text.default}
+                adjustsFontSizeToFit
+                numberOfLines={1}
+              >
+                {strings(
+                  previousScreen === ONBOARDING
+                    ? 'create_wallet.title'
+                    : 'secure_your_wallet.creating_password',
+                )}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={colors.text.alternative}
+              >
+                {strings('create_wallet.subtitle')}
+              </Text>
+            </View>
           </View>
         ) : (
           <KeyboardAwareScrollView

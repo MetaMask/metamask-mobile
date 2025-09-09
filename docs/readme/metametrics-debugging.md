@@ -51,6 +51,7 @@ export SEGMENT_FLUSH_EVENT_LIMIT="1"
 In development mode, MetaMetrics provides detailed logging to help you verify events are being tracked correctly. Look for these log patterns:
 
 #### Initial Configuration
+
 ```log
 [MetaMask DEBUG]: MetaMetrics client configured with: {
   "writeKey": "[key]",
@@ -64,12 +65,14 @@ In development mode, MetaMetrics provides detailed logging to help you verify ev
 ```
 
 #### User Opt-in and Identification
+
 ```log
 INFO  IDENTIFY event saved {"traits": {"Theme": "dark", "platform": "ios", ...}, "type": "identify", "userId": "[Your Metrics ID]"}
 INFO  TRACK event saved {"event": "Analytics Preference Selected", "properties": {"is_metrics_opted_in": true}, "type": "track"}
 ```
 
 #### Event Tracking log examples
+
 ```log
 INFO  TRACK event saved {"event": "Welcome Message Viewed", "properties": {}, "type": "track"}
 INFO  TRACK event saved {"event": "Onboarding Started", "properties": {}, "type": "track"}
@@ -78,11 +81,13 @@ INFO  TRACK event saved {"event": "Navigation Drawer", "properties": {"action": 
 ```
 
 #### Event Flushing
+
 ```log
 INFO  Sent 2 events
 ```
 
 **What to Look For**:
+
 - ✅ **Configuration logs**: Confirm MetaMetrics is properly configured
 - ✅ **User ID**: Verify a unique user ID is generated, should display in place of [Your Metrics ID] in the examples
 - ✅ **Event tracking**: See your events being saved
@@ -100,13 +105,14 @@ Ensure you're using the correct event builder pattern:
 trackEvent(
   createEventBuilder(MetaMetricsEvents.MY_EVENT)
     .addProperties({ key: 'value' })
-    .build()
+    .build(),
 );
 
 // ❌ Incorrect - missing .build()
 trackEvent(
-  createEventBuilder(MetaMetricsEvents.MY_EVENT)
-    .addProperties({ key: 'value' })
+  createEventBuilder(MetaMetricsEvents.MY_EVENT).addProperties({
+    key: 'value',
+  }),
 );
 ```
 
@@ -116,13 +122,13 @@ Verify that your event properties are correctly structured:
 
 ```typescript
 // Regular properties (non-sensitive)
-.addProperties({ 
+.addProperties({
   network: 'ethereum',
   source: 'navigation'
 })
 
 // Sensitive properties (triggers anonymous events)
-.addSensitiveProperties({ 
+.addSensitiveProperties({
   amount: '0.1',
   recipient: '0x1234...'
 })
@@ -134,10 +140,10 @@ Ensure you're using predefined events from `MetaMetrics.events.ts`:
 
 ```typescript
 // ✅ Correct - using predefined event
-MetaMetricsEvents.SEND_TRANSACTION_STARTED
+MetaMetricsEvents.SEND_TRANSACTION_STARTED;
 
 // ❌ Incorrect - custom event name
-'custom_event_name'
+('custom_event_name');
 ```
 
 ## Event Verification Workflow
@@ -157,9 +163,11 @@ INFO  TRACK event saved {"event": "MY_EVENT", "properties": {"debug": true}, "ty
 To find your specific events in Segment and Mixpanel, you need your metrics ID:
 
 #### Development Environment
+
 - **Check Console Logs**: Look for `[MetaMask DEBUG]: MetaMetrics configured with ID: [Your Metrics ID]` in the console
 
 #### QA/Production Environment
+
 1. **Lock the App**: Lock MetaMask Mobile
 2. **Access Login Screen**: Go to the login screen
 3. **Touch Fox Logo**: Touch the MetaMask fox logo for at least 10 seconds
@@ -175,7 +183,7 @@ Check that events are being sent to Segment:
 1. **Request Access**: Ask helpdesk for access to the Segment website
 2. **Navigate to Debugger**: Go to the correct source debugger:
    - **Mobile Dev**: For local development testing
-   - **Mobile QA**: For QA build testing  
+   - **Mobile QA**: For QA build testing
    - **Mobile Prod**: For production events
 3. **Find Your Events**: Use your metrics ID to filter events
 4. **Verify Event Properties**: Ensure all properties are present
@@ -198,6 +206,7 @@ Confirm events are appearing in Mixpanel:
 **Symptoms**: Events are being tracked but don't appear in Segment dashboard
 
 **Debugging Steps**:
+
 1. Check `IS_TEST` environment variable
 2. Verify user consent (`isEnabled()`)
 3. Check network connectivity
@@ -215,6 +224,7 @@ Send a Slack message in the #data channel to explain your issue
 **Symptoms**: Sensitive properties are being tracked but anonymous events aren't generated
 
 **Debugging Steps**:
+
 1. Verify `addSensitiveProperties()` is being used
 2. Check that sensitive properties contain actual data
 3. Check the events for the anonymous user ID `0x0000000000000000` (note: this will show many events from all users)

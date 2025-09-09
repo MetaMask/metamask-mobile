@@ -75,11 +75,12 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 interface AssetOverviewProps {
   asset: TokenI;
-  displayBuyButton?: boolean;
+  displayFundButton?: boolean;
   displaySwapsButton?: boolean;
   displayBridgeButton?: boolean;
   swapsIsLive?: boolean;
@@ -88,7 +89,7 @@ interface AssetOverviewProps {
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
-  displayBuyButton,
+  displayFundButton,
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
@@ -110,6 +111,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
+  const { navigateToSendPage } = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -143,7 +145,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
-    token: {
+    sourceToken: {
       ...asset,
       address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
@@ -155,12 +157,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   });
 
   // Hook for handling non-EVM asset sending
-  const { sendNonEvmAsset } = useSendNonEvmAsset({
-    asset: {
-      chainId: asset.chainId as string,
-      address: asset.address,
-    },
-  });
+  const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -199,7 +196,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.AssetOverview,
+    );
     if (wasHandledAsNonEvm) {
       return;
     }
@@ -235,16 +234,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    if (isSendRedesignEnabled()) {
-      navigation.navigate(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ROOT,
-        params: {
-          asset,
-        },
-      });
-    } else {
-      navigation.navigate('SendFlowView', {});
-    }
+    navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {
@@ -428,7 +418,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
@@ -437,6 +427,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             onBuy={onBuy}
             onReceive={onReceive}
             onSend={onSend}
+            asset={{
+              address: asset.address,
+              chainId,
+            }}
           />
           <Balance
             asset={asset}

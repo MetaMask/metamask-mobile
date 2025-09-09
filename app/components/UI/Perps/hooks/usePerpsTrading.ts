@@ -2,13 +2,18 @@ import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import type {
   AccountState,
-  AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
-  DepositParams,
-  DepositResult,
+  FeeCalculationParams,
+  FeeCalculationResult,
   GetAccountStateParams,
+  GetOrderFillsParams,
+  GetOrdersParams,
+  GetFundingParams,
+  OrderFill,
+  Order,
+  Funding,
   LiquidationPriceParams,
   MaintenanceMarginParams,
   MarketInfo,
@@ -16,9 +21,11 @@ import type {
   OrderResult,
   Position,
   SubscribeOrderFillsParams,
-  SubscribePositionsParams,
   SubscribePricesParams,
+  SubscribePositionsParams,
   UpdatePositionTPSLParams,
+  WithdrawParams,
+  WithdrawResult,
 } from '../controllers/types';
 
 /**
@@ -95,23 +102,25 @@ export function usePerpsTrading() {
     [],
   );
 
-  const deposit = useCallback(
-    async (params: DepositParams): Promise<DepositResult> => {
+  const depositWithConfirmation = useCallback(async (): Promise<{
+    result: Promise<string>;
+  }> => {
+    const controller = Engine.context.PerpsController;
+    return controller.depositWithConfirmation();
+  }, []);
+
+  const clearDepositResult = useCallback((): void => {
+    const controller = Engine.context.PerpsController;
+    controller.clearDepositResult();
+  }, []);
+
+  const withdraw = useCallback(
+    async (params: WithdrawParams): Promise<WithdrawResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.deposit(params);
+      return controller.withdraw(params);
     },
     [],
   );
-
-  const getDepositRoutes = useCallback((): AssetRoute[] => {
-    const controller = Engine.context.PerpsController;
-    return controller.getDepositRoutes();
-  }, []);
-
-  const resetDepositState = useCallback((): void => {
-    const controller = Engine.context.PerpsController;
-    controller.resetDepositState();
-  }, []);
 
   const calculateLiquidationPrice = useCallback(
     async (params: LiquidationPriceParams): Promise<string> => {
@@ -142,6 +151,68 @@ export function usePerpsTrading() {
     [],
   );
 
+  const calculateFees = useCallback(
+    async (params: FeeCalculationParams): Promise<FeeCalculationResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.calculateFees(params);
+    },
+    [],
+  );
+
+  const validateOrder = useCallback(
+    async (
+      params: OrderParams,
+    ): Promise<{ isValid: boolean; error?: string }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.validateOrder(params);
+    },
+    [],
+  );
+
+  const getOrderFills = useCallback(
+    async (params?: GetOrderFillsParams): Promise<OrderFill[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getOrderFills(params);
+    },
+    [],
+  );
+
+  const validateClosePosition = useCallback(
+    async (
+      params: ClosePositionParams,
+    ): Promise<{ isValid: boolean; error?: string }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.validateClosePosition(params);
+    },
+    [],
+  );
+
+  const getOrders = useCallback(
+    async (params?: GetOrdersParams): Promise<Order[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getOrders(params);
+    },
+    [],
+  );
+
+  const validateWithdrawal = useCallback(
+    async (
+      params: WithdrawParams,
+    ): Promise<{ isValid: boolean; error?: string }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.validateWithdrawal(params);
+    },
+    [],
+  );
+
+  const getFunding = useCallback(
+    async (params?: GetFundingParams): Promise<Funding[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getFunding(params);
+    },
+    [],
+  );
+
   return {
     placeOrder,
     cancelOrder,
@@ -152,12 +223,19 @@ export function usePerpsTrading() {
     subscribeToPrices,
     subscribeToPositions,
     subscribeToOrderFills,
-    deposit,
-    getDepositRoutes,
-    resetDepositState,
+    depositWithConfirmation,
+    clearDepositResult,
+    withdraw,
     calculateLiquidationPrice,
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,
+    calculateFees,
+    validateOrder,
+    validateClosePosition,
+    validateWithdrawal,
+    getOrderFills,
+    getOrders,
+    getFunding,
   };
 }

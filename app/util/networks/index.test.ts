@@ -32,6 +32,7 @@ import {
   MEGAETH_TESTNET,
   MONAD_TESTNET,
   BASE_MAINNET,
+  NETWORKS_CHAIN_ID,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -819,6 +820,11 @@ describe('network-utils', () => {
         chainId: ChainId['monad-testnet'],
         name: 'Monad Testnet',
         nickname: WHILELIST_NETWORK_NAME[ChainId['monad-testnet']],
+      },
+      {
+        chainId: NETWORKS_CHAIN_ID.SEI,
+        name: 'Sei Mainnet',
+        nickname: WHILELIST_NETWORK_NAME[NETWORKS_CHAIN_ID.SEI],
       },
     ])(
       'returns true if the chainId is %.chainId and network nickname is the same with the whilelisted name',

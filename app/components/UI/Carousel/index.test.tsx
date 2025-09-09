@@ -10,171 +10,20 @@ import { Linking } from 'react-native';
 import Carousel from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
-import { PREDEFINED_SLIDES } from './constants';
 import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';
 import { CarouselSlide } from './types';
 // eslint-disable-next-line import/no-namespace
 import * as FeatureFlagSelectorsModule from './selectors/featureFlags';
 import { RootState } from '../../../reducers';
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import { selectLastSelectedSolanaAccount } from '../../../selectors/accountsController';
+import Routes from '../../../constants/navigation/Routes';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { SolScope } from '@metamask/keyring-api';
 
-jest.mock('../../../core/Engine', () => ({
-  getTotalEvmFiatAccountBalance: jest.fn(),
-  context: {
-    TokensController: {
-      ignoreTokens: jest.fn(() => Promise.resolve()),
-    },
-    PreferencesController: {
-      setPrivacyMode: jest.fn(),
-    },
-    NetworkController: {
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-      state: {
-        selectedNetworkClientId: 'mainnet',
-      },
-    },
-    settings: {
-      showFiatOnTestnets: true,
-    },
-  },
-}));
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-  useDispatch: jest.fn(),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: jest.fn(),
-  }),
-}));
-
-jest.mock('../../../core/Engine', () => ({
-  getTotalEvmFiatAccountBalance: jest.fn(),
-  setSelectedAddress: jest.fn(),
-  context: {
-    PreferencesController: {
-      state: {},
-    },
-  },
-}));
-
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        alternative: '#F2F4F6',
-        alternativePressed: '#E7E9EB',
-        default: '#FFFFFF',
-      },
-      border: {
-        muted: '#BBC0C5',
-      },
-      icon: {
-        default: '#24272A',
-        muted: '#BBC0C5',
-      },
-      text: {
-        default: '#24272A',
-      },
-    },
-  }),
-}));
-
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: () => ({
-      build: () => ({}),
-    }),
-  }),
-}));
-
-jest.mock('../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-}));
-
-// Mock image requires
-jest.mock('../../../images/banners/banner_image_card.png', () => ({
-  uri: 'card-image',
-}));
-jest.mock('../../../images/banners/banner_image_fund.png', () => ({
-  uri: 'fund-image',
-}));
-jest.mock('../../../images/banners/banner_image_cashout.png', () => ({
-  uri: 'cashout-image',
-}));
-jest.mock('../../../images/banners/banner_image_aggregated.png', () => ({
-  uri: 'aggregated-image',
-}));
-
-// Mock useMultichainBalances hook
-jest.mock('../../../components/hooks/useMultichainBalances', () => ({
-  useSelectedAccountMultichainBalances: jest.fn().mockReturnValue({
-    selectedAccountMultichainBalance: {
-      displayBalance: '$0.00',
-      displayCurrency: 'USD',
-      totalFiatBalance: 0,
-      totalNativeTokenBalance: '0',
-      nativeTokenUnit: 'ETH',
-      tokenFiatBalancesCrossChains: [],
-      shouldShowAggregatedPercentage: false,
-      isPortfolioVieEnabled: true,
-      aggregatedBalance: {
-        ethFiat: 0,
-        tokenFiat: 0,
-        tokenFiat1dAgo: 0,
-        ethFiat1dAgo: 0,
-      },
-    },
-  }),
-}));
-
-// Mock contentful slides
-jest.mock('./fetchCarouselSlidesFromContentful', () => ({
-  ...jest.requireActual('./fetchCarouselSlidesFromContentful'),
-  fetchCarouselSlidesFromContentful: jest.fn(),
-}));
-
-const mockDispatch = jest.fn();
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
-
-const setupMocks = ({
-  dismissedBanners = [] as string[],
-  prioritySlides = [] as CarouselSlide[],
-  regularSlides = [] as CarouselSlide[],
-} = {}) => {
-  const mockSelectContentfulCarouselEnabledFlag = jest
-    .spyOn(FeatureFlagSelectorsModule, 'selectContentfulCarouselEnabledFlag')
-    .mockReturnValue(false);
-
-  const mockState = {
-    banners: {
-      dismissedBanners,
-    },
-    browser: {
-      tabs: [],
-    },
+const makeMockState = () =>
+  ({
+    browser: { tabs: [] },
     engine: {
       backgroundState: {
         ...backgroundState,
@@ -182,290 +31,360 @@ const setupMocks = ({
           internalAccounts: {
             selectedAccount: '1',
             accounts: {
-              '1': {
-                address: '0xSomeAddress',
-              },
+              '1': { address: '0xSomeAddress' },
             },
           },
         },
       },
     },
-    settings: {
-      showFiatOnTestnets: false,
-    },
-  } as unknown as RootState;
+    settings: { showFiatOnTestnets: false },
+    banners: { dismissedBanners: [] },
+  } as unknown as RootState);
 
-  (useSelector as jest.Mock).mockImplementation((selector) =>
-    selector(mockState),
-  );
+// Mocks
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
 
-  const mockFetchCarouselSlidesFromContentful = jest
-    .mocked(fetchCarouselSlidesFromContentful)
-    .mockResolvedValue({
-      prioritySlides,
-      regularSlides,
-    });
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
-  (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-  jest.clearAllMocks();
+jest.mock('../../../core/Engine', () => ({
+  setSelectedAddress: jest.fn(),
+  context: { PreferencesController: { state: {} } },
+}));
 
-  return {
-    mockSelectContentfulCarouselEnabledFlag,
-    mockFetchCarouselSlidesFromContentful,
-    mockState,
-  };
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({ build: () => ({}) }),
+  }),
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('./fetchCarouselSlidesFromContentful', () => ({
+  ...jest.requireActual('./fetchCarouselSlidesFromContentful'),
+  fetchCarouselSlidesFromContentful: jest.fn(),
+}));
+
+const mockDispatch = jest.fn();
+const mockFetchCarouselSlides = jest.mocked(fetchCarouselSlidesFromContentful);
+
+const createMockSlide = (
+  overrides: Partial<CarouselSlide> = {},
+): CarouselSlide => ({
+  id: 'test-slide',
+  title: 'Test Slide',
+  description: 'Test Description',
+  navigation: { type: 'url', href: 'https://example.com' },
+  image: 'https://example.com/image.jpg',
+  undismissable: false,
+  ...overrides,
+});
+
+const mockReduxHooks = (state?: RootState) => {
+  jest.mocked(useDispatch).mockReturnValue(mockDispatch);
+  jest
+    .mocked(useSelector)
+    .mockImplementation((selector) => selector(state ?? makeMockState()));
 };
 
-describe('Carousel', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    setupMocks();
-  });
-
-  it('render an expected snapshot', () => {
-    const { toJSON } = render(<Carousel />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('opens correct URLs or navigates to correct screens when banners are clicked', async () => {
-    const { getByTestId } = render(<Carousel />);
-    const { CAROUSEL_SLIDE } = WalletViewSelectorsIDs;
-    const slides = PREDEFINED_SLIDES.map((slide) =>
-      getByTestId(CAROUSEL_SLIDE(slide.id)),
-    );
-    const [
-      firstSlide,
-      secondSlide,
-      thirdSlide,
-      fourthSlide,
-      fifthSlide,
-      sixthSlide,
-      seventhSlide,
-      eighthSlide,
-    ] = slides;
-
-    // Test solana banner
-    fireEvent.press(firstSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test smart account
-    fireEvent.press(secondSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test card banner
-    fireEvent.press(thirdSlide);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://portfolio.metamask.io/card',
-    );
-
-    // Test fund banner
-    fireEvent.press(fourthSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test cashout banner
-    fireEvent.press(fifthSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test aggregated banner
-    fireEvent.press(sixthSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test multisrp banner
-    fireEvent.press(seventhSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test backup and sync banner
-    fireEvent.press(eighthSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  it('should update selected index when scrolling', () => {
-    const { getByTestId } = render(<Carousel />);
-    const flatList = getByTestId(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
-
-    fireEvent.scroll(flatList, {
-      nativeEvent: {
-        contentOffset: { x: 400 },
-        layoutMeasurement: { width: 400 },
-        contentSize: { width: 1600, height: 400 },
-        target: flatList,
-      },
-    });
-
-    expect(flatList).toBeOnTheScreen();
-  });
-
-  it('does not render solana banner if user has a solana account', () => {
-    const { mockState } = setupMocks();
-    mockState.engine.backgroundState.AccountsController = {
-      internalAccounts: {
-        selectedAccount: '1',
-        accounts: {
-          '1': {
-            address: '0xSomeAddress',
-            type: SolAccountType.DataAccount,
-          },
-        },
-      },
-    } as unknown as AccountsControllerState;
-
-    const { queryByTestId } = render(<Carousel />);
-    const solanaBanner = queryByTestId(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
-    );
-
-    expect(solanaBanner).not.toBeOnTheScreen();
-  });
-
-  it('changes to a solana address if user has a solana account', async () => {
-    const { mockState } = setupMocks();
-    mockState.engine.backgroundState.AccountsController = {
-      internalAccounts: {
-        selectedAccount: '1',
-        accounts: {
-          '1': {
-            address: '0xSomeAddress',
-          },
-          '2': {
-            address: 'SomeSolanaAddress',
-            type: SolAccountType.DataAccount,
-          },
-        },
-      },
-    } as unknown as AccountsControllerState;
-
-    const { getByTestId } = render(<Carousel />);
-    const solanaBanner = getByTestId(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE('solana'),
-    );
-    await userEvent.press(solanaBanner);
-
-    expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SomeSolanaAddress');
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockReduxHooks();
+  jest
+    .spyOn(FeatureFlagSelectorsModule, 'selectContentfulCarouselEnabledFlag')
+    .mockReturnValue(true);
+  mockFetchCarouselSlides.mockResolvedValue({
+    prioritySlides: [],
+    regularSlides: [],
   });
 });
 
-describe('Carousel with dynamic banners', () => {
-  const mockPrioritySlides: CarouselSlide[] = [
-    {
-      id: 'contentful-priority-1',
-      title: 'Priority Slide 1',
-      description: 'This is a priority slide from Contentful',
-      navigation: { type: 'url', href: 'https://example.com/priority' },
-      image: 'https://example.com/priority-image.jpg',
-      undismissable: true,
-    },
-  ];
-
-  const mockRegularSlides: CarouselSlide[] = [
-    {
-      id: 'contentful-regular-1',
-      title: 'Regular Slide 1',
-      description: 'This is a regular slide from Contentful',
-      navigation: { type: 'url', href: 'https://example.com/regular' },
-      image: 'https://example.com/regular-image.jpg',
-      undismissable: false,
-    },
-  ];
-
-  const arrange = (...args: Parameters<typeof setupMocks>) => {
-    const mocks = setupMocks(...args);
-    mocks.mockSelectContentfulCarouselEnabledFlag.mockReturnValue(true);
-    return mocks;
+describe('Carousel Feature Flag Control', () => {
+  const setupFeatureFlagTests = (isEnabled: boolean) => {
+    jest
+      .spyOn(FeatureFlagSelectorsModule, 'selectContentfulCarouselEnabledFlag')
+      .mockReturnValue(isEnabled);
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    arrange();
+  it('does not render when carousel feature is disabled', () => {
+    setupFeatureFlagTests(false);
+    const { toJSON } = render(<Carousel />);
+    expect(toJSON()).toBeNull();
   });
 
-  it('renders Contentful priority and regular slides', async () => {
-    const banners = ['contentful-priority-1', 'contentful-regular-1'];
-    const { mockFetchCarouselSlidesFromContentful } = arrange({
-      prioritySlides: mockPrioritySlides,
-      regularSlides: mockRegularSlides,
+  it('does not fetch carousel data when feature is disabled', () => {
+    setupFeatureFlagTests(false);
+    render(<Carousel />);
+    expect(mockFetchCarouselSlides).not.toHaveBeenCalled();
+  });
+});
+
+describe('Carousel Data Fetching', () => {
+  it('fetches and renders contentful slides', async () => {
+    const testSlide = createMockSlide({ id: 'cms-slide', title: 'CMS Slide' });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [testSlide],
+      regularSlides: [],
+    });
+
+    const { findByText } = render(<Carousel />);
+
+    await waitFor(() => expect(mockFetchCarouselSlides).toHaveBeenCalled());
+    expect(await findByText('CMS Slide')).toBeOnTheScreen();
+  });
+
+  it('handles CMS fetch errors gracefully', async () => {
+    mockFetchCarouselSlides.mockRejectedValue(new Error('CMS Error'));
+
+    const { toJSON } = render(<Carousel />);
+
+    await waitFor(() => expect(toJSON()).toBeNull());
+  });
+
+  it('prioritizes priority slides over regular slides', async () => {
+    const prioritySlide = createMockSlide({
+      id: 'priority',
+      title: 'Priority',
+      description: '',
+    });
+    const regularSlide = createMockSlide({
+      id: 'regular',
+      title: 'Regular',
+      description: '',
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [prioritySlide],
+      regularSlides: [regularSlide],
+    });
+
+    const { findAllByTestId } = render(<Carousel />);
+
+    await waitFor(async () => {
+      const slides = await findAllByTestId(/carousel-slide-/);
+      expect(slides.length > 0).toBe(true);
+      expect(slides[0]).toHaveTextContent('Priority');
+    });
+  });
+});
+
+describe('Carousel Slide Filtering', () => {
+  const setupFilteringTests = (dismissedBanners: string[] = []) => {
+    const mockState = makeMockState();
+    mockState.banners = { dismissedBanners };
+    mockReduxHooks(mockState);
+  };
+
+  it('filters out dismissed slides', async () => {
+    setupFilteringTests(['dismissed-slide']);
+    const slide = createMockSlide({ id: 'dismissed-slide' });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [slide],
+    });
+
+    const { toJSON } = render(<Carousel />);
+
+    await waitFor(() => expect(toJSON()).toBeNull());
+  });
+});
+
+describe('Carousel Navigation', () => {
+  it('opens external URLs when slide is clicked', async () => {
+    const urlSlide = createMockSlide({
+      id: 'url-slide',
+      navigation: { type: 'url', href: 'https://metamask.io' },
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [urlSlide],
     });
 
     const { findByTestId } = render(<Carousel />);
-
-    await waitFor(() => {
-      expect(mockFetchCarouselSlidesFromContentful).toHaveBeenCalled();
-    });
-
-    banners.forEach(async (bannerId) => {
-      expect(
-        await findByTestId(WalletViewSelectorsIDs.CAROUSEL_SLIDE(bannerId)),
-      ).toBeOnTheScreen();
-    });
+    const slide = await findByTestId('carousel-slide-url-slide');
+    fireEvent.press(slide);
+    expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
   });
 
-  it('does not render dismissed Contentful slides', async () => {
-    const dismissedBanners = ['contentful-priority-1', 'contentful-regular-1'];
-    const { mockFetchCarouselSlidesFromContentful } = arrange({
-      dismissedBanners,
-      prioritySlides: mockPrioritySlides,
-      regularSlides: mockRegularSlides,
+  it('navigates to buy flow for fund slides', async () => {
+    const fundSlide = createMockSlide({
+      id: 'fund-slide',
+      variableName: 'fund',
     });
-
-    const { queryByTestId } = render(<Carousel />);
-
-    await waitFor(() => {
-      expect(mockFetchCarouselSlidesFromContentful).toHaveBeenCalled();
-    });
-
-    dismissedBanners.forEach((bannerId) => {
-      expect(
-        queryByTestId(WalletViewSelectorsIDs.CAROUSEL_SLIDE(bannerId)),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
-  it('opens the correct URL when a Contentful slide is clicked', async () => {
-    arrange({
-      prioritySlides: mockPrioritySlides,
-      regularSlides: mockRegularSlides,
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [fundSlide],
     });
 
     const { findByTestId } = render(<Carousel />);
-
-    // Click on the priority slide
-    const prioritySlide = await findByTestId(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE('contentful-priority-1'),
-    );
-    await userEvent.press(prioritySlide);
-
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://example.com/priority',
-    );
-
-    // Click on the regular slide
-    const regularSlide = await findByTestId(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE('contentful-regular-1'),
-    );
-    await userEvent.press(regularSlide);
-
-    expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/regular');
+    const slide = await findByTestId('carousel-slide-fund-slide');
+    fireEvent.press(slide);
+    expect(mockNavigate).toHaveBeenCalled();
   });
 
-  it('dismisses a Contentful slide when the close button is clicked', async () => {
-    arrange({
-      prioritySlides: mockPrioritySlides,
-      regularSlides: mockRegularSlides,
+  it('navigates to route when slide has route navigation', async () => {
+    const routeSlide = createMockSlide({
+      id: 'route-slide',
+      navigation: { type: 'route', route: 'Settings' },
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [routeSlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    const slide = await findByTestId('carousel-slide-route-slide');
+    fireEvent.press(slide);
+    expect(mockNavigate).toHaveBeenCalledWith('Settings');
+  });
+});
+
+describe('Carousel Slide Dismissal', () => {
+  it('dispatches dismiss action when close button is clicked', async () => {
+    const dismissibleSlide = createMockSlide({
+      id: 'dismissible-slide',
+      undismissable: false,
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [dismissibleSlide],
     });
 
     const { findByTestId } = render(<Carousel />);
 
     const closeButton = await findByTestId(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(
-        'contentful-regular-1',
-      ),
+      'carousel-slide-dismissible-slide-close-button',
     );
-    await userEvent.press(closeButton);
+    fireEvent.press(closeButton);
 
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'banners/dismissBanner',
-        payload: 'contentful-regular-1',
+        payload: 'dismissible-slide',
       }),
     );
+  });
+
+  it('does not show close button for undismissable slides', async () => {
+    const undismissableSlide = createMockSlide({
+      id: 'undismissable-slide',
+      undismissable: true,
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [undismissableSlide],
+    });
+
+    const { queryByTestId, findByTestId } = render(<Carousel />);
+
+    expect(
+      await findByTestId('carousel-slide-undismissable-slide'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId('carousel-slide-undismissable-slide-close-button'),
+    ).toBeNull();
+  });
+});
+
+describe('Carousel Solana Integration', () => {
+  const setupSolanaTests = (hasSolanaAccount: boolean = false) => {
+    const mockState = makeMockState();
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectLastSelectedSolanaAccount) {
+        return hasSolanaAccount ? { address: 'SolanaAddress123' } : null;
+      }
+      return selector(mockState);
+    });
+  };
+
+  const arrangeActTestSolanaCarouselClick = async (
+    props = { hasSolanaAccount: true },
+  ) => {
+    setupSolanaTests(props.hasSolanaAccount);
+    const solanaSlide = createMockSlide({
+      id: 'solana',
+      variableName: 'solana',
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [solanaSlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+    const slide = await findByTestId('carousel-slide-solana');
+    expect(slide).toBeVisible();
+    await userEvent.press(slide);
+  };
+
+  it('switches to existing Solana account when clicked', async () => {
+    await arrangeActTestSolanaCarouselClick({ hasSolanaAccount: true });
+    expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SolanaAddress123');
+  });
+
+  it('navigates to add account flow when no existing Solana account', async () => {
+    await arrangeActTestSolanaCarouselClick({ hasSolanaAccount: false }); // no solana account
+
+    // Should navigate to add account flow instead of switching accounts
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ADD_ACCOUNT,
+      params: {
+        clientType: WalletClientType.Solana,
+        scope: SolScope.Mainnet,
+      },
+    });
+    expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
+  });
+});
+
+describe('Carousel UI Behavior', () => {
+  it('shows progress dots for multiple slides', async () => {
+    const slides = [
+      createMockSlide({ id: 'slide-1' }),
+      createMockSlide({ id: 'slide-2' }),
+    ];
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: slides,
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    expect(
+      await findByTestId(WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS),
+    ).toBeOnTheScreen();
+  });
+
+  it('updates scroll position when swiping', async () => {
+    const slides = [
+      createMockSlide({ id: 'slide-1' }),
+      createMockSlide({ id: 'slide-2' }),
+    ];
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: slides,
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    const flatList = await findByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_CONTAINER,
+    );
+
+    fireEvent(flatList, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 400, y: 0 },
+        layoutMeasurement: { width: 400, height: 66 },
+        contentSize: { width: 800, height: 66 },
+      },
+    });
+
+    expect(flatList).toBeOnTheScreen();
   });
 });

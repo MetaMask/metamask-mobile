@@ -8,6 +8,7 @@ import {
   isSmartContractCode,
   ERC721,
   ERC1155,
+  ORIGIN_METAMASK,
 } from '@metamask/controller-utils';
 import {
   isEIP1559Transaction,
@@ -84,6 +85,7 @@ export const DOWNGRADE_SMART_ACCOUNT_ACTION_KEY = 'downgradeSmartAccount';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
+export const NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE = '0xf242432a';
 export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 export const INCREASE_ALLOWANCE_SIGNATURE = '0x39509351';
@@ -190,6 +192,9 @@ const actionKeys = {
   [TransactionType.lendingWithdraw]: strings(
     'transactions.tx_review_lending_withdraw',
   ),
+  [TransactionType.perpsDeposit]: strings(
+    'transactions.tx_review_perps_deposit',
+  ),
 };
 
 /**
@@ -246,6 +251,24 @@ export function generateTransferData(type = undefined, opts = {}) {
           )
           .join('')
       );
+    case 'safeTransferFrom':
+      return (
+        NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE +
+        Array.prototype.map
+          .call(
+            rawEncode(
+              ['address', 'address', 'uint256', 'uint256'],
+              [
+                opts.fromAddress,
+                opts.toAddress,
+                addHexPrefix(opts.tokenId),
+                opts.amount,
+              ],
+            ),
+            (x) => ('00' + x.toString(16)).slice(-2),
+          )
+          .join('')
+      );
   }
 }
 
@@ -255,7 +278,7 @@ export function generateTransferData(type = undefined, opts = {}) {
  * @returns {string | undefined} The four-byte signature if data is provided, otherwise undefined.
  */
 export function getFourByteSignature(data) {
-  return data?.substring(0, 10);
+  return data?.substring(0, 10)?.toLowerCase();
 }
 
 /**
@@ -357,6 +380,15 @@ export function decodeTransferData(type, data) {
 }
 
 /**
+ * Normalizes a hexadecimal string to lowercase.
+ * @param {string} hexString - The hexadecimal string to normalize.
+ * @returns {string} - The normalized lowercase hexadecimal string.
+ */
+function normalizeHex(hexString) {
+  return hexString?.toLowerCase() || '';
+}
+
+/**
  * @typedef {Object} MethodData
  * @property {string} name - The method name
  */
@@ -369,20 +401,30 @@ export function decodeTransferData(type, data) {
  */
 export async function getMethodData(data, networkClientId) {
   if (data.length < 10) return {};
-  const fourByteSignature = getFourByteSignature(data);
-  if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
+
+  const fourByteSignature = normalizeHex(getFourByteSignature(data));
+
+  if (fourByteSignature === normalizeHex(TRANSFER_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_TRANSFER };
-  } else if (fourByteSignature === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+  } else if (
+    fourByteSignature === normalizeHex(TRANSFER_FROM_FUNCTION_SIGNATURE)
+  ) {
     return { name: TOKEN_METHOD_TRANSFER_FROM };
-  } else if (fourByteSignature === APPROVE_FUNCTION_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(APPROVE_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_APPROVE };
-  } else if (fourByteSignature === INCREASE_ALLOWANCE_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(INCREASE_ALLOWANCE_SIGNATURE)) {
     return { name: TOKEN_METHOD_INCREASE_ALLOWANCE };
-  } else if (fourByteSignature === SET_APPROVAL_FOR_ALL_SIGNATURE) {
+  } else if (
+    fourByteSignature === normalizeHex(SET_APPROVAL_FOR_ALL_SIGNATURE)
+  ) {
     return { name: TOKEN_METHOD_SET_APPROVAL_FOR_ALL };
-  } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
+  } else if (
+    normalizeHex(data.substr(0, 32)) ===
+    normalizeHex(CONTRACT_CREATION_SIGNATURE)
+  ) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
+
   // If it's a new method, use on-chain method registry
   try {
     const registryObject = await handleMethodData(
@@ -481,6 +523,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.stakingUnstake,
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
+      TransactionType.perpsDeposit,
     ].includes(type)
   ) {
     return type;
@@ -1637,10 +1680,13 @@ export const getIsSwapApproveOrSwapTransaction = (
     return false;
   }
 
+  const isLegacySwap = origin === process.env.MM_FOX_CODE;
+  const isUnifiedSwap = origin === ORIGIN_METAMASK;
+
   // if approval data includes metaswap contract
   // if destination address is metaswap contract
   return (
-    origin === process.env.MM_FOX_CODE &&
+    (isLegacySwap || isUnifiedSwap) &&
     to &&
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&

@@ -57,6 +57,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
+        ok: true,
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
@@ -103,6 +104,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
+        ok: true,
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
@@ -160,6 +162,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
+        ok: jest.fn().mockResolvedValueOnce(true),
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
@@ -186,6 +189,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
+        ok: jest.fn().mockResolvedValueOnce(true),
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
@@ -226,6 +230,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
+        ok: true,
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
@@ -281,6 +286,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
+        ok: true,
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
@@ -302,6 +308,7 @@ describe('AuthTokenHandler', () => {
     it('handles JSON parsing errors in refreshJWTToken', async () => {
       // Arrange
       fetchSpy.mockResolvedValueOnce({
+        ok: true,
         json: jest.fn().mockRejectedValueOnce(new Error('Invalid JSON')),
       });
 
@@ -317,6 +324,7 @@ describe('AuthTokenHandler', () => {
     it('handles JSON parsing errors in revokeRefreshToken', async () => {
       // Arrange
       fetchSpy.mockResolvedValueOnce({
+        ok: true,
         json: jest.fn().mockRejectedValueOnce(new Error('Invalid JSON')),
       });
 
@@ -343,6 +351,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
+        ok: true,
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
@@ -373,6 +382,7 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 

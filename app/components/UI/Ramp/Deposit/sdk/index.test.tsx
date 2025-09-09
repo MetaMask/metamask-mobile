@@ -13,7 +13,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import {
   NativeRampsSdk,
-  TransakEnvironment,
+  SdkEnvironment,
+  Context,
 } from '@consensys/native-ramps-sdk';
 
 const mockDispatch = jest.fn();
@@ -27,6 +28,12 @@ jest.mock('../utils/ProviderTokenVault', () => ({
     .fn()
     .mockResolvedValue({ success: false, token: null }),
   storeProviderToken: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock('react-native', () => ({
+  Platform: {
+    OS: 'ios',
+  },
 }));
 
 jest.mock('@consensys/native-ramps-sdk', () => ({
@@ -81,6 +88,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    logout: jest.fn(),
     getGeolocation: jest.fn().mockResolvedValue({ ipCountryCode: 'US' }),
   })),
 }));
@@ -93,7 +101,6 @@ const mockedState = {
         remoteFeatureFlags: {
           depositConfig: {
             providerApiKey: 'test-provider-api-key',
-            providerFrontendAuth: 'test-provider-frontend-auth',
           },
         },
       },
@@ -114,14 +121,8 @@ describe('Deposit SDK Context', () => {
   describe('DepositSDKProvider', () => {
     it('renders and provides context values', () => {
       const ConsumerComponent = () => {
-        const { providerApiKey, providerFrontendAuth } = useContext(
-          DepositSDKContext,
-        ) as DepositSDK;
-        return (
-          <Text>
-            {`API Key: ${providerApiKey}, Frontend Auth: ${providerFrontendAuth}`}
-          </Text>
-        );
+        const { providerApiKey } = useContext(DepositSDKContext) as DepositSDK;
+        return <Text>{`API Key: ${providerApiKey}`}</Text>;
       };
 
       renderWithProvider(
@@ -133,9 +134,7 @@ describe('Deposit SDK Context', () => {
         },
       );
       expect(screen.toJSON()).toMatchSnapshot();
-      const textElement = screen.getByText(
-        'API Key: test-provider-api-key, Frontend Auth: test-provider-frontend-auth',
-      );
+      const textElement = screen.getByText('API Key: test-provider-api-key');
       expect(textElement).toBeOnTheScreen();
     });
 
@@ -151,10 +150,10 @@ describe('Deposit SDK Context', () => {
 
       expect(NativeRampsSdk).toHaveBeenCalledWith(
         {
-          partnerApiKey: 'test-provider-api-key',
-          frontendAuth: 'test-provider-frontend-auth',
+          apiKey: 'test-provider-api-key',
+          context: Context.MobileIOS,
         },
-        TransakEnvironment.Staging,
+        SdkEnvironment.Staging,
       );
     });
   });
@@ -461,15 +460,15 @@ describe('Deposit SDK Context', () => {
       jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
         originalMock;
     });
-    it('clears authentication state when calling clearAuthToken', async () => {
+    it('clears authentication state when calling logoutFromProvider with default requireServerInvalidation=true', async () => {
       const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
       jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
         resetProviderTokenMock;
 
-      const clearAccessTokenMock = jest.fn();
+      const logoutMock = jest.fn();
       (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
         setAccessToken: jest.fn(),
-        clearAccessToken: clearAccessTokenMock,
+        logout: logoutMock,
       }));
 
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
@@ -501,13 +500,148 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
 
       await act(async () => {
-        contextValue?.clearAuthToken();
+        contextValue?.logoutFromProvider();
       });
 
       expect(resetProviderTokenMock).toHaveBeenCalled();
-      expect(clearAccessTokenMock).toHaveBeenCalled();
+      expect(logoutMock).toHaveBeenCalled();
       expect(contextValue?.isAuthenticated).toBe(false);
       expect(contextValue?.authToken).toBeUndefined();
+    });
+
+    it('clears authentication state when calling logoutFromProvider with requireServerInvalidation=false even if SDK logout fails', async () => {
+      const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
+        resetProviderTokenMock;
+
+      const logoutMock = jest
+        .fn()
+        .mockRejectedValue(new Error('SDK logout failed'));
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        logout: logoutMock,
+      }));
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+
+      // Should not throw even when SDK logout fails
+      await act(async () => {
+        await contextValue?.logoutFromProvider(false);
+      });
+
+      expect(resetProviderTokenMock).toHaveBeenCalled();
+      expect(logoutMock).toHaveBeenCalled();
+      expect(contextValue?.isAuthenticated).toBe(false);
+      expect(contextValue?.authToken).toBeUndefined();
+    });
+
+    it('throws error when requireServerInvalidation=true and SDK logout fails', async () => {
+      const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
+        resetProviderTokenMock;
+
+      const logoutMock = jest
+        .fn()
+        .mockRejectedValue(new Error('SDK logout failed'));
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        logout: logoutMock,
+      }));
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+
+      await expect(async () => {
+        await contextValue?.logoutFromProvider(true);
+      }).rejects.toThrow('SDK logout failed');
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+    });
+
+    it('throws error when SDK is not initialized during logout', async () => {
+      const stateWithoutProviderKeys = {
+        ...mockedState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                depositConfig: {
+                  providerApiKey: null,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithoutProviderKeys },
+      );
+
+      await expect(async () => {
+        await contextValue?.logoutFromProvider();
+      }).rejects.toThrow();
     });
   });
 });

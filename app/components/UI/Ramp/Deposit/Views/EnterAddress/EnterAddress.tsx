@@ -18,10 +18,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
+import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -35,16 +35,18 @@ import { VALIDATION_REGEX } from '../../constants/constants';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 export interface EnterAddressParams {
-  formData: BasicInfoFormData;
+  previousFormData?: BasicInfoFormData & AddressFormData;
   quote: BuyQuote;
 }
 
 export const createEnterAddressNavDetails =
   createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
 
-interface AddressFormData {
+export interface AddressFormData {
   addressLine1: string;
   addressLine2: string;
   city: string;
@@ -56,8 +58,7 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { formData: basicInfoFormData, quote } =
-    useParams<EnterAddressParams>();
+  const { quote, previousFormData } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,12 +81,12 @@ const EnterAddress = (): JSX.Element => {
   });
 
   const initialFormData: AddressFormData = {
-    addressLine1: '',
-    addressLine2: '',
-    state: '',
-    city: '',
-    postCode: '',
-    countryCode: selectedRegion?.isoCode || '',
+    addressLine1: previousFormData?.addressLine1 || '',
+    addressLine2: previousFormData?.addressLine2 || '',
+    state: previousFormData?.state || '',
+    city: previousFormData?.city || '',
+    postCode: previousFormData?.postCode || '',
+    countryCode: previousFormData?.countryCode || selectedRegion?.isoCode || '',
   };
 
   const validateForm = (data: AddressFormData): Record<string, string> => {
@@ -175,12 +176,6 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
-  const [, submitSsnDetails] = useDepositSdkMethod({
-    method: 'submitSsnDetails',
-    onMount: false,
-    throws: true,
-  });
-
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -194,6 +189,9 @@ const EnterAddress = (): JSX.Element => {
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
 
+    // Clear any previous errors when retrying
+    setError(null);
+
     trackEvent('RAMPS_ADDRESS_ENTERED', {
       region: selectedRegion?.isoCode || '',
       ramp_type: 'DEPOSIT',
@@ -202,16 +200,9 @@ const EnterAddress = (): JSX.Element => {
 
     try {
       setLoading(true);
-      const combinedFormData = {
-        ...basicInfoFormData,
-        ...formData,
-      };
-
-      await postKycForm(combinedFormData);
-
-      if (basicInfoFormData.ssn) {
-        await submitSsnDetails(basicInfoFormData.ssn);
-      }
+      await postKycForm({
+        addressDetails: formData,
+      });
 
       await routeAfterAuthentication(quote);
     } catch (submissionError) {
@@ -230,11 +221,9 @@ const EnterAddress = (): JSX.Element => {
     }
   }, [
     validateFormData,
-    basicInfoFormData,
     formData,
     postKycForm,
     quote,
-    submitSsnDetails,
     routeAfterAuthentication,
     selectedRegion?.isoCode,
     trackEvent,
@@ -257,6 +246,14 @@ const EnterAddress = (): JSX.Element => {
                 {strings('deposit.enter_address.subtitle')}
               </Text>
             </View>
+            {error && (
+              <View style={styles.errorContainer}>
+                <BannerAlert
+                  description={error}
+                  severity={BannerAlertSeverity.Error}
+                />
+              </View>
+            )}
 
             <DepositTextField
               label={strings('deposit.enter_address.address_line_1')}
@@ -377,7 +374,6 @@ const EnterAddress = (): JSX.Element => {
                 }
               />
             </View>
-            {error && <Text style={styles.error}>{error}</Text>}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
         <ScreenLayout.Footer>

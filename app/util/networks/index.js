@@ -191,7 +191,7 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
   [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain',
   [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
-  [NETWORKS_CHAIN_ID.SEI]: 'Sei Network',
+  [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
 };
 
 export default NetworkList;
@@ -671,6 +671,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['linea-mainnet']]: 'Linea Mainnet',
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
   [ChainId['monad-testnet']]: 'Monad Testnet',
+  [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
 };
 
 /**

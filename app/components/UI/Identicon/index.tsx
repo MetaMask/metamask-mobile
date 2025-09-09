@@ -69,6 +69,8 @@ const Identicon: React.FC<IdenticonProps> = ({
       style={styleForBlockieAndTokenIcon}
     />
   ) : (
+    // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+    // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
     <View style={customStyle}>
       <Jazzicon size={diameter} address={address} />
     </View>

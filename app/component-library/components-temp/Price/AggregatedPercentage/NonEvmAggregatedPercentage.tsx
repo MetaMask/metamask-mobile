@@ -103,7 +103,7 @@ const NonEvmAggregatedPercentage = ({
 
   if (!privacyMode) {
     if (percentageChange === 0) {
-      percentageTextColor = TextColor.Default;
+      percentageTextColor = TextColor.Alternative;
     } else if (percentageChange > 0) {
       percentageTextColor = TextColor.Success;
     } else {

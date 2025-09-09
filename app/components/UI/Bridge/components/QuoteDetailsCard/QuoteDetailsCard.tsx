@@ -46,7 +46,11 @@ import {
   selectDestToken,
   selectSourceToken,
   selectIsEvmSolanaBridge,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
+import { useRewards } from '../../hooks/useRewards';
+import BigNumber from 'bignumber.js';
+import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
 
 const ANIMATION_DURATION_MS = 50;
 
@@ -62,6 +66,8 @@ interface NetworkBadgeProps {
 }
 
 const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkConfig = networkConfigurations[chainId];
   const displayName = networkConfig?.name || '';
@@ -71,6 +77,7 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
       gap={2}
+      style={styles.networkBadgeContainer}
     >
       <Badge
         variant={BadgeVariant.Network}
@@ -78,7 +85,13 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
         isScaled={false}
         size={AvatarSize.Sm}
       />
-      <Text variant={TextVariant.BodyMDMedium}>{displayName}</Text>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        numberOfLines={1}
+        style={styles.networkBadgeText}
+      >
+        {displayName}
+      </Text>
     </Box>
   );
 };
@@ -90,11 +103,24 @@ const QuoteDetailsCard = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
 
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
+  const {
+    formattedQuoteData,
+    activeQuote,
+    isLoading: isQuoteLoading,
+  } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const {
+    estimatedPoints,
+    isLoading: isRewardsLoading,
+    shouldShowRewardsRow,
+  } = useRewards({
+    activeQuote,
+    isQuoteLoading,
+  });
 
   const isSameChainId = sourceToken?.chainId === destToken?.chainId;
   // Initialize expanded state based on whether destination is Solana or it's a Solana swap
@@ -139,6 +165,15 @@ const QuoteDetailsCard = () => {
     });
   };
 
+  const handlePriceImpactWarningPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
+      params: {
+        isGasIncluded: !!activeQuote?.quote.gasIncluded,
+      },
+    });
+  };
+
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -151,6 +186,23 @@ const QuoteDetailsCard = () => {
 
   const { networkFee, estimatedTime, rate, priceImpact, slippage } =
     formattedQuoteData;
+
+  // Check if price impact warning should be shown
+  const gasIncluded = !!activeQuote?.quote.gasIncluded;
+  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
+  const shouldShowPriceImpactWarning =
+    rawPriceImpact !== undefined &&
+    bridgeFeatureFlags?.priceImpactThreshold &&
+    ((gasIncluded &&
+      Number(rawPriceImpact) >=
+        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
+      (!gasIncluded &&
+        Number(rawPriceImpact) >=
+          bridgeFeatureFlags.priceImpactThreshold.normal));
+
+  const hasFee = activeQuote
+    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
+    : false;
 
   return (
     <Box>
@@ -204,7 +256,7 @@ const QuoteDetailsCard = () => {
             justifyContent={JustifyContent.spaceBetween}
           >
             <Text variant={TextVariant.BodyMDMedium}>
-              {strings('bridge.network_fee') || 'Network fee'}
+              {strings('bridge.network_fee')}
             </Text>
             <Box
               flexDirection={FlexDirection.Row}
@@ -212,7 +264,7 @@ const QuoteDetailsCard = () => {
               gap={8}
             >
               <Text variant={TextVariant.BodyMD}>
-                {strings('bridge.included') || 'Included'}
+                {strings('bridge.included')}
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
@@ -226,7 +278,7 @@ const QuoteDetailsCard = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.network_fee') || 'Network fee',
+                text: strings('bridge.network_fee'),
                 variant: TextVariant.BodyMDMedium,
               },
             }}
@@ -242,7 +294,7 @@ const QuoteDetailsCard = () => {
         <KeyValueRow
           field={{
             label: {
-              text: strings('bridge.time') || 'Time',
+              text: strings('bridge.time'),
               variant: TextVariant.BodyMDMedium,
             },
           }}
@@ -259,7 +311,7 @@ const QuoteDetailsCard = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.quote') || 'Quote',
+                text: strings('bridge.quote'),
                 variant: TextVariant.BodyMDMedium,
               },
               tooltip: {
@@ -270,10 +322,16 @@ const QuoteDetailsCard = () => {
               },
             }}
             value={{
-              label: {
-                text: rate,
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
+                  {rate}
+                </Text>
+              ),
             }}
           />
           {!isExpanded && (
@@ -308,20 +366,33 @@ const QuoteDetailsCard = () => {
         {/* Expandable content */}
         {isExpanded && (
           <Box gap={12}>
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('bridge.price_impact') || 'Price Impact',
-                  variant: TextVariant.BodyMDMedium,
-                },
-              }}
-              value={{
-                label: {
-                  text: priceImpact,
-                  variant: TextVariant.BodyMD,
-                },
-              }}
-            />
+            {priceImpact && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.price_impact'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                  ...(shouldShowPriceImpactWarning && {
+                    tooltip: {
+                      title: strings('bridge.price_impact_warning_title'),
+                      content: strings('bridge.price_impact_normal_warning'),
+                      onPress: handlePriceImpactWarningPress,
+                      size: TooltipSizes.Sm,
+                    },
+                  }),
+                }}
+                value={{
+                  label: {
+                    text: priceImpact,
+                    variant: TextVariant.BodyMD,
+                    color: shouldShowPriceImpactWarning
+                      ? TextColor.Error
+                      : undefined,
+                  },
+                }}
+              />
+            )}
 
             <KeyValueRow
               field={{
@@ -338,7 +409,7 @@ const QuoteDetailsCard = () => {
                       style={styles.slippageButton}
                     >
                       <Text variant={TextVariant.BodyMDMedium}>
-                        {strings('bridge.slippage') || 'Slippage'}
+                        {strings('bridge.slippage')}
                       </Text>
                       <Icon
                         name={IconName.Edit}
@@ -356,16 +427,51 @@ const QuoteDetailsCard = () => {
                 },
               }}
             />
+
+            {/* Estimated Points */}
+            {shouldShowRewardsRow && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.points'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                  tooltip: {
+                    title: strings('bridge.points_tooltip'),
+                    content: strings('bridge.points_tooltip_content'),
+                    size: TooltipSizes.Sm,
+                  },
+                }}
+                value={{
+                  label: (
+                    <Box
+                      flexDirection={FlexDirection.Row}
+                      alignItems={AlignItems.center}
+                      gap={4}
+                    >
+                      <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+                      {!isRewardsLoading && estimatedPoints !== null && (
+                        <Text variant={TextVariant.BodyMD}>
+                          {estimatedPoints.toString()}
+                        </Text>
+                      )}
+                    </Box>
+                  ),
+                }}
+              />
+            )}
           </Box>
         )}
       </Box>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.disclaimerText}
-      >
-        {strings('bridge.fee_disclaimer')}
-      </Text>
+      {hasFee ? (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.disclaimerText}
+        >
+          {strings('bridge.fee_disclaimer')}
+        </Text>
+      ) : null}
     </Box>
   );
 };

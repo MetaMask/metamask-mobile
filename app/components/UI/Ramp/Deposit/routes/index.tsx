@@ -23,9 +23,11 @@ import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
 import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
 import UnsupportedRegionModal from '../Views/Modals/UnsupportedRegionModal';
+import UnsupportedStateModal from '../Views/Modals/UnsupportedStateModal/UnsupportedStateModal';
 import StateSelectorModal from '../Views/Modals/StateSelectorModal';
 import WebviewModal, { KycWebviewModal } from '../Views/Modals/WebviewModal';
 import IncompatibleAccountTokenModal from '../Views/Modals/IncompatibleAccountTokenModal';
+import SsnInfoModal from '../Views/Modals/SsnInfoModal';
 import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
@@ -141,6 +143,10 @@ const DepositModalsRoutes = () => (
       component={UnsupportedRegionModal}
     />
     <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE}
+      component={UnsupportedStateModal}
+    />
+    <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.STATE_SELECTOR}
       component={StateSelectorModal}
     />
@@ -155,6 +161,10 @@ const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
       component={IncompatibleAccountTokenModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.SSN_INFO}
+      component={SsnInfoModal}
     />
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.CONFIGURATION}

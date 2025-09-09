@@ -61,10 +61,10 @@ const KycProcessing = () => {
 
   const [{ data: kycForms, error: kycFormsError }] = useDepositSdkMethod(
     {
-      method: 'getKYCForms',
+      method: 'getAdditionalRequirements',
       onMount: true,
     },
-    quote,
+    quote.quoteId,
   );
 
   const {
@@ -85,16 +85,12 @@ const KycProcessing = () => {
   }, [navigation, theme]);
 
   useEffect(() => {
-    if (kycForms?.forms.length === 0) {
+    if (kycForms?.formsRequired.length === 0) {
       startPolling();
     }
 
     return () => stopPolling();
   }, [kycForms, startPolling, stopPolling]);
-
-  const handleRetryVerification = useCallback(() => {
-    // TODO: Implement retry logic for KYC verification?
-  }, []);
 
   const handleContinue = useCallback(async () => {
     try {
@@ -108,19 +104,19 @@ const KycProcessing = () => {
   }, [routeAfterAuthentication, quote]);
 
   const error = userDetailsError || kycFormsError;
-  const hasPendingForms = kycForms && kycForms.forms.length > 0;
-  const kycStatus = userDetails?.kyc?.l1?.status;
+  const hasPendingForms = kycForms && kycForms.formsRequired.length > 0;
+  const kycStatus = userDetails?.kyc?.status;
 
   useEffect(() => {
     if (kycStatus === KycStatus.REJECTED) {
       trackEvent('RAMPS_KYC_APPLICATION_FAILED', {
         ramp_type: 'DEPOSIT',
-        kyc_type: userDetails?.kyc?.l1?.type || '',
+        kyc_type: userDetails?.kyc?.type || '',
       });
     } else if (kycStatus === KycStatus.APPROVED) {
       trackEvent('RAMPS_KYC_APPLICATION_APPROVED', {
         ramp_type: 'DEPOSIT',
-        kyc_type: userDetails?.kyc?.l1?.type || '',
+        kyc_type: userDetails?.kyc?.type || '',
       });
     }
   }, [
@@ -128,7 +124,7 @@ const KycProcessing = () => {
     hasPendingForms,
     trackEvent,
     quote.quoteId,
-    userDetails?.kyc?.l1?.type,
+    userDetails?.kyc?.type,
   ]);
 
   if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
@@ -157,7 +153,7 @@ const KycProcessing = () => {
           <ScreenLayout.Content style={styles.footerContent}>
             <Button
               size={ButtonSize.Lg}
-              onPress={handleRetryVerification}
+              onPress={handleContinue}
               label={strings('deposit.kyc_processing.error_button')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}

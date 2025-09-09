@@ -37,6 +37,12 @@ const createStyles = ({ colors }: Theme) =>
     strikethroughText: {
       textDecorationLine: 'line-through',
     },
+    networkBadgeContainer: {
+      flex: 1,
+    },
+    networkBadgeText: {
+      flex: 1,
+    },
   });
 
 export default createStyles;

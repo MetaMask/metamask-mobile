@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -8,9 +8,12 @@ import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
-import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
+import { Mockttp } from 'mockttp';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -18,8 +21,15 @@ const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 const ACCOUNT_INDEX = 1;
 
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    remoteFeatureMultichainAccountsAccountDetails(false),
+  );
+};
+
 describe(
-  Regression('removes and reimports an account using a private key'),
+  RegressionAccounts('removes and reimports an account using a private key'),
   () => {
     it('removes an imported account and imports it again using a private key', async () => {
       await withFixtures(
@@ -28,6 +38,7 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock,
         },
         async () => {
           await loginToApp();

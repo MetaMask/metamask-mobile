@@ -3,8 +3,8 @@ import {
   PortfolioPageSelectorsXpath,
   PortfolioPageSelectorsWebID,
 } from '../../selectors/Browser/PortfolioPage.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class PortfolioHomePage {
   get connectWalletButton(): WebElement {
@@ -36,21 +36,27 @@ class PortfolioHomePage {
   }
 
   async tapConnectMetaMask(): Promise<void> {
-    await Gestures.tapWebElement(this.connectWalletButton);
+    await Gestures.waitAndTap(this.connectWalletButton, {
+      elemDescription: 'Portfolio - Connect MetaMask button',
+    });
   }
 
   async closePrivacyModal(): Promise<void> {
-    await Gestures.tapWebElement(this.closeIconPrivacyModal, {
-      delayBeforeTap: 1000,
+    await Gestures.waitAndTap(this.closeIconPrivacyModal, {
+      elemDescription: 'Portfolio - Close privacy modal',
     });
   }
 
   async tapAccountButton(): Promise<void> {
-    await Gestures.tapWebElement(this.accountButton);
+    await Gestures.waitAndTap(this.accountButton, {
+      elemDescription: 'Portfolio - Account button',
+    });
   }
 
   async tapBurgerMenu(): Promise<void> {
-    await Gestures.tapWebElement(this.burgerMenu);
+    await Gestures.waitAndTap(this.burgerMenu, {
+      elemDescription: 'Portfolio - Burger menu',
+    });
   }
 }
 

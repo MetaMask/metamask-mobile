@@ -56,7 +56,7 @@ const PopularNetworksList = {
       chainId: toHex('137'),
       rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
       nickname: 'Polygon Mainnet',
-      ticker: 'MATIC',
+      ticker: 'POL',
     },
   },
   Palm: {
@@ -86,7 +86,7 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0xaa36a7',
-      rpcTarget: `https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
+      rpcUrl: `https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
       nickname: 'Sepolia',
       ticker: 'SepoliaETH',
     },
@@ -163,6 +163,36 @@ const CustomNetworks = {
       ticker: 'ETH',
       walletName: 'Ethereum',
       BlockExplorerUrl: 'https://hoodi.etherscan.io/',
+    },
+  },
+  MegaTestnet: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: '0x18c6',
+      rpcUrl: 'https://carrot.megaeth.com/rpc',
+      nickname: 'Mega Testnet',
+      ticker: 'MegaETH',
+      BlockExplorerUrl: 'https://megaexplorer.xyz/',
+    },
+  },
+  MonadTestnet: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: '0x279f',
+      rpcUrl: 'https://testnet-rpc.monad.xyz/',
+      nickname: 'Monad Testnet',
+      ticker: 'MON',
+      BlockExplorerUrl: 'https://testnet.monadexplorer.com',
+    },
+  },
+  SeiTestNet: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: '0x1329',
+      rpcUrl: 'https://sei-mainnet.infura.io',
+      nickname: 'Sei Testnet',
+      ticker: 'SEI',
+      BlockExplorerUrl: 'https://seitrace.com/',
     },
   },
 };

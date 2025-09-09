@@ -1,9 +1,12 @@
-import type { PerpsMarketData } from '../controllers/types';
 import type {
-  PerpsUniverse,
-  PerpsAssetCtx,
   AllMids,
+  PerpsAssetCtx,
+  PerpsUniverse,
+  PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsMarketData } from '../controllers/types';
+import { formatVolume } from './formatUtils';
 
 /**
  * HyperLiquid-specific market data structure
@@ -12,6 +15,7 @@ export interface HyperLiquidMarketData {
   universe: PerpsUniverse[];
   assetCtxs: PerpsAssetCtx[];
   allMids: AllMids;
+  predictedFundings?: PredictedFunding[];
 }
 
 /**
@@ -22,7 +26,7 @@ export interface HyperLiquidMarketData {
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
 ): PerpsMarketData[] {
-  const { universe, assetCtxs, allMids } = hyperLiquidData;
+  const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
   return universe.map((asset) => {
     const symbol = asset.name;
@@ -55,7 +59,56 @@ export function transformMarketData(
       : 0;
 
     // Format volume (dayNtlVlm is daily notional volume)
-    const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm) : 0;
+    // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
+    const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
+
+    // Get current funding rate from assetCtx - this is the actual current funding rate
+    let fundingRate: number | undefined;
+
+    if (assetCtx && 'funding' in assetCtx) {
+      fundingRate = parseFloat(assetCtx.funding);
+    }
+
+    // Get timing info and predicted funding from predictedFundings
+    let nextFundingTime: number | undefined;
+    let fundingIntervalHours: number | undefined;
+    let predictedFundingRate: number | undefined;
+
+    if (predictedFundings) {
+      const fundingData = predictedFundings.find(
+        ([assetSymbol]) => assetSymbol === symbol,
+      );
+      if (
+        fundingData?.[1] &&
+        Array.isArray(fundingData[1]) &&
+        fundingData[1].length > 0
+      ) {
+        // Look specifically for HlPerp exchange (HyperLiquid's own perp)
+        const hlPerpExchange = fundingData[1].find(
+          (exchange) => Array.isArray(exchange) && exchange[0] === 'HlPerp',
+        );
+
+        if (hlPerpExchange?.[1]) {
+          nextFundingTime = hlPerpExchange[1].nextFundingTime;
+          fundingIntervalHours = hlPerpExchange[1].fundingIntervalHours;
+          predictedFundingRate = parseFloat(hlPerpExchange[1].fundingRate);
+        } else if (fundingData[1].length > 0) {
+          // Fallback to first exchange if HlPerp not found
+          const firstExchange = fundingData[1][0];
+          if (Array.isArray(firstExchange) && firstExchange[1]) {
+            nextFundingTime = firstExchange[1].nextFundingTime;
+            fundingIntervalHours = firstExchange[1].fundingIntervalHours;
+          }
+        }
+      }
+    }
+
+    // Use current funding rate from assetCtx, not predicted
+    // The predicted rate is for the next funding period
+    if (!fundingRate && predictedFundingRate !== undefined) {
+      // Only use predicted as fallback if current is not available
+      fundingRate = predictedFundingRate;
+    }
 
     return {
       symbol,
@@ -66,7 +119,12 @@ export function transformMarketData(
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
-      volume: isNaN(volume) ? '$0' : formatVolume(volume),
+      volume: isNaN(volume)
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        : formatVolume(volume),
+      nextFundingTime,
+      fundingIntervalHours,
+      fundingRate,
     };
   });
 }
@@ -148,20 +206,4 @@ export function formatPercentage(percent: number): string {
   }).format(percent / 100);
 
   return percent > 0 ? `+${formatted}` : formatted;
-}
-
-/**
- * Format volume with appropriate units
- */
-export function formatVolume(volume: number): string {
-  if (isNaN(volume) || !isFinite(volume)) return '$0';
-  if (volume === 0) return '$0';
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    notation: 'compact',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(volume);
 }

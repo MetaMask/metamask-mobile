@@ -29,20 +29,19 @@ describe('My Test Suite', () => {
 
 ## WithFixturesOptions Reference
 
-| Option              | Type                    | Required | Default | Description                                                       |
-| ------------------- | ----------------------- | -------- | ------- | ----------------------------------------------------------------- |
-| `fixture`           | `FixtureBuilder`        | `true`   | -       | The fixture object created via FixtureBuilder                     |
-| `restartDevice`     | `boolean`               | `false`  | `false` | Whether to restart the device before the test                     |
-| `smartContracts`    | `string[]`              | `false`  | -       | The list of contract strings to be deployed via the first seeder  |
-| `disableLocalNodes` | `boolean`               | `false`  | `false` | Disables all local nodes for the test                             |
-| `dapps`             | `DappOptions[]`         | `false`  | -       | Lists the dapps that should be launched before the tests          |
-| `localNodeOptions`  | `LocalNodeOptionsInput` | `false`  | Anvil   | Allows overriding the use of Anvil in favor of any other node     |
-| `testSpecificMock`  | `TestSpecificMock`      | `false`  | -       | Allows to set mocks that are specific to the test                 |
-| `launcArgs`         | `LaunchArgs`            | `false`  | `-`     | Allows sending arbitrary launchArgs such as the fixtureServerPort |
-| `languageAndLocale` | `LanguageAndLocale`     | `false`  | -       | Set the device Language and Locale of the device                  |
-| `permissions`       | `object`                | `false`  | -       | Allows setting specific device permissions                        |
-| `mockServerInstance` | `Mockttp` | `false` | - | Allows providing a mock server instance instead of having one created automatically. Should not be used together with `testSpecificMock` | 
-| `endTestfn` | `fn()` | `false` | - | Allows providing a function that is executed at the end of the test before the cleanup | 
+| Option              | Type                    | Required | Default | Description                                                                            |
+| ------------------- | ----------------------- | -------- | ------- | -------------------------------------------------------------------------------------- |
+| `fixture`           | `FixtureBuilder`        | `true`   | -       | The fixture object created via FixtureBuilder                                          |
+| `restartDevice`     | `boolean`               | `false`  | `false` | Whether to restart the device before the test                                          |
+| `smartContracts`    | `string[]`              | `false`  | -       | The list of contract strings to be deployed via the first seeder                       |
+| `disableLocalNodes` | `boolean`               | `false`  | `false` | Disables all local nodes for the test                                                  |
+| `dapps`             | `DappOptions[]`         | `false`  | -       | Lists the dapps that should be launched before the tests                               |
+| `localNodeOptions`  | `LocalNodeOptionsInput` | `false`  | Anvil   | Allows overriding the use of Anvil in favor of any other node                          |
+| `testSpecificMock`  | `TestSpecificMock`      | `false`  | -       | Allows to set mocks that are specific to the test                                      |
+| `launcArgs`         | `LaunchArgs`            | `false`  | `-`     | Allows sending arbitrary launchArgs such as the fixtureServerPort                      |
+| `languageAndLocale` | `LanguageAndLocale`     | `false`  | -       | Set the device Language and Locale of the device                                       |
+| `permissions`       | `object`                | `false`  | -       | Allows setting specific device permissions                                             |
+| `endTestfn`         | `fn()`                  | `false`  | -       | Allows providing a function that is executed at the end of the test before the cleanup |
 
 ## Migration from Legacy Options
 
@@ -77,29 +76,6 @@ await withFixtures(
     dapps: [
       {
         dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-        dappVariant: DappVariants.TEST_DAPP,
-      },
-    ],
-    restartDevice: true,
-  },
-  async () => {
-    // Test interactions with dapps
-  },
-);
-```
-
-### Test with 2 Test Dapp instances and 2 browser tabs with permitted connections
-
-```typescript
-await withFixtures(
-  {
-    fixture: new FixtureBuilder()
-      .withPermissionControllerConnectedToMultipleTestDapps([{}, {}]) // Setting permissions for the 2 dapp instances
-      .withMultipleDappTabs(2)
-      .build(),
-    dapps: [
-      {
-        dappVariant: DappVariants.TEST_DAPP,
         dappVariant: DappVariants.TEST_DAPP,
       },
     ],

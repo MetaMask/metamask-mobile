@@ -1,14 +1,16 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
 import { loginToApp } from '../../../viewHelper';
 import { SmokePerformance } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
-import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import NetworkManager from '../../../pages/wallet/NetworkManager';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { CORE_USER_STATE, POWER_USER_STATE } from '../../../fixtures/constants';
+import {
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,
@@ -60,18 +62,19 @@ describe(SmokePerformance('Network List Load Testing'), () => {
           async () => {
             await loginToApp();
 
-            await Assertions.checkIfVisible(WalletView.container);
+            await Assertions.expectElementToBeVisible(WalletView.container);
             // Measure time to navigate to account list
             const starTime = Date.now();
 
-            await WalletView.tapNetworksButtonOnNavBar();
+            await WalletView.tapTokenNetworkFilter();
 
             // Re-enable sync and check if network list is visible
-            await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToBeVisible(
+              NetworkManager.popularNetworksTab,
+            );
             console.log('Network list became visible');
 
-            // Check if all network is displayed
-            await Assertions.checkIfTextIsDisplayed('Linea Main Network');
+            await Assertions.expectTextDisplayed('Linea Main Network');
 
             const totalTime = Date.now() - starTime;
 
@@ -86,20 +89,21 @@ describe(SmokePerformance('Network List Load Testing'), () => {
               '======================================================',
             );
 
-            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
-              console.warn(
-                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
-              );
-            }
-
-            console.log('Performance test passed!');
-
             result = {
               totalTime,
               thresholds: {
                 totalTime: PERFORMANCE_THRESHOLDS.TOTAL_TIME,
               },
             };
+
+            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
+              console.warn(
+                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            }
+
+            console.log('Performance test passed!');
           },
         );
 
@@ -158,10 +162,12 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             );
 
             const startTime = Date.now();
-            await WalletView.tapNetworksButtonOnNavBar();
+            await WalletView.tapTokenNetworkFilter();
 
             const endTime = Date.now();
-            await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToBeVisible(
+              NetworkManager.popularNetworksTab,
+            );
 
             const totalTime = endTime - startTime;
 
@@ -235,22 +241,15 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             console.log('Starting baseline test with minimal load...');
 
-            await WalletView.tapNetworksButtonOnNavBar();
+            await WalletView.tapTokenNetworkFilter();
 
             const startTime = Date.now();
-            await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToBeVisible(
+              NetworkManager.popularNetworksTab,
+            );
             const endTime = Date.now();
 
             const totalTime = endTime - startTime;
-
-            // Baseline should be very fast
-            if (totalTime > PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST) {
-              console.warn(
-                `⚠️  BASELINE WARNING: Even minimal load took ${totalTime}ms`,
-              );
-            }
-
-            console.log('Baseline test completed!');
 
             result = {
               totalTime,
@@ -258,6 +257,16 @@ describe(SmokePerformance('Network List Load Testing'), () => {
                 totalTime: PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST,
               },
             };
+
+            // Baseline should be very fast
+            if (totalTime > PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST) {
+              console.warn(
+                `Baseline test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST}ms)`,
+                result,
+              );
+            }
+
+            console.log('Baseline test completed!');
           },
         );
 

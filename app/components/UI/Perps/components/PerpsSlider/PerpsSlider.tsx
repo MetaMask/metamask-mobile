@@ -11,13 +11,12 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
 } from 'react-native-reanimated';
-
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import LinearGradient from 'react-native-linear-gradient';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsSlider.styles';
-import LinearGradient from 'react-native-linear-gradient';
 
 // Only configure reanimated logger in non-test environments
 if (
@@ -40,10 +39,6 @@ interface PerpsSliderProps {
   disabled?: boolean;
   progressColor?: 'default' | 'gradient';
   quickValues?: number[];
-  springConfig?: {
-    damping?: number;
-    stiffness?: number;
-  };
 }
 
 const PerpsSlider: React.FC<PerpsSliderProps> = ({
@@ -56,16 +51,14 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   disabled = false,
   progressColor = 'default',
   quickValues,
-  springConfig = {
-    damping: 15,
-    stiffness: 400,
-  },
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
   // Shared values for animations
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
+  const isPressed = useSharedValue(false);
+  const thumbScale = useSharedValue(1);
 
   // Convert position to value
   const positionToValue = useCallback(
@@ -87,6 +80,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   // Store width in a ref to avoid shared value dependency issues
   const widthRef = useRef(0);
+  // Track previous value for threshold detection
+  const previousValueRef = useRef(value);
 
   // Layout handler - pure React callback
   const handleLayout = useCallback(
@@ -111,12 +106,12 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       const range = maximumValue - minimumValue;
       const percentage = range === 0 ? 0 : (value - minimumValue) / range;
       const newPosition = percentage * widthRef.current;
-      translateX.value = withSpring(newPosition, {
-        damping: springConfig.damping,
-        stiffness: springConfig.stiffness,
-      });
+      // Direct assignment for instant update, no spring animation
+      translateX.value = newPosition;
     }
-  }, [value, minimumValue, maximumValue, translateX, widthRef, springConfig]);
+    // Update previous value ref when value changes externally
+    previousValueRef.current = value;
+  }, [value, minimumValue, maximumValue, translateX, widthRef]);
 
   // Animated styles
   const progressStyle = useAnimatedStyle(() => ({
@@ -124,7 +119,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   }));
 
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [{ translateX: translateX.value }, { scale: thumbScale.value }],
   }));
 
   // JS callback wrapper
@@ -135,16 +130,66 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     [onValueChange],
   );
 
+  // Haptic feedback callbacks
+  const triggerHapticFeedback = useCallback(
+    (impactStyle: ImpactFeedbackStyle) => {
+      impactAsync(impactStyle);
+    },
+    [],
+  );
+
+  // Check if value crosses 25/50/75 thresholds
+  const checkThresholdCrossing = useCallback(
+    (newValue: number) => {
+      const prevValue = previousValueRef.current;
+      const thresholds = [25, 50, 75];
+
+      for (const threshold of thresholds) {
+        const prevPercentage =
+          (prevValue / (maximumValue - minimumValue)) * 100;
+        const newPercentage = (newValue / (maximumValue - minimumValue)) * 100;
+
+        // Check if we crossed the threshold in either direction
+        if (
+          (prevPercentage < threshold && newPercentage >= threshold) ||
+          (prevPercentage > threshold && newPercentage <= threshold)
+        ) {
+          runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          break;
+        }
+      }
+
+      previousValueRef.current = newValue;
+    },
+    [maximumValue, minimumValue, triggerHapticFeedback],
+  );
+
   // Pan gesture for dragging
   const panGesture = Gesture.Pan()
     .enabled(!disabled)
+    .onBegin(() => {
+      isPressed.value = true;
+      thumbScale.value = 1.1; // Subtle scale effect, instant
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
+    })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
       translateX.value = newPosition;
+      // Real-time value update during drag
+      const currentValue = positionToValue(newPosition, sliderWidth.value);
+      runOnJS(updateValue)(currentValue);
+      runOnJS(checkThresholdCrossing)(currentValue);
     })
     .onEnd(() => {
+      isPressed.value = false;
+      thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
+    })
+    .onFinalize(() => {
+      isPressed.value = false;
+      thumbScale.value = 1; // Direct assignment, no spring
     });
 
   // Tap gesture for clicking on track
@@ -152,12 +197,10 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     .enabled(!disabled)
     .onEnd((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
-      translateX.value = withSpring(newPosition, {
-        damping: springConfig.damping,
-        stiffness: springConfig.stiffness,
-      });
+      translateX.value = newPosition; // Direct assignment for instant response
       const newValue = positionToValue(newPosition, sliderWidth.value);
       runOnJS(updateValue)(newValue);
+      runOnJS(checkThresholdCrossing)(newValue);
     });
 
   // Combined gesture
@@ -170,8 +213,15 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       const newValue =
         (percent / 100) * (maximumValue - minimumValue) + minimumValue;
       onValueChange(newValue);
+      checkThresholdCrossing(newValue);
     },
-    [disabled, maximumValue, minimumValue, onValueChange],
+    [
+      disabled,
+      maximumValue,
+      minimumValue,
+      onValueChange,
+      checkThresholdCrossing,
+    ],
   );
 
   const percentageSteps = [0, 25, 50, 75, 100];
@@ -194,7 +244,10 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
               ) : (
                 <Animated.View style={[styles.progress, progressStyle]} />
               )}
-              <Animated.View style={[styles.thumb, thumbStyle]} />
+              <Animated.View
+                style={[styles.thumb, thumbStyle]}
+                hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
+              />
             </Animated.View>
           </GestureDetector>
 
@@ -268,7 +321,13 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       {quickValues && (
         <View style={styles.quickValuesRow}>
           {quickValues.map((val) => (
-            <TouchableOpacity key={val} onPress={() => onValueChange(val)}>
+            <TouchableOpacity
+              key={val}
+              onPress={() => {
+                onValueChange(val);
+                checkThresholdCrossing(val);
+              }}
+            >
               <Text>{val}x</Text>
             </TouchableOpacity>
           ))}

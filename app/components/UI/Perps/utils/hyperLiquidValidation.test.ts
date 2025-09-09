@@ -5,6 +5,7 @@
 import {
   createErrorResult,
   validateWithdrawalParams,
+  validateDepositParams,
   validateAssetSupport,
   validateBalance,
   applyPathFilters,
@@ -43,6 +44,12 @@ jest.mock('../constants/hyperLiquidConfig', () => ({
       ? ('eip155:421614/erc20:0x9876543210987654321098765432109876543210/default' as CaipAssetId)
       : ('eip155:42161/erc20:0x82af49447d8a07e3bd95bd0d56f35241523fbab1/default' as CaipAssetId),
   ],
+  TRADING_DEFAULTS: {
+    amount: {
+      mainnet: 5,
+      testnet: 11,
+    },
+  },
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -117,7 +124,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'assetId is required for withdrawals',
+        error:
+          'assetId is required for withdrawals. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)',
       });
     });
 
@@ -132,7 +140,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Amount must be a positive number',
+        error:
+          'Amount must be a positive number. Amount must be a positive number (received: 0)',
       });
     });
 
@@ -148,7 +157,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Invalid destination address format: invalid-address',
+        error:
+          'Invalid destination address format: invalid-address. Address must be a valid Ethereum address starting with 0x',
       });
     });
 
@@ -162,7 +172,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Amount must be a positive number',
+        error:
+          'amount is required for withdrawals. Please specify the amount to withdraw',
       });
     });
 
@@ -177,7 +188,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Amount must be a positive number',
+        error:
+          'Amount must be a positive number. Amount must be a positive number (received: -10)',
       });
     });
 
@@ -191,6 +203,192 @@ describe('hyperLiquidValidation', () => {
       const result = validateWithdrawalParams(params);
 
       expect(result).toEqual({ isValid: true });
+    });
+  });
+
+  describe('validateDepositParams', () => {
+    it('should validate correct parameters on mainnet', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        amount: '10',
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({ isValid: true });
+    });
+
+    it('should validate correct parameters on testnet', () => {
+      const params = {
+        assetId:
+          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
+        amount: '15',
+        isTestnet: true,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({ isValid: true });
+    });
+
+    it('should require assetId', () => {
+      const params = {
+        amount: '100',
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'AssetId is required for deposit validation. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)',
+      });
+    });
+
+    it('should require amount', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'Amount is required and must be greater than 0. Please specify the amount to deposit',
+      });
+    });
+
+    it('should require positive amount', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        amount: '0',
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'Amount must be a positive number. Amount must be a positive number (received: 0)',
+      });
+    });
+
+    it('should reject negative amount', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        amount: '-10',
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'Amount must be a positive number. Amount must be a positive number (received: -10)',
+      });
+    });
+
+    it('should reject amount below minimum on mainnet', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        amount: '4.99',
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'Minimum deposit amount is 5 USDC. Current amount: 4.99, required minimum: 5',
+      });
+    });
+
+    it('should reject amount below minimum on testnet', () => {
+      const params = {
+        assetId:
+          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
+        amount: '10.99',
+        isTestnet: true,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'Minimum deposit amount is 11 USDC. Current amount: 10.99, required minimum: 11',
+      });
+    });
+
+    it('should accept amount exactly at minimum on mainnet', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        amount: '5',
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({ isValid: true });
+    });
+
+    it('should accept amount exactly at minimum on testnet', () => {
+      const params = {
+        assetId:
+          'eip155:421614/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
+        amount: '11',
+        isTestnet: true,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({ isValid: true });
+    });
+
+    it('should default to mainnet when isTestnet is not provided', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        amount: '4',
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'Minimum deposit amount is 5 USDC. Current amount: 4, required minimum: 5',
+      });
+    });
+
+    it('should handle NaN amount', () => {
+      const params = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        amount: 'invalid',
+        isTestnet: false,
+      };
+
+      const result = validateDepositParams(params);
+
+      expect(result).toEqual({
+        isValid: false,
+        error:
+          'Amount must be a positive number. Amount must be a positive number (received: invalid)',
+      });
     });
   });
 
@@ -244,6 +442,37 @@ describe('hyperLiquidValidation', () => {
       expect(result.error).toContain('is not supported for withdrawals');
       expect(result.error).toContain('Supported assets: ');
     });
+
+    it('should support case-insensitive asset matching for contract addresses', () => {
+      const assetIdUpperCase =
+        'eip155:42161/erc20:0xAF88D065E77C8CC2239327C5EDB3A432268E5831/default' as CaipAssetId;
+      const supportedRoutes = [
+        {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        },
+      ];
+
+      const result = validateAssetSupport(assetIdUpperCase, supportedRoutes);
+
+      expect(result).toEqual({ isValid: true });
+    });
+
+    it('should support case-insensitive asset matching with mixed case', () => {
+      const assetIdMixedCase =
+        'eip155:42161/erc20:0xaF88d065E77c8Cc2239327c5eDb3A432268E5831/default' as CaipAssetId;
+      const supportedRoutes = [
+        {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+        },
+      ];
+
+      const result = validateAssetSupport(assetIdMixedCase, supportedRoutes);
+
+      // Case-insensitive matching should make this valid
+      expect(result.isValid).toBe(true);
+    });
   });
 
   describe('validateBalance', () => {
@@ -258,7 +487,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Insufficient balance. Available: 100, Requested: 150',
+        error:
+          'Insufficient balance. Available: 100, Requested: 150. You need 50.000000 more to complete this withdrawal',
       });
     });
 
@@ -273,7 +503,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Insufficient balance. Available: 0, Requested: 10',
+        error:
+          'Insufficient balance. Available: 0, Requested: 10. You need 10.000000 more to complete this withdrawal',
       });
     });
   });

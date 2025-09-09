@@ -21,7 +21,6 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -32,9 +31,7 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterEmailParams {
-  quote: BuyQuote;
-  paymentMethodId: string;
-  cryptoCurrencyChainId: string;
+  redirectToRootAfterAuth?: boolean;
 }
 
 export const createEnterEmailNavDetails =
@@ -42,12 +39,11 @@ export const createEnterEmailNavDetails =
 
 const EnterEmail = () => {
   const navigation = useNavigation();
+  const { redirectToRootAfterAuth } = useParams<EnterEmailParams>();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState(false);
-  const { quote, paymentMethodId, cryptoCurrencyChainId } =
-    useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -85,16 +81,20 @@ const EnterEmail = () => {
 
       if (validateEmail(email)) {
         setValidationError(false);
-        await submitEmail();
+        const otpResponse = await submitEmail();
+
+        if (!otpResponse?.stateToken) {
+          throw new Error('State token is required for OTP verification');
+        }
+
         trackEvent('RAMPS_EMAIL_SUBMITTED', {
           ramp_type: 'DEPOSIT',
         });
         navigation.navigate(
           ...createOtpCodeNavDetails({
-            quote,
             email,
-            paymentMethodId,
-            cryptoCurrencyChainId,
+            stateToken: otpResponse.stateToken,
+            redirectToRootAfterAuth,
           }),
         );
       } else {
@@ -110,15 +110,7 @@ const EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    email,
-    navigation,
-    submitEmail,
-    quote,
-    paymentMethodId,
-    cryptoCurrencyChainId,
-    trackEvent,
-  ]);
+  }, [email, navigation, submitEmail, trackEvent, redirectToRootAfterAuth]);
 
   return (
     <ScreenLayout>
@@ -140,6 +132,7 @@ const EnterEmail = () => {
               placeholder={strings('deposit.enter_email.input_placeholder')}
               placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}
+              onSubmitEditing={handleSubmit}
               autoCapitalize="none"
               ref={emailInputRef}
               onChangeText={handleTextChange}

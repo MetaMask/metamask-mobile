@@ -1,0 +1,136 @@
+# Pure Android E2E build workflow - just builds APKs and uploads artifacts
+# No testing, no unnecessary setup - optimized for speed and efficiency
+
+name: Build Android E2E APKs
+
+on:
+  workflow_call:
+    outputs:
+      apk-uploaded:
+        description: 'Whether the APK was successfully uploaded'
+        value: ${{ jobs.build-android-apks.outputs.apk-uploaded }}
+      aab-uploaded:
+        description: 'Whether the AAB was successfully uploaded'
+        value: ${{ jobs.build-android-apks.outputs.aab-uploaded }}
+      sourcemap-uploaded:
+        description: 'Whether the sourcemap was successfully uploaded'
+        value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
+
+jobs:
+  build-android-apks:
+    name: Build Android E2E APKs
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    env:
+      GRADLE_USER_HOME: /home/runner/_work/.gradle
+    outputs:
+      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Android Build Environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        with:
+          platform: android
+          setup-simulator: false
+          configure-keystores: true
+          target: qa
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/_work/.gradle/caches
+            /home/runner/_work/.gradle/wrapper
+            android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Build Android E2E APKs
+        run: |
+          echo "🚀 Setting up project..."
+          yarn setup:github-ci --no-build-ios
+          
+          echo "🏗 Building Android E2E APKs..."
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cp android/gradle.properties.github android/gradle.properties
+          yarn build:android:main:e2e
+        shell: bash
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          E2E: "true"
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
+          NODE_OPTIONS: "--max-old-space-size=8192"
+          MM_UNIFIED_SWAPS_ENABLED: "true"
+          MM_BRIDGE_ENABLED: "true"
+          BRIDGE_USE_DEV_APIS: "true"
+          RAMP_INTERNAL_BUILD: "true"
+          SEEDLESS_ONBOARDING_ENABLED: "true"
+          MM_NOTIFICATIONS_UI_ENABLED: "true"
+          MM_SECURITY_ALERTS_API_ENABLED: "true"
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          BLOCKAID_FILE_CDN: "static.cx.metamask.io/api/v1/confirmations/ppom"
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+
+      - name: Upload Android APK
+        id: upload-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release.apk
+          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android Test APK
+        id: upload-test-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android AAB
+        id: upload-aab
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release.aab
+          path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true
+
+      - name: Upload Android Source Map
+        id: upload-sourcemap
+        uses: actions/upload-artifact@v4
+        with:
+          name: index.android.bundle.map
+          path: sourcemaps/android/index.android.bundle.map
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true

@@ -22,13 +22,6 @@ import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
-import useAnalytics from '../../../hooks/useAnalytics';
-import { useDepositSDK } from '../../sdk';
-import {
-  getCryptoCurrencyFromTransakId,
-  hasDepositOrderField,
-} from '../../utils';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 export interface OrderProcessingParams {
   orderId: string;
@@ -44,8 +37,6 @@ const OrderProcessing = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
-  const trackEvent = useAnalytics();
-  const { selectedWalletAddress, selectedRegion } = useDepositSDK();
 
   const handleMainAction = useCallback(() => {
     if (
@@ -82,67 +73,6 @@ const OrderProcessing = () => {
       navigation.navigate(Routes.WALLET.HOME);
     }
   }, [order?.state, navigation, orderId]);
-
-  useEffect(() => {
-    if (!order) return;
-
-    const isCompleted = order.state === FIAT_ORDER_STATES.COMPLETED;
-    const isFailed = order.state === FIAT_ORDER_STATES.FAILED;
-
-    if (isCompleted || isFailed) {
-      if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
-        const cryptoCurrency = getCryptoCurrencyFromTransakId(
-          (order.data as DepositOrder).cryptoCurrency,
-          (order.data as DepositOrder).network,
-        );
-
-        const baseAnalyticsData = {
-          ramp_type: 'DEPOSIT' as const,
-          amount_source: Number(order.data.fiatAmount),
-          amount_destination: Number(order.cryptoAmount),
-          exchange_rate: Number(order.data.exchangeRate),
-          payment_method_id: order.data.paymentMethod,
-          country: selectedRegion?.isoCode || '',
-          chain_id: cryptoCurrency?.chainId || '',
-          currency_destination:
-            selectedWalletAddress || order.data.walletAddress,
-          currency_source: order.data.fiatCurrency,
-        };
-
-        if (isCompleted) {
-          trackEvent('RAMPS_TRANSACTION_COMPLETED', {
-            ...baseAnalyticsData,
-            gas_fee: order.data.networkFees
-              ? Number(order.data.networkFees)
-              : 0,
-            processing_fee: order.data.partnerFees
-              ? Number(order.data.partnerFees)
-              : 0,
-            total_fee: Number(order.data.totalFeesFiat),
-          });
-        } else if (isFailed) {
-          trackEvent('RAMPS_TRANSACTION_FAILED', {
-            ...baseAnalyticsData,
-            gas_fee: order.data.networkFees
-              ? Number(order.data.networkFees)
-              : 0,
-            processing_fee: order.data.partnerFees
-              ? Number(order.data.partnerFees)
-              : 0,
-            total_fee: Number(order.data.totalFeesFiat),
-            error_message: order.data.statusDescription || 'transaction_failed',
-          });
-        }
-      }
-    }
-  }, [
-    order,
-    navigation,
-    orderId,
-    trackEvent,
-    selectedWalletAddress,
-    selectedRegion,
-  ]);
 
   if (!order) {
     return (

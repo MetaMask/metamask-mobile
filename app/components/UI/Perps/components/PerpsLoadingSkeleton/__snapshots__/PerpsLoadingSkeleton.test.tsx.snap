@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PerpsLoadingSkeleton should match snapshot 1`] = `
+<View
+  alignItems="center"
+  justifyContent="center"
+  testID="perps-loading-skeleton"
+  twClassName="flex-1 bg-default"
+>
+  <ActivityIndicator
+    color="#686e7d"
+    size="large"
+    style={
+      {
+        "marginBottom": 24,
+      }
+    }
+  />
+  <Text
+    twClassName="text-default mb-2"
+    variant="HeadingMd"
+  >
+    Connecting to Perps
+  </Text>
+</View>
+`;

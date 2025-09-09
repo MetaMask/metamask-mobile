@@ -1,6 +1,9 @@
 import { merge } from 'lodash';
+import { toHex } from '@metamask/controller-utils';
 
-const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
+export const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
+export const tokenAddress1Mock = '0x1234567890abcdef1234567890abcdef12345678';
+export const tokenAddress2Mock = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef';
 
 export const keyringControllerMock = {
   engine: {
@@ -43,7 +46,13 @@ export const accountTrackerControllerMock = {
   engine: {
     backgroundState: {
       AccountTrackerController: {
-        accountsByChainId: {},
+        accountsByChainId: {
+          '0x1': {
+            [accountMock]: {
+              balance: toHex(2 * 10 ** 18),
+            },
+          },
+        },
       },
     },
   },
@@ -66,7 +75,14 @@ export const tokenBalancesControllerMock = {
   engine: {
     backgroundState: {
       TokenBalancesController: {
-        tokenBalances: {},
+        tokenBalances: {
+          [accountMock]: {
+            '0x1': {
+              [tokenAddress1Mock]: '0x64', // 100
+              '0x1234567890AbcdEF1234567890aBcdef12345678': '0x64',
+            },
+          },
+        },
       },
     },
   },
@@ -158,6 +174,33 @@ export const preferencesControllerMock = {
   },
 };
 
+export const tokensControllerMock = {
+  engine: {
+    backgroundState: {
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            [accountMock]: [
+              {
+                address: tokenAddress1Mock,
+                chainId: '0x1',
+                decimals: 4,
+                symbol: 'T1',
+              },
+              {
+                address: tokenAddress2Mock,
+                chainId: '0x1',
+                decimals: 6,
+                symbol: 'T2',
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+};
+
 export const tokenListControllerMock = {
   engine: {
     backgroundState: {
@@ -165,6 +208,26 @@ export const tokenListControllerMock = {
         tokensChainsCache: {
           '0x1': {},
         },
+      },
+    },
+  },
+};
+
+export const tokenRatesControllerMock = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {},
+      },
+    },
+  },
+};
+
+export const gasFeeControllerMock = {
+  engine: {
+    backgroundState: {
+      GasFeeController: {
+        gasFeeEstimates: {},
       },
     },
   },
@@ -185,4 +248,7 @@ export const otherControllersMock = merge(
   smartTransactionsControllerMock,
   preferencesControllerMock,
   tokenListControllerMock,
+  tokenRatesControllerMock,
+  tokensControllerMock,
+  gasFeeControllerMock,
 );

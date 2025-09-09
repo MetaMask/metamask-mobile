@@ -12,6 +12,7 @@ import {
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
+import { selectRemoteFeatureFlags } from '../featureFlagController';
 
 type NotificationServicesState = NotificationServicesControllerState;
 
@@ -22,6 +23,11 @@ const selectNotificationServicesControllerState = (state: RootState) =>
 const selectNotificationServicesPushControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesPushController ??
   pushControllerDefaultState;
+
+export const getIsNotificationEnabledByDefaultFeatureFlag = createSelector(
+  [selectRemoteFeatureFlags],
+  (remoteFlags) => Boolean(remoteFlags?.assetsEnableNotificationsByDefault),
+);
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,
@@ -57,6 +63,12 @@ export const selectIsFeatureAnnouncementsEnabled = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isFeatureAnnouncementsEnabled,
+);
+export const selectIsPerpsNotificationsEnabled = createSelector(
+  selectNotificationServicesControllerState,
+  (notificationServicesControllerState: NotificationServicesState) =>
+    // @ts-expect-error - isPerpsNotificationsEnabled not yet implemented
+    notificationServicesControllerState.isPerpsNotificationsEnabled,
 );
 export const selectIsUpdatingMetamaskNotificationsAccount = createSelector(
   selectNotificationServicesControllerState,

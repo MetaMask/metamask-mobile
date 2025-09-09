@@ -63,6 +63,7 @@ describe('MultichainBridgeTransactionListItem', () => {
     account: '0x1234567890123456789012345678901234567890',
     quote: {
       requestId: 'test-request-id',
+      minDestTokenAmount: '1000000000000000000',
       srcChainId: 1,
       srcAsset: {
         chainId: 1,
@@ -130,7 +131,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       getByText('bridge_transaction_details.bridge_to_chain'),
     ).toBeTruthy();
     expect(getByText('transaction.confirmed')).toBeTruthy();
-    expect(getByText('1000000000000000000 ETH')).toBeTruthy();
+    expect(getByText('1.0 ETH')).toBeTruthy();
     expect(getByText('Mar 15, 2025')).toBeTruthy();
   });
 

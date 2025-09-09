@@ -22,7 +22,7 @@ class ChangePasswordView {
   }
 
   get iUnderstandCheckBox(): DetoxElement {
-    return Matchers.getElementByText(
+    return Matchers.getElementByLabel(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }

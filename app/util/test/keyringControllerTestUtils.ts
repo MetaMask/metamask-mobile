@@ -11,9 +11,11 @@ export const mockSnapAddress2 = '0x8A4bD37F19C94A72E8Fe0fA97dD1422a65E53b718';
 export const mockSolanaAddress = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 export const mockSecondHDKeyringAddress =
   '0xf5E7127d55ed72EBe33d2b0540cc82baF3E31561';
-
+export const mockThirdHDKeyringAddress =
+  '0x2A3dB4C8f9E56a7B1F3C8D2e5f6A9B8C7D4E3F2A';
 export const MOCK_ENTROPY_SOURCE = '01JNG7170V9X27V5NFDTY04PJ4';
 export const MOCK_ENTROPY_SOURCE_2 = '01JSJNVTJEPSHZSNWAD3JT0PJN';
+export const MOCK_ENTROPY_SOURCE_3 = '01JNG66ATK17YSN0TSS6H51EE3';
 
 const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
   {
@@ -56,11 +58,20 @@ const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
       name: '',
     },
   },
+  {
+    accounts: [mockThirdHDKeyringAddress],
+    type: KeyringTypes.hd,
+    metadata: {
+      id: MOCK_ENTROPY_SOURCE_3,
+      name: '',
+    },
+  },
 ];
 
 export const MOCK_KEYRING_CONTROLLER_STATE = {
-  isUnlocked: jest.fn(),
-  getAccountKeyringType: jest.fn(),
+  isUnlocked: typeof jest !== 'undefined' ? jest.fn() : () => true,
+  getAccountKeyringType:
+    typeof jest !== 'undefined' ? jest.fn() : () => 'HD Key Tree',
   keyring: {
     keyrings: [
       {

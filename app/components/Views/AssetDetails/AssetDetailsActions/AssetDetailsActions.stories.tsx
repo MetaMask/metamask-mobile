@@ -7,9 +7,6 @@ import AssetDetailsActions, {
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: initialBackgroundState,
   },
@@ -37,7 +34,7 @@ const Template = (args: AssetDetailsActionsProps) => (
 export const Default = Template.bind(
   {},
   {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,
@@ -52,7 +49,7 @@ export const Default = Template.bind(
 export const NoBuyButton = Template.bind(
   {},
   {
-    displayBuyButton: false,
+    displayFundButton: false,
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,
@@ -67,7 +64,7 @@ export const NoBuyButton = Template.bind(
 export const NoSwapsButton = Template.bind(
   {},
   {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: false,
     displayBridgeButton: true,
     swapsIsLive: false,
@@ -82,7 +79,7 @@ export const NoSwapsButton = Template.bind(
 export const NoBridgeButton = Template.bind(
   {},
   {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: true,
     displayBridgeButton: false,
     swapsIsLive: false,
@@ -97,11 +94,26 @@ export const NoBridgeButton = Template.bind(
 export const NoButtons = Template.bind(
   {},
   {
-    displayBuyButton: false,
+    displayFundButton: false,
     displaySwapsButton: false,
     displayBridgeButton: false,
     swapsIsLive: false,
     onBuy: () => null,
+    goToSwaps: () => null,
+    goToBridge: () => null,
+    onSend: () => null,
+    onReceive: () => null,
+  },
+);
+
+export const FundActionMenuNavigation = Template.bind(
+  {},
+  {
+    displayFundButton: true,
+    displaySwapsButton: true,
+    displayBridgeButton: true,
+    swapsIsLive: true,
+    // No onBuy prop - will navigate to FundActionMenu
     goToSwaps: () => null,
     goToBridge: () => null,
     onSend: () => null,

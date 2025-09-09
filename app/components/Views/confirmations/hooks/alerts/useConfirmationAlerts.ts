@@ -7,6 +7,10 @@ import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
+import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
+import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
+import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
+import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -19,6 +23,11 @@ function useTransactionAlerts(): Alert[] {
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
   const batchedUnusedApprovalsAlert = useBatchedUnusedApprovalsAlert();
+  const perpsDepositMinimumAlert = usePerpsDepositMinimumAlert();
+  const insufficientPayTokenBalanceAlert =
+    useInsufficientPayTokenBalanceAlert();
+  const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
+  const insufficientPayTokenNativeAlert = useInsufficientPayTokenNativeAlert();
 
   return useMemo(
     () => [
@@ -26,12 +35,20 @@ function useTransactionAlerts(): Alert[] {
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
       ...signedOrSubmittedAlert,
+      ...perpsDepositMinimumAlert,
+      ...insufficientPayTokenBalanceAlert,
+      ...noPayTokenQuotesAlert,
+      ...insufficientPayTokenNativeAlert,
     ],
     [
       insufficientBalanceAlert,
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
       signedOrSubmittedAlert,
+      perpsDepositMinimumAlert,
+      insufficientPayTokenBalanceAlert,
+      noPayTokenQuotesAlert,
+      insufficientPayTokenNativeAlert,
     ],
   );
 }

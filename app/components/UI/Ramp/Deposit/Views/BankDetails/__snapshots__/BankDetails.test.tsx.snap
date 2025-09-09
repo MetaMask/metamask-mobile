@@ -116,30 +116,87 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -174,7 +231,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  SEPA Bank Transfer bank transfer
+                  SEPA bank transfer
                 </Text>
               </TouchableOpacity>
             </View>
@@ -193,47 +250,87 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
                     {
                       "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
                       "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
                   <SvgMock
-                    color="#121314"
                     fill="currentColor"
-                    height={24}
                     name="Close"
                     style={
-                      {
-                        "height": 24,
-                        "width": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={24}
                   />
-                </TouchableOpacity>
-              </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -456,6 +553,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                               tintColor="#121314"
                             />
                           }
+                          testID="bank-details-refresh-control-scrollview"
                         >
                           <RCTRefreshControl />
                           <View>
@@ -531,13 +629,13 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Once you’re finished, come back and click “Bank transfer sent” to confirm.
+                                    Once you’re finished, come back and click “Confirm transfer” to confirm.
                                   </Text>
                                 </View>
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 8,
                                       "gap": 16,
                                       "padding": 16,
@@ -825,7 +923,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -909,6 +1007,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -916,7 +1016,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -948,6 +1048,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -979,7 +1081,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Bank transfer sent
+                                    Confirm transfer
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -1116,30 +1218,87 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -1174,7 +1333,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                     }
                   }
                 >
-                  SEPA Bank Transfer bank transfer
+                  SEPA bank transfer
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1193,47 +1352,87 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
-                }
-              >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
                     {
                       "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
                       "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
                 >
                   <SvgMock
-                    color="#121314"
                     fill="currentColor"
-                    height={24}
                     name="Close"
                     style={
-                      {
-                        "height": 24,
-                        "width": 24,
-                      }
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
                     }
-                    width={24}
                   />
-                </TouchableOpacity>
-              </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -1456,6 +1655,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                               tintColor="#121314"
                             />
                           }
+                          testID="bank-details-refresh-control-scrollview"
                         >
                           <RCTRefreshControl />
                           <View>
@@ -1531,13 +1731,13 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       }
                                     }
                                   >
-                                    Once you’re finished, come back and click “Bank transfer sent” to confirm.
+                                    Once you’re finished, come back and click “Confirm transfer” to confirm.
                                   </Text>
                                 </View>
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 8,
                                       "gap": 16,
                                       "padding": 16,
@@ -1848,6 +2048,77 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                         }
                                       }
                                     >
+                                      Beneficiary address
+                                    </Text>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                          "justifyContent": "flex-end",
+                                          "marginLeft": 16,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "flex": 1,
+                                            "flexWrap": "wrap",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                            "textAlign": "right",
+                                          }
+                                        }
+                                      >
+                                        456 Recipient Street
+                                      </Text>
+                                      <TouchableOpacity
+                                        onPress={[Function]}
+                                        testID="copy-button"
+                                      >
+                                        <SvgMock
+                                          color="#686e7d"
+                                          fill="currentColor"
+                                          height={16}
+                                          name="Copy"
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          width={16}
+                                        />
+                                      </TouchableOpacity>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "flexDirection": "row",
+                                        "justifyContent": "space-between",
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
                                       Bank address
                                     </Text>
                                     <View
@@ -1967,7 +2238,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -2051,6 +2322,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -2058,7 +2331,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -2090,6 +2363,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -2121,7 +2396,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       }
                                     }
                                   >
-                                    Bank transfer sent
+                                    Confirm transfer
                                   </Text>
                                 </TouchableOpacity>
                               </View>

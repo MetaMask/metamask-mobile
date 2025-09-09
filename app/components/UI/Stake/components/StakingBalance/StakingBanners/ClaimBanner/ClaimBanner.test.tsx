@@ -6,13 +6,16 @@ import Engine from '../../../../../../../core/Engine';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../../../../../util/test/network';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../../util/test/renderWithProvider';
 import {
   MOCK_POOL_STAKING_SDK,
   MOCK_ETH_MAINNET_ASSET,
 } from '../../../../__mocks__/stakeMockData';
 import useStakingChain from '../../../../hooks/useStakingChain';
 import ClaimBanner from './ClaimBanner';
+import { RootState } from '../../../../../../../reducers';
 
 const MOCK_CLAIM_AMOUNT = '16000000000000000';
 const MOCK_ADDRESS_1 = '0x0123456789abcdef0123456789abcdef01234567';
@@ -21,11 +24,30 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
 ]);
 
-const mockInitialState = {
+const mockSelectedAccount =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+  ];
+
+const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountTreeController: {
+        accountTree: {
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
+          wallets: {
+            'keyring:test-wallet': {
+              groups: {
+                'keyring:test-wallet/ethereum': {
+                  accounts: [mockSelectedAccount.id],
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
 };
@@ -115,7 +137,7 @@ describe('ClaimBanner', () => {
           engine: {
             ...mockInitialState.engine,
             backgroundState: {
-              ...mockInitialState.engine.backgroundState,
+              ...mockInitialState.engine?.backgroundState,
               NetworkController: {
                 ...mockNetworkState({
                   chainId: CHAIN_IDS.SEPOLIA,

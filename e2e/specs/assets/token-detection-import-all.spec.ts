@@ -1,6 +1,6 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
@@ -10,7 +10,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 const ETHEREUM_NAME = 'Ethereum';
 const USDC_NAME = 'USDCoin';
 
-describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
+describe(RegressionAssets('Import all tokens detected'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -19,7 +19,17 @@ describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   it('should import all tokens detected automatically', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder()
+          .withDetectedTokens([
+            {
+              address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              decimals: 18,
+              symbol: 'USDC',
+              chainId: '0x1',
+              name: 'USDCoin',
+            },
+          ])
+          .build(),
         restartDevice: true,
       },
       async () => {

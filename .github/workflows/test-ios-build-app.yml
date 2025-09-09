@@ -1,0 +1,169 @@
+name: Test iOS Build QA App
+
+on:
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: 'Number of days to retain the uploaded artifacts'
+        required: false
+        default: '7'
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  ios-build:
+    name: Test iOS QA Build App
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    outputs:
+      artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
+      app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
+      ipa-uploaded: ${{ steps.upload-ipa.outcome == 'success' }}
+      archive-uploaded: ${{ steps.upload-archive.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+    env:
+      GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
+    steps:
+      # Get the source code from the repository
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Display system information for debugging purposes
+      - name: Detect CPU architecture
+        run: |
+          echo "Arch: $(uname -m)"
+          if [[ "$(uname -m)" == "x86_64" ]]; then
+            echo "Detected Intel runner"
+          else
+            echo "Detected Apple Silicon runner"
+          fi
+
+      - name: Print system resources
+        run: |
+            echo "🧠 Memory info:"
+            vm_stat
+            echo ""
+            echo "💻 CPU info:"
+            sysctl -n hw.ncpu
+            sysctl -n hw.memsize | awk '{ byte =$1 /1024/1024/1024; print byte " GB" }'
+        shell: bash
+
+      # Install Node.js, Xcode tools, and other iOS development dependencies
+      - name: Installing iOS Environment Setup
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        with:
+          platform: ios
+          setup-simulator: false
+
+      - name: Print iOS tool versions
+        run: |
+            echo "🔧 Node.js Version:"
+            node -v || echo "Node not found"
+            echo "🧶 Yarn Version:"
+            yarn -v || echo "Yarn not found"
+            echo "📦 CocoaPods Version:"
+            pod --version || echo "CocoaPods not found"
+            echo "🛠️ Xcode Path:"
+            xcode-select -p || echo "Xcode not found"
+            echo "📱 Booted iOS Simulators:"
+            xcrun simctl list | grep Booted || echo "No booted simulators found"
+        shell: bash
+
+      # Run project setup and build the iOS QA app for simulator
+      - name: Setup iOS Environment
+        run: |
+          echo "🚀 Finishing iOS Setup..."
+          yarn setup:github-ci --build-ios --no-build-android
+          echo "🏗 Building iOS APP..."
+          yarn build:ios:qa
+        shell: bash
+        env:
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
+
+          NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
+
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      # Upload the iOS .app file that works in simulators (no certificates needed)
+      - name: Upload iOS APP Artifact (Simulator)
+        id: upload-app
+        uses: actions/upload-artifact@v4
+        with:
+          name: MetaMask-QA.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
+        continue-on-error: true
+
+      # Upload iOS .ipa file for device installation (requires certificates - may not exist)
+      - name: Upload iOS IPA Artifact (Device)
+        id: upload-ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: MetaMask-QA.ipa
+          path: ios/build/output/MetaMask-QA.ipa
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
+        continue-on-error: true
+
+      # Upload iOS .xcarchive file for debugging and re-signing (requires certificates - may not exist)
+      - name: Upload iOS Archive Artifact
+        id: upload-archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: MetaMask-QA.xcarchive
+          path: ios/build/MetaMask-QA.xcarchive
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
+        continue-on-error: true
+
+      # Upload source map file for crash debugging and error tracking if exists
+      - name: Upload iOS Source Map
+        id: upload-sourcemap
+        uses: actions/upload-artifact@v4
+        with:
+          name: index.js.map
+          path: sourcemaps/ios/index.js.map
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
+        continue-on-error: true
+
+      # Generate artifact download URL and display upload status summary
+      - name: Set Artifacts URL and Status
+        id: set-artifacts-url
+        run: |
+          ARTIFACTS_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "artifacts-url=${ARTIFACTS_URL}" >> "$GITHUB_OUTPUT"
+          echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
+          echo ""
+          echo "Upload Status Summary:"
+          echo "-  APP (Simulator): ${{ steps.upload-app.outcome }}"
+          echo "-  IPA (Device): ${{ steps.upload-ipa.outcome }}"
+          echo "-  Archive: ${{ steps.upload-archive.outcome }}"
+          echo "-  Source Map: ${{ steps.upload-sourcemap.outcome }}"
+
+        env:
+          GITHUB_REPOSITORY: "${{ github.repository }}"
+          GITHUB_RUN_ID: "${{ github.run_id }}"

@@ -5,9 +5,11 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
 import { SmokeAccounts } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeAccounts('Account Rename UI Flows'), () => {
   const ORIGINAL_ACCOUNT_NAME = 'Account 1';
@@ -24,12 +26,13 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
   it('should rename account using legacy UI flow', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetails(false),
+          );
         },
       },
       async () => {
@@ -81,12 +84,13 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
   it('should rename account using modern multichain UI flow', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(true),
-          ],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetails(true),
+          );
         },
       },
       async () => {

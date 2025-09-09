@@ -1,5 +1,11 @@
 import { ParamListBase } from '@react-navigation/native';
-import type { Position, OrderResult, OrderType } from '../controllers/types';
+import type {
+  Position,
+  OrderResult,
+  OrderType,
+  PerpsMarketData,
+} from '../controllers/types';
+import { PerpsTransaction } from './transactionHistory';
 
 /**
  * PERPS navigation parameter types
@@ -53,14 +59,25 @@ export interface PerpsNavigationParamList extends ParamListBase {
     finalBalance?: string;
   };
 
+  // Withdrawal flow routes
+  PerpsWithdraw: undefined;
+
   // Market and position management routes
   PerpsMarketList: undefined;
+
+  PerpsMarketDetails: {
+    market: PerpsMarketData;
+  };
 
   PerpsPositions: undefined;
 
   PerpsPositionDetails: {
     position: Position;
     action?: 'view' | 'edit' | 'close';
+  };
+
+  PerpsClosePosition: {
+    position: Position;
   };
 
   // Order history routes
@@ -73,6 +90,18 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   // Main trading view
   PerpsTradingView: undefined;
+
+  PerpsPositionTransaction: {
+    transaction: PerpsTransaction;
+  };
+
+  PerpsOrderTransaction: {
+    transaction: PerpsTransaction;
+  };
+
+  PerpsFundingTransaction: {
+    transaction: PerpsTransaction;
+  };
 
   // Root perps view
   Perps: undefined;

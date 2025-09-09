@@ -50,6 +50,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     balance: {
       ...baseRowStyle,
+    },
+    srpSection: {
+      ...baseRowStyle,
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
     },
@@ -72,21 +75,25 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountBox: {
       backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      padding: 16,
+      paddingTop: 14,
+      paddingBottom: 14,
+      paddingLeft: 16,
+      paddingRight: 16,
+    },
+    accountGroupBox: {
+      backgroundColor: colors.background.alternative,
+      paddingLeft: 16,
+      paddingRight: 16,
     },
     firstAccountBox: {
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 0,
-      marginBottom: 2,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
     },
     lastAccountBox: {
       borderTopLeftRadius: 0,
       borderTopRightRadius: 0,
-    },
-    middleAccountBox: {
-      marginBottom: 2,
-      borderRadius: 0,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     text: {
       color: colors.text.alternative,
@@ -98,6 +105,43 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContent: {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
+      backgroundColor: colors.background.default,
+    },
+    addAccountItem: {
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 8,
+    },
+    addAccountButton: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    addAccountItemDisabled: {
+      opacity: 0.5,
+    },
+    addAccountIconContainer: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+      padding: 8,
+      marginRight: 16,
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addAccountText: {
+      color: colors.text.alternative,
+      flex: 1,
+    },
+    addAccountButtonText: {
+      color: colors.primary.default,
+      fontWeight: '500',
     },
   });
 };

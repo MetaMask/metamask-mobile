@@ -6,15 +6,23 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeAccounts } from '../../tags';
+import { RegressionAccounts } from '../../tags';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
+import { Mockttp } from 'mockttp';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  SECURITY_ALERTS_REQUEST_BODY,
+  securityAlertsUrl,
+} from '../../api-mocking/mock-responses/security-alerts-mock';
 
 const PASSWORD = '123123123';
 
-describe(SmokeAccounts('Error Boundary Screen'), () => {
+describe(RegressionAccounts('Error Boundary Screen'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -30,10 +38,22 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToMultipleTestDapps()
-          .withChainPermission(['0x539'])
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupMockPostRequest(
+            mockServer,
+            securityAlertsUrl('0x539'),
+            SECURITY_ALERTS_REQUEST_BODY,
+            SECURITY_ALERTS_BENIGN_RESPONSE,
+            {
+              statusCode: 201,
+            },
+          );
+        },
       },
       async () => {
         await loginToApp();

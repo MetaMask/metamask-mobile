@@ -47,11 +47,11 @@ describe('PerpsQuoteDetailsCard', () => {
         <PerpsQuoteDetailsCard {...defaultProps} />,
       );
 
-      expect(getByText('perps.deposit.network_fee')).toBeTruthy();
+      expect(getByText('perps.quote.network_fee')).toBeTruthy();
       expect(getByText('$0.25')).toBeTruthy();
-      expect(getByText('perps.deposit.metamask_fee')).toBeTruthy();
+      expect(getByText('perps.quote.metamask_fee')).toBeTruthy();
       expect(getByText('$0.00')).toBeTruthy(); // Default metamask fee
-      expect(getByText('perps.deposit.rate')).toBeTruthy();
+      expect(getByText('perps.quote.rate')).toBeTruthy();
       expect(getByText('1 USDC = 1 USDC')).toBeTruthy();
     });
 
@@ -68,7 +68,7 @@ describe('PerpsQuoteDetailsCard', () => {
       );
 
       expect(getByText('$0.50')).toBeTruthy();
-      expect(getByText('perps.deposit.estimated_time')).toBeTruthy();
+      expect(getByText('perps.quote.estimated_time')).toBeTruthy();
       expect(getByText('2-3 minutes')).toBeTruthy();
       expect(getByText('1 ETH = 3000 USDC')).toBeTruthy();
       expect(getByText('$5.00')).toBeTruthy();
@@ -79,7 +79,7 @@ describe('PerpsQuoteDetailsCard', () => {
         <PerpsQuoteDetailsCard {...defaultProps} />,
       );
 
-      expect(queryByText('perps.deposit.estimated_time')).toBeNull();
+      expect(queryByText('perps.quote.estimated_time')).toBeNull();
     });
 
     it('should render estimated time when provided', () => {
@@ -92,7 +92,7 @@ describe('PerpsQuoteDetailsCard', () => {
         <PerpsQuoteDetailsCard {...props} />,
       );
 
-      expect(getByText('perps.deposit.estimated_time')).toBeTruthy();
+      expect(getByText('perps.quote.estimated_time')).toBeTruthy();
       expect(getByText('1-2 minutes')).toBeTruthy();
     });
 
@@ -124,7 +124,7 @@ describe('PerpsQuoteDetailsCard', () => {
         <PerpsQuoteDetailsCard {...defaultProps} />,
       );
 
-      expect(getByText('perps.deposit.network_fee')).toBeTruthy();
+      expect(getByText('perps.quote.network_fee')).toBeTruthy();
     });
   });
 
@@ -140,9 +140,9 @@ describe('PerpsQuoteDetailsCard', () => {
         <PerpsQuoteDetailsCard {...props} />,
       );
 
-      expect(getByText('perps.deposit.network_fee')).toBeTruthy();
-      expect(getByText('perps.deposit.rate')).toBeTruthy();
-      expect(getByText('perps.deposit.metamask_fee')).toBeTruthy();
+      expect(getByText('perps.quote.network_fee')).toBeTruthy();
+      expect(getByText('perps.quote.rate')).toBeTruthy();
+      expect(getByText('perps.quote.metamask_fee')).toBeTruthy();
     });
 
     it('should handle special characters in values', () => {
@@ -196,6 +196,78 @@ describe('PerpsQuoteDetailsCard', () => {
       expect(getByText('3-4 minutes')).toBeTruthy();
       expect(getByText('1 ETH = 2500 USDC')).toBeTruthy();
       expect(getByText('$3.50')).toBeTruthy();
+    });
+  });
+
+  describe('Direction Parameter', () => {
+    it('should default to deposit direction when not specified', () => {
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...defaultProps} />,
+      );
+
+      expect(getByText('perps.quote.network_fee')).toBeTruthy();
+    });
+
+    it('should accept deposit direction', () => {
+      const props = {
+        ...defaultProps,
+        direction: 'deposit' as const,
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText('perps.quote.network_fee')).toBeTruthy();
+    });
+
+    it('should accept withdrawal direction', () => {
+      const props = {
+        ...defaultProps,
+        direction: 'withdrawal' as const,
+      };
+
+      const { getByText } = renderWithProvider(
+        <PerpsQuoteDetailsCard {...props} />,
+      );
+
+      expect(getByText('perps.quote.network_fee')).toBeTruthy();
+    });
+
+    it('should use deposit tooltip when direction is deposit', () => {
+      const mockStrings = jest.fn((key: string) => key);
+      jest.mocked(jest.requireMock('../../../../../../locales/i18n')).strings =
+        mockStrings;
+
+      const props = {
+        ...defaultProps,
+        direction: 'deposit' as const,
+      };
+
+      renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
+
+      // The component should call strings with the deposit-specific tooltip key
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.quote.metamask_fee_tooltip_deposit',
+      );
+    });
+
+    it('should use withdrawal tooltip when direction is withdrawal', () => {
+      const mockStrings = jest.fn((key: string) => key);
+      jest.mocked(jest.requireMock('../../../../../../locales/i18n')).strings =
+        mockStrings;
+
+      const props = {
+        ...defaultProps,
+        direction: 'withdrawal' as const,
+      };
+
+      renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
+
+      // The component should call strings with the withdrawal-specific tooltip key
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.quote.metamask_fee_tooltip_withdrawal',
+      );
     });
   });
 });

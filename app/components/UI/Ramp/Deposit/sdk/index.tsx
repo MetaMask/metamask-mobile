@@ -7,16 +7,15 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectDepositProviderFrontendAuth,
-  selectDepositProviderApiKey,
-} from '../../../../../selectors/featureFlagController/deposit';
+import { selectDepositProviderApiKey } from '../../../../../selectors/featureFlagController/deposit';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
-  TransakEnvironment,
+  SdkEnvironment,
+  Context,
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
@@ -31,16 +30,16 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
   sdkError?: Error;
   providerApiKey: string | null;
-  providerFrontendAuth: string | null;
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
-  clearAuthToken: () => Promise<void>;
+  logoutFromProvider: (requireServerInvalidation?: boolean) => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
@@ -55,13 +54,20 @@ const isDevelopment =
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
-let environment = TransakEnvironment.Production;
+let environment = SdkEnvironment.Production;
 if (isDevelopmentOrInternalBuild) {
-  environment = TransakEnvironment.Staging;
+  environment = SdkEnvironment.Staging;
 }
 
+const context =
+  Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid;
 export const DEPOSIT_ENVIRONMENT = environment;
-export const DepositSDKNoAuth = new NativeRampsSdk({}, environment);
+export const DepositSDKNoAuth = new NativeRampsSdk(
+  {
+    context,
+  },
+  environment,
+);
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -73,7 +79,6 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
-  const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
   const selectedWalletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -132,14 +137,14 @@ export const DepositSDKProvider = ({
 
   useEffect(() => {
     try {
-      if (!providerApiKey || !providerFrontendAuth) {
-        throw new Error('Deposit SDK requires valid API key and frontend auth');
+      if (!providerApiKey) {
+        throw new Error('Deposit SDK requires valid API key');
       }
 
       const sdkInstance = new NativeRampsSdk(
         {
-          partnerApiKey: providerApiKey,
-          frontendAuth: providerFrontendAuth,
+          apiKey: providerApiKey,
+          context,
         },
         environment,
       );
@@ -148,7 +153,7 @@ export const DepositSDKProvider = ({
     } catch (error) {
       setSdkError(error as Error);
     }
-  }, [providerApiKey, providerFrontendAuth]);
+  }, [providerApiKey]);
 
   useEffect(() => {
     if (sdk && authToken) {
@@ -160,13 +165,14 @@ export const DepositSDKProvider = ({
   const checkExistingToken = useCallback(async () => {
     try {
       const tokenResponse = await getProviderToken();
-      if (tokenResponse.success && tokenResponse.token) {
+
+      if (tokenResponse.success && tokenResponse.token?.accessToken) {
         setAuthToken(tokenResponse.token);
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error checking existing token:', error);
+      Logger.error(error as Error, 'Error checking existing token:');
       return false;
     }
   }, []);
@@ -185,32 +191,48 @@ export const DepositSDKProvider = ({
         }
         return false;
       } catch (error) {
-        console.error('Error setting auth token:', error);
+        Logger.error(error as Error, 'Error setting auth token:');
         return false;
       }
     },
     [sdk],
   );
 
-  const clearAuthToken = useCallback(async () => {
-    await resetProviderToken();
-    setAuthToken(undefined);
-    setIsAuthenticated(false);
-    if (sdk) {
-      sdk.clearAccessToken();
-    }
-  }, [sdk]);
+  const logoutFromProvider = useCallback(
+    async (requireServerInvalidation = true) => {
+      if (!sdk) {
+        throw new Error(
+          strings('deposit.configuration_modal.error_sdk_not_initialized'),
+        );
+      }
+
+      requireServerInvalidation
+        ? await sdk.logout()
+        : await sdk
+            .logout()
+            .catch((error) =>
+              Logger.error(
+                error as Error,
+                'SDK logout failed but invalidation was not required. Error:',
+              ),
+            );
+
+      await resetProviderToken();
+      setAuthToken(undefined);
+      setIsAuthenticated(false);
+    },
+    [sdk],
+  );
 
   const contextValue = useMemo(
     (): DepositSDK => ({
       sdk,
       sdkError,
       providerApiKey,
-      providerFrontendAuth,
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStarted: setGetStartedCallback,
@@ -222,11 +244,10 @@ export const DepositSDKProvider = ({
       sdk,
       sdkError,
       providerApiKey,
-      providerFrontendAuth,
       isAuthenticated,
       authToken,
       setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStartedCallback,

@@ -9,6 +9,7 @@ import {
   ViewStyle,
   NativeSyntheticEvent,
   TextInputFocusEventData,
+  TouchableWithoutFeedback,
 } from 'react-native';
 
 // External dependencies.
@@ -30,6 +31,7 @@ const TextField = React.forwardRef<
   TextInput,
   TextFieldProps & {
     inputStyle?: StyleProp<ViewStyle>;
+    onInputFocus?: () => void;
   }
 >(
   (
@@ -46,11 +48,12 @@ const TextField = React.forwardRef<
       onFocus,
       testID,
       inputStyle,
+      onInputFocus,
       ...props
     },
     ref,
   ) => {
-    const [isFocused, setIsFocused] = useState(autoFocus);
+    const [isFocused, setIsFocused] = useState(false);
 
     const { styles } = useStyles(styleSheet, {
       style,
@@ -81,40 +84,42 @@ const TextField = React.forwardRef<
     );
 
     return (
-      <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
-        {startAccessory && (
-          <View
-            style={styles.startAccessory}
-            testID={TEXTFIELD_STARTACCESSORY_TEST_ID}
-          >
-            {startAccessory}
+      <TouchableWithoutFeedback onPress={onInputFocus}>
+        <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
+          {startAccessory && (
+            <View
+              style={styles.startAccessory}
+              testID={TEXTFIELD_STARTACCESSORY_TEST_ID}
+            >
+              {startAccessory}
+            </View>
+          )}
+          <View style={[styles.input, styles.inputContainer]}>
+            {inputElement ?? (
+              <Input
+                textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
+                isDisabled={isDisabled}
+                autoFocus={autoFocus}
+                onBlur={onBlurHandler}
+                onFocus={onFocusHandler}
+                testID={testID}
+                {...props}
+                ref={ref}
+                isStateStylesDisabled
+                inputStyle={inputStyle}
+              />
+            )}
           </View>
-        )}
-        <View style={styles.input}>
-          {inputElement ?? (
-            <Input
-              textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
-              isDisabled={isDisabled}
-              autoFocus={autoFocus}
-              onBlur={onBlurHandler}
-              onFocus={onFocusHandler}
-              testID={testID}
-              {...props}
-              ref={ref}
-              isStateStylesDisabled
-              inputStyle={inputStyle}
-            />
+          {endAccessory && (
+            <View
+              style={styles.endAccessory}
+              testID={TEXTFIELD_ENDACCESSORY_TEST_ID}
+            >
+              {endAccessory}
+            </View>
           )}
         </View>
-        {endAccessory && (
-          <View
-            style={styles.endAccessory}
-            testID={TEXTFIELD_ENDACCESSORY_TEST_ID}
-          >
-            {endAccessory}
-          </View>
-        )}
-      </View>
+      </TouchableWithoutFeedback>
     );
   },
 );

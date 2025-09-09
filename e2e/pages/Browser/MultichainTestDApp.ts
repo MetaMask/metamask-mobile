@@ -1,21 +1,26 @@
-/* eslint-disable no-console */
+/* eslint-disable no-restricted-syntax */
 import TestHelpers from '../../helpers';
-import { getLocalTestDappPort } from '../../fixtures/utils';
-import Matchers from '../../utils/Matchers';
+import { getLocalTestDappPort } from '../../framework/fixtures/FixtureUtils';
+import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
 } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../wallet/TabBarComponent';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
+import { createLogger } from '../../framework/logger';
+
+const logger = createLogger({
+  name: 'MultichainTestDApp',
+});
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
@@ -33,7 +38,7 @@ export function getMultichainTestDappUrl(): string {
   // Check for local development flag
   const useLocal = process.env.USE_LOCAL_DAPP !== 'false'; // default to true if not set
   if (useLocal) {
-    console.log(
+    logger.debug(
       `🏠 Using local multichain dapp URL: ${MULTICHAIN_TEST_DAPP_LOCAL_URL}`,
     );
     return MULTICHAIN_TEST_DAPP_LOCAL_URL;
@@ -42,11 +47,11 @@ export function getMultichainTestDappUrl(): string {
   // Check for custom URL from environment
   const customUrl = process.env.MULTICHAIN_DAPP_URL;
   if (customUrl) {
-    console.log(`🌐 Using custom multichain dapp URL: ${customUrl}`);
+    logger.debug(`🌐 Using custom multichain dapp URL: ${customUrl}`);
     return customUrl;
   }
 
-  console.log(
+  logger.debug(
     `📱 Using default multichain dapp URL: ${DEFAULT_MULTICHAIN_TEST_DAPP_URL}`,
   );
   return DEFAULT_MULTICHAIN_TEST_DAPP_URL;
@@ -164,7 +169,7 @@ class MultichainTestDApp {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async tapButton(elementId: any): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tapWebElement(elementId);
+    await Gestures.tap(elementId);
   }
 
   /**
@@ -270,7 +275,7 @@ class MultichainTestDApp {
       .catch(() => false);
 
     if (!clicked) {
-      console.error('❌ Auto-connect failed: Could not click button');
+      logger.error('❌ Auto-connect failed: Could not click button');
       return false;
     }
 
@@ -294,7 +299,7 @@ class MultichainTestDApp {
         .catch(() => true);
 
       if (isStillDisabled) {
-        console.error('❌ Connection failed - checkboxes remain disabled');
+        logger.error('❌ Connection failed - checkboxes remain disabled');
         return false;
       }
     }
@@ -652,7 +657,7 @@ class MultichainTestDApp {
     // First clear all network selections
     const cleared = await this.clearAllNetworkSelections();
     if (!cleared) {
-      console.error('❌ Failed to clear network selections');
+      logger.error('❌ Failed to clear network selections');
       return false;
     }
 
@@ -687,7 +692,7 @@ class MultichainTestDApp {
           .catch(() => false);
 
         if (!clicked) {
-          console.error(`❌ Failed to select network eip155:${chainId}`);
+          logger.error(`❌ Failed to select network eip155:${chainId}`);
           return false;
         }
 
@@ -747,7 +752,7 @@ class MultichainTestDApp {
       );
       return eventText;
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to get session changed event data at index ${index}:`,
         error,
       );
@@ -772,7 +777,7 @@ class MultichainTestDApp {
       await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
       return true;
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to subscribe to events for chain ${chainId}:`,
         error,
       );
@@ -844,7 +849,7 @@ class MultichainTestDApp {
       await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
       return true;
     } catch (error) {
-      console.error(`Failed to invoke ${method} on chain ${chainId}:`, error);
+      logger.error(`Failed to invoke ${method} on chain ${chainId}:`, error);
       return false;
     }
   }
@@ -891,7 +896,7 @@ class MultichainTestDApp {
 
       return resultText;
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to get result for ${method} on chain ${chainId}:`,
         error,
       );

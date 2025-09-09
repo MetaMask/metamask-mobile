@@ -6,32 +6,18 @@ import useAccountInfo from '../../../../hooks/useAccountInfo';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row';
 import Network from '../../../UI/info-row/info-value/network';
-import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import { Hex } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../../../util/address';
 import { useSelectedAccountMultichainBalances } from '../../../../../../hooks/useMultichainBalances';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
-import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
+import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 
 const AccountNetworkInfoExpanded = () => {
-  const signatureRequest = useSignatureRequest();
-  const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  let chainId: Hex | undefined;
-  let fromAddress: string | undefined;
-  if (signatureRequest) {
-    chainId = signatureRequest?.chainId as Hex;
-    fromAddress = signatureRequest?.messageParams?.from as string;
-  } else if (transactionMetadata) {
-    chainId = transactionMetadata?.chainId as Hex;
-    fromAddress = transactionMetadata?.txParams?.from as string;
-  } else {
-    // transactionBatchesMetadata
-    chainId = transactionBatchesMetadata?.chainId as Hex;
-    fromAddress = transactionBatchesMetadata?.from as string;
-  }
+  const { chainId, fromAddress } = useApprovalInfo() ?? {};
 
-  const { accountAddress } = useAccountInfo(fromAddress, chainId as Hex);
+  const { accountAddress } = useAccountInfo(
+    fromAddress as string,
+    chainId as Hex,
+  );
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const balanceToDisplay = selectedAccountMultichainBalance?.displayBalance;

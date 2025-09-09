@@ -9,7 +9,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
-import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
@@ -93,6 +92,15 @@ jest.mock('../../../core/Engine', () => ({
               address: selectedAddress,
             },
           },
+        },
+      },
+    },
+    PreferencesController: {
+      state: {
+        tokenNetworkFilter: {
+          '0x00': true,
+          '0x01': true,
+          '0x02': true,
         },
       },
     },
@@ -185,6 +193,11 @@ const initialState = {
           },
         },
       },
+      NetworkEnablementController: {
+        enabledNetworks: {
+          '0x1': true,
+        },
+      },
     },
   },
   settings: {
@@ -233,6 +246,56 @@ jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
   useStakingChainByChainId: jest.fn(() => ({
     isStakingSupportedChain: true,
   })),
+}));
+
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  useNetworksByCustomNamespace: () => ({
+    areAllNetworksSelected: false,
+    totalEnabledNetworksCount: 2,
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+    selectAllPopularNetworks: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworks: { '0x1': true },
+    setEnabledNetwork: jest.fn(),
+    setDisabledNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+  }),
+}));
+
+jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
+  useCurrentNetworkInfo: () => ({
+    currentChainId: '0x1',
+    isEvmNetwork: true,
+    networkInfo: {
+      name: 'Ethereum Mainnet',
+      chainId: '0x1',
+    },
+    getNetworkInfo: jest.fn(),
+    enabledNetworks: [{ chainId: '0x1' }],
+  }),
 }));
 
 const Stack = createStackNavigator();
@@ -441,16 +504,6 @@ describe('Tokens', () => {
     expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
-  it('triggers bottom sheet when sort controls are pressed', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    await fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
-
-    await waitFor(() => {
-      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
-    });
-  });
-
   it('calls onRefresh and updates state', async () => {
     const { getByTestId } = renderComponent(initialState);
 
@@ -482,16 +535,6 @@ describe('Tokens', () => {
     const { queryByText } = renderComponent(initialState);
 
     expect(queryByText('Link')).toBeNull(); // Zero balance token should not be visible
-  });
-
-  it('triggers sort controls when sort button is pressed', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
-
-    await waitFor(() => {
-      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
-    });
   });
 
   describe('Portfolio View', () => {

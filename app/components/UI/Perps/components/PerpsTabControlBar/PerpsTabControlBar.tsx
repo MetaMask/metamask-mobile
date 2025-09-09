@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -13,134 +13,216 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsTabControlBar.styles';
-import {
-  usePerpsTrading,
-  useColorPulseAnimation,
-  useBalanceComparison,
-} from '../../hooks';
-import { AccountState } from '../../controllers';
+import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { formatPerpsFiat } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  formatPnl,
+  formatPercentage,
+} from '../../utils/formatUtils';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { BigNumber } from 'bignumber.js';
 
 interface PerpsTabControlBarProps {
   onManageBalancePress?: () => void;
+  hasPositions?: boolean;
+  hasOrders?: boolean;
 }
 
 export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   onManageBalancePress,
+  hasPositions = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const [result, setResult] = useState<AccountState>({
-    totalBalance: '',
-    availableBalance: '',
-    marginUsed: '',
-    unrealizedPnl: '',
-  });
+  // Use live account data with 1 second throttle for balance display
+  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
 
-  const { getAccountState, subscribeToPositions } = usePerpsTrading();
-
-  // Use the reusable hooks
-  const { startPulseAnimation, getAnimatedStyle, stopAnimation } =
-    useColorPulseAnimation();
+  // Use the reusable hooks for balance animation
+  const {
+    startPulseAnimation: startBalancePulse,
+    getAnimatedStyle: getBalanceAnimatedStyle,
+    stopAnimation: stopBalanceAnimation,
+  } = useColorPulseAnimation();
   const { compareAndUpdateBalance } = useBalanceComparison();
 
-  const getAccountBalance = useCallback(async () => {
-    DevLogger.log('PerpsTabControlBar: Getting account balance');
-    try {
-      const accountState = await getAccountState();
+  // Use separate animation hook for P&L
+  const {
+    startPulseAnimation: startPnlPulse,
+    getAnimatedStyle: getPnlAnimatedStyle,
+    stopAnimation: stopPnlAnimation,
+  } = useColorPulseAnimation();
 
+  // Track previous values for animations
+  const previousBalanceRef = useRef<string>('');
+  const previousPnlRef = useRef<string>('');
+
+  // Animate balance changes
+  useEffect(() => {
+    if (!perpsAccount) return;
+
+    // Use availableBalance since that's what we display in the UI
+    const currentBalance = perpsAccount.availableBalance;
+
+    // Only animate if balance actually changed (and we have a previous value to compare)
+    if (
+      previousBalanceRef.current &&
+      previousBalanceRef.current !== currentBalance
+    ) {
       // Compare with previous balance and get animation type
-      const balanceChange = compareAndUpdateBalance(accountState.totalBalance);
+      const balanceChange = compareAndUpdateBalance(currentBalance);
 
       // Start pulse animation with appropriate color
       try {
-        startPulseAnimation(balanceChange);
+        startBalancePulse(balanceChange);
       } catch (animationError) {
-        DevLogger.log('PerpsTabControlBar: Animation error:', animationError);
-      } finally {
-        setResult(accountState);
+        DevLogger.log(
+          'PerpsTabControlBar: Balance animation error:',
+          animationError,
+        );
       }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : strings('perps.errors.unknownError');
-      const fullErrorMessage = strings('perps.errors.accountBalanceFailed', {
-        error: errorMessage,
-      });
-      DevLogger.log(
-        'PerpsTabControlBar: Error getting account balance:',
-        fullErrorMessage,
-      );
     }
-  }, [getAccountState, startPulseAnimation, compareAndUpdateBalance]);
 
-  // Auto-refresh setup with WebSocket subscription + polling fallback
+    previousBalanceRef.current = currentBalance;
+  }, [perpsAccount, startBalancePulse, compareAndUpdateBalance]);
+
+  // Animate P&L changes
   useEffect(() => {
-    // Initial load
-    getAccountBalance();
+    if (!perpsAccount) return;
 
-    // Set up WebSocket subscription for real-time position updates
-    let unsubscribePositions: (() => void) | null = null;
+    const currentPnl = perpsAccount.unrealizedPnl;
 
-    try {
-      unsubscribePositions = subscribeToPositions({
-        callback: (_positions) => {
-          // Position updates often include balance changes
-          // Refresh account state when positions change
-          DevLogger.log(
-            'PerpsTabControlBar: Position update received, refreshing balance',
-          );
-          getAccountBalance();
-        },
-      });
-    } catch (error) {
-      DevLogger.log(
-        'PerpsTabControlBar: Failed to subscribe to positions, using polling only',
-        error,
-      );
-    }
+    // Only animate if P&L actually changed (and we have a previous value to compare)
+    if (previousPnlRef.current && previousPnlRef.current !== currentPnl) {
+      const prevPnlNum = parseFloat(previousPnlRef.current);
+      const currPnlNum = parseFloat(currentPnl);
 
-    return () => {
-      // Cleanup WebSocket subscription
-      if (unsubscribePositions) {
-        unsubscribePositions();
+      // Determine animation type based on P&L change
+      let animationType: 'increase' | 'decrease';
+      if (currPnlNum > prevPnlNum) {
+        animationType = 'increase';
+      } else {
+        animationType = 'decrease';
       }
 
-      // Cleanup animations
-      stopAnimation();
-    };
-  }, [getAccountBalance, subscribeToPositions, stopAnimation]);
+      // Start pulse animation
+      try {
+        startPnlPulse(animationType);
+      } catch (animationError) {
+        DevLogger.log(
+          'PerpsTabControlBar: P&L animation error:',
+          animationError,
+        );
+      }
+    }
+
+    previousPnlRef.current = currentPnl;
+  }, [perpsAccount, startPnlPulse]);
+
+  // Cleanup animations on unmount
+  useEffect(
+    () => () => {
+      stopBalanceAnimation();
+      stopPnlAnimation();
+    },
+    [stopBalanceAnimation, stopPnlAnimation],
+  );
 
   const handlePress = () => {
     onManageBalancePress?.();
   };
 
+  const availableBalance = perpsAccount?.availableBalance || '0';
+  const pnlNum = parseFloat(perpsAccount?.unrealizedPnl || '0');
+  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
+  const pnlColor = pnlNum >= 0 ? TextColor.Success : TextColor.Error;
+  const isBalanceEmpty = BigNumber(availableBalance).isZero();
+  const shouldShowPnl = hasPositions;
+  const shouldShowBalance = !isBalanceEmpty || shouldShowPnl;
+  const balancePillContainerStyle =
+    shouldShowBalance && !shouldShowPnl
+      ? styles.pillContainer
+      : styles.pillContainerTop;
+  const pnlPillContainerStyle = styles.pillContainerBottom;
+
   return (
-    <TouchableOpacity style={styles.wrapper} onPress={handlePress}>
-      <View style={styles.balanceContainer}>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-          style={styles.titleText}
+    <View style={styles.wrapper}>
+      {/* Available Balance Pill */}
+      {shouldShowBalance && (
+        <TouchableOpacity
+          style={balancePillContainerStyle}
+          onPress={handlePress}
+          testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
         >
-          {strings('perps.hyperliquid_usdc_balance')}
-        </Text>
-        <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {formatPerpsFiat(result.totalBalance || '0')}
-          </Text>
-        </Animated.View>
-      </View>
-      <View style={styles.arrowContainer}>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Md}
-          color={IconColor.Alternative}
-        />
-      </View>
-    </TouchableOpacity>
+          <View style={styles.leftSection}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.titleText}
+            >
+              {strings('perps.available_balance')}
+            </Text>
+          </View>
+          <View style={styles.rightSection}>
+            <Animated.View style={[getBalanceAnimatedStyle]}>
+              <Text
+                style={styles.valueText}
+                variant={TextVariant.HeadingSM}
+                color={TextColor.Default}
+                testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
+              >
+                {formatPerpsFiat(availableBalance)}
+              </Text>
+            </Animated.View>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          </View>
+        </TouchableOpacity>
+      )}
+      {/* Unrealized P&L Pill */}
+      {shouldShowPnl && (
+        <View style={pnlPillContainerStyle}>
+          <View style={styles.leftSection}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.titleText}
+            >
+              {strings('perps.position.account.unrealized_pnl')}
+            </Text>
+          </View>
+          <View style={styles.rightSection}>
+            <Animated.View style={[getPnlAnimatedStyle]}>
+              <Text
+                style={styles.pnlValueText}
+                variant={TextVariant.HeadingSM}
+                color={pnlColor}
+              >
+                {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
+              </Text>
+            </Animated.View>
+          </View>
+        </View>
+      )}
+    </View>
   );
 };
+
+// Enable Why Did You Render in development
+// Uncomment to enable WDYR for debugging re-renders
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+//   const { shouldEnableWhyDidYouRender } = require('../../../../../../wdyr');
+//   if (shouldEnableWhyDidYouRender()) {
+//     // @ts-expect-error - whyDidYouRender is added by the WDYR library
+//     PerpsTabControlBar.whyDidYouRender = {
+//       logOnDifferentValues: true,
+//       customName: 'PerpsTabControlBar',
+//     };
+//   }
+// }
 
 export default PerpsTabControlBar;

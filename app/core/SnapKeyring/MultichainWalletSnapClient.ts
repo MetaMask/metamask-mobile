@@ -1,6 +1,14 @@
 import { CaipChainId, Json, SnapId } from '@metamask/snaps-sdk';
 import { KeyringClient, Sender } from '@metamask/keyring-snap-client';
-import { EntropySourceId, SolScope } from '@metamask/keyring-api';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+  EntropySourceId,
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 import {
   BITCOIN_WALLET_SNAP_ID,
@@ -17,24 +25,47 @@ import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { store } from '../../store';
 import { startPerformanceTrace } from '../redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
-
-export enum WalletClientType {
-  Bitcoin = 'bitcoin',
-  Solana = 'solana',
-}
 import { getMultichainAccountName } from './utils/getMultichainAccountName';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BITCOIN_DISCOVERY_PENDING,
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SOLANA_DISCOVERY_PENDING,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../constants/storage';
+
+export enum WalletClientType {
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  Solana = 'solana',
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  Bitcoin = 'bitcoin',
+  ///: END:ONLY_INCLUDE_IF
+}
 
 export const WALLET_SNAP_MAP = {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   [WalletClientType.Bitcoin]: {
     id: BITCOIN_WALLET_SNAP_ID,
     name: BITCOIN_WALLET_NAME,
+    discoveryScope: BtcScope.Mainnet,
+    discoveryStorageId: BITCOIN_DISCOVERY_PENDING,
   },
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   [WalletClientType.Solana]: {
     id: SOLANA_WALLET_SNAP_ID,
     name: SOLANA_WALLET_NAME,
+    discoveryScope: SolScope.Mainnet,
+    discoveryStorageId: SOLANA_DISCOVERY_PENDING,
   },
+  ///: END:ONLY_INCLUDE_IF
 };
 
 export interface MultichainWalletSnapOptions {
@@ -233,6 +264,7 @@ export abstract class MultichainWalletSnapClient {
               {
                 scope,
                 entropySource,
+                synchronize: false,
               },
               {
                 displayConfirmation: false,
@@ -293,20 +325,13 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
     options: MultichainWalletSnapOptions,
     snapKeyringOptions?: SnapKeyringOptions,
   ) {
-    return super.createAccount(
-      { ...options, synchronize: true },
-      snapKeyringOptions,
-    );
+    return super.createAccount(options, snapKeyringOptions);
   }
 }
 
 export class SolanaWalletSnapClient extends MultichainWalletSnapClient {
   constructor(snapKeyringOptions: SnapKeyringOptions) {
     super(SOLANA_WALLET_SNAP_ID, SOLANA_WALLET_NAME, snapKeyringOptions);
-  }
-
-  getScope(): CaipChainId {
-    return SolScope.Mainnet;
   }
 
   getClientType(): WalletClientType {

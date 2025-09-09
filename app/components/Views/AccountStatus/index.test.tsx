@@ -7,6 +7,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { Platform } from 'react-native';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -48,13 +49,28 @@ jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
+// Use dynamic mocking to avoid native module conflicts
+jest.doMock('react-native', () => {
+  const originalRN = jest.requireActual('react-native');
+  return {
+    ...originalRN,
+    StatusBar: {
+      currentHeight: 42,
+    },
+  };
+});
+
 describe('AccountStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRoute.params = {};
   });
 
-  describe('Snapshots', () => {
+  describe('Snapshots iOS', () => {
+    beforeEach(() => {
+      Platform.OS = 'ios';
+    });
+
     it('renders correctly with type="not_exist"', () => {
       const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
       expect(toJSON()).toMatchSnapshot();
@@ -63,6 +79,32 @@ describe('AccountStatus', () => {
     it('renders correctly with type="found"', () => {
       const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders correctly with accountName in route params', () => {
+      mockRoute.params = { accountName: 'test@example.com' };
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('Snapshots android', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
+    it('renders correctly with type="not_exist"', () => {
+      const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders correctly with type="found and statusbar current height to zero"', () => {
+      const { StatusBar } = jest.requireMock('react-native');
+      const originalCurrentHeight = StatusBar.currentHeight;
+      StatusBar.currentHeight = 0;
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
+      expect(toJSON()).toMatchSnapshot();
+      StatusBar.currentHeight = originalCurrentHeight;
     });
 
     it('renders correctly with accountName in route params', () => {

@@ -339,7 +339,7 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "overflow": "hidden",
                             "width": 32,
@@ -358,7 +358,9 @@ exports[`AccountRightButton should render account avatar when selectedAddress is
                                 "height": 32,
                                 "width": 32,
                               },
-                              undefined,
+                              {
+                                "borderRadius": 8,
+                              },
                             ]
                           }
                         >
@@ -1201,7 +1203,7 @@ exports[`AccountRightButton should render correctly 1`] = `
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "overflow": "hidden",
                             "width": 32,
@@ -1220,7 +1222,9 @@ exports[`AccountRightButton should render correctly 1`] = `
                                 "height": 32,
                                 "width": 32,
                               },
-                              undefined,
+                              {
+                                "borderRadius": 8,
+                              },
                             ]
                           }
                         >
@@ -1689,7 +1693,7 @@ exports[`AccountRightButton should render correctly when a EVM network is select
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "overflow": "hidden",
                             "width": 32,
@@ -1708,7 +1712,9 @@ exports[`AccountRightButton should render correctly when a EVM network is select
                                 "height": 32,
                                 "width": 32,
                               },
-                              undefined,
+                              {
+                                "borderRadius": 8,
+                              },
                             ]
                           }
                         >
@@ -2177,7 +2183,7 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "overflow": "hidden",
                             "width": 32,
@@ -2196,7 +2202,9 @@ exports[`AccountRightButton should render correctly when a non-EVM network is se
                                 "height": 32,
                                 "width": 32,
                               },
-                              undefined,
+                              {
+                                "borderRadius": 8,
+                              },
                             ]
                           }
                         >

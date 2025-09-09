@@ -11,7 +11,9 @@ import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
@@ -31,6 +33,7 @@ import {
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
+import { RootState } from '../../../../../reducers';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -140,18 +143,40 @@ const mockLineaAUsdc = {
 jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
-    outputToken: mockLineaAUsdc,
-    earnToken: MOCK_USDC_MAINNET_ASSET,
+    earnTokenPair: {
+      earnToken: MOCK_USDC_MAINNET_ASSET,
+      outputToken: mockLineaAUsdc,
+    },
     getTokenSnapshot: jest.fn(),
   })),
 }));
 
 describe('EarnLendingWithdrawalConfirmationView', () => {
-  const mockInitialState = {
+  const mockSelectedAccount =
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+      MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+    ];
+
+  const mockInitialState: DeepPartial<RootState> = {
     engine: {
       backgroundState: {
         ...backgroundState,
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        AccountTreeController: {
+          accountTree: {
+            selectedAccountGroup: 'keyring:test-wallet/ethereum',
+            wallets: {
+              'keyring:test-wallet': {
+                id: 'keyring:test-wallet',
+                groups: {
+                  'keyring:test-wallet/ethereum': {
+                    accounts: [mockSelectedAccount.id],
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   };
@@ -291,6 +316,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -379,8 +405,10 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
   it('handles token import and confirmation via subscription listener when no earnToken is present', async () => {
     // Update the mock to return no earnToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
-      outputToken: mockLineaAUsdc,
-      earnToken: null,
+      earnTokenPair: {
+        earnToken: null,
+        outputToken: mockLineaAUsdc,
+      },
       getTokenSnapshot: jest.fn(),
     });
 
@@ -431,6 +459,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -445,6 +474,95 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle error adding counter-token on confirmation', async () => {
+    // Update the mock to return no earnToken
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      earnTokenPair: {
+        earnToken: null,
+        outputToken: mockLineaAUsdc,
+      },
+      getTokenSnapshot: jest.fn(),
+    });
+
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockImplementationOnce(() => {
+      throw new Error('Invalid chain ID');
+    });
+
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {
+        // Do nothing
+      });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    // Mock the subscription callback
+    let subscriptionCallback:
+      | ((event: { transaction: { hash: string; status: string } }) => void)
+      | undefined;
+    (
+      Engine.controllerMessenger.subscribeOnceIf as jest.Mock
+    ).mockImplementation((event, callback) => {
+      if (event === 'TransactionController:transactionConfirmed') {
+        subscriptionCallback = callback;
+      }
+      return () => {
+        // Cleanup function
+      };
+    });
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Simulate transaction submission
+    await act(async () => {
+      if (subscriptionCallback) {
+        subscriptionCallback({
+          transaction: {
+            hash: '0x123',
+            status: 'submitted',
+          },
+        });
+      }
+    });
+
+    // Verify the transaction was executed
+    expect(
+      Engine.context.EarnController.executeLendingWithdraw,
+    ).toHaveBeenCalledWith({
+      amount: '1000000',
+      chainId: '0xe708',
+      gasOptions: {
+        gasLimit: 'none',
+      },
+      protocol: LendingProtocol.AAVE,
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'linea-mainnet',
+        origin: 'metamask',
+        type: 'lendingWithdraw',
+      },
+      underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    // Clean up the spy
+    consoleErrorSpy.mockRestore();
   });
 
   it('should use MaxUint256 when amountTokenMinimalUnit equals balanceMinimalUnit', async () => {
@@ -478,6 +596,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     ).toHaveBeenCalledWith({
       amount:
         '115792089237316195423570985008687907853269984665640564039457584007913129639935', // MaxUint256
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -522,6 +641,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '500000', // Actual amount, not MaxUint256
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },

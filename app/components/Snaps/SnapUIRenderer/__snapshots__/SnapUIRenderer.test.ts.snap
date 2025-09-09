@@ -121,7 +121,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -220,6 +220,35 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -255,14 +284,14 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                     onFocus={[Function]}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -347,6 +376,35 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -383,14 +441,14 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     onFocus={[Function]}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -411,6 +469,35 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -447,14 +534,14 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     secureTextEntry={true}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -539,6 +626,35 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -574,14 +690,14 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     onFocus={[Function]}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -602,6 +718,35 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -637,14 +782,14 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     onFocus={[Function]}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -1149,7 +1294,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1401,7 +1546,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1633,6 +1778,35 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   My Input
                 </Text>
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -1756,14 +1930,14 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       onFocus={[Function]}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#121314",
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
+                          "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
                           "paddingVertical": 0,
@@ -1886,6 +2060,35 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -1921,14 +2124,14 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                     onFocus={[Function]}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -2065,14 +2268,14 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        onPress={[MockFunction]}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

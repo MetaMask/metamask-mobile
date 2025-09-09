@@ -1,14 +1,13 @@
 import React from 'react';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import KycWebviewModal from './KycWebviewModal';
-import { KycStatus } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import useIdProofPolling from '../../../hooks/useIdProofPolling';
+import { endTrace } from '../../../../../../../util/trace';
 
 const mockNavigate = jest.fn();
-const mockStartPolling = jest.fn();
-const mockStopPolling = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -22,14 +21,19 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => ({
     quote: { id: 'test-quote' } as unknown as BuyQuote,
+    workFlowRunId: 'test-workflow-run-id',
+    cryptoCurrencyChainId: 'eip155:1',
+    paymentMethodId: 'credit_debit_card',
   })),
 }));
 
-const mockUseUserDetailsPolling = jest.fn();
+const mockUseIdProofPolling = jest.fn();
 
 jest.mock(
-  '../../../hooks/useUserDetailsPolling',
-  () => () => mockUseUserDetailsPolling(),
+  '../../../hooks/useIdProofPolling',
+  () =>
+    (...args: Parameters<typeof useIdProofPolling>) =>
+      mockUseIdProofPolling(...args),
 );
 
 jest.mock('../../../hooks/useDepositRouting', () => ({
@@ -39,6 +43,11 @@ jest.mock('../../../hooks/useDepositRouting', () => ({
 }));
 
 jest.mock('./WebviewModal', () => () => 'WebviewModal');
+
+jest.mock('../../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
 
 describe('KycWebviewModal', () => {
   function render(Component: React.ComponentType) {
@@ -59,10 +68,8 @@ describe('KycWebviewModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseUserDetailsPolling.mockReturnValue({
-      userDetails: null,
-      startPolling: mockStartPolling,
-      stopPolling: mockStopPolling,
+    mockUseIdProofPolling.mockReturnValue({
+      idProofStatus: null,
     });
     mockRouteAfterAuthentication.mockClear();
   });
@@ -72,104 +79,66 @@ describe('KycWebviewModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('starts polling when component mounts', () => {
+  it('calls the hook when component mounts', () => {
     render(KycWebviewModal);
 
-    expect(mockStartPolling).toHaveBeenCalled();
+    expect(mockUseIdProofPolling).toHaveBeenCalledWith(
+      'test-workflow-run-id',
+      1000,
+      true,
+      0,
+    );
   });
 
-  it('stops polling when component unmounts', () => {
-    const { unmount } = render(KycWebviewModal);
-
-    unmount();
-
-    expect(mockStopPolling).toHaveBeenCalled();
-  });
-
-  it('calls routeAfterAuthentication when status changes to approved', () => {
-    mockUseUserDetailsPolling.mockReturnValue({
-      userDetails: {
-        kyc: {
-          l1: {
-            status: KycStatus.APPROVED,
-            type: 'STANDARD',
-          },
-        },
-      },
-      startPolling: mockStartPolling,
-      stopPolling: mockStopPolling,
+  it('calls routeAfterAuthentication when status changes to submitted', () => {
+    mockUseIdProofPolling.mockReturnValue({
+      idProofStatus: 'SUBMITTED',
     });
 
     render(KycWebviewModal);
 
-    expect(mockStopPolling).toHaveBeenCalled();
     expect(mockRouteAfterAuthentication).toHaveBeenCalledWith({
       id: 'test-quote',
     });
-  });
-
-  it('calls routeAfterAuthentication when status changes to rejected', () => {
-    mockUseUserDetailsPolling.mockReturnValue({
-      userDetails: {
-        kyc: {
-          l1: {
-            status: KycStatus.REJECTED,
-            type: 'STANDARD',
-          },
-        },
-      },
-      startPolling: mockStartPolling,
-      stopPolling: mockStopPolling,
-    });
-
-    render(KycWebviewModal);
-
-    expect(mockStopPolling).toHaveBeenCalled();
-    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith({
-      id: 'test-quote',
-    });
-  });
-
-  it('does not call routeAfterAuthentication when KYC status is not submitted', () => {
-    mockUseUserDetailsPolling.mockReturnValue({
-      userDetails: {
-        kyc: {
-          l1: {
-            status: KycStatus.NOT_SUBMITTED,
-            type: 'SIMPLE',
-          },
-        },
-      },
-      startPolling: mockStartPolling,
-      stopPolling: mockStopPolling,
-    });
-
-    render(KycWebviewModal);
-
-    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('does not call routeAfterAuthentication when quote is missing', () => {
     const mockUseParams = jest.requireMock(
       '../../../../../../../util/navigation/navUtils',
     ).useParams;
-    mockUseParams.mockReturnValue({ quote: null });
-
-    mockUseUserDetailsPolling.mockReturnValue({
-      userDetails: {
-        kyc: {
-          l1: {
-            status: KycStatus.APPROVED,
-            type: 'STANDARD',
-          },
-        },
-      },
-      startPolling: mockStartPolling,
-      stopPolling: mockStopPolling,
+    mockUseParams.mockReturnValue({
+      quote: null,
+      workFlowRunId: 'test-workflow-run-id',
+      cryptoCurrencyChainId: 'eip155:1',
+      paymentMethodId: 'credit_debit_card',
     });
 
+    mockUseIdProofPolling.mockReturnValue({
+      idProofStatus: 'SUBMITTED',
+    });
     render(KycWebviewModal);
 
     expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+  });
+
+  it('should call endTrace twice when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    render(KycWebviewModal);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'DepositKycWebviewModal',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'DepositKycWebviewModal',
+      },
+    });
   });
 });

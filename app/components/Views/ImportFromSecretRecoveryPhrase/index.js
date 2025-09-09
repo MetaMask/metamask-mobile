@@ -39,13 +39,11 @@ import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
@@ -57,7 +55,6 @@ import {
   passcodeType,
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -106,6 +103,12 @@ import SrpInput from '../SrpInput';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
+// Custom masking function to replace characters with dots (avoids iOS ellipsis)
+const maskText = (text) => {
+  if (!text) return '';
+  return '••••';
+};
+
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -117,7 +120,6 @@ const ImportFromSecretRecoveryPhrase = ({
   setLockTime,
   seedphraseBackedUp,
   saveOnboardingEvent,
-  setOnboardingWizardStep,
   route,
 }) => {
   const { colors, themeAppearance } = useTheme();
@@ -216,12 +218,18 @@ const ImportFromSecretRecoveryPhrase = ({
           ];
 
           // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace) {
+          if (isEndWithSpace && index === seedPhrase.length - 1) {
             newSeedPhrase.push('');
           }
 
+          const targetIndex = Math.min(
+            newSeedPhrase.length - 1,
+            index + splitArray.length,
+          );
           setSeedPhrase(newSeedPhrase);
-          setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
+          setTimeout(() => {
+            setNextSeedPhraseInputFocusedIndex(targetIndex);
+          }, 0);
           return;
         }
 
@@ -256,9 +264,12 @@ const ImportFromSecretRecoveryPhrase = ({
 
       if (updatedTrimmedText.length > 1) {
         // no focus on any input
-        setSeedPhraseInputFocusedIndex(null);
-        setNextSeedPhraseInputFocusedIndex(null);
-        Keyboard.dismiss();
+        setTimeout(() => {
+          setSeedPhraseInputFocusedIndex(null);
+          setNextSeedPhraseInputFocusedIndex(null);
+          seedPhraseInputRefs.current.get(0)?.blur();
+          Keyboard.dismiss();
+        }, 100);
       }
     },
     [handleSeedPhraseChangeAtIndex, setSeedPhrase],
@@ -397,16 +408,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
-
-  const termsOfUse = useCallback(async () => {
-    if (navigation) {
-      await navigateTermsOfUse(navigation.navigate);
-    }
-  }, [navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
 
   useEffect(
     () => () => {
@@ -588,6 +589,18 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        trace({
+          name: TraceName.OnboardingSRPAccountImportTime,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: {
+            is_social_login: oauthLoginSuccess,
+            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
+            biometrics_enabled: Boolean(biometryType),
+          },
+        });
         const authData = await Authentication.componentAuthenticationType(
           biometryChoice,
           rememberMe,
@@ -605,24 +618,18 @@ const ImportFromSecretRecoveryPhrase = ({
           if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
             await handleRejectedOsBiometricPrompt(parsedSeed);
         }
-        // Get onboarding wizard state
-        const onboardingWizard = await StorageWrapper.getItem(
-          ONBOARDING_WIZARD,
-        );
         setLoading(false);
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
         track(MetaMetricsEvents.WALLET_IMPORTED, {
           biometrics_enabled: Boolean(biometryType),
-          password_strength: passwordStrengthWord,
         });
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: 'imported',
         });
-        !onboardingWizard && setOnboardingWizardStep(1);
 
         fetchAccountsWithActivity();
         const resetAction = CommonActions.reset({
@@ -636,6 +643,7 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
+        endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
         endTrace({ name: TraceName.OnboardingExistingSrpImport });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -737,6 +745,7 @@ const ImportFromSecretRecoveryPhrase = ({
         }));
       }
       setSeedPhraseInputFocusedIndex(index);
+      setNextSeedPhraseInputFocusedIndex(index);
     },
     [seedPhrase, seedPhraseInputFocusedIndex],
   );
@@ -762,6 +771,10 @@ const ImportFromSecretRecoveryPhrase = ({
         }, 0);
       }
     }
+  };
+
+  const handleEnterKeyPress = (index) => {
+    handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
   };
 
   return (
@@ -839,16 +852,31 @@ const ImportFromSecretRecoveryPhrase = ({
                               </Text>
                             )
                           }
-                          value={isFirstInput ? seedPhrase?.[0] || '' : item}
-                          secureTextEntry={!canShowSeedPhraseWord(index)}
+                          value={
+                            isFirstInput
+                              ? seedPhrase?.[0] || ''
+                              : canShowSeedPhraseWord(index)
+                              ? item
+                              : maskText(item)
+                          }
                           onFocus={(e) => {
                             handleOnFocus(index);
                           }}
-                          onChangeText={(text) =>
+                          onInputFocus={() => {
+                            setNextSeedPhraseInputFocusedIndex(index);
+                          }}
+                          onChangeText={(text) => {
+                            // Don't process masked text input
+                            if (!isFirstInput && text.includes('•')) {
+                              return;
+                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
-                              : handleSeedPhraseChangeAtIndex(text, index)
-                          }
+                              : handleSeedPhraseChangeAtIndex(text, index);
+                          }}
+                          onSubmitEditing={() => {
+                            handleEnterKeyPress(index);
+                          }}
                           placeholder={
                             isFirstInput
                               ? strings('import_from_seed.srp_placeholder')
@@ -870,7 +898,11 @@ const ImportFromSecretRecoveryPhrase = ({
                                     styles.seedPhraseInputItemLast,
                                 ]
                           }
-                          inputStyle={isFirstInput ? styles.textAreaInput : ''}
+                          inputStyle={
+                            isFirstInput
+                              ? styles.textAreaInput
+                              : styles.inputItem
+                          }
                           submitBehavior="submit"
                           autoComplete="off"
                           textAlignVertical={isFirstInput ? 'top' : 'center'}
@@ -888,9 +920,8 @@ const ImportFromSecretRecoveryPhrase = ({
                           textContentType="oneTimeCode"
                           spellCheck={false}
                           autoFocus={
-                            isFirstInput
-                              ? true
-                              : index === nextSeedPhraseInputFocusedIndex
+                            isFirstInput ||
+                            index === nextSeedPhraseInputFocusedIndex
                           }
                           multiline={isFirstInput}
                           onKeyPress={(e) => handleKeyPress(e, index)}
@@ -1117,6 +1148,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <View style={styles.createPasswordCtaContainer}>
               {renderSwitch()}
               <Button
+                loading={loading}
                 width={ButtonWidthTypes.Full}
                 variant={ButtonVariants.Primary}
                 label={strings('import_from_seed.create_password_cta')}
@@ -1160,10 +1192,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    */
   saveOnboardingEvent: PropTypes.func,
   /**
-   * Action to set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
@@ -1174,7 +1202,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),

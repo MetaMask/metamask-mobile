@@ -8,7 +8,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -57,6 +57,21 @@ jest.mock('react-native', () => {
     },
   };
 });
+
+// Mock useTheme hook - default to dark theme
+const mockUseTheme = jest.fn().mockReturnValue({
+  colors: {},
+  themeAppearance: 'dark', // Default to dark theme
+});
+
+jest.mock('../../../util/theme', () => ({
+  useTheme: () => mockUseTheme(),
+  AppThemeKey: {
+    os: 'os',
+    light: 'light',
+    dark: 'dark',
+  },
+}));
 
 describe('ManualBackupStep1', () => {
   const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
@@ -390,5 +405,39 @@ describe('ManualBackupStep1', () => {
 
     // Verify that goBack was called
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  describe('Theme appearance', () => {
+    afterEach(() => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'dark',
+      });
+      Platform.OS = 'ios';
+    });
+
+    it('renders dark SRP design image by default (dark theme)', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'dark',
+      });
+
+      const { wrapper } = setupTest();
+
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('renders light SRP design image for light theme', () => {
+      Platform.OS = 'android';
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'light',
+      });
+
+      const { wrapper } = setupTest();
+
+      expect(wrapper).toMatchSnapshot();
+      Platform.OS = 'ios';
+    });
   });
 });

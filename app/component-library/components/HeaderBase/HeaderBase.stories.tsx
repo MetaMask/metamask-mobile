@@ -12,6 +12,7 @@ import { IconName, IconColor } from '../Icons/Icon';
 
 // Internal dependencies.
 import { default as HeaderBaseComponent } from './HeaderBase';
+import { HeaderBaseVariant } from './HeaderBase.types';
 
 const HeaderBaseStoryMeta = {
   title: 'Component Library / HeaderBase',
@@ -42,7 +43,79 @@ export const HeaderBase = {
         />
       }
     >
-      Super Long HeaderBase Title that may span 3 lines
+      Super long HeaderBase title that may span 3 lines
+    </HeaderBaseComponent>
+  ),
+};
+
+export const HeaderBaseVariantDisplay = {
+  render: () => (
+    <HeaderBaseComponent
+      variant={HeaderBaseVariant.Display}
+      startAccessory={
+        <ButtonIcon
+          iconColor={IconColor.Default}
+          iconName={IconName.ArrowLeft}
+          onPress={() => {
+            console.log('clicked');
+          }}
+        />
+      }
+      endAccessory={
+        <Button
+          variant={ButtonVariants.Primary}
+          label="Cancel"
+          onPress={() => {
+            console.log('clicked');
+          }}
+        />
+      }
+    >
+      Display Variant - Left Aligned & Large Text
+    </HeaderBaseComponent>
+  ),
+};
+
+export const HeaderBaseCompactVariant = {
+  render: () => (
+    <HeaderBaseComponent
+      variant={HeaderBaseVariant.Compact}
+      startAccessory={
+        <ButtonIcon
+          iconColor={IconColor.Default}
+          iconName={IconName.ArrowLeft}
+          onPress={() => {
+            console.log('clicked');
+          }}
+        />
+      }
+      endAccessory={
+        <Button
+          variant={ButtonVariants.Primary}
+          label="Cancel"
+          onPress={() => {
+            console.log('clicked');
+          }}
+        />
+      }
+    >
+      Compact variant - center aligned & small text
+    </HeaderBaseComponent>
+  ),
+};
+
+export const HeaderBaseDisplayVariantWithoutAccessories = {
+  render: () => (
+    <HeaderBaseComponent variant={HeaderBaseVariant.Display}>
+      Display variant without accessories
+    </HeaderBaseComponent>
+  ),
+};
+
+export const HeaderBaseCompactVariantWithoutAccessories = {
+  render: () => (
+    <HeaderBaseComponent variant={HeaderBaseVariant.Compact}>
+      Compact variant without accessories stretches full width of header
     </HeaderBaseComponent>
   ),
 };

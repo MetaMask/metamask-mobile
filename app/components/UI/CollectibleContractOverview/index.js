@@ -17,7 +17,9 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
+import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -84,6 +86,10 @@ class CollectibleContractOverview extends PureComponent {
      * Start transaction with asset
      */
     newAssetTransaction: PropTypes.func,
+    /**
+     * Whether the send redesign is enabled
+     */
+    isSendRedesignEnabled: PropTypes.bool,
   };
 
   onAdd = () => {
@@ -95,21 +101,18 @@ class CollectibleContractOverview extends PureComponent {
   };
 
   onSend = () => {
-    const { collectibleContract, collectibles } = this.props;
+    const { collectibleContract, collectibles, isSendRedesignEnabled } =
+      this.props;
     const collectible = collectibles.find((collectible) =>
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
-    if (isSendRedesignEnabled()) {
-      this.props.navigation.navigate(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ROOT,
-        params: {
-          asset: collectible,
-        },
-      });
-    } else {
-      this.props.navigation.navigate('SendFlowView');
-    }
+    handleSendPageNavigation(
+      this.props.navigation.navigate,
+      InitSendLocation.CollectibleContractOverview,
+      isSendRedesignEnabled,
+      collectible,
+    );
   };
 
   onInfo = () => this.props.toggleCollectibleContractModal();
@@ -173,6 +176,7 @@ class CollectibleContractOverview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
+  isSendRedesignEnabled: selectSendRedesignFlags(state).enabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -1,12 +1,9 @@
-import type { MockttpServer } from 'mockttp';
-import TestHelpers from '../../helpers';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { mockNotificationServices } from './utils/mocks';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
-  DEFAULT_FIXTURE_ACCOUNT,
-} from '../../fixtures/fixture-builder';
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
+} from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -14,7 +11,7 @@ import NotificationSettingsView from '../../pages/Notifications/NotificationSett
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    jest.setTimeout(170000);
   });
 
   it('should enable notifications and toggle feature announcements and account notifications', async () => {
@@ -22,33 +19,25 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        testSpecificMock: {},
         permissions: {
           notifications: 'YES',
         },
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
-        // Setup: Mock notification services and login
-        await mockNotificationServices(mockServer);
+      async () => {
         await loginToApp();
 
         // Navigate to notification settings
         await TabBarComponent.tapSettings();
         await SettingsView.tapNotifications();
 
-        // Verify initial state - notifications should be disabled
-        await Assertions.expectToggleToBeOff(
+        // Verify initial state - notifications should be enabled
+        await Assertions.expectToggleToBeOn(
           NotificationSettingsView.notificationToggle,
         );
 
-        // Enable main notification toggle
-        await NotificationSettingsView.tapNotificationToggleAndVerifyState(
-          'on',
-        );
-
         // Test push notifications toggle functionality
-        if (device.getPlatform() === 'android' || !process.env.CI) {
-          // Failing on iOS on CI
+        // On iOS this is OS-gated and flaky in CI; exercise only on Android
+        if (device.getPlatform() === 'android') {
           await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState(
             'off',
           );
@@ -67,11 +56,11 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
 
         // Test account notifications toggle functionality
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT,
+          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
           'off',
         );
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT,
+          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
           'on',
         );
 

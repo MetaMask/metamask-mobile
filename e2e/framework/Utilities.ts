@@ -2,6 +2,8 @@ import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
 import { createLogger } from './logger';
+// eslint-disable-next-line import/no-nodejs-modules
+import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: 15000,
@@ -49,6 +51,14 @@ export default class Utilities {
           '   await Gestures.waitAndTap(element, {checkEnabled: false})',
         ].join('\n'),
       );
+    }
+  }
+
+  static async checkElementDisabled(detoxElement: DetoxElement): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const attributes = await el.getAttributes();
+    if (!('enabled' in attributes) || attributes.enabled) {
+      throw new Error('🚫 Element is enabled, but should be disabled.');
     }
   }
 
@@ -359,6 +369,48 @@ export default class Utilities {
           webEl.constructor.name.includes('SecuredWebElementFacade') ||
           webEl.constructor.name.includes('WebElement')))
     );
+  }
+
+  /**
+   * Waits for a condition to be met within a given timeout period.
+   *
+   * Note: Copied directly from the extension implementation
+   *
+   * @param {() => Promise<boolean>} condition - The condition to wait for. This function must return a boolean indicating whether the condition is met.
+   * @param {object} options - Options for the wait.
+   * @param {number} options.timeout - The maximum amount of time (in milliseconds) to wait for the condition to be met.
+   * @param {number} options.interval - The interval (in milliseconds) between checks for the condition.
+   * @returns {Promise<void>} A promise that resolves when the condition is met or the timeout is reached.
+   * @throws {Error} Throws an error if the condition is not met within the timeout period.
+   */
+  static async waitUntil(
+    condition: () => Promise<boolean>,
+    { interval, timeout }: { interval: number; timeout: number },
+  ): Promise<void> {
+    const startTime = Date.now();
+    const endTime = startTime + timeout;
+
+    // Loop indefinitely until condition met or timeout
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const result = await condition();
+      if (result === true) {
+        return; // Condition met
+      }
+
+      const currentTime = Date.now();
+      if (currentTime >= endTime) {
+        throw new Error(`Condition not met within ${timeout}ms.`);
+      }
+
+      // Calculate remaining time to ensure we don't overshoot the timeout
+      const remainingTime = endTime - currentTime;
+      const waitTime = Math.min(interval, remainingTime);
+
+      // always yield to the event loop, even for an interval of `0`, to avoid a
+      // macro-task deadlock
+      await asyncSetTimeout(waitTime, null, { ref: false });
+    }
   }
 
   static async executeWithRetry<T>(

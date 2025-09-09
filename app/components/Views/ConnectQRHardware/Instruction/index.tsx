@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { View, Text, ScrollView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import {
   KEYSTONE_LEARN_MORE,
@@ -30,7 +31,8 @@ interface IConnectQRInstructionProps {
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
   const { onConnect, renderAlert, navigation } = props;
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets);
 
   const navigateTo = (url: string, title: string) => {
     navigation.navigate('Webview', {

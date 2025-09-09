@@ -1,100 +1,90 @@
-'use strict';
+import Assertions from '../../../framework/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
+import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import { loginToApp } from '../../../viewHelper';
-import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
-import TestHelpers from '../../../helpers';
-import Assertions from '../../../utils/Assertions';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
-import { SmokeConfirmations } from '../../../tags';
-import { buildPermissions } from '../../../fixtures/utils';
+import { loginToApp } from '../../../viewHelper';
+import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import {
+  buildPermissions,
+  getTestDappLocalUrl,
+} from '../../../framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(SmokeConfirmations('Security Alert API - Signature'), () => {
-  beforeAll(async () => {
-    jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
-  });
+const typedSignRequestBody = {
+  method: 'eth_signTypedData',
+  params: [
+    [
+      { type: 'string', name: 'Message', value: 'Hi, Alice!' },
+      { type: 'uint32', name: 'A number', value: '1337' },
+    ],
+    '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+  ],
+  origin: getTestDappLocalUrl(),
+};
 
-  const defaultFixture = new FixtureBuilder()
-    .withSepoliaNetwork()
-    .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
-    .build();
-
-  const navigateToTestDApp = async () => {
-    await loginToApp();
-    await TabBarComponent.tapBrowser();
-    await Browser.navigateToTestDApp();
-    await TestDApp.tapTypedSignButton();
-    await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
-  };
-
+describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
   const runTest = async (
-    testSpecificMock: {
-      GET?: Record<string, unknown>[];
-      POST?: Record<string, unknown>[];
-    },
+    testSpecificMock: (mockServer: Mockttp) => Promise<void>,
     alertAssertion: () => Promise<void>,
   ) => {
     await withFixtures(
       {
-        dapp: true,
-        fixture: defaultFixture,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        fixture: new FixtureBuilder()
+          .withSepoliaNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0xaa36a7']),
+          )
+          .build(),
         restartDevice: true,
         testSpecificMock,
       },
       async () => {
-        await navigateToTestDApp();
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+        await TestDApp.tapTypedSignButton();
+        await Assertions.expectElementToBeVisible(
+          RequestTypes.TypedSignRequest,
+        );
         await alertAssertion();
       },
     );
   };
 
-  const typedSignRequestBody = {
-    method: 'eth_signTypedData',
-    params: [
-      [
-        { type: 'string', name: 'Message', value: 'Hi, Alice!' },
-        { type: 'uint32', name: 'A number', value: '1337' },
-      ],
-      '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-    ],
-    origin: 'localhost',
-  };
-
   it('should sign typed message', async () => {
-    const testSpecificMock = {
-      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
-      POST: [
-        {
-          ...mockEvents.POST.securityAlertApiValidate,
-          requestBody: typedSignRequestBody,
-        },
-      ],
-    };
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
 
-    await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfNotVisible(ConfirmationView.securityAlertBanner);
-    });
-  });
-
-  it('should show security alert for malicious request', async () => {
-    const testSpecificMock = {
-      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
-      POST: [
+      await setupMockPostRequest(
+        mockServer,
+        securityAlertsUrl('0xaa36a7'),
+        typedSignRequestBody,
+        SECURITY_ALERTS_BENIGN_RESPONSE,
         {
-          ...mockEvents.POST.securityAlertApiValidate,
-          requestBody: typedSignRequestBody,
-          response: {
-            block: 20733277,
-            result_type: 'Malicious',
-            reason: 'malicious_domain',
-            description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
-            features: [],
-          },
+          statusCode: 201,
           ignoreFields: [
             'id',
             'jsonrpc',
@@ -103,40 +93,99 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
             'traceContext',
           ],
         },
-      ],
+      );
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfVisible(ConfirmationView.securityAlertBanner);
+      await Assertions.expectElementToNotBeVisible(
+        AlertSystem.securityAlertBanner,
+      );
+    });
+  });
+
+  it('should show security alert for malicious request', async () => {
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
+
+      await setupMockPostRequest(
+        mockServer,
+        'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+        typedSignRequestBody,
+        {
+          block: 20733277,
+          result_type: 'Malicious',
+          reason: 'malicious_domain',
+          description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
+          features: [],
+        },
+        {
+          ignoreFields: [
+            'id',
+            'jsonrpc',
+            'toNative',
+            'networkClientId',
+            'traceContext',
+          ],
+        },
+      );
+    };
+
+    await runTest(testSpecificMock, async () => {
+      await Assertions.expectElementToBeVisible(
+        AlertSystem.securityAlertBanner,
+      );
+      await Assertions.expectElementToBeVisible(
+        AlertSystem.securityAlertResponseMaliciousBanner,
+      );
     });
   });
 
   it('should show security alert for error when validating request fails', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-        {
-          urlEndpoint:
-            'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
-          responseCode: 500,
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
+
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: 'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
+        response: {
+          message: 'Internal Server Error',
         },
-      ],
-      POST: [
+        responseCode: 500,
+      });
+
+      await setupMockPostRequest(
+        mockServer,
+        'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+        typedSignRequestBody,
         {
-          ...mockEvents.POST.securityAlertApiValidate,
-          requestBody: typedSignRequestBody,
-          response: {
-            error: 'Internal Server Error',
-            message: 'An unexpected error occurred on the server.',
-          },
-          responseCode: 500,
+          error: 'Internal Server Error',
+          message: 'An unexpected error occurred on the server.',
         },
-      ],
+        {
+          statusCode: 500,
+          ignoreFields: [
+            'id',
+            'jsonrpc',
+            'toNative',
+            'networkClientId',
+            'traceContext',
+          ],
+        },
+      );
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfVisible(
-        ConfirmationView.securityAlertResponseFailedBanner,
+      await Assertions.expectElementToBeVisible(
+        AlertSystem.securityAlertBanner,
+      );
+      await Assertions.expectElementToBeVisible(
+        AlertSystem.securityAlertResponseFailedBanner,
       );
     });
   });

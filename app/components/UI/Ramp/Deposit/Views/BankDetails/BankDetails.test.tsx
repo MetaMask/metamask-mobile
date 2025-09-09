@@ -1,13 +1,21 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import type { AxiosError } from 'axios';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../util/test/initial-root-state';
+import { StackActions } from '@react-navigation/native';
+import Logger from '../../../../../../util/Logger';
+import { endTrace } from '../../../../../../util/trace';
+import { processFiatOrder } from '../../../index';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockReset = jest.fn();
+const mockDispatch = jest.fn();
 
 const mockOrderData = {
   id: 'test-order-id',
@@ -24,16 +32,22 @@ const mockOrderData = {
     orderType: 'buy',
     walletAddress: '0x123...',
     paymentMethod: 'sepa_bank_transfer',
-    paymentOptions: [
+    paymentDetails: [
       {
-        id: 'payment-option-id',
+        fiatCurrency: 'USD',
+        paymentMethod: 'sepa_bank_transfer',
         fields: [
-          { name: 'Amount', value: '$100.00' },
-          { name: 'First Name (Beneficiary)', value: 'john' },
-          { name: 'Last Name (Beneficiary)', value: 'doe' },
-          { name: 'Account Number', value: '1234567890' },
-          { name: 'Bank Name', value: 'test bank' },
-          { name: 'Bank Address', value: '123 bank street' },
+          { name: 'Amount', value: '$100.00', id: 'amount' },
+          { name: 'First Name (Beneficiary)', value: 'john', id: 'firstName' },
+          { name: 'Last Name (Beneficiary)', value: 'doe', id: 'lastName' },
+          { name: 'Account Number', value: '1234567890', id: 'accountNumber' },
+          { name: 'Bank Name', value: 'test bank', id: 'bankName' },
+          {
+            name: 'Recipient Address',
+            value: '456 recipient street',
+            id: 'recipientAddress',
+          },
+          { name: 'Bank Address', value: '123 bank street', id: 'bankAddress' },
         ],
       },
     ],
@@ -64,7 +78,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => mockOrderData),
-  useDispatch: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -74,6 +87,8 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      reset: mockReset,
+      dispatch: mockDispatch,
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
@@ -86,13 +101,11 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => ({ orderId: 'test-order-id' })),
 }));
 
-jest.mock('../../../index', () => ({
-  processFiatOrder: jest.fn(),
-}));
-
 jest.mock('../../../Aggregator/sdk', () => ({
   RampSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
+
+const mockLogoutFromProvider = jest.fn();
 
 jest.mock('../../sdk', () => ({
   DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -100,11 +113,27 @@ jest.mock('../../sdk', () => ({
     sdk: {
       sdkMethod: jest.fn(),
     },
+    logoutFromProvider: mockLogoutFromProvider,
   })),
 }));
 
+jest.mock('../../../index', () => ({
+  processFiatOrder: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
+
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.BANK_DETAILS);
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.BANK_DETAILS,
+    },
+    { state: initialRootState },
+  );
 }
 
 describe('BankDetails Component', () => {
@@ -112,6 +141,10 @@ describe('BankDetails Component', () => {
     jest.clearAllMocks();
     mockConfirmPayment = jest.fn().mockResolvedValue(undefined);
     mockCancelOrder = jest.fn().mockResolvedValue(undefined);
+    (
+      processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+    ).mockResolvedValue(undefined);
+    mockOrderData.state = FIAT_ORDER_STATES.CREATED;
   });
 
   it('render matches snapshot', () => {
@@ -135,7 +168,7 @@ describe('BankDetails Component', () => {
     await waitFor(() => {
       expect(mockConfirmPayment).toHaveBeenCalledWith(
         'test-order-id',
-        'payment-option-id',
+        'sepa_bank_transfer',
       );
     });
   });
@@ -160,21 +193,312 @@ describe('BankDetails Component', () => {
     expect(screen.getByText('Hide bank information')).toBeTruthy();
   });
 
+  it('displays beneficiary address when bank information is shown', () => {
+    render(BankDetails);
+
+    // Initially beneficiary address should not be visible
+    expect(screen.queryByText('456 Recipient Street')).toBeNull();
+
+    // Show bank information
+    fireEvent.press(screen.getByText('Show bank information'));
+
+    // Beneficiary address should now be visible
+    expect(screen.getByText('456 Recipient Street')).toBeTruthy();
+  });
+
   it('calls setOptions with correct title when component mounts', () => {
     render(BankDetails);
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: expect.stringContaining('SEPA Bank Transfer'),
+        title: expect.stringContaining('SEPA bank transfer'),
       }),
     );
   });
 
-  it('displays confirmPaymentError when it has a value', () => {
+  it('displays confirmPaymentError when it has a value', async () => {
     mockUseDepositSdkMethodInitialState.error = 'Payment confirmation failed';
+    mockConfirmPayment = jest
+      .fn()
+      .mockRejectedValue('Payment confirmation failed');
+
+    render(BankDetails);
+    fireEvent.press(screen.getByText('Confirm transfer'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Payment confirmation failed')).toBeTruthy();
+    });
+  });
+
+  it('resets navigation when order state is canceled', () => {
+    mockOrderData.state = FIAT_ORDER_STATES.CANCELLED;
+    render(BankDetails);
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        {
+          name: Routes.DEPOSIT.BUILD_QUOTE,
+        },
+      ],
+    });
+  });
+
+  it('dispatches replace action when order state is completed, failed or pending', () => {
+    mockDispatch.mockClear();
+    mockOrderData.state = FIAT_ORDER_STATES.COMPLETED;
+    render(BankDetails);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.DEPOSIT.ORDER_PROCESSING, {
+        orderId: 'test-order-id',
+      }),
+    );
+
+    mockDispatch.mockClear();
+    mockOrderData.state = FIAT_ORDER_STATES.FAILED;
+    render(BankDetails);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.DEPOSIT.ORDER_PROCESSING, {
+        orderId: 'test-order-id',
+      }),
+    );
+
+    mockDispatch.mockClear();
+    mockOrderData.state = FIAT_ORDER_STATES.PENDING;
+    render(BankDetails);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.DEPOSIT.ORDER_PROCESSING, {
+        orderId: 'test-order-id',
+      }),
+    );
+  });
+
+  it('calls Logger.error when handleOnRefresh fails', async () => {
+    (
+      processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+    ).mockRejectedValueOnce(new Error('Fetch error'));
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+    render(BankDetails);
+
+    screen
+      .getByTestId('bank-details-refresh-control-scrollview')
+      .props.refreshControl.props.onRefresh();
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalled();
+    });
+  });
+
+  it('calls Logger.error when handleBankTransferSent fails', async () => {
+    mockConfirmPayment.mockImplementationOnce(() => {
+      throw new Error('Payment confirmation failed');
+    });
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+    render(BankDetails);
+    fireEvent.press(screen.getByTestId('main-action-button'));
+    expect(mockConfirmPayment).toHaveBeenCalledWith(
+      'test-order-id',
+      'sepa_bank_transfer',
+    );
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+
+  it('calls Logger.error when cancelOrder fails', async () => {
+    mockCancelOrder.mockImplementationOnce(() => {
+      throw new Error('Order cancellation failed');
+    });
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+    render(BankDetails);
+    fireEvent.press(screen.getByText('Cancel order'));
+    expect(mockCancelOrder).toHaveBeenCalled();
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+
+  it('should call endTrace three times when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    // Mock order state to prevent automatic refresh on mount
+    mockOrderData.state = FIAT_ORDER_STATES.PENDING;
 
     render(BankDetails);
 
-    expect(screen.getByText('Payment confirmation failed')).toBeTruthy();
+    expect(mockEndTrace).toHaveBeenCalledTimes(3);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Load Deposit Experience',
+      data: {
+        destination: 'BankDetails',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'BankDetails',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'BankDetails',
+      },
+    });
+  });
+
+  describe('401 Error Handling', () => {
+    it('handles 401 error in handleBankTransferSent by logging out and navigating to root', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+
+      mockConfirmPayment = jest.fn().mockRejectedValue(axiosError);
+
+      render(BankDetails);
+
+      fireEvent.press(screen.getByTestId('main-action-button'));
+
+      await waitFor(() => {
+        expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.DEPOSIT.ROOT,
+            },
+          ],
+        });
+      });
+    });
+
+    it('handles 401 error in handleCancelOrder by logging out and navigating to root', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+
+      mockCancelOrder = jest.fn().mockRejectedValue(axiosError);
+
+      render(BankDetails);
+
+      fireEvent.press(screen.getByText('Cancel order'));
+
+      await waitFor(() => {
+        expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.DEPOSIT.ROOT,
+            },
+          ],
+        });
+      });
+    });
+
+    it('handles non-401 errors normally in handleBankTransferSent', async () => {
+      const regularError = new Error('Network error');
+      mockConfirmPayment = jest.fn().mockRejectedValue(regularError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      fireEvent.press(screen.getByTestId('main-action-button'));
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          regularError,
+          'BankDetails: handleBankTransferSent',
+        );
+        expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+        expect(screen.getByText('Network error')).toBeTruthy();
+      });
+    });
+
+    it('handles non-401 errors normally in handleCancelOrder', async () => {
+      const regularError = new Error('Network error');
+      mockCancelOrder = jest.fn().mockRejectedValue(regularError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      fireEvent.press(screen.getByText('Cancel order'));
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          regularError,
+          'BankDetails: handleCancelOrder',
+        );
+        expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles 401 error in handleOnRefresh by logging out and navigating to root', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+
+      (
+        processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+      ).mockRejectedValue(axiosError);
+
+      render(BankDetails);
+
+      screen
+        .getByTestId('bank-details-refresh-control-scrollview')
+        .props.refreshControl.props.onRefresh();
+
+      await waitFor(() => {
+        expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.DEPOSIT.ROOT,
+            },
+          ],
+        });
+      });
+    });
+
+    it('handles non-401 errors normally in handleOnRefresh', async () => {
+      const regularError = new Error('Network error');
+      (
+        processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+      ).mockRejectedValue(regularError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      screen
+        .getByTestId('bank-details-refresh-control-scrollview')
+        .props.refreshControl.props.onRefresh();
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          regularError,
+          'BankDetails: handleOnRefresh',
+        );
+        expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+      });
+    });
+
+    it('logs error when handleLogoutError fails', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+      const logoutError = new Error('Logout failed');
+
+      mockConfirmPayment = jest.fn().mockRejectedValue(axiosError);
+      mockLogoutFromProvider.mockRejectedValue(logoutError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      fireEvent.press(screen.getByTestId('main-action-button'));
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          logoutError,
+          'BankDetails: handleLogoutError',
+        );
+      });
+    });
   });
 });

@@ -5,6 +5,7 @@ import {
 import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 
 class NetworkListModal {
   get networkScroll(): DetoxElement {
@@ -49,6 +50,10 @@ class NetworkListModal {
     return Matchers.getElementByID('delete-network-button');
   }
 
+  get networkMultiSelectorContainer(): DetoxElement {
+    return Matchers.getElementByID(NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER);
+  }
+
   async getCustomNetwork(
     network: string,
     custom = false,
@@ -80,6 +85,7 @@ class NetworkListModal {
   async scrollToBottomOfNetworkList(): Promise<void> {
     await Gestures.swipe(this.networkScroll, 'up', {
       speed: 'fast',
+      checkStability: true,
     });
   }
 
@@ -91,12 +97,15 @@ class NetworkListModal {
   }
 
   async tapTestNetworkSwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.testNetToggle);
+    await Gestures.tap(this.testNetToggle, {
+      elemDescription: 'Test Network Switch',
+      delay: 1500, // 1.5 seconds to ensure the network list is stable
+    });
   }
 
   async longPressOnNetwork(networkName: string): Promise<void> {
     const network = Matchers.getElementByText(networkName);
-    await Gestures.tapAndLongPress(network);
+    await Gestures.longPress(network);
   }
 
   async SearchNetworkName(networkName: string): Promise<void> {
@@ -114,6 +123,30 @@ class NetworkListModal {
   }
   async deleteNetwork(): Promise<void> {
     await Gestures.waitAndTap(this.deleteButton);
+  }
+
+  async scrollToBottomOfNetworkMultiSelector(): Promise<void> {
+    await Gestures.swipe(this.networkMultiSelectorContainer, 'up', {
+      speed: 'fast',
+    });
+  }
+
+  async tapNetworkMenuButton(networkName: string): Promise<void> {
+    const networkCell = Matchers.getElementByText(networkName);
+    await Gestures.waitAndTap(networkCell);
+  }
+
+  async tapOnCustomTab(): Promise<void> {
+    const networkCell = Matchers.getElementByLabel('Custom');
+    await Gestures.waitAndTap(networkCell);
+  }
+
+  async swipeToDismissNetworkMultiSelectorModal(): Promise<void> {
+    await Gestures.swipe(Matchers.getElementByLabel('Custom'), 'down', {
+      speed: 'fast',
+      percentage: 0.3,
+      startOffsetPercentage: { x: 0.5, y: 0.05 },
+    });
   }
 }
 

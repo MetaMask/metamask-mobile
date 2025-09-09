@@ -1,11 +1,5 @@
 import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../utils/Matchers';
-
-type DetoxElement = Promise<
-  | Detox.IndexableNativeElement
-  | Detox.NativeElement
-  | Detox.IndexableSystemElement
->;
+import Matchers from '../../framework/Matchers';
 
 class ConfirmationView {
   get securityAlertBanner(): DetoxElement {

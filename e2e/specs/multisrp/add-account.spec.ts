@@ -1,23 +1,13 @@
-'use strict';
 import { SmokeWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import TestHelpers from '../../helpers';
+import Assertions from '../../framework/Assertions';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-
-const fixtureServer = new FixtureServer();
 
 const SRP_1 = {
   index: 1,
@@ -35,7 +25,7 @@ const addAccountToSrp = async (
 ) => {
   await AccountListBottomSheet.tapAddAccountButton();
   await AddAccountBottomSheet.tapCreateEthereumAccount();
-  await Assertions.checkIfVisible(AddNewHdAccountComponent.container);
+  await Assertions.expectElementToBeVisible(AddNewHdAccountComponent.container);
 
   // convert srpNumber to index
   const srpIndex = srp.index - 1;
@@ -59,37 +49,30 @@ const addAccountToSrp = async (
     await AddNewHdAccountComponent.tapConfirm();
   }
   await WalletView.tapIdenticon();
-  await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
 };
 
 describe(
   SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
   () => {
-    beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-      const fixture = new FixtureBuilder()
-        .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-        .build();
-      await startFixtureServer(fixtureServer);
-      await loadFixture(fixtureServer, { fixture });
-      await TestHelpers.launchApp({
-        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-      });
-      await loginToApp();
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-    });
-
-    afterAll(async () => {
-      await stopFixtureServer(fixtureServer);
-    });
-
-    it('adds an account to default SRP', async () => {
-      await addAccountToSrp(SRP_1, 'Account 4');
-    });
-
-    it('adds an account to the imported SRP', async () => {
-      await addAccountToSrp(SRP_2, 'Account 5');
+    it('adds an account to default SRP and one to the imported SRP', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+            .build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
+          await WalletView.tapIdenticon();
+          await Assertions.expectElementToBeVisible(
+            AccountListBottomSheet.accountList,
+          );
+          await addAccountToSrp(SRP_1, 'Account 4');
+          await addAccountToSrp(SRP_2, 'Account 5');
+        },
+      );
     });
   },
 );

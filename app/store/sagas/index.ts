@@ -22,7 +22,6 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
@@ -30,6 +29,10 @@ import {
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
+import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -60,8 +63,6 @@ export function* authStateMachine() {
     yield take(UserActionType.LOGIN);
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
     LockManagerService.startListening();
-    //TODO: Move this logic to the Engine when the account tree state will be persisted
-    AccountTreeInitService.initializeAccountTree();
     // Listen to app lock behavior.
     yield take(UserActionType.LOGOUT);
     LockManagerService.stopListening();
@@ -138,7 +139,22 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* initializeSDKServices() {
+  try {
+    // Initialize WalletConnect
+    yield call(() => WC2Manager.init({}));
+    // Initialize SDKConnect
+    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
+  } catch (e) {
+    Logger.log('Failed to initialize services', e);
+  }
+}
+
 export function* handleDeeplinkSaga() {
+  // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
+  // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
+  let hasInitializedSDKServices = false;
+
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
     const value = (yield take([
@@ -162,6 +178,12 @@ export function* handleDeeplinkSaga() {
     // App is locked or onboarding is not yet complete
     if (!isUnlocked || !completedOnboarding) {
       continue;
+    }
+
+    // Initialize SDK services
+    if (!hasInitializedSDKServices) {
+      yield call(initializeSDKServices);
+      hasInitializedSDKServices = true;
     }
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
@@ -191,8 +213,12 @@ export function* startAppServices() {
   // Start Engine service
   yield call(EngineService.start);
 
+  // Start DeeplinkManager and process branch deeplinks
+  DeeplinkManager.start();
+
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
+  yield call(applyVaultInitialization);
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());

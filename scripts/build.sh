@@ -18,8 +18,11 @@ echo "PLATFORM = $PLATFORM"
 echo "MODE = $MODE"
 echo "ENVIRONMENT = $ENVIRONMENT"
 
+# Enable Sentry to auto upload source maps and debug symbols
+export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
 export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+export EXPO_NO_TYPESCRIPT_SETUP=1
 
 envFileMissing() {
 	FILE="$1"
@@ -147,6 +150,40 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
+# Mapping for environmental values in the e2e environment. 
+# This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
+remapEnvVariableE2E() {
+  	echo "Remapping E2E env variable names to match E2E values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
+# Mapping for environmental values in the test environment. 
+# This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
+remapEnvVariableTest() {
+  	echo "Remapping test env variable names to match test values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
 remapEnvVariableProduction() {
   	echo "Remapping release env variable names to match production values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
@@ -181,6 +218,12 @@ remapEnvVariableBeta() {
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapEnvVariableReleaseCandidate() {
@@ -189,6 +232,12 @@ remapEnvVariableReleaseCandidate() {
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 # Mapping for environmental values in the experimental environment
@@ -199,6 +248,12 @@ remapEnvVariableExperimental() {
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
 	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 loadJSEnv(){
@@ -209,9 +264,6 @@ loadJSEnv(){
 			source $JS_ENV_FILE
 		fi
 	fi
-	# Disable auto Sentry file upload by default
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-	export EXPO_NO_TYPESCRIPT_SETUP=1
 }
 
 
@@ -273,7 +325,7 @@ buildAndroidRun(){
 	remapEnvVariableLocal
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
 # Builds the Main APK for local development
@@ -281,7 +333,7 @@ buildAndroidMainLocal(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
-	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest --build-cache --parallel && cd ..
+	cd android && ./gradlew app:assembleProdDebug app:assembleProdDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 # Builds the Flask APK for local development
@@ -289,7 +341,7 @@ buildAndroidFlaskLocal(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
-	cd android && ./gradlew assembleFlaskDebug assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
+	cd android && ./gradlew app:assembleFlaskDebug app:assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 # Builds the QA APK for local development
@@ -297,32 +349,30 @@ buildAndroidQaLocal(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
-	cd android && ./gradlew assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
+	cd android && ./gradlew app:assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
+	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
 }
 
 buildAndroidRunFlask(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
+	yarn expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
 }
 
 buildIosSimulator(){
 	remapEnvVariableLocal
 	prebuild_ios
+	device_args=()
 	if [ -n "$IOS_SIMULATOR" ]; then
-		SIM_OPTION="--device \"$IOS_SIMULATOR\""
-	else
-		SIM_OPTION=""
+		device_args=(--device "$IOS_SIMULATOR")
 	fi
-	#react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT $SIM_OPTION
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT "${device_args[@]}"
 }
 
 buildIosSimulatorQA(){
@@ -330,13 +380,13 @@ buildIosSimulatorQA(){
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
 	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorFlask(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
@@ -361,23 +411,23 @@ runIosE2E(){
 buildIosDevice(){
 	remapEnvVariableLocal
 	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
-	npx expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
+	yarn expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
 }
 
 buildIosDeviceFlask(){
 	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
+	yarn expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
 # Generates the iOS binary for the given scheme and configuration
 generateIosBinary() {
 	scheme="$1"
-	configuration="${2:-"Release"}"
+	configuration="${CONFIGURATION:-"Release"}"
 
 	if [ "$scheme" = "MetaMask" ] ; then
 		# Main target
@@ -420,54 +470,6 @@ generateIosBinary() {
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
 
-}
-
-# Builds the Main binary for production
-buildIosMainProduction(){
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask"
-}
-
-# Builds the Main binary for local development
-buildIosMainLocal() {
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask" "Debug"
-}
-
-# Builds the Flask binary for local development
-buildIosFlaskLocal() {
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask-Flask" "Debug"
-}
-
-# Builds the QA binary for local development
-buildIosQaLocal() {
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask-QA" "Debug"
-}
-
-# Builds the Flask binary for production
-buildIosFlaskProduction(){
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask-Flask"
 }
 
 buildIosReleaseE2E(){
@@ -515,44 +517,12 @@ buildIosQA(){
 	fi
 }
 
-
-buildAndroidQA(){
-	echo "Start Android QA build..."
-
-  	remapEnvVariableQA
-
-	# if [ "$PRE_RELEASE" = false ] ; then
-	# 	adb uninstall io.metamask.qa
-	# fi
-
-	prebuild_android
-
-	# Generate APK
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
-
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleQaRelease
-	fi
-
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:qa
-	fi
-
-	#  if [ "$PRE_RELEASE" = false ] ; then
-	#  	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
-	#  fi
-}
-
 # Builds the Main APK for production
 buildAndroidMainProduction(){
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleProdRelease --build-cache --parallel
+	cd android && ./gradlew app:assembleProdRelease app:assembleProdReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleProdRelease
@@ -569,7 +539,7 @@ buildAndroidFlaskProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleFlaskRelease --build-cache --parallel
+	cd android && ./gradlew app:assembleFlaskRelease app:assembleFlaskReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleFlaskRelease
@@ -581,14 +551,27 @@ buildAndroidFlaskProduction(){
 	cd ..
 }
 
+# Builds the QA APK for production
+buildAndroidQaProduction(){
+	# Builds the QA APK for production
+	prebuild_android
+
+	# Generate APK for production
+	cd android && ./gradlew app:assembleQaRelease app:assembleQaReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleQaRelease
+
+	# Generate checksum
+	yarn build:android:checksum:qa
+
+	# Change directory back out
+	cd ..
+}
+
 buildAndroidReleaseE2E(){
 	prebuild_android
 	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
-}
-
-buildAndroidQAE2E(){
-	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
@@ -608,20 +591,16 @@ buildAndroid() {
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidQaLocal
 		else
-			buildAndroidQA
+			buildAndroidQaProduction
 		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
-	elif [ "$MODE" == "QAE2E" ] ; then
-		buildAndroidQAE2E
   	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
-	elif [ "$MODE" == "devBuild" ] ; then
-		buildAndroidMainLocal
 	else
 		buildAndroidRun
 	fi
@@ -640,17 +619,19 @@ buildAndroidRunE2E(){
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildIosMainLocal
-		else
-			buildIosMainProduction
-		fi
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask"
 	elif [ "$MODE" == "flask" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildIosFlaskLocal
-		else
-			buildIosFlaskProduction
-		fi
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask-Flask"
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
@@ -660,11 +641,12 @@ buildIos() {
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
 	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildIosQaLocal
-		else
-			buildIosQA
-		fi
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask-QA"
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
@@ -677,8 +659,6 @@ buildIos() {
 		else
 			buildIosSimulatorFlask
 		fi
-	elif [ "$MODE" == "devbuild" ] ; then
-		buildIosMainLocal
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
@@ -696,10 +676,10 @@ startWatcher() {
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
 		#react-native start --port=$WATCHER_PORT -- --reset-cache
-		npx expo start --port $WATCHER_PORT --clear
+		yarn expo start --port $WATCHER_PORT --clear
 	else
 		#react-native start --port=$WATCHER_PORT
-		npx expo start --port $WATCHER_PORT
+		yarn expo start --port $WATCHER_PORT
 	fi
 }
 
@@ -743,6 +723,10 @@ if [ "$MODE" == "main" ]; then
 		remapEnvVariableReleaseCandidate
 	elif [ "$ENVIRONMENT" == "exp" ]; then
 		remapEnvVariableExperimental
+	elif [ "$ENVIRONMENT" == "test" ]; then
+		remapEnvVariableTest
+	elif [ "$ENVIRONMENT" == "e2e" ]; then
+		remapEnvVariableE2E
 	fi
 elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 	# TODO: Map environment variables based on environment
@@ -752,7 +736,14 @@ elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; the
 	remapEnvVariableQA
 fi
 
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+if [ "$ENVIRONMENT" == "e2e" ]; then
+	# Build for simulator
+	export IS_SIM_BUILD="true"
+	# Ignore Boxlogs for E2E builds
+	export IGNORE_BOXLOGS_DEVELOPMENT="true"
+fi
+
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"

@@ -98,7 +98,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               onPressOut={[Function]}
               style={
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 32,
                   "paddingHorizontal": 14,
                   "paddingVertical": 7,

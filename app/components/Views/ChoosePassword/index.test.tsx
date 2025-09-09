@@ -84,6 +84,7 @@ jest.mock('../../../core/Authentication', () => ({
 jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
@@ -195,6 +196,8 @@ describe('ChoosePassword', () => {
 
   it('render loading state while creating password', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(true);
+    jest.spyOn(Device, 'isMediumDevice').mockReturnValue(true);
+
     const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
@@ -242,6 +245,7 @@ describe('ChoosePassword', () => {
     );
     expect(loadingTitle).toBeTruthy();
     jest.spyOn(Device, 'isIos').mockRestore();
+    jest.spyOn(Device, 'isMediumDevice').mockRestore();
   });
 
   it('error message is shown when passwords do not match', async () => {
@@ -359,9 +363,6 @@ describe('ChoosePassword', () => {
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
     );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
-    );
 
     // Component should render without errors
     expect(component).toBeTruthy();
@@ -409,9 +410,6 @@ describe('ChoosePassword', () => {
     );
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
-    );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
     );
   });
 
@@ -874,6 +872,41 @@ describe('ChoosePassword', () => {
     });
 
     mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('should navigate to support article when learn more link is pressed when oauth2Login is true', async () => {
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    const learnMoreLink = component.getByTestId(
+      ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+    );
+
+    expect(learnMoreLink).toBeOnTheScreen();
+    expect(learnMoreLink.props.onPress).toBeDefined();
+
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
+
+    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        title: 'support.metamask.io',
+      },
+    });
   });
 
   describe('ErrorBoundary Tests', () => {

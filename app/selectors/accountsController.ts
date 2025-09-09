@@ -18,8 +18,9 @@ import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
 } from '../core/Multichain/utils';
-import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
+import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -30,7 +31,7 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @param state - Root redux state
  * @returns - AccountsController state
  */
-const selectAccountsControllerState = (state: RootState) =>
+export const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
 /**
@@ -219,7 +220,7 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
-      selectedAccount?.methods?.includes(BtcMethod.SendBitcoin)) ??
+      selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );
 
@@ -249,3 +250,52 @@ export const selectSolanaAccount = createSelector(
 );
 
 ///: END:ONLY_INCLUDE_IF
+
+/**
+ * A memoized selector that returns all internal accounts that are valid for a given scope.
+ *
+ * For EVM scopes (eip155:*), this returns all accounts that have any EVM scope
+ * (i.e., any scope that starts with 'eip155:'). For non-EVM scopes, this returns
+ * all accounts that include the exact scope.
+ */
+export const selectInternalAccountsByScope = createDeepEqualSelector(
+  [
+    selectInternalAccountsById,
+    (_state: RootState, scope: CaipChainId) => scope,
+  ],
+  (
+    accountsMap: Record<AccountId, InternalAccount>,
+    scope: CaipChainId,
+  ): InternalAccount[] => {
+    const accounts = Object.values(accountsMap);
+    if (!Array.isArray(accounts) || accounts.length === 0) {
+      return [];
+    }
+
+    return accounts.filter(
+      (account) =>
+        Array.isArray(account.scopes) && anyScopesMatch(account.scopes, scope),
+    );
+  },
+);
+
+/**
+ * Returns a function that takes an array of addresses and returns all internal accounts
+ * that match any of the provided addresses. Address matching is case-insensitive.
+ *
+ * @param _state - Redux state (unused; required for selector signature)
+ * @returns A function that, given an array of addresses, returns an array of InternalAccount objects that match
+ */
+export const selectInternalAccountByAddresses = createDeepEqualSelector(
+  [selectInternalAccountsById],
+  (accountsMap) =>
+    (addresses: string[]): InternalAccount[] => {
+      const accountsByLowerCaseAddress = new Map<string, InternalAccount>();
+      for (const account of Object.values(accountsMap)) {
+        accountsByLowerCaseAddress.set(account.address.toLowerCase(), account);
+      }
+      return addresses
+        .map((address) => accountsByLowerCaseAddress.get(address.toLowerCase())) // Normalize the input address
+        .filter((account): account is InternalAccount => account !== undefined);
+    },
+);

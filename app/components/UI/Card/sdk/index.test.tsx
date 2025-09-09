@@ -1,7 +1,12 @@
 import React from 'react';
 import { renderHook, render, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { CardSDKProvider, useCardSDK, ICardSDK } from './index';
+import {
+  CardSDKProvider,
+  useCardSDK,
+  ICardSDK,
+  CardVerification,
+} from './index';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
@@ -9,6 +14,8 @@ import {
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { selectChainId } from '../../../../selectors/networkController';
+import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { View } from 'react-native';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
@@ -35,11 +42,16 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../hooks/useCardholderCheck', () => ({
+  useCardholderCheck: jest.fn(),
+}));
+
 describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
   const mockSelectChainId = jest.mocked(selectChainId);
   const mockSelectCardFeatureFlag = jest.mocked(selectCardFeatureFlag);
+  const mockUseCardholderCheck = jest.mocked(useCardholderCheck);
 
   const mockSupportedTokens: SupportedToken[] = [
     {
@@ -51,6 +63,10 @@ describe('CardSDK Context', () => {
   ];
 
   const mockCardFeatureFlag: CardFeatureFlag = {
+    constants: {
+      onRampApiUrl: 'https://api.onramp.example.com',
+      accountsApiUrl: 'https://api.accounts.example.com',
+    },
     chains: {
       'eip155:59144': {
         enabled: true,
@@ -65,16 +81,13 @@ describe('CardSDK Context', () => {
     mockSelectChainId.mockClear();
     mockSelectCardFeatureFlag.mockClear();
     mockUseSelector.mockClear();
+    mockUseCardholderCheck.mockClear();
   });
 
   const setupMockUseSelector = (
-    chainId: string | null | undefined,
     featureFlag: CardFeatureFlag | null | undefined,
   ) => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === mockSelectChainId) {
-        return chainId;
-      }
       if (selector === mockSelectCardFeatureFlag) {
         return featureFlag;
       }
@@ -84,9 +97,9 @@ describe('CardSDK Context', () => {
 
   describe('CardSDKProvider', () => {
     it('should render children without crashing', () => {
-      setupMockUseSelector('0xe708', mockCardFeatureFlag);
+      setupMockUseSelector(mockCardFeatureFlag);
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -96,28 +109,13 @@ describe('CardSDK Context', () => {
 
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        rawChainId: '0xe708',
       });
     });
 
-    it('should not initialize SDK when chain ID is missing', () => {
-      setupMockUseSelector(null, mockCardFeatureFlag);
-
-      const TestComponent = () => <div>Test Child</div>;
-
-      render(
-        <CardSDKProvider>
-          <TestComponent />
-        </CardSDKProvider>,
-      );
-
-      expect(MockedCardholderSDK).not.toHaveBeenCalled();
-    });
-
     it('should not initialize SDK when card feature flag is missing', () => {
-      setupMockUseSelector('0xe708', null);
+      setupMockUseSelector(null);
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -129,7 +127,7 @@ describe('CardSDK Context', () => {
     });
 
     it('should use provided value prop when given', () => {
-      setupMockUseSelector('0xe708', mockCardFeatureFlag);
+      setupMockUseSelector(mockCardFeatureFlag);
 
       const providedValue: ICardSDK = {
         sdk: null,
@@ -138,7 +136,7 @@ describe('CardSDK Context', () => {
       const TestComponent = () => {
         const context = useCardSDK();
         expect(context).toEqual(providedValue);
-        return <div>Test Child</div>;
+        return <View>Test Child</View>;
       };
 
       render(
@@ -151,7 +149,7 @@ describe('CardSDK Context', () => {
 
   describe('useCardSDK', () => {
     it('should return SDK context when used within provider', async () => {
-      setupMockUseSelector('0xe708', mockCardFeatureFlag);
+      setupMockUseSelector(mockCardFeatureFlag);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <CardSDKProvider>{children}</CardSDKProvider>
@@ -174,20 +172,6 @@ describe('CardSDK Context', () => {
       expect(result.current.sdk).toHaveProperty('getPriorityToken');
     });
 
-    it('should return null SDK when conditions are not met', () => {
-      setupMockUseSelector(null, mockCardFeatureFlag);
-
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <CardSDKProvider>{children}</CardSDKProvider>
-      );
-
-      const { result } = renderHook(() => useCardSDK(), { wrapper });
-
-      expect(result.current).toEqual({
-        sdk: null,
-      });
-    });
-
     it('should throw error when used outside of provider', () => {
       const consoleError = jest
         .spyOn(console, 'error')
@@ -205,7 +189,7 @@ describe('CardSDK Context', () => {
 
   describe('CardSDK interface', () => {
     it('should have correct interface structure', async () => {
-      setupMockUseSelector('0xe708', mockCardFeatureFlag);
+      setupMockUseSelector(mockCardFeatureFlag);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <CardSDKProvider>{children}</CardSDKProvider>
@@ -236,24 +220,10 @@ describe('CardSDK Context', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle undefined chain ID gracefully', () => {
-      setupMockUseSelector(undefined, mockCardFeatureFlag);
-
-      const TestComponent = () => <div>Test Child</div>;
-
-      render(
-        <CardSDKProvider>
-          <TestComponent />
-        </CardSDKProvider>,
-      );
-
-      expect(MockedCardholderSDK).not.toHaveBeenCalled();
-    });
-
     it('should handle undefined card feature flag gracefully', () => {
-      setupMockUseSelector('0xe708', undefined);
+      setupMockUseSelector(undefined);
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -265,9 +235,9 @@ describe('CardSDK Context', () => {
     });
 
     it('should handle empty card feature flag gracefully', () => {
-      setupMockUseSelector('0xe708', {});
+      setupMockUseSelector({});
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -277,8 +247,41 @@ describe('CardSDK Context', () => {
 
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: {},
-        rawChainId: '0xe708',
       });
+    });
+  });
+
+  describe('CardVerification', () => {
+    beforeEach(() => {
+      mockUseCardholderCheck.mockClear();
+    });
+
+    it('should render without crashing', () => {
+      const result = render(<CardVerification />);
+      expect(result).toBeTruthy();
+    });
+
+    it('should call useCardholderCheck hook', () => {
+      render(<CardVerification />);
+      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return null (render nothing)', () => {
+      const { toJSON } = render(<CardVerification />);
+      expect(toJSON()).toBeNull();
+    });
+
+    it('should call useCardholderCheck on every render', () => {
+      const { rerender } = render(<CardVerification />);
+      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
+
+      rerender(<CardVerification />);
+      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(2);
+    });
+
+    it('should be a functional component', () => {
+      expect(typeof CardVerification).toBe('function');
+      expect(CardVerification.prototype).toEqual({});
     });
   });
 });

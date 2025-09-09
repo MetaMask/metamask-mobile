@@ -85,8 +85,8 @@ exports[`QuoteInfoModal renders correctly 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 8,
-              "borderTopRightRadius": 8,
+              "borderTopLeftRadius": 24,
+              "borderTopRightRadius": 24,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -135,6 +135,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
                 "padding": 16,
               },
               false,
@@ -158,7 +159,6 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -242,7 +242,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               }
             }
           >
-            This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.
+            This quote offers the best return from our search. It's based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.
           </Text>
         </View>
       </View>

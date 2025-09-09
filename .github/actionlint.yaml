@@ -1,0 +1,24 @@
+self-hosted-runner:
+  # Labels of self-hosted runner in array of strings.
+  labels: 
+    - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl"
+    - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-large"
+    - "gha-mm-scale-set-ubuntu-22.04-amd64-large"
+    - "macos-15"
+    - "ghcr.io/cirruslabs/macos-runner:sequoia"
+    - "ghcr.io/cirruslabs/macos-runner:sequoia-xl"
+    - "low-priority"
+
+# Configuration variables in array of strings defined in your repository or
+# organization. `null` means disabling configuration variables check.
+# Empty array means no configuration variable is allowed.
+config-variables: null
+
+# Configuration for file paths. The keys are glob patterns to match to file
+# paths relative to the repository root. The values are the configurations for
+# the file paths. Note that the path separator is always '/'.
+# The following configurations are available.
+#
+# "ignore" is an array of regular expression patterns. Matched error messages
+# are ignored. This is similar to the "-ignore" command line option.
+paths:

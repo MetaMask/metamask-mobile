@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   View,
@@ -26,9 +26,8 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -38,7 +37,6 @@ import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
   OPTIN_META_METRICS_UI_SEEN,
@@ -96,9 +94,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import OAuthService from '../../../core/OAuthService/OAuthService';
-import ConcealingFox from '../../../animations/Concealing_Fox.json';
-import SearchingFox from '../../../animations/Searching_Fox.json';
-import LottieView, { AnimationObject } from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   SeedlessOnboardingControllerErrorMessage,
@@ -114,6 +109,8 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import FOX_LOGO from '../../../images/branding/fox.png';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -157,14 +154,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const dispatch = useDispatch();
-  const setOnboardingWizardStep = (step: number) =>
-    dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
+
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
 
   const track = (
     event: IMetaMetricsEvent,
@@ -192,7 +190,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtxFromRoute) {
       passwordLoginAttemptTraceCtxRef.current = trace({
@@ -201,11 +207,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         parentContext: onboardingTraceCtxFromRoute,
       });
     }
+  }, [route.params?.onboardingTraceCtx]);
 
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+  const [refreshAuthPref, setRefreshAuthPref] = useState(false);
+  useEffect(() => {
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+      // password outdated, reset biometric password and choice
+      Authentication.resetPassword()
+        .then(() => {
+          // set to fupate authPref
+          setRefreshAuthPref(true);
+        })
+        .catch((e) => {
+          Logger.error(e);
+        });
+    }
+  }, [isSeedlessPasswordOutdated]);
 
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
+  useEffect(() => {
     const getUserAuthPreferences = async () => {
       const authData = await Authentication.getType();
 
@@ -240,12 +260,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     };
 
     getUserAuthPreferences();
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [route?.params?.locked, refreshAuthPref]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -297,13 +312,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const navigateToHome = async () => {
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    } else {
-      setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    }
+    navigation.replace(Routes.ONBOARDING.HOME_NAV);
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
@@ -344,18 +353,32 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     [],
   );
 
-  const tooManyAttemptsError = async (remainingTime: number) => {
+  const tooManyAttemptsError = async (initialRemainingTime: number) => {
+    const lockEnd = Date.now() + initialRemainingTime * 1000;
+
     setDisabledInput(true);
-    for (let i = remainingTime; i > 0; i--) {
+    while (Date.now() < lockEnd) {
+      const remainingTime = Math.floor((lockEnd - Date.now()) / 1000);
+      if (remainingTime <= 0) {
+        break;
+      }
+
       if (!isMountedRef.current) {
         setError(null);
         setDisabledInput(false);
         return; // Exit early if component unmounted
       }
 
+      const remainingHours = Math.floor(remainingTime / 3600);
+      const remainingMinutes = Math.floor((remainingTime % 3600) / 60);
+      const remainingSeconds = remainingTime % 60;
+      const displayRemainingTime = `${remainingHours}:${remainingMinutes
+        .toString()
+        .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+
       setError(
         strings('login.too_many_attempts', {
-          remainingTime: `${Math.floor(i / 60)}m:${i % 60}s`,
+          remainingTime: displayRemainingTime,
         }),
       );
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -631,18 +654,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     downloadStateLogs(fullState, false);
   };
 
+  // for rehydration and when global password is outdated
+  // hide biometric button
   const shouldHideBiometricAccessoryButton = !(
     !oauthLoginSuccess &&
+    !isSeedlessPasswordOutdated &&
     biometryChoice &&
     biometryType &&
     hasBiometricCredentials &&
     !route?.params?.locked
-  );
-
-  const lottieSrc = useMemo(
-    () =>
-      (password.length > 0 ? ConcealingFox : SearchingFox) as AnimationObject,
-    [password.length],
   );
 
   // Component that throws error if needed (to be caught by ErrorBoundary)
@@ -651,6 +671,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       throw errorToThrow;
     }
     return null;
+  };
+
+  const handlePasswordChange = (newPassword: string) => {
+    setPassword(newPassword);
+    setError(null);
   };
 
   return (
@@ -679,12 +704,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               onLongPress={handleDownloadStateLogs}
               activeOpacity={1}
             >
-              <LottieView
+              <Image
+                source={FOX_LOGO}
                 style={styles.image}
-                autoPlay
-                loop
-                source={lottieSrc}
-                resizeMode="contain"
+                resizeMethod={'auto'}
               />
             </TouchableOpacity>
 
@@ -698,14 +721,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              <View style={styles.labelContainer}>
-                <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {strings('login.password')}
-                </Label>
-              </View>
+              <Label
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+                style={styles.label}
+              >
+                {strings('login.password')}
+              </Label>
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}
@@ -715,7 +737,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 autoCapitalize="none"
                 secureTextEntry
                 ref={fieldRef}
-                onChangeText={setPassword}
+                onChangeText={handlePasswordChange}
                 value={password}
                 onSubmitEditing={onLogin}
                 endAccessory={
@@ -764,6 +786,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               )}
             </View>
@@ -776,6 +800,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={handleUseOtherMethod}
                   testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   label={strings('login.other_methods')}
+                  loading={loading}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               </View>
             )}

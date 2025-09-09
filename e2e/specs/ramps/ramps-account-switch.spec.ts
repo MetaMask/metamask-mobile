@@ -1,75 +1,29 @@
-'use strict';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import TestHelpers from '../../helpers';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import { SmokeTrade } from '../../tags';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
+import { RegressionTrade } from '../../tags';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNodeType } from '../../framework/types';
+import { Hardfork } from '../../seeder/anvil-manager';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-
-// Define the region interface based on the fixture builder's expected type
-interface RampsRegion {
-  currencies: string[];
-  emoji: string;
-  id: string;
-  name: string;
-  support: {
-    buy: boolean;
-    sell: boolean;
-    recurringBuy: boolean;
-  };
-  unsupported: boolean;
-  recommended: boolean;
-  detected: boolean;
-}
-
-// Define proper types for withFixtures options
-interface WithFixturesOptions {
-  fixture: object;
-  dapp?: boolean;
-  multichainDapp?: boolean;
-  dappPath?: string;
-  ganacheOptions?: object;
-  languageAndLocale?: object;
-  launchArgs?: object;
-  restartDevice?: boolean;
-  smartContract?: object;
-  testSpecificMock?: object;
-  disableGanache?: boolean;
-  localNodeOptions?: object;
-}
-
-const franceRegion: RampsRegion = {
-  currencies: ['/currencies/fiat/eur'],
-  emoji: '🇫🇷',
-  id: '/regions/fr',
-  name: 'France',
-  support: { buy: true, sell: true, recurringBuy: true },
-  unsupported: false,
-  recommended: false,
-  detected: false,
-};
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 // Anvil configuration for local blockchain node
-const localNodeOptions = {
-  hardfork: 'london',
+const anvilLocalNodeOptions = {
+  hardfork: 'London' as Hardfork,
   mnemonic:
     'drive manage close raven tape average sausage pledge riot furnace august tip',
   chainId: 1,
 };
 
-// Get ramps API mocks from the dedicated mock file
-const rampsApiMocks = getRampsApiMocks();
-
-let mockServer: Mockttp | null = null;
-let mockServerPort: number;
+const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
 
 const setupRampsAccountSwitchTest = async (
   testFunction: () => Promise<void>,
@@ -78,16 +32,19 @@ const setupRampsAccountSwitchTest = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-        // @ts-expect-error - FixtureBuilder method accepts region objects despite TypeScript signature
-        .withRampsSelectedRegion(franceRegion)
+        .withRampsSelectedRegion(selectedRegion)
         .build(),
       restartDevice: true,
-      localNodeOptions,
-      testSpecificMock: rampsApiMocks,
-      launchArgs: {
-        mockServerPort,
+      localNodeOptions: [
+        {
+          type: LocalNodeType.anvil,
+          options: anvilLocalNodeOptions,
+        },
+      ],
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
       },
-    } as WithFixturesOptions,
+    },
     async () => {
       await loginToApp();
       await testFunction();
@@ -95,42 +52,15 @@ const setupRampsAccountSwitchTest = async (
   );
 };
 
-describe(SmokeTrade('Ramps with Account Switching'), () => {
-  beforeAll(async () => {
-    try {
-      // Use a high port number to avoid conflicts
-      const testPort = 9000 + Math.floor(Math.random() * 1000);
-      mockServer = await startMockServer(rampsApiMocks, testPort);
-      if (mockServer !== null) {
-        mockServerPort = mockServer.port;
-        console.log(`Mock server started on port ${mockServerPort}`);
-      }
-      await TestHelpers.reverseServerPort();
-    } catch (error) {
-      console.error('Failed to start mock server:', error);
-      throw error;
-    }
-  });
-
+describe(RegressionTrade('Ramps with Account Switching'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
-  afterAll(async () => {
-    try {
-      if (mockServer !== null) {
-        await stopMockServer(mockServer);
-        console.log('Mock server stopped successfully');
-      }
-    } catch (error) {
-      console.error('Error stopping mock server:', error);
-    }
-  });
-
   it('should navigate to buy page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
@@ -146,8 +76,8 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to sell page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSellButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
@@ -163,16 +93,16 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   it('should maintain account selection across ramp flows', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3');
       await BuildQuoteView.tapCancelButton();
       await TabBarComponent.tapWallet();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSellButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await Assertions.expectTextDisplayed('Account 3', {
         description:

@@ -50,7 +50,8 @@ import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
-import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
+import { InitSendLocation } from '../confirmations/constants/send';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -61,6 +62,7 @@ const NftDetails = () => {
   const ticker = useSelector(selectEvmTicker);
   const { trackEvent, createEventBuilder } = useMetrics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
+  const { navigateToSendPage } = useSendNavigation();
   const hasLastSalePrice = Boolean(
     collectible.lastSale?.price?.amount?.usd &&
       collectible.lastSale?.price?.amount?.native,
@@ -186,17 +188,8 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    if (isSendRedesignEnabled()) {
-      navigation.navigate(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ROOT,
-        params: {
-          asset: { contractName: collectible.name, ...collectible },
-        },
-      });
-    } else {
-      navigation.navigate('SendFlowView', {});
-    }
-  }, [collectible, chainId, dispatch, navigation]);
+    navigateToSendPage(InitSendLocation.NftDetails, collectible);
+  }, [collectible, chainId, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(
     () =>

@@ -1,65 +1,46 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
-import Text from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './send.styles';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import Routes from '../../../../../constants/navigation/Routes';
+import { SendContextProvider } from '../../context/send-context';
+import { SendMetricsContextProvider } from '../../context/send-context/send-metrics-context';
+import { Confirm } from '../confirm';
+import { useSendNavbar } from '../../hooks/send/useSendNavbar';
 
-interface Asset {
-  name: string;
-}
+import { Amount } from './amount';
+import { Asset } from './asset';
+import { Recipient } from './recipient';
+
+const Stack = createStackNavigator();
 
 export const Send = () => {
-  const navigation = useNavigation();
-  const from = useSelector(selectSelectedInternalAccount);
-  const route = useRoute<RouteProp<Record<string, { asset: Asset }>, string>>();
-  const { asset } = route?.params ?? {};
-  const { styles } = useStyles(styleSheet, {});
-
-  const submitSend = useCallback(() => {
-    // More implementation to come here
-    navigation.goBack();
-  }, [navigation]);
-
-  const cancelSend = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  const sendNavigationOptions = useSendNavbar();
 
   return (
-    <View style={styles.container}>
-      <Text>Asset: {asset?.name ?? 'NA'}</Text>
-      <View>
-        <Text>From:</Text>
-        <Text>{from?.address}</Text>
-      </View>
-      <View>
-        <Text>To:</Text>
-        <Input style={styles.input} />
-      </View>
-      <View>
-        <Text>Amount:</Text>
-        <Input style={styles.input} />
-      </View>
-      <Button
-        label="Cancel"
-        onPress={cancelSend}
-        variant={ButtonVariants.Secondary}
-        size={ButtonSize.Lg}
-      />
-      <Button
-        label="Confirm"
-        onPress={submitSend}
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Lg}
-      />
-    </View>
+    <SendContextProvider>
+      <SendMetricsContextProvider>
+        <Stack.Navigator headerMode="screen">
+          <Stack.Screen
+            name={Routes.SEND.AMOUNT}
+            component={Amount}
+            options={sendNavigationOptions.Amount}
+          />
+          <Stack.Screen
+            name={Routes.SEND.ASSET}
+            component={Asset}
+            options={sendNavigationOptions.Asset}
+          />
+          <Stack.Screen
+            name={Routes.SEND.RECIPIENT}
+            component={Recipient}
+            options={sendNavigationOptions.Recipient}
+          />
+          <Stack.Screen
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+            component={Confirm}
+          />
+        </Stack.Navigator>
+      </SendMetricsContextProvider>
+    </SendContextProvider>
   );
 };

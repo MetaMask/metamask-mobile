@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
+///: END:ONLY_INCLUDE_IF
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -35,7 +41,6 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import {
   TransactionController,
   TransactionMeta,
-  type TransactionParams,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
@@ -128,7 +133,6 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ChainId,
-  handleFetch,
   type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
@@ -154,6 +158,7 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
+import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -193,8 +198,8 @@ import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
-import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
+import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
@@ -208,7 +213,6 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
-import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
 import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
 import {
   onRpcEndpointDegraded,
@@ -229,9 +233,13 @@ import {
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
+import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
+import { selectUseTokenDetection } from '../../selectors/preferencesController';
+import { rewardsControllerInit } from './controllers/rewards-controller';
+import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -273,6 +281,12 @@ export class Engine {
   lastIncomingTxBlockInfo: any;
 
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  /**
+   * The app state event listener.
+   * This is used to handle app state changes in snaps lifecycle hooks.
+   */
+  appStateListener: NativeEventSubscription;
+
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
@@ -282,6 +296,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  rewardsDataService: RewardsDataService;
   /**
    * Creates a CoreController instance
    */
@@ -436,10 +451,11 @@ export class Engine {
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
+      async ({ chainId, endpointUrl, error }) => {
         onRpcEndpointDegraded({
           chainId,
           endpointUrl,
+          error,
           infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
@@ -784,6 +800,8 @@ export class Engine {
           ' and origin: ',
           origin,
         );
+
+        return null;
       },
       createInterface: this.controllerMessenger.call.bind(
         this.controllerMessenger,
@@ -1136,102 +1154,6 @@ export class Engine {
         }),
       });
 
-    /* bridge controller Initialization */
-    const bridgeController = new BridgeController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'BridgeController',
-        allowedActions: [
-          'AccountsController:getSelectedMultichainAccount',
-          'SnapController:handleRequest',
-          'NetworkController:getState',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:findNetworkClientIdByChainId',
-          'TokenRatesController:getState',
-          'MultichainAssetsRatesController:getState',
-          'CurrencyRateController:getState',
-          'RemoteFeatureFlagController:getState',
-        ],
-        allowedEvents: [],
-      }),
-      clientId: BridgeClientId.MOBILE,
-      // TODO: change getLayer1GasFee type to match transactionController.getLayer1GasFee
-      getLayer1GasFee: async ({
-        transactionParams,
-        chainId,
-      }: {
-        transactionParams: TransactionParams;
-        chainId: ChainId;
-      }) =>
-        this.transactionController.getLayer1GasFee({
-          transactionParams,
-          chainId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as any,
-
-      fetchFn: handleFetch,
-      config: {
-        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
-      },
-      trackMetaMetricsFn: (event, properties) => {
-        const metricsEvent = MetricsEventBuilder.createEventBuilder({
-          // category property here maps to event name
-          category: event,
-        })
-          .addProperties({
-            ...(properties ?? {}),
-          })
-          .build();
-        MetaMetrics.getInstance().trackEvent(metricsEvent);
-      },
-      traceFn: trace as TraceCallback,
-    });
-
-    const bridgeStatusController = new BridgeStatusController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'BridgeStatusController',
-        allowedActions: [
-          'AccountsController:getSelectedMultichainAccount',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:findNetworkClientIdByChainId',
-          'NetworkController:getState',
-          'BridgeController:getBridgeERC20Allowance',
-          'BridgeController:stopPollingForQuotes',
-          'BridgeController:trackUnifiedSwapBridgeEvent',
-          'GasFeeController:getState',
-          'AccountsController:getAccountByAddress',
-          'SnapController:handleRequest',
-          'TransactionController:getState',
-          'RemoteFeatureFlagController:getState',
-        ],
-        allowedEvents: [
-          'TransactionController:transactionConfirmed',
-          'TransactionController:transactionFailed',
-          'MultichainTransactionsController:transactionConfirmed',
-        ],
-      }),
-      state: initialState.BridgeStatusController,
-      clientId: BridgeClientId.MOBILE,
-      fetchFn: handleFetch,
-      addTransactionFn: (
-        ...args: Parameters<typeof this.transactionController.addTransaction>
-      ) => this.transactionController.addTransaction(...args),
-      estimateGasFeeFn: (
-        ...args: Parameters<typeof this.transactionController.estimateGasFee>
-      ) => this.transactionController.estimateGasFee(...args),
-      addTransactionBatchFn: (
-        ...args: Parameters<
-          typeof this.transactionController.addTransactionBatch
-        >
-      ) => this.transactionController.addTransactionBatch(...args),
-      updateTransactionFn: (
-        ...args: Parameters<typeof this.transactionController.updateTransaction>
-      ) => this.transactionController.updateTransaction(...args),
-      traceFn: trace as TraceCallback,
-      config: {
-        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
-      },
-    });
-
     const existingControllersByName = {
       KeyringController: this.keyringController,
       NetworkController: networkController,
@@ -1256,6 +1178,8 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
+        BridgeController: bridgeControllerInit,
+        BridgeStatusController: bridgeStatusControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -1272,9 +1196,12 @@ export class Engine {
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
+        MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
+        RewardsController: rewardsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1291,6 +1218,19 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const rewardsController = controllersByName.RewardsController;
+
+    // Initialize and store RewardsDataService
+    this.rewardsDataService = new RewardsDataService({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RewardsDataService',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      fetch,
+      locale: I18n.locale,
+    });
+
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1299,6 +1239,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const bridgeController = controllersByName.BridgeController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const cronjobController = controllersByName.CronjobController;
@@ -1322,6 +1263,7 @@ export class Engine {
       controllersByName.MultichainBalancesController;
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
+    const multichainAccountService = controllersByName.MultichainAccountService;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1337,6 +1279,9 @@ export class Engine {
       initialState: initialState.RatesController,
     });
 
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
+
     // Set up currency rate sync
     setupCurrencyRateSync(
       multichainRatesControllerMessenger,
@@ -1349,6 +1294,8 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
+    // Notify Snaps that the app is active when the Engine is initialized.
+    this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
@@ -1367,6 +1314,7 @@ export class Engine {
           'AssetsContractController:getERC1155TokenURI',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
+          'PhishingController:bulkScanUrls',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1405,19 +1353,19 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'EarnController',
         allowedEvents: [
-          'AccountsController:selectedAccountChange',
-          'NetworkController:stateChange',
+          'AccountTreeController:selectedAccountGroupChange',
           'TransactionController:transactionConfirmed',
+          'NetworkController:networkDidChange',
         ],
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         ],
       }),
       addTransactionFn: transactionController.addTransaction.bind(
         transactionController,
       ),
+      selectedNetworkClientId: networkController.state.selectedNetworkClientId,
     });
 
     this.context = {
@@ -1451,6 +1399,8 @@ export class Engine {
             'TokensController:getState',
             'TokensController:addDetectedTokens',
             'AccountsController:getAccount',
+            'TokensController:addTokens',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
           allowedEvents: [
             'KeyringController:lock',
@@ -1484,6 +1434,8 @@ export class Engine {
         platform: 'mobile',
         useAccountsAPI: true,
         disabled: false,
+        useTokenDetection: () => selectUseTokenDetection(store.getState()),
+        useExternalServices: () => isBasicFunctionalityToggleEnabled(),
       }),
       NftDetectionController: new NftDetectionController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1519,6 +1471,8 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:updateNativeBalances',
+            'AccountTrackerController:updateStakedBalances',
           ],
           allowedEvents: [
             'TokensController:stateChange',
@@ -1530,6 +1484,10 @@ export class Engine {
         // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
+        useAccountsAPI: false,
+        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
+        queryMultipleAccounts:
+          preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1638,15 +1596,18 @@ export class Engine {
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
+      MultichainAccountService: multichainAccountService,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
-      BridgeStatusController: bridgeStatusController,
+      BridgeStatusController: controllersByName.BridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
+      RewardsController: rewardsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1739,6 +1700,21 @@ export class Engine {
             new Error('Snap was terminated.'),
           );
         }
+      },
+    );
+
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      (state: AppStateStatus) => {
+        if (state !== 'active' && state !== 'background') {
+          return;
+        }
+        // Notifies Snaps that the app may be in the background.
+        // This is best effort as we cannot guarantee the messages are received in time.
+        return this.controllerMessenger.call(
+          'SnapController:setClientActive',
+          state === 'active',
+        );
       },
     );
     ///: END:ONLY_INCLUDE_IF
@@ -2198,6 +2174,10 @@ export class Engine {
 
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.appStateListener?.remove();
+    ///: END:ONLY_INCLUDE_IF
   }
 
   async destroyEngineInstance() {
@@ -2210,6 +2190,7 @@ export class Engine {
     });
     this.removeAllListeners();
     await this.resetState();
+
     Engine.instance = null;
   }
 
@@ -2370,6 +2351,8 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      NetworkEnablementController,
+      RewardsController,
     } = instance.datamodel.state;
 
     return {
@@ -2425,6 +2408,8 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      NetworkEnablementController,
+      RewardsController,
     };
   },
 

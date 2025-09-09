@@ -1,19 +1,15 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { ApprovalType } from '@metamask/controller-utils';
 
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import Routes from '../../../../constants/navigation/Routes';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
-import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
-import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
+import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 
 export const useConfirmActions = () => {
   const {
@@ -21,6 +17,7 @@ export const useConfirmActions = () => {
     onReject: onRequestReject,
     approvalRequest,
   } = useApprovalRequest();
+  const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
   const { captureSignatureMetrics } = useSignatureMetrics();
   const {
     cancelQRScanRequestIfPresent,
@@ -29,20 +26,18 @@ export const useConfirmActions = () => {
   } = useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
-  const transactionMetadata = useTransactionMetadataRequest();
-  const shouldUseSmartTransaction = useSelector((state: RootState) =>
-    selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
-  );
-  const { isFullScreenConfirmation } = useFullScreenConfirmation();
-
-  const isSignatureReq =
-    approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
+  const approvalType = approvalRequest?.type;
+  const isSignatureReq = approvalType && isSignatureRequest(approvalType);
+  const isTransactionReq =
+    approvalType && approvalType === ApprovalType.Transaction;
 
   const onReject = useCallback(
-    async (error?: Error) => {
+    async (error?: Error, skipNavigation = false) => {
       await cancelQRScanRequestIfPresent();
       onRequestReject(error);
-      navigation.goBack();
+      if (!skipNavigation) {
+        navigation.goBack();
+      }
       if (isSignatureReq) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
         PPOMUtil.clearSignatureSecurityAlertResponse();
@@ -62,37 +57,40 @@ export const useConfirmActions = () => {
       openLedgerSignModal();
       return;
     }
+
     if (isQRSigningInProgress) {
       setScannerVisible(true);
       return;
     }
+
+    if (isTransactionReq) {
+      onTransactionConfirm();
+      return;
+    }
+
     await onRequestConfirm({
-      waitForResult: isSignatureReq || !shouldUseSmartTransaction,
+      waitForResult: true,
       deleteAfterResult: true,
       handleErrors: false,
     });
 
-    if (isFullScreenConfirmation) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    } else {
-      navigation.goBack();
-    }
+    navigation.goBack();
 
     if (isSignatureReq) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [
+    captureSignatureMetrics,
     isQRSigningInProgress,
+    isSignatureReq,
+    isTransactionReq,
     ledgerSigningInProgress,
     navigation,
+    onRequestConfirm,
+    onTransactionConfirm,
     openLedgerSignModal,
     setScannerVisible,
-    captureSignatureMetrics,
-    onRequestConfirm,
-    isSignatureReq,
-    isFullScreenConfirmation,
-    shouldUseSmartTransaction,
   ]);
 
   return { onConfirm, onReject };

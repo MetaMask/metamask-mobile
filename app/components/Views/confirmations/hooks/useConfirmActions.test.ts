@@ -1,7 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 
 import Engine from '../../../../core/Engine';
-import Routes from '../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
@@ -12,9 +11,10 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../context/ledger-context/ledger-context';
-// eslint-disable-next-line import/no-namespace
-import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
 import { useConfirmActions } from './useConfirmActions';
+import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+
+jest.mock('./transactions/useTransactionConfirm');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -55,15 +55,21 @@ const createUseLedgerContextSpy = (mockedValues = {}) => {
 };
 
 describe('useConfirmAction', () => {
+  const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
   const useNavigationMock = jest.mocked(useNavigation);
   const navigateMock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     useNavigationMock.mockReturnValue({
       goBack: jest.fn(),
       navigate: navigateMock,
     } as unknown as ReturnType<typeof useNavigation>);
+
+    useTransactionConfirmMock.mockReturnValue({
+      onConfirm: jest.fn(),
+    });
   });
 
   it('call setScannerVisible if QR signing is in progress', async () => {
@@ -113,7 +119,6 @@ describe('useConfirmAction', () => {
       state: stakingDepositConfirmationState,
     });
     result?.current?.onConfirm();
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     await flushPromises();
     expect(mockCaptureSignatureMetrics).not.toHaveBeenCalled();
     expect(clearSecurityAlertResponseSpy).not.toHaveBeenCalled();
@@ -160,24 +165,6 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).not.toHaveBeenCalled();
   });
 
-  it('call acceptPendingApproval with parameters waitForResult as true for signatures even if smart transactions are enabled', async () => {
-    jest
-      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
-      .mockReturnValue(true);
-    const personalSignId = '76b33b40-7b5c-11ef-bc0a-25bce29dbc09';
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: personalSignatureConfirmationState,
-    });
-    result?.current?.onConfirm();
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-      personalSignId,
-      personalSignatureConfirmationState.engine.backgroundState
-        .ApprovalController.pendingApprovals[personalSignId].requestData,
-      { deleteAfterResult: true, handleErrors: false, waitForResult: true },
-    );
-  });
-
   it('call required callbacks when reject button is clicked', async () => {
     const clearSecurityAlertResponseSpy = jest.spyOn(
       PPOMUtil,
@@ -200,50 +187,15 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to transactions view if confirmation is standalone confirmation', async () => {
+  it('does not navigate back when onReject is called with skipNavigation as true', async () => {
+    const goBackSpy = jest.fn();
+    useNavigationMock.mockReturnValue({
+      goBack: goBackSpy,
+    } as unknown as ReturnType<typeof useNavigation>);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: stakingDepositConfirmationState,
+      state: personalSignatureConfirmationState,
     });
-    result?.current?.onConfirm();
-    await flushPromises();
-
-    expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-  });
-
-  it('call acceptPendingApproval with parameters waitForResult as false for transactions if smart transactions are enabled', async () => {
-    jest
-      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
-      .mockReturnValue(true);
-    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: stakingDepositConfirmationState,
-    });
-    result?.current?.onConfirm();
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-      transactionId,
-      stakingDepositConfirmationState.engine.backgroundState.ApprovalController
-        .pendingApprovals[transactionId].requestData,
-      { deleteAfterResult: true, handleErrors: false, waitForResult: false },
-    );
-  });
-
-  it('call acceptPendingApproval with parameters waitForResult as true for transactions if smart transactions are not enabled', async () => {
-    jest
-      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
-      .mockReturnValue(false);
-    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: stakingDepositConfirmationState,
-    });
-    result?.current?.onConfirm();
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-      transactionId,
-      stakingDepositConfirmationState.engine.backgroundState.ApprovalController
-        .pendingApprovals[transactionId].requestData,
-      { deleteAfterResult: true, handleErrors: false, waitForResult: true },
-    );
+    result?.current?.onReject(undefined, true);
+    expect(goBackSpy).not.toHaveBeenCalled();
   });
 });
