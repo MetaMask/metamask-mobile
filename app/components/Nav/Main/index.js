@@ -13,6 +13,8 @@ import {
   View,
   Linking,
 } from 'react-native';
+import { Skeleton } from '../../../component-library/components/Skeleton';
+import { isE2E } from '../../../util/test/utils';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
@@ -91,6 +93,7 @@ import {
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
+import SlowRpcConnectionModal from '../../UI/SlowRpcConnectionModal';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -108,6 +111,12 @@ import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
 
+// Skeleton loading wrapper - same pattern as CardHome
+const SkeletonLoading = (props) => {
+  if (isE2E) return null;
+  return <Skeleton {...props} />;
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     flex: {
@@ -118,6 +127,36 @@ const createStyles = (colors) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    skeletonTopArea: {
+      paddingHorizontal: 16,
+      paddingTop: 60,
+    },
+    skeletonTopTitle: {
+      marginBottom: 8,
+    },
+    skeletonTopSubtitle: {
+      marginBottom: 20,
+    },
+    skeletonContentArea: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    skeletonCard: {
+      marginBottom: 16,
+      borderRadius: 8,
+    },
+    skeletonTabBar: {
+      height: 80,
+      flexDirection: 'row',
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+      justifyContent: 'space-around',
+    },
+    skeletonTabIcon: {
+      borderRadius: 20,
     },
   });
 
@@ -251,10 +290,46 @@ const Main = (props) => {
   };
 
   const renderLoader = () => (
-    <View style={styles.loader}>
-      <ActivityIndicator size="small" />
+    <View style={styles.flex}>
+      {/* Top area - mimics wallet header */}
+      <View style={styles.skeletonTopArea}>
+        <SkeletonLoading
+          width="50%"
+          height={32}
+          style={styles.skeletonTopTitle}
+        />
+        <SkeletonLoading
+          width="80%"
+          height={48}
+          style={styles.skeletonTopSubtitle}
+        />
+      </View>
+
+      {/* Content area - mimics wallet content */}
+      <View style={styles.skeletonContentArea}>
+        <SkeletonLoading
+          width="100%"
+          height={120}
+          style={styles.skeletonCard}
+        />
+        <SkeletonLoading width="100%" height={80} style={styles.skeletonCard} />
+        <SkeletonLoading width="100%" height={80} style={styles.skeletonCard} />
+      </View>
+
+      {/* Bottom tabs - mimics tab bar */}
+      <View style={styles.skeletonTabBar}>
+        {[1, 2, 3, 4, 5].map((index) => (
+          <SkeletonLoading
+            key={index}
+            width={40}
+            height={40}
+            style={styles.skeletonTabIcon}
+          />
+        ))}
+      </View>
     </View>
   );
+
   const skipAccountModalSecureNow = () => {
     props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
       screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
@@ -512,6 +587,7 @@ const Main = (props) => {
         )}
         <ProtectYourWalletModal navigation={props.navigation} />
         <InfoNetworkModal />
+        <SlowRpcConnectionModal />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
       </View>

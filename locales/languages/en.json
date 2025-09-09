@@ -5643,5 +5643,25 @@
       "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "perps_deposit": "Add funds"
     }
+  },
+  "custom_rpc_connection_modal": {
+    "network_slow_title": "Network connection slow",
+    "network_failed_title": "Network connection failed",
+    "network_connection_slow_title": "Network connection slow",
+    "network_connection_failed_title": "Network connection failed",
+    "network_initialization_slow_title": "Network initialization slow",
+    "network_initialization_failed_title": "Network initialization failed",
+    "custom_network_warning": "The network \"{{networkName}}\" is taking longer than expected to connect. This might be because of a problem with the custom RPC endpoint.",
+    "network_warning": "The network \"{{networkName}}\" is taking longer than expected to connect. This might be because of a problem with the RPC endpoint.",
+    "still_connecting": "Still connecting to network...",
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "network_slow_description": "The network is taking more than 30 seconds to initialize. The connection is still being attempted.",
+    "network_unavailable_description": "The network you're trying to connect to isn't available. This might be because of a problem with the custom RPC.",
+    "try_again": "Try again",
+    "retrying": "Retrying...",
+    "switch_network": "Switch network"
+  },
+  "slow_rpc_connection_banner": {
+    "loading_network": "Connecting to {{networkName}}..."
   }
 }

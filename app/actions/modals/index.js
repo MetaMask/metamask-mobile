@@ -31,3 +31,21 @@ export function toggleSignModal(show) {
     show,
   };
 }
+
+export function toggleSlowRpcConnectionModal({
+  visible,
+  connectionState,
+} = {}) {
+  return {
+    type: 'TOGGLE_SLOW_RPC_CONNECTION_MODAL',
+    visible,
+    connectionState,
+  };
+}
+
+export function toggleSlowRpcConnectionBanner({ visible } = {}) {
+  return {
+    type: 'TOGGLE_SLOW_RPC_CONNECTION_BANNER',
+    visible,
+  };
+}
