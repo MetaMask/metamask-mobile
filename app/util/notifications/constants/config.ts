@@ -9,7 +9,7 @@ import { isE2E } from '../../test/utils';
  * @returns boolean if notifications feature is enabled.
  */
 export const isNotificationsFeatureEnabled = () => {
-  if (isE2E) {
+  if (isE2E || process.env.DISABLE_NOTIFICATION_PROMPT === 'true') {
     return true;
   }
 

@@ -70,295 +70,23 @@ jobs:
             exit 1
           fi
 
-  # Job to trigger QA builds and extract BrowserStack URLs
-  trigger-qa-builds-and-upload:
-    name: Trigger QA Builds and Extract BrowserStack URLs
-    runs-on: ubuntu-latest
-    needs: read-device-matrix
+  
+  # Job to trigger Imported Wallet QA builds and extract BrowserStack URLs
+  trigger-imported-wallet-build:
+    name: Trigger Imported Wallet QA Builds and Extract BrowserStack URLs
+    uses: ./.github/workflows/trigger-qa-builds.yml
+    with:
+      build-type: 'performance'
     # Only run if BrowserStack URLs are not provided
     if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
-    env:
-      BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
-      BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
-      BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-      
-      - name: Install dependencies
-        run: yarn setup
-      
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      
-      - name: Trigger Bitrise QA Builds
-        env:
-          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
-          BITRISE_BUILD_TRIGGER_TOKEN: ${{ env.BITRISE_BUILD_TRIGGER_TOKEN }}
-          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Triggering Bitrise QA builds..."
-          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ github.ref_name }}"
-          
-          # Trigger QA builds pipeline (handles both Android and iOS)
-          BUILD_RESPONSE=$(curl -s -X POST \
-            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "build_params": {
-                "branch": "${{ github.ref_name }}",
-                "pipeline_id": "create_qa_builds_pipeline",
-                "commit_message": "Triggered by Performance E2E workflow with Pre-Imported Wallet",
-                "environments": [
-                  {
-                    "mapped_to": "ADDITIONAL_SRP_1",
-                    "value": "${{ secrets.TEST_SRP_1 }}",
-                    "is_expand": true
-                  },
-                  {
-                    "mapped_to": "PREDEFINED_PASSWORD",
-                    "value": "${{ secrets.E2E_PASSWORD }}",
-                    "is_expand": true
-                  }
-                ]
-              },
-              "hook_info": {
-                "type": "bitrise",
-                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
-              },
-              "triggered_by": "GitHub Actions Performance E2E"
-            }')
-          
-          echo "Build response: $BUILD_RESPONSE"
-          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
-          echo "Build slug: $BUILD_SLUG"
-          
-          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
-            echo "Error: Failed to get build slug"
-            echo "Full response: $BUILD_RESPONSE"
-            echo "Trying alternative response structure..."
-            # Try different possible response structures
-            BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.data.build_slug // .build_slug // .slug')
-            echo "Alternative build slug: $BUILD_SLUG"
-            if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
-              echo "Still no build slug found. Response keys:"
-              echo "$BUILD_RESPONSE" | jq -r 'keys[]'
-              exit 1
-            fi
-          fi
-          
-          # Store build slug for artifact download
-          echo "BUILD_SLUG=$BUILD_SLUG" >> "$GITHUB_ENV"
-          
-          echo "Waiting for build to complete..."
-          TIMEOUT=1800  # 30 minutes
-          ELAPSED=0
-          
-          while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
-            # Check pipeline status using the correct v0.1 API endpoint
-            echo "Checking pipeline status for slug: $BUILD_SLUG"
-            PIPELINE_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/pipelines/$BUILD_SLUG")
-            echo "Pipeline response: $PIPELINE_RESPONSE"
-            
-            PIPELINE_STATUS=$(echo "$PIPELINE_RESPONSE" | jq -r '.status')
-            echo "Pipeline status: $PIPELINE_STATUS"
-            
-            if [ "$PIPELINE_STATUS" = "succeeded" ]; then
-              echo "Pipeline completed successfully!"
-              break
-            elif [ "$PIPELINE_STATUS" = "failed" ]; then
-              echo "Pipeline failed!"
-              exit 1
-            elif [ "$PIPELINE_STATUS" = "in_progress" ] || [ "$PIPELINE_STATUS" = "running" ]; then
-              echo "Pipeline is in progress..."
-            elif [ "$PIPELINE_STATUS" = "null" ]; then
-              echo "Pipeline status is null, checking if pipeline exists..."
+    secrets: inherit
 
-            fi
-            
-            sleep 30
-            ELAPSED=$((ELAPSED + 30))
-          done
-          
-          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
-            echo "Timeout waiting for pipeline to complete"
-            echo "Final pipeline status: $PIPELINE_STATUS"
-            echo "Pipeline slug: $BUILD_SLUG"
-            exit 1
-          fi
-          
-          # Extract build IDs from the completed pipeline
-          echo "Extracting build IDs from completed pipeline..."
-          ANDROID_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_android_qa") | .external_id')
-          IOS_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_ios_qa") | .external_id')
-          
-          
-          if [[ -z "$ANDROID_BUILD_ID" || "$ANDROID_BUILD_ID" == "null" ]]; then
-            echo "Error: Failed to get Android build ID"
-            exit 1
-          fi
-          
-          if [[ -z "$IOS_BUILD_ID" || "$IOS_BUILD_ID" == "null" ]]; then
-            echo "Error: Failed to get iOS build ID"
-            exit 1
-          fi
-          
-          # Store build IDs for artifact download
-          {
-            echo "ANDROID_BUILD_ID=$ANDROID_BUILD_ID"
-            echo "IOS_BUILD_ID=$IOS_BUILD_ID"
-          } >> "$GITHUB_ENV"
-      
-      - name: Download Build Artifacts
-        id: download-artifacts
-        env:
-          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
-          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
-        run: |
-          echo "Downloading browserstack_uploaded_apps.json files..."
-          echo "Android Build ID: $ANDROID_BUILD_ID"
-          echo "iOS Build ID: $IOS_BUILD_ID"
-          
-          # Download Android browserstack_uploaded_apps.json
-          echo "Fetching Android artifacts..."
-          ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts")
-          
-          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts" > /dev/null; then
-            echo "Error: Failed to fetch Android artifacts"
-            exit 1
-          fi
-                    
-          # Find the browserstack_uploaded_apps.json file
-          ANDROID_BS_JSON_ARTIFACT=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data[] | 
-            select(.title == "browserstack_uploaded_apps.json")')
-          
-          echo "Android browserstack JSON artifact: $ANDROID_BS_JSON_ARTIFACT"
-          
-          if [[ -n "$ANDROID_BS_JSON_ARTIFACT" ]]; then
-            ANDROID_BS_ARTIFACT_SLUG=$(echo "$ANDROID_BS_JSON_ARTIFACT" | jq -r '.slug')
-
-            # Download the JSON file
-            ANDROID_BS_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts/$ANDROID_BS_ARTIFACT_SLUG" | \
-              jq -r '.data.expiring_download_url')
-            
-            if [[ -n "$ANDROID_BS_DOWNLOAD_URL" && "$ANDROID_BS_DOWNLOAD_URL" != "null" ]]; then
-              echo "Downloading Android browserstack JSON..."
-              wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"
-              
-              if ! wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"; then
-                echo "Error: Failed to download Android browserstack JSON"
-                exit 1
-              fi
-              
-              # Extract the first Android APK app_url
-              ANDROID_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_url' "android_browserstack_apps.json" | head -1)
-              ANDROID_VERSION=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_version' "android_browserstack_apps.json" | head -1)
-              
-              echo "Android BrowserStack URL: $ANDROID_BS_URL"
-              echo "Android version: $ANDROID_VERSION"
-              {
-                echo "android-version=$ANDROID_VERSION"
-                echo "browserstack-android-url=$ANDROID_BS_URL"
-              } >> "$GITHUB_OUTPUT"
-            else
-              echo "Error: No Android browserstack JSON download URL found"
-              exit 1
-            fi
-          else
-            echo "Error: No Android browserstack_uploaded_apps.json artifact found"
-            exit 1
-          fi
-          
-          # Download iOS browserstack_uploaded_apps.json
-          echo "Fetching iOS artifacts..."
-          IOS_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts")
-          
-          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts" > /dev/null; then
-            echo "Error: Failed to fetch iOS artifacts"
-            exit 1
-          fi
-                    
-          # Find the browserstack_uploaded_apps.json file
-          IOS_BS_JSON_ARTIFACT=$(echo "$IOS_ARTIFACTS" | jq -r '.data[] | 
-            select(.title == "browserstack_uploaded_apps.json")')
-          
-          echo "iOS browserstack JSON artifact: $IOS_BS_JSON_ARTIFACT"
-          
-          if [[ -n "$IOS_BS_JSON_ARTIFACT" ]]; then
-            IOS_BS_ARTIFACT_SLUG=$(echo "$IOS_BS_JSON_ARTIFACT" | jq -r '.slug')
-            echo "iOS browserstack artifact slug: $IOS_BS_ARTIFACT_SLUG"
-            
-            # Download the JSON file
-            IOS_BS_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts/$IOS_BS_ARTIFACT_SLUG" | \
-              jq -r '.data.expiring_download_url')
-            
-            if [[ -n "$IOS_BS_DOWNLOAD_URL" && "$IOS_BS_DOWNLOAD_URL" != "null" ]]; then
-              echo "Downloading iOS browserstack JSON..."
-              wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"
-              
-              if ! wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"; then
-                echo "Error: Failed to download iOS browserstack JSON"
-                exit 1
-              fi
-              
-              # Extract the first iOS IPA app_url
-              IOS_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_url' "ios_browserstack_apps.json" | head -1)
-              IOS_VERSION=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_version' "ios_browserstack_apps.json" | head -1)
-              
-              echo "iOS BrowserStack URL: $IOS_BS_URL"
-              echo "iOS version: $IOS_VERSION"
-              {
-                echo "ios-version=$IOS_VERSION"
-                echo "browserstack-ios-url=$IOS_BS_URL"
-              } >> "$GITHUB_OUTPUT"
-            else
-              echo "Error: No iOS browserstack JSON download URL found"
-              exit 1
-            fi
-          else
-            echo "Error: No iOS browserstack_uploaded_apps.json artifact found"
-            exit 1
-          fi
-          
-          echo "BrowserStack URLs extracted successfully!"
-          echo "Android: $ANDROID_BS_URL"
-          echo "iOS: $IOS_BS_URL"
-    
-    outputs:
-      android-version: ${{ steps.download-artifacts.outputs.android-version }}
-      ios-version: ${{ steps.download-artifacts.outputs.ios-version }}
-      browserstack-android-url: ${{ steps.download-artifacts.outputs.browserstack-android-url }}
-      browserstack-ios-url: ${{ steps.download-artifacts.outputs.browserstack-ios-url }}
-
-  android-tests:
-    name: Android Tests
+  # Android Imported Wallet Flow Tests
+  android-imported-wallet-flows:
+    name: Android Imported Wallet Flow Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix, trigger-qa-builds-and-upload]
+    needs: [read-device-matrix, trigger-imported-wallet-build]
     # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
@@ -416,7 +144,7 @@ jobs:
           echo "Setting test environment for device: ${{ matrix.device.name }}"
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
-          ANDROID_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
+          ANDROID_APP_URL="${{ needs.trigger-imported-wallet-build.outputs.browserstack-android-url }}"
           if [ -z "$ANDROID_APP_URL" ]; then
             ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
             echo "ℹ️ Using Android URL from input (trigger job was skipped)"
@@ -427,12 +155,12 @@ jobs:
           # Validate that we have a BrowserStack URL
           if [ -z "$ANDROID_APP_URL" ]; then
             echo "❌ Error: No Android BrowserStack URL available"
-            echo "Either provide browserstack_app_url_android as input or ensure trigger-qa-builds-and-upload job runs successfully"
+            echo "Either provide browserstack_app_url_android as input or ensure trigger-imported-wallet-build job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
+          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.android-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -446,7 +174,7 @@ jobs:
             echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
       
-      - name: Run Android Tests on ${{ matrix.device.name }}
+      - name: Run Android Performance Tests on ${{ matrix.device.name }}
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
@@ -458,24 +186,26 @@ jobs:
           echo "QA App Version: $QA_APP_VERSION"
           echo "BrowserStack Android App URL: $BROWSERSTACK_ANDROID_APP_URL"
           
+          # Run all performance tests except onboarding scenarios (2,3)
           yarn run-appwright:android-bs
       
       - name: Upload Android Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: android-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: android-imported-wallet-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports
           if-no-files-found: ignore
           retention-days: 7
 
-  ios-tests:
-    name: iOS Tests
+  # iOS Imported Wallet Flow Tests
+  ios-imported-wallet-flows:
+    name: iOS Imported Wallet Flow Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix, trigger-qa-builds-and-upload]
+    needs: [read-device-matrix, trigger-imported-wallet-build]
     # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
@@ -533,7 +263,7 @@ jobs:
           echo "Setting test environment for device: ${{ matrix.device.name }}"
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
-          IOS_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
+          IOS_APP_URL="${{ needs.trigger-imported-wallet-build.outputs.browserstack-ios-url }}"
           if [ -z "$IOS_APP_URL" ]; then
             IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
             echo "ℹ️ Using iOS URL from input (trigger job was skipped)"
@@ -544,12 +274,12 @@ jobs:
           # Validate that we have a BrowserStack URL
           if [ -z "$IOS_APP_URL" ]; then
             echo "❌ Error: No iOS BrowserStack URL available"
-            echo "Either provide browserstack_app_url_ios as input or ensure trigger-qa-builds-and-upload job runs successfully"
+            echo "Either provide browserstack_app_url_ios as input or ensure trigger-imported-wallet-build job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
+          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.ios-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -562,7 +292,7 @@ jobs:
             echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
       
-      - name: Run iOS Tests on ${{ matrix.device.name }}
+      - name: Run iOS Performance Tests on ${{ matrix.device.name }}
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
@@ -577,24 +307,350 @@ jobs:
             echo "Warning: iOS ${{ matrix.device.os_version }} may not be supported by MetaMask app"
           fi
           
+          # Run all performance tests except onboarding scenarios (2,3)
           yarn run-appwright:ios-bs
       
       - name: Upload iOS Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ios-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ios-imported-wallet-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports
           if-no-files-found: ignore
           retention-days: 7
 
-  # Results Gathering Job
-  gather-results:
-    name: Gather Test Results
+  # Non-Onboarding Results Gathering Job
+  gather-performance-results:
+    name: Gather Imported Wallet Flow Test Results
     runs-on: ubuntu-latest
-    needs: [android-tests, ios-tests]
+    needs: [android-imported-wallet-flows, ios-imported-wallet-flows]
+    if: always()  # Always run, even if previous jobs failed
+    steps:
+      - name: Download Performance Test Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-imported-wallet-test-results-*'
+          merge-multiple: true
+          path: ./performance-results
+      
+      - name: Process Performance Results
+        run: |
+          echo "Processing performance test results..."
+          if [ -d "./performance-results" ]; then
+            echo "Performance results found:"
+            find ./performance-results -name "*.json" -o -name "*.html" | head -10
+          else
+            echo "No performance results found"
+          fi
+      
+      - name: Upload Performance Results Summary
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: imported-wallet-flow-results-summary
+          path: ./performance-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # =============================================================================
+  # ONBOARDING TESTS GROUP
+  # =============================================================================
+  
+  # Job to trigger Onboarding QA builds and extract BrowserStack URLs
+  trigger-onboarding-builds:
+    name: Trigger Onboarding QA Builds and Extract BrowserStack URLs
+    uses: ./.github/workflows/trigger-qa-builds.yml
+    with:
+      build-type: 'onboarding'
+    # Only run if BrowserStack URLs are not provided
+    if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
+    secrets: inherit
+
+  # Android Onboarding Flow Tests
+  android-onboarding-flows:
+    name: Android Onboarding Flow Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: [read-device-matrix, trigger-onboarding-builds]
+    # Always run after device matrix is ready, regardless of trigger job status
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Restore node_modules cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      
+      - name: Install dependencies (if cache miss)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: yarn setup
+      
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ env.BROWSERSTACK_USERNAME }}
+          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+      
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ github.run_id }}
+          local-args: --force-local --verbose
+      
+      - name: Wait for BrowserStack Local
+        run: |
+          echo "Waiting for BrowserStack Local to be ready..."
+          sleep 30
+          echo "BrowserStack Local should be ready now"
+      
+      - name: Set Onboarding Test Environment
+        run: |
+          echo "Setting onboarding test environment for device: ${{ matrix.device.name }}"
+          
+          # Use BrowserStack URL from trigger job if it ran, otherwise from input
+          ANDROID_APP_URL="${{ needs.trigger-onboarding-builds.outputs.browserstack-android-url }}"
+          if [ -z "$ANDROID_APP_URL" ]; then
+            ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
+            echo "ℹ️ Using Android URL from input (trigger job was skipped)"
+          else
+            echo "ℹ️ Using Android URL from trigger job"
+          fi
+          
+          # Validate that we have a BrowserStack URL
+          if [ -z "$ANDROID_APP_URL" ]; then
+            echo "❌ Error: No Android BrowserStack URL available"
+            echo "Either provide browserstack_app_url_android as input or ensure trigger-imported-wallet-build job runs successfully"
+            exit 1
+          fi
+          
+          # Use app version from trigger job if available, otherwise default
+          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.android-version }}"
+          if [ -z "$APP_VERSION" ]; then
+            APP_VERSION="Manual-Input"
+          fi
+          
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_ANDROID_APP_URL=$ANDROID_APP_URL"
+            echo "TEST_PLATFORM=android"
+            echo "QA_APP_VERSION=$APP_VERSION"
+            echo "BROWSERSTACK_BUILD_NAME=Android-Onboarding-${{ github.ref_name }}-Branch"
+          } >> "$GITHUB_ENV"
+      
+      - name: Run Android Onboarding Tests on ${{ matrix.device.name }}
+        env:
+          BROWSERSTACK_LOCAL: true
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+        run: |
+          echo "=== Testing Onboarding on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "OS Version: ${{ matrix.device.os_version }}"
+          echo "Category: ${{ matrix.device.category }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "QA App Version: $QA_APP_VERSION"
+          echo "BrowserStack Android App URL: $BROWSERSTACK_ANDROID_CLEAN_APP_URL"
+          
+          # Run only onboarding tests (scenarios 2,3)
+          yarn run-appwright:android-onboarding-bs
+      
+      - name: Upload Android Onboarding Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-onboarding-flow-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          path: |
+            appwright/test-reports/appwright-report/
+            appwright/reporters/reports
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # iOS Onboarding Flow Tests
+  ios-onboarding-flows:
+    name: iOS Onboarding Flow Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: [read-device-matrix, trigger-onboarding-builds]
+    # Always run after device matrix is ready, regardless of trigger job status
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Restore node_modules cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      
+      - name: Install dependencies (if cache miss)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: yarn setup
+      
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ env.BROWSERSTACK_USERNAME }}
+          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+      
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ github.run_id }}
+          local-args: --force-local --verbose
+      
+      - name: Wait for BrowserStack Local
+        run: |
+          echo "Waiting for BrowserStack Local to be ready..."
+          sleep 30
+          echo "BrowserStack Local should be ready now"
+      
+      - name: Set iOS Onboarding Test Environment
+        run: |
+          echo "Setting iOS onboarding test environment for device: ${{ matrix.device.name }}"
+          
+          # Use BrowserStack URL from trigger job if it ran, otherwise from input
+          IOS_APP_URL="${{ needs.trigger-imported-wallet-build.outputs.browserstack-ios-url }}"
+          if [ -z "$IOS_APP_URL" ]; then
+            IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
+            echo "ℹ️ Using iOS URL from input (trigger job was skipped)"
+          else
+            echo "ℹ️ Using iOS URL from trigger job"
+          fi
+          
+          # Validate that we have a BrowserStack URL
+          if [ -z "$IOS_APP_URL" ]; then
+            echo "❌ Error: No iOS BrowserStack URL available"
+            echo "Either provide browserstack_app_url_ios as input or ensure trigger-imported-wallet-build job runs successfully"
+            exit 1
+          fi
+          
+          # Use app version from trigger job if available, otherwise default
+          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.ios-version }}"
+          if [ -z "$APP_VERSION" ]; then
+            APP_VERSION="Manual-Input"
+          fi
+          
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_IOS_APP_URL=$IOS_APP_URL"
+            echo "TEST_PLATFORM=ios"
+            echo "QA_APP_VERSION=$APP_VERSION"
+            echo "BROWSERSTACK_BUILD_NAME=iOS-Onboarding-${{ github.ref_name }}-Branch"
+          } >> "$GITHUB_ENV"
+      
+      - name: Run iOS Onboarding Tests on ${{ matrix.device.name }}
+        env:
+          BROWSERSTACK_LOCAL: true
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+        run: |
+          echo "=== Testing iOS Onboarding on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "OS Version: ${{ matrix.device.os_version }}"
+          echo "Category: ${{ matrix.device.category }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "QA App Version: $QA_APP_VERSION"
+          echo "BrowserStack iOS App URL: $BROWSERSTACK_IOS_APP_URL"
+          if [ "${{ matrix.device.os_version }}" == "13" ] || [ "${{ matrix.device.os_version }}" == "11" ]; then
+            echo "Warning: iOS ${{ matrix.device.os_version }} may not be supported by MetaMask app"
+          fi
+          
+          # Run only onboarding tests (scenarios 2,3)
+          yarn run-appwright:ios-onboarding-bs
+      
+      - name: Upload iOS Onboarding Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-onboarding-flow-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          path: |
+            appwright/test-reports/appwright-report/
+            appwright/reporters/reports
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Onboarding Results Gathering Job
+  gather-onboarding-results:
+    name: Gather Onboarding Flow Test Results
+    runs-on: ubuntu-latest
+    needs: [android-onboarding-flows, ios-onboarding-flows]
+    if: always()  # Always run, even if previous jobs failed
+    steps:
+      - name: Download Onboarding Test Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-onboarding-flow-test-results-*'
+          merge-multiple: true
+          path: ./onboarding-results
+      
+      - name: Process Onboarding Results
+        run: |
+          echo "Processing onboarding test results..."
+          if [ -d "./onboarding-results" ]; then
+            echo "Onboarding results found:"
+            find ./onboarding-results -name "*.json" -o -name "*.html" | head -10
+          else
+            echo "No onboarding results found"
+          fi
+      
+      - name: Upload Onboarding Results Summary
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: onboarding-flow-results-summary
+          path: ./onboarding-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # =============================================================================
+  # OVERALL RESULTS AND STATUS
+  # =============================================================================
+
+  # Overall Results Gathering Job
+  gather-results:
+    name: Gather All Test Results
+    runs-on: ubuntu-latest
+    needs: [gather-performance-results, gather-onboarding-results]
     if: always()  # Always run, even if previous jobs failed
     
     steps:
@@ -608,12 +664,12 @@ jobs:
         run: |
           echo "🔍 Searching for JSON performance reports..."
           echo "📊 Job status context:"
-          echo "  Android tests: ${{ needs.android-tests.result }}"
-          echo "  iOS tests: ${{ needs.ios-tests.result }}"
+          echo "  Android tests: ${{ needs.android-imported-wallet-flows.result }}"
+          echo "  iOS tests: ${{ needs.ios-imported-wallet-flows.result }}"
           
           # Set environment variables for job results
-          export ANDROID_JOB_STATUS="${{ needs.android-tests.result }}"
-          export IOS_JOB_STATUS="${{ needs.ios-tests.result }}"
+          export ANDROID_JOB_STATUS="${{ needs.android-imported-wallet-flows.result }}"
+          export IOS_JOB_STATUS="${{ needs.ios-imported-wallet-flows.result }}"
           
           # Create output directory
           mkdir -p appwright/aggregated-reports
@@ -934,8 +990,8 @@ jobs:
       - name: Check Test Results  
         id: test-results
         run: |
-          ANDROID_STATUS="${{ needs.android-tests.result }}"
-          IOS_STATUS="${{ needs.ios-tests.result }}"
+          ANDROID_STATUS="${{ needs.android-imported-wallet-flows.result }}"
+          IOS_STATUS="${{ needs.ios-imported-wallet-flows.result }}"
           
           echo "📊 Test Results Summary:"
           echo "  Android tests: $ANDROID_STATUS"
@@ -965,12 +1021,12 @@ jobs:
   all-status:
     name: Check All Job Statuses
     runs-on: ubuntu-latest
-    needs: [read-device-matrix, trigger-qa-builds-and-upload, android-tests, ios-tests, gather-results]
+    needs: [read-device-matrix, trigger-imported-wallet-build, trigger-onboarding-builds, gather-performance-results, gather-onboarding-results, gather-results]
     if: always()
     outputs:
       overall_status: ${{ steps.status-check.outputs.overall_status }}
-      android_status: ${{ steps.status-check.outputs.android_status }}
-      ios_status: ${{ steps.status-check.outputs.ios_status }}
+      performance_status: ${{ steps.status-check.outputs.performance_status }}
+      onboarding_status: ${{ steps.status-check.outputs.onboarding_status }}
       trigger_status: ${{ steps.status-check.outputs.trigger_status }}
     
     steps:
@@ -979,32 +1035,34 @@ jobs:
         run: |
           echo "Checking status of all jobs..."
           
-          TRIGGER_RESULT="${{ needs.trigger-qa-builds-and-upload.result }}"
-          ANDROID_RESULT="${{ needs.android-tests.result }}"
-          IOS_RESULT="${{ needs.ios-tests.result }}"
+          TRIGGER_RESULT="${{ needs.trigger-imported-wallet-build.result }}"
+          ONBOARDING_TRIGGER_RESULT="${{ needs.trigger-onboarding-builds.result }}"
+          PERFORMANCE_RESULTS="${{ needs.gather-performance-results.result }}"
+          ONBOARDING_RESULTS="${{ needs.gather-onboarding-results.result }}"
           
           echo "Job Results:"
-          echo "- trigger-qa-builds-and-upload: $TRIGGER_RESULT"
-          echo "- android-tests: $ANDROID_RESULT"
-          echo "- ios-tests: $IOS_RESULT"
+          echo "- trigger-imported-wallet-build: $TRIGGER_RESULT"
+          echo "- trigger-onboarding-builds: $ONBOARDING_TRIGGER_RESULT"
+          echo "- gather-performance-results: $PERFORMANCE_RESULTS"
+          echo "- gather-onboarding-results: $ONBOARDING_RESULTS"
           
           # Get gather-results status
           GATHER_RESULT="${{ needs.gather-results.outputs.overall_status }}"
           echo "- gather-results: $GATHER_RESULT"
           
           # Determine overall status
-          if [ "$TRIGGER_RESULT" = "failure" ]; then
+          if [ "$TRIGGER_RESULT" = "failure" ] || [ "$ONBOARDING_TRIGGER_RESULT" = "failure" ]; then
             OVERALL_STATUS="❌ FAILED"
             echo "Overall Status: FAILED (QA builds failed)"
           elif [ "$GATHER_RESULT" = "failure" ]; then
             OVERALL_STATUS="❌ FAILED"
             echo "Overall Status: FAILED (No performance data collected - all tests failed)"
-          elif [ "$GATHER_RESULT" = "partial_success" ] || [ "$ANDROID_RESULT" = "failure" ] || [ "$IOS_RESULT" = "failure" ]; then
+          elif [ "$GATHER_RESULT" = "partial_success" ] || [ "$PERFORMANCE_RESULTS" = "failure" ] || [ "$ONBOARDING_RESULTS" = "failure" ]; then
             OVERALL_STATUS="⚠️ PARTIAL SUCCESS"
             echo "Overall Status: PARTIAL SUCCESS (Some tests failed, but performance data was collected)"
           else
             OVERALL_STATUS="✅ PASSED"
-            if [ "$TRIGGER_RESULT" = "skipped" ]; then
+            if [ "$TRIGGER_RESULT" = "skipped" ] && [ "$ONBOARDING_TRIGGER_RESULT" = "skipped" ]; then
               echo "Overall Status: PASSED (All tests passed with performance data - used provided BrowserStack URLs)"
             else
               echo "Overall Status: PASSED (All tests passed with performance data)"
@@ -1014,8 +1072,8 @@ jobs:
           # Set outputs
           {
             echo "overall_status=$OVERALL_STATUS"
-            echo "android_status=$ANDROID_RESULT"
-            echo "ios_status=$IOS_RESULT"
+            echo "performance_status=$PERFORMANCE_RESULTS"
+            echo "onboarding_status=$ONBOARDING_RESULTS"
             echo "trigger_status=$TRIGGER_RESULT"
           } >> "$GITHUB_OUTPUT"
 
@@ -1042,20 +1100,20 @@ jobs:
           IOS_DEVICES=$(echo "$DEVICE_MATRIX" | jq -r '.ios_devices[] | "\(.name) (\(.os_version))"')
           
           # Get status from all-status job
-          ANDROID_STATUS="${{ needs.all-status.outputs.android_status }}"
-          IOS_STATUS="${{ needs.all-status.outputs.ios_status }}"
+          PERFORMANCE_STATUS="${{ needs.all-status.outputs.performance_status }}"
+          ONBOARDING_STATUS="${{ needs.all-status.outputs.onboarding_status }}"
           
           # Format status for display
-          if [ "$ANDROID_STATUS" = "success" ]; then
-            ANDROID_DISPLAY="✅ PASSED"
+          if [ "$PERFORMANCE_STATUS" = "success" ]; then
+            PERFORMANCE_DISPLAY="✅ PASSED"
           else
-            ANDROID_DISPLAY="❌ FAILED"
+            PERFORMANCE_DISPLAY="❌ FAILED"
           fi
           
-          if [ "$IOS_STATUS" = "success" ]; then
-            IOS_DISPLAY="✅ PASSED"
+          if [ "$ONBOARDING_STATUS" = "success" ]; then
+            ONBOARDING_DISPLAY="✅ PASSED"
           else
-            IOS_DISPLAY="❌ FAILED"
+            ONBOARDING_DISPLAY="❌ FAILED"
           fi
           
           # Create summary
@@ -1078,8 +1136,8 @@ jobs:
           SUMMARY+="\n"
           SUMMARY+="---------------\n\n"
           SUMMARY+="*Test Results:*\n"
-          SUMMARY+="• Android Tests: $ANDROID_DISPLAY\n"
-          SUMMARY+="• iOS Tests: $IOS_DISPLAY\n\n"
+          SUMMARY+="• Performance Tests (Android + iOS): $PERFORMANCE_DISPLAY\n"
+          SUMMARY+="• Onboarding Tests (Android + iOS): $ONBOARDING_DISPLAY\n\n"
           SUMMARY+="---------------\n\n"
           SUMMARY+="*Build Info:*\n"
           SUMMARY+="• Commit Hash: \`${{ github.sha }}\`\n"

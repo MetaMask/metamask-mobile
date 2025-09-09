@@ -103,6 +103,7 @@ jobs:
           RAMP_INTERNAL_BUILD: "true"
           SEEDLESS_ONBOARDING_ENABLED: "true"
           MM_NOTIFICATIONS_UI_ENABLED: "true"
+          DISABLE_NOTIFICATION_PROMPT: "true"
           MM_SECURITY_ALERTS_API_ENABLED: "true"
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
           # Architecture optimization for BrowserStack builds

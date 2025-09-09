@@ -1,0 +1,605 @@
+# Trigger QA Builds Workflow - Triggers Bitrise builds and extracts BrowserStack URLs
+# This workflow handles both performance builds (with pre-imported wallet) and onboarding builds (without pre-imported wallet)
+
+name: Trigger QA Builds
+
+on:
+  workflow_call:
+    inputs:
+      build-type:
+        description: 'Type of build to trigger (performance or onboarding)'
+        required: true
+        type: string
+        default: 'performance'
+    outputs:
+      android-version:
+        description: 'Android app version'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.android-version || jobs.trigger-onboarding-builds.outputs.android-version }}
+      ios-version:
+        description: 'iOS app version'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.ios-version || jobs.trigger-onboarding-builds.outputs.ios-version }}
+      browserstack-android-url:
+        description: 'BrowserStack URL for Android app'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.browserstack-android-url || jobs.trigger-onboarding-builds.outputs.browserstack-android-url }}
+      browserstack-ios-url:
+        description: 'BrowserStack URL for iOS app'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.browserstack-ios-url || jobs.trigger-onboarding-builds.outputs.browserstack-ios-url }}
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: 'Type of build to trigger (performance or onboarding)'
+        required: true
+        type: choice
+        options:
+          - performance
+          - onboarding
+        default: 'performance'
+      description:
+        description: 'Optional description for this build run'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+  BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+  MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
+  TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
+  TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
+  TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+  DISABLE_NOTIFICATION_PROMPT: "true"
+
+jobs:
+
+  trigger-imported-wallet-build:
+    name: Trigger Imported Wallet QA Builds (with Pre-Imported Wallet)
+    runs-on: ubuntu-latest
+    if: ${{ inputs.build-type == 'performance' || inputs.build-type == '' }}
+    outputs:
+      android-version: ${{ steps.download-artifacts.outputs.android-version }}
+      ios-version: ${{ steps.download-artifacts.outputs.ios-version }}
+      browserstack-android-url: ${{ steps.download-artifacts.outputs.browserstack-android-url }}
+      browserstack-ios-url: ${{ steps.download-artifacts.outputs.browserstack-ios-url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn setup
+      
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      
+      - name: Trigger Bitrise QA Builds
+        env:
+          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
+          BITRISE_BUILD_TRIGGER_TOKEN: ${{ env.BITRISE_BUILD_TRIGGER_TOKEN }}
+          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering Bitrise QA builds..."
+          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
+          echo "Current branch: ${{ github.ref_name }}"
+          
+          # Trigger QA builds pipeline (handles both Android and iOS)
+          BUILD_RESPONSE=$(curl -s -X POST \
+            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_params": {
+                "branch": "${{ github.ref_name }}",
+                "pipeline_id": "create_qa_builds_pipeline",
+                "commit_message": "Triggered by Performance E2E workflow with Pre-Imported Wallet",
+                "environments": [
+                  {
+                    "mapped_to": "ADDITIONAL_SRP_1",
+                    "value": "${{ secrets.TEST_SRP_1 }}",
+                    "is_expand": true
+                  },
+                  {
+                    "mapped_to": "PREDEFINED_PASSWORD",
+                    "value": "${{ secrets.E2E_PASSWORD }}",
+                    "is_expand": true
+                  },
+                  {
+                    "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
+                    "value": "true",
+                    "is_expand": true
+                  }
+                ]
+              },
+              "hook_info": {
+                "type": "bitrise",
+                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
+              },
+              "triggered_by": "GitHub Actions Performance E2E"
+            }')
+          
+          echo "Build response: $BUILD_RESPONSE"
+          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
+          echo "Build slug: $BUILD_SLUG"
+          
+          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+            echo "Error: Failed to get build slug"
+            echo "Full response: $BUILD_RESPONSE"
+            echo "Trying alternative response structure..."
+            # Try different possible response structures
+            BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.data.build_slug // .build_slug // .slug')
+            echo "Alternative build slug: $BUILD_SLUG"
+            if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+              echo "Still no build slug found. Response keys:"
+              echo "$BUILD_RESPONSE" | jq -r 'keys[]'
+              exit 1
+            fi
+          fi
+          
+          # Store build slug for artifact download
+          echo "BUILD_SLUG=$BUILD_SLUG" >> "$GITHUB_ENV"
+          
+          echo "Waiting for build to complete..."
+          TIMEOUT=1800  # 30 minutes
+          ELAPSED=0
+          
+          while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
+            # Check pipeline status using the correct v0.1 API endpoint
+            echo "Checking pipeline status for slug: $BUILD_SLUG"
+            PIPELINE_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/pipelines/$BUILD_SLUG")
+            echo "Pipeline response: $PIPELINE_RESPONSE"
+            
+            PIPELINE_STATUS=$(echo "$PIPELINE_RESPONSE" | jq -r '.status')
+            echo "Pipeline status: $PIPELINE_STATUS"
+            
+            if [ "$PIPELINE_STATUS" = "succeeded" ]; then
+              echo "Pipeline completed successfully!"
+              break
+            elif [ "$PIPELINE_STATUS" = "failed" ]; then
+              echo "Pipeline failed!"
+              exit 1
+            elif [ "$PIPELINE_STATUS" = "in_progress" ] || [ "$PIPELINE_STATUS" = "running" ]; then
+              echo "Pipeline is in progress..."
+            elif [ "$PIPELINE_STATUS" = "null" ]; then
+              echo "Pipeline status is null, checking if pipeline exists..."
+
+            fi
+            
+            sleep 30
+            ELAPSED=$((ELAPSED + 30))
+          done
+          
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+            echo "Timeout waiting for pipeline to complete"
+            echo "Final pipeline status: $PIPELINE_STATUS"
+            echo "Pipeline slug: $BUILD_SLUG"
+            exit 1
+          fi
+          
+          # Extract build IDs from the completed pipeline
+          echo "Extracting build IDs from completed pipeline..."
+          ANDROID_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_android_qa") | .external_id')
+          IOS_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_ios_qa") | .external_id')
+          
+          if [[ -z "$ANDROID_BUILD_ID" || "$ANDROID_BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get Android build ID"
+            exit 1
+          fi
+          
+          if [[ -z "$IOS_BUILD_ID" || "$IOS_BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get iOS build ID"
+            exit 1
+          fi
+          
+          # Store build IDs for artifact download
+          {
+            echo "ANDROID_BUILD_ID=$ANDROID_BUILD_ID"
+            echo "IOS_BUILD_ID=$IOS_BUILD_ID"
+          } >> "$GITHUB_ENV"
+      
+      - name: Download Build Artifacts
+        id: download-artifacts
+        env:
+          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
+          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
+        run: |
+          echo "Downloading browserstack_uploaded_apps.json files..."
+          echo "Android Build ID: $ANDROID_BUILD_ID"
+          echo "iOS Build ID: $IOS_BUILD_ID"
+          
+          # Download Android browserstack_uploaded_apps.json
+          echo "Fetching Android artifacts..."
+          ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts")
+          
+          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts" > /dev/null; then
+            echo "Error: Failed to fetch Android artifacts"
+            exit 1
+          fi
+                    
+          # Find the browserstack_uploaded_apps.json file
+          ANDROID_BS_JSON_ARTIFACT=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data[] | 
+            select(.title == "browserstack_uploaded_apps.json")')
+          
+          echo "Android browserstack JSON artifact: $ANDROID_BS_JSON_ARTIFACT"
+          
+          if [[ -n "$ANDROID_BS_JSON_ARTIFACT" ]]; then
+            ANDROID_BS_ARTIFACT_SLUG=$(echo "$ANDROID_BS_JSON_ARTIFACT" | jq -r '.slug')
+
+            # Download the JSON file
+            ANDROID_BS_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts/$ANDROID_BS_ARTIFACT_SLUG" | \
+              jq -r '.data.expiring_download_url')
+            
+            if [[ -n "$ANDROID_BS_DOWNLOAD_URL" && "$ANDROID_BS_DOWNLOAD_URL" != "null" ]]; then
+              echo "Downloading Android browserstack JSON..."
+              wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"
+              
+              if ! wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"; then
+                echo "Error: Failed to download Android browserstack JSON"
+                exit 1
+              fi
+              
+              # Extract the first Android APK app_url
+              ANDROID_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_url' "android_browserstack_apps.json" | head -1)
+              ANDROID_VERSION=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_version' "android_browserstack_apps.json" | head -1)
+              
+              echo "Android BrowserStack URL: $ANDROID_BS_URL"
+              echo "Android version: $ANDROID_VERSION"
+              {
+                echo "android-version=$ANDROID_VERSION"
+                echo "browserstack-android-url=$ANDROID_BS_URL"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "Error: No Android browserstack JSON download URL found"
+              exit 1
+            fi
+          else
+            echo "Error: No Android browserstack_uploaded_apps.json artifact found"
+            exit 1
+          fi
+          
+          # Download iOS browserstack_uploaded_apps.json
+          echo "Fetching iOS artifacts..."
+          IOS_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts")
+          
+          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts" > /dev/null; then
+            echo "Error: Failed to fetch iOS artifacts"
+            exit 1
+          fi
+                    
+          # Find the browserstack_uploaded_apps.json file
+          IOS_BS_JSON_ARTIFACT=$(echo "$IOS_ARTIFACTS" | jq -r '.data[] | 
+            select(.title == "browserstack_uploaded_apps.json")')
+          
+          echo "iOS browserstack JSON artifact: $IOS_BS_JSON_ARTIFACT"
+          
+          if [[ -n "$IOS_BS_JSON_ARTIFACT" ]]; then
+            IOS_BS_ARTIFACT_SLUG=$(echo "$IOS_BS_JSON_ARTIFACT" | jq -r '.slug')
+            echo "iOS browserstack artifact slug: $IOS_BS_ARTIFACT_SLUG"
+            
+            # Download the JSON file
+            IOS_BS_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts/$IOS_BS_ARTIFACT_SLUG" | \
+              jq -r '.data.expiring_download_url')
+            
+            if [[ -n "$IOS_BS_DOWNLOAD_URL" && "$IOS_BS_DOWNLOAD_URL" != "null" ]]; then
+              echo "Downloading iOS browserstack JSON..."
+              wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"
+              
+              if ! wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"; then
+                echo "Error: Failed to download iOS browserstack JSON"
+                exit 1
+              fi
+              
+              # Extract the first iOS IPA app_url
+              IOS_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_url' "ios_browserstack_apps.json" | head -1)
+              IOS_VERSION=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_version' "ios_browserstack_apps.json" | head -1)
+              
+              echo "iOS BrowserStack URL: $IOS_BS_URL"
+              echo "iOS version: $IOS_VERSION"
+              {
+                echo "ios-version=$IOS_VERSION"
+                echo "browserstack-ios-url=$IOS_BS_URL"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "Error: No iOS browserstack JSON download URL found"
+              exit 1
+            fi
+          else
+            echo "Error: No iOS browserstack_uploaded_apps.json artifact found"
+            exit 1
+          fi
+          
+          echo "BrowserStack URLs extracted successfully!"
+          echo "Android: $ANDROID_BS_URL"
+          echo "iOS: $IOS_BS_URL"
+
+  trigger-onboarding-builds:
+    name: Trigger Onboarding QA Builds (without Pre-Imported Wallet)
+    runs-on: ubuntu-latest
+    if: ${{ inputs.build-type == 'onboarding' }}
+    outputs:
+      android-version: ${{ steps.download-artifacts.outputs.android-version }}
+      ios-version: ${{ steps.download-artifacts.outputs.ios-version }}
+      browserstack-android-url: ${{ steps.download-artifacts.outputs.browserstack-android-url }}
+      browserstack-ios-url: ${{ steps.download-artifacts.outputs.browserstack-ios-url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      
+      - name: Install dependencies
+        run: yarn setup
+      
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      
+      - name: Trigger Bitrise Onboarding QA Builds
+        env:
+          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
+          BITRISE_BUILD_TRIGGER_TOKEN: ${{ env.BITRISE_BUILD_TRIGGER_TOKEN }}
+          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering Bitrise Onboarding QA builds..."
+          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
+          echo "Current branch: ${{ github.ref_name }}"
+          
+          # Trigger Onboarding QA builds pipeline (without pre-imported wallet)
+          echo "=== Triggering Onboarding QA Builds (without pre-imported wallet) ==="
+          BUILD_RESPONSE=$(curl -s -X POST \
+            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_params": {
+                "branch": "${{ github.ref_name }}",
+                "pipeline_id": "create_qa_builds_pipeline",
+                "commit_message": "Triggered by Performance E2E workflow for Onboarding Tests",
+                "environments": [
+                  {
+                    "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
+                    "value": "true",
+                    "is_expand": true
+                  }
+                ]
+              },
+              "hook_info": {
+                "type": "bitrise",
+                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
+              },
+              "triggered_by": "GitHub Actions Performance E2E - Onboarding Builds"
+            }')
+          
+          echo "Build response: $BUILD_RESPONSE"
+          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
+          echo "Build slug: $BUILD_SLUG"
+          
+          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+            echo "Error: Failed to get build slug"
+            echo "Full response: $BUILD_RESPONSE"
+            echo "Trying alternative response structure..."
+            # Try different possible response structures
+            BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.data.build_slug // .build_slug // .slug')
+            echo "Alternative build slug: $BUILD_SLUG"
+            if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+              echo "Still no build slug found. Response keys:"
+              echo "$BUILD_RESPONSE" | jq -r 'keys[]'
+              exit 1
+            fi
+          fi
+          
+          # Store build slug for artifact download
+          echo "BUILD_SLUG=$BUILD_SLUG" >> "$GITHUB_ENV"
+          
+          echo "Waiting for build to complete..."
+          TIMEOUT=1800  # 30 minutes
+          ELAPSED=0
+          
+          while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
+            # Check pipeline status using the correct v0.1 API endpoint
+            echo "Checking pipeline status for slug: $BUILD_SLUG"
+            PIPELINE_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/pipelines/$BUILD_SLUG")
+            echo "Pipeline response: $PIPELINE_RESPONSE"
+            
+            PIPELINE_STATUS=$(echo "$PIPELINE_RESPONSE" | jq -r '.status')
+            echo "Pipeline status: $PIPELINE_STATUS"
+            
+            if [ "$PIPELINE_STATUS" = "succeeded" ]; then
+              echo "Pipeline completed successfully!"
+              break
+            elif [ "$PIPELINE_STATUS" = "failed" ]; then
+              echo "Pipeline failed!"
+              exit 1
+            elif [ "$PIPELINE_STATUS" = "in_progress" ] || [ "$PIPELINE_STATUS" = "running" ]; then
+              echo "Pipeline is in progress..."
+            elif [ "$PIPELINE_STATUS" = "null" ]; then
+              echo "Pipeline status is null, checking if pipeline exists..."
+            fi
+            
+            sleep 30
+            ELAPSED=$((ELAPSED + 30))
+          done
+          
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+            echo "Timeout waiting for pipeline to complete"
+            echo "Final pipeline status: $PIPELINE_STATUS"
+            echo "Pipeline slug: $BUILD_SLUG"
+            exit 1
+          fi
+          
+          # Extract build IDs from the completed pipeline
+          echo "Extracting build IDs from completed pipeline..."
+          ANDROID_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_android_qa") | .external_id')
+          IOS_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_ios_qa") | .external_id')
+          
+          if [[ -z "$ANDROID_BUILD_ID" || "$ANDROID_BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get Android build ID"
+            exit 1
+          fi
+          
+          if [[ -z "$IOS_BUILD_ID" || "$IOS_BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get iOS build ID"
+            exit 1
+          fi
+          
+          # Store build IDs for artifact download
+          {
+            echo "ANDROID_BUILD_ID=$ANDROID_BUILD_ID"
+            echo "IOS_BUILD_ID=$IOS_BUILD_ID"
+          } >> "$GITHUB_ENV"
+      
+      - name: Download Build Artifacts
+        id: download-artifacts
+        env:
+          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
+          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
+        run: |
+          echo "Downloading browserstack_uploaded_apps.json files..."
+          echo "Android Build ID: $ANDROID_BUILD_ID"
+          echo "iOS Build ID: $IOS_BUILD_ID"
+          
+          # Download Android browserstack_uploaded_apps.json
+          echo "Fetching Android artifacts..."
+          ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts")
+          
+          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts" > /dev/null; then
+            echo "Error: Failed to fetch Android artifacts"
+            exit 1
+          fi
+                    
+          # Find the browserstack_uploaded_apps.json file
+          ANDROID_BS_JSON_ARTIFACT=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data[] | 
+            select(.title == "browserstack_uploaded_apps.json")')
+          
+          echo "Android browserstack JSON artifact: $ANDROID_BS_JSON_ARTIFACT"
+          
+          if [[ -n "$ANDROID_BS_JSON_ARTIFACT" ]]; then
+            ANDROID_BS_ARTIFACT_SLUG=$(echo "$ANDROID_BS_JSON_ARTIFACT" | jq -r '.slug')
+
+            # Download the JSON file
+            ANDROID_BS_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts/$ANDROID_BS_ARTIFACT_SLUG" | \
+              jq -r '.data.expiring_download_url')
+            
+            if [[ -n "$ANDROID_BS_DOWNLOAD_URL" && "$ANDROID_BS_DOWNLOAD_URL" != "null" ]]; then
+              echo "Downloading Android browserstack JSON..."
+              wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"
+              
+              if ! wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"; then
+                echo "Error: Failed to download Android browserstack JSON"
+                exit 1
+              fi
+              
+              # Extract the first Android APK app_url
+              ANDROID_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_url' "android_browserstack_apps.json" | head -1)
+              ANDROID_VERSION=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_version' "android_browserstack_apps.json" | head -1)
+              
+              echo "Android BrowserStack URL: $ANDROID_BS_URL"
+              echo "Android version: $ANDROID_VERSION"
+              {
+                echo "android-version=$ANDROID_VERSION"
+                echo "browserstack-android-url=$ANDROID_BS_URL"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "Error: Failed to get Android download URL"
+              exit 1
+            fi
+          else
+            echo "Error: Android browserstack_uploaded_apps.json artifact not found"
+            exit 1
+          fi
+          
+          # Download iOS browserstack_uploaded_apps.json
+          echo "Fetching iOS artifacts..."
+          IOS_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts")
+          
+          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts" > /dev/null; then
+            echo "Error: Failed to fetch iOS artifacts"
+            exit 1
+          fi
+                    
+          # Find the browserstack_uploaded_apps.json file
+          IOS_BS_JSON_ARTIFACT=$(echo "$IOS_ARTIFACTS" | jq -r '.data[] | 
+            select(.title == "browserstack_uploaded_apps.json")')
+          
+          echo "iOS browserstack JSON artifact: $IOS_BS_JSON_ARTIFACT"
+          
+          if [[ -n "$IOS_BS_JSON_ARTIFACT" ]]; then
+            IOS_BS_ARTIFACT_SLUG=$(echo "$IOS_BS_JSON_ARTIFACT" | jq -r '.slug')
+
+            # Download the JSON file
+            IOS_BS_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts/$IOS_BS_ARTIFACT_SLUG" | \
+              jq -r '.data.expiring_download_url')
+            
+            if [[ -n "$IOS_BS_DOWNLOAD_URL" && "$IOS_BS_DOWNLOAD_URL" != "null" ]]; then
+              echo "Downloading iOS browserstack JSON..."
+              wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"
+              
+              if ! wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"; then
+                echo "Error: Failed to download iOS browserstack JSON"
+                exit 1
+              fi
+              
+              # Extract the first iOS IPA app_url
+              IOS_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_url' "ios_browserstack_apps.json" | head -1)
+              IOS_VERSION=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_version' "ios_browserstack_apps.json" | head -1)
+              
+              echo "iOS BrowserStack URL: $IOS_BS_URL"
+              echo "iOS version: $IOS_VERSION"
+              {
+                echo "ios-version=$IOS_VERSION"
+                echo "browserstack-ios-url=$IOS_BS_URL"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "Error: Failed to get iOS download URL"
+              exit 1
+            fi
+          else
+            echo "Error: iOS browserstack_uploaded_apps.json artifact not found"
+            exit 1
+          fi
+          
+          echo "BrowserStack URLs extracted successfully!"
+          echo "Android: $ANDROID_BS_URL"
+          echo "iOS: $IOS_BS_URL"
