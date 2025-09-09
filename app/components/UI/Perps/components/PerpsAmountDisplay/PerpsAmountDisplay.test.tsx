@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, screen } from '@testing-library/react-native';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 
@@ -38,7 +39,7 @@ describe('PerpsAmountDisplay', () => {
   });
 
   describe('Rendering', () => {
-    it('displays amount and max amount with proper formatting', () => {
+    it('displays amount with proper formatting', () => {
       // Arrange
       const amount = '1000';
       const maxAmount = 5000;
@@ -50,7 +51,6 @@ describe('PerpsAmountDisplay', () => {
 
       // Assert
       expect(getByText('$1000')).toBeTruthy();
-      expect(getByText('$5000 max')).toBeTruthy();
     });
 
     it('displays $0 when amount is empty', () => {
@@ -94,7 +94,7 @@ describe('PerpsAmountDisplay', () => {
       const maxAmount = 10000;
 
       // Act
-      const { getByText } = render(
+      render(
         <PerpsAmountDisplay
           amount={amount}
           maxAmount={maxAmount}
@@ -105,7 +105,11 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      expect(getByText(`${tokenAmount} ${tokenSymbol}`)).toBeTruthy();
+      // There will be 2 elements: one in the main display and one in the token amount section
+      const tokenElements = screen.getAllByText(
+        `${tokenAmount} ${tokenSymbol}`,
+      );
+      expect(tokenElements.length).toBe(2);
       expect(formatPositionSize).toHaveBeenCalledWith(tokenAmount);
     });
   });
@@ -222,6 +226,68 @@ describe('PerpsAmountDisplay', () => {
     });
   });
 
+  describe('Token Amount Display', () => {
+    it('displays token amount when showMaxAmount is true with token data', () => {
+      // Arrange
+      const amount = '1000';
+      const tokenAmount = '0.025';
+      const tokenSymbol = 'BTC';
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showMaxAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      expect(getByText('0.025 BTC')).toBeTruthy();
+      expect(formatPositionSize).toHaveBeenCalledWith(tokenAmount);
+    });
+
+    it('does not display token amount when showMaxAmount is false', () => {
+      // Arrange
+      const amount = '1000';
+      const tokenAmount = '0.025';
+      const tokenSymbol = 'BTC';
+
+      // Act
+      const { queryByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showMaxAmount={false}
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      expect(queryByText('0.025 BTC')).toBeNull();
+    });
+
+    it('does not display anything when showMaxAmount is true but no token data', () => {
+      // Arrange
+      const amount = '1000';
+
+      // Act
+      const { queryByTestId } = render(
+        <PerpsAmountDisplay amount={amount} showMaxAmount />,
+      );
+
+      // Assert - The component should not show the token amount section
+      // When no token data is provided, the token amount section won't be rendered
+      // We verify by checking if the amount display is there but no token text
+      expect(
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+      // No token amount should be displayed
+      expect(screen.queryByText(/BTC|ETH|SOL/)).toBeNull();
+    });
+  });
+
   describe('Formatting', () => {
     it('formats prices with correct decimal places', () => {
       // Arrange
@@ -236,10 +302,7 @@ describe('PerpsAmountDisplay', () => {
         minimumDecimals: 0,
         maximumDecimals: 2,
       });
-      expect(formatPrice).toHaveBeenCalledWith(9876.54, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      });
+      // Note: formatPrice is no longer called with maxAmount for display
     });
 
     it('formats USD amounts with maximum 2 decimal places', () => {
