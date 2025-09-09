@@ -3,7 +3,7 @@ import { DepositNavigationParams } from '../../types';
 export default function parseDepositParams(
   depositParams: Record<string, string | undefined>,
 ): DepositNavigationParams | undefined {
-  // create a rampIntent object if the pathParams contain the necessary fields
+  // create a params object if the pathParams contain the necessary fields
   const params: DepositNavigationParams = {
     assetId: depositParams.assetId,
     amount: depositParams.amount,

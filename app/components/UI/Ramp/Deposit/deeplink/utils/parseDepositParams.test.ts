@@ -7,7 +7,7 @@ describe('parseDepositParams', () => {
     expect(result).toBeUndefined();
   });
 
-  it('returns a RampIntent object if depositParams contain necessary fields', () => {
+  it('returns a DepositNavigationParams object if depositParams contain necessary fields', () => {
     const depositParams = {
       assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
       amount: '10',

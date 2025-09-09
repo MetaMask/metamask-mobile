@@ -37,7 +37,6 @@ export interface AddFundsBottomSheetProps {
   sheetRef: React.RefObject<BottomSheetRef>;
   priorityToken?: CardTokenAllowance;
   chainId: string;
-  cardholderAddresses?: string[];
   navigate: NavigationProp<ParamListBase>['navigate'];
 }
 
