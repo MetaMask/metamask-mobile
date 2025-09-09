@@ -43,6 +43,8 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
+import { useRegions } from '../../hooks/useRegions';
+import { usePaymentMethods } from '../../hooks/usePaymentMethods';
 import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
@@ -84,7 +86,12 @@ const BuildQuote = () => {
     const navigation = useNavigation();
     const { styles, theme } = useStyles(styleSheet, {});
     const trackEvent = useAnalytics();
+    
+    // Waterfall: fetch regions, crypto currencies, and payment methods
+    useRegions();
     const { cryptoCurrencies } = useCryptoCurrencies();
+    usePaymentMethods();
+    
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const {

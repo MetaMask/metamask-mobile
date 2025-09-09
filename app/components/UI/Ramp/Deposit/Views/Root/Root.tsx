@@ -8,7 +8,6 @@ import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
-import { useRegions } from '../../hooks/useRegions';
 
 const Root = () => {
   const navigation = useNavigation();
@@ -17,7 +16,14 @@ const Root = () => {
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
 
-  useRegions();
+  console.log('__ CLIENT__ Root component rendered/mounted');
+
+  useEffect(() => {
+    console.log('__ CLIENT__ Root component MOUNTED');
+    return () => {
+      console.log('__ CLIENT__ Root component UNMOUNTED');
+    };
+  }, []);
 
   useEffect(() => {
     const initializeFlow = async () => {

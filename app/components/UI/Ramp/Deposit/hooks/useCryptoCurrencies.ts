@@ -13,16 +13,27 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
   const { selectedRegion, selectedCryptoCurrency, setSelectedCryptoCurrency } =
     useDepositSDK();
 
+  console.log('__ CLIENT__ useCryptoCurrencies selectedRegion:', selectedRegion);
+  
+  // Only fetch when we have a selected region
+  const shouldFetch = Boolean(selectedRegion?.isoCode);
+  
   const [{ data: cryptoCurrencies, error, isFetching }] = useDepositSdkMethod(
-    'getCryptoCurrencies',
+    { method: 'getCryptoCurrencies', onMount: shouldFetch },
     selectedRegion?.isoCode,
   );
 
-  console.log('cryptoCurrencies', cryptoCurrencies);
+  console.log('__ CLIENT__ useCryptoCurrencies result:', {
+    shouldFetch,
+    regionIsoCode: selectedRegion?.isoCode,
+    cryptoCurrencies,
+    error,
+    isFetching,
+  });
 
   useEffect(() => {
-    if (cryptoCurrencies && !selectedCryptoCurrency) {
-      console.log('SETTING CRYPTO CURRENCY', cryptoCurrencies[0]);
+    if (cryptoCurrencies && cryptoCurrencies.length > 0 && !selectedCryptoCurrency) {
+      console.log('__ CLIENT__ useCryptoCurrencies setting first crypto currency:', cryptoCurrencies[0]);
       setSelectedCryptoCurrency(cryptoCurrencies[0]);
     }
   }, [cryptoCurrencies, selectedCryptoCurrency, setSelectedCryptoCurrency]);

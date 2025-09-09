@@ -127,8 +127,15 @@ export const DepositSDKProvider = ({
   );
 
   useEffect(() => {
+    console.log('__ DEBUG__ DepositSDKProvider initializing SDK with:', {
+      providerApiKey: !!providerApiKey,
+      context,
+      environment,
+    });
+    
     try {
       if (!providerApiKey) {
+        console.log('__ DEBUG__ DepositSDKProvider: No API key provided');
         throw new Error('Deposit SDK requires valid API key');
       }
 
@@ -136,12 +143,15 @@ export const DepositSDKProvider = ({
         {
           apiKey: providerApiKey,
           context,
+          verbose: true,
         },
         environment,
       );
 
+      console.log('__ DEBUG__ DepositSDKProvider: SDK instance created successfully');
       setSdk(sdkInstance);
     } catch (error) {
+      console.log('__ DEBUG__ DepositSDKProvider: Error creating SDK:', error);
       setSdkError(error as Error);
     }
   }, [providerApiKey]);
