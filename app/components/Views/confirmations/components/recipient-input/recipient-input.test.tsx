@@ -78,7 +78,8 @@ describe('RecipientInput', () => {
     mockUseToAddressValidation.mockReturnValue({
       toAddressError: undefined,
       toAddressWarning: undefined,
-      validateToAddress: mockValidateToAddress,
+      loading: false,
+      resolvedAddress: undefined,
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
