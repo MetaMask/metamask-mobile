@@ -1,4 +1,4 @@
-export type UnstakeConfirmationParams = {
+export interface UnstakeConfirmationParams {
   amountWei: string;
   amountFiat: string;
-};
+}

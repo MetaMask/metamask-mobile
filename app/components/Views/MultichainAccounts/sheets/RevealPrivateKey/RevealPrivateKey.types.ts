@@ -1,5 +1,5 @@
 import { type InternalAccount } from '@metamask/keyring-internal-api';
 
-export type MultichainRevealPrivateCredentialParams = {
+export interface MultichainRevealPrivateCredentialParams {
   account: InternalAccount;
-};
+}

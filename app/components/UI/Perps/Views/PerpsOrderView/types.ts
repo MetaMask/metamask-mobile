@@ -1,6 +1,6 @@
 import { OrderType } from '../../controllers/types';
 
-export type PerpsOrderViewParams = {
+export interface PerpsOrderViewParams {
   direction?: 'long' | 'short';
   asset?: string;
   amount?: string;
@@ -13,4 +13,4 @@ export type PerpsOrderViewParams = {
     stopLossPrice?: string;
   };
   limitPriceUpdate?: string;
-};
+}

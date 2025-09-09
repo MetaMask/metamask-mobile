@@ -9,7 +9,7 @@ export interface MarketStatistics {
   countdown: string;
 }
 
-export type MarketDetailsRouteParams = {
+export interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   isNavigationFromOrderSuccess?: boolean;
-};
+}

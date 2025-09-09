@@ -1,6 +1,6 @@
 import { Hex } from '@metamask/utils';
 
-export type AssetLoaderParams = {
+export interface AssetLoaderParams {
   address: string;
   chainId: Hex;
-};
+}

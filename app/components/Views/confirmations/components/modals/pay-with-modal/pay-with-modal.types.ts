@@ -1,3 +1,3 @@
-export type PayWithModalParams = {
+export interface PayWithModalParams {
   minimumFiatBalance?: number;
-};
+}

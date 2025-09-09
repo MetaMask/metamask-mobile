@@ -3,8 +3,8 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../../../util/navigation/types';
+import type { StackNavigationProp , StackScreenProps } from '@react-navigation/stack';
+import type { NavigatableRootParamList , RootParamList } from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -22,8 +22,6 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './StateSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootParamList } from '../../../../../../../util/navigation/types';
 import { US_STATES } from '../../../constants';
 import { strings } from '../../../../../../../../locales/i18n';
 

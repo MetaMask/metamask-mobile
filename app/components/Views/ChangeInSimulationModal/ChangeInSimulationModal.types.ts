@@ -1,4 +1,4 @@
-export type ChangeInSimulationModalParams = {
+export interface ChangeInSimulationModalParams {
   onProceed: () => void;
   onReject: () => void;
-};
+}

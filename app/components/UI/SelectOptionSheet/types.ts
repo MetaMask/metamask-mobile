@@ -12,9 +12,9 @@ export interface ISelectOptionSheet {
   onValueChange: (val: string) => void;
 }
 
-export type OptionsSheetParams = {
+export interface OptionsSheetParams {
   label: string;
   options: ISelectOption[];
   selectedValue?: string;
   onValueChange: (val: string) => void;
-};
+}

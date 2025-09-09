@@ -1,5 +1,5 @@
 import { INotification } from '../../../../util/notifications/types';
 
-export type NotificationsDetailsParams = {
+export interface NotificationsDetailsParams {
   notification: INotification;
-};
+}

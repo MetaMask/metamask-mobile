@@ -1,4 +1,4 @@
-export type MandatoryModalParams = {
+export interface MandatoryModalParams {
   containerTestId?: string;
   buttonTestId?: string;
   buttonText: string;
@@ -19,4 +19,4 @@ export type MandatoryModalParams = {
   onRender?: () => void;
   isScrollToEndNeeded?: boolean;
   scrollEndBottomMargin?: number;
-};
+}

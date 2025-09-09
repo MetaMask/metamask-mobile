@@ -148,7 +148,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
 
   const scrollToEnd = () => {
     if (body.source === 'WebView') {
-      let source = { uri: '', html: '' };
+      const source = { uri: '', html: '' };
       if (body.uri) {
         source.uri = body.uri;
       } else if (body.html) {
@@ -260,7 +260,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       { source: 'WebView' }
     >,
   ) => {
-    let source = { uri: '', html: '' };
+    const source = { uri: '', html: '' };
     if (body.uri) {
       source.uri = body.uri;
     } else if (body.html) {

@@ -1,4 +1,4 @@
-export type ConfirmTurnOnBackupAndSyncModalParams = {
+export interface ConfirmTurnOnBackupAndSyncModalParams {
   enableBackupAndSync: () => Promise<void>;
   trackEnableBackupAndSyncEvent: () => void;
-};
+}

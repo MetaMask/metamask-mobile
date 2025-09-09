@@ -1,8 +1,8 @@
 import { TokenI } from '../../UI/Tokens/types';
 
-export type AssetOptionsParams = {
+export interface AssetOptionsParams {
   address: string;
   isNativeCurrency: boolean;
   chainId: string;
   asset: TokenI;
-};
+}

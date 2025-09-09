@@ -1,1 +1,1 @@
-export type OriginSpamModalParams = { origin: string };
+export interface OriginSpamModalParams { origin: string }

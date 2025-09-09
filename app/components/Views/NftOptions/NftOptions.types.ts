@@ -1,5 +1,5 @@
 import { Nft } from '@metamask/assets-controllers';
 
-export type NftOptionsParams = {
+export interface NftOptionsParams {
   collectible: Nft;
-};
+}

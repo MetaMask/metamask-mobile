@@ -1,4 +1,4 @@
-export type ModalConfirmationParams = {
+export interface ModalConfirmationParams {
   title: string;
   description: string;
   onConfirm?: () => void;
@@ -6,4 +6,4 @@ export type ModalConfirmationParams = {
   cancelLabel?: string;
   confirmLabel?: string;
   isDanger?: boolean;
-};
+}

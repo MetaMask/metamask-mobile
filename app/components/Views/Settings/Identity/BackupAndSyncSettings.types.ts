@@ -1,1 +1,1 @@
-export type BackupAndSyncSettingsParams = { isFullScreenModal?: boolean };
+export interface BackupAndSyncSettingsParams { isFullScreenModal?: boolean }

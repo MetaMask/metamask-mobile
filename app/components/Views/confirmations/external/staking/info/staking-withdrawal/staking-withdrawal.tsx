@@ -24,9 +24,9 @@ type StakingWithdrawalRouteProp = RouteProp<
   'RedesignedConfirmations' | 'ConfirmationRequestModal'
 >;
 
-type StakingWithdrawalProps = {
+interface StakingWithdrawalProps {
   route: StakingWithdrawalRouteProp;
-};
+}
 
 const StakingWithdrawal = ({ route }: StakingWithdrawalProps) => {
   const amountWei = route?.params?.amountWei;

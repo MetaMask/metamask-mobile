@@ -1,3 +1,3 @@
-export type ConnectionDetailsParams = {
+export interface ConnectionDetailsParams {
   connectionDateTime?: number;
-};
+}

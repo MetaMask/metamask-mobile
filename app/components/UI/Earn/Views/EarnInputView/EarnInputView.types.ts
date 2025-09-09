@@ -5,6 +5,6 @@ export enum EARN_INPUT_VIEW_ACTIONS {
   WITHDRAW = 'WITHDRAW',
 }
 
-export type EarnInputViewRouteParams = {
+export interface EarnInputViewRouteParams {
   token: TokenI;
-};
+}

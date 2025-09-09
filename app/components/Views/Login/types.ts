@@ -1,5 +1,5 @@
-export type LoginParams = {
+export interface LoginParams {
   locked: boolean;
   oauthLoginSuccess?: boolean;
   onboardingTraceCtx?: unknown;
-};
+}

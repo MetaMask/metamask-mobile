@@ -1,5 +1,5 @@
 import { Json } from '@metamask/utils';
 
-export type SRPQuizParams = {
+export interface SRPQuizParams {
   keyringId: Json;
-};
+}

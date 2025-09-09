@@ -4,8 +4,7 @@ import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import useUserDetailsPolling from '../../hooks/useUserDetailsPolling';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import type { StackScreenProps , StackNavigationProp } from '@react-navigation/stack';
 import type {
   RootParamList,
   NavigatableRootParamList,

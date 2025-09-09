@@ -33,8 +33,6 @@ import Share from 'react-native-share';
 
 import { addBookmark } from '../../../../../actions/bookmarks';
 import { RootState } from '../../../../../reducers';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../util/navigation';
 
 interface OptionsProps {
   toggleOptions: () => void;

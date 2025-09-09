@@ -1,3 +1,3 @@
-export type NotificationsSettingsParams = {
+export interface NotificationsSettingsParams {
   isFullScreenModal?: boolean;
-};
+}

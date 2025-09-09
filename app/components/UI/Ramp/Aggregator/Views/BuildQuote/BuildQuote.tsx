@@ -13,8 +13,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../../util/navigation';
+import type { StackNavigationProp , type StackScreenProps } from '@react-navigation/stack';
+import type { NavigatableRootParamList , type RootParamList } from '../../../../../../util/navigation';
 import BN4 from 'bnjs4';
 
 import { useRampSDK } from '../../sdk';
@@ -83,8 +83,6 @@ import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Bu
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
-import { type RootParamList } from '../../../../../../util/navigation';
-import { type StackScreenProps } from '@react-navigation/stack';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

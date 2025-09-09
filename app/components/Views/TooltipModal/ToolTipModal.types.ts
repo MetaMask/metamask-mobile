@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-export type TooltipModalParams = {
+export interface TooltipModalParams {
   title: string;
   tooltip: string | ReactNode;
-};
+}

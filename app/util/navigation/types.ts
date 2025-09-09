@@ -4,7 +4,7 @@ import type {
 } from '@metamask/design-system-react-native';
 import type {
   IconColor,
-  IconName as IconName,
+  IconName,
 } from '../../component-library/components/Icons/Icon';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AccountGroupId } from '@metamask/account-api';

@@ -1,3 +1,3 @@
-export type ShowIpfsGatewaySheetParams = {
+export interface ShowIpfsGatewaySheetParams {
   setIpfsBannerVisible?: () => void;
-};
+}

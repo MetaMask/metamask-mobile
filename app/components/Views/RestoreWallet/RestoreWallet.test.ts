@@ -1,3 +1,3 @@
-export type RestoreWalletParams = {
+export interface RestoreWalletParams {
   previousScreen: string;
-};
+}

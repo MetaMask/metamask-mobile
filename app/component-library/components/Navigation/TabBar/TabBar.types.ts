@@ -35,7 +35,7 @@ export type IconByTabBarIconKey = {
 /**
  * TabBar component props.
  */
-export type CustomTabBarProps = {
+export interface CustomTabBarProps {
   state: BottomTabBarProps['state'];
   descriptors: {
     [key: string]: Descriptor<
@@ -50,6 +50,6 @@ export type CustomTabBarProps = {
   };
   navigation: BottomTabBarProps['navigation'];
   insets: BottomTabBarProps['insets'];
-};
+}
 
 export type TabBarRoute = BottomTabBarProps['state']['routes'][number];

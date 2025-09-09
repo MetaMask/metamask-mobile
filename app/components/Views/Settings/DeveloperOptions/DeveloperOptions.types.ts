@@ -1,1 +1,1 @@
-export type DeveloperOptionsParams = { isFullScreenModal?: boolean };
+export interface DeveloperOptionsParams { isFullScreenModal?: boolean }

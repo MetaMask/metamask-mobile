@@ -1,5 +1,5 @@
 import { TokenI } from '../../../Tokens/types';
 
-export type EarnWithdrawInputViewParams = {
+export interface EarnWithdrawInputViewParams {
   token: TokenI;
-};
+}

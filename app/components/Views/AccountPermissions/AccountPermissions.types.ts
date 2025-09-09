@@ -12,11 +12,11 @@ export enum AccountPermissionsScreens {
   AddAccount = 'AddAccount',
 }
 
-export type AccountPermissionsParams = {
+export interface AccountPermissionsParams {
   hostInfo: {
     metadata: { origin: string };
   };
   isRenderedAsBottomSheet?: boolean;
   initialScreen?: AccountPermissionsScreens;
   isNonDappNetworkSwitch?: boolean;
-};
+}

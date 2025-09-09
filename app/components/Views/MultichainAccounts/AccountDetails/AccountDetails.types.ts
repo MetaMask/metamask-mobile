@@ -1,5 +1,5 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
-export type AccountDetailsParams = {
+export interface AccountDetailsParams {
   account: InternalAccount;
-};
+}

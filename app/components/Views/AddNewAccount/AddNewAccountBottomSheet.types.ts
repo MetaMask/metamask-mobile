@@ -1,7 +1,7 @@
 import { CaipChainId } from '@metamask/utils';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
-export type AddNewAccountBottomSheetParams = {
+export interface AddNewAccountBottomSheetParams {
   scope: CaipChainId;
   clientType: WalletClientType;
-};
+}

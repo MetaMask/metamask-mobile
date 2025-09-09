@@ -1,5 +1,5 @@
 import { AccountWalletId } from '@metamask/account-api';
 
-export type WalletDetailsParams = {
+export interface WalletDetailsParams {
   walletId: AccountWalletId;
-};
+}

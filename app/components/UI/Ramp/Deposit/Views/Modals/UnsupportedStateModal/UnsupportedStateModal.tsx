@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../../../util/navigation/types';
+import type { StackNavigationProp , StackScreenProps } from '@react-navigation/stack';
+import type { NavigatableRootParamList , RootParamList } from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -20,8 +20,6 @@ import Button, {
 
 import styleSheet from './UnsupportedStateModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootParamList } from '../../../../../../../util/navigation/types';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 

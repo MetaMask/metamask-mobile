@@ -14,7 +14,7 @@ export interface ShowConfirmDeleteModalState {
   chainId?: Hex;
 }
 
-export type NetworkSelectorRouteParams = {
+export interface NetworkSelectorRouteParams {
   chainId?: Hex | string;
   hostInfo?: {
     metadata?: {
@@ -22,4 +22,4 @@ export type NetworkSelectorRouteParams = {
     };
   };
   source?: NetworkSelectorSource;
-};
+}

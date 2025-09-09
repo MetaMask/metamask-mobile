@@ -12,12 +12,10 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 
 import stylesheet from './SnapSettings.styles';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootParamList } from '../../../../util/navigation/types';
+import type { StackScreenProps , StackNavigationProp } from '@react-navigation/stack';
+import type { RootParamList , NavigatableRootParamList } from '../../../../util/navigation/types';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../util/navigation/types';
 import { SnapDetails } from '../components/SnapDetails';
 import { SnapDescription } from '../components/SnapDescription';
 import { SnapPermissions } from '../components/SnapPermissions';

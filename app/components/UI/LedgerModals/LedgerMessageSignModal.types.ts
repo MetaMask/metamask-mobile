@@ -1,4 +1,4 @@
-export type LedgerMessageSignModalParams = {
+export interface LedgerMessageSignModalParams {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messageParams: any;
@@ -17,4 +17,4 @@ export type LedgerMessageSignModalParams = {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deviceId: any;
-};
+}
