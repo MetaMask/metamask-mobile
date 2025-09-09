@@ -562,6 +562,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                         ],
                       ]
                     }
+                    testID="login-with-biometric-switch"
                     thumbTintColor="#ffffff"
                     tintColor="#b7bbc866"
                     value={true}
