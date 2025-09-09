@@ -25,7 +25,7 @@ import { Alert } from 'react-native';
 import { RewardsTab } from '../../../../reducers/rewards/types';
 import {
   selectActiveTab,
-  selectSubscriptionId,
+  // selectSubscriptionId,
 } from '../../../../reducers/rewards/selectors';
 import { useRewardsEngineControllerSync } from '../hooks/useRewardsEngineControllerSync';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
@@ -36,7 +36,8 @@ const RewardsView: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const activeTab = useSelector(selectActiveTab);
-  const subscriptionId = useSelector(selectSubscriptionId);
+  // const subscriptionId = useSelector(selectSubscriptionId);
+  const subscriptionId = '01974010-377f-7553-a365-0c33c8130980';
   const dispatch = useDispatch();
 
   // Sync rewards controller state with UI store

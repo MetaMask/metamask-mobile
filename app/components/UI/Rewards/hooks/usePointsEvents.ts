@@ -44,11 +44,11 @@ export const usePointsEvents = (
       }
 
       try {
-        if (!seasonId) return;
+        // if (!seasonId) return;
         const pointsEventsData = await Engine.controllerMessenger.call(
           'RewardsController:getPointsEvents',
           {
-            seasonId,
+            seasonId: seasonId || 'current',
             subscriptionId,
             cursor: currentCursor,
           },
@@ -98,9 +98,9 @@ export const usePointsEvents = (
 
   // Initial data fetch
   useEffect(() => {
-    if (seasonId && subscriptionId) {
-      fetchPointsEvents(true);
-    }
+    // if (seasonId && subscriptionId) {
+    fetchPointsEvents(true);
+    // }
   }, [seasonId, subscriptionId, fetchPointsEvents]);
 
   return {

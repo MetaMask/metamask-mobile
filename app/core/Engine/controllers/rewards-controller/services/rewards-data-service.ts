@@ -297,9 +297,223 @@ export class RewardsDataService {
   async getPointsEvents(
     params: GetPointsEventsDto,
   ): Promise<PaginatedPointsEventsDto> {
-    const { seasonId, subscriptionId, cursor } = params;
+    Logger.log('RewardsDataService: getPointsEvents', params);
+    const { cursor } = params;
 
-    let url = `/seasons/${seasonId}/points-events`;
+    if (!cursor) {
+      return {
+        results: [
+          {
+            id: '59144-0xb204d894578dc20f72880b3e9acbe20d9f10cde061e05cbdc1c66bbf5ce37b5d',
+            timestamp: new Date('2025-09-09T09:09:33.000Z'),
+            type: 'SWAP',
+            payload: {
+              srcAsset: {
+                amount: '1153602',
+                type: 'eip155:59144/erc20:0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                decimals: 6,
+                name: 'USD Coin',
+                symbol: 'USDC',
+              },
+              destAsset: {
+                amount: '261268688837964',
+                type: 'eip155:59144/slip44:60',
+                decimals: 18,
+                name: 'Ether',
+                symbol: 'ETH',
+              },
+              txHash:
+                '0xb204d894578dc20f72880b3e9acbe20d9f10cde061e05cbdc1c66bbf5ce37b5d',
+            },
+            value: 2,
+            bonus: {
+              bips: 10000,
+              bonuses: ['cb3a0161-ee12-49f4-a336-31063c90347e'],
+            },
+            accountAddress: '0x334d7bA8922c9F45422882B495b403644311Eaea',
+          },
+          {
+            id: '59144-0xdf05bc9f3ac8bf7b315ebb8851818bae4a9f7b451054870f056b23e69c348e57',
+            timestamp: new Date('2025-09-03T11:05:12.000Z'),
+            type: 'SWAP',
+            payload: {
+              srcAsset: {
+                amount: '30728750000000000',
+                type: 'eip155:59144/slip44:60',
+                decimals: 18,
+                name: 'Ether',
+                symbol: 'ETH',
+              },
+              destAsset: {
+                type: 'eip155:42161/slip44:60',
+                decimals: 18,
+                name: 'Ether',
+                symbol: 'ETH',
+              },
+              txHash:
+                '0xdf05bc9f3ac8bf7b315ebb8851818bae4a9f7b451054870f056b23e69c348e57',
+            },
+            value: 270,
+            bonus: {
+              bips: 5000,
+              bonuses: ['bc66e509-d9e1-488c-be8f-382902d85dd5'],
+            },
+            accountAddress: '0xb2a0536b4af0fd5CF60025a4918285C554fc1220',
+          },
+          {
+            id: '5Qg1sjvsN6ptDrYhoJDDS514ddg4XHGs7LyS3MNv8neaAkKHYDP4YkK7924XJUjPmDVHm2m9JZaoGSDs5fkRGVDi',
+            timestamp: new Date('2025-09-05T21:17:05.000Z'),
+            type: 'SWAP',
+            payload: {
+              srcAsset: {
+                amount: '11845437500',
+                type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111112',
+                decimals: 9,
+                name: 'Wrapped SOL',
+                symbol: 'wSOL',
+              },
+              destAsset: {
+                amount: '120202993227',
+                type: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:AUuCEHQ7sm2i5GmaHrpE961voWcTY8U6mgrkhcV7pump',
+                decimals: 6,
+                name: 'QuStream',
+                symbol: 'QST',
+              },
+              txHash:
+                '5Qg1sjvsN6ptDrYhoJDDS514ddg4XHGs7LyS3MNv8neaAkKHYDP4YkK7924XJUjPmDVHm2m9JZaoGSDs5fkRGVDi',
+            },
+            value: 2449,
+            bonus: {},
+            accountAddress: '52ELTRhi3UjvkqbovAUNRtUZMZayLE7dA8pqFUvGQ7vY',
+          },
+          {
+            id: 'sb-0198f907-f293-7592-ba7d-41e245f96a51',
+            timestamp: new Date('2025-08-30T03:31:44.444Z'),
+            type: 'SIGN_UP_BONUS',
+            value: 250,
+            bonus: {},
+            accountAddress: '0x069060A475c76C77427CcC8CbD7eCB0B293f5beD',
+            payload: null,
+          },
+          {
+            id: '59144-0x7d75d4a6fc24667857147753486491b52fc93e1f35574cfe7cb8887f48a81b3a-referral',
+            timestamp: new Date('2025-09-04T21:38:10.433Z'),
+            type: 'REFERRAL',
+            value: 10,
+            bonus: null,
+            accountAddress: null,
+            payload: null,
+          },
+          {
+            id: 'lb-0x069060A475c76C77427CcC8CbD7eCB0B293f5beD-2',
+            timestamp: new Date('2025-08-30T03:31:44.453Z'),
+            type: 'ONE_TIME_BONUS',
+            value: 123,
+            bonus: {},
+            accountAddress: '0x069060A475c76C77427CcC8CbD7eCB0B293f5beD',
+            payload: null,
+          },
+          {
+            id: '0b15b967547b08923c088317914c7539fa1a536e8fdc7581060bc7be809bd9e7',
+            timestamp: new Date('2025-08-18T03:01:46.727Z'),
+            type: 'PERPS',
+            payload: {
+              type: 'OPEN_POSITION',
+              direction: 'SHORT',
+              token: {
+                chainId: 1000000000,
+                address: 'BIO',
+                decimals: 0,
+                name: 'BIO',
+                symbol: 'BIO',
+                iconUrl: 'https://app.hyperliquid.xyz/coins/BIO.svg',
+                amount: '287',
+              },
+            },
+            value: 1,
+            bonus: {},
+            accountAddress: '0xeb74cd5273ca3ECd9C30b66A1Fd14A29F754f27b',
+          },
+          {
+            id: 'ec86ed8589c697e071afa7bfaf8349da5210d61dd8b4c6287b7e56a28cc38051',
+            timestamp: new Date('2025-08-17T20:26:55.647Z'),
+            type: 'PERPS',
+            payload: {
+              type: 'CLOSE_POSITION',
+              direction: 'LONG',
+              token: {
+                chainId: 1000000000,
+                address: 'SOL',
+                decimals: 2,
+                name: 'SOL',
+                symbol: 'SOL',
+                iconUrl: 'https://app.hyperliquid.xyz/coins/SOL.svg',
+                amount: '371',
+              },
+            },
+            value: 35,
+            bonus: {},
+            accountAddress: '0xdf02017a02FaCd13D2E2185f0a2139A2fE54EC82',
+          },
+          {
+            id: '05e6ae8da3bc6faa3722daa8e2f3615d58e56a12a68b0587550875d43e4c9931',
+            timestamp: new Date('2025-08-17T20:28:39.145Z'),
+            type: 'PERPS',
+            payload: {
+              type: 'TAKE_PROFIT',
+              direction: 'SHORT',
+              token: {
+                chainId: 1000000000,
+                address: 'SOL',
+                decimals: 2,
+                name: 'SOL',
+                symbol: 'SOL',
+                iconUrl: 'https://app.hyperliquid.xyz/coins/SOL.svg',
+                amount: '483',
+              },
+            },
+            value: 46,
+            bonus: {},
+            accountAddress: '0x69EAd39431f772Ef6d35A7B712b089e0aEAbB37e',
+          },
+          {
+            id: '40b6ae724da21d9d86701e057f2f6724df308ba143b4346875be8e7fe07c731a',
+            timestamp: new Date('2025-08-17T19:35:37.821Z'),
+            type: 'PERPS',
+            payload: {
+              type: 'STOP_LOSS',
+              direction: 'LONG',
+              token: {
+                chainId: 1000000000,
+                address: 'SOL',
+                decimals: 2,
+                name: 'SOL',
+                symbol: 'SOL',
+                iconUrl: 'https://app.hyperliquid.xyz/coins/SOL.svg',
+                amount: '1180',
+              },
+            },
+            value: 113,
+            bonus: {},
+            accountAddress: '0xd39401Ef877354599285fdb88E301e305E4C173F',
+          },
+        ],
+        has_more: true,
+        cursor:
+          '59144-0x9e8ebe1f8881cedcc618daf526502571e1159d9bee6e0526ea0ebcacf7fb62f5',
+        total_results: 7,
+      };
+    }
+    return {
+      results: [
+        /* Add events here to test infinite scroll */
+      ],
+      has_more: false,
+      cursor: null,
+      total_results: 12,
+    };
+
+    /* let url = `/seasons/${seasonId}/points-events`;
     if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
 
     const response = await this.makeRequest(
@@ -314,7 +528,7 @@ export class RewardsDataService {
       throw new Error(`Get points events failed: ${response.status}`);
     }
 
-    return (await response.json()) as PaginatedPointsEventsDto;
+    return (await response.json()) as PaginatedPointsEventsDto; */
   }
 
   /**
