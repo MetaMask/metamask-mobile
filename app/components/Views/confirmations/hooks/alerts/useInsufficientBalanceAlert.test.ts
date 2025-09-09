@@ -8,8 +8,16 @@ import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { selectTransactionState } from '../../../../../reducers/transaction';
 import { useConfirmActions } from '../useConfirmActions';
+import { useMaxValueMode } from '../useMaxValueMode';
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -24,6 +32,7 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+jest.mock('../useMaxValueMode');
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useAccountNativeBalance');
@@ -34,12 +43,12 @@ jest.mock('../../../../../reducers/transaction', () => ({
 }));
 
 describe('useInsufficientBalanceAlert', () => {
-  const mockSelectTransactionState = jest.mocked(selectTransactionState);
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseMaxValueMode = jest.mocked(useMaxValueMode);
   const mockSelectNetworkConfigurations = jest.mocked(
     selectNetworkConfigurations,
   );
@@ -80,7 +89,7 @@ describe('useInsufficientBalanceAlert', () => {
       }
       return key;
     });
-    mockSelectTransactionState.mockReturnValue({
+    mockUseMaxValueMode.mockReturnValue({
       maxValueMode: false,
     });
     mockUseConfirmActions.mockReturnValue({
@@ -97,7 +106,7 @@ describe('useInsufficientBalanceAlert', () => {
   });
 
   it('return empty array when max value mode is enabled', () => {
-    mockSelectTransactionState.mockReturnValue({
+    mockUseMaxValueMode.mockReturnValue({
       maxValueMode: true,
     });
 
@@ -189,7 +198,7 @@ describe('useInsufficientBalanceAlert', () => {
 
   describe('when ignoreGasFeeToken is true', () => {
     it('returns empty array', () => {
-      mockSelectTransactionState.mockReturnValue({
+      mockUseMaxValueMode.mockReturnValue({
         maxValueMode: true,
       });
       const { result } = renderHook(() =>
