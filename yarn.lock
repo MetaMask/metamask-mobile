@@ -2939,11 +2939,6 @@
   resolved "https://registry.yarnpkg.com/noop-fn/-/noop-fn-1.0.0.tgz#5f33d47f13d2150df93e0cb036699e982f78ffbf"
   integrity sha512-pQ8vODlgXt2e7A3mIbFDlizkr46r75V+BJxVAyat8Jl7YmI513gG5cfyRL0FedKraoZ+VAouI1h4/IWpus5pcQ==
 
-"@ffmpeg-installer/win32-x64@npm:noop-fn@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/noop-fn/-/noop-fn-1.0.0.tgz#5f33d47f13d2150df93e0cb036699e982f78ffbf"
-  integrity sha512-pQ8vODlgXt2e7A3mIbFDlizkr46r75V+BJxVAyat8Jl7YmI513gG5cfyRL0FedKraoZ+VAouI1h4/IWpus5pcQ==
-
 "@firebase/analytics-compat@0.2.10":
   version "0.2.10"
   resolved "https://registry.yarnpkg.com/@firebase/analytics-compat/-/analytics-compat-0.2.10.tgz#c98005075c019eb8255764a5279f0ff86b36b863"
@@ -4993,17 +4988,15 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
   integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
-"@metamask/bridge-controller@^41.4.0":
-  version "41.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-41.4.0.tgz#059f45a79c1fa1a788de44ae1757aedd4197fa86"
-  integrity sha512-iJEASk5S8NWyH1d/hSa91IvAe5bOj4PkMwDAZVjtuhja9MMaMXi+j7WwNDTQ6jRP3xxnwkYfK88JYeTI/pT0eQ==
+"@metamask/bridge-controller@file:../../projects/core/packages/bridge-controller":
+  version "42.0.0"
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/constants" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/gas-fee-controller" "^24.0.0"
     "@metamask/keyring-api" "^20.1.0"
@@ -5015,12 +5008,10 @@
     reselect "^5.1.1"
     uuid "^8.3.2"
 
-"@metamask/bridge-status-controller@^40.2.0":
-  version "40.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-40.2.0.tgz#ea18e534ae4df0d173c252fe8ac9da70b63a4e0b"
-  integrity sha512-M44FXShp8mxhqJFMaTJxtscGhQffXNJaFoRgor2mLowqXaXBC6EP2DnaDX8ybS/tks2qR7p6lc3LJZaXhM235A==
+"@metamask/bridge-status-controller@file:../../projects/core/packages/bridge-status-controller":
+  version "42.0.0"
   dependencies:
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/polling-controller" "^14.0.0"
@@ -6259,6 +6250,30 @@
     "@ethersproject/providers" "^5.7.0"
     "@ethersproject/wallet" "^5.7.0"
     "@metamask/base-controller" "^8.2.0"
+    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/metamask-eth-abis" "^3.1.1"
+    "@metamask/nonce-tracker" "^6.0.0"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/utils" "^11.4.2"
+    async-mutex "^0.5.0"
+    bn.js "^5.2.1"
+    eth-method-registry "^4.0.0"
+    fast-json-patch "^3.1.1"
+    lodash "^4.17.21"
+    uuid "^8.3.2"
+
+"@metamask/transaction-controller@file:../../projects/core/packages/transaction-controller":
+  version "60.2.0"
+  dependencies:
+    "@ethereumjs/common" "^4.4.0"
+    "@ethereumjs/tx" "^5.4.0"
+    "@ethereumjs/util" "^9.1.0"
+    "@ethersproject/abi" "^5.7.0"
+    "@ethersproject/contracts" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@ethersproject/wallet" "^5.7.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"

@@ -1,4 +1,4 @@
-import { TxData, Quote } from '@metamask/bridge-controller';
+import { TxData, Quote, Intent } from '@metamask/bridge-controller';
 import { Hex, CaipChainId } from '@metamask/utils';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
@@ -24,6 +24,12 @@ export interface QuoteResponse {
   approval?: TxData | null;
   trade: TxData;
   estimatedProcessingTimeInSeconds: number;
+}
+
+export interface CowSwapQuoteResponse extends QuoteResponse {
+  aggregator: string;
+  walletAddress: string;
+  intent?: Intent;
 }
 
 export enum BridgeViewMode {
