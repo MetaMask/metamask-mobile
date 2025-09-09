@@ -186,6 +186,9 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes - detection disabled', async () => {
+    const networksModule = jest.requireMock('../../../util/networks');
+    networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -206,7 +209,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
-        chainId: 1,
+        chainId: '0x1',
       },
     ];
 
@@ -223,7 +226,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
-        chainId: 1,
+        chainId: '0x1',
       },
     ];
     const mockState: DeepPartial<RootState> = {
@@ -258,12 +261,12 @@ describe('CollectibleContracts', () => {
           NftController: {
             allNfts: {
               [MOCK_ADDRESS]: {
-                '0x1': [],
+                '0x1': nftItemData,
               },
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '0x1': [],
+                '0x1': collectibleData,
               },
             },
           },
@@ -272,13 +275,14 @@ describe('CollectibleContracts', () => {
     };
 
     const spyOnCollectibles = jest
-      .spyOn(allSelectors, 'multichainCollectiblesSelector')
-      .mockReturnValueOnce({ '0x1': nftItemData })
-      .mockReturnValueOnce({ '0x1': nftItemDataUpdated });
+      .spyOn(allSelectors, 'multichainCollectiblesByEnabledNetworksSelector')
+      .mockReturnValue({ '0x1': nftItemData });
     const spyOnContracts = jest
-      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
-      .mockReturnValueOnce({ '0x1': collectibleData })
-      .mockReturnValueOnce({ '0x1': collectibleData });
+      .spyOn(
+        allSelectors,
+        'multichainCollectibleContractsByEnabledNetworksSelector',
+      )
+      .mockReturnValue({ '0x1': collectibleData });
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
@@ -286,8 +290,13 @@ describe('CollectibleContracts', () => {
     const { getByTestId } = renderWithProvider(<CollectibleContracts />, {
       state: mockState,
     });
+
+    // The NFT image should be visible by default since it's the first contract (index === 0)
     const nftImageBefore = getByTestId('nft-image');
     expect(nftImageBefore.props.source.uri).toEqual(nftItemData[0].image);
+
+    // Update the mock to return updated data
+    spyOnCollectibles.mockReturnValue({ '0x1': nftItemDataUpdated });
 
     const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
       state: mockState,
@@ -307,6 +316,9 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes - detection enabled', async () => {
+    const networksModule = jest.requireMock('../../../util/networks');
+    networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -327,6 +339,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
+        chainId: '0x1',
       },
     ];
 
@@ -343,6 +356,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
+        chainId: '0x1',
       },
     ];
     const mockState: DeepPartial<RootState> = {
@@ -378,12 +392,12 @@ describe('CollectibleContracts', () => {
           NftController: {
             allNfts: {
               [MOCK_ADDRESS]: {
-                '0x1': [],
+                '0x1': nftItemData,
               },
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '0x1': [],
+                '0x1': collectibleData,
               },
             },
           },
@@ -392,11 +406,13 @@ describe('CollectibleContracts', () => {
     };
 
     const spyOnCollectibles = jest
-      .spyOn(allSelectors, 'multichainCollectiblesSelector')
-      .mockReturnValueOnce({ '0x1': nftItemData })
-      .mockReturnValueOnce({ '0x1': nftItemDataUpdated });
+      .spyOn(allSelectors, 'multichainCollectiblesByEnabledNetworksSelector')
+      .mockReturnValue({ '0x1': nftItemData });
     const spyOnContracts = jest
-      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
+      .spyOn(
+        allSelectors,
+        'multichainCollectibleContractsByEnabledNetworksSelector',
+      )
       .mockReturnValue({ '0x1': collectibleData });
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
@@ -405,8 +421,13 @@ describe('CollectibleContracts', () => {
     const { getByTestId } = renderWithProvider(<CollectibleContracts />, {
       state: mockState,
     });
+
+    // The NFT image should be visible by default since it's the first contract (index === 0)
     const nftImageBefore = getByTestId('nft-image');
     expect(nftImageBefore.props.source.uri).toEqual(nftItemData[0].image);
+
+    // Update the mock to return updated data
+    spyOnCollectibles.mockReturnValue({ '0x1': nftItemDataUpdated });
 
     const { queryByTestId } = renderWithProvider(<CollectibleContracts />, {
       state: mockState,
@@ -686,7 +707,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '1',
         tokenURI: 'https://token.uri/1',
-        chainId: 1,
+        chainId: '0x1',
       },
     ];
 
@@ -792,7 +813,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '1',
         tokenURI: 'https://token.uri/1',
-        chainId: 1,
+        chainId: '0x1',
       },
     ];
 
@@ -908,7 +929,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '1',
         tokenURI: 'https://token.uri/1',
-        chainId: 1,
+        chainId: '0x1',
       },
     ];
 
