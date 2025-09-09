@@ -6428,7 +6428,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/tron-wallet-snap/-/tron-wallet-snap-1.0.3.tgz#f0e7945fd31c460b194d2a51ce044b06939c8d98"
   integrity sha512-PGwKrbyEkAtMBRZP9Yqu6x+6mH44fMLxlLGdycrCuy+HyA5A/aIoUDkB4OMIphUKwMXIS+RLj5Jbsvy3JtaMLg==
 
-"@metamask/utils@11.7.0":
+"@metamask/utils@11.7.0", "@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0", "@metamask/utils@^11.4.2":
   version "11.7.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.7.0.tgz#d6b7dad510eef5d19e756fa8d3e43c1a95cf1c5e"
   integrity sha512-IamqpZF8Lr4WeXJ84fD+Sy+v1Zo05SYuMPHHBrZWpzVbnHAmXQpL4ckn9s5dfA+zylp3WGypaBPb6SBZdOhuNQ==
