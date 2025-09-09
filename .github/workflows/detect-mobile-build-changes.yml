@@ -94,7 +94,7 @@ jobs:
             ios_final="$ios"
           fi
           
-          # Skip builds only if docs/workflows changed AND no mobile code changed
+          # Skip builds if no mobile code changed
           if [[ "$ignore" == 'true' && "$android_final" == 'false' && "$ios_final" == 'false' ]]; then
             echo "Skipping all mobile builds - changes only affect docs/workflows, no mobile code changed"
             echo "android_final=false" >> "${GITHUB_OUTPUT}"
