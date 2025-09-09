@@ -170,12 +170,15 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-// Mock DevLogger
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: {
-    log: jest.fn(),
-  },
-}));
+// Mock DevLogger (module appears to use default export with .log())
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
+  const log = jest.fn();
+  return {
+    __esModule: true,
+    default: { log },
+    DevLogger: { log }, // provide named export fallback if implementation changes
+  };
+});
 
 // Mock trace utilities
 jest.mock('../../../../../util/trace', () => ({

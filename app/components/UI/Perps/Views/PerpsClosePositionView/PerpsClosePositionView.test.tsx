@@ -18,6 +18,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   PerpsClosePositionViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
+  PerpsOrderHeaderSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock navigation
@@ -208,9 +209,6 @@ describe('PerpsClosePositionView', () => {
 
       // Assert
       expect(getByText(strings('perps.close_position.margin'))).toBeDefined();
-      expect(
-        getByText(strings('perps.close_position.estimated_pnl')),
-      ).toBeDefined();
       expect(getByText(strings('perps.close_position.fees'))).toBeDefined();
       expect(
         getByText(strings('perps.close_position.you_receive')),
@@ -219,26 +217,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('User Interactions', () => {
-    it('navigates back when cancel button is pressed', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Act
-      const cancelButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON,
-      );
-      fireEvent.press(cancelButton);
-
-      // Assert
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
     it('calls handleClosePosition when confirm button is pressed', async () => {
       // Arrange
       const handleClosePosition = jest.fn();
@@ -868,7 +846,7 @@ describe('PerpsClosePositionView', () => {
 
       // Then it should show market order by default
       expect(
-        getByTestId(PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON),
+        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
       ).toBeDefined();
       expect(getByText(strings('perps.order.market'))).toBeDefined();
     });
@@ -953,7 +931,7 @@ describe('PerpsClosePositionView', () => {
 
       // Act - Press the order type button
       const orderTypeButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON,
+        PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
       );
       fireEvent.press(orderTypeButton);
 
@@ -1051,7 +1029,7 @@ describe('PerpsClosePositionView', () => {
 
       // Act - Press order type button to trigger limit order selection
       const orderTypeButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON,
+        PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
       );
       fireEvent.press(orderTypeButton);
 

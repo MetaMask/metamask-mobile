@@ -132,6 +132,7 @@ export const getPerpsMarketRowItemSelector = {
 export const PerpsOrderHeaderSelectorsIDs = {
   HEADER: 'perps-order-header',
   ASSET_TITLE: 'perps-order-header-asset-title',
+  ORDER_TYPE_BUTTON: 'perps-order-header-order-type-button',
 };
 
 // ========================================
@@ -421,7 +422,6 @@ export const PerpsOpenOrderCardSelectorsIDs = {
 // ========================================
 
 export const PerpsClosePositionViewSelectorsIDs = {
-  ORDER_TYPE_BUTTON: 'order-type-button',
   DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
   CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
   CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',

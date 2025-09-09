@@ -106,7 +106,10 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           )}
         </View>
       </View>
-      <TouchableOpacity onPress={handleOrderTypePress}>
+      <TouchableOpacity
+        onPress={handleOrderTypePress}
+        testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
+      >
         <View style={styles.marketButton}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {orderType === 'market'
