@@ -50,7 +50,7 @@ export const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.End}
           >
-            <Text>{`+${event.value}`}</Text>
+            <Text>{`${event.value > 0 ? '+' : ''}${event.value}`}</Text>
             {event.bonus?.bips && (
               <Text
                 variant={TextVariant.BodySm}
