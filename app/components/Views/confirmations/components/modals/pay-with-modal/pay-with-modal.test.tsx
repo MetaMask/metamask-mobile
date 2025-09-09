@@ -3,7 +3,6 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { PayWithModal } from './pay-with-modal';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useTokens } from '../../../../../UI/Bridge/hooks/useTokens';
-import { Hex } from '@metamask/utils';
 import { BridgeToken } from '../../../../../UI/Bridge/types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { cloneDeep, merge } from 'lodash';
@@ -13,6 +12,8 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { BridgeSourceNetworksBar } from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.useFakeTimers();
 
@@ -23,6 +24,7 @@ const mockSetPayToken = jest.fn();
 jest.mock('../../../../../UI/Bridge/hooks/useTokens');
 jest.mock('../../../hooks/pay/useTransactionRequiredTokens');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
+jest.mock('../../../../../UI/Bridge/components/BridgeSourceNetworksBar');
 
 jest.mock(
   '../../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
@@ -39,8 +41,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const CHAIN_ID_1_MOCK = '0x1' as Hex;
-const CHAIN_ID_2_MOCK = '0x456' as Hex;
+const CHAIN_ID_1_MOCK = CHAIN_IDS.MAINNET;
+const CHAIN_ID_2_MOCK = CHAIN_IDS.OPTIMISM;
 
 const TOKENS_MOCK: BridgeToken[] = [
   {
@@ -119,6 +121,7 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
 describe('PayWithModal', () => {
   const useTokensMock = jest.mocked(useTokens);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const BridgeSourceNetworksBarMock = jest.mocked(BridgeSourceNetworksBar);
   const useTransactionRequiredTokensMock = jest.mocked(
     useTransactionRequiredTokens,
   );
@@ -259,6 +262,25 @@ describe('PayWithModal', () => {
     });
   });
 
+  it('displays supported networks in networks bar', async () => {
+    render();
+
+    expect(BridgeSourceNetworksBarMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        networksToShow: [
+          expect.objectContaining({ chainId: CHAIN_ID_1_MOCK }),
+          expect.objectContaining({ chainId: CHAIN_ID_2_MOCK }),
+        ],
+        enabledSourceChains: [
+          expect.objectContaining({ chainId: CHAIN_ID_1_MOCK }),
+          expect.objectContaining({ chainId: CHAIN_ID_2_MOCK }),
+        ],
+        selectedSourceChainIds: [CHAIN_ID_1_MOCK, CHAIN_ID_2_MOCK],
+      }),
+      expect.anything(),
+    );
+  });
+
   describe('on token select', () => {
     it('sets pay asset', async () => {
       const { getByText } = render();
@@ -286,6 +308,14 @@ describe('PayWithModal', () => {
 
   describe('on network select', () => {
     it('navigates to network selector', async () => {
+      const originalNetworkBar = jest.requireActual(
+        '../../../../../UI/Bridge/components/BridgeSourceNetworksBar',
+      ).BridgeSourceNetworksBar;
+
+      BridgeSourceNetworksBarMock.mockImplementation((props) =>
+        originalNetworkBar(props),
+      );
+
       const { getByText } = render();
 
       await waitFor(() => {

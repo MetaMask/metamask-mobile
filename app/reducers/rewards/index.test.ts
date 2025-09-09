@@ -1,28 +1,46 @@
 import { Action } from 'redux';
 import rewardsReducer, {
   setActiveTab,
-  setSubscriptionId,
   setSeasonStatus,
   setReferralDetails,
+  setSeasonStatusLoading,
+  setReferralDetailsLoading,
   resetRewardsState,
+  setOnboardingActiveStep,
+  resetOnboarding,
+  setGeoRewardsMetadata,
+  setGeoRewardsMetadataLoading,
   RewardsState,
 } from '.';
-import {
-  SeasonStatusState,
-  SubscriptionDto,
-} from '../../core/Engine/controllers/rewards-controller/types';
+import { OnboardingStep } from './types';
+import { SeasonStatusState } from '../../core/Engine/controllers/rewards-controller/types';
 
 describe('rewardsReducer', () => {
   const initialState: RewardsState = {
-    activeTab: null,
+    activeTab: 'overview',
+    seasonStatusLoading: false,
+
+    referralDetailsLoading: false,
     referralCode: null,
     refereeCount: 0,
-    subscriptionId: null,
-    tierStatus: null,
+
+    currentTier: null,
+    nextTier: null,
+    nextTierPointsNeeded: null,
+
     balanceTotal: 0,
     balanceRefereePortion: 0,
-    balanceUpdatedAt: new Date(),
-    seasonStatusLoading: false,
+    balanceUpdatedAt: null,
+
+    seasonName: null,
+    seasonStartDate: null,
+    seasonEndDate: null,
+    seasonTiers: [],
+
+    onboardingActiveStep: OnboardingStep.INTRO,
+    geoLocation: null,
+    optinAllowedForGeo: false,
+    optinAllowedForGeoLoading: false,
   };
 
   it('should return the initial state', () => {
@@ -33,14 +51,24 @@ describe('rewardsReducer', () => {
     expect(state).toEqual(
       expect.objectContaining({
         activeTab: 'overview',
+        seasonStatusLoading: false,
+        referralDetailsLoading: false,
         referralCode: null,
         refereeCount: 0,
-        subscriptionId: null,
-        tierStatus: null,
+        currentTier: null,
+        nextTier: null,
+        nextTierPointsNeeded: null,
         balanceTotal: 0,
         balanceRefereePortion: 0,
-        seasonStatusLoading: false,
         balanceUpdatedAt: null,
+        seasonName: null,
+        seasonStartDate: null,
+        seasonEndDate: null,
+        seasonTiers: [],
+        onboardingActiveStep: OnboardingStep.INTRO,
+        geoLocation: null,
+        optinAllowedForGeo: false,
+        optinAllowedForGeoLoading: false,
       }),
     );
   });
@@ -95,52 +123,6 @@ describe('rewardsReducer', () => {
     });
   });
 
-  describe('setSubscriptionId', () => {
-    it('should set subscription id when subscription is provided', () => {
-      // Arrange
-      const mockSubscription: SubscriptionDto = {
-        id: 'sub-123',
-        referralCode: 'REF123',
-      };
-      const action = setSubscriptionId(mockSubscription.id);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.subscriptionId).toBe('sub-123');
-    });
-
-    it('should set subscription id to null when subscription is null', () => {
-      // Arrange
-      const stateWithSubscription = {
-        ...initialState,
-        subscriptionId: 'existing-sub',
-      };
-      const action = setSubscriptionId(null);
-
-      // Act
-      const state = rewardsReducer(stateWithSubscription, action);
-
-      // Assert
-      expect(state.subscriptionId).toBe(null);
-    });
-
-    it('should handle subscription without id', () => {
-      // Arrange
-      const mockSubscription = {
-        referralCode: 'REF123',
-      } as SubscriptionDto;
-      const action = setSubscriptionId(mockSubscription.id);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.subscriptionId).toBe(null);
-    });
-  });
-
   describe('setSeasonStatus', () => {
     it('should update all season status fields when complete data is provided', () => {
       // Arrange
@@ -148,13 +130,19 @@ describe('rewardsReducer', () => {
         season: {
           id: 'season-1',
           name: 'Season 1',
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-12-31'),
-          tiers: [],
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [
+            {
+              id: 'tier-bronze',
+              name: 'Bronze',
+              pointsNeeded: 0,
+            },
+          ],
         },
         balance: {
-          total: 0,
-          refereePortion: 0,
+          total: 1500,
+          refereePortion: 300,
           updatedAt: 1714857600000,
         },
         tier: {
@@ -177,27 +165,36 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(initialState, action);
 
       // Assert
-      expect(state.balanceTotal).toBe(0);
-      expect(state.balanceRefereePortion).toBe(0);
+      expect(state.seasonName).toBe('Season 1');
+      expect(state.seasonStartDate).toEqual(new Date('2024-01-01'));
+      expect(state.seasonEndDate).toEqual(new Date('2024-12-31'));
+      expect(state.seasonTiers).toHaveLength(1);
+      expect(state.seasonTiers[0].id).toBe('tier-bronze');
+      expect(state.balanceTotal).toBe(1500);
+      expect(state.balanceRefereePortion).toBe(300);
       expect(state.balanceUpdatedAt).toEqual(new Date(1714857600000));
-      expect(state.tierStatus?.currentTier.id).toBe('tier-bronze');
+      expect(state.currentTier?.id).toBe('tier-bronze');
+      expect(state.nextTier?.id).toBe('tier-silver');
+      expect(state.nextTierPointsNeeded).toBe(1000);
     });
 
     it('should set fields to null when season status is null', () => {
       // Arrange
       const stateWithData = {
         ...initialState,
+        seasonName: 'Existing Season',
+        seasonStartDate: new Date('2024-01-01'),
+        seasonEndDate: new Date('2024-12-31'),
+        seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
         balanceTotal: 1000,
         balanceRefereePortion: 200,
-        tierStatus: {
-          currentTier: {
-            id: 'tier-gold',
-            name: 'Gold',
-            pointsNeeded: 1000,
-          },
-          nextTier: null,
-          nextTierPointsNeeded: null,
+        currentTier: {
+          id: 'tier-gold',
+          name: 'Gold',
+          pointsNeeded: 1000,
         },
+        nextTier: null,
+        nextTierPointsNeeded: null,
       };
       const action = setSeasonStatus(null);
 
@@ -205,10 +202,152 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithData, action);
 
       // Assert
+      expect(state.seasonName).toBe(null);
+      expect(state.seasonStartDate).toBe(null);
+      expect(state.seasonEndDate).toBe(null);
+      expect(state.seasonTiers).toEqual([]);
       expect(state.balanceTotal).toBe(null);
       expect(state.balanceRefereePortion).toBe(null);
       expect(state.balanceUpdatedAt).toBe(null);
-      expect(state.tierStatus).toBe(null);
+      expect(state.currentTier).toBe(null);
+      expect(state.nextTier).toBe(null);
+      expect(state.nextTierPointsNeeded).toBe(null);
+    });
+
+    it('should handle season status with missing balance data', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-2',
+          name: 'Season 2',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [
+            {
+              id: 'tier-gold',
+              name: 'Gold',
+              pointsNeeded: 500,
+            },
+          ],
+        },
+        tier: {
+          currentTier: {
+            id: 'tier-silver',
+            name: 'Silver',
+            pointsNeeded: 100,
+          },
+          nextTier: null,
+          nextTierPointsNeeded: null,
+        },
+        // No balance property
+      } as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonName).toBe('Season 2');
+      expect(state.seasonTiers).toHaveLength(1);
+      expect(state.currentTier?.name).toBe('Silver');
+      expect(state.balanceTotal).toBe(null);
+      expect(state.balanceRefereePortion).toBe(null);
+      expect(state.balanceUpdatedAt).toBe(null);
+    });
+
+    it('should handle season status with missing tier data', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-3',
+          name: 'Season 3',
+          startDate: new Date('2024-06-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+        },
+        balance: {
+          total: 750,
+          refereePortion: 150,
+          updatedAt: 1714857600000,
+        },
+        // No tier property
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonName).toBe('Season 3');
+      expect(state.balanceTotal).toBe(750);
+      expect(state.balanceRefereePortion).toBe(150);
+      expect(state.currentTier).toBe(null);
+      expect(state.nextTier).toBe(null);
+      expect(state.nextTierPointsNeeded).toBe(null);
+    });
+
+    it('should handle season status with invalid balance types', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-4',
+          name: 'Season 4',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
+        },
+        balance: {
+          total: 'invalid' as unknown as number, // Invalid type
+          refereePortion: null as unknown as number, // Invalid type
+          updatedAt: 1714857600000,
+        },
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonName).toBe('Season 4');
+      expect(state.balanceTotal).toBe(null); // Should be null due to invalid type
+      expect(state.balanceRefereePortion).toBe(null); // Should be null due to invalid type
+      expect(state.balanceUpdatedAt).toEqual(new Date(1714857600000));
+    });
+
+    it('should handle season status with partial tier data', () => {
+      // Arrange
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-5',
+          name: 'Season 5',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [
+            {
+              id: 'tier-bronze',
+              name: 'Bronze',
+              pointsNeeded: 0,
+            },
+          ],
+        },
+        tier: {
+          currentTier: {
+            id: 'tier-bronze',
+            name: 'Bronze',
+            pointsNeeded: 0,
+          },
+          // Missing nextTier and nextTierPointsNeeded
+        },
+      } as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.currentTier?.name).toBe('Bronze');
+      expect(state.nextTier).toBe(null);
+      expect(state.nextTierPointsNeeded).toBe(null);
     });
   });
 
@@ -280,29 +419,282 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.refereeCount).toBe(0);
     });
+
+    it('should set referralDetailsLoading to false', () => {
+      // Arrange
+      const stateWithLoading = {
+        ...initialState,
+        referralDetailsLoading: true,
+      };
+      const action = setReferralDetails({ referralCode: 'TEST123' });
+
+      // Act
+      const state = rewardsReducer(stateWithLoading, action);
+
+      // Assert
+      expect(state.referralDetailsLoading).toBe(false);
+      expect(state.referralCode).toBe('TEST123');
+    });
+  });
+
+  describe('setSeasonStatusLoading', () => {
+    it('should set season status loading to true', () => {
+      // Arrange
+      const action = setSeasonStatusLoading(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.seasonStatusLoading).toBe(true);
+    });
+
+    it('should set season status loading to false', () => {
+      // Arrange
+      const stateWithLoading = { ...initialState, seasonStatusLoading: true };
+      const action = setSeasonStatusLoading(false);
+
+      // Act
+      const state = rewardsReducer(stateWithLoading, action);
+
+      // Assert
+      expect(state.seasonStatusLoading).toBe(false);
+    });
+  });
+
+  describe('setReferralDetailsLoading', () => {
+    it('should set referral details loading to true', () => {
+      // Arrange
+      const action = setReferralDetailsLoading(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.referralDetailsLoading).toBe(true);
+    });
+
+    it('should set referral details loading to false', () => {
+      // Arrange
+      const stateWithLoading = {
+        ...initialState,
+        referralDetailsLoading: true,
+      };
+      const action = setReferralDetailsLoading(false);
+
+      // Act
+      const state = rewardsReducer(stateWithLoading, action);
+
+      // Assert
+      expect(state.referralDetailsLoading).toBe(false);
+    });
+  });
+
+  describe('setOnboardingActiveStep', () => {
+    it.each([
+      OnboardingStep.INTRO,
+      OnboardingStep.STEP_1,
+      OnboardingStep.STEP_2,
+      OnboardingStep.STEP_3,
+      OnboardingStep.STEP_4,
+    ])('should set onboarding active step to %s', (step) => {
+      // Arrange
+      const action = setOnboardingActiveStep(step);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.onboardingActiveStep).toBe(step);
+    });
+
+    it('should update from different onboarding step', () => {
+      // Arrange
+      const stateWithStep = {
+        ...initialState,
+        onboardingActiveStep: OnboardingStep.STEP_2,
+      };
+      const action = setOnboardingActiveStep(OnboardingStep.STEP_4);
+
+      // Act
+      const state = rewardsReducer(stateWithStep, action);
+
+      // Assert
+      expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_4);
+    });
+  });
+
+  describe('resetOnboarding', () => {
+    it('should reset onboarding to INTRO step', () => {
+      // Arrange
+      const stateWithStep = {
+        ...initialState,
+        onboardingActiveStep: OnboardingStep.STEP_3,
+      };
+      const action = resetOnboarding();
+
+      // Act
+      const state = rewardsReducer(stateWithStep, action);
+
+      // Assert
+      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        onboardingActiveStep: OnboardingStep.STEP_4,
+        referralCode: 'KEEP123',
+        balanceTotal: 1500,
+      };
+      const action = resetOnboarding();
+
+      // Act
+      const state = rewardsReducer(stateWithData, action);
+
+      // Assert
+      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
+      expect(state.referralCode).toBe('KEEP123');
+      expect(state.balanceTotal).toBe(1500);
+    });
+  });
+
+  describe('setGeoRewardsMetadata', () => {
+    it('should update geo metadata when payload is provided', () => {
+      // Arrange
+      const geoMetadata = {
+        geoLocation: 'US',
+        optinAllowedForGeo: true,
+      };
+      const action = setGeoRewardsMetadata(geoMetadata);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.geoLocation).toBe('US');
+      expect(state.optinAllowedForGeo).toBe(true);
+      expect(state.optinAllowedForGeoLoading).toBe(false);
+    });
+
+    it('should update geo metadata with different location', () => {
+      // Arrange
+      const geoMetadata = {
+        geoLocation: 'CA',
+        optinAllowedForGeo: false,
+      };
+      const action = setGeoRewardsMetadata(geoMetadata);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.geoLocation).toBe('CA');
+      expect(state.optinAllowedForGeo).toBe(false);
+      expect(state.optinAllowedForGeoLoading).toBe(false);
+    });
+
+    it('should clear geo metadata when payload is null', () => {
+      // Arrange
+      const stateWithGeoData = {
+        ...initialState,
+        geoLocation: 'EU',
+        optinAllowedForGeo: true,
+        optinAllowedForGeoLoading: true,
+      };
+      const action = setGeoRewardsMetadata(null);
+
+      // Act
+      const state = rewardsReducer(stateWithGeoData, action);
+
+      // Assert
+      expect(state.geoLocation).toBe(null);
+      expect(state.optinAllowedForGeo).toBe(false);
+      expect(state.optinAllowedForGeoLoading).toBe(false);
+    });
+
+    it('should reset loading state when metadata is set', () => {
+      // Arrange
+      const stateWithLoading = {
+        ...initialState,
+        optinAllowedForGeoLoading: true,
+      };
+      const geoMetadata = {
+        geoLocation: 'UK',
+        optinAllowedForGeo: true,
+      };
+      const action = setGeoRewardsMetadata(geoMetadata);
+
+      // Act
+      const state = rewardsReducer(stateWithLoading, action);
+
+      // Assert
+      expect(state.geoLocation).toBe('UK');
+      expect(state.optinAllowedForGeo).toBe(true);
+      expect(state.optinAllowedForGeoLoading).toBe(false);
+    });
+  });
+
+  describe('setGeoRewardsMetadataLoading', () => {
+    it('should set geo rewards metadata loading to true', () => {
+      // Arrange
+      const action = setGeoRewardsMetadataLoading(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.optinAllowedForGeoLoading).toBe(true);
+    });
+
+    it('should set geo rewards metadata loading to false', () => {
+      // Arrange
+      const stateWithLoading = {
+        ...initialState,
+        optinAllowedForGeoLoading: true,
+      };
+      const action = setGeoRewardsMetadataLoading(false);
+
+      // Act
+      const state = rewardsReducer(stateWithLoading, action);
+
+      // Assert
+      expect(state.optinAllowedForGeoLoading).toBe(false);
+    });
   });
 
   describe('resetRewardsState', () => {
     it('should reset all state to initial values', () => {
       // Arrange
-      const stateWithData = {
-        activeTab: 'overview' as const,
+      const stateWithData: RewardsState = {
+        activeTab: 'activity' as const,
+        seasonStatusLoading: true,
+        referralDetailsLoading: false,
         referralCode: 'TEST123',
         refereeCount: 10,
-        subscriptionId: 'sub-456',
-        tierStatus: {
-          currentTier: {
-            id: 'tier-platinum',
-            name: 'Platinum',
-            pointsNeeded: 1000,
-          },
-          nextTier: null,
-          nextTierPointsNeeded: null,
+        currentTier: {
+          id: 'tier-platinum',
+          name: 'Platinum',
+          pointsNeeded: 1000,
         },
+        nextTier: {
+          id: 'tier-diamond',
+          name: 'Diamond',
+          pointsNeeded: 2000,
+        },
+        nextTierPointsNeeded: 1000,
         balanceTotal: 5000,
         balanceRefereePortion: 1000,
         balanceUpdatedAt: new Date('2024-01-01'),
-        seasonStatusLoading: false,
+        seasonName: 'Test Season',
+        seasonStartDate: new Date('2024-01-01'),
+        seasonEndDate: new Date('2024-12-31'),
+        seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
+        onboardingActiveStep: OnboardingStep.STEP_1,
+        geoLocation: 'US',
+        optinAllowedForGeo: true,
+        optinAllowedForGeoLoading: false,
       };
       const action = resetRewardsState();
 
@@ -313,14 +705,24 @@ describe('rewardsReducer', () => {
       expect(state).toEqual(
         expect.objectContaining({
           activeTab: 'overview',
+          seasonStatusLoading: false,
+          referralDetailsLoading: false,
           referralCode: null,
           refereeCount: 0,
-          subscriptionId: null,
-          tierStatus: null,
+          currentTier: null,
+          nextTier: null,
+          nextTierPointsNeeded: null,
           balanceTotal: 0,
           balanceRefereePortion: 0,
-          seasonStatusLoading: false,
           balanceUpdatedAt: null,
+          seasonName: null,
+          seasonStartDate: null,
+          seasonEndDate: null,
+          seasonTiers: [],
+          onboardingActiveStep: OnboardingStep.INTRO,
+          geoLocation: null,
+          optinAllowedForGeo: false,
+          optinAllowedForGeoLoading: false,
         }),
       );
     });
@@ -331,22 +733,28 @@ describe('rewardsReducer', () => {
       // Arrange
       const persistedRewardsState: RewardsState = {
         activeTab: 'activity',
+        seasonStatusLoading: true, // This will be reset to false in rehydration
+        referralDetailsLoading: false,
         referralCode: 'PERSISTED123',
         refereeCount: 15,
-        subscriptionId: 'persisted-sub',
-        tierStatus: {
-          currentTier: {
-            id: 'tier-diamond',
-            name: 'Diamond',
-            pointsNeeded: 1000,
-          },
-          nextTier: null,
-          nextTierPointsNeeded: null,
+        currentTier: {
+          id: 'tier-diamond',
+          name: 'Diamond',
+          pointsNeeded: 1000,
         },
+        nextTier: null,
+        nextTierPointsNeeded: null,
         balanceTotal: 2000,
         balanceRefereePortion: 400,
         balanceUpdatedAt: new Date('2024-05-01'),
-        seasonStatusLoading: false,
+        seasonName: 'Persisted Season',
+        seasonStartDate: new Date('2024-01-01'),
+        seasonEndDate: new Date('2024-12-31'),
+        seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
+        onboardingActiveStep: OnboardingStep.STEP_2,
+        geoLocation: 'CA',
+        optinAllowedForGeo: true,
+        optinAllowedForGeoLoading: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -362,21 +770,28 @@ describe('rewardsReducer', () => {
       expect(state).toEqual(
         expect.objectContaining({
           activeTab: 'activity',
+          seasonStatusLoading: false, // Reset to false during rehydration
+          referralDetailsLoading: false,
           referralCode: 'PERSISTED123',
           refereeCount: 15,
-          subscriptionId: 'persisted-sub',
-          tierStatus: {
-            currentTier: {
-              id: 'tier-diamond',
-              name: 'Diamond',
-              pointsNeeded: 1000,
-            },
-            nextTier: null,
-            nextTierPointsNeeded: null,
+          currentTier: {
+            id: 'tier-diamond',
+            name: 'Diamond',
+            pointsNeeded: 1000,
           },
+          nextTier: null,
+          nextTierPointsNeeded: null,
           balanceTotal: 2000,
           balanceRefereePortion: 400,
-          seasonStatusLoading: false,
+          balanceUpdatedAt: new Date('2024-05-01'),
+          seasonName: 'Persisted Season',
+          seasonStartDate: new Date('2024-01-01'),
+          seasonEndDate: new Date('2024-12-31'),
+          seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
+          onboardingActiveStep: OnboardingStep.STEP_2,
+          geoLocation: 'CA',
+          optinAllowedForGeo: true,
+          optinAllowedForGeoLoading: false,
         }),
       );
     });

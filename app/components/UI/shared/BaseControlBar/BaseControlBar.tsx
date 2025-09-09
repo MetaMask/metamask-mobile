@@ -32,11 +32,14 @@ import {
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
-  useNetworksByNamespace,
   NetworkType,
+  useNetworksByCustomNamespace,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
+import { KnownCaipNamespace } from '@metamask/utils';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 export interface BaseControlBarProps {
   /**
@@ -86,6 +89,9 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   // Shared hooks
   const {
@@ -93,14 +99,20 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     getNetworkInfo,
     isDisabled: hookIsDisabled,
   } = useCurrentNetworkInfo();
-  const { areAllNetworksSelected } = useNetworksByNamespace({
-    networkType: NetworkType.Popular,
-  });
+  const { areAllNetworksSelected, totalEnabledNetworksCount } =
+    useNetworksByCustomNamespace({
+      networkType: NetworkType.Popular,
+      namespace: KnownCaipNamespace.Eip155,
+    });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   // Determine if disabled (use custom logic if provided, otherwise use hook logic)
   const isDisabled = customIsDisabled ?? hookIsDisabled;
+
+  const displayAllNetworks = isMultichainAccountsState2Enabled
+    ? totalEnabledNetworksCount > 1
+    : enabledNetworks.length > 1;
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
@@ -145,7 +157,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             style={styles.controlButtonText}
             numberOfLines={1}
           >
-            {enabledNetworks.length > 1
+            {displayAllNetworks
               ? strings('wallet.all_networks')
               : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
@@ -170,12 +182,18 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       label={renderNetworkLabel()}
       isDisabled={isDisabled}
       onPress={
-        useEvmSelectionLogic && !isEvmSelected
+        useEvmSelectionLogic &&
+        !isEvmSelected &&
+        !isMultichainAccountsState2Enabled
           ? () => null
           : handleFilterControls
       }
       endIconName={
-        useEvmSelectionLogic && !isEvmSelected ? undefined : IconName.ArrowDown
+        useEvmSelectionLogic &&
+        !isEvmSelected &&
+        !isMultichainAccountsState2Enabled
+          ? undefined
+          : IconName.ArrowDown
       }
       style={isDisabled ? styles.controlButtonDisabled : styles.controlButton}
       disabled={isDisabled}
@@ -184,6 +202,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   const sortButton = (
     <ButtonIcon
+      testID={WalletViewSelectorsIDs.SORT_BUTTON}
       size={ButtonIconSizes.Lg}
       onPress={handleSortControls}
       iconName={IconName.Filter}

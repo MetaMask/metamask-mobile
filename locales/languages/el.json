@@ -1318,8 +1318,7 @@
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
-      "perps_sandbox_button": "Perps Sandbox"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
     },
     "transactions": {
       "title": "Perps",
@@ -2312,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Επιστροφή στην εφαρμογή",
+    "postNetworkSwitchTitle": "Το δίκτυο άλλαξε με επιτυχία",
     "description": "Επιστρέψτε στην εφαρμογή για να συνεχίσετε να χρησιμοποιείτε τις υπηρεσίες τους."
   },
   "sdk_feedback_modal": {

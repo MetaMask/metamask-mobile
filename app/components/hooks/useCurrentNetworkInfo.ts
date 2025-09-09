@@ -4,6 +4,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
+import { selectMultichainAccountsState2Enabled } from '../../selectors/featureFlagController/multichainAccounts';
 
 export interface NetworkInfo {
   caipChainId: string;
@@ -27,14 +28,34 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     selectNetworkConfigurationsByCaipChainId,
   );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   // Get all enabled networks for the namespace
   const enabledNetworks = useMemo(() => {
+    if (isMultichainAccountsState2Enabled) {
+      const networksForNamespace = {
+        ...Object.values(enabledNetworksByNamespace).reduce(
+          (acc, obj) => ({ ...acc, ...obj }),
+          {},
+        ),
+      };
+
+      return Object.entries(networksForNamespace)
+        .filter(([_key, value]) => value)
+        .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
+    }
+
     const networksForNamespace = enabledNetworksByNamespace[namespace] || {};
     return Object.entries(networksForNamespace)
       .filter(([_key, value]) => value)
       .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
-  }, [enabledNetworksByNamespace, namespace]);
+  }, [
+    enabledNetworksByNamespace,
+    isMultichainAccountsState2Enabled,
+    namespace,
+  ]);
 
   // Generic function to get network info by index
   const getNetworkInfo = useCallback(
@@ -66,7 +87,7 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     [enabledNetworks, networksByCaipChainId],
   );
 
-  const isDisabled = !isEvmSelected;
+  const isDisabled = !isEvmSelected && !isMultichainAccountsState2Enabled;
   const hasEnabledNetworks = enabledNetworks.length > 0;
 
   return {

@@ -1,3 +1,22 @@
+// Use fake timers to prevent test hanging
+jest.useFakeTimers();
+
+// Mock PerpsController to avoid heavy import chain
+jest.mock('../controllers/PerpsController', () => ({
+  PERPS_ERROR_CODES: {
+    CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
+    CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
+    PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
+    TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
+    BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
+    WITHDRAW_FAILED: 'WITHDRAW_FAILED',
+    POSITIONS_FAILED: 'POSITIONS_FAILED',
+    ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
+    MARKETS_FAILED: 'MARKETS_FAILED',
+    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+  },
+}));
+
 import { strings } from '../../../../../locales/i18n';
 import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import {

@@ -8,10 +8,15 @@ import {
 } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
+import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 
 jest.mock('@metamask/keyring-utils', () => ({}));
-jest.mock('@metamask/keyring-api', () => ({}));
+jest.mock('@metamask/keyring-api', () => ({
+  SolScope: {
+    Mainnet: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  },
+}));
 jest.mock('@metamask/rpc-errors', () => ({}));
 jest.mock('@metamask/network-controller', () => ({}));
 jest.mock('@metamask/controller-utils', () => ({
@@ -299,17 +304,6 @@ describe('useNetworkEnablement', () => {
     });
   });
 
-  describe('enableAllPopularNetworks', () => {
-    it('calls enableAllPopularNetworks when enableAllPopularNetworks is called', () => {
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.enableAllPopularNetworks();
-
-      expect(
-        mockNetworkEnablementController.enableAllPopularNetworks,
-      ).toHaveBeenCalled();
-    });
-  });
-
   describe('edge cases', () => {
     it('handles empty enabledNetworksByNamespace', () => {
       mockUseSelector.mockImplementation((selector) => {
@@ -384,6 +378,73 @@ describe('useNetworkEnablement', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
       expect(result.current.enabledNetworksForCurrentNamespace).toEqual({});
+    });
+  });
+
+  describe('enableAllPopularNetworks', () => {
+    it('calls controller enableAllPopularNetworks method', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.enableAllPopularNetworks();
+
+      expect(
+        mockNetworkEnablementController.enableAllPopularNetworks,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('enables Solana mainnet in addition to popular networks', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.enableAllPopularNetworks();
+
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenCalledWith(SolScope.Mainnet);
+    });
+
+    it('calls both controller methods when enableAllPopularNetworks is invoked', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.enableAllPopularNetworks();
+
+      // Should call both methods
+      expect(
+        mockNetworkEnablementController.enableAllPopularNetworks,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenCalledWith(SolScope.Mainnet);
+    });
+
+    it('works correctly when called multiple times', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.enableAllPopularNetworks();
+      result.current.enableAllPopularNetworks();
+
+      // Should be called twice
+      expect(
+        mockNetworkEnablementController.enableAllPopularNetworks,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenNthCalledWith(1, SolScope.Mainnet);
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenNthCalledWith(2, SolScope.Mainnet);
+    });
+
+    it('returns the same function reference on subsequent calls', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      const firstRef = result.current.enableAllPopularNetworks;
+      const secondRef = result.current.enableAllPopularNetworks;
+
+      // Should be the same function reference due to useMemo
+      expect(firstRef).toBe(secondRef);
     });
   });
 

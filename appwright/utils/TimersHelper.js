@@ -16,12 +16,35 @@ class TimerHelper {
 
   getDuration() {
     const timer = Timers.getTimer(this.id);
-    return timer.duration;
+    // If timer has been stopped, return the recorded duration
+    if (timer.duration !== null) {
+      return timer.duration;
+    }
+    // If timer is running but not stopped, calculate current elapsed time
+    if (timer.start !== null) {
+      const currentDuration = Date.now() - timer.start;
+      console.log(
+        `⏱️ Timer "${this.id}" is still running, current elapsed: ${currentDuration}ms`,
+      );
+      return currentDuration;
+    }
+    // Timer never started
+    return null;
   }
 
   getDurationInSeconds() {
+    const duration = this.getDuration();
+    return duration ? duration / 1000 : 0;
+  }
+
+  isRunning() {
     const timer = Timers.getTimer(this.id);
-    return timer.duration / 1000;
+    return timer.start !== null && timer.duration === null;
+  }
+
+  isCompleted() {
+    const timer = Timers.getTimer(this.id);
+    return timer.duration !== null;
   }
 
   get id() {
