@@ -44,6 +44,17 @@ class AuthTokenHandler {
     const refreshTokenData = await response.json();
     const idToken = refreshTokenData.id_token;
 
+    if (
+      !idToken ||
+      !refreshTokenData.access_token ||
+      !refreshTokenData.metadata_access_token
+    ) {
+      throw new Error(
+        'Failed to refresh JWT token - respoond json ' +
+          JSON.stringify(refreshTokenData),
+      );
+    }
+
     return {
       idTokens: [idToken],
       accessToken: refreshTokenData.access_token,
