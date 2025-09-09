@@ -2311,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Volver a la aplicación",
+    "postNetworkSwitchTitle": "Red cambiada correctamente",
     "description": "Regrese a la aplicación para continuar usando sus servicios."
   },
   "sdk_feedback_modal": {

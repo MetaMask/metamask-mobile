@@ -1205,11 +1205,6 @@ export function getWalletNavbarOptions(
           ref={accountActionsRef}
           accountName={accountName}
           onPress={() => {
-            trace({
-              name: TraceName.AccountList,
-              tags: getTraceTags(store.getState()),
-              op: TraceOperation.AccountList,
-            });
             navigation.navigate(...createAccountSelectorNavDetails({}));
           }}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
