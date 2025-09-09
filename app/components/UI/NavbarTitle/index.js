@@ -7,7 +7,6 @@ import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { withNavigation } from '@react-navigation/compat';
 import {
   selectChainId,
   selectProviderConfig,
@@ -18,6 +17,7 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -180,6 +180,11 @@ const mapStateToProps = (state) => ({
   selectedNetworkName: selectNetworkName(state),
 });
 
-export default withNavigation(
-  connect(mapStateToProps)(withMetricsAwareness(NavbarTitle)),
+const NavbarTitleWrapper = (props) => {
+  const navigation = useNavigation();
+  return <NavbarTitle {...props} navigation={navigation} />;
+};
+
+export default connect(mapStateToProps)(
+  withMetricsAwareness(NavbarTitleWrapper),
 );

@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import {
@@ -47,6 +46,7 @@ import { PopularList } from '../../../util/networks/customNetworks';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
+import { useNavigation } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -309,7 +309,12 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
 });
 
+const TransactionsViewWrapper = (props) => {
+  const navigation = useNavigation();
+  return <TransactionsView {...props} navigation={navigation} />;
+};
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withNavigation(TransactionsView));
+)(TransactionsViewWrapper);

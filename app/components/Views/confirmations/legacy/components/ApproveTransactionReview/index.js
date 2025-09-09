@@ -52,7 +52,6 @@ import TransactionReviewDetailsCard from '../TransactionReview/TransactionReview
 import AppConstants from '../../../../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../../../../constants/transaction';
 import { getBlockaidTransactionMetricsParams } from '../../../../../../util/blockaid';
-import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
   isMultiLayerFeeNetwork,
@@ -106,6 +105,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
 import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
 
 import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import { useNavigation } from '@react-navigation/native';
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -1389,11 +1389,16 @@ const mapDispatchToProps = (dispatch) => ({
 
 ApproveTransactionReview.contextType = ThemeContext;
 
+const ApproveTransactionReviewWrapper = (props) => {
+  const navigation = useNavigation();
+  return <ApproveTransactionReview {...props} navigation={navigation} />;
+};
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
 )(
-  withNavigation(
-    withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
+  withQRHardwareAwareness(
+    withMetricsAwareness(ApproveTransactionReviewWrapper),
   ),
 );

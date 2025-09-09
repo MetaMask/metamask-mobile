@@ -1,5 +1,4 @@
 import Eth from '@metamask/ethjs-query';
-import { withNavigation } from '@react-navigation/compat';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
@@ -63,6 +62,7 @@ import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import { useNavigation } from '@react-navigation/native';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -752,8 +752,11 @@ const mapStateToProps = (state) => {
 
 TransactionReview.contextType = ThemeContext;
 
+const TransactionReviewWrapper = (props) => {
+  const navigation = useNavigation();
+  return <TransactionReview {...props} navigation={navigation} />;
+};
+
 export default connect(mapStateToProps)(
-  withNavigation(
-    withQRHardwareAwareness(withMetricsAwareness(TransactionReview)),
-  ),
+  withQRHardwareAwareness(withMetricsAwareness(TransactionReviewWrapper)),
 );

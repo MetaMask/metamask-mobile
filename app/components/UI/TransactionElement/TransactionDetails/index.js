@@ -27,7 +27,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
-import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
@@ -68,6 +67,7 @@ import {
 } from '../../../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -575,4 +575,9 @@ const mapStateToProps = (state, ownProps) => ({
 
 TransactionDetails.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(withNavigation(TransactionDetails));
+const TransactionDetailsWrapper = (props) => {
+  const navigation = useNavigation();
+  return <TransactionDetails {...props} navigation={navigation} />;
+};
+
+export default connect(mapStateToProps)(TransactionDetailsWrapper);
