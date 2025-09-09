@@ -8,6 +8,18 @@ import {
   defaultPerpsOrderMock,
 } from '../../__mocks__/perpsHooksMocks';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
+
 // Mock dependencies
 jest.mock('../../../../hooks/useStyles', () => ({
   useStyles: () => ({
