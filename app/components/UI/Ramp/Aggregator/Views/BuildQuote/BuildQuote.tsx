@@ -90,10 +90,16 @@ import { type StackScreenProps } from '@react-navigation/stack';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-type BuildQuoteProps = StackScreenProps<RootParamList, 'BuildQuote'>;
+type BuildQuoteProps = StackScreenProps<
+  RootParamList,
+  'BuildQuote' | 'BuildQuoteHasStarted'
+>;
 
 const BuildQuote = ({ route }: BuildQuoteProps) => {
-  const showBack = route.params?.showBack;
+  const showBack =
+    route.name === 'BuildQuote' && route.params && 'showBack' in route.params
+      ? route.params.showBack
+      : false;
   const navigation =
     useNavigation<
       StackNavigationProp<NavigatableRootParamList, 'BuildQuote'>
