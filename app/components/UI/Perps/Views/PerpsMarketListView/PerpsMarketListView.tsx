@@ -446,7 +446,7 @@ const PerpsMarketListView = ({
           >
             <Icon
               name={isSearchVisible ? IconName.Close : IconName.Search}
-              size={IconSize.Md}
+              size={IconSize.Lg}
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -454,7 +454,7 @@ const PerpsMarketListView = ({
             testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
             style={styles.tutorialButton}
           >
-            <Icon name={IconName.Question} size={IconSize.Md} />
+            <Icon name={IconName.Question} size={IconSize.Lg} />
           </TouchableOpacity>
         </View>
       </View>

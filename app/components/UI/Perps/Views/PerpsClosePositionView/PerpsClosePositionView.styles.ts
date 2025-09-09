@@ -117,10 +117,12 @@ export const createStyles = (theme: Theme) => {
       paddingTop: 0,
     },
     summaryContainer: {
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: 8,
+      paddingTop: 16,
+      paddingBottom: 16,
       gap: 4,
+    },
+    paddingHorizontal: {
+      paddingHorizontal: 16,
     },
     summaryRow: {
       flexDirection: 'row',
@@ -137,13 +139,11 @@ export const createStyles = (theme: Theme) => {
     },
     summaryTotalRow: {
       marginTop: 4,
-      paddingTop: 8,
+      paddingTop: 16,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
     },
     bottomSection: {
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
       paddingTop: 16,
     },
     percentageButtonsContainer: {

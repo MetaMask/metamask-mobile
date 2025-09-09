@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -69,11 +70,16 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { toastRef } = useContext(ToastContext);
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const { position } = route.params as { position: Position };
@@ -447,8 +453,22 @@ const PerpsClosePositionView: React.FC = () => {
     return { formattedPrice, price, isNegative: pnl < 0 };
   }, [pnl, closePercentage]);
 
+  // Hide provider-level limit price required error on this UI
+  const filteredErrors = useMemo(
+    () =>
+      validationResult.errors.filter(
+        (err) => err !== strings('perps.order.validation.limit_price_required'),
+      ),
+    [validationResult.errors],
+  );
+
   const Summary = (
-    <View style={styles.summaryContainer}>
+    <View
+      style={[
+        styles.summaryContainer,
+        isInputFocused && styles.paddingHorizontal,
+      ]}
+    >
       <View style={styles.summaryRow}>
         <View style={styles.summaryLabel}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -580,18 +600,20 @@ const PerpsClosePositionView: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Slider - Now always visible even when keypad is active */}
-        <View style={styles.sliderSection}>
-          <PerpsSlider
-            value={closePercentage}
-            onValueChange={setClosePercentage}
-            minimumValue={0}
-            maximumValue={100}
-            step={1}
-            showPercentageLabels
-            disabled={isClosing}
-          />
-        </View>
+        {/* Slider - Hidden when keypad/input is focused */}
+        {!isInputFocused && (
+          <View style={styles.sliderSection}>
+            <PerpsSlider
+              value={closePercentage}
+              onValueChange={setClosePercentage}
+              minimumValue={0}
+              maximumValue={100}
+              step={1}
+              showPercentageLabels
+              disabled={isClosing}
+            />
+          </View>
+        )}
 
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {orderType === 'limit' && !isInputFocused && (
@@ -641,9 +663,10 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Order Details moved to footer summary */}
 
         {/* Validation Messages - keep visible while typing */}
-        {validationResult.errors.length > 0 && (
+        {/* Filter the errors and only show minimum $10 error */}
+        {filteredErrors.length > 0 && (
           <View style={styles.validationSection}>
-            {validationResult.errors.map((error, index) => (
+            {filteredErrors.map((error, index) => (
               <View key={index} style={styles.errorMessage}>
                 <Icon
                   name={IconName.Danger}
@@ -776,9 +799,27 @@ const PerpsClosePositionView: React.FC = () => {
         isVisible={isLimitPriceVisible}
         onClose={() => {
           setIsLimitPriceVisible(false);
+          // If user dismisses without entering a price, revert order type to market
+          if (orderType === 'limit' && !limitPrice) {
+            setOrderType('market');
+            toastRef?.current?.showToast({
+              variant: ToastVariants.Plain,
+              labelOptions: [
+                {
+                  label: 'Test',
+                  isBold: true,
+                },
+                {
+                  label: 'Test 2',
+                },
+              ],
+              hasNoTimeout: true,
+            });
+          }
         }}
         onConfirm={(price) => {
           setLimitPrice(price);
+          // Close after confirmation explicitly
           setIsLimitPriceVisible(false);
         }}
         asset={position.coin}
