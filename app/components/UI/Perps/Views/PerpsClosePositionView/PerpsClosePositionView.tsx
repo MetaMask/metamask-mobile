@@ -452,13 +452,19 @@ const PerpsClosePositionView: React.FC = () => {
   }, [pnl, closePercentage]);
 
   // Hide provider-level limit price required error on this UI
-  const filteredErrors = useMemo(
-    () =>
-      validationResult.errors.filter(
-        (err) => err !== strings('perps.order.validation.limit_price_required'),
-      ),
-    [validationResult.errors],
-  );
+  // Only display the minimum amount error (e.g. minimum $10) and suppress others
+  const filteredErrors = useMemo(() => {
+    const minimumAmountErrorPrefix = strings(
+      'perps.order.validation.minimum_amount',
+      {
+        amount: '',
+      },
+    ).replace(/\s+$/, '');
+    // The actual minimum amount string includes the amount placeholder; match by key detection.
+    return validationResult.errors.filter((err) =>
+      err.startsWith(minimumAmountErrorPrefix),
+    );
+  }, [validationResult.errors]);
 
   const Summary = (
     <View
@@ -678,22 +684,6 @@ const PerpsClosePositionView: React.FC = () => {
             ))}
           </View>
         )}
-        {validationResult.warnings.length > 0 && (
-          <View style={styles.validationSection}>
-            {validationResult.warnings.map((warning, index) => (
-              <View key={index} style={styles.warningMessage}>
-                <Icon
-                  name={IconName.Warning}
-                  size={IconSize.Sm}
-                  color={IconColor.Warning}
-                />
-                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
-                  {warning}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
       </ScrollView>
 
       {/* Keypad Section - Show when input is focused; keep summary and slider above */}
@@ -804,14 +794,13 @@ const PerpsClosePositionView: React.FC = () => {
               variant: ToastVariants.Plain,
               labelOptions: [
                 {
-                  label: 'Test',
-                  isBold: true,
-                },
-                {
-                  label: 'Test 2',
+                  label: strings(
+                    'perps.order.limit_price_required_toast_message',
+                  ),
+                  isBold: false,
                 },
               ],
-              hasNoTimeout: true,
+              hasNoTimeout: false,
             });
           }
         }}
