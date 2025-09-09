@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
@@ -260,7 +261,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         {showOverlay && (
           <View style={styles.overlay}>
             <ActivityIndicator size="large" color={colors.primary.default} />
@@ -507,7 +508,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </Text>
           )}
         </View>
-      </View>
+      </ScrollView>
 
       <BottomSheetFooter
         buttonPropsArray={[
