@@ -121,15 +121,140 @@ pipelines:
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
-  pr_regression_e2e_pipeline:
-    stages:
-      - set_main_target_stage: {}
-      - pr_cache_check_stage: {}
-      - build_regression_e2e_ios_android_stage: {}
-      - run_regression_e2e_ios_android_stage: {}
-      - build_regression_e2e_ios_gns_disabled_stage: {}
-      - run_regression_e2e_ios_gns_disabled_stage: {}
-      - notify: {}
+  pr_rc_rwy_pipeline:
+    workflows:
+      set_main_target_workflow: {}
+      pr_check_build_cache:
+        depends_on:
+        - set_main_target_workflow
+        abort_on_fail: true
+      build_ios_main_e2e:
+        depends_on:
+        - pr_check_build_cache
+        abort_on_fail: true
+        run_if:
+          expression: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      build_android_main_e2e:
+        depends_on:
+        - pr_check_build_cache
+        abort_on_fail: true
+        run_if:
+          expression: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+      ios_run_regression_confirmations_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_wallet_platform_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_trade_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_network_abstraction_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_network_expansion_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_identity_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_accounts_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_ux_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      ios_run_regression_assets_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_confirmations_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_wallet_platform_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_trade_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_network_abstraction_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_network_expansion_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_performance_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_assets_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_identity_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_accounts_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      android_run_regression_ux_tests:
+        depends_on:
+        - build_ios_main_e2e
+        - build_android_main_e2e
+      build_ios_main_e2e_gns_disabled:
+        depends_on:
+        - ios_run_regression_confirmations_tests
+        - ios_run_regression_wallet_platform_tests
+        - ios_run_regression_trade_tests
+        - ios_run_regression_network_abstraction_tests
+        - ios_run_regression_network_expansion_tests
+        - ios_run_regression_identity_tests
+        - ios_run_regression_accounts_tests
+        - ios_run_regression_ux_tests
+        - ios_run_regression_assets_tests
+        - android_run_regression_confirmations_tests
+        - android_run_regression_wallet_platform_tests
+        - android_run_regression_trade_tests
+        - android_run_regression_network_abstraction_tests
+        - android_run_regression_network_expansion_tests
+        - android_run_regression_performance_tests
+        - android_run_regression_assets_tests
+        - android_run_regression_identity_tests
+        - android_run_regression_accounts_tests
+        - android_run_regression_ux_tests
+        abort_on_fail: true
+        run_if:
+          expression: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      ios_run_regression_network_abstraction_tests_gns_disabled:
+        depends_on:
+        - build_ios_main_e2e_gns_disabled
+      notify_success:
+        depends_on:
+        - ios_run_regression_network_abstraction_tests_gns_disabled
+      bump_version_code:
+        depends_on:
+        - pr_check_build_cache
+      build_ios_rc_and_upload_sourcemaps:
+        depends_on:
+        - bump_version_code
+      build_android_rc_and_upload_sourcemaps:
+        depends_on:
+        - bump_version_code
   #App launch times pipeline. Runs on browserstack
   app_launch_times_and_expo_pipeline:
     stages:
@@ -3788,7 +3913,7 @@ meta:
     machine_type_id: g2.mac.4large
 trigger_map:
   - push_branch: release/*
-    pipeline: pr_regression_e2e_pipeline
+    pipeline: pr_rc_rwy_pipeline
   - push_branch: main
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
