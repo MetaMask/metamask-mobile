@@ -1,5 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../../reducers';
+import { CaipAccountId } from '@metamask/utils';
 /**
  *
  * @param state - Root redux state
@@ -14,5 +15,20 @@ export const selectRewardsControllerState = (state: RootState) =>
 export const selectRewardsSubscriptionId = createSelector(
   selectRewardsControllerState,
   (rewardsControllerState): string | null =>
-    rewardsControllerState.lastAuthenticatedAccount?.subscriptionId ?? null,
+    rewardsControllerState.activeAccount?.subscriptionId ?? null,
+);
+
+/**
+ * A memoized selector that returns the rewards active account id
+ */
+export const selectRewardsActiveAccountId = createSelector(
+  selectRewardsControllerState,
+  (rewardsControllerState): CaipAccountId | null =>
+    rewardsControllerState.activeAccount?.account ?? null,
+);
+
+export const selectRewardsActiveAccountHasOptedIn = createSelector(
+  selectRewardsControllerState,
+  (rewardsControllerState): boolean | null =>
+    rewardsControllerState.activeAccount?.hasOptedIn ?? null,
 );
