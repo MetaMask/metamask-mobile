@@ -7,7 +7,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
-  getOnboardingCarouselNavbarOptions,
   getOnboardingNavbarOptions,
   getSettingsNavigationOptions,
   getTransparentOnboardingNavbarOptions,
@@ -147,18 +146,6 @@ describe('getDepositNavbarOptions', () => {
     const headerLeftComponent = options.headerLeft();
     headerLeftComponent.props.onPress();
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('getOnboardingCarouselNavbarOptions', () => {
-  it('render onboarding carousel navbar options with default props', () => {
-    const options = getOnboardingCarouselNavbarOptions();
-    expect(options).toBeDefined();
-  });
-
-  it('render onboarding carousel navbar options with custom background color', () => {
-    const options = getOnboardingCarouselNavbarOptions('red');
-    expect(options.headerStyle.backgroundColor).toBe('red');
   });
 });
 
