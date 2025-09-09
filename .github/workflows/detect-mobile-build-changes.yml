@@ -37,11 +37,9 @@ jobs:
           filters: |
             android:
               - 'android/**'                       # All Android project files
-              - '**/*.android.*'                   # Android-specific file extensions (e.g., .android.tsx)
 
             ios:
               - 'ios/**'                           # All iOS project files
-              - '**/*.ios.*'                       # iOS-specific file extensions (e.g., .ios.tsx)
 
             shared:
               - 'package.json'                     # If native deps change
@@ -51,7 +49,7 @@ jobs:
               - 'yarn.lock'                        # Dependency changes affect both
               - 'app/**'                           # Shared app files
 
-            docs_only:
+            ignore:
               - '**/*.md'                          # Documentation files
               - 'docs/**'                          # Documentation directory
               - '**/*.yml'                         # Workflow files  
@@ -64,7 +62,7 @@ jobs:
           android="${{ steps.filter.outputs.android }}"
           ios="${{ steps.filter.outputs.ios }}"
           shared="${{ steps.filter.outputs.shared }}"
-          docs_only="${{ steps.filter.outputs.docs_only }}"
+          ignore="${{ steps.filter.outputs.ignore }}"
           
           # Calculate final results
           if [[ "$shared" == 'true' ]]; then
@@ -78,7 +76,7 @@ jobs:
           fi
           
           # Skip builds only if docs/workflows changed AND no mobile code changed
-          if [[ "$docs_only" == 'true' && "$android_final" == 'false' && "$ios_final" == 'false' ]]; then
+          if [[ "$ignore" == 'true' && "$android_final" == 'false' && "$ios_final" == 'false' ]]; then
             echo "Skipping all mobile builds - changes only affect docs/workflows, no mobile code changed"
             echo "android_final=false" >> "${GITHUB_OUTPUT}"
             echo "ios_final=false" >> "${GITHUB_OUTPUT}"
