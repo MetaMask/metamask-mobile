@@ -1214,6 +1214,43 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(approveButton.props.disabled).toBe(false);
   });
 
+  it('handles undefined transaction response during approval flow', async () => {
+    const routeParamsWithApproveAction = {
+      ...defaultRouteParams,
+      params: {
+        ...defaultRouteParams.params,
+        action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+      },
+    };
+
+    (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
+
+    // Mock returning empty transaction
+    mockExecuteLendingTokenApprove.mockResolvedValue({} as Result);
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      { state: mockInitialState },
+    );
+
+    const approveButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(approveButton);
+    });
+
+    expect(mockExecuteLendingTokenApprove).toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Button should be re-enabled when transaction is undefined
+    expect(approveButton.props.disabled).toBe(false);
+  });
+
   it('enables retries after transaction error during deposit flow', async () => {
     mockExecuteLendingDeposit.mockRejectedValue(
       new Error('Transaction failed'),
