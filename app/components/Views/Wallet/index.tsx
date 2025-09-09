@@ -461,7 +461,6 @@ const Wallet = ({
   const enabledNetworks = useSelector(selectEVMEnabledNetworks);
 
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
-  // const allEnabledNetworks = useCurrent;
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const isMultichainAccountsState2Enabled = useSelector(
