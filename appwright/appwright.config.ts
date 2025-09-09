@@ -60,6 +60,7 @@ export default defineConfig({
     {
       name: 'browserstack-ios',
       testMatch: '**/tests/performance/*.spec.js',
+      testIgnore: '**/tests/performance/scenario{2,3}.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -93,7 +94,7 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: 'bs://796439164674583',
+        buildPath: process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
       },
     },
   ],

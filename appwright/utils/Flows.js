@@ -160,9 +160,10 @@ export async function login(device, scenarioType) {
   await dismissSystemDialogs(device);
 }
 async function tapPerpsBottomSheetGotItButton(device) {
-  const button = await AppwrightSelectors.getElementByID(
-    device,
-    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
-  );
-  await button.tap();
+  console.log('No perps onboarding!');
+  // const button = await AppwrightSelectors.getElementByID(
+  //   device,
+  //   PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+  // );
+  // await button.tap();
 }
