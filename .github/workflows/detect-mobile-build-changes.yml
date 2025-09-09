@@ -36,6 +36,8 @@ jobs:
         with:
           filters: |
             android:
+              - '!**/*.ios.*'                      # Exclude iOS file extensions from Android
+              - '!app/**/ios/**'                   # Exclude iOS-specific from Android
               - 'android/**'                       # All Android project files
               - 'android/app/build.gradle'         # Gradle build files
               - 'android/gradlew'                  # Gradle wrapper
@@ -53,11 +55,11 @@ jobs:
               - 'babel.config.js'                  # Transpilation affects both
               - 'yarn.lock'                        # Dependency changes affect both
               - 'app/**'                           # Shared app files affect both
-              - '!app/**/ios/**'                   # Exclude iOS-specific from Android
-              - '!**/*.ios.*'                      # Exclude iOS file extensions from Android
               
 
             ios:
+              - '!**/*.android.*'                  # Exclude Android file extensions from iOS
+              - '!app/**/android/**'               # Exclude Android-specific from iOS
               - 'ios/**'                           # All iOS project files
               - 'Podfile'                          # CocoaPods dependencies
               - 'Podfile.lock'                     # Pod lockfile
@@ -74,10 +76,8 @@ jobs:
               - 'metro.config.js'                  # Metro bundler affects both
               - 'tsconfig.json'                    # TypeScript config affects both
               - 'babel.config.js'                  # Transpilation affects both
-              - 'yarn.lock'                        # Dependency changes affect both
+              - 'yarn.lock'                        # Dependency changes affects both
               - 'app/**'                           # Shared app files affect both
-              - '!app/**/android/**'               # Exclude Android-specific from iOS
-              - '!**/*.android.*'                  # Exclude Android file extensions from iOS
 
             docs_only:
                 - '**/*.md'                           # Documentation files
