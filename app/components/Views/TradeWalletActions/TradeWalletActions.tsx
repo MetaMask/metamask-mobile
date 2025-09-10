@@ -284,7 +284,6 @@ function TradeWalletActions() {
       <View
         style={tw.style('pointer-events-none', {
           height: windowHeight - buttonLayout.y,
-          borderTopColor: 'blue',
         })}
       />
     </View>
