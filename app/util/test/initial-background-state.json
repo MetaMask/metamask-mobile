@@ -610,6 +610,7 @@
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
+    "activeBoosts": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
