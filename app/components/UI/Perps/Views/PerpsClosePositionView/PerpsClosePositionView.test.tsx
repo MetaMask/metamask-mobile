@@ -36,6 +36,7 @@ jest.mock('../../hooks', () => ({
   usePerpsClosePositionValidation: jest.fn(),
   usePerpsClosePosition: jest.fn(),
   usePerpsMarketData: jest.fn(),
+  usePerpsToasts: jest.fn(),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -79,6 +80,22 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
 
 const STATE_MOCK = createPerpsStateMock();
 
+// Default mock for usePerpsToasts
+const defaultPerpsToastsMock = {
+  showToast: jest.fn(),
+  PerpsToastOptions: {
+    positionManagement: {
+      closePosition: {
+        limitClose: {
+          partial: {
+            switchToMarketOrderMissingLimitPrice: {},
+          },
+        },
+      },
+    },
+  },
+};
+
 // Mock PerpsAmountDisplay implementation
 jest.mocked(jest.requireMock('../../components/PerpsAmountDisplay')).default =
   ({ onPress, label }: { onPress?: () => void; label?: string }) =>
@@ -114,6 +131,7 @@ describe('PerpsClosePositionView', () => {
     jest.requireMock('../../hooks').useMinimumOrderAmount;
   const usePerpsMarketDataMock =
     jest.requireMock('../../hooks').usePerpsMarketData;
+  const usePerpsToastsMock = jest.requireMock('../../hooks').usePerpsToasts;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -145,6 +163,9 @@ describe('PerpsClosePositionView', () => {
       isLoading: false,
       error: null,
     });
+
+    // Setup usePerpsToasts mock
+    usePerpsToastsMock.mockReturnValue(defaultPerpsToastsMock);
   });
 
   describe('Component Rendering', () => {
