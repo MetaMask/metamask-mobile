@@ -83,7 +83,7 @@ function RegionSelectorModal() {
       const results = fuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
-      return results?.map((result) => result.item) || [];
+      return results?.map((result) => result.item).filter(Boolean) || [];
     }
 
     return [...regions].sort((a, b) => {
@@ -250,7 +250,7 @@ function RegionSelectorModal() {
             data={dataSearchResults}
             renderItem={renderRegionItem}
             extraData={selectedRegion?.isoCode}
-            keyExtractor={(item) => item.isoCode}
+            keyExtractor={(item) => item?.isoCode || 'unknown'}
             ListEmptyComponent={renderEmptyList}
             keyboardDismissMode="none"
             keyboardShouldPersistTaps="always"

@@ -24,72 +24,80 @@ jest.mock('../../../sdk', () => ({
   useDepositSDK: jest.fn(),
 }));
 
+jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
+  createNavigationDetails: jest.fn(() => () => ['MockedRoute', {}]),
+}));
+
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
-jest.mock('../../../constants', () => ({
-  DEPOSIT_REGIONS: [
-    {
-      isoCode: 'US',
-      flag: '🇺🇸',
-      name: 'United States',
-      phone: {
-        prefix: '+1',
-        placeholder: '(555) 555-1234',
-        template: '(XXX) XXX-XXXX',
-      },
-      currency: 'USD',
-      recommended: true,
-      supported: true,
+const mockRegions = [
+  {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    phone: {
+      prefix: '+1',
+      placeholder: '(555) 555-1234',
+      template: '(XXX) XXX-XXXX',
     },
-    {
-      isoCode: 'DE',
-      flag: '🇩🇪',
-      name: 'Germany',
-      phone: {
-        prefix: '+49',
-        placeholder: '123 456 7890',
-        template: 'XXX XXX XXXX',
-      },
-      currency: 'EUR',
-      supported: true,
+    currency: 'USD',
+    recommended: true,
+    supported: true,
+  },
+  {
+    isoCode: 'DE',
+    flag: '🇩🇪',
+    name: 'Germany',
+    phone: {
+      prefix: '+49',
+      placeholder: '123 456 7890',
+      template: 'XXX XXX XXXX',
     },
-    {
-      isoCode: 'CA',
-      flag: '🇨🇦',
-      name: 'Canada',
-      phone: {
-        prefix: '+1',
-        placeholder: '(555) 555-1234',
-        template: '(XXX) XXX-XXXX',
-      },
-      currency: 'CAD',
-      supported: false,
+    currency: 'EUR',
+    supported: true,
+  },
+  {
+    isoCode: 'CA',
+    flag: '🇨🇦',
+    name: 'Canada',
+    phone: {
+      prefix: '+1',
+      placeholder: '(555) 555-1234',
+      template: '(XXX) XXX-XXXX',
     },
-    {
-      isoCode: 'FR',
-      flag: '🇫🇷',
-      name: 'France',
-      phone: {
-        prefix: '+33',
-        placeholder: '1 23 45 67 89',
-        template: 'X XX XX XX XX',
-      },
-      currency: 'EUR',
-      supported: true,
+    currency: 'CAD',
+    supported: false,
+  },
+  {
+    isoCode: 'FR',
+    flag: '🇫🇷',
+    name: 'France',
+    phone: {
+      prefix: '+33',
+      placeholder: '1 23 45 67 89',
+      template: 'X XX XX XX XX',
     },
-  ],
-}));
+    currency: 'EUR',
+    supported: true,
+  },
+];
 
 describe('RegionSelectorModal Component', () => {
   let mockSetSelectedRegion: jest.Mock;
   let mockUseDepositSDK: jest.Mock;
+  let mockUseParams: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSetSelectedRegion = jest.fn();
     mockUseDepositSDK = jest.requireMock('../../../sdk').useDepositSDK;
+    mockUseParams = jest.requireMock(
+      '../../../../../../../util/navigation/navUtils',
+    ).useParams;
+
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
         isoCode: 'US',
@@ -107,6 +115,12 @@ describe('RegionSelectorModal Component', () => {
       setSelectedRegion: mockSetSelectedRegion,
       isAuthenticated: false,
     });
+
+    mockUseParams.mockReturnValue({
+      regions: mockRegions,
+      error: null,
+    });
+
     // Ensure trackEvent mock is reset
     mockTrackEvent.mockClear();
   });

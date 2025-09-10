@@ -10,33 +10,12 @@ export function usePaymentMethods() {
     selectedPaymentMethod,
   } = useDepositSDK();
 
-  // Only fetch when we have all three required dependencies
-  const shouldFetch = Boolean(
-    selectedRegion?.isoCode &&
-      selectedCryptoCurrency?.assetId &&
-      selectedRegion?.currency,
-  );
-
-  const [{ data: paymentMethods, error, isFetching }, query] =
-    useDepositSdkMethod(
-      { method: 'getPaymentMethods', onMount: false }, // Always start with onMount false
-      selectedRegion?.isoCode,
-      selectedCryptoCurrency?.assetId,
-      selectedRegion?.currency,
-    );
-
-  // Use useEffect to manually trigger the fetch when dependencies are ready
-  useEffect(() => {
-    if (shouldFetch) {
-      query();
-    }
-  }, [
-    shouldFetch,
-    query,
+  const [{ data: paymentMethods, error, isFetching }] = useDepositSdkMethod(
+    'getPaymentMethods',
     selectedRegion?.isoCode,
     selectedCryptoCurrency?.assetId,
     selectedRegion?.currency,
-  ]);
+  );
 
   useEffect(() => {
     if (paymentMethods && paymentMethods.length > 0 && !selectedPaymentMethod) {

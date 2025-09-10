@@ -58,6 +58,16 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
+jest.mock('../../utils', () => ({
+  formatCurrency: jest.fn((amount, currency) => {
+    if (currency === 'USD') {
+      return `$${parseFloat(amount).toFixed(2)}`;
+    }
+    return `${currency} ${amount}`;
+  }),
+  hasDepositOrderField: jest.fn(() => true),
+}));
+
 describe('OrderProcessing Component', () => {
   const mockOrder = {
     id: 'test-order-id',

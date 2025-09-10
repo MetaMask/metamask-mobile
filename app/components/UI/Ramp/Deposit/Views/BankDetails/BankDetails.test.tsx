@@ -211,7 +211,7 @@ describe('BankDetails Component', () => {
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: expect.stringContaining('SEPA bank transfer'),
+        title: expect.stringContaining('sepa_bank_transfer bank transfer'),
       }),
     );
   });

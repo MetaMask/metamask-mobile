@@ -7,12 +7,6 @@ import {
   DepositSDKProvider,
   useDepositSDK,
 } from '.';
-const USD_CURRENCY = {
-  id: 'USD',
-  name: 'US Dollar',
-  symbol: '$',
-  emoji: '🇺🇸',
-};
 
 const USDC_TOKEN = {
   assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -20,7 +14,8 @@ const USDC_TOKEN = {
   name: 'USD Coin',
   symbol: 'USDC',
   decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
 };
 
 const DEPOSIT_REGIONS = [
@@ -29,7 +24,11 @@ const DEPOSIT_REGIONS = [
     flag: '🇺🇸',
     name: 'United States',
     currency: 'USD',
-    phone: { prefix: '+1', placeholder: '(555) 123-4567', template: '(###) ###-####' },
+    phone: {
+      prefix: '+1',
+      placeholder: '(555) 123-4567',
+      template: '(###) ###-####',
+    },
     supported: true,
   },
 ];
@@ -185,6 +184,7 @@ describe('Deposit SDK Context', () => {
         {
           apiKey: 'test-provider-api-key',
           context: Context.MobileIOS,
+          verbose: true,
         },
         SdkEnvironment.Staging,
       );
@@ -542,7 +542,7 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toBeUndefined();
     });
 
-    it('provides default values for payment method, crypto currency, and fiat currency', () => {
+    it('initializes payment method and crypto currency as null', () => {
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
       const TestComponent = () => {
         contextValue = useDepositSDK();
@@ -558,8 +558,8 @@ describe('Deposit SDK Context', () => {
         },
       );
 
-      expect(contextValue?.selectedPaymentMethod).toEqual(DEBIT_CREDIT_PAYMENT_METHOD);
-      expect(contextValue?.selectedCryptoCurrency).toEqual(USDC_TOKEN);
+      expect(contextValue?.selectedPaymentMethod).toBeNull();
+      expect(contextValue?.selectedCryptoCurrency).toBeNull();
     });
 
     it('allows updating payment method and crypto currency', () => {

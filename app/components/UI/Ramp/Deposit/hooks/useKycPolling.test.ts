@@ -10,16 +10,7 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import {
-  DepositRegion,
-} from '@consensys/native-ramps-sdk/dist/Deposit';
-
-const USD_CURRENCY = {
-  id: 'USD',
-  name: 'US Dollar',
-  symbol: '$',
-  emoji: '🇺🇸',
-};
+import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
 
 const USDC_TOKEN = {
   assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -27,7 +18,8 @@ const USDC_TOKEN = {
   name: 'USD Coin',
   symbol: 'USDC',
   decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
 };
 
 const DEBIT_CREDIT_PAYMENT_METHOD = {

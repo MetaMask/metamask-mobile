@@ -25,27 +25,15 @@ export const selectDepositConfig = createSelector(
 export const selectDepositProviderApiKey = createSelector(
   selectDepositConfig,
   (depositConfig) => {
-    // TODO: Remove hardcoded values - added for testing
-    const hardcodedApiKey = "a9d9cc56-a524-4dd7-8008-59f36bd6fa97";
-    console.log('__ DEBUG__ selectDepositProviderApiKey returning hardcoded value:', hardcodedApiKey);
-    return hardcodedApiKey;
-    
-    // Original logic (commented out for testing):
-    // const depositProviderApiKey = depositConfig?.providerApiKey;
-    // return depositProviderApiKey ?? null;
+    const depositProviderApiKey = depositConfig?.providerApiKey;
+    return depositProviderApiKey ?? null;
   },
 );
 export const selectDepositProviderFrontendAuth = createSelector(
   selectDepositConfig,
   (depositConfig) => {
-    // TODO: Remove hardcoded values - added for testing
-    const hardcodedFrontendAuth = "9TRUtEM_RLns4Tp7h34wtvA2h*yc2ty2EhChtWtAdRko!EpVrpvH26xf_YJPM_qqiEG4LsL7TJiB6wg79BjtLGHdaKu6gHsceDHQ";
-    console.log('__ DEBUG__ selectDepositProviderFrontendAuth returning hardcoded value:', hardcodedFrontendAuth);
-    return hardcodedFrontendAuth;
-    
-    // Original logic (commented out for testing):
-    // const depositProviderFrontendAuth = depositConfig?.providerFrontendAuth;
-    // return depositProviderFrontendAuth ?? null;
+    const depositProviderFrontendAuth = depositConfig?.providerFrontendAuth;
+    return depositProviderFrontendAuth ?? null;
   },
 );
 

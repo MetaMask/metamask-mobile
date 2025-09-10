@@ -26,26 +26,13 @@ function validMethodParams<T extends keyof NativeRampsSdk>(
   const parameters: {
     required: boolean;
   }[] = ServicesSignatures.NativeRampsSdk[method].parameters;
-  
-  console.log(`__ DEBUG__ validMethodParams for ${method}:`, {
-    method,
-    params,
-    parametersLength: parameters.length,
-    paramsLength: params.length,
-    parameters,
-  });
-  
+
   const result = parameters.every(({ required }, index) => {
     const isValid = !required || params[index] != null;
-    console.log(`__ DEBUG__ validMethodParams param ${index}:`, {
-      required,
-      paramValue: params[index],
-      isValid,
-    });
+
     return isValid;
   });
-  
-  console.log(`__ DEBUG__ validMethodParams result for ${method}:`, result);
+
   return result;
 }
 
@@ -122,13 +109,6 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
   const onMount = typeof config === 'string' ? true : config.onMount ?? true;
   const throws = typeof config === 'string' ? false : config.throws ?? false;
 
-  console.log(`__ DEBUG__ useDepositSdkMethod called with method: ${method}`, {
-    config,
-    params,
-    onMount,
-    throws,
-  });
-
   const { sdk } = useDepositSDK();
   const [data, setData] = useState<Awaited<
     ReturnType<NativeRampsSdk[T]>
@@ -138,49 +118,22 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
   const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
   const abortControllerRef = useRef<AbortController>();
 
-  console.log(`__ DEBUG__ useDepositSdkMethod state:`, {
-    method,
-    sdkExists: !!sdk,
-    onMount,
-    isFetching,
-    dataExists: !!data,
-    errorExists: !!error,
-  });
-
   const query = useCallback(
     async (...customParams: PartialParameters<NativeRampsSdk[T]> | []) => {
       const hasCustomParams = customParams.length > 0;
       const queryParams = hasCustomParams ? customParams : params;
 
-      console.log(`__ DEBUG__ ${method} query called with:`, {
-        hasCustomParams,
-        customParams,
-        queryParams,
-        method,
-      });
-
-      console.log(`__ DEBUG__ ${method} checking validMethodParams:`, {
-        method,
-        queryParams,
-        signatures: ServicesSignatures.NativeRampsSdk[method],
-      });
-
       if (!validMethodParams(method, queryParams)) {
-        console.log(`__ DEBUG__ ${method} FAILED validMethodParams check, returning early`);
         return;
       }
 
-      console.log(`__ DEBUG__ ${method} PASSED validMethodParams check`);
-
       const hasEveryParameter = hasAllParams(method, queryParams);
-      console.log(`__ DEBUG__ ${method} hasEveryParameter:`, hasEveryParameter);
       let abortController;
 
       try {
         abortControllerRef?.current?.abort();
 
         if (!hasEveryParameter) {
-          console.log(`__ DEBUG__ ${method} creating AbortController because not all parameters provided`);
           abortController = new AbortController();
           abortControllerRef.current = abortController;
         }
@@ -194,34 +147,22 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
             ? [...queryParams, abortController]
             : queryParams;
 
-          console.log(
-            `__ DEBUG__ ${method} about to call SDK method with params:`,
-            methodParams,
-          );
-          console.log(
-            '__ CLIENT__ useDepositSdkMethod calling method',
-            method,
-            methodParams,
-          );
           // @ts-expect-error spreading params error
           const response = (await sdk[method](...methodParams)) as Awaited<
             ReturnType<NativeRampsSdk[T]>
           >;
-          console.log(`__ DEBUG__ ${method} SDK call successful, response length:`, Array.isArray(response) ? response.length : 'not array');
+
           setData(response);
           setIsFetching(false);
 
           return response;
-        } else {
-          console.log(`__ DEBUG__ ${method} SDK not available, cannot make call`);
         }
+
       } catch (responseError) {
         if (abortController?.signal.aborted) {
-          console.log(`__ DEBUG__ ${method} request was aborted`);
           return;
         }
 
-        console.log(`__ DEBUG__ ${method} SDK call failed with error:`, responseError);
         Logger.error(responseError as Error, `useSDKMethod::${method} failed`);
         setError((responseError as Error).message);
         setIsFetching(false);
@@ -235,17 +176,10 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
   );
 
   useEffect(() => {
-    console.log(`__ DEBUG__ ${method} useEffect called:`, {
-      onMount,
-      params: JSON.stringify(params),
-      sdkAvailable: !!sdk,
-    });
     if (onMount) {
-      console.log(`__ DEBUG__ ${method} calling query() because onMount is true`);
       query();
-    } else {
-      console.log(`__ DEBUG__ ${method} NOT calling query() because onMount is false`);
     }
+
     return () => {
       abortControllerRef.current?.abort();
     };

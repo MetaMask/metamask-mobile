@@ -2,12 +2,6 @@ import { renderHook } from '@testing-library/react-hooks';
 import useDepositTokenExchange from './useDepositTokenExchange';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
 
-const USD_CURRENCY = {
-  id: 'USD',
-  name: 'US Dollar',
-  symbol: '$',
-  emoji: '🇺🇸',
-};
 import { useFetchTokenRatesMulti } from './useTokenRates';
 
 jest.mock('./useTokenRates', () => ({
@@ -39,7 +33,7 @@ describe('useDepositTokenExchange', () => {
 
     const { result } = renderHook(() =>
       useDepositTokenExchange({
-        fiatCurrency: USD_CURRENCY,
+        fiatCurrency: 'USD',
         fiatAmount: '100',
         token: mockToken,
         tokens: mockTokens,
@@ -63,7 +57,7 @@ describe('useDepositTokenExchange', () => {
 
     const { result: result2 } = renderHook(() =>
       useDepositTokenExchange({
-        fiatCurrency: USD_CURRENCY,
+        fiatCurrency: 'USD',
         fiatAmount: '100', // 100 USD should give 0.5 token at rate 200 USD/token
         token: mockToken,
         tokens: mockTokens,
@@ -85,7 +79,7 @@ describe('useDepositTokenExchange', () => {
 
     const { result } = renderHook(() =>
       useDepositTokenExchange({
-        fiatCurrency: USD_CURRENCY,
+        fiatCurrency: 'USD',
         fiatAmount: '1000',
         token: mockToken,
         tokens: mockTokens,
@@ -107,7 +101,7 @@ describe('useDepositTokenExchange', () => {
 
     const { result } = renderHook(() =>
       useDepositTokenExchange({
-        fiatCurrency: USD_CURRENCY,
+        fiatCurrency: 'USD',
         fiatAmount: '1000',
         token: mockToken,
         tokens: mockTokens,
@@ -128,7 +122,7 @@ describe('useDepositTokenExchange', () => {
 
     const { result } = renderHook(() =>
       useDepositTokenExchange({
-        fiatCurrency: USD_CURRENCY,
+        fiatCurrency: 'USD',
         fiatAmount: '1000',
         token: mockToken,
         tokens: mockTokens,

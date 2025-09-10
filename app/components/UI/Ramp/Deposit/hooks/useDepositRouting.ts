@@ -13,10 +13,7 @@ import {
 } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
-import {
-  generateThemeParameters,
-  getCryptoCurrencyFromTransakId,
-} from '../utils';
+import { generateThemeParameters } from '../utils';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
 import {
@@ -229,15 +226,10 @@ export const useDepositRouting = ({
                 throw new Error('Missing order');
               }
 
-              const cryptoCurrency = getCryptoCurrencyFromTransakId(
-                order.cryptoCurrency,
-                order.network,
-              );
-
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
-                network: cryptoCurrency?.chainId || order.network,
+                network: order.network,
               };
 
               await handleNewOrder(processedOrder);
@@ -254,8 +246,8 @@ export const useDepositRouting = ({
                 total_fee: Number(order.totalFeesFiat),
                 payment_method_id: order.paymentMethod,
                 country: selectedRegion?.isoCode || '',
-                chain_id: cryptoCurrency?.chainId || '',
-                currency_destination: cryptoCurrency?.assetId || '',
+                chain_id: order.network || '',
+                currency_destination: order.cryptoCurrency || '',
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -373,7 +365,7 @@ export const useDepositRouting = ({
 
               const isManualBankTransfer =
                 MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
-                  (method) => method.id === paymentMethodId,
+                  (method) => method === paymentMethodId,
                 );
 
               if (isManualBankTransfer) {

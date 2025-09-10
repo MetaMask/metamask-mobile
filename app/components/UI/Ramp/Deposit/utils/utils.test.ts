@@ -1,14 +1,11 @@
 import {
-  getTransakCryptoCurrencyId,
-  getTransakFiatCurrencyId,
-  getTransakChainId,
-  getTransakPaymentMethodId,
   getNotificationDetails,
   formatCurrency,
   hasDepositOrderField,
   generateThemeParameters,
   timestampToTransakFormat,
-  getCryptoCurrencyFromTransakId,
+  validateEmail,
+  excludeFromArray,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -17,64 +14,6 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  DepositPaymentMethod,
-} from '@consensys/native-ramps-sdk/dist/Deposit';
-
-const USDC_TOKEN = {
-  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  chainId: 'eip155:1',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-};
-
-const USDC_LINEA_TOKEN = {
-  assetId: 'eip155:59144/erc20:0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
-  chainId: 'eip155:59144',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0x176211869cA2b568f2A7D4EE941E073a821EE1ff.png',
-};
-
-const USDC_BASE_TOKEN = {
-  assetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-  chainId: 'eip155:8453',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.png',
-};
-
-const USDT_TOKEN = {
-  assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-  chainId: 'eip155:1',
-  name: 'Tether USD',
-  symbol: 'USDT',
-  decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
-};
-
-const USDT_LINEA_TOKEN = {
-  assetId: 'eip155:59144/erc20:0xA219439258ca9da29E9Cc4cE5596924745e12B93',
-  chainId: 'eip155:59144',
-  name: 'Tether USD',
-  symbol: 'USDT',
-  decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0xA219439258ca9da29E9Cc4cE5596924745e12B93.png',
-};
-
-const USDT_BASE_TOKEN = {
-  assetId: 'eip155:8453/erc20:0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
-  chainId: 'eip155:8453',
-  name: 'Tether USD',
-  symbol: 'USDT',
-  decimals: 6,
-  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2.png',
-};
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import { AppThemeKey } from '../../../../../util/theme/models';
 
@@ -98,161 +37,6 @@ describe('formatCurrency', () => {
 
   it('should default to USD when no currency provided', () => {
     expect(formatCurrency(100, '')).toBe('$100.00');
-  });
-});
-
-describe('Transak Utils', () => {
-  describe('getTransakCryptoCurrencyId', () => {
-    it('should return correct Transak crypto currency ID for USDC', () => {
-      expect(
-        getTransakCryptoCurrencyId({
-          assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          iconUrl: 'usdc-icon',
-          name: 'USD Coin',
-          chainId: 'eip155:1',
-          symbol: 'USDC',
-          decimals: 6,
-        }),
-      ).toBe('USDC');
-    });
-
-    it('should return correct Transak crypto currency ID for USDT', () => {
-      expect(
-        getTransakCryptoCurrencyId({
-          assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-          iconUrl: 'usdt-icon',
-          name: 'Tether USD',
-          chainId: 'eip155:1',
-          symbol: 'USDT',
-          decimals: 6,
-        }),
-      ).toBe('USDT');
-    });
-
-    it('should throw error for unsupported crypto currency', () => {
-      expect(() =>
-        getTransakCryptoCurrencyId({
-          assetId: 'unsupported',
-          iconUrl: 'unsupported-icon',
-          name: 'Unsupported',
-          chainId: 'eip155:1',
-          symbol: 'UNS',
-          decimals: 18,
-        }),
-      ).toThrow('Unsupported crypto currency: unsupported');
-    });
-  });
-
-  describe('getTransakFiatCurrencyId', () => {
-    it('should return correct Transak fiat currency ID for USD', () => {
-      expect(
-        getTransakFiatCurrencyId({
-          id: 'USD',
-          name: 'US Dollar',
-          symbol: 'USD',
-          emoji: '💵',
-        }),
-      ).toBe('USD');
-    });
-
-    it('should return correct Transak fiat currency ID for EUR', () => {
-      expect(
-        getTransakFiatCurrencyId({
-          id: 'EUR',
-          name: 'Euro',
-          symbol: 'EUR',
-          emoji: '💶',
-        }),
-      ).toBe('EUR');
-    });
-
-    it('should throw error for unsupported fiat currency', () => {
-      expect(() =>
-        getTransakFiatCurrencyId({
-          id: 'unsupported',
-          name: 'Unsupported',
-          symbol: 'UNS',
-          emoji: '❓',
-        }),
-      ).toThrow('Unsupported fiat currency: unsupported');
-    });
-  });
-
-  describe('getTransakChainId', () => {
-    it('should return correct Transak chain ID for Ethereum mainnet', () => {
-      expect(getTransakChainId('eip155:1')).toBe('ethereum');
-    });
-
-    it('should throw error for unsupported chain', () => {
-      expect(() =>
-        getTransakChainId('unsupported' as unknown as `${string}:${string}`),
-      ).toThrow('Unsupported chain: unsupported');
-    });
-  });
-
-  describe('getTransakPaymentMethodId', () => {
-    it('should return correct Transak payment method ID for credit/debit card', () => {
-      expect(
-        getTransakPaymentMethodId({
-          id: 'credit_debit_card',
-          name: 'Credit/Debit Card',
-          duration: 'instant',
-          icon: IconName.Card,
-        }),
-      ).toBe('credit_debit_card');
-    });
-
-    it('should throw error for unsupported payment method', () => {
-      expect(() =>
-        getTransakPaymentMethodId({
-          id: 'unsupported',
-          name: 'Unsupported',
-          duration: 'unknown',
-        } as unknown as DepositPaymentMethod),
-      ).toThrow('Unsupported payment method: unsupported');
-    });
-  });
-
-  describe('getCryptoCurrencyFromTransakId', () => {
-    it('should return the correct crypto currency for Ethereum USDC', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'ethereum');
-      expect(result?.assetId).toBe(USDC_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Linea USDC', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'linea');
-      expect(result?.assetId).toBe(USDC_LINEA_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Base USDC', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'base');
-      expect(result?.assetId).toBe(USDC_BASE_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Ethereum USDT', () => {
-      const result = getCryptoCurrencyFromTransakId('USDT', 'ethereum');
-      expect(result?.assetId).toBe(USDT_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Linea USDT', () => {
-      const result = getCryptoCurrencyFromTransakId('USDT', 'linea');
-      expect(result?.assetId).toBe(USDT_LINEA_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Base USDT', () => {
-      const result = getCryptoCurrencyFromTransakId('USDT', 'base');
-      expect(result?.assetId).toBe(USDT_BASE_TOKEN.assetId);
-    });
-
-    it('should return null for unsupported crypto currency', () => {
-      const result = getCryptoCurrencyFromTransakId('UNSUPPORTED', 'ethereum');
-      expect(result).toBeNull();
-    });
-
-    it('should return null for unsupported network', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'unsupported');
-      expect(result).toBeNull();
-    });
   });
 });
 
@@ -521,4 +305,51 @@ describe('timestampToTransakFormat', () => {
       expect(timestampToTransakFormat(timestamp)).toBe(expected);
     },
   );
+});
+
+describe('validateEmail', () => {
+  it('should return true for valid email addresses', () => {
+    expect(validateEmail('test@example.com')).toBe(true);
+    expect(validateEmail('user.name@domain.co.uk')).toBe(true);
+    expect(validateEmail('test+tag@example.org')).toBe(true);
+  });
+
+  it('should return false for invalid email addresses', () => {
+    expect(validateEmail('invalid-email')).toBe(false);
+    expect(validateEmail('test@')).toBe(false);
+    expect(validateEmail('@example.com')).toBe(false);
+    expect(validateEmail('test@@example.com')).toBe(false);
+    expect(validateEmail('')).toBe(false);
+  });
+});
+
+describe('excludeFromArray', () => {
+  it('should remove specified item from array', () => {
+    const array = ['apple', 'banana', 'orange'];
+    const result = excludeFromArray(array, 'banana');
+    expect(result).toEqual(['apple', 'orange']);
+  });
+
+  it('should return original array if item not found', () => {
+    const array = ['apple', 'banana', 'orange'];
+    const result = excludeFromArray(array, 'grape');
+    expect(result).toEqual(['apple', 'banana', 'orange']);
+  });
+
+  it('should handle empty arrays', () => {
+    const result = excludeFromArray([], 'item');
+    expect(result).toEqual([]);
+  });
+
+  it('should remove all instances of the item', () => {
+    const array = ['apple', 'banana', 'apple', 'orange'];
+    const result = excludeFromArray(array, 'apple');
+    expect(result).toEqual(['banana', 'orange']);
+  });
+
+  it('should work with numbers', () => {
+    const array = [1, 2, 3, 4, 3];
+    const result = excludeFromArray(array, 3);
+    expect(result).toEqual([1, 2, 4]);
+  });
 });

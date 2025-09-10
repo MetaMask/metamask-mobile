@@ -37,11 +37,7 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { processFiatOrder } from '../../../index';
 import { useTheme } from '../../../../../../util/theme';
 import { RootState } from '../../../../../../reducers';
-import {
-  getCryptoCurrencyFromTransakId,
-  getPaymentMethodByTransakId,
-  hasDepositOrderField,
-} from '../../utils';
+import { hasDepositOrderField } from '../../utils';
 import { useDepositSDK } from '../../sdk';
 import Button, {
   ButtonSize,
@@ -224,12 +220,12 @@ const BankDetails = () => {
   const bic = getFieldValue('BIC');
 
   useEffect(() => {
-    const paymentMethod =
+    const paymentMethodId =
       hasDepositOrderField(order?.data, 'paymentMethod') &&
       order?.data.paymentMethod
-        ? getPaymentMethodByTransakId(order.data.paymentMethod)
+        ? order.data.paymentMethod
         : null;
-    const paymentMethodName = paymentMethod?.shortName ?? '';
+    const paymentMethodName = paymentMethodId ?? '';
 
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -289,10 +285,6 @@ const BankDetails = () => {
         return;
       }
 
-      const cryptoCurrency = getCryptoCurrencyFromTransakId(
-        order.data.cryptoCurrency,
-        order.data.network,
-      );
       await confirmPayment(order.id, paymentMethod);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -101,6 +101,7 @@ const BuildQuote = () => {
   } = usePaymentMethods();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const hasHandledImmediateRoute = useRef(false);
 
   const {
     isAuthenticated,
@@ -440,13 +441,14 @@ const BuildQuote = () => {
     : null;
 
   useEffect(() => {
-    if (shouldRouteImmediately) {
+    if (shouldRouteImmediately && !hasHandledImmediateRoute.current) {
+      hasHandledImmediateRoute.current = true;
       navigation.setParams({
         shouldRouteImmediately: false,
       });
       handleOnPressContinue();
     }
-  }, [handleOnPressContinue, shouldRouteImmediately, navigation]);
+  }, [shouldRouteImmediately, handleOnPressContinue, navigation]);
 
   try {
     return (

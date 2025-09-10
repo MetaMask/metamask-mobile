@@ -15,6 +15,23 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
 
+jest.mock('../../utils', () => ({
+  formatCurrency: jest.fn((amount, currency) => {
+    if (currency === 'USD') {
+      return `$${parseFloat(amount).toFixed(2)}`;
+    }
+    return `${currency} ${amount}`;
+  }),
+  hasDepositOrderField: jest.fn(() => true),
+}));
+
+jest.mock('../../constants', () => ({
+  SEPA_PAYMENT_METHOD: {
+    id: 'sepa_credit_transfer',
+    name: 'SEPA Bank Transfer',
+  },
+}));
+
 describe('DepositOrderContent Component', () => {
   const mockOrder = {
     id: 'test-order-id-123456',

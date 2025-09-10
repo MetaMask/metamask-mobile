@@ -85,9 +85,14 @@ jest.mock('../../sdk', () => ({
 }));
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: jest.fn().mockImplementation((config) => {
+  useDepositSdkMethod: jest.fn().mockImplementation((config, ...params) => {
     if (config?.method === 'getBuyQuote' || config === 'getBuyQuote') {
-      return [{ error: null }, mockGetQuote];
+      // Create a wrapper function that calls mockGetQuote with the stored params
+      const wrappedGetQuote = (...customParams) => {
+        const finalParams = customParams.length > 0 ? customParams : params;
+        return mockGetQuote(...finalParams);
+      };
+      return [{ error: null }, wrappedGetQuote];
     }
     return [{ error: null }, jest.fn()];
   }),
@@ -133,26 +138,28 @@ jest.mock('../../hooks/usePaymentMethods', () => ({
   }),
 }));
 
-const mockUsePaymentMethods = jest.fn().mockReturnValue({
-  paymentMethods: [
-    {
-      id: 'credit_debit_card',
-      name: 'Credit/Debit Card',
-      iconName: 'card',
-      duration: '2-5 minutes',
-      fees: '3.99% + network fees',
-    },
-    {
-      id: 'bank_transfer',
-      name: 'Wire Transfer',
-      iconName: 'bank',
-      duration: '1-3 business days',
-      fees: 'Network fees only',
-    },
-  ],
-  error: null,
-  isFetching: false,
-});
+jest.mock('../../hooks/useRegions', () => ({
+  useRegions: jest.fn().mockReturnValue({
+    regions: [
+      {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        currency: 'USD',
+        supported: true,
+      },
+      {
+        isoCode: 'DE',
+        flag: '🇩🇪',
+        name: 'Germany',
+        currency: 'EUR',
+        supported: true,
+      },
+    ],
+    error: null,
+    isFetching: false,
+  }),
+}));
 
 jest.mock('../../hooks/useCryptoCurrencies', () => ({
   useCryptoCurrencies: jest.fn().mockReturnValue({
@@ -170,21 +177,6 @@ jest.mock('../../hooks/useCryptoCurrencies', () => ({
     error: null,
   }),
 }));
-
-const mockUseCryptoCurrencies = jest.fn().mockReturnValue({
-  cryptoCurrencies: [
-    {
-      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      chainId: 'eip155:1',
-      name: 'USD Coin',
-      symbol: 'USDC',
-      decimals: 6,
-      iconUrl: 'https://example.com/usdc.png',
-    },
-  ],
-  isFetching: false,
-  error: null,
-});
 
 // Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -253,6 +245,24 @@ describe('BuildQuote Component', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
+        params: {
+          regions: [
+            {
+              isoCode: 'US',
+              flag: '🇺🇸',
+              name: 'United States',
+              currency: 'USD',
+              supported: true,
+            },
+            {
+              isoCode: 'DE',
+              flag: '🇩🇪',
+              name: 'Germany',
+              currency: 'EUR',
+              supported: true,
+            },
+          ],
+        },
       });
     });
 
@@ -342,7 +352,8 @@ describe('BuildQuote Component', () => {
         params: {
           cryptoCurrencies: [
             {
-              assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              assetId:
+                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
               chainId: 'eip155:1',
               name: 'USD Coin',
               symbol: 'USDC',
@@ -391,8 +402,8 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockGetQuote).toHaveBeenCalledWith(
           'USD',
-          'USDC',
-          'ethereum',
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          'eip155:1',
           'credit_debit_card',
           '0',
         );
@@ -688,8 +699,8 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockGetQuote).toHaveBeenCalledWith(
           'USD',
-          'USDC',
-          'ethereum',
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          'eip155:1',
           'credit_debit_card',
           '0',
         );

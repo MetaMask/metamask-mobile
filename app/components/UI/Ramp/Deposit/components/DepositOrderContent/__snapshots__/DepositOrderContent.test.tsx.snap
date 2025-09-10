@@ -78,7 +78,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -132,9 +132,9 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -155,18 +155,20 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -303,18 +305,6 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -561,7 +551,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -615,9 +605,9 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -638,18 +628,20 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -786,18 +778,6 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -1044,7 +1024,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -1098,9 +1078,9 @@ exports[`DepositOrderContent Component renders error state correctly with status
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -1121,18 +1101,20 @@ exports[`DepositOrderContent Component renders error state correctly with status
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -1269,18 +1251,6 @@ exports[`DepositOrderContent Component renders error state correctly with status
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -1527,7 +1497,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -1581,9 +1551,9 @@ exports[`DepositOrderContent Component renders error state with specific failure
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -1604,18 +1574,20 @@ exports[`DepositOrderContent Component renders error state with specific failure
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -1752,18 +1724,6 @@ exports[`DepositOrderContent Component renders error state with specific failure
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -2010,7 +1970,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -2064,9 +2024,9 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -2087,18 +2047,20 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -2220,18 +2182,6 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -2482,7 +2432,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -2536,9 +2486,9 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -2559,18 +2509,20 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -2692,18 +2644,6 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -2954,7 +2894,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -3008,9 +2948,9 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -3031,18 +2971,20 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -3179,18 +3121,6 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -3437,7 +3367,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -3491,9 +3421,9 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -3514,18 +3444,20 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -3662,18 +3594,6 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -3920,7 +3840,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -3974,9 +3894,9 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -3997,18 +3917,20 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -4145,18 +4067,6 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={
@@ -4403,7 +4313,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
               resizeMode="contain"
               source={
                 {
-                  "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+                  "uri": "",
                 }
               }
               style={
@@ -4457,9 +4367,9 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#ffffff",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -4480,18 +4390,20 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
                 }
               }
             >
-              <Image
-                onError={[Function]}
-                resizeMode="contain"
-                source={1}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "height": 32,
-                    "width": 32,
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
-                testID="network-avatar-image"
-              />
+              >
+                E
+              </Text>
             </View>
           </View>
         </View>
@@ -4628,18 +4540,6 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
           }
         }
       >
-        <Image
-          source={1}
-          style={
-            {
-              "alignItems": "center",
-              "borderRadius": 10,
-              "height": 16,
-              "justifyContent": "center",
-              "width": 16,
-            }
-          }
-        />
         <Text
           accessibilityRole="text"
           style={

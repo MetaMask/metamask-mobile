@@ -14,11 +14,7 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  formatCurrency,
-  getCryptoCurrencyFromTransakId,
-  hasDepositOrderField,
-} from '../../utils';
+import { formatCurrency, hasDepositOrderField } from '../../utils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountName } from '../../../../../hooks/useAccountName';
@@ -60,10 +56,11 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
-    return getCryptoCurrencyFromTransakId(
-      order.data.cryptoCurrency,
-      order.data.network,
-    );
+    // Use order data directly instead of mapping
+    return {
+      symbol: order.data.cryptoCurrency,
+      chainId: order.data.network,
+    };
   };
 
   const cryptoToken = getCryptoToken();
@@ -140,8 +137,8 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               }
             >
               <AvatarToken
-                name={cryptoToken.name}
-                imageSource={{ uri: cryptoToken.iconUrl }}
+                name={cryptoToken.symbol}
+                imageSource={{ uri: '' }}
                 size={AvatarSize.Lg}
               />
             </BadgeWrapper>

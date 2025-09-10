@@ -16,15 +16,6 @@ const Root = () => {
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
 
-  console.log('__ CLIENT__ Root component rendered/mounted');
-
-  useEffect(() => {
-    console.log('__ CLIENT__ Root component MOUNTED');
-    return () => {
-      console.log('__ CLIENT__ Root component UNMOUNTED');
-    };
-  }, []);
-
   useEffect(() => {
     const initializeFlow = async () => {
       if (hasCheckedToken.current || !getStarted) return;

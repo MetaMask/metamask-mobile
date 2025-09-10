@@ -13,11 +13,9 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
   const { selectedRegion, selectedCryptoCurrency, setSelectedCryptoCurrency } =
     useDepositSDK();
 
-  // Only fetch when we have a selected region
-  const shouldFetch = Boolean(selectedRegion?.isoCode);
-
   const [{ data: cryptoCurrencies, error, isFetching }] = useDepositSdkMethod(
-    { method: 'getCryptoCurrencies', onMount: shouldFetch },
+    'getCryptoCurrencies',
+
     selectedRegion?.isoCode,
   );
 
