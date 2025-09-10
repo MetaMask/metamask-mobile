@@ -189,7 +189,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [build-android-apks, needs-e2e]
+    needs: [needs_e2e_build, build-android-apks, needs-e2e]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     secrets: inherit
 
