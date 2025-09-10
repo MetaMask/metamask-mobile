@@ -317,7 +317,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Auto}
-              label={strings('perps.position.card.close_position')}
+              label={
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {strings('perps.position.card.close_position')}
+                  </Text>
+              }
               onPress={handleClosePress}
               style={styles.footerButton}
               testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
