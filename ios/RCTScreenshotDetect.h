@@ -3,7 +3,7 @@
 //  MetaMask
 //
 //  Created by Gustavo Antunes on 20-09-22.
-//  Copyright © 2022 MetaMask. All rights reserved.....
+//  Copyright © 2022 MetaMask. All rights reserved.
 //
 
 #ifndef RCTScreenshotDetectModule_h

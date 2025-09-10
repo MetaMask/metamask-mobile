@@ -7,7 +7,7 @@ import {
 } from '@metamask/bridge-controller';
 import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
-// TODO read from feature flags
+// TODO read from feature flags...
 export const ALLOWED_BRIDGE_CHAIN_IDS = [
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.BSC,
