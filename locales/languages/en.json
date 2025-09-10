@@ -1002,8 +1002,9 @@
         "liquidation_warning": "Position is close to liquidation price",
         "limit_price_required": "Please set a limit price for limit orders",
         "please_set_a_limit_price": "Please set a limit price",
-        "limit_price_must_be_set_before_configuing_tpsl": "Limit price must be set before configuring TP/SL",
-        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
+        "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
+        "limit_price_far_warning": "Limit price is far from current market price"
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1120,7 +1121,9 @@
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
       "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
-      "no_amount_selected": "Please select an amount to close"
+      "no_amount_selected": "Please select an amount to close",
+      "order_type_reverted_to_market_order": "Changed to market order",
+      "you_need_set_price_limit_order": "You need to set a price for a limit order."
     },
     "tpsl": {
       "title": "Take profit and stop loss",
@@ -3630,16 +3633,16 @@
       "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted",
       "lido_withdrawal_completed_title": "Withdrawal completed",
       "lido_withdrawal_completed_description": "Your Lido withdrawal was successful",
-      "perps_position_liquidated_title": "😟 Position liquidated",
+      "perps_position_liquidated_title": "Position liquidated",
       "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
       "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
-      "perps_stop_loss_triggered_title": "🛑 Stop loss triggered",
+      "perps_stop_loss_triggered_title": "Stop loss triggered",
       "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
       "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
-      "perps_take_profit_triggered_title": "📈 Take profit triggered",
+      "perps_take_profit_triggered_title": "Take profit triggered",
       "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
       "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
-      "perps_limit_order_filled_title": "✅ Limit order filled",
+      "perps_limit_order_filled_title": "Limit order filled",
       "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
       "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
     },
@@ -4308,23 +4311,18 @@
     "contact_support": "Contact support"
   },
   "whats_new": {
-    "title": "What's new",
-    "blockaid": {
-      "title": "Stay safe with security alerts",
-      "description_1": "Steer safe from known scams while still protecting your privacy with security alerts powered by Blockaid. This feature is now on by default for all MetaMask users.",
-      "description_2": "Always do your own due diligence before approving requests.",
-      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia and Base.",
+    "title": "What's New",
+    "remove_gns_new_ui_update": {
+      "title": "New UI update",
+      "introduction": "We've made updates to improve the app experience.",
+      "descriptions": {
+      "description_1": "Network dropdown moved to your assets",
+      "description_2": "Swap and Bridge in one simple flow",
+      "description_3": "Streamlined Send experience",
+      "description_4": "A fresh account view"
+      },
+      "more_information": "Now you can focus on your tokens and activity, not the networks behind them.",
       "got_it": "Got it"
-    },
-    "sell": {
-      "title": "Cashing out made easy",
-      "description": "Sell your crypto directly in MetaMask! We’ll help you find quotes from trusted providers, so you can sell your crypto in an accessible, fast, and secure way, every time.",
-      "action_text": "Try it out"
-    },
-    "transaction_simulation": {
-      "title": "Estimated balance changes",
-      "description_1": "Now you can see the potential outcome of your transactions before you make them!",
-      "description_2": "This is just a simulation, so we can’t guarantee the final outcome. You can turn this off anytime in Settings > Security & Privacy."
     }
   },
   "invalid_network": {
@@ -5239,8 +5237,8 @@
   },
   "bridge": {
     "continue": "Continue",
-    "confirm_bridge": "Confirm Bridge",
-    "confirm_swap": "Confirm Swap",
+    "confirm_bridge": "Bridge",
+    "confirm_swap": "Swap",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
     "select_network": "Select network",
@@ -5257,14 +5255,17 @@
     "included": "Included",
     "estimated_time": "Estimated Time",
     "quote": "Quote",
+    "rate": "Rate",
     "quote_details": "Quote Details",
     "price_impact": "Price Impact",
     "time": "Time",
+    "quote_info_content": "The best rate we found from providers, including provider fees and a 0.875% MetaMask fee.",
+    "quote_info_title": "Rate",
+    "network_fee_info_title": "Network Fee",
+    "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
     "points": "Points",
     "points_tooltip": "Points",
     "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
-    "quote_info_content": "This quote offers the best return from our search. It's based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
-    "quote_info_title": "Why we recommend this quote",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
@@ -5279,11 +5280,19 @@
     "fee_disclaimer": "Includes 0.875% MM fee",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
-    "price_impact_warning_title": "Price Impact Warning",
-    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
-    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
+    "price_impact_info_title": "Price Impact",
+    "price_impact_info_description": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
+    "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
+    "slippage_info_title": "Slippage",
+    "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
-    "max": "Max"
+    "max": "Max",
+    "approval_needed": "This will approve {{amount}} {{symbol}} for swapping.",
+    "approval_tooltip_title": "Grant exact access",
+    "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds.",
+    "minimum_received": "Minimum Received",
+    "minimum_received_tooltip_title": "Minimum Received",
+    "minimum_received_tooltip_content": "The minimum amount you'll receive if the price changes while your transaction is processing, based on your slippage tolerance. This is an estimate from our liquidity providers. Final amounts may differ."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
