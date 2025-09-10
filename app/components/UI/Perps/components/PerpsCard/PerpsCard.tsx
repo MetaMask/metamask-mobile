@@ -90,8 +90,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         });
       }
     }
-    // Note: TouchableOpacity is now disabled when markets are loading or empty
-    // This prevents the appearance of inactive touchables
   }, [onPress, markets, symbol, navigation, order, position]);
 
   if (!position && !order) {
