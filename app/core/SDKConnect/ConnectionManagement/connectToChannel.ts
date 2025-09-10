@@ -150,7 +150,7 @@ async function connectToChannel({
           Routes.LOCK_SCREEN,
           Routes.ONBOARDING.LOGIN,
           Routes.SHEET.ACCOUNT_CONNECT,
-        ];
+        ] as string[];
         // Wait for login screen to be closed
         await waitForCondition({
           fn: () => {
@@ -209,9 +209,7 @@ async function connectToChannel({
         // cleanup connection
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
-        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
+        connected.navigation?.navigate(Routes.SHEET.RETURN_TO_DAPP_MODAL);
         return;
       }
     }
@@ -283,9 +281,7 @@ async function connectToChannel({
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
         DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
-        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
+        connected.navigation?.navigate(Routes.SHEET.RETURN_TO_DAPP_MODAL);
       }
     }
   } catch (error) {

@@ -505,9 +505,7 @@ const Settings: React.FC<SettingsProps> = ({ route }) => {
   );
 
   const toggleBasicFunctionality = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
+    navigation.navigate(Routes.SHEET.BASIC_FUNCTIONALITY);
   };
 
   if (loading) {

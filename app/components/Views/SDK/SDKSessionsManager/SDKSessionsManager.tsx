@@ -79,9 +79,7 @@ const SDKSessionsManager = ({ route }: SDKSessionsManagerProps) => {
   const styles = createStyles(colors, typography, safeAreaInsets);
 
   const toggleClearMMSDKConnectionModal = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SDK_DISCONNECT,
-    });
+    navigation.navigate(Routes.SHEET.SDK_DISCONNECT);
   }, [navigation]);
 
   useEffect(() => {

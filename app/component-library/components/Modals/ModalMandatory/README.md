@@ -18,19 +18,16 @@ Object that holds the props that are passed in while navigating. Props are acces
 // Update to import from relative paths.
 import Routes from 'app/constants/navigation/Routes.ts';
 
-navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-  screen: Routes.MODAL.MODAL_MANDATORY,
-  params: {
-    buttonText: BUTTON_TEXT,
-    checkboxText: CHECKBOX_TEXT,
-    headerTitle: HEADER_TITLE,
-    onAccept: ONACCEPT_CALLBACK,
-    footerHelpText: FOOTER_TEXT,
-    body: {
-      source: BODY_SOURCE,
-      uri: URI | COMPONENT,
-    },
-    onRender: ONRENDER_CALLBACK,
+navigation.navigate(Routes.MODAL.MODAL_MANDATORY, {
+  buttonText: BUTTON_TEXT,
+  checkboxText: CHECKBOX_TEXT,
+  headerTitle: HEADER_TITLE,
+  onAccept: ONACCEPT_CALLBACK,
+  footerHelpText: FOOTER_TEXT,
+  body: {
+    source: BODY_SOURCE,
+    uri: URI | COMPONENT,
   },
+  onRender: ONRENDER_CALLBACK,
 });
 ```

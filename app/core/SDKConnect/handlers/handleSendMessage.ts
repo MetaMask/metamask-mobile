@@ -160,9 +160,7 @@ export const handleSendMessage = async ({
 
     // Trigger should be removed after redirect so we don't redirect the dapp next time and go back to nothing.
     connection.trigger = 'resume';
-    connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-    });
+    connection.navigation?.navigate(Routes.SHEET.RETURN_TO_DAPP_MODAL);
   } catch (err) {
     Logger.log(
       err,

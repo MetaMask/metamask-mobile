@@ -504,21 +504,18 @@ class Onboarding extends PureComponent {
     try {
       const netState = await NetInfo.fetch();
       if (!netState.isConnected || netState.isInternetReachable === false) {
-        this.props.navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings(`error_sheet.no_internet_connection_title`),
-            description: strings(
-              `error_sheet.no_internet_connection_description`,
-            ),
-            descriptionAlign: 'left',
-            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
-            primaryButtonLabel: strings(
-              `error_sheet.no_internet_connection_button`,
-            ),
-            closeOnPrimaryButtonPress: true,
-            type: 'error',
-          },
+        this.props.navigation.replace(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+          title: strings(`error_sheet.no_internet_connection_title`),
+          description: strings(
+            `error_sheet.no_internet_connection_description`,
+          ),
+          descriptionAlign: 'left',
+          buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+          primaryButtonLabel: strings(
+            `error_sheet.no_internet_connection_button`,
+          ),
+          closeOnPrimaryButtonPress: true,
+          type: 'error',
         });
         return;
       }
@@ -589,15 +586,12 @@ class Onboarding extends PureComponent {
       ) {
         // de-escalate google no credential error
         const errorMessage = 'google_login_no_credential';
-        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings(`error_sheet.${errorMessage}_title`),
-            description: strings(`error_sheet.${errorMessage}_description`),
-            descriptionAlign: 'center',
-            buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-            type: 'error',
-          },
+        this.props.navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+          title: strings(`error_sheet.${errorMessage}_title`),
+          description: strings(`error_sheet.${errorMessage}_description`),
+          descriptionAlign: 'center',
+          buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+          type: 'error',
         });
         return;
       }
@@ -624,15 +618,12 @@ class Onboarding extends PureComponent {
       this.socialLoginTraceCtx = null;
     }
 
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings(`error_sheet.${errorMessage}_title`),
-        description: strings(`error_sheet.${errorMessage}_description`),
-        descriptionAlign: 'center',
-        buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-        type: 'error',
-      },
+    this.props.navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+      title: strings(`error_sheet.${errorMessage}_title`),
+      description: strings(`error_sheet.${errorMessage}_description`),
+      descriptionAlign: 'center',
+      buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+      type: 'error',
     });
   };
 
@@ -677,15 +668,12 @@ class Onboarding extends PureComponent {
 
   handleCtaActions = (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
-      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ONBOARDING_SHEET,
-        params: {
-          onPressCreate: this.onPressCreate,
-          onPressImport: this.onPressImport,
-          onPressContinueWithGoogle: this.onPressContinueWithGoogle,
-          onPressContinueWithApple: this.onPressContinueWithApple,
-          createWallet: actionType === 'create',
-        },
+      this.props.navigation.navigate(Routes.SHEET.ONBOARDING_SHEET, {
+        onPressCreate: this.onPressCreate,
+        onPressImport: this.onPressImport,
+        onPressContinueWithGoogle: this.onPressContinueWithGoogle,
+        onPressContinueWithApple: this.onPressContinueWithApple,
+        createWallet: actionType === 'create',
       });
       // else
     } else if (actionType === 'create') {

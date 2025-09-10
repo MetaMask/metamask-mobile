@@ -80,9 +80,8 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
 
   const onExportMnemonic = useCallback(() => {
     if (account.options.entropySource) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        params: { keyringId: account.options.entropySource },
+      navigate(Routes.MODAL.SRP_REVEAL_QUIZ, {
+        keyringId: account.options.entropySource,
       });
     }
   }, [navigate, account.options.entropySource]);

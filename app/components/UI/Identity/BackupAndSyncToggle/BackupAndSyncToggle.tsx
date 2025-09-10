@@ -116,18 +116,15 @@ const BackupAndSyncToggle = ({
       trackBackupAndSyncToggleEvent(true);
 
       if (!isBasicFunctionalityEnabled) {
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
-          params: {
-            enableBackupAndSync: async () => {
-              await setIsBackupAndSyncFeatureEnabled(
-                BACKUPANDSYNC_FEATURES.main,
-                true,
-              );
-            },
-            trackEnableBackupAndSyncEvent: () =>
-              trackBackupAndSyncToggleEvent(true),
+        navigation.navigate(Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC, {
+          enableBackupAndSync: async () => {
+            await setIsBackupAndSyncFeatureEnabled(
+              BACKUPANDSYNC_FEATURES.main,
+              true,
+            );
           },
+          trackEnableBackupAndSyncEvent: () =>
+            trackBackupAndSyncToggleEvent(true),
         });
       } else {
         InteractionManager.runAfterInteractions(async () => {

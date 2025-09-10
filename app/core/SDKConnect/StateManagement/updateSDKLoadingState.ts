@@ -28,7 +28,7 @@ async function updateSDKLoadingState({
     Routes.LOCK_SCREEN,
     Routes.ONBOARDING.LOGIN,
     Routes.SHEET.ACCOUNT_CONNECT,
-  ];
+  ] as string[];
   if (currentRouteName && skipRoutes.includes(currentRouteName)) {
     // Skip on lock screen
     return;
@@ -46,9 +46,7 @@ async function updateSDKLoadingState({
       context: 'updateSDKLoadingState',
     });
 
-    instance.state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SDK_LOADING,
-    });
+    instance.state.navigation?.navigate(Routes.SHEET.SDK_LOADING);
   } else {
     instance.hideLoadingState().catch((err) => {
       DevLogger.log(

@@ -517,17 +517,14 @@ class Approval extends PureComponent {
     if (isUpdatedAfterSecurityCheck) {
       this.setState({ isChangeInSimulationModalOpen: true });
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
-        params: {
-          onProceed: () => {
-            this.setState({ isChangeInSimulationModalOpen: false });
-            this.setState({ transactionConfirmed: false });
-          },
-          onReject: () => {
-            this.setState({ isChangeInSimulationModalOpen: false });
-            this.onCancel();
-          },
+      navigation.navigate(Routes.SHEET.CHANGE_IN_SIMULATION_MODAL, {
+        onProceed: () => {
+          this.setState({ isChangeInSimulationModalOpen: false });
+          this.setState({ transactionConfirmed: false });
+        },
+        onReject: () => {
+          this.setState({ isChangeInSimulationModalOpen: false });
+          this.onCancel();
         },
       });
       return;

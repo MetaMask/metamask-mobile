@@ -87,20 +87,17 @@ const TurnOnBackupAndSync = () => {
     );
 
     if (!isBasicFunctionalityEnabled) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,
-        params: {
-          enableBackupAndSync: async () => {
-            navigation.navigate(Routes.SETTINGS_VIEW, {
-              screen: Routes.SETTINGS.BACKUP_AND_SYNC,
-            });
-            await setIsBackupAndSyncFeatureEnabled(
-              BACKUPANDSYNC_FEATURES.main,
-              true,
-            );
-          },
-          trackEnableBackupAndSyncEvent,
+      navigation.navigate(Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC, {
+        enableBackupAndSync: async () => {
+          navigation.navigate(Routes.SETTINGS_VIEW, {
+            screen: Routes.SETTINGS.BACKUP_AND_SYNC,
+          });
+          await setIsBackupAndSyncFeatureEnabled(
+            BACKUPANDSYNC_FEATURES.main,
+            true,
+          );
         },
+        trackEnableBackupAndSyncEvent,
       });
       return;
     }

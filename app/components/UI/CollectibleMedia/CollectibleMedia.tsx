@@ -67,17 +67,11 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   const pressNft = useCallback(() => {
     if (cover) {
       if (sourceUri && !isIPFSUri(sourceUri)) {
-        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
-        });
+        navigate(Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA);
       } else if (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) {
-        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SHOW_IPFS,
-        });
+        navigate(Routes.SHEET.SHOW_IPFS);
       } else {
-        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
-        });
+        navigate(Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA);
       }
     } else {
       onPressColectible?.();

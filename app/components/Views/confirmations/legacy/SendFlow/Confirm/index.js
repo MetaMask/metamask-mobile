@@ -990,17 +990,14 @@ class Confirm extends PureComponent {
     if (transactionConfirmed) return;
 
     if (isUpdatedAfterSecurityCheck && !isChangeInSimulationModalShown) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
-        params: {
-          onProceed: () => {
-            this.setState({ isChangeInSimulationModalShown: true });
-          },
-          onReject: () => {
-            this.setState({ isChangeInSimulationModalShown: true });
-            resetTransaction();
-            navigation.goBack();
-          },
+      navigation.navigate(Routes.SHEET.CHANGE_IN_SIMULATION_MODAL, {
+        onProceed: () => {
+          this.setState({ isChangeInSimulationModalShown: true });
+        },
+        onReject: () => {
+          this.setState({ isChangeInSimulationModalShown: true });
+          resetTransaction();
+          navigation.goBack();
         },
       });
       return;
@@ -1148,14 +1145,11 @@ class Confirm extends PureComponent {
 
   openAccountSelector = () => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
-      params: {
-        isSelectOnly: true,
-        onSelectAccount: this.onSelectAccount,
-        checkBalanceError: this.getBalanceError,
-        isEvmOnly: true,
-      },
+    navigation.navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
+      isSelectOnly: true,
+      onSelectAccount: this.onSelectAccount,
+      checkBalanceError: this.getBalanceError,
+      isEvmOnly: true,
     });
   };
 

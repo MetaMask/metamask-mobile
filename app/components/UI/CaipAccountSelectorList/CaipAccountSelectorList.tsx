@@ -191,10 +191,7 @@ const CaipAccountSelectorList = ({
 
       if (!account) return;
 
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ACCOUNT_ACTIONS,
-        params: { selectedAccount: account },
-      });
+      navigate(Routes.SHEET.ACCOUNT_ACTIONS, { selectedAccount: account });
     },
     [navigate],
   );

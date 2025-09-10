@@ -306,16 +306,13 @@ const AccountPermissions = ({ route }: AccountPermissionsProps) => {
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     trace({ name: TraceName.DisconnectAllAccountPermissions });
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
-      params: {
-        hostInfo: {
-          metadata: {
-            origin: urlWithProtocol && new URL(urlWithProtocol).origin,
-          },
+    navigate(Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS, {
+      hostInfo: {
+        metadata: {
+          origin: urlWithProtocol && new URL(urlWithProtocol).origin,
         },
-        onRevokeAll: !isRenderedAsBottomSheet ? onRevokeAllHandler : undefined,
       },
+      onRevokeAll: !isRenderedAsBottomSheet ? onRevokeAllHandler : undefined,
     });
     endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);

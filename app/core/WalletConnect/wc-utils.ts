@@ -108,9 +108,7 @@ export const showWCLoadingState = ({
 }: {
   navigation?: TypedNavigationContainerRef;
 }): void => {
-  navigation?.navigate('RootModalFlow', {
-    screen: 'SDKLoading',
-  });
+  navigation?.navigate('SDKLoading');
 };
 
 export const isValidWCURI = (uri: string): boolean => {

@@ -289,11 +289,9 @@ const CollectibleContracts = ({
 
   const showFilterControls = () => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate('RootModalFlow', {
-        screen: 'NetworkManager',
-      });
+      navigation.navigate('NetworkManager');
     } else {
-      navigation.navigate('RootModalFlow', { screen: 'TokenFilter' });
+      navigation.navigate('TokenFilter');
     }
   };
 

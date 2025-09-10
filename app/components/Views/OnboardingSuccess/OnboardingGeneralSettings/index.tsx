@@ -25,9 +25,7 @@ const GeneralSettings = () => {
   const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const handleSwitchToggle = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
+    navigation.navigate(Routes.SHEET.BASIC_FUNCTIONALITY);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
         .addProperties({

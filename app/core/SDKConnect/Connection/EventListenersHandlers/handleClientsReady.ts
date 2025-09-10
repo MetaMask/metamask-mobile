@@ -46,9 +46,7 @@ function handleClientsReady({
             instance.trigger === 'deeplink' &&
             instance.origin !== AppConstants.DEEPLINKS.ORIGIN_QR_CODE
           ) {
-            instance.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-            });
+            instance.navigation?.navigate(Routes.SHEET.RETURN_TO_DAPP_MODAL);
           }
         },
         disapprove,

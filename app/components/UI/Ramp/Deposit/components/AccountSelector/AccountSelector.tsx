@@ -47,11 +47,8 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const openAccountSelector = useCallback(
     () =>
-      navigation.navigate('RootModalFlow', {
-        screen: 'AddressSelector',
-        params: {
-          isEvmOnly,
-        },
+      navigation.navigate('AddressSelector', {
+        isEvmOnly,
       }),
     [navigation, isEvmOnly],
   );

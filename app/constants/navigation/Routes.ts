@@ -69,7 +69,6 @@ enum RouteNames {
 
   // Modal Routes
   DeleteWalletModal = 'DeleteWalletModal',
-  RootModalFlow = 'RootModalFlow',
   ModalConfirmation = 'ModalConfirmation',
   ModalMandatory = 'ModalMandatory',
   WhatsNewModal = 'WhatsNewModal',
@@ -365,7 +364,6 @@ const Routes = {
   TRANSACTION_DETAILS: RouteNames.TransactionDetails,
   MODAL: {
     DELETE_WALLET: RouteNames.DeleteWalletModal,
-    ROOT_MODAL_FLOW: RouteNames.RootModalFlow,
     MODAL_CONFIRMATION: RouteNames.ModalConfirmation,
     MODAL_MANDATORY: RouteNames.ModalMandatory,
     WHATS_NEW: RouteNames.WhatsNewModal,

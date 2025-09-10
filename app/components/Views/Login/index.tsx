@@ -589,11 +589,8 @@ const Login: React.FC<LoginProps> = ({ route }) => {
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
-    navigation.navigate('RootModalFlow', {
-      screen: 'DeleteWalletModal',
-      params: {
-        oauthLoginSuccess,
-      },
+    navigation.navigate('DeleteWalletModal', {
+      oauthLoginSuccess,
     });
   };
 

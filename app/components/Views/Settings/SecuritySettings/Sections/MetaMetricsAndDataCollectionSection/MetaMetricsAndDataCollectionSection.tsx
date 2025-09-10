@@ -129,9 +129,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       }
       addMarketingConsentToTraits(value);
     } else {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.DATA_COLLECTION,
-      });
+      navigation.navigate(Routes.SHEET.DATA_COLLECTION);
 
       if (analyticsEnabled) {
         addMarketingConsentToTraits(value);

@@ -438,30 +438,24 @@ const ManualBackupStep2 = ({
         ).build(),
         saveOnboardingEvent,
       );
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('manual_backup_step_2.success-title'),
-          description: strings('manual_backup_step_2.success-description'),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: () => goNext(),
-          onPrimaryButtonPress: () => goNext(),
-          closeOnPrimaryButtonPress: true,
-        },
+      navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+        title: strings('manual_backup_step_2.success-title'),
+        description: strings('manual_backup_step_2.success-description'),
+        primaryButtonLabel: strings('manual_backup_step_2.success-button'),
+        type: 'success',
+        onClose: () => goNext(),
+        onPrimaryButtonPress: () => goNext(),
+        closeOnPrimaryButtonPress: true,
       });
     } else {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('manual_backup_step_2.error-title'),
-          description: strings('manual_backup_step_2.error-description'),
-          primaryButtonLabel: strings('manual_backup_step_2.error-button'),
-          type: 'error',
-          onClose: () => generateMissingWords(),
-          onPrimaryButtonPress: () => generateMissingWords(),
-          closeOnPrimaryButtonPress: true,
-        },
+      navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+        title: strings('manual_backup_step_2.error-title'),
+        description: strings('manual_backup_step_2.error-description'),
+        primaryButtonLabel: strings('manual_backup_step_2.error-button'),
+        type: 'error',
+        onClose: () => generateMissingWords(),
+        onPrimaryButtonPress: () => generateMissingWords(),
+        closeOnPrimaryButtonPress: true,
       });
     }
   };

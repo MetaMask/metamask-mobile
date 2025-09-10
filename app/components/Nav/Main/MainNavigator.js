@@ -623,10 +623,11 @@ const HomeTabs = () => {
         component={BrowserFlow}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
+      {/* This is a placeholder screen to allow the WalletActions to be displayed in the tab bar */}
       <Tab.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
+        name="WalletActionsTab"
         options={options.actions}
-        component={WalletTabModalFlow}
+        component={() => null}
       />
       <Tab.Screen
         name={Routes.TRANSACTIONS_VIEW}

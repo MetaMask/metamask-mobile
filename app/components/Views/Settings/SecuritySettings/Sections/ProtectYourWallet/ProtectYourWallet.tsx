@@ -49,9 +49,7 @@ const ProtectYourWallet = ({
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 
   const openSRPQuiz = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-    });
+    navigation.navigate(Routes.MODAL.SRP_REVEAL_QUIZ);
   };
 
   const openSRPList = () => {
@@ -64,9 +62,7 @@ const ProtectYourWallet = ({
         })
         .build(),
     );
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SELECT_SRP,
-    });
+    navigation.navigate(Routes.SHEET.SELECT_SRP);
   };
 
   const goToBackup = (): void => {

@@ -63,9 +63,7 @@ const TabBar = ({ state, descriptors, navigation }: CustomTabBarProps) => {
             });
             break;
           case Routes.MODAL.WALLET_ACTIONS:
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.MODAL.WALLET_ACTIONS,
-            });
+            navigation.navigate(Routes.MODAL.WALLET_ACTIONS);
             trackEvent(
               createEventBuilder(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED)
                 .addProperties({

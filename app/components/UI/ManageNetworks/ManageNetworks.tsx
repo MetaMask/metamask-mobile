@@ -30,9 +30,7 @@ export default function ManageNetworksComponent() {
   const networkName = useSelector(selectNetworkName);
 
   const switchNetwork = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
+    navigation.navigate(Routes.SHEET.NETWORK_SELECTOR);
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)

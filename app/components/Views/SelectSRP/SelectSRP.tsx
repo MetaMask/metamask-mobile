@@ -14,10 +14,7 @@ const SelectSRP = ({
   const navigation = useNavigation();
 
   const onKeyringSelect = (keyringId: string) => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      params: { keyringId },
-    });
+    navigation.navigate(Routes.MODAL.SRP_REVEAL_QUIZ, { keyringId });
   };
 
   return (

@@ -258,14 +258,11 @@ class Asset extends PureComponent {
         // TODO: remove !isNonEvmChainId check once bottom sheet options are fixed for non-EVM chains
         shouldShowMoreOptionsInNavBar && !isNonEvmChainId(chainId)
           ? () =>
-              navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: 'AssetOptions',
-                params: {
-                  isNativeCurrency: isNativeToken,
-                  address: route.params?.address,
-                  chainId: route.params?.chainId,
-                  asset,
-                },
+              navigation.navigate('AssetOptions', {
+                isNativeCurrency: isNativeToken,
+                address: route.params?.address,
+                chainId: route.params?.chainId,
+                asset,
               })
           : undefined,
         true,

@@ -146,13 +146,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
             type: 'function',
             navigate: () =>
               [
-                Routes.MODAL.ROOT_MODAL_FLOW,
+                Routes.SHEET.ADD_ACCOUNT,
                 {
-                  screen: Routes.SHEET.ADD_ACCOUNT,
-                  params: {
-                    clientType: WalletClientType.Solana,
-                    scope: SolScope.Mainnet,
-                  },
+                  // @ts-expect-error - TODO: navigate callback doesn't seem correctly typed here
+                  clientType: WalletClientType.Solana,
+                  scope: SolScope.Mainnet,
                 },
               ] as const,
           },

@@ -156,9 +156,7 @@ const AddAsset = ({ route }: AddAssetProps) => {
   }, [updateNavBar]);
 
   const goToSecuritySettings = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
-    });
+    navigation.navigate(Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA);
   };
 
   const onFilterControlsBottomSheetPress = (option: FilterOption) => {

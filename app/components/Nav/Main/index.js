@@ -148,24 +148,21 @@ const Main = (props) => {
         }
 
         // show seedless password outdated modal and force user to lock app
-        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings('login.seedless_password_outdated_modal_title'),
-            description: strings(
-              'login.seedless_password_outdated_modal_content',
-            ),
-            primaryButtonLabel: strings(
-              'login.seedless_password_outdated_modal_confirm',
-            ),
-            type: 'error',
-            icon: IconName.Danger,
-            isInteractable: false,
-            onPrimaryButtonPress: async () => {
-              await Authentication.lockApp({ locked: true });
-            },
-            closeOnPrimaryButtonPress: true,
+        props.navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+          title: strings('login.seedless_password_outdated_modal_title'),
+          description: strings(
+            'login.seedless_password_outdated_modal_content',
+          ),
+          primaryButtonLabel: strings(
+            'login.seedless_password_outdated_modal_confirm',
+          ),
+          type: 'error',
+          icon: IconName.Danger,
+          isInteractable: false,
+          onPrimaryButtonPress: async () => {
+            await Authentication.lockApp({ locked: true });
           },
+          closeOnPrimaryButtonPress: true,
         });
       }
     };
@@ -266,12 +263,9 @@ const Main = (props) => {
   const navigation = useNavigation();
 
   const toggleRemindLater = () => {
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-      params: {
-        onConfirm: () => navigation.goBack(),
-        onCancel: skipAccountModalSecureNow,
-      },
+    props.navigation.navigate(Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL, {
+      onConfirm: () => navigation.goBack(),
+      onCancel: skipAccountModalSecureNow,
     });
   };
 

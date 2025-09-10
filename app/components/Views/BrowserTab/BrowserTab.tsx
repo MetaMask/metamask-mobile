@@ -690,18 +690,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             permittedChains.includes(currentChainId);
 
           if (!isCurrentChainIdAlreadyPermitted) {
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-              params: {
-                isNonDappNetworkSwitch: true,
-                hostInfo: {
-                  metadata: {
-                    origin: hostname,
-                  },
+            navigation.navigate(Routes.SHEET.ACCOUNT_PERMISSIONS, {
+              isNonDappNetworkSwitch: true,
+              hostInfo: {
+                metadata: {
+                  origin: hostname,
                 },
-                isRenderedAsBottomSheet: true,
-                initialScreen: AccountPermissionsScreens.Connected,
               },
+              isRenderedAsBottomSheet: true,
+              initialScreen: AccountPermissionsScreens.Connected,
             });
           }
         } catch (e) {

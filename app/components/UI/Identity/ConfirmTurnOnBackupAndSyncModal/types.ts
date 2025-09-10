@@ -1,4 +1,4 @@
 export interface ConfirmTurnOnBackupAndSyncModalParams {
   enableBackupAndSync: () => Promise<void>;
-  trackEnableBackupAndSyncEvent: () => void;
+  trackEnableBackupAndSyncEvent: (newValue: boolean) => void;
 }

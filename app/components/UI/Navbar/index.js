@@ -1209,9 +1209,7 @@ export function getWalletNavbarOptions(
               tags: getTraceTags(store.getState()),
               op: TraceOperation.AccountList,
             });
-            navigation.navigate('RootModalFlow', {
-              screen: 'AccountSelector',
-            });
+            navigation.navigate('AccountSelector');
           }}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
           hitSlop={innerStyles.touchAreaSlop}

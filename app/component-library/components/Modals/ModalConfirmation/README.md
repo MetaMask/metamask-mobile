@@ -18,16 +18,13 @@ Object that holds the props that are passed in while navigating. Props are acces
 // Update to import from relative paths.
 import Routes from 'app/constants/navigation/Routes.ts';
 
-navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-  screen: Routes.MODAL.MODAL_CONFIRMATION,
-  params: {
-    isDanger: BOOLEAN,
-    title: TITLE_LABEL,
-    description: DESCRIPTION_LABEL,
-    onConfirm: ONCONFIRM_CALLBACK,
-    onCancel: ONCANCEL_CALLBACK,
-    cancelLabel: CANCEL_LABEL,
-    confirmLabel: CONFIRM_LABEL,
-  },
+navigation.navigate(Routes.MODAL.MODAL_CONFIRMATION, {
+  isDanger: BOOLEAN,
+  title: TITLE_LABEL,
+  description: DESCRIPTION_LABEL,
+  onConfirm: ONCONFIRM_CALLBACK,
+  onCancel: ONCANCEL_CALLBACK,
+  cancelLabel: CANCEL_LABEL,
+  confirmLabel: CONFIRM_LABEL,
 });
 ```

@@ -124,9 +124,7 @@ const ManualBackupStep1 = ({
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
       location: 'manual_backup_step_1',
     });
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SEEDPHRASE_MODAL,
-    });
+    navigation.navigate(Routes.SHEET.SEEDPHRASE_MODAL);
   };
 
   useEffect(() => {

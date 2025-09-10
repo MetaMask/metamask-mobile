@@ -25,9 +25,7 @@ const useCheckMultiRpcModal = () => {
 
   const checkMultiRpcModal = useCallback(() => {
     if (showMultiRpcModal && isNetworkDuplicated) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.MULTI_RPC_MIGRATION_MODAL,
-      });
+      navigation.navigate(Routes.MODAL.MULTI_RPC_MIGRATION_MODAL);
       dispatch(setMultiRpcMigrationModalOpen(true));
     }
   }, [dispatch, showMultiRpcModal, navigation, isNetworkDuplicated]);

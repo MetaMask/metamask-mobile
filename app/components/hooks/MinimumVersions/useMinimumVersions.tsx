@@ -17,9 +17,7 @@ const useMinimumVersions = () => {
   useEffect(() => {
     if (shouldTriggerUpdateFlow) {
       InteractionManager.runAfterInteractions(() => {
-        navigation.navigate('RootModalFlow', {
-          screen: 'UpdateNeededModal',
-        });
+        navigation.navigate('UpdateNeededModal');
       });
     }
   }, [navigation, shouldTriggerUpdateFlow]);

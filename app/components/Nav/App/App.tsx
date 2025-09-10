@@ -317,109 +317,6 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-const RootModalFlow = () => (
-  <Stack.Navigator
-    screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
-  >
-    <Stack.Screen name="WalletActions" component={WalletActions} />
-    <Stack.Screen name="FundActionMenu" component={FundActionMenu} />
-    <Stack.Screen name="DeleteWalletModal" component={DeleteWalletModal} />
-    <Stack.Screen name="ModalConfirmation" component={ModalConfirmation} />
-    <Stack.Screen name="ModalMandatory" component={ModalMandatory} />
-    <Stack.Screen name="OnboardingSheet" component={OnboardingSheet} />
-    <Stack.Screen name="SeedphraseModal" component={SeedphraseModal} />
-    <Stack.Screen
-      name="SkipAccountSecurityModal"
-      component={SkipAccountSecurityModal}
-    />
-    <Stack.Screen name="SuccessErrorSheet" component={SuccessErrorSheet} />
-    <Stack.Screen name="AccountSelector" component={AccountSelector} />
-    <Stack.Screen name="AddressSelector" component={AddressSelector} />
-    <Stack.Screen name="AddAccount" component={AddNewAccountBottomSheet} />
-    <Stack.Screen name="SDKLoading" component={SDKLoadingModal} />
-    <Stack.Screen name="SDKFeedback" component={SDKFeedbackModal} />
-    <Stack.Screen name="SDKManageConnections" component={SDKSessionModal} />
-    <Stack.Screen
-      name="ExperienceEnhancer"
-      component={ExperienceEnhancerModal}
-    />
-    <Stack.Screen name="DataCollection" component={DataCollectionModal} />
-    <Stack.Screen name="SDKDisconnect" component={SDKDisconnectModal} />
-    <Stack.Screen name="AccountConnect" component={AccountConnect} />
-    <Stack.Screen
-      name="AccountPermissions"
-      component={AccountPermissions}
-      initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
-    />
-    <Stack.Screen
-      name="RevokeAllAccountPermissions"
-      component={AccountPermissionsConfirmRevokeAll}
-    />
-    <Stack.Screen name="ConnectionDetails" component={ConnectionDetails} />
-    <Stack.Screen
-      name="PermittedNetworksInfoSheet"
-      component={PermittedNetworksInfoSheet}
-    />
-    <Stack.Screen name="NetworkSelector" component={NetworkSelector} />
-    <Stack.Screen name="TokenSort" component={TokenSortBottomSheet} />
-    <Stack.Screen name="TokenFilter" component={TokenFilterBottomSheet} />
-    <Stack.Screen name="NetworkManager" component={NetworkManager} />
-    <Stack.Screen
-      name="BasicFunctionality"
-      component={BasicFunctionalityModal}
-    />
-    <Stack.Screen
-      name="ConfirmTurnOnBackupAndSync"
-      component={ConfirmTurnOnBackupAndSyncModal}
-    />
-    <Stack.Screen
-      name="ResetNotifications"
-      component={ResetNotificationsModal}
-    />
-    <Stack.Screen name="ReturnToDappModal" component={ReturnToAppModal} />
-    <Stack.Screen name="AmbiguousAddress" component={AmbiguousAddressSheet} />
-    <Stack.Screen
-      name="TurnOffRememberMeModal"
-      component={TurnOffRememberMeModal}
-    />
-    <Stack.Screen
-      name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation}
-    />
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    <Stack.Screen name="AssetOptions" component={AssetOptions} />
-    <Stack.Screen name="NftOptions" component={NftOptions} />
-    <Stack.Screen name="UpdateNeededModal" component={UpdateNeeded} />
-    <Stack.Screen name="SelectSRP" component={SelectSRPBottomSheet} />
-    <Stack.Screen name="SRPRevealQuiz" component={SRPQuiz} />
-    <Stack.Screen name="AccountActions" component={AccountActions} />
-    <Stack.Screen
-      name="SettingsAdvancedFiatOnTestnetsFriction"
-      component={FiatOnTestnetsFriction}
-    />
-    <Stack.Screen name="ShowIpfs" component={ShowIpfsGatewaySheet} />
-    <Stack.Screen
-      name="ShowNftDisplayMedia"
-      component={ShowDisplayNftMediaSheet}
-    />
-    <Stack.Screen
-      name="NFTAutoDetectionModal"
-      component={NFTAutoDetectionModal}
-    />
-    {isNetworkUiRedesignEnabled() ? (
-      <Stack.Screen name="MultiRPcMigrationModal" component={MultiRpcModal} />
-    ) : null}
-    <Stack.Screen name="ShowTokenId" component={ShowTokenIdSheet} />
-    <Stack.Screen name="OriginSpamModal" component={OriginSpamModal} />
-    <Stack.Screen
-      name="ChangeInSimulationModal"
-      component={ChangeInSimulationModal}
-    />
-    <Stack.Screen name="TooltipModal" component={TooltipModal} />
-    <Stack.Screen name="DeepLinkModal" component={DeepLinkModal} />
-  </Stack.Navigator>
-);
-
 const ImportPrivateKeyView = () => (
   <Stack.Navigator
     screenOptions={{
@@ -737,7 +634,138 @@ const AppFlow = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="RestoreWallet" component={VaultRecoveryFlow} />
-        <Stack.Screen name="RootModalFlow" component={RootModalFlow} />
+        {/* Root Modal Routes */}
+        <Stack.Group
+          screenOptions={{
+            presentation: 'transparentModal',
+          }}
+        >
+          <Stack.Screen name="WalletActions" component={WalletActions} />
+          <Stack.Screen name="FundActionMenu" component={FundActionMenu} />
+          <Stack.Screen
+            name="DeleteWalletModal"
+            component={DeleteWalletModal}
+          />
+          <Stack.Screen
+            name="ModalConfirmation"
+            component={ModalConfirmation}
+          />
+          <Stack.Screen name="ModalMandatory" component={ModalMandatory} />
+          <Stack.Screen name="OnboardingSheet" component={OnboardingSheet} />
+          <Stack.Screen name="SeedphraseModal" component={SeedphraseModal} />
+          <Stack.Screen
+            name="SkipAccountSecurityModal"
+            component={SkipAccountSecurityModal}
+          />
+          <Stack.Screen
+            name="SuccessErrorSheet"
+            component={SuccessErrorSheet}
+          />
+          <Stack.Screen name="AccountSelector" component={AccountSelector} />
+          <Stack.Screen name="AddressSelector" component={AddressSelector} />
+          <Stack.Screen
+            name="AddAccount"
+            component={AddNewAccountBottomSheet}
+          />
+          <Stack.Screen name="SDKLoading" component={SDKLoadingModal} />
+          <Stack.Screen name="SDKFeedback" component={SDKFeedbackModal} />
+          <Stack.Screen
+            name="SDKManageConnections"
+            component={SDKSessionModal}
+          />
+          <Stack.Screen
+            name="ExperienceEnhancer"
+            component={ExperienceEnhancerModal}
+          />
+          <Stack.Screen name="DataCollection" component={DataCollectionModal} />
+          <Stack.Screen name="SDKDisconnect" component={SDKDisconnectModal} />
+          <Stack.Screen name="AccountConnect" component={AccountConnect} />
+          <Stack.Screen
+            name="AccountPermissions"
+            component={AccountPermissions}
+            initialParams={{
+              initialScreen: AccountPermissionsScreens.Connected,
+            }}
+          />
+          <Stack.Screen
+            name="RevokeAllAccountPermissions"
+            component={AccountPermissionsConfirmRevokeAll}
+          />
+          <Stack.Screen
+            name="ConnectionDetails"
+            component={ConnectionDetails}
+          />
+          <Stack.Screen
+            name="PermittedNetworksInfoSheet"
+            component={PermittedNetworksInfoSheet}
+          />
+          <Stack.Screen name="NetworkSelector" component={NetworkSelector} />
+          <Stack.Screen name="TokenSort" component={TokenSortBottomSheet} />
+          <Stack.Screen name="TokenFilter" component={TokenFilterBottomSheet} />
+          <Stack.Screen name="NetworkManager" component={NetworkManager} />
+          <Stack.Screen
+            name="BasicFunctionality"
+            component={BasicFunctionalityModal}
+          />
+          <Stack.Screen
+            name="ConfirmTurnOnBackupAndSync"
+            component={ConfirmTurnOnBackupAndSyncModal}
+          />
+          <Stack.Screen
+            name="ResetNotifications"
+            component={ResetNotificationsModal}
+          />
+          <Stack.Screen name="ReturnToDappModal" component={ReturnToAppModal} />
+          <Stack.Screen
+            name="AmbiguousAddress"
+            component={AmbiguousAddressSheet}
+          />
+          <Stack.Screen
+            name="TurnOffRememberMeModal"
+            component={TurnOffRememberMeModal}
+          />
+          <Stack.Screen
+            name={'AssetHideConfirmation'}
+            component={AssetHideConfirmation}
+          />
+          <Stack.Screen
+            name={'DetectedTokens'}
+            component={DetectedTokensFlow}
+          />
+          <Stack.Screen name="AssetOptions" component={AssetOptions} />
+          <Stack.Screen name="NftOptions" component={NftOptions} />
+          <Stack.Screen name="UpdateNeededModal" component={UpdateNeeded} />
+          <Stack.Screen name="SelectSRP" component={SelectSRPBottomSheet} />
+          <Stack.Screen name="SRPRevealQuiz" component={SRPQuiz} />
+          <Stack.Screen name="AccountActions" component={AccountActions} />
+          <Stack.Screen
+            name="SettingsAdvancedFiatOnTestnetsFriction"
+            component={FiatOnTestnetsFriction}
+          />
+          <Stack.Screen name="ShowIpfs" component={ShowIpfsGatewaySheet} />
+          <Stack.Screen
+            name="ShowNftDisplayMedia"
+            component={ShowDisplayNftMediaSheet}
+          />
+          <Stack.Screen
+            name="NFTAutoDetectionModal"
+            component={NFTAutoDetectionModal}
+          />
+          {isNetworkUiRedesignEnabled() ? (
+            <Stack.Screen
+              name="MultiRPcMigrationModal"
+              component={MultiRpcModal}
+            />
+          ) : null}
+          <Stack.Screen name="ShowTokenId" component={ShowTokenIdSheet} />
+          <Stack.Screen name="OriginSpamModal" component={OriginSpamModal} />
+          <Stack.Screen
+            name="ChangeInSimulationModal"
+            component={ChangeInSimulationModal}
+          />
+          <Stack.Screen name="TooltipModal" component={TooltipModal} />
+          <Stack.Screen name="DeepLinkModal" component={DeepLinkModal} />
+        </Stack.Group>
         <Stack.Screen
           name="ImportPrivateKeyView"
           component={ImportPrivateKeyView}

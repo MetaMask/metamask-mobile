@@ -59,12 +59,9 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
 
   const openAccountSelector = useCallback(
     () =>
-      navigation.navigate('RootModalFlow', {
-        screen: 'AddressSelector',
-        params: {
-          isEvmOnly,
-          displayOnlyCaipChainIds: rampNetworksCaipIds,
-        },
+      navigation.navigate('AddressSelector', {
+        isEvmOnly,
+        displayOnlyCaipChainIds: rampNetworksCaipIds,
       }),
     [isEvmOnly, navigation, rampNetworksCaipIds],
   );

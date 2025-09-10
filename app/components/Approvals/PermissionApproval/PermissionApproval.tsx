@@ -64,12 +64,9 @@ const PermissionApproval = () => {
         .build(),
     );
 
-    navigation.navigate('RootModalFlow', {
-      screen: 'AccountConnect',
-      params: {
-        hostInfo: requestData,
-        permissionRequestId: id,
-      },
+    navigation.navigate('AccountConnect', {
+      hostInfo: requestData,
+      permissionRequestId: id,
     });
   }, [
     approvalRequest,

@@ -503,9 +503,9 @@ class AdvancedSettings extends PureComponent {
               value={showFiatOnTestnets}
               onValueChange={(showFiatOnTestnets) => {
                 if (showFiatOnTestnets) {
-                  this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                    screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
-                  });
+                  this.props.navigation.navigate(
+                    Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
+                  );
                 } else {
                   setShowFiatOnTestnets(false);
                 }

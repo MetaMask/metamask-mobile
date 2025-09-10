@@ -203,9 +203,7 @@ class AccountOverview extends PureComponent {
 
   openAccountSelector = () => {
     const { navigation } = this.props;
-    navigation.navigate('RootModalFlow', {
-      screen: 'AccountSelector',
-    });
+    navigation.navigate('AccountSelector');
   };
 
   isAccountLabelDefined = (accountLabel) =>

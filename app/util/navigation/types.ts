@@ -170,7 +170,6 @@ export type RootParamList = {
   MaxBrowserTabsModal: undefined;
   DeepLinkModal: DeepLinkModalParams;
   MultichainAccountDetailActions: undefined;
-  RootModalFlow: undefined;
 
   // Sheet Screens
   OnboardingSheet: OnboardingSheetParams;
@@ -234,7 +233,7 @@ export type RootParamList = {
   ReturnToDappModal: undefined;
   AccountActions: { selectedAccount: InternalAccount };
   SettingsAdvancedFiatOnTestnetsFriction: undefined;
-  ShowIpfs: ShowIpfsGatewaySheetParams;
+  ShowIpfs: ShowIpfsGatewaySheetParams | undefined;
   ShowNftDisplayMedia: undefined;
   ShowTokenId: ShowTokenIdSheetParams;
   AmbiguousAddress: undefined;

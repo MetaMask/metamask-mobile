@@ -159,9 +159,7 @@ const ActivityView = ({ route }) => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   const openAccountSelector = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
-    });
+    navigation.navigate(Routes.SHEET.ACCOUNT_SELECTOR);
     // Track Event: "Opened Acount Switcher"
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
@@ -182,11 +180,9 @@ const ActivityView = ({ route }) => {
 
   const showFilterControls = () => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate('RootModalFlow', {
-        screen: 'NetworkManager',
-      });
+      navigation.navigate('NetworkManager');
     } else {
-      navigation.navigate('RootModalFlow', { screen: 'TokenFilter' });
+      navigation.navigate('TokenFilter');
     }
   };
 

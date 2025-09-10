@@ -53,10 +53,7 @@ export function handleMetaMaskDeeplink({
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       SDKConnect.getInstance().state.navigation?.navigate(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        },
+        Routes.SHEET.RETURN_TO_DAPP_MODAL,
       );
     } else if (params.channelId) {
       // differentiate between  deeplink callback and socket connection

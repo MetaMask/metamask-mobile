@@ -59,25 +59,20 @@ const ScreenshotDeterrentWithNavigation = ({
     );
     setAlertPresent(true);
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.MODAL_CONFIRMATION,
-      params: {
-        title: strings('screenshot_deterrent.title'),
-        description: strings('screenshot_deterrent.description', {
-          credentialName: isSRP
-            ? strings('screenshot_deterrent.srp_text')
-            : strings('screenshot_deterrent.priv_key_text'),
-        }),
-        onCancel: () => {
-          setAlertPresent(false);
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.SCREENSHOT_OK).build(),
-          );
-        },
-        onConfirm: openSRPGuide,
-        confirmLabel: strings('reveal_credential.learn_more'),
-        cancelLabel: strings('reveal_credential.got_it'),
+    navigation.navigate(Routes.MODAL.MODAL_CONFIRMATION, {
+      title: strings('screenshot_deterrent.title'),
+      description: strings('screenshot_deterrent.description', {
+        credentialName: isSRP
+          ? strings('screenshot_deterrent.srp_text')
+          : strings('screenshot_deterrent.priv_key_text'),
+      }),
+      onCancel: () => {
+        setAlertPresent(false);
+        trackEvent(createEventBuilder(MetaMetricsEvents.SCREENSHOT_OK).build());
       },
+      onConfirm: openSRPGuide,
+      confirmLabel: strings('reveal_credential.learn_more'),
+      cancelLabel: strings('reveal_credential.got_it'),
     });
   }, [isSRP, navigation, trackEvent, openSRPGuide, createEventBuilder]);
 

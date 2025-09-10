@@ -48,9 +48,7 @@ const WalletResetNeeded = () => {
         .addProperties({ ...deviceMetaData })
         .build(),
     );
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
-    });
+    navigation.navigate(Routes.MODAL.DELETE_WALLET);
   }, [deviceMetaData, navigation, trackEvent, createEventBuilder]);
 
   const handleTryAgain = useCallback(async () => {

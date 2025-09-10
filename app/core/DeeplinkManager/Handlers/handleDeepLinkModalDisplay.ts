@@ -12,10 +12,7 @@ const handleDeepLinkModalDisplay = (params: DeepLinkModalParams) => {
     params.onContinue();
     return;
   }
-  NavigationService.navigation.navigate('RootModalFlow', {
-    screen: 'DeepLinkModal',
-    params,
-  });
+  NavigationService.navigation.navigate('DeepLinkModal', params);
 };
 
 export default handleDeepLinkModalDisplay;

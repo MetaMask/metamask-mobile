@@ -468,23 +468,20 @@ class ResetPassword extends PureComponent {
 
   handleSeedlessPasswordOutdated = () => {
     // show seedless password outdated modal and force user to lock app
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('login.seedless_password_outdated_modal_title'),
-        description: strings('login.seedless_password_outdated_modal_content'),
-        primaryButtonLabel: strings(
-          'login.seedless_password_outdated_modal_confirm',
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          await Authentication.lockApp({ locked: true });
-          this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
-        },
-        closeOnPrimaryButtonPress: true,
+    this.props.navigation.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+      title: strings('login.seedless_password_outdated_modal_title'),
+      description: strings('login.seedless_password_outdated_modal_content'),
+      primaryButtonLabel: strings(
+        'login.seedless_password_outdated_modal_confirm',
+      ),
+      type: 'error',
+      icon: IconName.Danger,
+      isInteractable: false,
+      onPrimaryButtonPress: async () => {
+        await Authentication.lockApp({ locked: true });
+        this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
       },
+      closeOnPrimaryButtonPress: true,
     });
   };
 
@@ -821,35 +818,32 @@ class ResetPassword extends PureComponent {
   };
 
   handleConfirmAction = () => {
-    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('reset_password.warning_password_change_title'),
-        description: this.props.isSeedlessOnboardingLoginFlow ? (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('reset_password.warning_password_change_description')}{' '}
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
-              onPress={this.learnMoreSocialLogin}
-            >
-              {strings('reset_password.learn_more')}
-            </Text>
+    NavigationService.navigation?.navigate(Routes.SHEET.SUCCESS_ERROR_SHEET, {
+      title: strings('reset_password.warning_password_change_title'),
+      description: this.props.isSeedlessOnboardingLoginFlow ? (
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          {strings('reset_password.warning_password_change_description')}{' '}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Primary}
+            onPress={this.learnMoreSocialLogin}
+          >
+            {strings('reset_password.learn_more')}
           </Text>
-        ) : (
-          `${strings('reset_password.warning_password_change_description')}.`
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        secondaryButtonLabel: strings(
-          'reset_password.warning_password_cancel_button',
-        ),
-        primaryButtonLabel: strings(
-          'reset_password.warning_password_change_button',
-        ),
-        onPrimaryButtonPress: this.onPressCreate,
-        closeOnPrimaryButtonPress: true,
-      },
+        </Text>
+      ) : (
+        `${strings('reset_password.warning_password_change_description')}.`
+      ),
+      type: 'error',
+      icon: IconName.Danger,
+      secondaryButtonLabel: strings(
+        'reset_password.warning_password_cancel_button',
+      ),
+      primaryButtonLabel: strings(
+        'reset_password.warning_password_change_button',
+      ),
+      onPrimaryButtonPress: this.onPressCreate,
+      closeOnPrimaryButtonPress: true,
     });
   };
 

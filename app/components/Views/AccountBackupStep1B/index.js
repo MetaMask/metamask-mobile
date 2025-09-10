@@ -255,9 +255,7 @@ const AccountBackupStep1B = (props) => {
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
       location: 'account_backup_step_1b',
     });
-    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SEEDPHRASE_MODAL,
-    });
+    props.navigation.navigate(Routes.SHEET.SEEDPHRASE_MODAL);
   };
 
   return (

@@ -100,18 +100,16 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate('RootModalFlow', {
-        screen: 'NetworkManager',
-      });
+      navigation.navigate('NetworkManager');
     } else if (useEvmSelectionLogic && isEvmSelected) {
-      navigation.navigate('RootModalFlow', { screen: 'TokenFilter' });
+      navigation.navigate('TokenFilter');
     } else if (!useEvmSelectionLogic) {
-      navigation.navigate('RootModalFlow', { screen: 'TokenFilter' });
+      navigation.navigate('TokenFilter');
     }
   }, [navigation, isEvmSelected, useEvmSelectionLogic]);
 
   const defaultShowSortControls = useCallback(() => {
-    navigation.navigate('RootModalFlow', { screen: 'TokenSort' });
+    navigation.navigate('TokenSort');
   }, [navigation]);
 
   // Use custom handlers if provided, otherwise use defaults

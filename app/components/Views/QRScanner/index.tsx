@@ -108,19 +108,16 @@ const QRScanner = ({
     (url: string): Promise<boolean> =>
       new Promise((resolve) => {
         mountedRef.current = false;
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.MODAL.MODAL_CONFIRMATION,
-          params: {
-            onConfirm: () => resolve(true),
-            onCancel: () => resolve(false),
-            cancelLabel: strings('qr_scanner.cancel'),
-            confirmLabel: strings('qr_scanner.continue'),
-            isDanger: false,
-            title: strings('qr_scanner.url_redirection_alert_title'),
-            description: `${url}\n${strings(
-              'qr_scanner.url_redirection_alert_desc',
-            )}`,
-          },
+        navigation.navigate(Routes.MODAL.MODAL_CONFIRMATION, {
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false),
+          cancelLabel: strings('qr_scanner.cancel'),
+          confirmLabel: strings('qr_scanner.continue'),
+          isDanger: false,
+          title: strings('qr_scanner.url_redirection_alert_title'),
+          description: `${url}\n${strings(
+            'qr_scanner.url_redirection_alert_desc',
+          )}`,
         });
       }),
     [navigation],

@@ -47,12 +47,9 @@ export function handleCreateAccountUrl({
 
   if (!hasAccountsInScope) {
     // if there are no accounts in the scope, show the modal to create an account
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: getClientType(chainId),
-        scope: chainId,
-      },
+    navigation.navigate(Routes.SHEET.ADD_ACCOUNT, {
+      clientType: getClientType(chainId),
+      scope: chainId,
     });
     return;
   }

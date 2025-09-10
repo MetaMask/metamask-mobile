@@ -125,14 +125,11 @@ const SendFlowAddressFrom = ({
   };
 
   const openAccountSelector = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
-      params: {
-        isSelectOnly: true,
-        onSelectAccount,
-        disablePrivacyMode: true,
-        isEvmOnly: true,
-      },
+    navigation.navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
+      isSelectOnly: true,
+      onSelectAccount,
+      disablePrivacyMode: true,
+      isEvmOnly: true,
     });
   };
 

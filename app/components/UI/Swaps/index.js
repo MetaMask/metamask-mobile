@@ -702,9 +702,7 @@ function SwapsAmountView({
   }, [destinationToken, sourceToken]);
 
   const onNetworkSelectorPress = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
+    navigation.navigate(Routes.SHEET.NETWORK_SELECTOR);
   }, [navigation]);
 
   const disabledView =

@@ -234,9 +234,7 @@ class WalletConnect2Session {
     const navigation = this.navigation;
 
     const showReturnModal = () => {
-      navigation?.navigate('RootModalFlow', {
-        screen: 'ReturnToDappModal',
-      });
+      navigation?.navigate('ReturnToDappModal');
     };
 
     setTimeout(() => {

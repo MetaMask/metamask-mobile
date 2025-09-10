@@ -117,9 +117,7 @@ const NetworkPermissionsConnected = ({
               iconName={IconName.Info}
               iconColor={IconColor.Default}
               onPress={() => {
-                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                  screen: Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET,
-                });
+                navigate(Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET);
               }}
             />
           </View>

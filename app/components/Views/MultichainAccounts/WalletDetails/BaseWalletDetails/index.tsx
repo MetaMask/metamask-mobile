@@ -81,10 +81,7 @@ export const BaseWalletDetails = ({
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        params: { keyringId },
-      });
+      navigation.navigate(Routes.MODAL.SRP_REVEAL_QUIZ, { keyringId });
     }
   }, [navigation, keyringId]);
 

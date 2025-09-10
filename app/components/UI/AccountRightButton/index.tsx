@@ -123,11 +123,8 @@ const AccountRightButton = ({
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
     if (!selectedAddress) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.NETWORK_SELECTOR,
-        params: {
-          chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
-        },
+      navigate(Routes.SHEET.NETWORK_SELECTOR, {
+        chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)

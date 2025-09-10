@@ -124,9 +124,7 @@ class Contacts extends PureComponent {
 
   onIconPress = () => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.AMBIGUOUS_ADDRESS,
-    });
+    navigation.navigate(Routes.SHEET.AMBIGUOUS_ADDRESS);
   };
 
   render = () => {

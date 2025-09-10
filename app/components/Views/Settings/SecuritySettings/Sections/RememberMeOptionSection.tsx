@@ -40,9 +40,7 @@ const RememberMeOptionSection = () => {
   const onValueChanged = useCallback(
     (enabled: boolean) => {
       isUsingRememberMe
-        ? navigate('RootModalFlow', {
-            screen: 'TurnOffRememberMeModal',
-          })
+        ? navigate('TurnOffRememberMeModal')
         : toggleRememberMe(enabled);
     },
     [isUsingRememberMe, navigate, toggleRememberMe],

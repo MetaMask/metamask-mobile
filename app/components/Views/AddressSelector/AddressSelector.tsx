@@ -73,11 +73,8 @@ const AddressSelector = ({ route }: AddressSelectorProps) => {
 
   const handleAccountSelectorPress = useCallback(
     () =>
-      navigation.navigate('RootModalFlow', {
-        screen: 'AccountSelector',
-        params: {
-          isSelectOnly: true,
-        },
+      navigation.navigate('AccountSelector', {
+        isSelectOnly: true,
       }),
     [navigation],
   );

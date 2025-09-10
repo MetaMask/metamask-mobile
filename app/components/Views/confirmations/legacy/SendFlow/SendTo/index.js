@@ -493,9 +493,7 @@ class SendFlow extends PureComponent {
 
   onIconPress = () => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.AMBIGUOUS_ADDRESS,
-    });
+    navigation.navigate(Routes.SHEET.AMBIGUOUS_ADDRESS);
   };
 
   onAmbiguousAcountWarningDismiss = () => {
@@ -512,11 +510,8 @@ class SendFlow extends PureComponent {
 
   onNetworkSelectorPress = () => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-      params: {
-        source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
-      },
+    navigation.navigate(Routes.SHEET.NETWORK_SELECTOR, {
+      source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
     });
   };
 

@@ -87,11 +87,8 @@ const NftDetails = ({ route }: NftDetailsProps) => {
         navigation,
         colors,
         () =>
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: 'NftOptions',
-            params: {
-              collectible,
-            },
+          navigation.navigate('NftOptions', {
+            collectible,
           }),
         undefined,
       ),
@@ -295,11 +292,8 @@ const NftDetails = ({ route }: NftDetailsProps) => {
   }, [collectible, navigation]);
 
   const goToTokenIdSheet = (tokenId: string) => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SHOW_TOKEN_ID,
-      params: {
-        tokenId,
-      },
+    navigation.navigate(Routes.SHEET.SHOW_TOKEN_ID, {
+      tokenId,
     });
   };
 

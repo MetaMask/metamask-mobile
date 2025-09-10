@@ -156,10 +156,7 @@ const AccountActions = ({ route }: AccountActionsProps) => {
 
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        params: { keyringId },
-      });
+      navigate(Routes.MODAL.SRP_REVEAL_QUIZ, { keyringId });
     });
   };
 

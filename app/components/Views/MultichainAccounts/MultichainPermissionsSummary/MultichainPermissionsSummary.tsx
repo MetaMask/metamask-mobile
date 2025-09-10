@@ -170,9 +170,7 @@ const MultichainPermissionsSummary = ({
   };
 
   const switchNetwork = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
+    navigate(Routes.SHEET.NETWORK_SELECTOR);
   }, [navigate]);
 
   const renderTopIcon = () => {
@@ -254,18 +252,15 @@ const MultichainPermissionsSummary = ({
             iconName={IconName.Info}
             iconColor={IconColor.Default}
             onPress={() => {
-              navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: Routes.SHEET.CONNECTION_DETAILS,
-                params: {
-                  hostInfo: {
-                    metadata: {
-                      origin:
-                        currentPageInformation?.url &&
-                        new URL(currentPageInformation?.url).hostname,
-                    },
+              navigate(Routes.SHEET.CONNECTION_DETAILS, {
+                hostInfo: {
+                  metadata: {
+                    origin:
+                      currentPageInformation?.url &&
+                      new URL(currentPageInformation?.url).hostname,
                   },
-                  connectionDateTime: new Date().getTime(),
                 },
+                connectionDateTime: new Date().getTime(),
               });
             }}
             testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
@@ -299,16 +294,13 @@ const MultichainPermissionsSummary = ({
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     trace({ name: TraceName.DisconnectAllAccountPermissions });
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
-      params: {
-        hostInfo: {
-          metadata: {
-            origin: hostname,
-          },
+    navigate(Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS, {
+      hostInfo: {
+        metadata: {
+          origin: hostname,
         },
-        onRevokeAll: onRevokeAllHandler,
       },
+      onRevokeAll: onRevokeAllHandler,
     });
     endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [onRevokeAllHandler, hostname, navigate]);

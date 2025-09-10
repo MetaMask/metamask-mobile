@@ -21,11 +21,8 @@ export function useMainNotificationToggle() {
   const onToggle = useCallback(() => {
     // Navigate to basic functionality if content is not set.
     if (!basicFunctionalityEnabled) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-        params: {
-          caller: Routes.SETTINGS.NOTIFICATIONS,
-        },
+      navigation.navigate(Routes.SHEET.BASIC_FUNCTIONALITY, {
+        caller: Routes.SETTINGS.NOTIFICATIONS,
       });
       return;
     }

@@ -154,13 +154,10 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           .build(),
       );
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-        params: {
-          hostInfo: {
-            metadata: {
-              origin: activeUrl && new URLParse(activeUrl).origin,
-            },
+      navigation.navigate(Routes.SHEET.ACCOUNT_PERMISSIONS, {
+        hostInfo: {
+          metadata: {
+            origin: activeUrl && new URLParse(activeUrl).origin,
           },
         },
       });

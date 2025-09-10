@@ -6,10 +6,7 @@ const useTooltipModal = () => {
   const { navigate } = useNavigation();
 
   const openTooltipModal = (title: string, tooltip: string | ReactNode) =>
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.TOOLTIP_MODAL,
-      params: { title, tooltip },
-    });
+    navigate(Routes.SHEET.TOOLTIP_MODAL, { title, tooltip });
 
   return { openTooltipModal };
 };

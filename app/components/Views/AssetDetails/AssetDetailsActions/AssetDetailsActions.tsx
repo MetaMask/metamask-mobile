@@ -69,12 +69,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     // Navigate to FundActionMenu with both custom onBuy and asset context
     // The menu will prioritize custom onBuy over standard funding options
     // This allows custom funding flows even when deposit/ramp are unavailable
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.FUND_ACTION_MENU,
-      params: {
-        onBuy, // Custom buy function (takes priority if provided)
-        asset, // Asset context for standard funding flows
-      },
+    navigate(Routes.MODAL.FUND_ACTION_MENU, {
+      onBuy, // Custom buy function (takes priority if provided)
+      asset, // Asset context for standard funding flows
     });
   };
 

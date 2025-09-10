@@ -1,4 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -15,10 +15,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import type {
-  PerpsNavigationParamList,
-  Position,
-} from '../../controllers/types';
+import type { Position } from '../../controllers/types';
 import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import {
   formatPnl,
