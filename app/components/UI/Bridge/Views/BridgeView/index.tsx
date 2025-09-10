@@ -398,6 +398,7 @@ const BridgeView = () => {
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
+            testID="bridge-confirm-button"
             isDisabled={
               hasInsufficientBalance ||
               isSubmittingTx ||
