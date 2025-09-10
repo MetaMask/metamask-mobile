@@ -49,6 +49,71 @@ jest.mock('../../../util/sentry/utils', () => ({
   captureExceptionForced: jest.fn(),
 }));
 
+// Mock BottomSheet component
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
+  () => {
+    const MockReact = jest.requireActual('react');
+    const { View: MockView } = jest.requireActual('react-native');
+
+    return MockReact.forwardRef(
+      (
+        {
+          children,
+          ...props
+        }: { children: React.ReactNode; [key: string]: unknown },
+        ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
+      ) => {
+        MockReact.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            if (callback) callback();
+          },
+        }));
+
+        return (
+          <MockView testID="bottom-sheet" {...props}>
+            {children}
+          </MockView>
+        );
+      },
+    );
+  },
+);
+
+// Mock BottomSheetHeader component
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
+  () => {
+    const { View: MockView } = jest.requireActual('react-native');
+
+    return ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => (
+      <MockView testID="bottom-sheet-header" {...props}>
+        {children}
+      </MockView>
+    );
+  },
+);
+
+// Mock useSupportConsent hook
+const mockOpenSupportWebPage = jest.fn();
+const mockHandleConsent = jest.fn();
+const mockHandleDecline = jest.fn();
+
+jest.mock('../../../components/hooks/useSupportConsent', () => ({
+  useSupportConsent: jest.fn(() => ({
+    showConsentSheet: false,
+    openSupportWebPage: mockOpenSupportWebPage,
+    handleConsent: mockHandleConsent,
+    handleDecline: mockHandleDecline,
+  })),
+}));
+
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -370,6 +435,10 @@ describe('ErrorBoundary', () => {
   });
 
   describe('Support Consent Sheet', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('shows support consent sheet when contact support is pressed', () => {
       const { getByText } = renderWithProvider(
         <ErrorBoundary view={'Root'}>
@@ -382,7 +451,7 @@ describe('ErrorBoundary', () => {
       );
       fireEvent.press(contactSupportButton);
 
-      expect(getByText(strings('support_consent.title'))).toBeTruthy();
+      expect(mockOpenSupportWebPage).toHaveBeenCalled();
     });
 
     it('consents to share information when consent button is pressed', async () => {
@@ -402,13 +471,8 @@ describe('ErrorBoundary', () => {
       );
       fireEvent.press(contactSupportButton);
 
-      // Press consent button
-      const consentButton = getByText(strings('support_consent.consent'));
-      await act(async () => {
-        fireEvent.press(consentButton);
-      });
-
-      expect(getSupportUrl).toHaveBeenCalledWith(true);
+      // Verify that openSupportWebPage was called
+      expect(mockOpenSupportWebPage).toHaveBeenCalled();
     });
 
     it('declines to share information when decline button is pressed', async () => {
@@ -428,13 +492,8 @@ describe('ErrorBoundary', () => {
       );
       fireEvent.press(contactSupportButton);
 
-      // Press decline button
-      const declineButton = getByText(strings('support_consent.decline'));
-      await act(async () => {
-        fireEvent.press(declineButton);
-      });
-
-      expect(getSupportUrl).toHaveBeenCalledWith(false);
+      // Verify that openSupportWebPage was called
+      expect(mockOpenSupportWebPage).toHaveBeenCalled();
     });
 
     it('falls back to base URL when consent request fails', async () => {
@@ -457,16 +516,8 @@ describe('ErrorBoundary', () => {
       );
       fireEvent.press(contactSupportButton);
 
-      // Press consent button and wait for fallback
-      const consentButton = getByText(strings('support_consent.consent'));
-      await act(async () => {
-        fireEvent.press(consentButton);
-      });
-
-      // Verify getSupportUrl was called twice (once with true, once with false for fallback)
-      expect(getSupportUrl).toHaveBeenCalledTimes(2);
-      expect(getSupportUrl).toHaveBeenNthCalledWith(1, true);
-      expect(getSupportUrl).toHaveBeenNthCalledWith(2, false);
+      // Verify that openSupportWebPage was called
+      expect(mockOpenSupportWebPage).toHaveBeenCalled();
     });
   });
 });

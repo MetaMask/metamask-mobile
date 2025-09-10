@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, act } from '@testing-library/react-native';
 import { useSupportConsent } from './index';
 
@@ -8,7 +7,7 @@ jest.mock('../../../util/support', () => ({
   default: jest.fn(),
 }));
 
-const mockGetSupportUrl = require('../../../util/support').default;
+const mockGetSupportUrl = jest.fn();
 
 describe('useSupportConsent', () => {
   const mockOnNavigate = jest.fn();

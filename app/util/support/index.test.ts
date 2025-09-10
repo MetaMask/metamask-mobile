@@ -33,7 +33,7 @@ describe('getSupportUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetaMetrics);
-    (Engine.context.AuthenticationController as any) =
+    (Engine.context.AuthenticationController as unknown) =
       mockAuthenticationController;
   });
 
@@ -43,33 +43,35 @@ describe('getSupportUrl', () => {
   });
 
   it('returns URL with app version when withConsent is true but other parameters are null', async () => {
-    (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(null);
-    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue(
-      null,
-    );
+    (mockGetVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (mockMetaMetrics.getMetaMetricsId as jest.Mock).mockResolvedValue(null);
+    (
+      mockAuthenticationController.getSessionProfile as jest.Mock
+    ).mockResolvedValue(null);
 
     const result = await getSupportUrl(true);
     expect(result).toBe(`${SUPPORT_BASE_URL}?metamask_version=1.0.0`);
   });
 
   it('returns URL with app version when only version is available', async () => {
-    (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(null);
-    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue(
-      null,
-    );
+    (mockGetVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (mockMetaMetrics.getMetaMetricsId as jest.Mock).mockResolvedValue(null);
+    (
+      mockAuthenticationController.getSessionProfile as jest.Mock
+    ).mockResolvedValue(null);
 
     const result = await getSupportUrl(true);
     expect(result).toBe(`${SUPPORT_BASE_URL}?metamask_version=1.0.0`);
   });
 
   it('returns URL with all parameters when all are available', async () => {
-    (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(
+    (mockGetVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (mockMetaMetrics.getMetaMetricsId as jest.Mock).mockResolvedValue(
       'test-metrics-id',
     );
-    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue({
+    (
+      mockAuthenticationController.getSessionProfile as jest.Mock
+    ).mockResolvedValue({
       id: 'test-profile-id',
     });
 
@@ -80,20 +82,20 @@ describe('getSupportUrl', () => {
   });
 
   it('returns base URL when version request fails', async () => {
-    (mockGetVersion as any).mockRejectedValue(new Error('Version error'));
+    (mockGetVersion as jest.Mock).mockRejectedValue(new Error('Version error'));
 
     const result = await getSupportUrl(true);
     expect(result).toBe(SUPPORT_BASE_URL);
   });
 
   it('returns URL without profile ID when authentication controller fails', async () => {
-    (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(
+    (mockGetVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (mockMetaMetrics.getMetaMetricsId as jest.Mock).mockResolvedValue(
       'test-metrics-id',
     );
-    (mockAuthenticationController.getSessionProfile as any).mockRejectedValue(
-      new Error('Auth error'),
-    );
+    (
+      mockAuthenticationController.getSessionProfile as jest.Mock
+    ).mockRejectedValue(new Error('Auth error'));
 
     const result = await getSupportUrl(true);
     expect(result).toBe(
@@ -102,11 +104,13 @@ describe('getSupportUrl', () => {
   });
 
   it('returns base URL when metametrics fails', async () => {
-    (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockRejectedValue(
+    (mockGetVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (mockMetaMetrics.getMetaMetricsId as jest.Mock).mockRejectedValue(
       new Error('Metrics error'),
     );
-    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue({
+    (
+      mockAuthenticationController.getSessionProfile as jest.Mock
+    ).mockResolvedValue({
       id: 'test-profile-id',
     });
 

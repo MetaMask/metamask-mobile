@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { StyleSheet } from 'react-native';
 import {
   Box,
   Text,
@@ -25,12 +24,17 @@ interface SupportConsentSheetProps {
   onDecline: () => void;
 }
 
+const styles = StyleSheet.create({
+  button: {
+    flex: 1,
+  },
+});
+
 const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
   isVisible,
   onConsent,
   onDecline,
 }) => {
-  const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [savePreference, setSavePreference] = useState(true);
 
@@ -81,7 +85,7 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             onPress={handleDecline}
-            style={{ flex: 1 }}
+            style={styles.button}
             label={strings('support_consent.decline')}
           />
 
@@ -89,7 +93,7 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             onPress={handleConsent}
-            style={{ flex: 1 }}
+            style={styles.button}
             label={strings('support_consent.consent')}
           />
         </Box>

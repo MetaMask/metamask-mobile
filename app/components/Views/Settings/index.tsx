@@ -29,7 +29,7 @@ const createStyles = (colors: Colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      zIndex: 99999999999999,
+      zIndex: 1, // Reduced from extremely high value to allow modals to appear above
     },
   });
 

@@ -138,7 +138,7 @@ const ReviewModal = () => {
         })}
       </View>
     ),
-    [openUrl, styles],
+    [goToBrowserUrl, openSupportWebPage, styles],
   );
 
   const renderContent = () => {

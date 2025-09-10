@@ -26,7 +26,7 @@ const getSupportUrl = async (withConsent: boolean = false): Promise<string> => {
       try {
         const sessionProfile =
           await AuthenticationController.getSessionProfile();
-        profileId = sessionProfile?.id;
+        profileId = (sessionProfile as { id?: string })?.id;
       } catch (error) {
         // Profile ID is optional, so we can continue without it
         console.warn('Could not get profile ID:', error);
