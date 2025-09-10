@@ -68,6 +68,10 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEvents',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:estimatePoints',
         expect.any(Function),
       );
@@ -134,6 +138,209 @@ describe('RewardsDataService', () => {
       await expect(service.login(mockLoginRequest)).rejects.toThrow(
         'Network error',
       );
+    });
+  });
+
+  describe('getPointsEvents', () => {
+    const mockGetPointsEventsRequest = {
+      seasonId: 'current',
+      subscriptionId: 'sub-123',
+      cursor: null,
+    };
+
+    const mockPointsEventsResponse = {
+      has_more: true,
+      cursor: 'next-cursor-123',
+      total_results: 100,
+      results: [
+        {
+          id: 'event-123',
+          timestamp: '2024-01-01T10:00:00Z',
+          value: 100,
+          bonus: { bips: 200, bonuses: ['loyalty'] },
+          accountAddress: '0x123456789',
+          type: 'SWAP',
+          payload: {
+            srcAsset: {
+              amount: '1000000000000000000',
+              type: 'eip155:1/slip44:60',
+              decimals: 18,
+              name: 'Ethereum',
+              symbol: 'ETH',
+            },
+            destAsset: {
+              amount: '4500000000',
+              type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              decimals: 6,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+            txHash: '0xabcdef123456',
+          },
+        },
+        {
+          id: 'event-456',
+          timestamp: '2024-01-01T11:00:00Z',
+          value: 50,
+          bonus: null,
+          accountAddress: '0x987654321',
+          type: 'REFERRAL',
+          payload: null,
+        },
+      ],
+    };
+
+    it('should successfully get points events without cursor', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getPointsEvents(mockGetPointsEventsRequest);
+
+      expect(result).toEqual(mockPointsEventsResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events',
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-api-key': 'test-bearer-token',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('should successfully get points events with cursor', async () => {
+      const requestWithCursor = {
+        ...mockGetPointsEventsRequest,
+        cursor: 'cursor-abc123',
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          ...mockPointsEventsResponse,
+          has_more: false,
+          cursor: null,
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getPointsEvents(requestWithCursor);
+
+      expect(result.has_more).toBe(false);
+      expect(result.cursor).toBeNull();
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?cursor=cursor-abc123',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+        }),
+      );
+    });
+
+    it('should properly encode cursor parameter in URL', async () => {
+      const requestWithSpecialCursor = {
+        ...mockGetPointsEventsRequest,
+        cursor: 'cursor/with+special=chars',
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await service.getPointsEvents(requestWithSpecialCursor);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/current/points-events?cursor=cursor%2Fwith%2Bspecial%3Dchars',
+        expect.any(Object),
+      );
+    });
+
+    it('should include authentication headers with subscription token', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await service.getPointsEvents(mockGetPointsEventsRequest);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(
+        mockGetPointsEventsRequest.subscriptionId,
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'rewards-api-key': 'test-bearer-token',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPointsEventsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getPointsEvents(mockGetPointsEventsRequest);
+
+      expect(result).toEqual(mockPointsEventsResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-api-key': expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('should handle get points events errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getPointsEvents(mockGetPointsEventsRequest),
+      ).rejects.toThrow('Get points events failed: 404');
+    });
+
+    it('should handle network errors', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        service.getPointsEvents(mockGetPointsEventsRequest),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle timeout errors', async () => {
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      await expect(
+        service.getPointsEvents(mockGetPointsEventsRequest),
+      ).rejects.toThrow('Request timeout after 10000ms');
     });
   });
 
