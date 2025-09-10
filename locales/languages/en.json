@@ -1001,6 +1001,8 @@
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidation_warning": "Position is close to liquidation price",
         "limit_price_required": "Please set a limit price for limit orders",
+        "please_set_a_limit_price": "Please set a limit price",
+        "limit_price_must_be_set_before_configuing_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
       },
       "error": {

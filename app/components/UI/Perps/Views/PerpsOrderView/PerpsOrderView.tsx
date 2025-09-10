@@ -77,6 +77,7 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPerformance,
+  usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -85,7 +86,6 @@ import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
-import usePerpsToasts from '../../hooks/usePerpsToasts';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -532,6 +532,21 @@ const PerpsOrderViewContentBase: React.FC = () => {
   ]);
 
   // Handlers
+  const handleTPSLPress = useCallback(() => {
+    if (orderForm.type === 'limit' && !orderForm.limitPrice) {
+      // We need to set a limit price for limit orders before TP/SL can be set
+      showToast(PerpsToastOptions.formValidation.orderForm.limitPriceRequired);
+      return;
+    }
+
+    setIsTPSLVisible(true);
+  }, [
+    PerpsToastOptions.formValidation.orderForm.limitPriceRequired,
+    orderForm.limitPrice,
+    orderForm.type,
+    showToast,
+  ]);
+
   const handleAmountPress = () => {
     setIsInputFocused(true);
   };
@@ -818,7 +833,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           {/* Combined TP/SL row */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
             <TouchableOpacity
-              onPress={() => setIsTPSLVisible(true)}
+              onPress={handleTPSLPress}
               testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
             >
               <ListItem>
@@ -1018,8 +1033,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           setTakeProfitPrice(takeProfitPrice);
           setStopLossPrice(stopLossPrice);
           setIsTPSLVisible(false);
-
-          // TP/SL set events are tracked in the bottom sheet component
         }}
         asset={orderForm.asset}
         currentPrice={assetData.price}
