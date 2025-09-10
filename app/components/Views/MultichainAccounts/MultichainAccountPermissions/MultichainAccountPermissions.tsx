@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getPermissions } from '../../../../selectors/snaps/permissionController';
 import { RootState } from '../../../../reducers';
@@ -20,11 +20,12 @@ import MultichainPermissionsSummary from '../MultichainPermissionsSummary/Multic
 import MultichainAccountConnectMultiSelector from '../MultichainAccountConnect/MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
 import { strings } from '../../../../../locales/i18n';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/NetworkConnectMultiSelector';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
 import { AccountGroupId } from '@metamask/account-api';
 import { getNetworkImageSource } from '../../../../util/networks';
 import {
+  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
@@ -32,6 +33,8 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import Engine from '../../../../core/Engine';
 import { getCaip25AccountFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountFromAccountGroupAndScope';
+import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
+import { ToastVariants } from '../../../../component-library/components/Toast';
 
 export interface MultichainAccountPermissionsProps {
   route: {
@@ -58,6 +61,7 @@ export const MultichainAccountPermissions = (
   const [screen, setScreen] = useState<MultichainAccountPermissionsScreens>(
     MultichainAccountPermissionsScreens.Connected,
   );
+  const { toastRef } = useContext(ToastContext);
 
   const existingPermissionsForHost = useSelector((state: RootState) =>
     getPermissions(state, hostInfo?.metadata?.origin),
@@ -169,6 +173,22 @@ export const MultichainAccountPermissions = (
         updatedCaveatValue,
       );
 
+      const labelOptions = [
+        { label: `${strings('toast.accounts_permissions_updated')}` },
+      ];
+
+      const toastAccount = parseCaipAccountId(
+        selectedCaipAccountIds[0] ?? requestedCaipAccountIds[0],
+      ).address;
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Account,
+        labelOptions,
+        accountAddress: toastAccount,
+        accountAvatarType: AvatarAccountType.Maskicon,
+        hasNoTimeout: false,
+      });
+
       // Navigate back
       navigation.goBack();
     } catch (error) {
@@ -177,11 +197,13 @@ export const MultichainAccountPermissions = (
     }
   }, [
     supportedAccountGroups,
-    selectedAccountGroupIds,
     selectedChainIds,
     existingPermissionsCaip25CaveatValue,
     hostInfo?.metadata?.origin,
+    requestedCaipAccountIds,
+    toastRef,
     navigation,
+    selectedAccountGroupIds,
   ]);
 
   const handleRevokeAll = useCallback(async () => {
@@ -225,6 +247,13 @@ export const MultichainAccountPermissions = (
               revokeSpecificError,
             );
           }
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Account,
+            labelOptions: [{ label: `${strings('toast.disconnected_all')}` }],
+            accountAddress: '',
+            accountAvatarType: AvatarAccountType.Maskicon,
+            hasNoTimeout: false,
+          });
         }
       }
 
@@ -235,7 +264,12 @@ export const MultichainAccountPermissions = (
       // Still navigate to browser tab even if there's an error
       navigation.navigate(Routes.BROWSER.HOME);
     }
-  }, [hostInfo?.metadata?.origin, existingPermissionsForHost, navigation]);
+  }, [
+    hostInfo?.metadata?.origin,
+    existingPermissionsForHost,
+    navigation,
+    toastRef,
+  ]);
 
   const handleAccountGroupsSelected = useCallback(
     (newSelectedAccountGroupIds: AccountGroupId[]) => {
