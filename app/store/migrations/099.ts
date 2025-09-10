@@ -7,7 +7,7 @@ import { isSolanaChainId } from '@metamask/bridge-controller';
 /**
  * Migration: Update bridge txHistory for solana to use txHash as key and txMetaId
  */
-const migration = async (state: unknown): Promise<unknown> => {
+const migration = (state: unknown) => {
   const migrationVersion = 99;
 
   // Ensure the state is valid for migration
