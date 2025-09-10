@@ -11,6 +11,8 @@ import ScreenLayout from '../../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../../Navbar';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import getStartedIcon from '../../../assets/deposit-get-started-illustration.png';
+import getStartedIconMUSD from '../../../assets/deposit-get-started-illustration-musd.png';
+import useDepositFeatureFlags from '../../../hooks/useDepositFeatureFlags';
 
 import Button, {
   ButtonSize,
@@ -22,27 +24,43 @@ import Icon, {
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
 
-const bulletPoints = [
-  {
-    title: strings('deposit.get_started.bullet_1_title'),
-    description: strings('deposit.get_started.bullet_1_description'),
-  },
-  {
-    title: strings('deposit.get_started.bullet_2_title'),
-    description: strings('deposit.get_started.bullet_2_description'),
-  },
-  {
-    title: strings('deposit.get_started.bullet_3_title'),
-    description: strings('deposit.get_started.bullet_3_description'),
-  },
-];
-
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
   const { getStarted, setGetStarted } = useDepositSDK();
+  const { metamaskUsdEnabled } = useDepositFeatureFlags();
+
+  const bulletPoints = metamaskUsdEnabled
+    ? [
+        {
+          title: strings('deposit.get_started.bullet_1_title_musd'),
+          description: strings('deposit.get_started.bullet_1_description_musd'),
+        },
+        {
+          title: strings('deposit.get_started.bullet_2_title_musd'),
+          description: strings('deposit.get_started.bullet_2_description_musd'),
+        },
+        {
+          title: strings('deposit.get_started.bullet_3_title_musd'),
+          description: strings('deposit.get_started.bullet_3_description_musd'),
+        },
+      ]
+    : [
+        {
+          title: strings('deposit.get_started.bullet_1_title'),
+          description: strings('deposit.get_started.bullet_1_description'),
+        },
+        {
+          title: strings('deposit.get_started.bullet_2_title'),
+          description: strings('deposit.get_started.bullet_2_description'),
+        },
+        {
+          title: strings('deposit.get_started.bullet_3_title'),
+          description: strings('deposit.get_started.bullet_3_description'),
+        },
+      ];
 
   useEffect(() => {
     navigation.setOptions(
@@ -70,7 +88,9 @@ const GetStarted: React.FC = () => {
           <ScreenLayout.Content>
             <View style={styles.getStartedImageWrapper}>
               <Image
-                source={getStartedIcon}
+                source={
+                  metamaskUsdEnabled ? getStartedIconMUSD : getStartedIcon
+                }
                 style={styles.getStartedImage}
                 resizeMode="contain"
               />
@@ -78,7 +98,9 @@ const GetStarted: React.FC = () => {
           </ScreenLayout.Content>
           <ScreenLayout.Content>
             <Text variant={TextVariant.HeadingLG} style={styles.title}>
-              {strings('deposit.get_started.title')}
+              {metamaskUsdEnabled
+                ? strings('deposit.get_started.title_musd')
+                : strings('deposit.get_started.title')}
             </Text>
             {bulletPoints.map((bulletPoint, index) => (
               <View key={index} style={styles.bulletPointContainer}>
