@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -39,6 +38,7 @@ import {
   usePerpsClosePositionValidation,
   usePerpsClosePosition,
   usePerpsMarketData,
+  usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
@@ -70,22 +70,19 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { toastRef } = useContext(ToastContext);
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const { position } = route.params as { position: Position };
 
   const hasTrackedCloseView = useRef(false);
   const { track } = usePerpsEventTracking();
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Track screen load performance
   usePerpsScreenTracking({
@@ -791,18 +788,10 @@ const PerpsClosePositionView: React.FC = () => {
           // If user dismisses without entering a price, revert order type to market
           if (orderType === 'limit' && !limitPrice) {
             setOrderType('market');
-            toastRef?.current?.showToast({
-              variant: ToastVariants.Plain,
-              labelOptions: [
-                {
-                  label: strings(
-                    'perps.close_position.limit_price_required_toast_message',
-                  ),
-                  isBold: false,
-                },
-              ],
-              hasNoTimeout: false,
-            });
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.limitClose
+                .partial.switchToMarketOrderMissingLimitPrice,
+            );
           }
         }}
         onConfirm={(price) => {
