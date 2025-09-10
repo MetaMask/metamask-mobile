@@ -139,7 +139,8 @@ export const submitEvmTransaction = async ({
 };
 
 export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
-  const base = new BN(Math.pow(10, decimals).toString());
+  const decimalValue = parseInt(decimals?.toString() ?? '0', 10);
+  const multiplier = new BN(10).pow(new BN(decimalValue));
 
   const comps = tokenValue.split('.');
 
@@ -151,15 +152,15 @@ export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
   if (!fraction) {
     fraction = '';
   }
-  if (fraction.length > decimals) {
-    fraction = fraction.slice(0, decimals);
+  if (fraction.length > decimalValue) {
+    fraction = fraction.slice(0, decimalValue);
   } else {
-    fraction = fraction.padEnd(decimals, '0');
+    fraction = fraction.padEnd(decimalValue, '0');
   }
 
   const wholeBN = new BN(whole);
   const fractionBN = new BN(fraction);
-  const tokenMinimal = wholeBN.mul(base).add(fractionBN);
+  const tokenMinimal = wholeBN.mul(multiplier).add(fractionBN);
   return new BN(tokenMinimal.toString(10), 10);
 }
 
