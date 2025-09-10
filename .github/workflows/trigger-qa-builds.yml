@@ -12,30 +12,18 @@ on:
         type: string
         default: 'performance'
     outputs:
-      imported-wallet-android-version:
-        description: 'Android app version from imported wallet build'
-        value: ${{ jobs.trigger-imported-wallet-build.outputs.android-version }}
-      imported-wallet-ios-version:
-        description: 'iOS app version from imported wallet build'
-        value: ${{ jobs.trigger-imported-wallet-build.outputs.ios-version }}
-      imported-wallet-browserstack-android-url:
-        description: 'BrowserStack URL for Android app from imported wallet build'
-        value: ${{ jobs.trigger-imported-wallet-build.outputs.browserstack-android-url }}
-      imported-wallet-browserstack-ios-url:
-        description: 'BrowserStack URL for iOS app from imported wallet build'
-        value: ${{ jobs.trigger-imported-wallet-build.outputs.browserstack-ios-url }}
-      onboarding-android-version:
-        description: 'Android app version from onboarding build'
-        value: ${{ jobs.trigger-onboarding-builds.outputs.android-version }}
-      onboarding-ios-version:
-        description: 'iOS app version from onboarding build'
-        value: ${{ jobs.trigger-onboarding-builds.outputs.ios-version }}
-      onboarding-browserstack-android-url:
-        description: 'BrowserStack URL for Android app from onboarding build'
-        value: ${{ jobs.trigger-onboarding-builds.outputs.browserstack-android-url }}
-      onboarding-browserstack-ios-url:
-        description: 'BrowserStack URL for iOS app from onboarding build'
-        value: ${{ jobs.trigger-onboarding-builds.outputs.browserstack-ios-url }}
+      android-version:
+        description: 'Android app version'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.android-version || jobs.trigger-onboarding-builds.outputs.android-version }}
+      ios-version:
+        description: 'iOS app version'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.ios-version || jobs.trigger-onboarding-builds.outputs.ios-version }}
+      browserstack-android-url:
+        description: 'BrowserStack URL for Android app'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.browserstack-android-url || jobs.trigger-onboarding-builds.outputs.browserstack-android-url }}
+      browserstack-ios-url:
+        description: 'BrowserStack URL for iOS app'
+        value: ${{ jobs.trigger-imported-wallet-build.outputs.browserstack-ios-url || jobs.trigger-onboarding-builds.outputs.browserstack-ios-url }}
   workflow_dispatch:
     inputs:
       build-type:
@@ -71,8 +59,9 @@ env:
 jobs:
 
   trigger-imported-wallet-build:
-    name: Trigger Imported Wallet QA Builds
+    name: Trigger Imported Wallet QA Builds (with Pre-Imported Wallet)
     runs-on: ubuntu-latest
+    if: ${{ inputs.build-type == 'performance' || inputs.build-type == '' }}
     outputs:
       android-version: ${{ steps.download-artifacts.outputs.android-version }}
       ios-version: ${{ steps.download-artifacts.outputs.ios-version }}
@@ -363,8 +352,9 @@ jobs:
           echo "iOS: $IOS_BS_URL"
 
   trigger-onboarding-builds:
-    name: Trigger Onboarding QA Builds
+    name: Trigger Onboarding QA Builds (without Pre-Imported Wallet)
     runs-on: ubuntu-latest
+    if: ${{ inputs.build-type == 'onboarding' }}
     outputs:
       android-version: ${{ steps.download-artifacts.outputs.android-version }}
       ios-version: ${{ steps.download-artifacts.outputs.ios-version }}
