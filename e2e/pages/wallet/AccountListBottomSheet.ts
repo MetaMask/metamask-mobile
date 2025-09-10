@@ -97,6 +97,7 @@ class AccountListBottomSheet {
   async accountNameInList(accountName: string): Promise<DetoxElement> {
     return Matchers.getElementByText(accountName, 1);
   }
+
   async tapAccountIndex(index: number): Promise<void> {
     await Gestures.waitAndTap(this.getMultiselectElement(index), {
       elemDescription: `Account at index ${index}`,
