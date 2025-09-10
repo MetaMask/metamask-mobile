@@ -47,6 +47,8 @@ export const RecipientInput = ({
     } catch (error) {
       // Might consider showing an alert here if pasting fails
       // for now just ignore it
+      // eslint-disable-next-line no-console
+      console.log('error while pasting', error);
     }
   }, [
     updateTo,
