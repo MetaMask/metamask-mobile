@@ -5,7 +5,7 @@ import { ActivityTab } from './ActivityTab';
 import type {
   SeasonStatusState,
   PointsEventDto,
-} from '../../../../../core/Engine/controllers/rewards-controller/types';
+} from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -19,8 +19,8 @@ const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 jest.mock('../../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
-import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
-import { UsePointsEventsResult } from '../../hooks/usePointsEvents';
+import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
+import { UsePointsEventsResult } from '../../../hooks/usePointsEvents';
 const mockSelectSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId

@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { ActivityEventRow } from './ActivityEventRow';
-import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getEventDetails, formatRewardsDate } from '../../utils/formatUtils';
+import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 
 // Mock the utility functions

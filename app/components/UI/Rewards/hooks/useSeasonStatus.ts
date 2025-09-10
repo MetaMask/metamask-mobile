@@ -5,22 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
-
-export interface UseSeasonStatusOptions {
-  /**
-   * Season ID to fetch status for
-   * If not provided, will not fetch data
-   */
-  seasonId?: string;
-
-  /**
-   * Subscription ID for authentication
-   * If not provided, will not fetch data
-   */
-  subscriptionId?: string;
-}
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-
 
 /**
  * Custom hook to fetch and manage season status data from the rewards API

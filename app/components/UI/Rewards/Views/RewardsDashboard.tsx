@@ -1,4 +1,10 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -17,61 +23,38 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
-import { TabsList } from '../../../../component-library/components-temp/Tabs';
+import ScrollableTabView, {
+  ChangeTabProperties,
+} from 'react-native-scrollable-tab-view';
+import TabBar from '../../../../component-library/components-temp/TabBar';
 import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { Alert } from 'react-native';
 import { RewardsTab } from '../../../../reducers/rewards/types';
-import { selectActiveTab } from '../../../../reducers/rewards/selectors';
+
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
-import { ActivityTab } from '../components/ActivityTab/ActivityTab';
-import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
+
+import RewardsOverview from '../components/Tabs/RewardsOverview';
+import RewardsLevels from '../components/Tabs/RewardsLevels';
+import RewardsActivity from '../components/Tabs/RewardsActivity';
 
 // Tab wrapper components for TabsList
-interface TabWrapperProps {
-  tabLabel: string;
-  isDisabled?: boolean;
-}
-
-const OverviewTab: React.FC<TabWrapperProps> = () => (
-  <Box
-    twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
-    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
-  >
-    <Text variant={TextVariant.BodyMd}>
-      {strings('rewards.not_implemented')}
-    </Text>
-  </Box>
-);
-
-const LevelsTab: React.FC<TabWrapperProps> = () => (
-  <Box
-    twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
-    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
-  >
-    <Text variant={TextVariant.BodyMd}>
-      {strings('rewards.not_implemented')}
-    </Text>
-  </Box>
-);
-
-const ActivityTabWrapper: React.FC<TabWrapperProps> = () => <ActivityTab />;
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  const activeTab = useSelector(selectActiveTab);
+  const theme = useTheme();
+  const { colors } = theme;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
 
+  // Track current tab index for visibility optimization
+  const [currentTabIndex, setCurrentTabIndex] = useState(0);
+
   // Sync rewards controller state with UI store
-  useSeasonStatus({
-    subscriptionId: subscriptionId || '',
-    seasonId: CURRENT_SEASON_ID,
-  });
+  useSeasonStatus();
 
   // Set navigation title
   useEffect(() => {
@@ -85,41 +68,102 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [colors, navigation]);
 
-  const tabOptions = useMemo(
-    () => [
-      {
-        value: 'overview' as const,
-        label: strings('rewards.tab_overview_title'),
-      },
-      {
-        value: 'levels' as const,
-        label: strings('rewards.tab_levels_title'),
-      },
-      {
-        value: 'activity' as const,
-        label: strings('rewards.tab_activity_title'),
-      },
-    ],
-    [],
+  const renderTabBar = useCallback(
+    (tabBarProps: Record<string, unknown>) => (
+      <TabBar
+        style={tw.style('relative w-60')}
+        tabStyle={tw.style('border-none pb-0')}
+        underlineStyle={[
+          tw.style('w-20 bg-white '),
+          { marginLeft: `-${currentTabIndex * 16}%` },
+        ]}
+        {...tabBarProps}
+      />
+    ),
+    [tw, currentTabIndex],
   );
 
-  const getActiveIndex = () =>
-    tabOptions.findIndex((tab) => tab.value === activeTab);
+  const overviewTabProps = useMemo(
+    () => ({
+      key: 'overview-tab',
+      tabLabel: strings('rewards.tab_overview_title'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const levelsTabProps = useMemo(
+    () => ({
+      key: 'levels-tab',
+      tabLabel: strings('rewards.tab_levels_title'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const activityTabProps = useMemo(
+    () => ({
+      key: 'activity-tab',
+      tabLabel: strings('rewards.tab_activity_title'),
+      navigation,
+    }),
+    [navigation],
+  );
 
   const handleTabChange = useCallback(
-    ({ i }: { i: number }) => {
-      const newTab = tabOptions[i]?.value as RewardsTab;
+    (changeTabProperties: ChangeTabProperties) => {
+      setCurrentTabIndex(changeTabProperties.i);
+      const tabMap: Record<number, RewardsTab> = {
+        0: 'overview',
+        1: 'levels',
+        2: 'activity',
+      };
+      const newTab = tabMap[changeTabProperties.i];
       if (newTab) {
         dispatch(setActiveTab(newTab));
       }
     },
-    [dispatch, tabOptions],
+    [dispatch],
   );
+
+  // Calculate tab visibility for performance optimization
+  const isOverviewVisible = currentTabIndex === 0;
+  const isLevelsVisible = currentTabIndex === 1;
+  const isActivityVisible = currentTabIndex === 2;
+
+  // Store visibility update callbacks from tab components
+  const overviewVisibilityCallback = useRef<
+    ((visible: boolean) => void) | null
+  >(null);
+  const levelsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
+    null,
+  );
+  const activityVisibilityCallback = useRef<
+    ((visible: boolean) => void) | null
+  >(null);
+
+  // Update tab visibility when tab changes
+  useEffect(() => {
+    if (overviewVisibilityCallback.current) {
+      overviewVisibilityCallback.current(isOverviewVisible);
+    }
+    if (levelsVisibilityCallback.current) {
+      levelsVisibilityCallback.current(isLevelsVisible);
+    }
+    if (activityVisibilityCallback.current) {
+      activityVisibilityCallback.current(isActivityVisible);
+    }
+  }, [currentTabIndex, isOverviewVisible, isLevelsVisible, isActivityVisible]);
+
+  // Initialize active tab in UI store
+  useEffect(() => {
+    dispatch(setActiveTab('overview'));
+  }, [dispatch]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView style={tw.style('flex-1 bg-default')}>
-        <Box twClassName="flex-1 px-4 bg-default gap-8 relative">
+        <Box twClassName="flex-1 px-4 bg-default gap-4 relative">
           {/* Header row */}
           <Box twClassName="flex-row  justify-between">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
@@ -151,27 +195,39 @@ const RewardsDashboard: React.FC = () => {
 
           <SeasonStatus />
 
-          <TabsList
-            initialActiveIndex={getActiveIndex()}
-            onChangeTab={handleTabChange}
-            testID={REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL}
-          >
-            <OverviewTab
-              key="overview"
-              tabLabel={strings('rewards.tab_overview_title')}
-              isDisabled={!subscriptionId}
-            />
-            <LevelsTab
-              key="levels"
-              tabLabel={strings('rewards.tab_levels_title')}
-              isDisabled={!subscriptionId}
-            />
-            <ActivityTabWrapper
-              key="activity"
-              tabLabel={strings('rewards.tab_activity_title')}
-              isDisabled={!subscriptionId}
-            />
-          </TabsList>
+          {/* Tab View */}
+          <Box twClassName="flex-1" testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}>
+            <ScrollableTabView
+              renderTabBar={renderTabBar}
+              onChangeTab={handleTabChange}
+              locked={!subscriptionId}
+            >
+              <RewardsOverview
+                {...overviewTabProps}
+                key={overviewTabProps.key}
+                isVisible={isOverviewVisible}
+                onVisibilityChange={(callback: (visible: boolean) => void) => {
+                  overviewVisibilityCallback.current = callback;
+                }}
+              />
+              <RewardsLevels
+                {...levelsTabProps}
+                key={levelsTabProps.key}
+                isVisible={isLevelsVisible}
+                onVisibilityChange={(callback: (visible: boolean) => void) => {
+                  levelsVisibilityCallback.current = callback;
+                }}
+              />
+              <RewardsActivity
+                {...activityTabProps}
+                key={activityTabProps.key}
+                isVisible={isActivityVisible}
+                onVisibilityChange={(callback: (visible: boolean) => void) => {
+                  activityVisibilityCallback.current = callback;
+                }}
+              />
+            </ScrollableTabView>
+          </Box>
         </Box>
 
         {!subscriptionId && (
