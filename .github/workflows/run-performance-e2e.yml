@@ -71,12 +71,18 @@ jobs:
           fi
 
   
-  # Job to trigger Imported Wallet QA builds and extract BrowserStack URLs
-  trigger-imported-wallet-build:
-    name: Trigger Imported Wallet QA Builds and Extract BrowserStack URLs
-    uses: ./.github/workflows/trigger-qa-builds.yml
-    with:
-      build-type: 'performance'
+  # Job to trigger Android Dual Versions (with-SRP and without-SRP)
+  trigger-android-dual-versions:
+    name: Trigger Android Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-android-dual-versions.yml
+    # Only run if BrowserStack URLs are not provided
+    if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
+    secrets: inherit
+
+  # Job to trigger iOS Dual Versions (with-SRP and without-SRP)
+  trigger-ios-dual-versions:
+    name: Trigger iOS Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-ios-dual-versions.yml
     # Only run if BrowserStack URLs are not provided
     if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
     secrets: inherit
@@ -86,7 +92,7 @@ jobs:
     name: Android Imported Wallet Flow Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix, trigger-imported-wallet-build]
+    needs: [read-device-matrix, trigger-android-dual-versions]
     # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
@@ -144,23 +150,23 @@ jobs:
           echo "Setting test environment for device: ${{ matrix.device.name }}"
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
-          ANDROID_APP_URL="${{ needs.trigger-imported-wallet-build.outputs.browserstack-android-url }}"
+          ANDROID_APP_URL="${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url }}"
           if [ -z "$ANDROID_APP_URL" ]; then
             ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
-            echo "ℹ️ Using Android URL from input (trigger job was skipped)"
+            echo "Using Android URL from input (trigger job was skipped)"
           else
-            echo "ℹ️ Using Android URL from trigger job"
+            echo "Using Android URL from trigger job (with-SRP version)"
           fi
           
           # Validate that we have a BrowserStack URL
           if [ -z "$ANDROID_APP_URL" ]; then
-            echo "❌ Error: No Android BrowserStack URL available"
-            echo "Either provide browserstack_app_url_android as input or ensure trigger-imported-wallet-build job runs successfully"
+            echo "Error: No Android BrowserStack URL available"
+            echo "Either provide browserstack_app_url_android as input or ensure trigger-android-dual-versions job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.android-version }}"
+          APP_VERSION="${{ needs.trigger-android-dual-versions.outputs.with-srp-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -205,7 +211,7 @@ jobs:
     name: iOS Imported Wallet Flow Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix, trigger-imported-wallet-build]
+    needs: [read-device-matrix, trigger-ios-dual-versions]
     # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
@@ -263,23 +269,23 @@ jobs:
           echo "Setting test environment for device: ${{ matrix.device.name }}"
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
-          IOS_APP_URL="${{ needs.trigger-imported-wallet-build.outputs.browserstack-ios-url }}"
+          IOS_APP_URL="${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url }}"
           if [ -z "$IOS_APP_URL" ]; then
             IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
             echo "ℹ️ Using iOS URL from input (trigger job was skipped)"
           else
-            echo "ℹ️ Using iOS URL from trigger job"
+            echo "ℹ️ Using iOS URL from trigger job (with-SRP version)"
           fi
           
           # Validate that we have a BrowserStack URL
           if [ -z "$IOS_APP_URL" ]; then
             echo "❌ Error: No iOS BrowserStack URL available"
-            echo "Either provide browserstack_app_url_ios as input or ensure trigger-imported-wallet-build job runs successfully"
+            echo "Either provide browserstack_app_url_ios as input or ensure trigger-ios-dual-versions job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-imported-wallet-build.outputs.ios-version }}"
+          APP_VERSION="${{ needs.trigger-ios-dual-versions.outputs.with-srp-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -358,22 +364,15 @@ jobs:
   # ONBOARDING TESTS GROUP
   # =============================================================================
   
-  # Job to trigger Onboarding QA builds and extract BrowserStack URLs
-  trigger-onboarding-builds:
-    name: Trigger Onboarding QA Builds and Extract BrowserStack URLs
-    uses: ./.github/workflows/trigger-qa-builds.yml
-    with:
-      build-type: 'onboarding'
-    # Only run if BrowserStack URLs are not provided
-    if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
-    secrets: inherit
+  # Note: Onboarding builds now use the without-SRP versions from the dual versions workflows
+  # The trigger-android-dual-versions and trigger-ios-dual-versions jobs provide both with-SRP and without-SRP URLs
 
   # Android Onboarding Flow Tests
   android-onboarding-flows:
     name: Android Onboarding Flow Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix, trigger-onboarding-builds]
+    needs: [read-device-matrix, trigger-android-dual-versions]
     # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
@@ -431,25 +430,25 @@ jobs:
           echo "Setting onboarding test environment for device: ${{ matrix.device.name }}"
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
-          ANDROID_APP_URL="${{ needs.trigger-onboarding-builds.outputs.browserstack-android-url }}"
-          echo "Debug: trigger-onboarding-builds result: ${{ needs.trigger-onboarding-builds.result }}"
+          ANDROID_APP_URL="${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url }}"
+          echo "Debug: trigger-android-dual-versions result: ${{ needs.trigger-android-dual-versions.result }}"
           echo "Debug: Raw Android URL from trigger job: '$ANDROID_APP_URL'"
           if [ -z "$ANDROID_APP_URL" ] || [ "$ANDROID_APP_URL" = "null" ]; then
             ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
             echo "ℹ️ Using Android URL from input (trigger job was skipped or failed)"
           else
-            echo "ℹ️ Using Android URL from trigger job"
+            echo "ℹ️ Using Android URL from trigger job (without-SRP version for onboarding)"
           fi
           
           # Validate that we have a BrowserStack URL
           if [ -z "$ANDROID_APP_URL" ]; then
             echo "❌ Error: No Android BrowserStack URL available"
-            echo "Either provide browserstack_app_url_android as input or ensure trigger-onboarding-builds job runs successfully"
+            echo "Either provide browserstack_app_url_android as input or ensure trigger-android-dual-versions job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-onboarding-builds.outputs.android-version }}"
+          APP_VERSION="${{ needs.trigger-android-dual-versions.outputs.without-srp-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -494,7 +493,7 @@ jobs:
     name: iOS Onboarding Flow Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix, trigger-onboarding-builds]
+    needs: [read-device-matrix, trigger-ios-dual-versions]
     # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
@@ -552,25 +551,25 @@ jobs:
           echo "Setting iOS onboarding test environment for device: ${{ matrix.device.name }}"
           
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
-          IOS_APP_URL="${{ needs.trigger-onboarding-builds.outputs.browserstack-ios-url }}"
-          echo "Debug: trigger-onboarding-builds result: ${{ needs.trigger-onboarding-builds.result }}"
+          IOS_APP_URL="${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url }}"
+          echo "Debug: trigger-ios-dual-versions result: ${{ needs.trigger-ios-dual-versions.result }}"
           echo "Debug: Raw iOS URL from trigger job: '$IOS_APP_URL'"
           if [ -z "$IOS_APP_URL" ] || [ "$IOS_APP_URL" = "null" ]; then
             IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
             echo "ℹ️ Using iOS URL from input (trigger job was skipped or failed)"
           else
-            echo "ℹ️ Using iOS URL from trigger job"
+            echo "ℹ️ Using iOS URL from trigger job (without-SRP version for onboarding)"
           fi
           
           # Validate that we have a BrowserStack URL
           if [ -z "$IOS_APP_URL" ]; then
-            echo "❌ Error: No iOS BrowserStack URL available"
-            echo "Either provide browserstack_app_url_ios as input or ensure trigger-onboarding-builds job runs successfully"
+            echo "Error: No iOS BrowserStack URL available"
+            echo "Either provide browserstack_app_url_ios as input or ensure trigger-ios-dual-versions job runs successfully"
             exit 1
           fi
           
           # Use app version from trigger job if available, otherwise default
-          APP_VERSION="${{ needs.trigger-onboarding-builds.outputs.ios-version }}"
+          APP_VERSION="${{ needs.trigger-ios-dual-versions.outputs.without-srp-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
@@ -1025,7 +1024,7 @@ jobs:
   all-status:
     name: Check All Job Statuses
     runs-on: ubuntu-latest
-    needs: [read-device-matrix, trigger-imported-wallet-build, trigger-onboarding-builds, gather-performance-results, gather-onboarding-results, gather-results]
+    needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions, gather-performance-results, gather-onboarding-results, gather-results]
     if: always()
     outputs:
       overall_status: ${{ steps.status-check.outputs.overall_status }}
@@ -1039,14 +1038,14 @@ jobs:
         run: |
           echo "Checking status of all jobs..."
           
-          TRIGGER_RESULT="${{ needs.trigger-imported-wallet-build.result }}"
-          ONBOARDING_TRIGGER_RESULT="${{ needs.trigger-onboarding-builds.result }}"
+          ANDROID_TRIGGER_RESULT="${{ needs.trigger-android-dual-versions.result }}"
+          IOS_TRIGGER_RESULT="${{ needs.trigger-ios-dual-versions.result }}"
           PERFORMANCE_RESULTS="${{ needs.gather-performance-results.result }}"
           ONBOARDING_RESULTS="${{ needs.gather-onboarding-results.result }}"
           
           echo "Job Results:"
-          echo "- trigger-imported-wallet-build: $TRIGGER_RESULT"
-          echo "- trigger-onboarding-builds: $ONBOARDING_TRIGGER_RESULT"
+          echo "- trigger-android-dual-versions: $ANDROID_TRIGGER_RESULT"
+          echo "- trigger-ios-dual-versions: $IOS_TRIGGER_RESULT"
           echo "- gather-performance-results: $PERFORMANCE_RESULTS"
           echo "- gather-onboarding-results: $ONBOARDING_RESULTS"
           
@@ -1055,9 +1054,9 @@ jobs:
           echo "- gather-results: $GATHER_RESULT"
           
           # Determine overall status
-          if [ "$TRIGGER_RESULT" = "failure" ] || [ "$ONBOARDING_TRIGGER_RESULT" = "failure" ]; then
+          if [ "$ANDROID_TRIGGER_RESULT" = "failure" ] || [ "$IOS_TRIGGER_RESULT" = "failure" ]; then
             OVERALL_STATUS="❌ FAILED"
-            echo "Overall Status: FAILED (QA builds failed)"
+            echo "Overall Status: FAILED (Dual versions builds failed)"
           elif [ "$GATHER_RESULT" = "failure" ]; then
             OVERALL_STATUS="❌ FAILED"
             echo "Overall Status: FAILED (No performance data collected - all tests failed)"
@@ -1066,7 +1065,7 @@ jobs:
             echo "Overall Status: PARTIAL SUCCESS (Some tests failed, but performance data was collected)"
           else
             OVERALL_STATUS="✅ PASSED"
-            if [ "$TRIGGER_RESULT" = "skipped" ] && [ "$ONBOARDING_TRIGGER_RESULT" = "skipped" ]; then
+            if [ "$ANDROID_TRIGGER_RESULT" = "skipped" ] && [ "$IOS_TRIGGER_RESULT" = "skipped" ]; then
               echo "Overall Status: PASSED (All tests passed with performance data - used provided BrowserStack URLs)"
             else
               echo "Overall Status: PASSED (All tests passed with performance data)"
@@ -1078,7 +1077,7 @@ jobs:
             echo "overall_status=$OVERALL_STATUS"
             echo "performance_status=$PERFORMANCE_RESULTS"
             echo "onboarding_status=$ONBOARDING_RESULTS"
-            echo "trigger_status=$TRIGGER_RESULT"
+            echo "trigger_status=$ANDROID_TRIGGER_RESULT"
           } >> "$GITHUB_OUTPUT"
 
   # Slack Notification Job

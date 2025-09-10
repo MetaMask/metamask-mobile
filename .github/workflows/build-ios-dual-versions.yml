@@ -1,0 +1,351 @@
+# Dual iOS Build Workflow - Triggers Bitrise workflows and uploads to BrowserStack
+# Version 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) using build_ios_main_prod
+# Version 2: Without these environment variables (fresh wallet) using build_ios_qa_prod
+
+name: Build iOS Dual Versions and Upload to BrowserStack
+
+on:
+  workflow_call:
+    outputs:
+      with-srp-ipa-uploaded:
+        description: 'Whether the with-SRP IPA was successfully uploaded'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-ipa-uploaded }}
+      without-srp-ipa-uploaded:
+        description: 'Whether the without-SRP IPA was successfully uploaded'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-ipa-uploaded }}
+      with-srp-browserstack-url:
+        description: 'BrowserStack URL for with-SRP version'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-browserstack-url }}
+      without-srp-browserstack-url:
+        description: 'BrowserStack URL for without-SRP version'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-browserstack-url }}
+      with-srp-version:
+        description: 'App version for with-SRP build'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-version }}
+      without-srp-version:
+        description: 'App version for without-SRP build'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-version }}
+  workflow_dispatch:
+    inputs:
+      description:
+        description: 'Optional description for this build run'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+  BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+  BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
+  BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+  BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
+
+jobs:
+  trigger-ios-dual-builds:
+    name: Trigger iOS Dual Builds on Bitrise
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_config:
+          - type: with-srp
+            workflow: build_ios_main_prod
+            artifact_pattern: metamask-device-main-prod-[0-9]+\\.ipa
+          - type: without-srp
+            workflow: build_ios_qa_prod
+            artifact_pattern: metamask-device-qa-prod-[0-9]+\\.ipa
+    outputs:
+      with-srp-build-id: ${{ steps.trigger-builds.outputs.with-srp-build-id }}
+      without-srp-build-id: ${{ steps.trigger-builds.outputs.without-srp-build-id }}
+      with-srp-build-slug: ${{ steps.trigger-builds.outputs.with-srp-build-slug }}
+      without-srp-build-slug: ${{ steps.trigger-builds.outputs.without-srp-build-slug }}
+    
+    steps:
+      - name: Trigger iOS ${{ matrix.build_config.type }} Build on Bitrise
+        id: trigger-builds
+        run: |
+          echo "Triggering iOS ${{ matrix.build_config.type }} build on Bitrise..."
+          echo "Workflow: ${{ matrix.build_config.workflow }}"
+          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
+          echo "Current branch: ${{ github.ref_name }}"
+          
+          # Validate required environment variables
+          if [[ -z "$BITRISE_APP_ID" ]]; then
+            echo "Error: BITRISE_APP_ID is not set"
+            exit 1
+          fi
+          if [[ -z "$BITRISE_BUILD_TRIGGER_TOKEN" ]]; then
+            echo "Error: BITRISE_BUILD_TRIGGER_TOKEN is not set"
+            exit 1
+          fi
+          if [[ -z "$BITRISE_API_TOKEN" ]]; then
+            echo "Error: BITRISE_API_TOKEN is not set"
+            exit 1
+          fi
+          
+          # Set environment variables based on build type
+          if [ "${{ matrix.build_config.type }}" = "with-srp" ]; then
+            ENV_VARS='[
+              {
+                "mapped_to": "ADDITIONAL_SRP_1",
+                "value": "'"${{ secrets.TEST_SRP_1 }}"'",
+                "is_expand": true
+              },
+              {
+                "mapped_to": "PREDEFINED_PASSWORD", 
+                "value": "'"${{ secrets.E2E_PASSWORD }}"'",
+                "is_expand": true
+              },
+              {
+                "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
+                "value": "true",
+                "is_expand": true
+              }
+            ]'
+            CUSTOM_ID="MetaMask-iOS-With-SRP-${{ github.run_id }}"
+          else
+            ENV_VARS='[
+              {
+                "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
+                "value": "true", 
+                "is_expand": true
+              }
+            ]'
+            CUSTOM_ID="MetaMask-iOS-Without-SRP-${{ github.run_id }}"
+          fi
+          
+          # Trigger iOS workflow
+          BUILD_RESPONSE=$(curl -s -X POST \
+            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_params": {
+                "branch": "${{ github.ref_name }}",
+                "workflow_id": "${{ matrix.build_config.workflow }}",
+                "commit_message": "Triggered by iOS Dual Versions workflow - ${{ matrix.build_config.type }}",
+                "environments": '"$ENV_VARS"',
+                "custom_id": "'"$CUSTOM_ID"'"
+              },
+              "hook_info": {
+                "type": "bitrise",
+                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
+              },
+              "triggered_by": "GitHub Actions iOS Dual Versions - ${{ matrix.build_config.type }}"
+            }')
+          
+          echo "Build response: $BUILD_RESPONSE"
+          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
+          echo "Build slug: $BUILD_SLUG"
+          
+          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+            echo "Error: Failed to get build slug"
+            echo "Full response: $BUILD_RESPONSE"
+            exit 1
+          fi
+          
+          # Wait for the workflow to complete
+          echo "Waiting for ${{ matrix.build_config.workflow }} to complete..."
+          TIMEOUT=1800  # 30 minutes
+          ELAPSED=0
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
+            
+            BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
+            echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
+            
+            if [ "$BUILD_STATUS" = "success" ]; then
+              echo "Build completed successfully"
+              break
+            elif [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
+              echo "Build failed with status: $BUILD_STATUS"
+              exit 1
+            fi
+            
+            sleep 30
+            ELAPSED=$((ELAPSED + 30))
+          done
+          
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+            echo "Timeout waiting for build to complete"
+            echo "Final build status: $BUILD_STATUS"
+            echo "Build slug: $BUILD_SLUG"
+            exit 1
+          fi
+          
+          # Get the build ID from the completed build
+          BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
+          
+          if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get build ID"
+            exit 1
+          fi
+          
+          echo "Build ID: $BUILD_ID"
+          echo "Build Slug: $BUILD_SLUG"
+          
+          # Set outputs based on build type
+          if [ "${{ matrix.build_config.type }}" = "with-srp" ]; then
+            {
+              echo "with-srp-build-id=$BUILD_ID"
+              echo "with-srp-build-slug=$BUILD_SLUG"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "without-srp-build-id=$BUILD_ID"
+              echo "without-srp-build-slug=$BUILD_SLUG"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+  download-and-upload-to-browserstack:
+    name: Download IPAs and Upload to BrowserStack
+    runs-on: ubuntu-latest
+    needs: trigger-ios-dual-builds
+    if: always() && (needs.trigger-ios-dual-builds.result == 'success' || needs.trigger-ios-dual-builds.result == 'partial_success')
+    outputs:
+      with-srp-ipa-uploaded: ${{ steps.browserstack-upload.outputs.with-srp-ipa-uploaded }}
+      without-srp-ipa-uploaded: ${{ steps.browserstack-upload.outputs.without-srp-ipa-uploaded }}
+      with-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.with-srp-browserstack-url }}
+      without-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-browserstack-url }}
+      with-srp-app-id: ${{ steps.browserstack-upload.outputs.with-srp-app-id }}
+      without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
+      with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ env.BROWSERSTACK_USERNAME }}
+          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+      
+      - name: Download and Upload IPAs to BrowserStack
+        id: browserstack-upload
+        run: |
+          echo "Downloading IPAs from Bitrise and uploading to BrowserStack..."
+          
+          # Initialize upload status outputs
+          {
+            echo "with-srp-ipa-uploaded=false"
+            echo "without-srp-ipa-uploaded=false"
+          } >> "$GITHUB_OUTPUT"
+          
+          # Download with-SRP IPA
+          if [ -n "${{ needs.trigger-ios-dual-builds.outputs.with-srp-build-id }}" ]; then
+            echo "Downloading with-SRP IPA..."
+            WITH_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.with-srp-build-id }}/artifacts")
+            
+            # Find the IPA artifact with main-prod pattern
+            WITH_SRP_IPA_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[] | 
+              select(.title | endswith(".ipa")) | 
+              select(.title | test("metamask-device-main-prod-[0-9]+\\.ipa"))')
+            
+            if [[ -n "$WITH_SRP_IPA_ARTIFACT" ]]; then
+              WITH_SRP_IPA_SLUG=$(echo "$WITH_SRP_IPA_ARTIFACT" | jq -r '.slug')
+              WITH_SRP_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.with-srp-build-id }}/artifacts/$WITH_SRP_IPA_SLUG" | \
+                jq -r '.data.expiring_download_url')
+              
+              if [[ -n "$WITH_SRP_DOWNLOAD_URL" && "$WITH_SRP_DOWNLOAD_URL" != "null" ]]; then
+                echo "Downloading with-SRP IPA..."
+                wget -O "metamask-ios-with-srp.ipa" "$WITH_SRP_DOWNLOAD_URL"
+                
+                # Upload to BrowserStack
+                echo "Uploading with-SRP IPA to BrowserStack..."
+                WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                  -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                  -F "file=@metamask-ios-with-srp.ipa" \
+                  -F "custom_id=MetaMask-iOS-With-SRP-${{ github.run_id }}")
+                
+                WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url')
+                WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id')
+                
+                echo "With-SRP IPA uploaded successfully"
+                echo "  App URL: $WITH_SRP_APP_URL"
+                echo "  App ID: $WITH_SRP_APP_ID"
+                
+                {
+                  echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
+                  echo "with-srp-app-id=$WITH_SRP_APP_ID"
+                  echo "with-srp-version=Bitrise-Build"
+                  echo "with-srp-ipa-uploaded=true"
+                } >> "$GITHUB_OUTPUT"
+              else
+                echo "Failed to get with-SRP IPA download URL"
+              fi
+            else
+              echo "With-SRP IPA artifact not found (looking for metamask-device-main-prod-*.ipa)"
+            fi
+          else
+            echo "With-SRP build ID not available"
+          fi
+          
+          # Download without-SRP IPA
+          if [ -n "${{ needs.trigger-ios-dual-builds.outputs.without-srp-build-id }}" ]; then
+            echo "Downloading without-SRP IPA..."
+            WITHOUT_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.without-srp-build-id }}/artifacts")
+            
+            # Find the IPA artifact with qa-prod pattern
+            WITHOUT_SRP_IPA_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[] | 
+              select(.title | endswith(".ipa")) | 
+              select(.title | test("metamask-device-qa-prod-[0-9]+\\.ipa"))')
+            
+            if [[ -n "$WITHOUT_SRP_IPA_ARTIFACT" ]]; then
+              WITHOUT_SRP_IPA_SLUG=$(echo "$WITHOUT_SRP_IPA_ARTIFACT" | jq -r '.slug')
+              WITHOUT_SRP_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.without-srp-build-id }}/artifacts/$WITHOUT_SRP_IPA_SLUG" | \
+                jq -r '.data.expiring_download_url')
+              
+              if [[ -n "$WITHOUT_SRP_DOWNLOAD_URL" && "$WITHOUT_SRP_DOWNLOAD_URL" != "null" ]]; then
+                echo "Downloading without-SRP IPA..."
+                wget -O "metamask-ios-without-srp.ipa" "$WITHOUT_SRP_DOWNLOAD_URL"
+                
+                # Upload to BrowserStack
+                echo "Uploading without-SRP IPA to BrowserStack..."
+                WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                  -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                  -F "file=@metamask-ios-without-srp.ipa" \
+                  -F "custom_id=MetaMask-iOS-Without-SRP-${{ github.run_id }}")
+                
+                WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url')
+                WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
+                
+                echo "Without-SRP IPA uploaded successfully"
+                echo "  App URL: $WITHOUT_SRP_APP_URL"
+                echo "  App ID: $WITHOUT_SRP_APP_ID"
+                
+                {
+                  echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
+                  echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
+                  echo "without-srp-version=Bitrise-Build"
+                  echo "without-srp-ipa-uploaded=true"
+                } >> "$GITHUB_OUTPUT"
+              else
+                echo "Failed to get without-SRP IPA download URL"
+              fi
+            else
+              echo "Without-SRP IPA artifact not found (looking for metamask-device-qa-prod-*.ipa)"
+            fi
+          else
+            echo "Without-SRP build ID not available"
+          fi
+          
+          echo "BrowserStack upload process completed!"
+          echo "With-SRP URL: $WITH_SRP_APP_URL"
+          echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
+        env:
+          BROWSERSTACK_USERNAME: ${{ env.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
+          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
+
