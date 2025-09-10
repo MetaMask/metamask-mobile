@@ -5,9 +5,10 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { usePointsEvents } from '../../hooks/usePointsEvents';
 import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
-import { useSeasonStatus } from '../../hooks/useSeasonStatus';
 import { strings } from '../../../../../../locales/i18n';
 import { ActivityEventRow } from './ActivityEventRow';
+import { selectSeasonId } from '../../../../../reducers/rewards/selectors';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
@@ -21,10 +22,14 @@ const EmptyState: React.FC<{ message: string; isError?: boolean }> = ({
   message,
   isError = false,
 }) => (
-  <Box twClassName="flex-1 items-center justify-center">
+  <Box twClassName="flex-1 items-center justify-cente relative">
+    {!isError && (
+      <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
+    )}
+
     <Text
       variant={TextVariant.BodyMd}
-      twClassName={isError ? 'text-error' : 'text-muted'}
+      twClassName={isError ? 'text-error z-10' : 'text-muted z-10'}
     >
       {message}
     </Text>
@@ -33,12 +38,7 @@ const EmptyState: React.FC<{ message: string; isError?: boolean }> = ({
 
 export const ActivityTab: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const { seasonStatus } = useSeasonStatus({
-    subscriptionId: subscriptionId ?? undefined,
-    seasonId: 'current',
-  });
-
-  // For now, using hardcoded seasonId - this should be obtained from the current season
+  const seasonId = useSelector(selectSeasonId);
   const {
     pointsEvents,
     isLoading,
@@ -48,7 +48,7 @@ export const ActivityTab: React.FC = () => {
     refresh,
     isRefreshing,
   } = usePointsEvents({
-    seasonId: seasonStatus?.season.id,
+    seasonId: seasonId ?? undefined,
     subscriptionId: subscriptionId || '',
   });
 
