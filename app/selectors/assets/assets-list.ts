@@ -2,6 +2,7 @@ import {
   Asset,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
+  TokenListState,
 } from '@metamask/assets-controllers';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
@@ -13,7 +14,10 @@ import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
 import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import { selectTokenSortConfig } from '../preferencesController';
+import {
+  selectTokenNetworkFilter,
+  selectTokenSortConfig,
+} from '../preferencesController';
 import { createDeepEqualSelector } from '../util';
 import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
 import {
@@ -167,13 +171,28 @@ const selectStakedAssets = createDeepEqualSelector(
 );
 
 const selectEnabledNetworks = createDeepEqualSelector(
-  [selectEnabledNetworksByNamespace],
-  (enabledNetworksByNamespace) =>
-    Object.values(enabledNetworksByNamespace).flatMap((network) =>
+  [selectEnabledNetworksByNamespace, selectTokenNetworkFilter],
+  (enabledNetworksByNamespace, tokenNetworkFilter) => {
+    // tokenNetworkFilter is only used when a single network is selected, as it does not mix evm and non-evm networks
+    const networkFilterEnabledNetworks = Object.entries(tokenNetworkFilter)
+      .filter(([_, enabled]) => enabled)
+      .map(([networkId]) => networkId);
+
+    if (networkFilterEnabledNetworks.length === 1) {
+      return networkFilterEnabledNetworks;
+    }
+
+    // If there's more than one network selected, all enabled networks should be used
+    const allEnabledNetworks = Object.values(
+      enabledNetworksByNamespace,
+    ).flatMap((network) =>
       Object.entries(network)
         .filter(([_, enabled]) => enabled)
         .map(([networkId]) => networkId),
-    ),
+    );
+
+    return allEnabledNetworks;
+  },
 );
 
 export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
@@ -231,12 +250,14 @@ export const selectAsset = createDeepEqualSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
+    (state: RootState) =>
+      state.engine.backgroundState.TokenListController.tokensChainsCache,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
     ) => params,
   ],
-  (assets, stakedAssets, { address, chainId, isStaked }) => {
+  (assets, stakedAssets, tokensChainsCache, { address, chainId, isStaked }) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
@@ -247,7 +268,7 @@ export const selectAsset = createDeepEqualSelector(
             item.assetId === address && item.isStaked === isStaked,
         );
 
-    return asset ? assetToToken(asset) : undefined;
+    return asset ? assetToToken(asset, tokensChainsCache) : undefined;
   },
 );
 
@@ -255,10 +276,16 @@ const oneHundredThousandths = 0.00001;
 const oneHundredths = 0.01;
 
 // BIP44 MAINTENANCE: Review what fields are really needed
-function assetToToken(asset: Asset & { isStaked?: boolean }): TokenI {
+function assetToToken(
+  asset: Asset & { isStaked?: boolean },
+  tokensChainsCache: TokenListState['tokensChainsCache'],
+): TokenI {
   return {
     address: asset.assetId,
-    aggregators: [],
+    aggregators:
+      ('address' in asset &&
+        tokensChainsCache[asset.chainId]?.data[asset.address]?.aggregators) ||
+      [],
     decimals: asset.decimals,
     image: asset.image,
     name: asset.name,
