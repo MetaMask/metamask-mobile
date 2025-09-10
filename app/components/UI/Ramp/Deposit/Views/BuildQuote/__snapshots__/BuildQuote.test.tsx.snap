@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={5}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -602,6 +602,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -715,6 +716,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -908,6 +910,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               </View>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -1034,15 +1037,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {
@@ -2275,7 +2269,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={6}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2430,6 +2424,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -2543,6 +2538,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -2736,6 +2732,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               </View>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -2862,15 +2859,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {
@@ -4103,7 +4091,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={7}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4258,6 +4246,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -4371,6 +4360,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -4564,6 +4554,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               </View>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -4690,15 +4681,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {
@@ -5931,7 +5913,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={1}
+              handlerTag={9}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6086,6 +6068,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -6199,6 +6182,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -6368,6 +6352,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               </TouchableOpacity>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -6494,15 +6479,6 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {
@@ -7735,7 +7711,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={3}
+              handlerTag={8}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7890,6 +7866,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -8003,6 +7980,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -8172,6 +8150,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               </TouchableOpacity>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -8298,15 +8277,6 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {
@@ -9539,7 +9509,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={2}
+              handlerTag={4}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -9694,6 +9664,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -9807,6 +9778,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -9976,6 +9948,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               </TouchableOpacity>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -10102,15 +10075,6 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {
@@ -11343,7 +11307,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={1}
+              handlerTag={2}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -11498,6 +11462,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -11611,6 +11576,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -11780,6 +11746,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               </TouchableOpacity>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -11906,15 +11873,6 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {
@@ -13302,6 +13260,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -13415,6 +13374,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                 </Text>
                               </View>
                               <TouchableOpacity
+                                disabled={false}
                                 onPress={[Function]}
                               >
                                 <View
@@ -13584,6 +13544,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               </TouchableOpacity>
                             </View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 {
@@ -13710,15 +13671,6 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       </View>
                                     </View>
                                   </View>
-                                  <View
-                                    accessible={false}
-                                    style={
-                                      {
-                                        "width": 8,
-                                      }
-                                    }
-                                    testID="listitem-gap"
-                                  />
                                   <View
                                     style={
                                       {

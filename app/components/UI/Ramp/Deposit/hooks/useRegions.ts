@@ -11,13 +11,11 @@ export interface UseRegionsResult {
 
 export function useRegions(): UseRegionsResult {
   const { selectedRegion, setSelectedRegion } = useDepositSDK();
-  console.log('__ CLIENT__ useRegions');
   const [{ data: regions, error, isFetching }] =
     useDepositSdkMethod('getCountries');
 
   useEffect(() => {
     if (regions && !selectedRegion) {
-      console.log('__ CLIENT__ useRegions setting selected region', regions[0]);
       setSelectedRegion(
         regions.find((region) => region.geolocated) || regions[0],
       );

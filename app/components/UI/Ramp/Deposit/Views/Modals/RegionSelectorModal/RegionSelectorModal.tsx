@@ -10,6 +10,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,7 +25,10 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { createNavigationDetails, useParams } from '../../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../../util/navigation/navUtils';
 import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -32,6 +39,7 @@ const MAX_REGION_RESULTS = 20;
 
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
+  error?: string | null;
 }
 
 export const createRegionSelectorModalNavigationDetails =
@@ -46,10 +54,10 @@ function RegionSelectorModal() {
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
-  const { regions } = useParams<RegionSelectorModalParams>();
+  const { regions, error } = useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
-  const { styles } = useStyles(styleSheet, {
+  const { styles, theme } = useStyles(styleSheet, {
     screenHeight,
   });
   const trackEvent = useAnalytics();
@@ -205,33 +213,53 @@ function RegionSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {strings('deposit.region_modal.select_a_region')}
+          {error ? 'Error' : strings('deposit.region_modal.select_a_region')}
         </Text>
       </BottomSheetHeader>
-      <View style={styles.searchContainer}>
-        <TextFieldSearch
-          value={searchString}
-          showClearButton={searchString.length > 0}
-          onPressClearButton={clearSearchText}
-          onFocus={scrollToTop}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings('deposit.region_modal.search_by_country')}
-        />
-      </View>
-      <FlatList
-        ref={listRef}
-        style={styles.list}
-        data={dataSearchResults}
-        renderItem={renderRegionItem}
-        extraData={selectedRegion?.isoCode}
-        keyExtractor={(item) => item.isoCode}
-        ListEmptyComponent={renderEmptyList}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-        removeClippedSubviews={false}
-        scrollEnabled
-        nestedScrollEnabled
-      />
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={theme.colors.error.default}
+          />
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.errorText}
+          >
+            There was an error loading regional availability. Please check back
+            later.
+          </Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.searchContainer}>
+            <TextFieldSearch
+              value={searchString}
+              showClearButton={searchString.length > 0}
+              onPressClearButton={clearSearchText}
+              onFocus={scrollToTop}
+              onChangeText={handleSearchTextChange}
+              placeholder={strings('deposit.region_modal.search_by_country')}
+            />
+          </View>
+          <FlatList
+            ref={listRef}
+            style={styles.list}
+            data={dataSearchResults}
+            renderItem={renderRegionItem}
+            extraData={selectedRegion?.isoCode}
+            keyExtractor={(item) => item.isoCode}
+            ListEmptyComponent={renderEmptyList}
+            keyboardDismissMode="none"
+            keyboardShouldPersistTaps="always"
+            removeClippedSubviews={false}
+            scrollEnabled
+            nestedScrollEnabled
+          />
+        </>
+      )}
     </BottomSheet>
   );
 }

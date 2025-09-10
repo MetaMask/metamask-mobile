@@ -1109,7 +1109,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         }
                                         testID="deposit-phone-field-test-id"
                                         textContentType="telephoneNumber"
-                                        value="(234) 567-890"
+                                        value="234567890"
                                       />
                                     </View>
                                   </View>
@@ -2679,7 +2679,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         }
                                         testID="deposit-phone-field-test-id"
                                         textContentType="telephoneNumber"
-                                        value="(234) 567-890"
+                                        value="234567890"
                                       />
                                     </View>
                                   </View>
@@ -7479,7 +7479,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         }
                                         testID="deposit-phone-field-test-id"
                                         textContentType="telephoneNumber"
-                                        value="(123) 456-789"
+                                        value="123456789"
                                       />
                                     </View>
                                   </View>

@@ -19,6 +19,16 @@ const styleSheet = (params: {
       paddingHorizontal: 16,
       paddingVertical: 12,
     },
+    errorContainer: {
+      padding: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 120,
+    },
+    errorText: {
+      textAlign: 'center',
+      marginTop: 16,
+    },
   });
 };
 

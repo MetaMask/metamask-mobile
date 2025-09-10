@@ -635,59 +635,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
                             collapsable={false}
-                            data={
-                              [
-                                {
-                                  "currency": "USD",
-                                  "flag": "🇺🇸",
-                                  "isoCode": "US",
-                                  "name": "United States",
-                                  "phone": {
-                                    "placeholder": "(555) 555-1234",
-                                    "prefix": "+1",
-                                    "template": "(XXX) XXX-XXXX",
-                                  },
-                                  "recommended": true,
-                                  "supported": true,
-                                },
-                                {
-                                  "currency": "EUR",
-                                  "flag": "🇩🇪",
-                                  "isoCode": "DE",
-                                  "name": "Germany",
-                                  "phone": {
-                                    "placeholder": "123 456 7890",
-                                    "prefix": "+49",
-                                    "template": "XXX XXX XXXX",
-                                  },
-                                  "supported": true,
-                                },
-                                {
-                                  "currency": "CAD",
-                                  "flag": "🇨🇦",
-                                  "isoCode": "CA",
-                                  "name": "Canada",
-                                  "phone": {
-                                    "placeholder": "(555) 555-1234",
-                                    "prefix": "+1",
-                                    "template": "(XXX) XXX-XXXX",
-                                  },
-                                  "supported": false,
-                                },
-                                {
-                                  "currency": "EUR",
-                                  "flag": "🇫🇷",
-                                  "isoCode": "FR",
-                                  "name": "France",
-                                  "phone": {
-                                    "placeholder": "1 23 45 67 89",
-                                    "prefix": "+33",
-                                    "template": "X XX XX XX XX",
-                                  },
-                                  "supported": true,
-                                },
-                              ]
-                            }
+                            data={[]}
                             extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
@@ -721,428 +669,27 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                           >
                             <View>
                               <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
-                                  style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "padding": 16,
                                   }
-                                  touchSoundDisabled={false}
-                                >
-                                  <View
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    collapsable={false}
-                                    style={{}}
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          {
-                                            "backgroundColor": "#4459ff1a",
-                                          },
-                                          false,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇺🇸
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              United States
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </RNGestureHandlerButton>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
+                                }
                               >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
+                                <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
-                                  touchSoundDisabled={false}
                                 >
-                                  <View
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    collapsable={false}
-                                    style={{}}
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇩🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Germany
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </RNGestureHandlerButton>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={false}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
-                                  style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
-                                  }
-                                  touchSoundDisabled={false}
-                                >
-                                  <View
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    collapsable={false}
-                                    style={{}}
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          {
-                                            "opacity": 0.5,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇨🇦
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#686e7d",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Canada
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </RNGestureHandlerButton>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
-                                  style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
-                                  }
-                                  touchSoundDisabled={false}
-                                >
-                                  <View
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    collapsable={false}
-                                    style={{}}
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇫🇷
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              France
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </RNGestureHandlerButton>
+                                  No region matches
+                                </Text>
                               </View>
                             </View>
                           </RCTScrollView>
@@ -1536,7 +1083,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={20}
+                          handlerTag={8}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -1841,7 +1388,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={19}
+                            handlerTag={7}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -2285,7 +1832,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={13}
+                          handlerTag={5}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -2586,26 +2133,11 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                           <RCTScrollView
                             ListEmptyComponent={[Function]}
                             collapsable={false}
-                            data={
-                              [
-                                {
-                                  "currency": "EUR",
-                                  "flag": "🇩🇪",
-                                  "isoCode": "DE",
-                                  "name": "Germany",
-                                  "phone": {
-                                    "placeholder": "123 456 7890",
-                                    "prefix": "+49",
-                                    "template": "XXX XXX XXXX",
-                                  },
-                                  "supported": true,
-                                },
-                              ]
-                            }
+                            data={[]}
                             extraData="US"
                             getItem={[Function]}
                             getItemCount={[Function]}
-                            handlerTag={12}
+                            handlerTag={4}
                             handlerType="NativeViewGestureHandler"
                             keyExtractor={[Function]}
                             keyboardDismissMode="none"
@@ -2635,109 +2167,27 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                           >
                             <View>
                               <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={9}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
-                                  style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "padding": 16,
                                   }
-                                  touchSoundDisabled={false}
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
                                 >
-                                  <View
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    collapsable={false}
-                                    style={{}}
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇩🇪
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              Germany
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </RNGestureHandlerButton>
+                                  No region matches
+                                </Text>
                               </View>
                             </View>
                           </RCTScrollView>

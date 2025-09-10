@@ -3,7 +3,13 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -12,9 +18,6 @@ import ListItemSelect from '../../../../../../../component-library/components/Li
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../../component-library/components/List/ListItemColumn';
-import Icon, {
-  IconColor,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { useDepositSDK } from '../../../sdk';
 import useAnalytics from '../../../../hooks/useAnalytics';
@@ -23,10 +26,14 @@ import { strings } from '../../../../../../../../locales/i18n';
 import styleSheet from './PaymentMethodSelectorModal.styles';
 import { DepositPaymentMethod } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { createNavigationDetails, useParams } from '../../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../../util/navigation/navUtils';
 
 interface PaymentMethodSelectorModalParams {
   paymentMethods: DepositPaymentMethod[];
+  error?: string | null;
 }
 
 export const createPaymentMethodSelectorModalNavigationDetails =
@@ -40,11 +47,12 @@ function PaymentMethodSelectorModal() {
   const listRef = useRef<FlatList>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { themeAppearance } = useTheme();
-  const { styles } = useStyles(styleSheet, {
+  const { styles, theme } = useStyles(styleSheet, {
     screenHeight,
   });
 
-  const { paymentMethods } = useParams<PaymentMethodSelectorModalParams>();
+  const { paymentMethods, error } =
+    useParams<PaymentMethodSelectorModalParams>();
   const trackEvent = useAnalytics();
   const {
     setPaymentMethod,
@@ -120,20 +128,39 @@ function PaymentMethodSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {strings('deposit.payment_modal.select_a_payment_method')}
+          {error
+            ? 'Error'
+            : strings('deposit.payment_modal.select_a_payment_method')}
         </Text>
       </BottomSheetHeader>
 
-      <FlatList
-        style={styles.list}
-        ref={listRef}
-        data={paymentMethods}
-        renderItem={renderPaymentMethod}
-        extraData={selectedPaymentMethod?.id}
-        keyExtractor={(item) => item.id}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-      ></FlatList>
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={theme.colors.error.default}
+          />
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.errorText}
+          >
+            There was an error loading payment methods. Please check back later.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          style={styles.list}
+          ref={listRef}
+          data={paymentMethods}
+          renderItem={renderPaymentMethod}
+          extraData={selectedPaymentMethod?.id}
+          keyExtractor={(item) => item.id}
+          keyboardDismissMode="none"
+          keyboardShouldPersistTaps="always"
+        ></FlatList>
+      )}
     </BottomSheet>
   );
 }

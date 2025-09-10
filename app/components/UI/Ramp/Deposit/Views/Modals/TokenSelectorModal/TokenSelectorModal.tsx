@@ -9,7 +9,12 @@ import NetworksFilterSelector from '../../../components/NetworksFilterSelector/N
 
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -32,7 +37,10 @@ import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { useDepositSDK } from '../../../sdk';
 
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
-import { createNavigationDetails, useParams } from '../../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -43,6 +51,7 @@ import useAnalytics from '../../../../hooks/useAnalytics';
 
 interface TokenSelectorModalParams {
   cryptoCurrencies: DepositCryptoCurrency[];
+  error?: string | null;
 }
 
 export const createTokenSelectorModalNavigationDetails =
@@ -60,7 +69,7 @@ function TokenSelectorModal() {
   );
   const [isEditingNetworkFilter, setIsEditingNetworkFilter] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
-  const { styles } = useStyles(styleSheet, {
+  const { styles, theme } = useStyles(styleSheet, {
     screenHeight,
   });
 
@@ -74,7 +83,8 @@ function TokenSelectorModal() {
     selectedCryptoCurrency,
   } = useDepositSDK();
 
-  const { cryptoCurrencies: supportedTokens } = useParams<TokenSelectorModalParams>();
+  const { cryptoCurrencies: supportedTokens, error } =
+    useParams<TokenSelectorModalParams>();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
     networkFilter,
@@ -208,12 +218,30 @@ function TokenSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {isEditingNetworkFilter
+          {error
+            ? 'Error'
+            : isEditingNetworkFilter
             ? strings('deposit.networks_filter_selector.select_network')
             : strings('deposit.token_modal.select_token')}
         </Text>
       </BottomSheetHeader>
-      {isEditingNetworkFilter ? (
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={theme.colors.error.default}
+          />
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.errorText}
+          >
+            There was an error loading available tokens. Please check back
+            later.
+          </Text>
+        </View>
+      ) : isEditingNetworkFilter ? (
         <NetworksFilterSelector
           networks={uniqueNetworks}
           networkFilter={networkFilter}
