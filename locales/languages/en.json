@@ -1036,7 +1036,7 @@
         "difference_from_market": "Difference from market:"
       },
       "leverage_modal": {
-        "title": "Set Leverage",
+        "title": "Leverage",
         "confirm": "Confirm",
         "entry_price": "Entry Price",
         "current_price": "Current price",

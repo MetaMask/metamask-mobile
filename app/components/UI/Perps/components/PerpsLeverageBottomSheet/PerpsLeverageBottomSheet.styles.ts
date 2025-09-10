@@ -45,7 +45,7 @@ export const createStyles = (colors: Theme['colors']) =>
       padding: 12,
       borderRadius: 8,
       marginBottom: 24,
-      marginHorizontal: 12,
+      marginHorizontal: 12
     },
     warningContainerSafe: {
       backgroundColor: LEVERAGE_BACKGROUND_COLORS.SAFE, // Green background
@@ -83,9 +83,7 @@ export const createStyles = (colors: Theme['colors']) =>
       color: colors.error.default, // Red - matches gradient end
     },
     priceInfoContainer: {
-      backgroundColor: colors.background.section,
       borderRadius: 8,
-      padding: 16,
       marginBottom: 32,
       marginHorizontal: 12,
     },
@@ -116,7 +114,6 @@ export const createStyles = (colors: Theme['colors']) =>
       justifyContent: 'space-between',
       marginTop: 24,
       marginBottom: 16,
-      marginHorizontal: 12,
     },
     quickSelectButton: {
       flex: 1,
@@ -129,8 +126,8 @@ export const createStyles = (colors: Theme['colors']) =>
       borderColor: colors.border.muted,
     },
     quickSelectButtonActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
+      backgroundColor: colors.icon.default,
+      borderColor: colors.icon.default,
     },
     quickSelectText: {
       fontWeight: '500',
@@ -169,7 +166,7 @@ export const createStyles = (colors: Theme['colors']) =>
       top: 0,
     },
     gradientStyle: {
-      height: 6,
+      height: 8,
       borderRadius: 3,
     },
     emptyPriceInfo: {
