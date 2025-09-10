@@ -546,10 +546,10 @@ const usePerpsToasts = (): {
                 ...perpsBaseToastOptions.info,
                 labelOptions: getPerpsToastLabels(
                   strings(
-                    'perps.close_position.order_type_switched_to_market_order',
+                    'perps.close_position.order_type_reverted_to_market_order',
                   ),
                   strings(
-                    'perps.close_position.limit_orders_require_a_limit_price',
+                    'perps.close_position.you_need_set_price_limit_order',
                   ),
                 ),
               },
