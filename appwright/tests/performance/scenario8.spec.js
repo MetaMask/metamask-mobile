@@ -54,7 +54,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   CommonScreen.device = device;
   WalletActionModal.device = device;
 
-  await login(device, 'asset-view');
+  await login(device, 'login');
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);

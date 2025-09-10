@@ -38,10 +38,6 @@ export const TEST_SRP = {
 export function getPasswordForScenario(scenarioType) {
   switch (scenarioType) {
     case 'login':
-    case 'send':
-    case 'account-creation':
-    case 'swap':
-    case 'asset-view':
       return TEST_PASSWORDS.LOGIN;
     case 'onboarding':
     case 'import':

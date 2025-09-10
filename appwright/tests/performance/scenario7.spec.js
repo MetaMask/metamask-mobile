@@ -34,7 +34,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   NetworksScreen.device = device;
   BridgeScreen.device = device;
 
-  await login(device, 'swap');
+  await login(device, 'login');
   // await importSRPFlow(device, process.env.TEST_SRP_2);
 
   const timer1 = new TimerHelper(
