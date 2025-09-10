@@ -61,7 +61,7 @@ describe(RegressionTrade('Perps Position'), () => {
         await PerpsE2E.triggerLiquidation('BTC');
         logger.info('🔥 E2E Mock: Liquidation triggered. Not yet liquidated');
 
-        // Assertion 1: todavía hay 2 posiciones (la por defecto y la recién abierta)
+        // Assertion 1: still have 2 positions (the default and the recently opened)
         await PerpsView.ensurePerpsTabPositionVisible('BTC', 5, 'long', 0);
         await PerpsView.ensurePerpsTabPositionVisible('BTC', 3, 'long', 1);
 
@@ -74,13 +74,13 @@ describe(RegressionTrade('Perps Position'), () => {
         logger.info('🔥 E2E Mock: Liquidation triggered. Liquidated');
 
         // Assertion 2: only BTC 3x is visible
-        // 1) La esperada (primer item) existe y es visible
+        // 1) The expected (first item) exists and is visible
         await Assertions.expectElementToBeVisible(
           PerpsView.getPositionItem('BTC', 3, 'long', 0),
           { description: 'BTC 3x long en índice 0' },
         );
 
-        // 2) No existe un segundo item de posición (verificación por índice con ID base)
+        // 2) There is no second item of position (verification by index with base ID)
         const secondItem = (await Matchers.getElementByID(
           PerpsPositionsViewSelectorsIDs.POSITION_ITEM,
           1,
