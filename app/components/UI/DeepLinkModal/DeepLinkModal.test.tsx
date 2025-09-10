@@ -194,6 +194,17 @@ describe('DeepLinkModal', () => {
   });
 
   describe('store link', () => {
+    const originalPlatformOS = Platform.OS;
+
+    afterEach(() => {
+      // Restore the original Platform.OS after each test
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatformOS,
+        writable: true,
+        configurable: true,
+      });
+    });
+
     it('opens app store when store link is pressed on iOS', async () => {
       (useParams as jest.Mock).mockReturnValue({
         ...baseParams,
@@ -216,7 +227,12 @@ describe('DeepLinkModal', () => {
     });
 
     it('opens play store when store link is pressed on Android', async () => {
-      Platform.OS = 'android';
+      // Mock Platform.OS to return 'android' for this specific test
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+        configurable: true,
+      });
 
       (useParams as jest.Mock).mockReturnValue({
         ...baseParams,
