@@ -29,7 +29,7 @@ jobs:
         env:
           BUNDLE_GEMFILE: ios/Gemfile
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -53,14 +53,19 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn setup --node
-      - name: Deduplicate dependencies
-        run: yarn deduplicate
+      - name: Deduplicate dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn deduplicate
       - name: Print error if duplicates found
         shell: bash
         run: |
@@ -77,14 +82,19 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn setup --node
-      - name: Run @lavamoat/git-safe-dependencies
-        run: yarn git-safe-dependencies
+      - name: Run @lavamoat/git-safe-dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn git-safe-dependencies
   scripts:
     runs-on: ubuntu-latest
     strategy:
@@ -105,7 +115,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -133,7 +143,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -172,7 +182,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -229,7 +239,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
