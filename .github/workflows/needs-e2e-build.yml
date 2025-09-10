@@ -28,11 +28,16 @@ jobs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
       builds: ${{ steps.set-outputs.outputs.builds }}
+    env:
+      # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
+      # For a `push` event, the head commit hash is `github.sha`.
+      HEAD_COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          # Specifying `ref` ensures that the head commit is checked out directly.
+          ref: ${{ env.HEAD_COMMIT_HASH }}
 
       - name: Paths filter (Android/iOS impact)
         id: filter
