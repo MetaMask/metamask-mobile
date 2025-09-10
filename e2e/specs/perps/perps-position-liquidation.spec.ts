@@ -16,6 +16,7 @@ import PerpsE2E from '../../framework/PerpsE2E';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
+import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
@@ -75,22 +76,18 @@ describe(RegressionTrade('Perps Position'), () => {
         // Assertion 2: only BTC 3x is visible
         // 1) La esperada (primer item) existe y es visible
         await Assertions.expectElementToBeVisible(
-          PerpsView.getPositionItem(
-            'BTC',
-            3,
-            'long',
-            0,
-          ) as unknown as DetoxElement,
+          PerpsView.getPositionItem('BTC', 3, 'long', 0),
           { description: 'BTC 3x long en índice 0' },
         );
 
-        // 2) No existe un segundo item de posición
+        // 2) No existe un segundo item de posición (verificación por índice con ID base)
         const secondItem = (await Matchers.getElementByID(
-          /^perps-positions-item-.*/,
+          PerpsPositionsViewSelectorsIDs.POSITION_ITEM,
           1,
         )) as unknown as DetoxElement;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-        await (expect(secondItem) as any).not.toExist();
+        await Assertions.expectElementToNotBeVisible(secondItem, {
+          description: 'No second position card should be visible',
+        });
       },
     );
   });

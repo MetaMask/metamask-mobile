@@ -8,6 +8,7 @@
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isE2E } from '../../../../util/test/utils';
+import { Linking } from 'react-native';
 
 // Global bridge for E2E mock injection
 export interface E2EBridgePerpsStreaming {
@@ -17,6 +18,70 @@ export interface E2EBridgePerpsStreaming {
 
 // Global bridge instance
 let e2eBridgePerps: E2EBridgePerpsStreaming = {};
+
+// Ensure we only register the deep link handler once
+let hasRegisteredDeepLinkHandler = false;
+
+/**
+ * Register a lightweight deep link handler for E2E-only schema (e2e://perps/*)
+ * This avoids touching production deeplink parsing while enabling deterministic
+ * E2E commands like price push and forced liquidation.
+ */
+function registerE2EPerpsDeepLinkHandler(): void {
+  if (hasRegisteredDeepLinkHandler || !isE2E) {
+    return;
+  }
+
+  try {
+    Linking.addEventListener('url', (event: { url: string }) => {
+      try {
+        const { url } = event || {};
+        if (!url?.startsWith('e2e://perps/')) {
+          return;
+        }
+
+        // Lazy import to keep bridge tree-shakeable in prod and satisfy ESLint
+        void import(
+          '../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks'
+        ).then((mod) => {
+          const service = mod.PerpsE2EMockService?.getInstance?.();
+
+          // Parse path and query
+          const withoutScheme = url.replace('e2e://perps/', '');
+          const [path, queryString] = withoutScheme.split('?');
+          const params = new URLSearchParams(queryString || '');
+          const symbol = params.get('symbol') || '';
+
+          if (path === 'push-price') {
+            const price = params.get('price') || '';
+            DevLogger.log('[E2E Bridge] push-price', symbol, price);
+            if (service && typeof service.mockPushPrice === 'function') {
+              service.mockPushPrice(symbol, price);
+            }
+            return;
+          }
+
+          if (path === 'force-liquidation') {
+            DevLogger.log('[E2E Bridge] force-liquidation', symbol);
+            if (service && typeof service.mockForceLiquidation === 'function') {
+              service.mockForceLiquidation(symbol);
+            }
+            return;
+          }
+        });
+      } catch (err) {
+        DevLogger.log('[E2E Bridge] Error handling E2E perps deeplink', err);
+      }
+    });
+
+    hasRegisteredDeepLinkHandler = true;
+    DevLogger.log('[E2E Bridge] Registered E2E perps deep link handler');
+  } catch (error) {
+    DevLogger.log(
+      '[E2E Bridge] Failed to register E2E perps deep link handler',
+    );
+  }
+}
 
 /**
  * Auto-configure E2E bridge when isE2E is true
@@ -53,6 +118,9 @@ function autoConfigureE2EBridge(): void {
       mockStreamManager,
       applyControllerMocks: applyE2EPerpsControllerMocks,
     };
+
+    // Register E2E deep link handler for price/liq commands
+    registerE2EPerpsDeepLinkHandler();
 
     DevLogger.log('E2E Bridge auto-configured successfully');
     DevLogger.log('Mock state:', {
