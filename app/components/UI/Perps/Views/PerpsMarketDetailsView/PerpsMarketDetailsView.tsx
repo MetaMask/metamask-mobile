@@ -57,6 +57,7 @@ import {
 } from '../../hooks';
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
@@ -75,6 +76,7 @@ import ButtonSemantic, {
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  initialTab?: PerpsTabId;
   isNavigationFromOrderSuccess?: boolean;
 }
 
@@ -82,7 +84,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, isNavigationFromOrderSuccess } = route.params || {};
+  const { market, initialTab, isNavigationFromOrderSuccess } =
+    route.params || {};
   const { track } = usePerpsEventTracking();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -263,6 +266,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleAddFundsPress = async () => {
     try {
+      if (!isEligible) {
+        setIsEligibilityModalVisible(true);
+        return;
+      }
+
       // Ensure the network exists before proceeding
       await ensureArbitrumNetworkExists();
 
@@ -383,6 +391,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
+              initialTab={initialTab}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
             />

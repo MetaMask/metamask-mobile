@@ -21,6 +21,14 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 
 jest.mock('../../hooks/useConfirmActions');
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('../../../../../components/hooks/useEditNonce', () => ({
   useEditNonce: jest.fn().mockReturnValue({}),
 }));

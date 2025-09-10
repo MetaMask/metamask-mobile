@@ -2,22 +2,24 @@ import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 import {
   SeasonStatusState,
   SeasonTierDto,
+  GeoRewardsMetadata,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import { OnboardingStep } from './types';
+import Logger from '../../util/Logger';
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels' | null;
   seasonStatusLoading: boolean;
 
   // Season state
+  seasonId: string | null;
   seasonName: string | null;
   seasonStartDate: Date | null;
   seasonEndDate: Date | null;
   seasonTiers: SeasonTierDto[];
 
-  // Subscription state
-  subscriptionId: string | null;
-
   // Subscription Referral state
+  referralDetailsLoading: boolean;
   referralCode: string | null;
   refereeCount: number;
 
@@ -30,15 +32,29 @@ export interface RewardsState {
   balanceTotal: number | null;
   balanceRefereePortion: number | null;
   balanceUpdatedAt: Date | null;
+
+  // Onboarding state
+  onboardingActiveStep: OnboardingStep;
+
+  // Geolocation state
+  geoLocation: string | null;
+  optinAllowedForGeo: boolean;
+  optinAllowedForGeoLoading: boolean;
 }
 
 export const initialState: RewardsState = {
   activeTab: 'overview',
   seasonStatusLoading: false,
 
+  seasonId: null,
+  seasonName: null,
+  seasonStartDate: null,
+  seasonEndDate: null,
+  seasonTiers: [],
+
+  referralDetailsLoading: false,
   referralCode: null,
   refereeCount: 0,
-  subscriptionId: null,
 
   currentTier: null,
   nextTier: null,
@@ -48,10 +64,10 @@ export const initialState: RewardsState = {
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
 
-  seasonName: null,
-  seasonStartDate: null,
-  seasonEndDate: null,
-  seasonTiers: [],
+  onboardingActiveStep: OnboardingStep.INTRO,
+  geoLocation: null,
+  optinAllowedForGeo: false,
+  optinAllowedForGeoLoading: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -71,15 +87,12 @@ const rewardsSlice = createSlice({
       state.activeTab = action.payload;
     },
 
-    setSubscriptionId: (state, action: PayloadAction<string | null>) => {
-      state.subscriptionId = action.payload || null;
-    },
-
     setSeasonStatus: (
       state,
       action: PayloadAction<SeasonStatusState | null>,
     ) => {
       // Season state
+      state.seasonId = action.payload?.season.id || null;
       state.seasonName = action.payload?.season.name || null;
       state.seasonStartDate = action.payload?.season.startDate
         ? new Date(action.payload.season.startDate)
@@ -124,6 +137,11 @@ const rewardsSlice = createSlice({
       if (action.payload.refereeCount !== undefined) {
         state.refereeCount = action.payload.refereeCount;
       }
+      state.referralDetailsLoading = false;
+    },
+
+    setReferralDetailsLoading: (state, action: PayloadAction<boolean>) => {
+      state.referralDetailsLoading = action.payload;
     },
 
     setSeasonStatusLoading: (state, action: PayloadAction<boolean>) => {
@@ -132,6 +150,34 @@ const rewardsSlice = createSlice({
 
     resetRewardsState: (state) => {
       Object.assign(state, initialState);
+    },
+
+    setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
+      Logger.log('setOnboardingActiveStep', action.payload);
+      state.onboardingActiveStep = action.payload;
+    },
+
+    resetOnboarding: (state) => {
+      state.onboardingActiveStep = OnboardingStep.INTRO;
+    },
+
+    setGeoRewardsMetadata: (
+      state,
+      action: PayloadAction<GeoRewardsMetadata | null>,
+    ) => {
+      if (action.payload) {
+        state.geoLocation = action.payload.geoLocation;
+        state.optinAllowedForGeo = action.payload.optinAllowedForGeo;
+        state.optinAllowedForGeoLoading = false;
+      } else {
+        state.geoLocation = null;
+        state.optinAllowedForGeo = false;
+        state.optinAllowedForGeoLoading = false;
+      }
+    },
+
+    setGeoRewardsMetadataLoading: (state, action: PayloadAction<boolean>) => {
+      state.optinAllowedForGeoLoading = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -150,11 +196,15 @@ const rewardsSlice = createSlice({
 
 export const {
   setActiveTab,
-  setSubscriptionId,
   setSeasonStatus,
   setReferralDetails,
   setSeasonStatusLoading,
+  setReferralDetailsLoading,
   resetRewardsState,
+  setOnboardingActiveStep,
+  resetOnboarding,
+  setGeoRewardsMetadata,
+  setGeoRewardsMetadataLoading,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;
