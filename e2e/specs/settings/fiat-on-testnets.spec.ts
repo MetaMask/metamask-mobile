@@ -7,14 +7,17 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import FiatOnTestnetsBottomSheet from '../../pages/Settings/Advanced/FiatOnTestnetsBottomSheet';
 import Assertions from '../../framework/Assertions';
 
+import NetworkView from '../../pages/Settings/NetworksView';
+
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe.skip(RegressionNetworkAbstractions('Fiat On Testnets Setting'), () => {
+//Functionality is not working as expected https://github.com/MetaMask/metamask-mobile/issues/19483
+//Need to correct the mock for the sepolia balance appear properly
+describe(RegressionNetworkAbstractions('Fiat On Testnets Setting'), () => {
   // This test depends on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
@@ -29,17 +32,18 @@ describe.skip(RegressionNetworkAbstractions('Fiat On Testnets Setting'), () => {
     async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().build(),
+          fixture: new FixtureBuilder()
+            .withNetworkController(CustomNetworks.Sepolia)
+            .build(),
           restartDevice: true,
         },
         async () => {
           await loginToApp();
 
           // Switch to Sepolia
-          await WalletView.tapNetworksButtonOnNavBar();
-          await NetworkListModal.scrollToBottomOfNetworkList();
+          await WalletView.tapTokenNetworkFilter();
+          await NetworkView.switchToCustomTab();
           await NetworkListModal.changeNetworkTo(SEPOLIA);
-          await NetworkEducationModal.tapGotItButton();
 
           // Verify no fiat values displayed
           await Assertions.expectElementToHaveText(
