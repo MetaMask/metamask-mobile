@@ -95,9 +95,9 @@ export function useTransactionRequiredFiat({
     ],
   );
 
-  const totalFiat = values.reduce<number>(
-    (acc, value) => acc + value.totalFiat,
-    0,
+  const totalFiat = useMemo(
+    () => values.reduce<number>((acc, value) => acc + value.totalFiat, 0),
+    [values],
   );
 
   useEffect(() => {
