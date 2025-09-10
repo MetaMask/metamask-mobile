@@ -30,5 +30,10 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
       responseCode: 200,
       response: 'OK',
     },
+    {
+      urlEndpoint: contactStorageUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
   ],
 };

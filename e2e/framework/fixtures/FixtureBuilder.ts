@@ -2105,6 +2105,99 @@ class FixtureBuilder {
   }
 
   /**
+   * Sets up tokens for send redesign flow on specific networks.
+   * This method ensures tokens appear in the send flow by setting:
+   * 1. Token definitions (TokensController)
+   * 2. Token balances (TokenBalancesController)
+   * 3. Token rates/prices (TokenRatesController)
+   * 4. ETH rates (CurrencyRateController)
+   *
+   * @param tokens - Array of token objects with address, symbol, decimals, name
+   * @param chainIds - Array of chain IDs to add tokens to
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   */
+  withSendRedesignTokensForNetworks(
+    tokens: Record<string, unknown>[],
+    chainIds: string[],
+  ) {
+    const networkTokens: Record<string, Record<string, unknown[]>> = {};
+    const tokenBalances: Record<
+      string,
+      Record<string, Record<string, string>>
+    > = {};
+    tokenBalances[DEFAULT_FIXTURE_ACCOUNT] = {};
+
+    chainIds.forEach((chainId) => {
+      const tokensWithFiat = tokens.map((token: Record<string, unknown>) => ({
+        ...token,
+        fiat: {
+          balance: 5000,
+          conversionRate: 5000,
+          currency: 'USD',
+        },
+      }));
+      networkTokens[chainId] = { [DEFAULT_FIXTURE_ACCOUNT]: tokensWithFiat };
+      tokenBalances[DEFAULT_FIXTURE_ACCOUNT][chainId] = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tokens.forEach((token: any) => {
+        // Give each token a substantial balance (5000 tokens)
+        const balanceInWei = (5000 * Math.pow(10, token.decimals)).toString(16);
+        tokenBalances[DEFAULT_FIXTURE_ACCOUNT][chainId][
+          token.address
+        ] = `0x${balanceInWei}`;
+      });
+    });
+
+    // Merge token definitions
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens: networkTokens,
+    });
+
+    // Merge token balances
+    merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
+      tokenBalances,
+    });
+
+    // Add token market data (needed for fiat balance calculations)
+    // Structure: { [chainId]: { [tokenAddress]: marketData } }
+    const marketData: Record<string, Record<string, unknown>> = {};
+
+    chainIds.forEach((chainId) => {
+      marketData[chainId] = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tokens.forEach((token: any) => {
+        marketData[chainId][token.address] = {
+          tokenAddress: token.address,
+          currency: 'ETH',
+          price: 0.00009,
+          priceChange1d: 0.01,
+          marketCap: 50000000000,
+          allTimeHigh: 1.32,
+          allTimeLow: 0.88,
+          totalVolume: 25000000000,
+          priceChangePercentage1d: 0.1,
+        };
+      });
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenRatesController, {
+      marketData,
+    });
+
+    merge(this.fixture.state.engine.backgroundState.CurrencyRateController, {
+      currentCurrency: 'USD',
+      currencyRates: {
+        ETH: {
+          conversionDate: Date.now(),
+          conversionRate: 5000,
+        },
+      },
+    });
+
+    return this;
+  }
+
+  /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
    */

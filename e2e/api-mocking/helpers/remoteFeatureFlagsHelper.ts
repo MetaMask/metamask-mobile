@@ -256,7 +256,7 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   },
   {
     sendRedesign: {
-      enabled: true,
+      enabled: false, // Disabled by default, can be enabled in tests
     },
   },
   {
