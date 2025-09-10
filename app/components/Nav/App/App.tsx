@@ -41,7 +41,6 @@ import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottom
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import ConnectionDetails from '../../../components/Views/AccountPermissions/ConnectionDetails';
@@ -153,6 +152,7 @@ import { PayWithNetworkModal } from '../../Views/confirmations/components/modals
 import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
+import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -412,7 +412,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={AccountPermissions}
+      component={BIP44AccountPermissionWrapper}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
