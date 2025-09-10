@@ -1597,37 +1597,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
-      // Validate close size if provided
+      // Determine minimum order size (needed for precedence logic)
+      const minimumOrderSize = this.clientService.isTestnetMode()
+        ? TRADING_DEFAULTS.amount.testnet
+        : TRADING_DEFAULTS.amount.mainnet;
+
+      // Validate close size & minimum only if size provided (partial close)
       if (params.size) {
         const closeSize = parseFloat(params.size);
+        const price = params.currentPrice
+          ? parseFloat(params.currentPrice.toString())
+          : undefined;
+        const orderValueUSD =
+          price && !isNaN(closeSize) ? closeSize * price : undefined;
+
+        // Precedence rule: if size <= 0 treat as minimum_amount failure (more actionable)
         if (isNaN(closeSize) || closeSize <= 0) {
-          return {
-            isValid: false,
-            error: strings('perps.errors.orderValidation.sizePositive'),
-          };
-        }
-
-        // Note: Remaining position validation should be done in the UI layer
-        // where position data is available. The UI should check:
-        // 1. That closeSize doesn't exceed current position size
-        // 2. That remaining size meets minimum order requirements
-      }
-
-      // Validate minimum order value ONLY for partial closes
-      // Full closes (when size is undefined) have no minimum
-      if (params.currentPrice && params.size) {
-        const closeSize = parseFloat(params.size);
-        const price = parseFloat(params.currentPrice.toString());
-        const orderValueUSD = closeSize * price;
-
-        // Get minimum order size based on network
-        const minimumOrderSize = this.clientService.isTestnetMode()
-          ? TRADING_DEFAULTS.amount.testnet
-          : TRADING_DEFAULTS.amount.mainnet;
-
-        // Only enforce minimum for partial closes
-        // Full closes (size undefined) can be any amount
-        if (orderValueUSD < minimumOrderSize) {
           return {
             isValid: false,
             error: strings('perps.order.validation.minimum_amount', {
@@ -1635,7 +1620,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
             }),
           };
         }
+
+        // Enforce minimum order value for partial closes when price known
+        if (orderValueUSD !== undefined && orderValueUSD < minimumOrderSize) {
+          return {
+            isValid: false,
+            error: strings('perps.order.validation.minimum_amount', {
+              amount: minimumOrderSize.toString(),
+            }),
+          };
+        }
+
+        // Note: Remaining position validation stays in UI layer.
       }
+      // Full closes (size undefined) bypass minimum check by design
       // Note: For full closes (when size is undefined), there is no minimum
       // This allows users to close positions worth less than $10 completely
 
