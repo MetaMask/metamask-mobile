@@ -629,7 +629,6 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
-  | RewardsControllerValidateReferralCodeAction
   | RewardsControllerGetActivePointsBoostsAction;
 
 export const CURRENT_SEASON_ID = 'current';
