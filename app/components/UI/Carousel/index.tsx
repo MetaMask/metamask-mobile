@@ -12,6 +12,8 @@ import {
   Image as RNImage,
   Dimensions,
   Animated,
+  Easing,
+  LayoutAnimation,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -81,7 +83,11 @@ function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
   return placed.filter(Boolean) as CarouselSlide[];
 }
 
-const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
+const CarouselComponent: FC<CarouselProps> = ({
+  style,
+  dummyData,
+  onEmptyState,
+}) => {
   const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
@@ -91,6 +97,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showEmptyState, setShowEmptyState] = useState(false);
+  const [emptyStateVisible, setEmptyStateVisible] = useState(false);
 
   // Current card animations (exit)
   const currentCardOpacity = useRef(new Animated.Value(1)).current;
@@ -107,6 +115,10 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const emptyStateOpacity = useRef(new Animated.Value(0)).current;
   const emptyStateScale = useRef(new Animated.Value(0.95)).current; // Same as next cards
   const emptyStateTranslateY = useRef(new Animated.Value(20)).current; // Starts below, fades up
+
+  // Carousel container animations
+  const carouselHeight = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
+  const carouselOpacity = useRef(new Animated.Value(1)).current;
 
   const isAnimating = useRef(false);
   const isContentfulCarouselEnabled = useSelector(
@@ -187,6 +199,17 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   );
 
   const slidesConfig = useMemo(() => {
+    // If dummy data is provided, use it instead of Contentful data
+    if (dummyData && dummyData.length > 0) {
+      return dummyData.map((s: CarouselSlide): CarouselSlide => {
+        const withNav = applyLocalNavigation(s);
+        if (withNav.variableName === 'fund' && isZeroBalance) {
+          return { ...withNav, undismissable: withNav.undismissable || true };
+        }
+        return withNav;
+      });
+    }
+
     const patch = (s: CarouselSlide): CarouselSlide => {
       const withNav = applyLocalNavigation(s);
       if (withNav.variableName === 'fund' && isZeroBalance) {
@@ -199,6 +222,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     const regular = orderByCardPlacement(regularContentfulSlides.map(patch));
     return [...priority, ...regular];
   }, [
+    dummyData,
     applyLocalNavigation,
     isZeroBalance,
     priorityContentfulSlides,
@@ -247,8 +271,13 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
   }, [activeSlideIndex, visibleSlides.length]);
 
-  // Reset card animations when slides change (but not during transitions)
+  // Reset card animations when slides change (but not during transitions or empty state display)
   useEffect(() => {
+    // Skip entire useEffect during empty state display
+    if (showEmptyState) {
+      return;
+    }
+
     if (!isAnimating.current && !isTransitioning) {
       // Use requestAnimationFrame to prevent flash during re-render
       requestAnimationFrame(() => {
@@ -277,6 +306,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
             emptyStateOpacity.setValue(0); // Start invisible
             emptyStateScale.setValue(0.95); // Same scale as next cards
             emptyStateTranslateY.setValue(8); // Slightly lower position
+            // Ensure pressed background is visible for empty state too
+            nextCardBgOpacity.setValue(1);
 
             // Animate empty state into background state
             Animated.timing(emptyStateOpacity, {
@@ -290,9 +321,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           nextCardScale.setValue(0.95);
           nextCardTranslateY.setValue(8);
           nextCardBgOpacity.setValue(0);
-          emptyStateOpacity.setValue(0);
-          emptyStateScale.setValue(0.95);
-          emptyStateTranslateY.setValue(20);
+          // Never reset empty state when it's being displayed
+          if (!showEmptyState) {
+            emptyStateOpacity.setValue(0);
+            emptyStateScale.setValue(0.95);
+            emptyStateTranslateY.setValue(20);
+          }
         }
       });
     }
@@ -459,6 +493,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
           if (isLastCard) {
             // For empty state, trigger separate component and hide main carousel
+            console.log('🟡 Triggering empty state component');
             onEmptyState?.();
             setIsCarouselVisible(false);
             setIsTransitioning(false);
@@ -498,6 +533,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       emptyStateOpacity,
       emptyStateScale,
       emptyStateTranslateY,
+      carouselOpacity,
     ],
   );
 
@@ -527,8 +563,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           {/* Animated pressed background overlay */}
           <Animated.View
             style={[
-              tw.style('absolute inset-0 bg-default-pressed rounded-xl'),
+              tw.style('absolute bg-default-pressed rounded-xl'),
               {
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0, // Inset by 1px to show border
                 opacity: nextCardBgOpacity,
               },
             ]}
@@ -710,13 +750,21 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   if (
     !isCarouselVisible ||
-    (visibleSlides.length === 0 && !isAnimating.current)
+    (visibleSlides.length === 0 && !isAnimating.current && !showEmptyState)
   ) {
     return null;
   }
 
   return (
-    <Animated.View style={[tw.style('mx-4'), {}, style]}>
+    <Animated.View
+      style={[
+        tw.style('mx-4'),
+        {
+          opacity: carouselOpacity, // Carousel fade for final exit
+        },
+        style,
+      ]}
+    >
       <Box style={{ height: BANNER_HEIGHT + 6 }}>
         <Box
           style={{ height: BANNER_HEIGHT, position: 'relative' }}
@@ -748,6 +796,7 @@ const EmptyStateComponent: FC<{ style?: any }> = ({ style }) => {
   useEffect(() => {
     // Wait 1 second, then fold up
     const timer = setTimeout(() => {
+      console.log('🟢 Starting empty state fold-up after 1s');
       setIsCollapsing(true);
 
       Animated.parallel([
@@ -775,6 +824,7 @@ const EmptyStateComponent: FC<{ style?: any }> = ({ style }) => {
           }),
         ]),
       ]).start(() => {
+        console.log('🟢 Empty state fold-up completed');
         setIsVisible(false);
       });
     }, 1000); // Reduced to 1 second

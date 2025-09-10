@@ -124,6 +124,7 @@ import Logger from '../../../util/Logger';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
+import { CarouselSlide } from '../../UI/Carousel/types';
 
 import { cloneDeep } from 'lodash';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
@@ -732,6 +733,7 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -1082,6 +1084,57 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
+  // Dummy carousel data for testing - resets on every app reload
+  const dummyCarouselSlides: CarouselSlide[] = useMemo(() => {
+    const timestamp = Date.now();
+    return [
+      {
+        id: `test-slide-1-${timestamp}`,
+        title: 'Welcome to MetaMask',
+        description: 'Your gateway to the decentralized web',
+        image: 'https://via.placeholder.com/72x72/4285F4/FFFFFF?text=MM',
+        navigation: {
+          type: 'url',
+          href: 'https://metamask.io',
+        },
+        variableName: 'welcome',
+      },
+      {
+        id: `test-slide-2-${timestamp}`,
+        title: 'Trade Perpetuals',
+        description: 'Long or short assets with up to 40x leverage',
+        image: 'https://via.placeholder.com/72x72/34A853/FFFFFF?text=📈',
+        navigation: {
+          type: 'url',
+          href: 'https://metamask.io/perps',
+        },
+        variableName: 'perps',
+      },
+      {
+        id: `test-slide-3-${timestamp}`,
+        title: 'Bridge Your Assets',
+        description: 'Move tokens across different networks',
+        image: 'https://via.placeholder.com/72x72/FBBC04/FFFFFF?text=🌉',
+        navigation: {
+          type: 'url',
+          href: 'https://metamask.io/bridge',
+        },
+        variableName: 'bridge',
+      },
+      {
+        id: `test-slide-4-${timestamp}`,
+        title: 'Earn Rewards',
+        description: 'Stake your tokens and earn passive income',
+        image: 'https://via.placeholder.com/72x72/EA4335/FFFFFF?text=💰',
+        navigation: {
+          type: 'url',
+          href: 'https://metamask.io/rewards',
+        },
+        variableName: 'rewards',
+      },
+    ];
+  }, []); // Empty dependency array ensures this only runs once per component mount
+
   const renderContent = useCallback(
     () => (
       <View
@@ -1130,9 +1183,9 @@ const Wallet = ({
             />
           </View>
           {/* {isCarouselBannersEnabled && (
-            <Carousel style={styles.carousel} />
+            <Carousel style={styles.carouselContainer} />
           )} */}
-          <Carousel style={styles.carousel} />
+          <Carousel style={styles.carousel} dummyData={dummyCarouselSlides} />
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
@@ -1164,6 +1217,7 @@ const Wallet = ({
       onReceive,
       onSend,
       route.params,
+      dummyCarouselSlides,
     ],
   );
   const renderLoader = useCallback(
