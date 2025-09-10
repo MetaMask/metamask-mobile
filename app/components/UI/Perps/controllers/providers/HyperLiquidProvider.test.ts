@@ -31,10 +31,13 @@ jest.mock('@sentry/react-native', () => ({
 }));
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    if (key === 'time.minutes_format' && params?.count) {
-      return params.count === 1
-        ? `${params.count} minute`
-        : `${params.count} minutes`;
+    // Support both singular and plural minute formatting keys used in code
+    if (
+      (key === 'time.minutes_format' || key === 'time.minutes_format_plural') &&
+      typeof params?.count !== 'undefined'
+    ) {
+      const count = params.count as number;
+      return count === 1 ? `${count} minute` : `${count} minutes`;
     }
     return key;
   }),
