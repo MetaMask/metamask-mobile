@@ -17,7 +17,13 @@ const styleSheet = (params: {
   const { colors } = params.theme;
   const { vars } = params;
   return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
     container: {
+      flex: 1,
+      backgroundColor: colors.background.default,
       height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     body: {
