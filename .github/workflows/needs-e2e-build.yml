@@ -117,9 +117,11 @@ jobs:
 
           # Skip if [skip-e2e] tag found or label exists on PR
           if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
-            echo "android_final=false" >> "${GITHUB_OUTPUT}"
-            echo "ios_final=false" >> "${GITHUB_OUTPUT}"
-            echo "builds=false" >> "${GITHUB_OUTPUT}"
+            {
+              echo "android_final=false"
+              echo "ios_final=false"
+              echo "builds=false"
+            } >> "${GITHUB_OUTPUT}"
             echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
             exit 0
           fi                   
