@@ -61,6 +61,10 @@
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
+    },
+    "perps_hardware_account": {
+      "title": "Wallet not supported",
+      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
     }
   },
   "blockaid_banner": {
