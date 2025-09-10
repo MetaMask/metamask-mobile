@@ -10,6 +10,8 @@ import rewardsReducer, {
   resetOnboarding,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setActiveBoosts,
+  setActiveBoostsLoading,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -42,6 +44,10 @@ describe('rewardsReducer', () => {
     geoLocation: null,
     optinAllowedForGeo: false,
     optinAllowedForGeoLoading: false,
+
+    // Points Boost state
+    activeBoosts: [],
+    activeBoostsLoading: false,
   };
 
   it('should return the initial state', () => {
@@ -689,6 +695,7 @@ describe('rewardsReducer', () => {
         balanceTotal: 5000,
         balanceRefereePortion: 1000,
         balanceUpdatedAt: new Date('2024-01-01'),
+        seasonId: 'season-1',
         seasonName: 'Test Season',
         seasonStartDate: new Date('2024-01-01'),
         seasonEndDate: new Date('2024-12-31'),
@@ -697,6 +704,8 @@ describe('rewardsReducer', () => {
         geoLocation: 'US',
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
+        activeBoosts: [],
+        activeBoostsLoading: false,
       };
       const action = resetRewardsState();
 
@@ -751,6 +760,7 @@ describe('rewardsReducer', () => {
         balanceTotal: 2000,
         balanceRefereePortion: 400,
         balanceUpdatedAt: new Date('2024-05-01'),
+        seasonId: 'season-1',
         seasonName: 'Persisted Season',
         seasonStartDate: new Date('2024-01-01'),
         seasonEndDate: new Date('2024-12-31'),
@@ -759,6 +769,8 @@ describe('rewardsReducer', () => {
         geoLocation: 'CA',
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
+        activeBoosts: [],
+        activeBoostsLoading: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -830,6 +842,167 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state).toEqual(currentState);
+    });
+  });
+
+  describe('setActiveBoosts', () => {
+    it('should set active boosts array', () => {
+      // Arrange
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost 1',
+          icon: {
+            lightModeUrl: 'light1.png',
+            darkModeUrl: 'dark1.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+        {
+          id: 'boost-2',
+          name: 'Test Boost 2',
+          icon: {
+            lightModeUrl: 'light2.png',
+            darkModeUrl: 'dark2.png',
+          },
+          boostBips: 500,
+          seasonLong: false,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-31'),
+          backgroundColor: '#00FF00',
+        },
+      ];
+      const action = setActiveBoosts(mockBoosts);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.activeBoosts).toEqual(mockBoosts);
+      expect(state.activeBoosts).toHaveLength(2);
+      expect(state.activeBoosts[0].id).toBe('boost-1');
+      expect(state.activeBoosts[1].seasonLong).toBe(false);
+    });
+
+    it('should replace existing active boosts', () => {
+      // Arrange
+      const existingBoosts = [
+        {
+          id: 'old-boost',
+          name: 'Old Boost',
+          icon: { lightModeUrl: 'old.png', darkModeUrl: 'old.png' },
+          boostBips: 100,
+          seasonLong: true,
+          backgroundColor: '#000000',
+        },
+      ];
+      const stateWithBoosts = {
+        ...initialState,
+        activeBoosts: existingBoosts,
+      };
+      const newBoosts = [
+        {
+          id: 'new-boost',
+          name: 'New Boost',
+          icon: { lightModeUrl: 'new.png', darkModeUrl: 'new.png' },
+          boostBips: 2000,
+          seasonLong: false,
+          backgroundColor: '#FFFFFF',
+        },
+      ];
+      const action = setActiveBoosts(newBoosts);
+
+      // Act
+      const state = rewardsReducer(stateWithBoosts, action);
+
+      // Assert
+      expect(state.activeBoosts).toEqual(newBoosts);
+      expect(state.activeBoosts).toHaveLength(1);
+      expect(state.activeBoosts[0].id).toBe('new-boost');
+    });
+
+    it('should set empty array when no boosts provided', () => {
+      // Arrange
+      const stateWithBoosts = {
+        ...initialState,
+        activeBoosts: [
+          {
+            id: 'existing-boost',
+            name: 'Existing',
+            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
+            boostBips: 500,
+            seasonLong: true,
+            backgroundColor: '#123456',
+          },
+        ],
+      };
+      const action = setActiveBoosts([]);
+
+      // Act
+      const state = rewardsReducer(stateWithBoosts, action);
+
+      // Assert
+      expect(state.activeBoosts).toEqual([]);
+      expect(state.activeBoosts).toHaveLength(0);
+    });
+  });
+
+  describe('setActiveBoostsLoading', () => {
+    it('should set activeBoostsLoading to true', () => {
+      // Arrange
+      const action = setActiveBoostsLoading(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(true);
+    });
+
+    it('should set activeBoostsLoading to false', () => {
+      // Arrange
+      const stateWithLoading = {
+        ...initialState,
+        activeBoostsLoading: true,
+      };
+      const action = setActiveBoostsLoading(false);
+
+      // Act
+      const state = rewardsReducer(stateWithLoading, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(false);
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        activeTab: 'activity' as const,
+        referralCode: 'TEST123',
+        activeBoosts: [
+          {
+            id: 'test-boost',
+            name: 'Test',
+            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
+            boostBips: 1000,
+            seasonLong: true,
+            backgroundColor: '#FF0000',
+          },
+        ],
+      };
+      const action = setActiveBoostsLoading(true);
+
+      // Act
+      const state = rewardsReducer(stateWithData, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(true);
+      expect(state.activeTab).toBe('activity');
+      expect(state.referralCode).toBe('TEST123');
+      expect(state.activeBoosts).toEqual(stateWithData.activeBoosts);
     });
   });
 });

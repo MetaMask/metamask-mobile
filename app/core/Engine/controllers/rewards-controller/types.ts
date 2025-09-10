@@ -351,6 +351,26 @@ export interface SubscriptionReferralDetailsDto {
   totalReferees: number;
 }
 
+export interface PointsBoostEnvelopeDto {
+  boosts: PointsBoostDto[];
+}
+
+export interface PointsBoostDto {
+  id: string;
+  name: string;
+  icon: ThemeImage;
+  boostBips: number;
+  seasonLong: boolean;
+  startDate?: Date;
+  endDate?: Date;
+  backgroundColor: string;
+}
+
+export interface ThemeImage {
+  lightModeUrl: string;
+  darkModeUrl: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionReferralDetailsState = {
   referralCode: string;
@@ -564,6 +584,17 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for getting active points boosts
+ */
+export interface RewardsControllerGetActivePointsBoostsAction {
+  type: 'RewardsController:getActivePointsBoosts';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<PointsBoostDto[]>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -578,6 +609,8 @@ export type RewardsControllerActions =
   | RewardsControllerOptInAction
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
-  | RewardsControllerValidateReferralCodeAction;
-
+  | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerGetActivePointsBoostsAction;
+  
 export const CURRENT_SEASON_ID = 'current';

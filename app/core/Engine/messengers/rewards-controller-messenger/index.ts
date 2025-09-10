@@ -25,6 +25,7 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
 } from '@metamask/accounts-controller';
 import { RewardsDataServiceGetPointsEventsAction } from '../../controllers/rewards-controller/services/rewards-data-service';
+import { RewardsDataServiceGetActivePointsBoostsAction } from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
 
@@ -42,7 +43,8 @@ type AllowedActions =
   | RewardsDataServiceOptinAction
   | RewardsDataServiceLogoutAction
   | RewardsDataServiceFetchGeoLocationAction
-  | RewardsDataServiceValidateReferralCodeAction;
+  | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceGetActivePointsBoostsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -79,6 +81,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:logout',
       'RewardsDataService:fetchGeoLocation',
       'RewardsDataService:validateReferralCode',
+      'RewardsDataService:getActivePointsBoosts',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',

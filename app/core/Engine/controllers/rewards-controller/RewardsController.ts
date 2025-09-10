@@ -17,6 +17,8 @@ import {
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
   type GetPointsEventsDto,
+  type PointsBoostDto,
+  type PointsBoostEnvelopeDto,
   CURRENT_SEASON_ID,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -238,6 +240,10 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:validateReferralCode',
       this.validateReferralCode.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getActivePointsBoosts',
+      this.getActivePointsBoosts.bind(this),
     );
   }
 
@@ -1069,6 +1075,37 @@ export class RewardsController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
       return false;
+    }
+  }
+
+  /**
+   * Get active points boosts for the current season
+   * @param seasonId - The season ID to get points boosts for
+   * @param subscriptionId - The subscription ID to get points boosts for
+   * @returns Promise<PointsBoostEnvelopeDto> - The active points boosts
+   */
+  async getActivePointsBoosts(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<PointsBoostDto[]> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return [];
+    }
+
+    try {
+      const response = await this.messagingSystem.call(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      return response.boosts;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get active points boosts:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return [];
     }
   }
 }

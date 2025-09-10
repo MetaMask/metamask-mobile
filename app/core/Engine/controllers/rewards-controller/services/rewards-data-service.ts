@@ -14,6 +14,7 @@ import type {
   SubscriptionReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
+  PointsBoostEnvelopeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -86,6 +87,11 @@ export interface RewardsDataServiceValidateReferralCodeAction {
   handler: RewardsDataService['validateReferralCode'];
 }
 
+export interface RewardsDataServiceGetActivePointsBoostsAction {
+  type: `${typeof SERVICE_NAME}:getActivePointsBoosts`;
+  handler: RewardsDataService['getActivePointsBoosts'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -97,7 +103,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceLogoutAction
   | RewardsDataServiceGenerateChallengeAction
   | RewardsDataServiceFetchGeoLocationAction
-  | RewardsDataServiceValidateReferralCodeAction;
+  | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceGetActivePointsBoostsAction;
 
 type AllowedActions = never;
 
@@ -184,6 +191,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateReferralCode`,
       this.validateReferralCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getActivePointsBoosts`,
+      this.getActivePointsBoosts.bind(this),
     );
   }
 
@@ -547,5 +558,30 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as { valid: boolean };
+  }
+
+  /**
+   * Get the active season boosts for a specific subscription.
+   * @param seasonId - The ID of the season to get status for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The active points boosts DTO.
+   */
+  async getActivePointsBoosts(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<PointsBoostEnvelopeDto> {
+    const response = await this.makeRequest(
+      `/seasons/${seasonId}/active-boosts`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get active rewards boost: ${response.status}`);
+    }
+
+    return (await response.json()) as PointsBoostEnvelopeDto;
   }
 }

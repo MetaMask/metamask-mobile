@@ -3,6 +3,7 @@ import {
   SeasonStatusState,
   SeasonTierDto,
   GeoRewardsMetadata,
+  PointsBoostDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import Logger from '../../util/Logger';
@@ -40,6 +41,10 @@ export interface RewardsState {
   geoLocation: string | null;
   optinAllowedForGeo: boolean;
   optinAllowedForGeoLoading: boolean;
+
+  // Points Boost state
+  activeBoosts: PointsBoostDto[];
+  activeBoostsLoading: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -68,6 +73,9 @@ export const initialState: RewardsState = {
   geoLocation: null,
   optinAllowedForGeo: false,
   optinAllowedForGeoLoading: false,
+
+  activeBoosts: [],
+  activeBoostsLoading: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -179,6 +187,13 @@ const rewardsSlice = createSlice({
     setGeoRewardsMetadataLoading: (state, action: PayloadAction<boolean>) => {
       state.optinAllowedForGeoLoading = action.payload;
     },
+
+    setActiveBoosts: (state, action: PayloadAction<PointsBoostDto[]>) => {
+      state.activeBoosts = action.payload;
+    },
+    setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
+      state.activeBoostsLoading = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
@@ -205,6 +220,8 @@ export const {
   resetOnboarding,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setActiveBoosts,
+  setActiveBoostsLoading,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

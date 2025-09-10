@@ -57,3 +57,9 @@ export const selectOptinAllowedForGeoLoading = (state: RootState) =>
 
 export const selectReferralDetailsLoading = (state: RootState) =>
   state.rewards.referralDetailsLoading;
+
+export const selectActiveBoosts = (state: RootState) =>
+  state.rewards.activeBoosts;
+
+export const selectActiveBoostsLoading = (state: RootState) =>
+  state.rewards.activeBoostsLoading;
