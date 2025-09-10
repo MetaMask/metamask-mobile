@@ -39,7 +39,7 @@ describe(SmokeConfirmationsRedesigned('Send Redesign Complete Flow'), () => {
     jest.setTimeout(150000);
   });
 
-  it('completes full send flow with USDC on Linea', async () => {
+  it('completes full send flow with USDC', async () => {
     await withFixtures(
       {
         fixture: (() => {
