@@ -47,7 +47,10 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { TouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 
 interface PerpsTabViewProps {}
 
@@ -163,10 +166,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
+  const coordinatedPress = useCoordinatedPress();
+
+  const memoizedPressHandler = useCallback(() => {
+    coordinatedPress(handleNewTrade);
+  }, [coordinatedPress, handleNewTrade]);
+
   const renderStartTradeCTA = () => (
-    <TouchableOpacity
+    <TouchablePerpsComponent
       style={styles.startTradeCTA}
-      onPress={handleNewTrade}
+      onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
       <View style={styles.startTradeContent}>
@@ -181,7 +190,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchableOpacity>
+    </TouchablePerpsComponent>
   );
 
   const renderOrdersSection = () => {
