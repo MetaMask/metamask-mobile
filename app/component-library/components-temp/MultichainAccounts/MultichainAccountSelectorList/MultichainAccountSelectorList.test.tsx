@@ -38,6 +38,9 @@ jest.mock('../../../../core/Engine', () => ({
         accounts: [],
       }),
     },
+    TokenBalancesController: {
+      updateBalances: jest.fn(),
+    },
   },
 }));
 

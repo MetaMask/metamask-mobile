@@ -139,6 +139,9 @@ jest.mock('../../../../core/Engine', () => ({
         },
       },
     },
+    TokenBalancesController: {
+      updateBalances: jest.fn(),
+    },
   },
 }));
 
