@@ -380,6 +380,7 @@
     "accountState": null,
     "pendingOrders": [],
     "depositInProgress": false,
+    "lastDepositTransactionId": null,
     "lastDepositResult": null,
     "lastWithdrawResult": null,
     "withdrawInProgress": false,
@@ -603,7 +604,7 @@
   },
   "RewardsController": {
     "accounts": {},
-    "lastAuthenticatedAccount": null,
+    "activeAccount": null,
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
