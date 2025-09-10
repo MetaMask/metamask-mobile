@@ -40,11 +40,12 @@ function registerE2EPerpsDeepLinkHandler(): void {
           return;
         }
 
-        // Lazy import to keep bridge tree-shakeable in prod and satisfy ESLint
-        void import(
-          '../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks'
-        ).then((mod) => {
-          const service = mod.PerpsE2EMockService?.getInstance?.();
+        // Lazy require to keep bridge tree-shakeable in prod and avoid ESM import in Jest
+        /* eslint-disable @typescript-eslint/no-require-imports */
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const mod = require('../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks');
+          const service = mod?.PerpsE2EMockService?.getInstance?.();
 
           // Parse path and query
           const withoutScheme = url.replace('e2e://perps/', '');
@@ -68,7 +69,11 @@ function registerE2EPerpsDeepLinkHandler(): void {
             }
             return;
           }
-        });
+        } catch (e) {
+          DevLogger.log('[E2E Bridge] E2E mocks not available');
+        } finally {
+          /* eslint-enable @typescript-eslint/no-require-imports */
+        }
       } catch (err) {
         DevLogger.log('[E2E Bridge] Error handling E2E perps deeplink', err);
       }
