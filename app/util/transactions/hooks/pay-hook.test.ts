@@ -60,7 +60,8 @@ describe('Pay Publish Hook', () => {
   let hook: PayHook;
   let baseMessenger: Messenger<
     BridgeStatusControllerActions,
-    BridgeStatusControllerEvents
+    | BridgeStatusControllerEvents
+    | TransactionControllerUnapprovedTransactionAddedEvent
   >;
   let messengerMock: jest.Mocked<TransactionControllerInitMessenger>;
 
@@ -102,8 +103,8 @@ describe('Pay Publish Hook', () => {
 
     baseMessenger = new Messenger<
       BridgeStatusControllerActions,
-      | TransactionControllerUnapprovedTransactionAddedEvent
       | BridgeStatusControllerStateChangeEvent
+      | TransactionControllerUnapprovedTransactionAddedEvent
     >();
 
     baseMessenger.registerActionHandler(
