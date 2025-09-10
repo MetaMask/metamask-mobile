@@ -99,6 +99,8 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
       accountName: 'test@example.com',
     }),
     resetOauthState: jest.fn(),
+    getIsOAuthLoginAttempted: jest.fn().mockReturnValue(false),
+    setOAuthLoginAttempted: jest.fn(),
     localState: {
       isOAuthLoginAttempted: false,
       loginInProgress: false,
@@ -1134,7 +1136,6 @@ describe('Onboarding', () => {
       });
 
       expect(mockEnable).toHaveBeenCalledWith();
-      expect(mockOAuthService.localState.isOAuthLoginAttempted).toBe(true);
     });
   });
 
@@ -1146,17 +1147,17 @@ describe('Onboarding', () => {
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-      mockOAuthService.localState.isOAuthLoginAttempted = false;
+      mockOAuthService.getIsOAuthLoginAttempted.mockReturnValue(false);
     });
 
     afterEach(() => {
       jest.clearAllMocks();
       mockSeedlessOnboardingEnabled.mockReset();
-      mockOAuthService.localState.isOAuthLoginAttempted = false;
+      mockOAuthService.getIsOAuthLoginAttempted.mockReturnValue(false);
     });
 
     it('should disable metrics when OAuth user creates wallet', async () => {
-      mockOAuthService.localState.isOAuthLoginAttempted = true;
+      mockOAuthService.getIsOAuthLoginAttempted.mockReturnValue(true);
       mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
@@ -1178,7 +1179,7 @@ describe('Onboarding', () => {
     });
 
     it('should disable metrics when OAuth user imports wallet', async () => {
-      mockOAuthService.localState.isOAuthLoginAttempted = true;
+      mockOAuthService.getIsOAuthLoginAttempted.mockReturnValue(true);
       mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
@@ -1200,7 +1201,7 @@ describe('Onboarding', () => {
     });
 
     it('should not disable metrics when non-OAuth user creates wallet', async () => {
-      mockOAuthService.localState.isOAuthLoginAttempted = false;
+      mockOAuthService.getIsOAuthLoginAttempted.mockReturnValue(false);
       mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
@@ -1222,7 +1223,7 @@ describe('Onboarding', () => {
     });
 
     it('should not disable metrics when non-OAuth user imports wallet', async () => {
-      mockOAuthService.localState.isOAuthLoginAttempted = false;
+      mockOAuthService.getIsOAuthLoginAttempted.mockReturnValue(false);
       mockEnable.mockClear();
 
       const { getByTestId } = renderScreen(
