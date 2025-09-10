@@ -59,12 +59,6 @@ jobs:
             if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
               echo "NEEDS_E2E=false" >> "$GITHUB_OUTPUT"
               echo "-> Skipping E2E tests due to 'skip-e2e' tag"
-
-            # Skip E2E only if ALL changed files are in non_e2e_related_files filter
-            elif [[ "${{ steps.changes.outputs.non_e2e_related_files_count }}" == "${{ steps.changes.outputs.all_changes_count }}" ]]; then
-              echo "NEEDS_E2E=false" >> "$GITHUB_OUTPUT"
-              echo "-> Skipping E2E tests - only non_e2e_related_files changes found"
-
             else
               echo "-> E2E tests needed"
             fi
