@@ -1445,45 +1445,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(learnMoreCheckbox).toBeOnTheScreen();
     });
 
-    it('error message is shown when passcode is not set', async () => {
-      const { getByText, getByPlaceholderText, getByTestId } =
-        await renderCreatePasswordUI();
-
-      const passwordInput = getByPlaceholderText(
-        strings('import_from_seed.enter_strong_password'),
-      );
-      const confirmPasswordInput = getByPlaceholderText(
-        strings('import_from_seed.re_enter_password'),
-      );
-
-      // Enter valid passwords
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'StrongPass123!');
-        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      });
-
-      // Check learn more checkbox
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      fireEvent.press(learnMoreCheckbox);
-
-      // Mock Authentication.newWalletAndRestore to throw passcode error
-      jest
-        .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(new Error('Error: Passcode not set.'));
-
-      // Try to import
-      const confirmButton = getByText(
-        strings('import_from_seed.create_password_cta'),
-      );
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(getByText('Unlock with Face ID?')).toBeOnTheScreen();
-      });
-    });
-
     it('Import seed phrase with optin metrics flow', async () => {
       mockIsEnabled.mockReturnValue(false);
       const { getByTestId, getByPlaceholderText } =
@@ -1567,7 +1528,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         1,
         true,
-        false,
+        true,
       );
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         2,
@@ -1624,7 +1585,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         1,
         true,
-        false,
+        true,
       );
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         2,

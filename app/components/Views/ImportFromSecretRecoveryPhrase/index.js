@@ -142,8 +142,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState();
   const [biometryType, setBiometryType] = useState(null);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [biometryChoice, setBiometryChoice] = useState(true);
+  const [, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
@@ -466,20 +465,6 @@ const ImportFromSecretRecoveryPhrase = ({
     current && current.focus();
   };
 
-  const renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMe) => {
-      setRememberMe(rememberMe);
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
-
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
   const handlePaste = useCallback(async () => {
@@ -602,8 +587,8 @@ const ImportFromSecretRecoveryPhrase = ({
           },
         });
         const authData = await Authentication.componentAuthenticationType(
-          biometryChoice,
-          rememberMe,
+          true,
+          true,
         );
 
         try {
@@ -1146,7 +1131,6 @@ const ImportFromSecretRecoveryPhrase = ({
             </View>
 
             <View style={styles.createPasswordCtaContainer}>
-              {renderSwitch()}
               <Button
                 loading={loading}
                 width={ButtonWidthTypes.Full}
