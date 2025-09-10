@@ -111,7 +111,6 @@ import {
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import FOX_LOGO from '../../../images/branding/fox.png';
-import { setupSentry } from '../../../util/sentry/utils';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -132,7 +131,7 @@ interface LoginProps {
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [disabledInput, setDisabledInput] = useState(false);
-  const { isEnabled: isMetricsEnabled, enable } = useMetrics();
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -577,10 +576,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       if (oauthLoginSuccess) {
-        if (!isMetricsEnabled()) {
-          await enable();
-        }
-        await setupSentry();
         await navigateToHome();
       } else {
         await checkMetricsUISeen();

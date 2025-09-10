@@ -62,6 +62,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
+import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 
 const createStyles = (colors) =>
@@ -392,10 +393,16 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressCreate = () => {
+  onPressCreate = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    if (OAuthLoginService.localState.isOAuthLoginAttempted) {
+      // Disable metrics
+      await this.props.metrics.enable(false);
+      OAuthLoginService.localState.isOAuthLoginAttempted = false;
+    }
+
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       trace({
@@ -417,9 +424,14 @@ class Onboarding extends PureComponent {
     endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
-  onPressImport = () => {
+  onPressImport = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
+    }
+    if (OAuthLoginService.localState.isOAuthLoginAttempted) {
+      // Disable metrics for OAuth users
+      await this.props.metrics.enable(false);
+      OAuthLoginService.localState.isOAuthLoginAttempted = false;
     }
     const action = async () => {
       trace({
@@ -528,6 +540,11 @@ class Onboarding extends PureComponent {
 
     // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
+
+    // Enable metrics for OAuth users
+    await this.props.metrics.enable();
+    await setupSentry();
+    OAuthLoginService.localState.isOAuthLoginAttempted = true;
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {

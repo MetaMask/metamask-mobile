@@ -85,7 +85,6 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { setupSentry } from '../../../util/sentry/utils';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 
 const createStyles = (colors) =>
@@ -494,11 +493,8 @@ class ChoosePassword extends PureComponent {
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
-        const { metrics, setDataCollectionForMarketing } = this.props;
 
-        await metrics.enable();
-        await setupSentry();
-        setDataCollectionForMarketing(this.state.isSelected);
+        this.props.setDataCollectionForMarketing(this.state.isSelected);
 
         this.props.navigation.reset({
           index: 0,

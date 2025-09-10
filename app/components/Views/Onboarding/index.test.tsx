@@ -38,9 +38,13 @@ jest.mock('@react-native-community/netinfo', () => ({
   },
 }));
 
-import NetInfo, { NetInfoStateType } from '@react-native-community/netinfo';
+import { fetch as netInfoFetch } from '@react-native-community/netinfo';
+jest.mock('@react-native-community/netinfo', () => ({
+  fetch: jest.fn(),
+  addEventListener: jest.fn(),
+}));
 
-const mockNetInfoFetch = NetInfo.fetch as jest.Mock;
+const mockNetInfoFetch = netInfoFetch as jest.Mock;
 
 const mockInitialState = {
   engine: {
@@ -93,6 +97,12 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
     accountName: 'test@example.com',
   }),
   resetOauthState: jest.fn(),
+  localState: {
+    isOAuthLoginAttempted: false,
+    loginInProgress: false,
+    oauthLoginSuccess: false,
+    oauthLoginError: null,
+  },
 }));
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -116,12 +126,47 @@ jest.mock('../../../util/trace', () => ({
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
 const mockTrackEvent = jest.fn();
+const mockEnable = jest.fn();
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+});
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
     trackEvent: mockTrackEvent,
+    enable: mockEnable,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+interface EventBuilder {
+  addProperties: () => EventBuilder;
+  build: () => Record<string, unknown>;
+}
+
+interface MetricsProps {
+  metrics: {
+    isEnabled: () => boolean;
+    trackEvent: (...args: unknown[]) => void;
+    enable: (...args: unknown[]) => void;
+    createEventBuilder: () => EventBuilder;
+  };
+}
+
+jest.mock('../../hooks/useMetrics/withMetricsAwareness', () => <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
+    (props: P) =>
+      (
+        <Component
+          {...props}
+          metrics={{
+            isEnabled: mockMetricsIsEnabled,
+            trackEvent: mockTrackEvent,
+            enable: mockEnable,
+            createEventBuilder: mockCreateEventBuilder,
+          }}
+        />
+      ));
 
 const mockSeedlessOnboardingEnabled = jest.fn();
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
@@ -186,6 +231,8 @@ jest
 describe('Onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnable.mockClear();
+    mockCreateEventBuilder.mockClear();
 
     jest.spyOn(BackHandler, 'addEventListener').mockImplementation(() => ({
       remove: jest.fn(),
@@ -376,7 +423,7 @@ describe('Onboarding', () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
       mockNetInfoFetch.mockResolvedValue({
-        type: NetInfoStateType.none,
+        type: 'none',
         isConnected: false,
         isInternetReachable: false,
         details: null,
@@ -1064,6 +1111,10 @@ describe('Onboarding', () => {
 
     it('should trigger ErrorBoundary for OAuth login failures when analytics disabled', async () => {
       mockMetricsIsEnabled.mockReturnValueOnce(false);
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({ name: 'Error Screen Viewed' }),
+      });
       const serverError = new OAuthError('', OAuthErrorType.AuthServerError);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(serverError);

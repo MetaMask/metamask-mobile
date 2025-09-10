@@ -39,6 +39,7 @@ interface OAuthServiceLocalState {
   loginInProgress: boolean;
   oauthLoginSuccess: boolean;
   oauthLoginError: string | null;
+  isOAuthLoginAttempted: boolean;
 }
 export class OAuthService {
   public localState: OAuthServiceLocalState;
@@ -53,6 +54,7 @@ export class OAuthService {
       accountName: undefined,
       oauthLoginSuccess: false,
       oauthLoginError: null,
+      isOAuthLoginAttempted: false,
     };
     this.config = {
       authConnectionConfig,
@@ -63,7 +65,10 @@ export class OAuthService {
 
   #dispatchLogin = () => {
     this.resetOauthState();
-    this.updateLocalState({ loginInProgress: true });
+    this.updateLocalState({
+      loginInProgress: true,
+      isOAuthLoginAttempted: true,
+    });
   };
 
   #dispatchPostLogin = (result: HandleOAuthLoginResult) => {
