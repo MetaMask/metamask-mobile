@@ -4,6 +4,15 @@ import { MultichainAccountWallet } from '@metamask/multichain-account-service';
 import Engine from '../core/Engine';
 import { trace, TraceOperation, TraceName } from '../util/trace';
 
+/**
+ * Discover and create accounts.
+ *
+ * This function is wrapped by {@link discoverAndCreateAccounts} to add tracing
+ * and should not be called directly.
+ *
+ * @param entropySource - Entropy source ID to use for account discovery
+ * @returns The number of discovered and created accounts.
+ */
 async function _discoverAndCreateAccounts(
   entropySource: EntropySourceId,
 ): Promise<number> {
@@ -25,6 +34,12 @@ async function _discoverAndCreateAccounts(
   return Object.values(result).reduce((acc, discovered) => acc + discovered, 0);
 }
 
+/**
+ * Discover and create accounts.
+ *
+ * @param entropySource - Entropy source ID to use for account discovery
+ * @returns The number of discovered and created accounts.
+ */
 export async function discoverAndCreateAccounts(
   entropySource: EntropySourceId,
 ): Promise<number> {
