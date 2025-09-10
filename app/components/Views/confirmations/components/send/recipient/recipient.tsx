@@ -133,6 +133,7 @@ export const Recipient = () => {
         <Box twClassName="flex-1">
           <RecipientInput
             isRecipientSelectedFromList={isRecipientSelectedFromList}
+            setIsRecipientSelectedFromList={setIsRecipientSelectedFromList}
             setPastedRecipient={setPastedRecipient}
           />
           <ScrollView>

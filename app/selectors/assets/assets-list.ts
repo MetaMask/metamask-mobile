@@ -2,6 +2,7 @@ import {
   Asset,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
+  TokenListState,
 } from '@metamask/assets-controllers';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
@@ -231,12 +232,14 @@ export const selectAsset = createDeepEqualSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
+    (state: RootState) =>
+      state.engine.backgroundState.TokenListController.tokensChainsCache,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
     ) => params,
   ],
-  (assets, stakedAssets, { address, chainId, isStaked }) => {
+  (assets, stakedAssets, tokensChainsCache, { address, chainId, isStaked }) => {
     const asset = isStaked
       ? stakedAssets.find(
           (item) =>
@@ -247,7 +250,7 @@ export const selectAsset = createDeepEqualSelector(
             item.assetId === address && item.isStaked === isStaked,
         );
 
-    return asset ? assetToToken(asset) : undefined;
+    return asset ? assetToToken(asset, tokensChainsCache) : undefined;
   },
 );
 
@@ -255,10 +258,16 @@ const oneHundredThousandths = 0.00001;
 const oneHundredths = 0.01;
 
 // BIP44 MAINTENANCE: Review what fields are really needed
-function assetToToken(asset: Asset & { isStaked?: boolean }): TokenI {
+function assetToToken(
+  asset: Asset & { isStaked?: boolean },
+  tokensChainsCache: TokenListState['tokensChainsCache'],
+): TokenI {
   return {
     address: asset.assetId,
-    aggregators: [],
+    aggregators:
+      ('address' in asset &&
+        tokensChainsCache[asset.chainId]?.data[asset.address]?.aggregators) ||
+      [],
     decimals: asset.decimals,
     image: asset.image,
     name: asset.name,

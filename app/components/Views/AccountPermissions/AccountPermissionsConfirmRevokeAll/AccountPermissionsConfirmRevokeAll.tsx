@@ -52,7 +52,7 @@ const AccountPermissionsConfirmRevokeAll = (
   const revokeAllAccounts = useCallback(async () => {
     try {
       if (onRevokeAll) {
-        onRevokeAll();
+        await onRevokeAll();
       } else {
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,

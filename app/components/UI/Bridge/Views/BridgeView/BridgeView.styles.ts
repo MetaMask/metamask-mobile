@@ -82,5 +82,8 @@ export const createStyles = (params: { theme: Theme }) => {
     scrollViewContent: {
       flexGrow: 1,
     },
+    disclaimerText: {
+      textAlign: 'center',
+    },
   });
 };
