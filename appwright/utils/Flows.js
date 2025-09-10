@@ -160,10 +160,16 @@ export async function login(device, scenarioType) {
   await dismissSystemDialogs(device);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
-  console.log('No perps onboarding!');
-  // const button = await AppwrightSelectors.getElementByID(
-  //   device,
-  //   PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
-  // );
-  // await button.tap();
+  // Only skip perps onboarding on Android devices
+  if (!AppwrightSelectors.isIOS(device)) {
+    console.log('Skipping perps onboarding skip - not an iOS device');
+    return;
+  }
+
+  // console.log('No perps onboarding! (Android only)');
+  const button = await AppwrightSelectors.getElementByID(
+    device,
+    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+  );
+  await button.tap();
 }
