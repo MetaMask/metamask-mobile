@@ -39,6 +39,12 @@ export const useActivePointsBoosts = (): void => {
       return;
     }
 
+    // Skip fetch if already loading (prevents duplicate requests)
+    if (isLoadingRef.current) {
+      Logger.log('useActivePointsBoosts: Fetch already in progress, skipping');
+      return;
+    }
+
     try {
       isLoadingRef.current = true;
       dispatch(setActiveBoostsLoading(true));
