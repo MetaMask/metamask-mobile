@@ -1859,7 +1859,7 @@ export class Engine {
     let totalEthFiat1dAgo = 0;
     let totalTokenFiat = 0;
     let totalTokenFiat1dAgo = 0;
-    let aggregatedNativeTokenBalance = '';
+    let aggregatedNativeTokenBalance = '0';
     let primaryTicker = '';
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
