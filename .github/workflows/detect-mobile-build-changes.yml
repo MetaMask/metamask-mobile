@@ -77,37 +77,37 @@ jobs:
 
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback
+          list-files: 'shell'  # Output lists for comparison
 
       - name: Set final outputs
         id: set-outputs
         run: |
-          # Get individual filter results
+          # Get filter results
           android="${{ steps.filter.outputs.android }}"
           ios="${{ steps.filter.outputs.ios }}"
           shared="${{ steps.filter.outputs.shared }}"
           ignore="${{ steps.filter.outputs.ignore }}"
           catch_all="${{ steps.filter.outputs.catch_all }}"
-          
-          # State Machine for Build Decisions:
-          # 1. Purely ignored changes -> Skip both
-          # 2. Shared changes -> Build both
-          # 3. Android-only changes -> Android only
-          # 4. iOS-only changes -> iOS only
-          # 5. Unmatched/new files -> Conservative (Build both)
-          # 6. Ignore + new/unmatched files -> Build both (conservative)
 
-          # Determine state
-          if [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$catch_all" == "$ignore" ]]; then
-            state="PURE_IGNORE"
-          elif [[ "$shared" == 'true' ]]; then
+          # Get lists of files
+          ignore_files="${{ steps.filter.outputs.ignore_files }}"
+          catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
+
+          # State Machine
+          if [[ "$shared" == 'true' ]]; then
             state="SHARED"
           elif [[ "$android" == 'true' && "$ios" != 'true' ]]; then
             state="ANDROID_ONLY"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
             state="IOS_ONLY"
-          elif [[ "$ignore" == 'true' ]]; then
-            state="IGNORE_WITH_NEW"
+          elif [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$ignore_files" == "$catch_all_files" ]]; then
+            state="PURE_IGNORE"
           else
+            state="CONSERVATIVE"
+          fi
+
+          # Handle the case for ignore + new files separately if needed
+          if [[ "$state" == "PURE_IGNORE" && "$ignore_files" != "$catch_all_files" ]]; then
             state="CONSERVATIVE"
           fi
 
@@ -130,11 +130,6 @@ jobs:
             "IOS_ONLY")
               echo "Building iOS only"
               android_final="false"
-              ios_final="true"
-              ;;
-            "IGNORE_WITH_NEW")
-              echo "Building both platforms (ignore + new files)"
-              android_final="true"
               ios_final="true"
               ;;
             "CONSERVATIVE")
