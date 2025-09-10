@@ -14,10 +14,7 @@ import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
 import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import {
-  selectTokenNetworkFilter,
-  selectTokenSortConfig,
-} from '../preferencesController';
+import { selectTokenSortConfig } from '../preferencesController';
 import { createDeepEqualSelector } from '../util';
 import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
 import {
@@ -171,28 +168,13 @@ const selectStakedAssets = createDeepEqualSelector(
 );
 
 const selectEnabledNetworks = createDeepEqualSelector(
-  [selectEnabledNetworksByNamespace, selectTokenNetworkFilter],
-  (enabledNetworksByNamespace, tokenNetworkFilter) => {
-    // tokenNetworkFilter is only used when a single network is selected, as it does not mix evm and non-evm networks
-    const networkFilterEnabledNetworks = Object.entries(tokenNetworkFilter)
-      .filter(([_, enabled]) => enabled)
-      .map(([networkId]) => networkId);
-
-    if (networkFilterEnabledNetworks.length === 1) {
-      return networkFilterEnabledNetworks;
-    }
-
-    // If there's more than one network selected, all enabled networks should be used
-    const allEnabledNetworks = Object.values(
-      enabledNetworksByNamespace,
-    ).flatMap((network) =>
+  [selectEnabledNetworksByNamespace],
+  (enabledNetworksByNamespace) =>
+    Object.values(enabledNetworksByNamespace).flatMap((network) =>
       Object.entries(network)
         .filter(([_, enabled]) => enabled)
         .map(([networkId]) => networkId),
-    );
-
-    return allEnabledNetworks;
-  },
+    ),
 );
 
 export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(

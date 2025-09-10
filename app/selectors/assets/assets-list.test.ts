@@ -320,11 +320,13 @@ const mockState = ({
         NetworkEnablementController: {
           enabledNetworkMap: {
             [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0xa': true,
+              '0x1': !filterNetwork || filterNetwork === '0x1',
+              '0xa': !filterNetwork || filterNetwork === '0xa',
             },
             [KnownCaipNamespace.Solana]: {
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp':
+                !filterNetwork ||
+                filterNetwork === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
           },
         },
@@ -334,9 +336,6 @@ const mockState = ({
             order: 'dsc',
             sortCallback: 'stringNumeric',
           },
-          tokenNetworkFilter: filterNetwork
-            ? { [filterNetwork]: true }
-            : { '0x1': true, '0xa': true },
         },
       },
     },
