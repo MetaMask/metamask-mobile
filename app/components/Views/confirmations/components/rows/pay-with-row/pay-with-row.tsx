@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback } from 'react';
+import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
@@ -50,14 +50,14 @@ export function PayWithRow() {
     });
   }, [canEdit, navigation, totalFiat]);
 
+  const tokenBalance = useMemo(
+    () => formatAmount(I18n.locale, new BigNumber(payToken?.balance ?? '0')),
+    [payToken?.balance],
+  );
+
   if (!payToken) {
     return <PayWithRowSkeleton />;
   }
-
-  const tokenBalance = formatAmount(
-    I18n.locale,
-    new BigNumber(payToken.balance ?? '0'),
-  );
 
   return (
     <TouchableOpacity onPress={handleClick} disabled={!canEdit}>

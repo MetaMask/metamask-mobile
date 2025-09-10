@@ -12,6 +12,7 @@ import { BigNumber } from 'bignumber.js';
 import { usePerpsDepositInit } from './usePerpsDepositInit';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from '../../../hooks/pay/useTransactionPayTokenAmounts';
+import { useMemo } from 'react';
 
 export function usePerpsDepositView({
   isKeyboardVisible,
@@ -25,7 +26,10 @@ export function usePerpsDepositView({
   const { payToken } = useTransactionPayToken();
   const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
 
-  const amountValue = new BigNumber(amountUnformatted ?? '0');
+  const amountValue = useMemo(
+    () => new BigNumber(amountUnformatted ?? '0'),
+    [amountUnformatted],
+  );
 
   const quotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
