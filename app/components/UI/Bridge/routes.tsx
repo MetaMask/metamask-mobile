@@ -28,7 +28,7 @@ export const BridgeScreenStack = () => (
   </Stack.Navigator>
 );
 
-export const BridgeStack = () => (
+export const BridgeModalStack = () => (
   <Stack.Navigator
     screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >

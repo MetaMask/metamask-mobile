@@ -47,7 +47,7 @@ const StakeScreenStack = () => (
 );
 
 // Modal Stack for Modals
-const StakeStack = () => (
+const StakeModalStack = () => (
   <StakeSDKProvider>
     <Stack.Navigator
       screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
@@ -76,4 +76,4 @@ const StakeStack = () => (
   </StakeSDKProvider>
 );
 
-export { StakeScreenStack, StakeStack };
+export { StakeScreenStack, StakeModalStack };

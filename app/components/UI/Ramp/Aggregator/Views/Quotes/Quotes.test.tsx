@@ -320,10 +320,10 @@ describe('Quotes', () => {
       [
         "ONRAMP_QUOTES_EXPANDED",
         {
-          "amount": 50,
+          "amount": undefined,
           "chain_id_destination": "1",
-          "currency_destination": "ETH",
-          "currency_source": "USD",
+          "currency_destination": undefined,
+          "currency_source": undefined,
           "payment_method_id": "/payment-methods/test-payment-method",
           "previously_used_count": 0,
           "provider_onramp_first": "Banxa (Staging)",
@@ -513,18 +513,18 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
       expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
-        "ONRAMP_DIRECT_PROVIDER_CLICKED",
-        {
-          "chain_id_destination": "1",
-          "currency_destination": undefined,
-          "currency_source": "USD",
-          "payment_method_id": "/payment-methods/test-payment-method",
-          "provider_onramp": "Paypal (Staging)",
-          "region": "mock-region-id",
-        },
-      ]
-    `);
+              [
+                "ONRAMP_DIRECT_PROVIDER_CLICKED",
+                {
+                  "chain_id_destination": "1",
+                  "currency_destination": undefined,
+                  "currency_source": "USD",
+                  "payment_method_id": "/payment-methods/test-payment-method",
+                  "provider_onramp": "Paypal (Staging)",
+                  "region": "mock-region-id",
+                },
+              ]
+          `);
     });
 
     it('calls the correct analytics event for sell custom action', async () => {
@@ -536,18 +536,18 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
       expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
-        "OFFRAMP_DIRECT_PROVIDER_CLICKED",
-        {
-          "chain_id_source": "1",
-          "currency_destination": "USD",
-          "currency_source": undefined,
-          "payment_method_id": "/payment-methods/test-payment-method",
-          "provider_offramp": "Paypal (Staging)",
-          "region": "mock-region-id",
-        },
-      ]
-    `);
+              [
+                "OFFRAMP_DIRECT_PROVIDER_CLICKED",
+                {
+                  "chain_id_source": "1",
+                  "currency_destination": "USD",
+                  "currency_source": undefined,
+                  "payment_method_id": "/payment-methods/test-payment-method",
+                  "provider_offramp": "Paypal (Staging)",
+                  "region": "mock-region-id",
+                },
+              ]
+          `);
     });
 
     it('calls the correct sdk method for buy custom action', async () => {
@@ -646,11 +646,11 @@ describe('Quotes', () => {
       [
         "ONRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": undefined,
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
-          "currency_destination": "ETH",
-          "currency_source": "USD",
+          "currency_destination": undefined,
+          "currency_source": undefined,
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
           "is_best_rate": true,
@@ -679,10 +679,10 @@ describe('Quotes', () => {
       [
         "OFFRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": undefined,
           "chain_id_source": "1",
-          "currency_destination": "USD",
-          "currency_source": "ETH",
+          "currency_destination": undefined,
+          "currency_source": undefined,
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
@@ -718,11 +718,11 @@ describe('Quotes', () => {
       [
         "ONRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": undefined,
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
-          "currency_destination": "ETH",
-          "currency_source": "USD",
+          "currency_destination": undefined,
+          "currency_source": undefined,
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
           "is_best_rate": true,
@@ -751,10 +751,10 @@ describe('Quotes', () => {
       [
         "OFFRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": undefined,
           "chain_id_source": "1",
-          "currency_destination": "USD",
-          "currency_source": "ETH",
+          "currency_destination": undefined,
+          "currency_source": undefined,
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
@@ -865,15 +865,15 @@ describe('Quotes', () => {
         [
           "ONRAMP_QUOTES_RECEIVED",
           {
-            "amount": 50,
+            "amount": undefined,
             "average_crypto_out": 0.016416043333333335,
             "average_gas_fee": 1.0466666666666666,
             "average_processing_fee": 2.89,
             "average_total_fee": 3.936666666666667,
             "average_total_fee_of_amount": 382.4978079068538,
             "chain_id_destination": "1",
-            "currency_destination": "ETH",
-            "currency_source": "USD",
+            "currency_destination": undefined,
+            "currency_source": undefined,
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_onramp_best_price": "Banxa (Staging)",
             "provider_onramp_first": "Banxa (Staging)",
@@ -919,15 +919,15 @@ describe('Quotes', () => {
         [
           "OFFRAMP_QUOTES_RECEIVED",
           {
-            "amount": 50,
+            "amount": undefined,
             "average_fiat_out": 0.016416043333333335,
             "average_gas_fee": 1.0466666666666666,
             "average_processing_fee": 2.89,
             "average_total_fee": 3.936666666666667,
             "average_total_fee_of_amount": 382.4978079068538,
             "chain_id_source": "1",
-            "currency_destination": "USD",
-            "currency_source": "ETH",
+            "currency_destination": undefined,
+            "currency_source": undefined,
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_offramp_best_price": "Banxa (Staging)",
             "provider_offramp_first": "Banxa (Staging)",

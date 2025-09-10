@@ -20,33 +20,191 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  PaymentMethodSelectorModal
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -54,49 +212,62 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -105,266 +276,75 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                PaymentMethodSelectorModal
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
                     <View
-                      onLayout={[Function]}
                       style={
-                        [
-                          {
-                            "bottom": 0,
-                            "justifyContent": "flex-end",
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
+                        {
+                          "flex": 1,
+                        }
                       }
                     >
-                      <View
-                        style={
-                          [
-                            {
-                              "backgroundColor": "#3f434a66",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          style={
-                            {
-                              "flex": 1,
-                            }
-                          }
-                        />
-                      </View>
                       <View
                         onLayout={[Function]}
                         style={
                           [
                             {
                               "bottom": 0,
+                              "justifyContent": "flex-end",
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "top": 0,
                             },
                             {
                               "paddingBottom": 0,
@@ -373,514 +353,529 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                         }
                       >
                         <View
-                          collapsable={false}
-                          enabled={true}
-                          handlerTag={-1}
-                          handlerType="PanGestureHandler"
-                          onGestureHandlerEvent={[Function]}
-                          onGestureHandlerStateChange={[Function]}
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#3f434a66",
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                              },
+                              {
+                                "opacity": 0,
+                              },
+                            ]
+                          }
+                        >
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          />
+                        </View>
+                        <View
                           onLayout={[Function]}
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
-                                "borderWidth": 1,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
                               },
                               {
-                                "transform": [
-                                  {
-                                    "translateY": 1334,
-                                  },
-                                ],
+                                "paddingBottom": 0,
                               },
                             ]
                           }
                         >
                           <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
+                            collapsable={false}
+                            enabled={true}
+                            handlerTag={-1}
+                            handlerType="PanGestureHandler"
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
+                            onLayout={[Function]}
                             style={
                               [
                                 {
                                   "backgroundColor": "#ffffff",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "padding": 16,
+                                  "borderColor": "#b7bbc866",
+                                  "borderTopLeftRadius": 24,
+                                  "borderTopRightRadius": 24,
+                                  "borderWidth": 1,
+                                  "maxHeight": 1334,
+                                  "overflow": "hidden",
+                                  "paddingBottom": 0,
+                                  "shadowColor": "#0000001a",
+                                  "shadowOffset": {
+                                    "height": 2,
+                                    "width": 0,
+                                  },
+                                  "shadowOpacity": 1,
+                                  "shadowRadius": 40,
                                 },
-                                false,
+                                {
+                                  "transform": [
+                                    {
+                                      "translateY": 1334,
+                                    },
+                                  ],
+                                },
                               ]
                             }
-                            testID="header"
                           >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
-                              <View
-                                onLayout={[Function]}
-                              />
-                            </View>
                             <View
                               style={
                                 {
                                   "alignItems": "center",
-                                  "flex": 1,
+                                  "alignSelf": "stretch",
+                                  "padding": 4,
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 18,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "backgroundColor": "#b7bbc866",
+                                    "borderRadius": 2,
+                                    "height": 4,
+                                    "width": 40,
                                   }
                                 }
-                              >
-                                Select a Payment Method
-                              </Text>
+                              />
                             </View>
                             <View
                               style={
-                                {
-                                  "width": undefined,
-                                }
+                                [
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "padding": 16,
+                                  },
+                                  false,
+                                ]
                               }
+                              testID="header"
                             >
                               <View
-                                onLayout={[Function]}
-                              >
-                                <TouchableOpacity
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
+                                style={
+                                  {
+                                    "width": undefined,
                                   }
-                                >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Close"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
-                                    }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                />
                               </View>
-                            </View>
-                          </View>
-                          <RCTScrollView
-                            collapsable={false}
-                            data={
-                              [
-                                {
-                                  "duration": "instant",
-                                  "icon": "Card",
-                                  "id": "credit_debit_card",
-                                  "name": "Debit or Credit",
-                                },
-                                {
-                                  "duration": "instant",
-                                  "icon": "Apple",
-                                  "iconColor": {
-                                    "dark": "#FFFFFF",
-                                    "light": "#000000",
-                                  },
-                                  "id": "apple_pay",
-                                  "name": "Apple Pay",
-                                },
-                              ]
-                            }
-                            extraData="credit_debit_card"
-                            getItem={[Function]}
-                            getItemCount={[Function]}
-                            handlerTag={-1}
-                            handlerType="NativeViewGestureHandler"
-                            keyExtractor={[Function]}
-                            keyboardDismissMode="none"
-                            keyboardShouldPersistTaps="always"
-                            onContentSizeChange={[Function]}
-                            onGestureHandlerEvent={[Function]}
-                            onGestureHandlerStateChange={[Function]}
-                            onLayout={[Function]}
-                            onMomentumScrollBegin={[Function]}
-                            onMomentumScrollEnd={[Function]}
-                            onScroll={[Function]}
-                            onScrollBeginDrag={[Function]}
-                            onScrollEndDrag={[Function]}
-                            removeClippedSubviews={false}
-                            renderItem={[Function]}
-                            renderScrollComponent={[Function]}
-                            scrollEventThrottle={0.0001}
-                            stickyHeaderIndices={[]}
-                            style={
-                              {
-                                "maxHeight": 533.6,
-                              }
-                            }
-                            viewabilityConfigCallbackPairs={[]}
-                          >
-                            <View>
                               <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                  }
+                                }
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 18,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <View
-                                    accessibilityRole="none"
+                                  Select a Payment Method
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                >
+                                  <TouchableOpacity
                                     accessible={true}
+                                    activeOpacity={1}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "alignItems": "center",
+                                        "borderRadius": 8,
+                                        "height": 24,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 24,
                                       }
                                     }
                                   >
-                                    <View
+                                    <SvgMock
+                                      color="#121314"
+                                      fill="currentColor"
+                                      height={16}
+                                      name="Close"
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "height": 16,
+                                          "width": 16,
                                         }
                                       }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": -1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "backgroundColor": "#4459ff1a",
-                                              "borderRadius": 8,
-                                              "height": 32,
-                                              "justifyContent": "center",
-                                              "width": 32,
-                                            }
-                                          }
-                                        >
-                                          <SvgMock
-                                            color="#4459ff"
-                                            fill="currentColor"
-                                            height={20}
-                                            name="Card"
-                                            style={
-                                              {
-                                                "height": 20,
-                                                "width": 20,
-                                              }
-                                            }
-                                            width={20}
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 18,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                        >
-                                          Debit or Credit
-                                        </Text>
-                                      </View>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": -1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                        >
-                                          Instant
-                                        </Text>
-                                      </View>
-                                    </View>
-                                  </View>
-                                  <View
-                                    accessibilityRole="checkbox"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "backgroundColor": "#4459ff1a",
-                                        "bottom": 0,
-                                        "flexDirection": "row",
-                                        "left": 0,
-                                        "position": "absolute",
-                                        "right": 0,
-                                        "top": 0,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#4459ff",
-                                          "borderRadius": 2,
-                                          "marginLeft": 4,
-                                          "marginVertical": 4,
-                                          "width": 4,
-                                        }
-                                      }
+                                      width={16}
                                     />
-                                  </View>
-                                </TouchableOpacity>
+                                  </TouchableOpacity>
+                                </View>
                               </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "borderRadius": 4,
-                                      "opacity": 1,
-                                      "position": "relative",
-                                    }
-                                  }
+                            </View>
+                            <RCTScrollView
+                              collapsable={false}
+                              data={
+                                [
+                                  {
+                                    "duration": "instant",
+                                    "icon": "Card",
+                                    "id": "credit_debit_card",
+                                    "name": "Debit or Credit",
+                                  },
+                                  {
+                                    "duration": "instant",
+                                    "icon": "Apple",
+                                    "iconColor": {
+                                      "dark": "#FFFFFF",
+                                      "light": "#000000",
+                                    },
+                                    "id": "apple_pay",
+                                    "name": "Apple Pay",
+                                  },
+                                ]
+                              }
+                              getItem={[Function]}
+                              getItemCount={[Function]}
+                              handlerTag={-1}
+                              handlerType="NativeViewGestureHandler"
+                              keyExtractor={[Function]}
+                              keyboardDismissMode="none"
+                              keyboardShouldPersistTaps="always"
+                              onContentSizeChange={[Function]}
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
+                              onLayout={[Function]}
+                              onMomentumScrollBegin={[Function]}
+                              onMomentumScrollEnd={[Function]}
+                              onScroll={[Function]}
+                              onScrollBeginDrag={[Function]}
+                              onScrollEndDrag={[Function]}
+                              removeClippedSubviews={false}
+                              renderItem={[Function]}
+                              renderScrollComponent={[Function]}
+                              scrollEventThrottle={0.0001}
+                              stickyHeaderIndices={[]}
+                              style={
+                                {
+                                  "maxHeight": 533.6,
+                                }
+                              }
+                              viewabilityConfigCallbackPairs={[]}
+                            >
+                              <View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
                                 >
-                                  <View
-                                    accessibilityRole="none"
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
                                     accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
                                     style={
                                       {
-                                        "padding": 16,
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 4,
+                                        "opacity": 1,
+                                        "position": "relative",
                                       }
                                     }
                                   >
                                     <View
+                                      accessibilityRole="none"
+                                      accessible={true}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
+                                          "padding": 16,
                                         }
                                       }
                                     >
                                       <View
                                         style={
                                           {
-                                            "flex": -1,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
                                             {
-                                              "alignItems": "center",
-                                              "backgroundColor": "#4459ff1a",
-                                              "borderRadius": 8,
-                                              "height": 32,
-                                              "justifyContent": "center",
-                                              "width": 32,
+                                              "flex": -1,
                                             }
                                           }
+                                          testID="listitemcolumn"
                                         >
-                                          <SvgMock
-                                            color="#000000"
-                                            fill="currentColor"
-                                            height={20}
-                                            name="Apple"
+                                          <View
                                             style={
                                               {
-                                                "height": 20,
-                                                "width": 20,
+                                                "alignItems": "center",
+                                                "backgroundColor": "#4459ff1a",
+                                                "borderRadius": 8,
+                                                "height": 32,
+                                                "justifyContent": "center",
+                                                "width": 32,
                                               }
                                             }
-                                            width={20}
-                                          />
+                                          >
+                                            <SvgMock
+                                              color="#4459ff"
+                                              fill="currentColor"
+                                              height={20}
+                                              name="Card"
+                                              style={
+                                                {
+                                                  "height": 20,
+                                                  "width": 20,
+                                                }
+                                              }
+                                              width={20}
+                                            />
+                                          </View>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": 1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            Debit or Credit
+                                          </Text>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": -1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            Instant
+                                          </Text>
                                         </View>
                                       </View>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 4,
+                                        "opacity": 1,
+                                        "position": "relative",
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      accessibilityRole="none"
+                                      accessible={true}
+                                      style={
+                                        {
+                                          "padding": 16,
+                                        }
+                                      }
+                                    >
                                       <View
-                                        accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Medium",
-                                              "fontSize": 18,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "flex": -1,
                                             }
                                           }
+                                          testID="listitemcolumn"
                                         >
-                                          Apple Pay
-                                        </Text>
-                                      </View>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": -1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "backgroundColor": "#4459ff1a",
+                                                "borderRadius": 8,
+                                                "height": 32,
+                                                "justifyContent": "center",
+                                                "width": 32,
+                                              }
+                                            }
+                                          >
+                                            <SvgMock
+                                              color="#000000"
+                                              fill="currentColor"
+                                              height={20}
+                                              name="Apple"
+                                              style={
+                                                {
+                                                  "height": 20,
+                                                  "width": 20,
+                                                }
+                                              }
+                                              width={20}
+                                            />
+                                          </View>
+                                        </View>
+                                        <View
+                                          accessible={false}
                                           style={
                                             {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "width": 16,
                                             }
                                           }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": 1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
                                         >
-                                          Instant
-                                        </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Medium",
+                                                "fontSize": 18,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            Apple Pay
+                                          </Text>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": -1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            Instant
+                                          </Text>
+                                        </View>
                                       </View>
                                     </View>
-                                  </View>
-                                </TouchableOpacity>
+                                  </TouchableOpacity>
+                                </View>
                               </View>
-                            </View>
-                          </RCTScrollView>
+                            </RCTScrollView>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -889,9 +884,9 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

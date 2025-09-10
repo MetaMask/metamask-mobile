@@ -31,7 +31,7 @@ const QRTabSwitcher = ({ route }: QRTabSwitcherProps) => {
 
   const {
     onScanError,
-    onScanSuccess = () => {},
+    onScanSuccess,
     onStartScan,
     initialScreen,
     origin,
@@ -85,6 +85,7 @@ const QRTabSwitcher = ({ route }: QRTabSwitcherProps) => {
       {selectedIndex === QRTabSwitcherScreens.Scanner ? (
         <QRScanner
           onScanError={onScanError}
+          // @ts-expect-error - onScanSuccess is optional, handle undefined case
           onScanSuccess={onScanSuccess}
           onStartScan={onStartScan}
           origin={origin}

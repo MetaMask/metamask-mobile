@@ -5,7 +5,6 @@ import UnsupportedStateModal from './UnsupportedStateModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils.ts';
-import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal/StateSelectorModal.tsx';
 import Routes from '../../../../../../../constants/navigation/Routes';
 
 const mockUseDepositSDK = jest.fn();
@@ -82,7 +81,7 @@ describe('UnsupportedStateModal', () => {
       selectedRegion: mockSelectedRegion,
     });
 
-    const { toJSON } = render(UnsupportedStateModal);
+    const { toJSON } = render(UnsupportedStateModal as React.ComponentType);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -92,7 +91,7 @@ describe('UnsupportedStateModal', () => {
       onStateSelect: jest.fn(),
     });
 
-    const { getByText } = render(UnsupportedStateModal);
+    const { getByText } = render(UnsupportedStateModal as React.ComponentType);
 
     const tryAnotherOptionButton = getByText('Try another option');
     fireEvent.press(tryAnotherOptionButton);
@@ -107,7 +106,7 @@ describe('UnsupportedStateModal', () => {
       selectedRegion: mockSelectedRegion,
     });
 
-    const { getByText } = render(UnsupportedStateModal);
+    const { getByText } = render(UnsupportedStateModal as React.ComponentType);
 
     const changeStateButton = getByText('Change region');
     fireEvent.press(changeStateButton);

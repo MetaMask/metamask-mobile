@@ -1,9 +1,6 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ImageSourcePropType } from 'react-native';
-import {
-  NavigatableRootParamList,
-  RootParamList,
-} from '../../../util/navigation';
+import { NavigatableRootParamList } from '../../../util/navigation';
 
 interface SlideImage {
   type: 'image';

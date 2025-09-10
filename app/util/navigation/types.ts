@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-namespace */
 import type {
   IconColor as DSIconColor,
   IconName as DSIconName,
@@ -54,7 +55,7 @@ import { PayWithModalParams } from '../../components/Views/confirmations/compone
 import { PrivateKeyListParams } from '../../components/Views/MultichainAccounts/PrivateKeyList/types';
 import { NftDetailsParams } from '../../components/Views/NftDetails/NftDetails.types';
 import { NftOptionsParams } from '../../components/Views/NftOptions/NftOptions.types';
-import { RestoreWalletParams } from '../../components/Views/RestoreWallet/RestoreWallet.test';
+import { RestoreWalletParams } from '../../components/Views/RestoreWallet/RestoreWallet.types';
 import { DeveloperOptionsParams } from '../../components/Views/Settings/DeveloperOptions/DeveloperOptions.types';
 import { BackupAndSyncSettingsParams } from '../../components/Views/Settings/Identity/BackupAndSyncSettings.types';
 import { SecuritySettingsParams } from '../../components/Views/Settings/SecuritySettings/SecuritySettings.types';
@@ -65,7 +66,7 @@ import { ModalConfirmationParams } from '../../component-library/components/Moda
 import { MandatoryModalParams } from '../../component-library/components/Modals/ModalMandatory/ModalMandatory.types';
 import { BridgeTransactionDetailsParams } from '../../components/UI/Bridge/components/TransactionDetails/TransactionDetails.types';
 import { AccountPermissionsParams } from '../../components/Views/AccountPermissions/AccountPermissions.types';
-import { AccountPermissionsConfirmRevokeAllParams } from '../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll/AccountPermissionsConfirmRevokeAll.test';
+import { AccountPermissionsConfirmRevokeAllParams } from '../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll/AccountPermissionsConfirmRevokeAll.types';
 import { ConnectionDetailsParams } from '../../components/Views/AccountPermissions/ConnectionDetails/ConnectionDetails.types';
 import { AddNewAccountBottomSheetParams } from '../../components/Views/AddNewAccount/AddNewAccountBottomSheet.types';
 import { AssetDetailsParams } from '../../components/Views/AssetDetails/AssetDetails.types';
@@ -83,7 +84,11 @@ import { SDKSessionModalParams } from '../../components/Views/SDK/SDKSessionModa
 import { ExperimentalSettingsParams } from '../../components/Views/Settings/ExperimentalSettings/ExperimentalSettings.types';
 import { NotificationsSettingsParams } from '../../components/Views/Settings/NotificationsSettings/NotificationsSettings.types';
 import { TooltipModalParams } from '../../components/Views/TooltipModal/ToolTipModal.types';
+import { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
+import { MarketDetailsParams } from '../../components/UI/Perps/Views/PerpsMarketDetailsView';
+import { RegionSelectorModalParams } from '../../components/UI/Ramp/Deposit/Views/Modals/RegionSelectorModal/RegionSelectorModal.types';
 
+// This MUST use type and not interface according to docs - https://reactnavigation.org/docs/typescript/?config=dynamic#type-checking-screens
 export type RootParamList = {
   // Detected Tokens Flow
   DetectedTokensConfirmation: { isHidingAll?: boolean; onConfirm: () => void };
@@ -210,10 +215,7 @@ export type RootParamList = {
         accountsLength?: number;
       }
     | undefined;
-  AccountConnect: {
-    hostInfo: any;
-    permissionRequestId: string;
-  };
+  AccountConnect: AccountConnectParams;
   AccountPermissions: AccountPermissionsParams;
   RevokeAllAccountPermissions: AccountPermissionsConfirmRevokeAllParams;
   ConnectionDetails: ConnectionDetailsParams;
@@ -366,10 +368,7 @@ export type RootParamList = {
   PerpsTradingView: undefined;
   PerpsMarketListView: undefined;
   PerpsWithdraw: undefined;
-  PerpsMarketDetails: {
-    isNavigationFromOrderSuccess?: boolean;
-    market?: any;
-  };
+  PerpsMarketDetails: MarketDetailsParams;
   PerpsPositions: undefined;
   PerpsOrder: PerpsOrderViewParams;
   PerpsClosePosition: PerpsRouteParams<'PerpsClosePosition'>;
@@ -490,12 +489,7 @@ export type RootParamList = {
     selectedAssetId?: string;
     handleSelectAssetId?: (assetId: string) => void;
   };
-  DepositRegionSelectorModal:
-    | {
-        selectedRegionCode?: string;
-        handleSelectRegion?: (region: any) => void;
-      }
-    | undefined;
+  DepositRegionSelectorModal: RegionSelectorModalParams | undefined;
   DepositPaymentMethodSelectorModal: {
     selectedPaymentMethodId?: string;
     handleSelectPaymentMethodId?: (paymentMethodId: string) => void;
@@ -590,8 +584,6 @@ export type RootParamList = {
     isETH?: boolean;
     chainId?: string;
     symbol?: string;
-    // Additional params that components access
-    [key: string]: any; // Asset component accesses full route.params as asset
   };
   AssetDetails: AssetDetailsParams;
   SendView: undefined;
@@ -661,7 +653,7 @@ export type RootParamList = {
   ContactsSettings: undefined;
   ContactForm: undefined;
   ExperimentalSettings: ExperimentalSettingsParams;
-  AccountPermissionsAsFullScreen: { initialScreen?: any };
+  AccountPermissionsAsFullScreen: AccountPermissionsParams;
   WalletConnectSessionsView: undefined;
   ResetPassword: undefined;
   WalletRecovery: undefined;

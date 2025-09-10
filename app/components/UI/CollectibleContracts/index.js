@@ -80,6 +80,7 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -702,11 +703,6 @@ CollectibleContracts.propTypes = {
    * still in progress
    */
   isNftFetchingProgress: PropTypes.bool,
-  /**
-   * Navigation object required to push
-   * the Asset detail view
-   */
-  navigation: PropTypes.object,
   /**
    * Object of collectibles
    */

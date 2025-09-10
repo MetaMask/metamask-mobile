@@ -27,7 +27,7 @@ exports[`NavbarTitle should render correctly 1`] = `
     }
   }
 >
-  <withNavigation(Connect(Component))
+  <Component
     title="Test"
   />
 </ContextProvider>

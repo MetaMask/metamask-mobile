@@ -116,10 +116,10 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
         .build(),
     );
 
+    // @ts-expect-error - earnToken can be undefined, handle case
     navigate(Routes.EARN.MODALS.ROOT, {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-      // TODO: Why is earnToken possibly undefined?
-      params: { asset: earnToken! },
+      params: { asset: earnToken },
     });
   };
 

@@ -675,7 +675,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           break;
         }
         case USER_INTENT.ImportSrp: {
-          navigation.navigate('ImportSrpView');
+          navigation.navigate('ImportSRPView');
           break;
         }
         case USER_INTENT.ConnectHW: {

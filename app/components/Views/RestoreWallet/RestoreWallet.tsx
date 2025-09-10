@@ -13,9 +13,11 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import type { StackScreenProps } from '@react-navigation/stack';
+import type {
+  StackScreenProps,
+  StackNavigationProp,
+} from '@react-navigation/stack';
 import type { RootParamList } from '../../../util/navigation';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
@@ -30,7 +32,7 @@ const RestoreWallet = ({ route }: RestoreWalletProps) => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { replace } = useNavigation<StackNavigationProp<any>>();
+  const { replace } = useNavigation<StackNavigationProp<RootParamList>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
   const { previousScreen } = route.params;

@@ -7,7 +7,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { useNavigation } from '@react-navigation/native';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
   AlignItems,
   FlexDirection,

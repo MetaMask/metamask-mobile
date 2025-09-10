@@ -4,7 +4,6 @@ import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
-import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import {
   selectEvmChainId,

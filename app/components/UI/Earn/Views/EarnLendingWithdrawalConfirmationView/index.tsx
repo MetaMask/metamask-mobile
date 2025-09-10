@@ -4,7 +4,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { ethers } from 'ethers';
 import { capitalize } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';

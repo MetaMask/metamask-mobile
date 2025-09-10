@@ -23,7 +23,7 @@ import {
 import { TokenI } from '../../../Tokens/types';
 import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import {

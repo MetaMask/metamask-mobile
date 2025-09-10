@@ -34,6 +34,7 @@ export function useSendNavbar() {
         : null;
 
       const screenName = previousRoute?.name || Routes.SEND.ASSET;
+      // @ts-expect-error - We should type what screenName should be so that it can infer the params
       navigation.navigate(Routes.SEND.DEFAULT, { screen: screenName });
       return;
     }
@@ -54,6 +55,7 @@ export function useSendNavbar() {
     if (previousMainRoute.name === 'Home') {
       navigation.navigate(Routes.WALLET_VIEW);
     } else {
+      // @ts-expect-error - We should type what these values are so that it can infer the params
       navigation.navigate(previousMainRoute.name, previousMainRoute.params);
     }
   }, [navigation, sendStackState]);

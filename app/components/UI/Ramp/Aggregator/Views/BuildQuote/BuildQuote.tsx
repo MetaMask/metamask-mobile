@@ -13,8 +13,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp , type StackScreenProps } from '@react-navigation/stack';
-import type { NavigatableRootParamList , type RootParamList } from '../../../../../../util/navigation';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation';
 import BN4 from 'bnjs4';
 
 import { useRampSDK } from '../../sdk';

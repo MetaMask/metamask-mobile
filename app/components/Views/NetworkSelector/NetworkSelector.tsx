@@ -1,6 +1,5 @@
 // Third party dependencies.
 import {
-  ImageSourcePropType,
   KeyboardAvoidingView,
   Linking,
   Switch,

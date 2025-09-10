@@ -94,7 +94,7 @@ import type { RootParamList } from '../../../util/navigation/types';
 
 type AccountPermissionsProps = StackScreenProps<
   RootParamList,
-  'AccountPermissions'
+  'AccountPermissions' | 'AccountPermissionsAsFullScreen'
 >;
 
 const AccountPermissions = ({ route }: AccountPermissionsProps) => {

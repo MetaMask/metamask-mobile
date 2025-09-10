@@ -21,7 +21,7 @@ import KeyValueRow from '../../../../../component-library/components-temp/KeyVal
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type { OrderType, Position } from '../../controllers/types';
+import type { OrderType } from '../../controllers/types';
 import {
   useMinimumOrderAmount,
   usePerpsOrderFees,

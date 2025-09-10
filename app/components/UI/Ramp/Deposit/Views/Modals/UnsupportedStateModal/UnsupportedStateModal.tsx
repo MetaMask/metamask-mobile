@@ -1,8 +1,14 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp , StackScreenProps } from '@react-navigation/stack';
-import type { NavigatableRootParamList , RootParamList } from '../../../../../../../util/navigation/types';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -20,7 +26,6 @@ import Button, {
 
 import styleSheet from './UnsupportedStateModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 
 import { useDepositSDK } from '../../../sdk';
@@ -31,7 +36,9 @@ type UnsupportedStateModalProps = StackScreenProps<
   'DepositUnsupportedStateModal'
 >;
 
-function UnsupportedStateModal({ route }: UnsupportedStateModalProps) {
+const UnsupportedStateModal: React.FC<UnsupportedStateModalProps> = ({
+  route,
+}) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation =
     useNavigation<
@@ -125,6 +132,6 @@ function UnsupportedStateModal({ route }: UnsupportedStateModalProps) {
       </View>
     </BottomSheet>
   );
-}
+};
 
 export default UnsupportedStateModal;

@@ -17,11 +17,8 @@ import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode } from '../../types';
-import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack';
-import {
-  NavigatableRootParamList,
-  RootParamList,
-} from '../../../../../util/navigation/types';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../../../util/navigation/types';
 
 type BridgeDestNetworkSelectorProps = StackScreenProps<
   RootParamList,

@@ -1,4 +1,3 @@
-import { RouteProp } from '@react-navigation/native';
 import { IconName } from '@metamask/design-system-react-native';
 import { TraceName } from '../../../util/trace';
 import { IMetaMetricsEvent } from '../../../core/Analytics';

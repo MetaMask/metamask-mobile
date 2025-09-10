@@ -7,8 +7,13 @@ import { RootState } from '../../../../reducers';
 import AccountPermissionsConfirmRevokeAll from './AccountPermissionsConfirmRevokeAll';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
+import { RootParamList } from '../../../../util/navigation/types';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-const mockedNavigate = jest.fn();
+const mockedNavigate = jest.fn() as unknown as StackNavigationProp<
+  RootParamList,
+  'RevokeAllAccountPermissions'
+>;
 const mockedGoBack = jest.fn();
 const mockedOnRevokeAll = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -52,7 +57,10 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
+        navigation={mockedNavigate}
         route={{
+          key: 'RevokeAllAccountPermissions',
+          name: 'RevokeAllAccountPermissions',
           params: {
             hostInfo: { metadata: { origin: 'test' } },
           },
@@ -67,7 +75,10 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   it('handles cancel button press', () => {
     const { getByTestId } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
+        navigation={mockedNavigate}
         route={{
+          key: 'RevokeAllAccountPermissions',
+          name: 'RevokeAllAccountPermissions',
           params: {
             hostInfo: { metadata: { origin: 'test' } },
           },
@@ -85,7 +96,10 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   it('handles revoke button press', () => {
     const { getByTestId } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
+        navigation={mockedNavigate}
         route={{
+          key: 'RevokeAllAccountPermissions',
+          name: 'RevokeAllAccountPermissions',
           params: {
             hostInfo: { metadata: { origin: 'test' } },
             onRevokeAll: mockedOnRevokeAll,
@@ -105,7 +119,10 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
     const testOrigin = 'test.example.com';
     const { getByText } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
+        navigation={mockedNavigate}
         route={{
+          key: 'RevokeAllAccountPermissions',
+          name: 'RevokeAllAccountPermissions',
           params: {
             hostInfo: { metadata: { origin: testOrigin } },
           },

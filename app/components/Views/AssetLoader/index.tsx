@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Hex } from '@metamask/utils';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';

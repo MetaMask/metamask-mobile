@@ -20,33 +20,191 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  WebviewModal
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -54,49 +212,62 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -105,266 +276,75 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                WebviewModal
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
                     <View
-                      onLayout={[Function]}
                       style={
-                        [
-                          {
-                            "bottom": 0,
-                            "justifyContent": "flex-end",
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
+                        {
+                          "flex": 1,
+                        }
                       }
                     >
-                      <View
-                        style={
-                          [
-                            {
-                              "backgroundColor": "#3f434a66",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          style={
-                            {
-                              "flex": 1,
-                            }
-                          }
-                        />
-                      </View>
                       <View
                         onLayout={[Function]}
                         style={
                           [
                             {
                               "bottom": 0,
+                              "justifyContent": "flex-end",
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "top": 0,
                             },
                             {
                               "paddingBottom": 0,
@@ -373,174 +353,217 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                         }
                       >
                         <View
-                          collapsable={false}
-                          enabled={true}
-                          handlerTag={-1}
-                          handlerType="PanGestureHandler"
-                          onGestureHandlerEvent={[Function]}
-                          onGestureHandlerStateChange={[Function]}
-                          onLayout={[Function]}
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
-                                "borderWidth": 1,
-                                "height": 1334,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
+                                "backgroundColor": "#3f434a66",
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
                               },
                               {
-                                "transform": [
-                                  {
-                                    "translateY": 1334,
-                                  },
-                                ],
+                                "opacity": 0,
                               },
                             ]
                           }
                         >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
-                                },
-                                false,
-                              ]
-                            }
-                            testID="header"
-                          >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
-                              <View
-                                onLayout={[Function]}
-                              />
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
-                              <View
-                                onLayout={[Function]}
-                              >
-                                <TouchableOpacity>
-                                  <TouchableOpacity
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={false}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      }
-                                    }
-                                  >
-                                    <SvgMock
-                                      color="#686e7d"
-                                      fill="currentColor"
-                                      height={24}
-                                      name="Close"
-                                      style={
-                                        {
-                                          "height": 24,
-                                          "width": 24,
-                                        }
-                                      }
-                                      width={24}
-                                    />
-                                  </TouchableOpacity>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </View>
-                          <RCTSafeAreaView
+                          <TouchableOpacity
+                            onPress={[Function]}
                             style={
                               {
                                 "flex": 1,
                               }
                             }
+                          />
+                        </View>
+                        <View
+                          onLayout={[Function]}
+                          style={
+                            [
+                              {
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                              },
+                              {
+                                "paddingBottom": 0,
+                              },
+                            ]
+                          }
+                        >
+                          <View
+                            collapsable={false}
+                            enabled={true}
+                            handlerTag={-1}
+                            handlerType="PanGestureHandler"
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
+                            onLayout={[Function]}
+                            style={
+                              [
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc866",
+                                  "borderTopLeftRadius": 24,
+                                  "borderTopRightRadius": 24,
+                                  "borderWidth": 1,
+                                  "height": 1334,
+                                  "maxHeight": 1334,
+                                  "overflow": "hidden",
+                                  "paddingBottom": 0,
+                                  "shadowColor": "#0000001a",
+                                  "shadowOffset": {
+                                    "height": 2,
+                                    "width": 0,
+                                  },
+                                  "shadowOpacity": 1,
+                                  "shadowRadius": 40,
+                                },
+                                {
+                                  "transform": [
+                                    {
+                                      "translateY": 1334,
+                                    },
+                                  ],
+                                },
+                              ]
+                            }
                           >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "padding": 4,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "backgroundColor": "#b7bbc866",
+                                    "borderRadius": 2,
+                                    "height": 4,
+                                    "width": 40,
+                                  }
+                                }
+                              />
+                            </View>
                             <View
                               style={
                                 [
                                   {
                                     "backgroundColor": "#ffffff",
-                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "padding": 16,
+                                    "paddingVertical": 0,
                                   },
-                                  undefined,
+                                  false,
                                 ]
+                              }
+                              testID="header"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                  }
+                                }
+                              />
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                >
+                                  <TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <SvgMock
+                                        color="#686e7d"
+                                        fill="currentColor"
+                                        height={24}
+                                        name="Close"
+                                        style={
+                                          {
+                                            "height": 24,
+                                            "width": 24,
+                                          }
+                                        }
+                                        width={24}
+                                      />
+                                    </TouchableOpacity>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                            <RCTSafeAreaView
+                              style={
+                                {
+                                  "flex": 1,
+                                }
                               }
                             >
                               <View
                                 style={
                                   [
                                     {
+                                      "backgroundColor": "#ffffff",
                                       "flex": 1,
                                     },
                                     undefined,
                                   ]
                                 }
-                              />
-                            </View>
-                          </RCTSafeAreaView>
+                              >
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "flex": 1,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                />
+                              </View>
+                            </RCTSafeAreaView>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -549,9 +572,9 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -576,33 +599,191 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  WebviewModal
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -610,49 +791,62 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -661,266 +855,75 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                WebviewModal
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
                     <View
-                      onLayout={[Function]}
                       style={
-                        [
-                          {
-                            "bottom": 0,
-                            "justifyContent": "flex-end",
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
+                        {
+                          "flex": 1,
+                        }
                       }
                     >
-                      <View
-                        style={
-                          [
-                            {
-                              "backgroundColor": "#3f434a66",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          style={
-                            {
-                              "flex": 1,
-                            }
-                          }
-                        />
-                      </View>
                       <View
                         onLayout={[Function]}
                         style={
                           [
                             {
                               "bottom": 0,
+                              "justifyContent": "flex-end",
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "top": 0,
                             },
                             {
                               "paddingBottom": 0,
@@ -929,268 +932,217 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                         }
                       >
                         <View
-                          collapsable={false}
-                          enabled={true}
-                          handlerTag={3}
-                          handlerType="PanGestureHandler"
-                          onGestureHandlerEvent={[Function]}
-                          onGestureHandlerStateChange={[Function]}
-                          onLayout={[Function]}
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
-                                "borderWidth": 1,
-                                "height": 1334,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
+                                "backgroundColor": "#3f434a66",
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
                               },
                               {
-                                "transform": [
-                                  {
-                                    "translateY": 1334,
-                                  },
-                                ],
+                                "opacity": 0,
                               },
                             ]
                           }
                         >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "backgroundColor": "#ffffff",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "padding": 16,
-                                  "paddingVertical": 0,
-                                },
-                                false,
-                              ]
-                            }
-                            testID="header"
-                          >
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
-                              <View
-                                onLayout={[Function]}
-                              />
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <View
-                              style={
-                                {
-                                  "width": undefined,
-                                }
-                              }
-                            >
-                              <View
-                                onLayout={[Function]}
-                              >
-                                <TouchableOpacity>
-                                  <TouchableOpacity
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    disabled={false}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      }
-                                    }
-                                  >
-                                    <SvgMock
-                                      color="#686e7d"
-                                      fill="currentColor"
-                                      height={24}
-                                      name="Close"
-                                      style={
-                                        {
-                                          "height": 24,
-                                          "width": 24,
-                                        }
-                                      }
-                                      width={24}
-                                    />
-                                  </TouchableOpacity>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </View>
-                          <RCTSafeAreaView
+                          <TouchableOpacity
+                            onPress={[Function]}
                             style={
                               {
                                 "flex": 1,
                               }
                             }
+                          />
+                        </View>
+                        <View
+                          onLayout={[Function]}
+                          style={
+                            [
+                              {
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                              },
+                              {
+                                "paddingBottom": 0,
+                              },
+                            ]
+                          }
+                        >
+                          <View
+                            collapsable={false}
+                            enabled={true}
+                            handlerTag={-1}
+                            handlerType="PanGestureHandler"
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
+                            onLayout={[Function]}
+                            style={
+                              [
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#b7bbc866",
+                                  "borderTopLeftRadius": 24,
+                                  "borderTopRightRadius": 24,
+                                  "borderWidth": 1,
+                                  "height": 1334,
+                                  "maxHeight": 1334,
+                                  "overflow": "hidden",
+                                  "paddingBottom": 0,
+                                  "shadowColor": "#0000001a",
+                                  "shadowOffset": {
+                                    "height": 2,
+                                    "width": 0,
+                                  },
+                                  "shadowOpacity": 1,
+                                  "shadowRadius": 40,
+                                },
+                                {
+                                  "transform": [
+                                    {
+                                      "translateY": 1334,
+                                    },
+                                  ],
+                                },
+                              ]
+                            }
                           >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "padding": 4,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "backgroundColor": "#b7bbc866",
+                                    "borderRadius": 2,
+                                    "height": 4,
+                                    "width": 40,
+                                  }
+                                }
+                              />
+                            </View>
                             <View
                               style={
                                 [
                                   {
                                     "backgroundColor": "#ffffff",
-                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                    "padding": 16,
+                                    "paddingVertical": 0,
                                   },
-                                  undefined,
+                                  false,
                                 ]
+                              }
+                              testID="header"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                  }
+                                }
+                              />
+                              <View
+                                style={
+                                  {
+                                    "width": undefined,
+                                  }
+                                }
+                              >
+                                <View
+                                  onLayout={[Function]}
+                                >
+                                  <TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "borderRadius": 8,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "opacity": 1,
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <SvgMock
+                                        color="#686e7d"
+                                        fill="currentColor"
+                                        height={24}
+                                        name="Close"
+                                        style={
+                                          {
+                                            "height": 24,
+                                            "width": 24,
+                                          }
+                                        }
+                                        width={24}
+                                      />
+                                    </TouchableOpacity>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                            <RCTSafeAreaView
+                              style={
+                                {
+                                  "flex": 1,
+                                }
                               }
                             >
                               <View
                                 style={
                                   [
                                     {
+                                      "backgroundColor": "#ffffff",
                                       "flex": 1,
                                     },
                                     undefined,
                                   ]
                                 }
                               >
-                                <RCTSafeAreaView
+                                <View
                                   style={
-                                    {
-                                      "flex": 1,
-                                    }
+                                    [
+                                      {
+                                        "flex": 1,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                >
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "padding": 15,
-                                          },
-                                          undefined,
-                                          {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "gap": 16,
-                                            "justifyContent": "center",
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#ca35421a",
-                                            "borderRadius": 28,
-                                            "height": 56,
-                                            "justifyContent": "center",
-                                            "width": 56,
-                                          }
-                                        }
-                                      >
-                                        <SvgMock
-                                          color="#ca3542"
-                                          fill="currentColor"
-                                          height={32}
-                                          name="Close"
-                                          style={
-                                            {
-                                              "height": 32,
-                                              "width": 32,
-                                            }
-                                          }
-                                          width={32}
-                                        />
-                                      </View>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#ca3542",
-                                            "fontFamily": "Geist Bold",
-                                            "fontSize": 18,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "textAlign": "center",
-                                          }
-                                        }
-                                      >
-                                        There was an error
-                                      </Text>
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#686e7d",
-                                            "fontFamily": "Geist Regular",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "textAlign": "center",
-                                          }
-                                        }
-                                      >
-                                        Webview received error: 404
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </RCTSafeAreaView>
+                                />
                               </View>
-                            </View>
-                          </RCTSafeAreaView>
+                            </RCTSafeAreaView>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -1199,9 +1151,9 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

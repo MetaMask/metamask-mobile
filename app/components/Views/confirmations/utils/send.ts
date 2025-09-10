@@ -17,6 +17,7 @@ import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
+import type { RootParamList } from '../../../../util/navigation/types';
 
 const captureSendStartedEvent = (location: string) => {
   const { trackEvent } = MetaMetrics.getInstance();
@@ -38,7 +39,7 @@ export const handleSendPageNavigation = (
 ) => {
   if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
-    let screen = Routes.SEND.ASSET;
+    let screen: keyof RootParamList = Routes.SEND.ASSET;
     if (asset) {
       if (asset.standard === TokenStandard.ERC721) {
         screen = Routes.SEND.RECIPIENT;

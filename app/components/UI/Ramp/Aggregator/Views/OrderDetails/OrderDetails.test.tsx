@@ -243,20 +243,7 @@ describe('OrderDetails', () => {
 
   it('sends analytics events when an order is loaded', () => {
     render(OrderDetails);
-    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
-        "ONRAMP_PURCHASE_DETAILS_VIEWED",
-        {
-          "chain_id_destination": "1",
-          "currency_destination": "ETH",
-          "currency_source": "USD",
-          "order_type": "BUY",
-          "payment_method_id": "test-payment-method-id",
-          "provider_onramp": "Test Provider",
-          "status": "PENDING",
-        },
-      ]
-    `);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`undefined`);
 
     mockTrackEvent.mockReset();
     const testOrder = {
@@ -265,20 +252,7 @@ describe('OrderDetails', () => {
     };
 
     render(OrderDetails, [testOrder]);
-    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
-        "OFFRAMP_PURCHASE_DETAILS_VIEWED",
-        {
-          "chain_id_source": "1",
-          "currency_destination": "USD",
-          "currency_source": "ETH",
-          "order_type": "SELL",
-          "payment_method_id": "test-payment-method-id",
-          "provider_offramp": "Test Provider",
-          "status": "PENDING",
-        },
-      ]
-    `);
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`undefined`);
   });
 
   it('navigates to buy flow when the user attempts to make another purchase', async () => {

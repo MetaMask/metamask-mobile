@@ -18,7 +18,7 @@ import { RootParamList } from '../../../../util/navigation/types';
 
 const Stack = createStackNavigator<RootParamList>();
 
-const PerpsStack = () => (
+const PerpsModalStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
@@ -116,7 +116,7 @@ const PerpsScreenStack = () => (
         {/* Modal stack for bottom sheet modals */}
         <Stack.Screen
           name={'PerpsModals'}
-          component={PerpsStack}
+          component={PerpsModalStack}
           options={{
             headerShown: false,
             cardStyle: {
@@ -134,4 +134,4 @@ const PerpsScreenStack = () => (
 
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsStack };
+export { PerpsModalStack };

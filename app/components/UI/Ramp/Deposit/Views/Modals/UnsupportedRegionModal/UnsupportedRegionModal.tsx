@@ -18,7 +18,6 @@ import Button, {
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 
 import { useDepositSDK } from '../../../sdk';

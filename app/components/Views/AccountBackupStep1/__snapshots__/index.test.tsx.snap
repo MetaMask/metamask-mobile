@@ -14,7 +14,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -28,7 +28,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
       {
         "backgroundColor": "#ffffff",
         "flex": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -767,7 +767,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -781,7 +781,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
       {
         "backgroundColor": "#ffffff",
         "flex": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"
@@ -1018,7 +1018,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "paddingTop": 24,
+      "paddingTop": 42,
     }
   }
 >
@@ -1032,7 +1032,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
       {
         "backgroundColor": "#ffffff",
         "flex": 1,
-        "paddingTop": 24,
+        "paddingTop": 42,
       }
     }
     testID="protect-your-account-screen"

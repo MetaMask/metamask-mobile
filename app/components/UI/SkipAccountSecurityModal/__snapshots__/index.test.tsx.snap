@@ -142,7 +142,6 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           }
         }
         testID="Cancel-Skip"
-        type="Secondary"
       >
         <Text
           accessibilityRole="text"
@@ -182,7 +181,6 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
           }
         }
         testID="Skip-button"
-        type="Primary"
       >
         <Text
           accessibilityRole="text"
@@ -346,7 +344,6 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           }
         }
         testID="Cancel-Skip"
-        type="Secondary"
       >
         <Text
           accessibilityRole="text"
@@ -386,7 +383,6 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
           }
         }
         testID="Skip-button"
-        type="Primary"
       >
         <Text
           accessibilityRole="text"

@@ -20,33 +20,191 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  ReceiveRequest
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -54,49 +212,62 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -105,252 +276,87 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                ReceiveRequest
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
-                          "backgroundColor": "#ffffff",
-                          "borderTopLeftRadius": 10,
-                          "borderTopRightRadius": 10,
-                          "height": 1087.3,
-                          "marginBottom": 20,
-                          "marginHorizontal": 0,
-                          "marginTop": 226.7,
-                          "paddingHorizontal": 0,
-                          "width": "100%",
+                          "flex": 1,
                         }
                       }
                     >
-                      <View
+                      <RCTSafeAreaView
                         style={
-                          [
-                            {
-                              "display": "flex",
-                              "flexBasis": "0%",
-                              "flexGrow": 1,
-                              "flexShrink": 1,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderTopLeftRadius": 10,
+                            "borderTopRightRadius": 10,
+                            "height": 1087.3,
+                            "marginBottom": 20,
+                            "marginHorizontal": 0,
+                            "marginTop": 226.7,
+                            "paddingHorizontal": 0,
+                            "width": "100%",
+                          }
                         }
                       >
                         <View
                           style={
                             [
                               {
-                                "alignItems": "center",
                                 "display": "flex",
-                                "flexDirection": "column",
-                                "paddingBottom": 24,
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "paddingTop": 24,
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
                               },
                               undefined,
                             ]
@@ -360,245 +366,262 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 16,
-                                  "borderWidth": 1,
+                                  "alignItems": "center",
                                   "display": "flex",
+                                  "flexDirection": "column",
                                   "paddingBottom": 24,
-                                  "paddingLeft": 24,
-                                  "paddingRight": 24,
+                                  "paddingLeft": 16,
+                                  "paddingRight": 16,
                                   "paddingTop": 24,
                                 },
                                 undefined,
                               ]
                             }
                           >
-                            <Text
-                              accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
-                              testID="receive-request-qr-code"
-                            >
-                              QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
-                            </Text>
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "display": "flex",
-                                  "marginBottom": 16,
-                                  "marginTop": 24,
-                                },
-                                undefined,
-                              ]
-                            }
-                          >
                             <View
-                              testID="receive-request-qr-account-display"
+                              style={
+                                [
+                                  {
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 16,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "paddingBottom": 24,
+                                    "paddingLeft": 24,
+                                    "paddingRight": 24,
+                                    "paddingTop": 24,
+                                  },
+                                  undefined,
+                                ]
+                              }
                             >
                               <Text
-                                testID="qr-account-address"
+                                accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
+                                testID="receive-request-qr-code"
                               >
-                                0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
+                                QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
                               </Text>
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "marginBottom": 16,
+                                    "marginTop": 24,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                testID="receive-request-qr-account-display"
+                              >
+                                <Text
+                                  testID="qr-account-address"
+                                >
+                                  0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
+                                </Text>
+                              </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "display": "flex",
-                              "paddingBottom": 16,
-                              "paddingLeft": 16,
-                              "paddingRight": 16,
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
                         <View
                           style={
                             [
                               {
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
+                                "display": "flex",
+                                "paddingBottom": 16,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
                               },
-                              {
-                                "alignItems": "center",
-                                "justifyContent": "center",
-                              },
+                              undefined,
                             ]
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
-                            accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onFocus={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
                             style={
                               [
                                 {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                                {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "transparent",
-                                  "borderRadius": 12,
-                                  "borderWidth": 1,
-                                  "flexDirection": "row",
-                                  "height": 48,
                                   "justifyContent": "center",
-                                  "minWidth": 80,
-                                  "opacity": 1,
-                                  "overflow": "hidden",
-                                  "paddingLeft": 16,
-                                  "paddingRight": 16,
-                                  "width": "100%",
                                 },
                               ]
                             }
-                            testID="request-payment-button"
                           >
                             <View
-                              style={
+                              accessibilityLabel="Request Payment"
+                              accessibilityRole="button"
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "bottom": 0,
-                                  "display": "flex",
-                                  "justifyContent": "center",
-                                  "left": 0,
-                                  "opacity": 0,
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
                               }
-                              testID="spinner-container"
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "transparent",
+                                    "borderRadius": 12,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                ]
+                              }
+                              testID="request-payment-button"
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "columnGap": 8,
-                                      "flexDirection": "row",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "bottom": 0,
+                                    "display": "flex",
+                                    "justifyContent": "center",
+                                    "left": 0,
+                                    "opacity": 0,
+                                    "position": "absolute",
+                                    "right": 0,
+                                    "top": 0,
+                                  }
                                 }
-                                testID="spinner"
+                                testID="spinner-container"
                               >
                                 <View
                                   style={
                                     [
                                       {
-                                        "transform": [
-                                          {
-                                            "rotate": "0deg",
-                                          },
-                                        ],
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
                                       },
+                                      undefined,
                                     ]
                                   }
-                                  testID="spinner-animated-view"
+                                  testID="spinner"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Loading"
+                                  <View
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 20,
-                                          "width": 20,
+                                          "transform": [
+                                            {
+                                              "rotate": "0deg",
+                                            },
+                                          ],
                                         },
-                                        undefined,
                                       ]
                                     }
-                                    testID="spinner-icon"
-                                  />
+                                    testID="spinner-animated-view"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Loading"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner-icon"
+                                    />
+                                  </View>
                                 </View>
                               </View>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "columnGap": 8,
-                                  "flexDirection": "row",
-                                  "justifyContent": "center",
-                                  "opacity": 1,
-                                }
-                              }
-                              testID="content-container"
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="clip"
-                                numberOfLines={1}
+                              <View
                                 style={
-                                  [
-                                    {
-                                      "color": "#121314",
-                                      "flexGrow": 0,
-                                      "flexShrink": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "center",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                  }
                                 }
+                                testID="content-container"
                               >
-                                Request Payment
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="clip"
+                                  numberOfLines={1}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "flexGrow": 0,
+                                        "flexShrink": 1,
+                                        "flexWrap": "wrap",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "textAlign": "center",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Request Payment
+                                </Text>
+                              </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                      <View />
-                    </RCTSafeAreaView>
+                        <View />
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -623,33 +646,191 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  ReceiveRequest
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -657,49 +838,62 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -708,252 +902,87 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                ReceiveRequest
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
-                          "backgroundColor": "#ffffff",
-                          "borderTopLeftRadius": 10,
-                          "borderTopRightRadius": 10,
-                          "height": 1087.3,
-                          "marginBottom": 20,
-                          "marginHorizontal": 0,
-                          "marginTop": 226.7,
-                          "paddingHorizontal": 0,
-                          "width": "100%",
+                          "flex": 1,
                         }
                       }
                     >
-                      <View
+                      <RCTSafeAreaView
                         style={
-                          [
-                            {
-                              "display": "flex",
-                              "flexBasis": "0%",
-                              "flexGrow": 1,
-                              "flexShrink": 1,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderTopLeftRadius": 10,
+                            "borderTopRightRadius": 10,
+                            "height": 1087.3,
+                            "marginBottom": 20,
+                            "marginHorizontal": 0,
+                            "marginTop": 226.7,
+                            "paddingHorizontal": 0,
+                            "width": "100%",
+                          }
                         }
                       >
                         <View
                           style={
                             [
                               {
-                                "alignItems": "center",
                                 "display": "flex",
-                                "flexDirection": "column",
-                                "paddingBottom": 24,
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "paddingTop": 24,
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
                               },
                               undefined,
                             ]
@@ -963,245 +992,262 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 16,
-                                  "borderWidth": 1,
+                                  "alignItems": "center",
                                   "display": "flex",
+                                  "flexDirection": "column",
                                   "paddingBottom": 24,
-                                  "paddingLeft": 24,
-                                  "paddingRight": 24,
+                                  "paddingLeft": 16,
+                                  "paddingRight": 16,
                                   "paddingTop": 24,
                                 },
                                 undefined,
                               ]
                             }
                           >
-                            <Text
-                              accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
-                              testID="receive-request-qr-code"
-                            >
-                              QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
-                            </Text>
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "display": "flex",
-                                  "marginBottom": 16,
-                                  "marginTop": 24,
-                                },
-                                undefined,
-                              ]
-                            }
-                          >
                             <View
-                              testID="receive-request-qr-account-display"
+                              style={
+                                [
+                                  {
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 16,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "paddingBottom": 24,
+                                    "paddingLeft": 24,
+                                    "paddingRight": 24,
+                                    "paddingTop": 24,
+                                  },
+                                  undefined,
+                                ]
+                              }
                             >
                               <Text
-                                testID="qr-account-address"
+                                accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
+                                testID="receive-request-qr-code"
                               >
-                                0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
+                                QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
                               </Text>
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "marginBottom": 16,
+                                    "marginTop": 24,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                testID="receive-request-qr-account-display"
+                              >
+                                <Text
+                                  testID="qr-account-address"
+                                >
+                                  0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
+                                </Text>
+                              </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "display": "flex",
-                              "paddingBottom": 16,
-                              "paddingLeft": 16,
-                              "paddingRight": 16,
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
                         <View
                           style={
                             [
                               {
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
+                                "display": "flex",
+                                "paddingBottom": 16,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
                               },
-                              {
-                                "alignItems": "center",
-                                "justifyContent": "center",
-                              },
+                              undefined,
                             ]
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
-                            accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onFocus={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
                             style={
                               [
                                 {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                                {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "transparent",
-                                  "borderRadius": 12,
-                                  "borderWidth": 1,
-                                  "flexDirection": "row",
-                                  "height": 48,
                                   "justifyContent": "center",
-                                  "minWidth": 80,
-                                  "opacity": 1,
-                                  "overflow": "hidden",
-                                  "paddingLeft": 16,
-                                  "paddingRight": 16,
-                                  "width": "100%",
                                 },
                               ]
                             }
-                            testID="request-payment-button"
                           >
                             <View
-                              style={
+                              accessibilityLabel="Request Payment"
+                              accessibilityRole="button"
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "bottom": 0,
-                                  "display": "flex",
-                                  "justifyContent": "center",
-                                  "left": 0,
-                                  "opacity": 0,
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
                               }
-                              testID="spinner-container"
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "transparent",
+                                    "borderRadius": 12,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                ]
+                              }
+                              testID="request-payment-button"
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "columnGap": 8,
-                                      "flexDirection": "row",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "bottom": 0,
+                                    "display": "flex",
+                                    "justifyContent": "center",
+                                    "left": 0,
+                                    "opacity": 0,
+                                    "position": "absolute",
+                                    "right": 0,
+                                    "top": 0,
+                                  }
                                 }
-                                testID="spinner"
+                                testID="spinner-container"
                               >
                                 <View
                                   style={
                                     [
                                       {
-                                        "transform": [
-                                          {
-                                            "rotate": "0deg",
-                                          },
-                                        ],
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
                                       },
+                                      undefined,
                                     ]
                                   }
-                                  testID="spinner-animated-view"
+                                  testID="spinner"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Loading"
+                                  <View
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 20,
-                                          "width": 20,
+                                          "transform": [
+                                            {
+                                              "rotate": "0deg",
+                                            },
+                                          ],
                                         },
-                                        undefined,
                                       ]
                                     }
-                                    testID="spinner-icon"
-                                  />
+                                    testID="spinner-animated-view"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Loading"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner-icon"
+                                    />
+                                  </View>
                                 </View>
                               </View>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "columnGap": 8,
-                                  "flexDirection": "row",
-                                  "justifyContent": "center",
-                                  "opacity": 1,
-                                }
-                              }
-                              testID="content-container"
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="clip"
-                                numberOfLines={1}
+                              <View
                                 style={
-                                  [
-                                    {
-                                      "color": "#121314",
-                                      "flexGrow": 0,
-                                      "flexShrink": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "center",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                  }
                                 }
+                                testID="content-container"
                               >
-                                Request Payment
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="clip"
+                                  numberOfLines={1}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "flexGrow": 0,
+                                        "flexShrink": 1,
+                                        "flexWrap": "wrap",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "textAlign": "center",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Request Payment
+                                </Text>
+                              </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                      <View />
-                    </RCTSafeAreaView>
+                        <View />
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1226,33 +1272,191 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  ReceiveRequest
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -1260,49 +1464,62 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -1311,252 +1528,87 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                ReceiveRequest
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
-                          "backgroundColor": "#ffffff",
-                          "borderTopLeftRadius": 10,
-                          "borderTopRightRadius": 10,
-                          "height": 1087.3,
-                          "marginBottom": 20,
-                          "marginHorizontal": 0,
-                          "marginTop": 226.7,
-                          "paddingHorizontal": 0,
-                          "width": "100%",
+                          "flex": 1,
                         }
                       }
                     >
-                      <View
+                      <RCTSafeAreaView
                         style={
-                          [
-                            {
-                              "display": "flex",
-                              "flexBasis": "0%",
-                              "flexGrow": 1,
-                              "flexShrink": 1,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderTopLeftRadius": 10,
+                            "borderTopRightRadius": 10,
+                            "height": 1087.3,
+                            "marginBottom": 20,
+                            "marginHorizontal": 0,
+                            "marginTop": 226.7,
+                            "paddingHorizontal": 0,
+                            "width": "100%",
+                          }
                         }
                       >
                         <View
                           style={
                             [
                               {
-                                "alignItems": "center",
                                 "display": "flex",
-                                "flexDirection": "column",
-                                "paddingBottom": 24,
-                                "paddingLeft": 16,
-                                "paddingRight": 16,
-                                "paddingTop": 24,
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
                               },
                               undefined,
                             ]
@@ -1566,245 +1618,262 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               [
                                 {
-                                  "borderColor": "#b7bbc866",
-                                  "borderRadius": 16,
-                                  "borderWidth": 1,
+                                  "alignItems": "center",
                                   "display": "flex",
+                                  "flexDirection": "column",
                                   "paddingBottom": 24,
-                                  "paddingLeft": 24,
-                                  "paddingRight": 24,
+                                  "paddingLeft": 16,
+                                  "paddingRight": 16,
                                   "paddingTop": 24,
                                 },
                                 undefined,
                               ]
                             }
                           >
-                            <Text
-                              accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
-                              testID="receive-request-qr-code"
-                            >
-                              QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
-                            </Text>
-                          </View>
-                          <View
-                            style={
-                              [
-                                {
-                                  "display": "flex",
-                                  "marginBottom": 16,
-                                  "marginTop": 24,
-                                },
-                                undefined,
-                              ]
-                            }
-                          >
                             <View
-                              testID="receive-request-qr-account-display"
+                              style={
+                                [
+                                  {
+                                    "borderColor": "#b7bbc866",
+                                    "borderRadius": 16,
+                                    "borderWidth": 1,
+                                    "display": "flex",
+                                    "paddingBottom": 24,
+                                    "paddingLeft": 24,
+                                    "paddingRight": 24,
+                                    "paddingTop": 24,
+                                  },
+                                  undefined,
+                                ]
+                              }
                             >
                               <Text
-                                testID="qr-account-address"
+                                accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
+                                testID="receive-request-qr-code"
                               >
-                                0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
+                                QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
                               </Text>
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "marginBottom": 16,
+                                    "marginTop": 24,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                testID="receive-request-qr-account-display"
+                              >
+                                <Text
+                                  testID="qr-account-address"
+                                >
+                                  0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756
+                                </Text>
+                              </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                      <View
-                        style={
-                          [
-                            {
-                              "display": "flex",
-                              "paddingBottom": 16,
-                              "paddingLeft": 16,
-                              "paddingRight": 16,
-                            },
-                            undefined,
-                          ]
-                        }
-                      >
                         <View
                           style={
                             [
                               {
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
+                                "display": "flex",
+                                "paddingBottom": 16,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
                               },
-                              {
-                                "alignItems": "center",
-                                "justifyContent": "center",
-                              },
+                              undefined,
                             ]
                           }
                         >
                           <View
-                            accessibilityLabel="Request Payment"
-                            accessibilityRole="button"
-                            accessibilityState={
-                              {
-                                "busy": undefined,
-                                "checked": undefined,
-                                "disabled": false,
-                                "expanded": undefined,
-                                "selected": undefined,
-                              }
-                            }
-                            accessibilityValue={
-                              {
-                                "max": undefined,
-                                "min": undefined,
-                                "now": undefined,
-                                "text": undefined,
-                              }
-                            }
-                            accessible={true}
-                            collapsable={false}
-                            focusable={true}
-                            onBlur={[Function]}
-                            onClick={[Function]}
-                            onFocus={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
                             style={
                               [
                                 {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                                {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "transparent",
-                                  "borderRadius": 12,
-                                  "borderWidth": 1,
-                                  "flexDirection": "row",
-                                  "height": 48,
                                   "justifyContent": "center",
-                                  "minWidth": 80,
-                                  "opacity": 1,
-                                  "overflow": "hidden",
-                                  "paddingLeft": 16,
-                                  "paddingRight": 16,
-                                  "width": "100%",
                                 },
                               ]
                             }
-                            testID="request-payment-button"
                           >
                             <View
-                              style={
+                              accessibilityLabel="Request Payment"
+                              accessibilityRole="button"
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "bottom": 0,
-                                  "display": "flex",
-                                  "justifyContent": "center",
-                                  "left": 0,
-                                  "opacity": 0,
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
                               }
-                              testID="spinner-container"
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#3c4d9d0f",
+                                    "borderColor": "transparent",
+                                    "borderRadius": 12,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                ]
+                              }
+                              testID="request-payment-button"
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "columnGap": 8,
-                                      "flexDirection": "row",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "bottom": 0,
+                                    "display": "flex",
+                                    "justifyContent": "center",
+                                    "left": 0,
+                                    "opacity": 0,
+                                    "position": "absolute",
+                                    "right": 0,
+                                    "top": 0,
+                                  }
                                 }
-                                testID="spinner"
+                                testID="spinner-container"
                               >
                                 <View
                                   style={
                                     [
                                       {
-                                        "transform": [
-                                          {
-                                            "rotate": "0deg",
-                                          },
-                                        ],
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
                                       },
+                                      undefined,
                                     ]
                                   }
-                                  testID="spinner-animated-view"
+                                  testID="spinner"
                                 >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="Loading"
+                                  <View
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
-                                          "height": 20,
-                                          "width": 20,
+                                          "transform": [
+                                            {
+                                              "rotate": "0deg",
+                                            },
+                                          ],
                                         },
-                                        undefined,
                                       ]
                                     }
-                                    testID="spinner-icon"
-                                  />
+                                    testID="spinner-animated-view"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Loading"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 20,
+                                            "width": 20,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner-icon"
+                                    />
+                                  </View>
                                 </View>
                               </View>
-                            </View>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "columnGap": 8,
-                                  "flexDirection": "row",
-                                  "justifyContent": "center",
-                                  "opacity": 1,
-                                }
-                              }
-                              testID="content-container"
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="clip"
-                                numberOfLines={1}
+                              <View
                                 style={
-                                  [
-                                    {
-                                      "color": "#121314",
-                                      "flexGrow": 0,
-                                      "flexShrink": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "Geist Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": 400,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "center",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                  }
                                 }
+                                testID="content-container"
                               >
-                                Request Payment
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="clip"
+                                  numberOfLines={1}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "flexGrow": 0,
+                                        "flexShrink": 1,
+                                        "flexWrap": "wrap",
+                                        "fontFamily": "Geist Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "textAlign": "center",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Request Payment
+                                </Text>
+                              </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                      <View />
-                    </RCTSafeAreaView>
+                        <View />
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

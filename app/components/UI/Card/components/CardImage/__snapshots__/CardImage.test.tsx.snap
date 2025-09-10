@@ -20,33 +20,191 @@ exports[`CardImage Component renders correctly and matches snapshot 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  CardImage
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -54,49 +212,62 @@ exports[`CardImage Component renders correctly and matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -105,479 +276,119 @@ exports[`CardImage Component renders correctly and matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                CardImage
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
                     <View
                       style={
                         {
-                          "aspectRatio": 1.7361111111111112,
+                          "flex": 1,
                         }
                       }
                     >
-                      <RNSVGSvgView
-                        align="xMidYMid"
-                        bbHeight="100%"
-                        bbWidth="100%"
-                        fill="none"
-                        focusable={false}
-                        height="100%"
-                        meetOrSlice={0}
-                        minX={0}
-                        minY={0}
+                      <View
                         style={
-                          [
-                            {
-                              "backgroundColor": "transparent",
-                              "borderWidth": 0,
-                            },
-                            {
-                              "flex": 0,
-                              "height": "100%",
-                              "width": "100%",
-                            },
-                          ]
+                          {
+                            "aspectRatio": 1.7361111111111112,
+                          }
                         }
-                        vbHeight={194.688}
-                        vbWidth={338}
-                        width="100%"
                       >
-                        <RNSVGGroup
-                          fill={null}
-                          propList={
+                        <RNSVGSvgView
+                          align="xMidYMid"
+                          bbHeight="100%"
+                          bbWidth="100%"
+                          fill="none"
+                          focusable={false}
+                          height="100%"
+                          meetOrSlice={0}
+                          minX={0}
+                          minY={0}
+                          style={
                             [
-                              "fill",
+                              {
+                                "backgroundColor": "transparent",
+                                "borderWidth": 0,
+                              },
+                              {
+                                "flex": 0,
+                                "height": "100%",
+                                "width": "100%",
+                              },
                             ]
                           }
+                          vbHeight={194.688}
+                          vbWidth={338}
+                          width="100%"
                         >
                           <RNSVGGroup
-                            clipPath="a"
-                            fill={
-                              {
-                                "payload": 4278190080,
-                                "type": 0,
-                              }
+                            fill={null}
+                            propList={
+                              [
+                                "fill",
+                              ]
                             }
                           >
-                            <RNSVGRect
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              height={194.688}
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                              rx={11.465}
-                              width={338}
-                              x={0}
-                              y={0.856}
-                            />
-                            <RNSVGPath
-                              d="M135.057 112.189h50.292V36.16h-50.292v76.029ZM185.349 255.942h82.982V-4.912h-82.982v260.854ZM268.331 255.924h55.321v-102.68h-55.321v102.68Z"
-                              fill={
-                                {
-                                  "payload": 4294944384,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M323.652 214.87h42.429v-61.608h-42.429v61.608ZM268.331 153.262h97.554V71.117l-97.554-26.34v108.485ZM135.057 36.16l50.292-41.072V36.16h-50.292ZM366.081 153.262l-.196-82.145v82.145h.196ZM351.313 214.87l-27.661 41.072V214.87h27.661ZM135.057 112.189l50.292 41.073v-41.073h-50.292Z"
-                              fill={
-                                {
-                                  "payload": 4294944384,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M270.37 147.223h-17.661v31.734h17.661v-31.734Z"
-                              fill={
-                                {
-                                  "payload": 4294926080,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M253.83 163.089c0-6.167 2.86-12.054 7.682-15.867-8.747-6.896-21.474-5.382-28.371 3.42-6.84 8.747-5.326 21.418 3.477 28.314a20.131 20.131 0 0 0 24.95 0 20.192 20.192 0 0 1-7.738-15.867Z"
-                              fill={
-                                {
-                                  "payload": 4293591067,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M294.199 163.089c0 11.158-9.027 20.185-20.184 20.185a19.973 19.973 0 0 1-12.447-4.318c8.746-6.896 10.26-19.567 3.364-28.37-1.01-1.233-2.131-2.411-3.364-3.364 8.746-6.896 21.473-5.382 28.314 3.42a19.982 19.982 0 0 1 4.317 12.447Z"
-                              fill={
-                                {
-                                  "payload": 4294417947,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m265.213 125.619-24.54-7.292-18.507 11.04-12.912-.006-18.517-11.034-24.53 7.292-7.461-25.135 7.461-27.897-7.461-23.586 7.461-29.231 38.33 22.85h22.347l38.329-22.85L272.675 49l-7.462 23.586 7.462 27.897-7.462 25.135Z"
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m166.213 19.77 38.329 22.867-1.525 15.693-36.804-38.56ZM190.742 100.494l16.865 12.82-16.865 5.013v-17.833ZM206.259 79.3l-3.242-20.96-20.747 14.252-.011-.005v.01l.064 14.67 8.414-7.968h15.522ZM265.213 19.77l-38.329 22.867 1.519 15.693 36.81-38.56ZM240.684 100.494l-16.865 12.82 16.865 5.013v-17.833ZM249.161 72.597h.006-.006v-.01l-.005.005-20.748-14.251-3.241 20.958h15.517l8.418 7.968.059-14.67Z"
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m190.737 118.327-24.53 7.292-7.461-25.125h31.991v17.833ZM206.254 79.295l4.685 30.299-6.493-16.847-22.134-5.48 8.419-7.972h15.523ZM240.684 118.327l24.529 7.292 7.462-25.125h-31.991v17.833ZM225.167 79.295l-4.686 30.299 6.494-16.847 22.133-5.48-8.424-7.972h-15.517Z"
-                              fill={
-                                {
-                                  "payload": 4293085191,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m158.746 100.483 7.461-27.896h16.047l.058 14.675 22.134 5.48 6.493 16.846-3.338 3.71-16.864-12.82h-31.991v.005ZM272.675 100.483l-7.462-27.896h-16.046l-.059 14.675-22.133 5.48-6.494 16.846 3.338 3.71 16.865-12.82h31.991v.005ZM226.884 42.621h-22.347l-1.519 15.694 7.921 51.257h9.542l7.927-51.257-1.524-15.694Z"
-                              fill={
-                                {
-                                  "payload": 4294937949,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M166.207 19.77 158.746 49l7.461 23.586h16.047l20.758-14.257-36.805-38.56ZM201.616 85.38h-7.269l-3.958 3.87 14.062 3.48-2.835-7.356v.005ZM265.213 19.77 272.675 49l-7.462 23.586h-16.046L228.408 58.33l36.805-38.56ZM229.815 85.38h7.28l3.958 3.876-14.078 3.485 2.84-7.367v.005ZM222.161 119.368l1.658-6.059-3.338-3.71h-9.547l-3.338 3.71 1.658 6.059"
-                              fill={
-                                {
-                                  "payload": 4284880896,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M222.161 119.367v10.005h-12.907v-10.005h12.907Z"
-                              fill={
-                                {
-                                  "payload": 4290823373,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m190.742 118.317 18.523 11.05v-10.005l-1.658-6.058-16.865 5.013ZM240.684 118.317l-18.523 11.05v-10.005l1.658-6.058 16.865 5.013Z"
-                              fill={
-                                {
-                                  "payload": 4293389302,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M47.406 34.19v7.047h-3.662v-4.883l-4.174.483c-.917.105-1.32.403-1.32.951 0 .804.766 1.143 2.407 1.143 1.001 0 2.11-.148 3.089-.403l-1.896 2.666c-.766.17-1.512.253-2.3.253-3.321 0-5.217-1.311-5.217-3.64 0-2.053 1.49-3.131 4.877-3.513l4.474-.516c-.242-1.293-1.223-1.854-3.176-1.854-1.83 0-3.854.465-5.664 1.333l.576-3.153c1.683-.699 3.6-1.06 5.537-1.06 4.26 0 6.454 1.759 6.454 5.143l-.005.002ZM14.46 25.363l-4.003 15.873h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003l-4.003-15.875-7.52 8.875-7.518-8.875.002.002ZM29.495 9.49l-7.52 8.875-7.516-8.875-4.003 15.875h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003L29.495 9.49Zm27.538 24.552-3.238-.465c-.809-.126-1.128-.381-1.128-.825 0-.72.788-1.037 2.407-1.037 1.875 0 3.557.381 5.326 1.206l-.447-3.11c-1.428-.508-3.067-.76-4.77-.76-3.983 0-6.157 1.375-6.157 3.851 0 1.927 1.193 3.005 3.727 3.387l3.281.487c.83.126 1.171.443 1.171.951 0 .72-.765 1.06-2.32 1.06-2.045 0-4.26-.487-6.07-1.356l.362 3.11c1.555.573 3.579.912 5.475.912 4.09 0 6.218-1.42 6.218-3.938 0-2.01-1.193-3.091-3.833-3.47l-.004-.002Zm5.26-7.26v14.456h3.663V26.781h-3.662Zm7.943 7.96 5.092-5.484h-4.557l-4.815 5.672 5.134 6.306h4.622l-5.476-6.497v.002Zm-8.454-12.806c0 2.328 1.897 3.64 5.218 3.64.787 0 1.534-.086 2.3-.253l1.895-2.667c-.979.253-2.087.403-3.088.403-1.64 0-2.407-.339-2.407-1.143 0-.55.405-.846 1.32-.951l4.173-.483v4.883h3.663v-7.048c0-3.386-2.194-5.142-6.454-5.142-1.939 0-3.854.36-5.537 1.059l-.576 3.153c1.81-.868 3.833-1.333 5.665-1.333 1.952 0 2.933.561 3.175 1.854l-4.474.517c-3.386.381-4.877 1.46-4.877 3.513l.005-.002Zm-10.243-.761c0 2.921 1.704 4.403 5.069 4.403 1.342 0 2.45-.213 3.514-.7l.468-3.195c-1.023.613-2.067.93-3.11.93-1.577 0-2.28-.634-2.28-2.053v-4.234h5.558v-2.94h-5.559v-2.498l-6.964 3.661v1.777h3.3v4.847l.004.002Zm-3.6-1.334v.72h-9.898c.446 1.467 1.773 2.138 4.128 2.138 1.875 0 3.622-.382 5.175-1.121l-.447 3.09c-1.428.592-3.237.912-5.09.912-4.92 0-7.603-2.159-7.603-6.159s2.726-6.244 6.943-6.244 6.794 2.435 6.794 6.667l-.002-.003Zm-9.946-1.736h6.26c-.33-1.404-1.415-2.137-3.15-2.137-1.733 0-2.762.714-3.11 2.137Z"
-                              fill={
-                                {
-                                  "payload": 4284880896,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                          </RNSVGGroup>
-                          <RNSVGDefs>
-                            <RNSVGClipPath
+                            <RNSVGGroup
+                              clipPath="a"
                               fill={
                                 {
                                   "payload": 4278190080,
                                   "type": 0,
                                 }
                               }
-                              name="a"
                             >
                               <RNSVGRect
                                 fill={
                                   {
-                                    "payload": 4294967295,
+                                    "payload": 4294925334,
                                     "type": 0,
                                   }
                                 }
@@ -592,19 +403,231 @@ exports[`CardImage Component renders correctly and matches snapshot 1`] = `
                                 x={0}
                                 y={0.856}
                               />
-                            </RNSVGClipPath>
-                          </RNSVGDefs>
-                        </RNSVGGroup>
-                      </RNSVGSvgView>
+                              <RNSVGPath
+                                d="M135.057 112.189h50.292V36.16h-50.292v76.029ZM185.349 255.942h82.982V-4.912h-82.982v260.854ZM268.331 255.924h55.321v-102.68h-55.321v102.68Z"
+                                fill={
+                                  {
+                                    "payload": 4294944384,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M323.652 214.87h42.429v-61.608h-42.429v61.608ZM268.331 153.262h97.554V71.117l-97.554-26.34v108.485ZM135.057 36.16l50.292-41.072V36.16h-50.292ZM366.081 153.262l-.196-82.145v82.145h.196ZM351.313 214.87l-27.661 41.072V214.87h27.661ZM135.057 112.189l50.292 41.073v-41.073h-50.292Z"
+                                fill={
+                                  {
+                                    "payload": 4294944384,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M270.37 147.223h-17.661v31.734h17.661v-31.734Z"
+                                fill={
+                                  {
+                                    "payload": 4294926080,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M253.83 163.089c0-6.167 2.86-12.054 7.682-15.867-8.747-6.896-21.474-5.382-28.371 3.42-6.84 8.747-5.326 21.418 3.477 28.314a20.131 20.131 0 0 0 24.95 0 20.192 20.192 0 0 1-7.738-15.867Z"
+                                fill={
+                                  {
+                                    "payload": 4293591067,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M294.199 163.089c0 11.158-9.027 20.185-20.184 20.185a19.973 19.973 0 0 1-12.447-4.318c8.746-6.896 10.26-19.567 3.364-28.37-1.01-1.233-2.131-2.411-3.364-3.364 8.746-6.896 21.473-5.382 28.314 3.42a19.982 19.982 0 0 1 4.317 12.447Z"
+                                fill={
+                                  {
+                                    "payload": 4294417947,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m265.213 125.619-24.54-7.292-18.507 11.04-12.912-.006-18.517-11.034-24.53 7.292-7.461-25.135 7.461-27.897-7.461-23.586 7.461-29.231 38.33 22.85h22.347l38.329-22.85L272.675 49l-7.462 23.586 7.462 27.897-7.462 25.135Z"
+                                fill={
+                                  {
+                                    "payload": 4294925334,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m166.213 19.77 38.329 22.867-1.525 15.693-36.804-38.56ZM190.742 100.494l16.865 12.82-16.865 5.013v-17.833ZM206.259 79.3l-3.242-20.96-20.747 14.252-.011-.005v.01l.064 14.67 8.414-7.968h15.522ZM265.213 19.77l-38.329 22.867 1.519 15.693 36.81-38.56ZM240.684 100.494l-16.865 12.82 16.865 5.013v-17.833ZM249.161 72.597h.006-.006v-.01l-.005.005-20.748-14.251-3.241 20.958h15.517l8.418 7.968.059-14.67Z"
+                                fill={
+                                  {
+                                    "payload": 4294925334,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m190.737 118.327-24.53 7.292-7.461-25.125h31.991v17.833ZM206.254 79.295l4.685 30.299-6.493-16.847-22.134-5.48 8.419-7.972h15.523ZM240.684 118.327l24.529 7.292 7.462-25.125h-31.991v17.833ZM225.167 79.295l-4.686 30.299 6.494-16.847 22.133-5.48-8.424-7.972h-15.517Z"
+                                fill={
+                                  {
+                                    "payload": 4293085191,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m158.746 100.483 7.461-27.896h16.047l.058 14.675 22.134 5.48 6.493 16.846-3.338 3.71-16.864-12.82h-31.991v.005ZM272.675 100.483l-7.462-27.896h-16.046l-.059 14.675-22.133 5.48-6.494 16.846 3.338 3.71 16.865-12.82h31.991v.005ZM226.884 42.621h-22.347l-1.519 15.694 7.921 51.257h9.542l7.927-51.257-1.524-15.694Z"
+                                fill={
+                                  {
+                                    "payload": 4294937949,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M166.207 19.77 158.746 49l7.461 23.586h16.047l20.758-14.257-36.805-38.56ZM201.616 85.38h-7.269l-3.958 3.87 14.062 3.48-2.835-7.356v.005ZM265.213 19.77 272.675 49l-7.462 23.586h-16.046L228.408 58.33l36.805-38.56ZM229.815 85.38h7.28l3.958 3.876-14.078 3.485 2.84-7.367v.005ZM222.161 119.368l1.658-6.059-3.338-3.71h-9.547l-3.338 3.71 1.658 6.059"
+                                fill={
+                                  {
+                                    "payload": 4284880896,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M222.161 119.367v10.005h-12.907v-10.005h12.907Z"
+                                fill={
+                                  {
+                                    "payload": 4290823373,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m190.742 118.317 18.523 11.05v-10.005l-1.658-6.058-16.865 5.013ZM240.684 118.317l-18.523 11.05v-10.005l1.658-6.058 16.865 5.013Z"
+                                fill={
+                                  {
+                                    "payload": 4293389302,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M47.406 34.19v7.047h-3.662v-4.883l-4.174.483c-.917.105-1.32.403-1.32.951 0 .804.766 1.143 2.407 1.143 1.001 0 2.11-.148 3.089-.403l-1.896 2.666c-.766.17-1.512.253-2.3.253-3.321 0-5.217-1.311-5.217-3.64 0-2.053 1.49-3.131 4.877-3.513l4.474-.516c-.242-1.293-1.223-1.854-3.176-1.854-1.83 0-3.854.465-5.664 1.333l.576-3.153c1.683-.699 3.6-1.06 5.537-1.06 4.26 0 6.454 1.759 6.454 5.143l-.005.002ZM14.46 25.363l-4.003 15.873h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003l-4.003-15.875-7.52 8.875-7.518-8.875.002.002ZM29.495 9.49l-7.52 8.875-7.516-8.875-4.003 15.875h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003L29.495 9.49Zm27.538 24.552-3.238-.465c-.809-.126-1.128-.381-1.128-.825 0-.72.788-1.037 2.407-1.037 1.875 0 3.557.381 5.326 1.206l-.447-3.11c-1.428-.508-3.067-.76-4.77-.76-3.983 0-6.157 1.375-6.157 3.851 0 1.927 1.193 3.005 3.727 3.387l3.281.487c.83.126 1.171.443 1.171.951 0 .72-.765 1.06-2.32 1.06-2.045 0-4.26-.487-6.07-1.356l.362 3.11c1.555.573 3.579.912 5.475.912 4.09 0 6.218-1.42 6.218-3.938 0-2.01-1.193-3.091-3.833-3.47l-.004-.002Zm5.26-7.26v14.456h3.663V26.781h-3.662Zm7.943 7.96 5.092-5.484h-4.557l-4.815 5.672 5.134 6.306h4.622l-5.476-6.497v.002Zm-8.454-12.806c0 2.328 1.897 3.64 5.218 3.64.787 0 1.534-.086 2.3-.253l1.895-2.667c-.979.253-2.087.403-3.088.403-1.64 0-2.407-.339-2.407-1.143 0-.55.405-.846 1.32-.951l4.173-.483v4.883h3.663v-7.048c0-3.386-2.194-5.142-6.454-5.142-1.939 0-3.854.36-5.537 1.059l-.576 3.153c1.81-.868 3.833-1.333 5.665-1.333 1.952 0 2.933.561 3.175 1.854l-4.474.517c-3.386.381-4.877 1.46-4.877 3.513l.005-.002Zm-10.243-.761c0 2.921 1.704 4.403 5.069 4.403 1.342 0 2.45-.213 3.514-.7l.468-3.195c-1.023.613-2.067.93-3.11.93-1.577 0-2.28-.634-2.28-2.053v-4.234h5.558v-2.94h-5.559v-2.498l-6.964 3.661v1.777h3.3v4.847l.004.002Zm-3.6-1.334v.72h-9.898c.446 1.467 1.773 2.138 4.128 2.138 1.875 0 3.622-.382 5.175-1.121l-.447 3.09c-1.428.592-3.237.912-5.09.912-4.92 0-7.603-2.159-7.603-6.159s2.726-6.244 6.943-6.244 6.794 2.435 6.794 6.667l-.002-.003Zm-9.946-1.736h6.26c-.33-1.404-1.415-2.137-3.15-2.137-1.733 0-2.762.714-3.11 2.137Z"
+                                fill={
+                                  {
+                                    "payload": 4284880896,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                            </RNSVGGroup>
+                            <RNSVGDefs>
+                              <RNSVGClipPath
+                                fill={
+                                  {
+                                    "payload": 4278190080,
+                                    "type": 0,
+                                  }
+                                }
+                                name="a"
+                              >
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4294967295,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={194.688}
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  rx={11.465}
+                                  width={338}
+                                  x={0}
+                                  y={0.856}
+                                />
+                              </RNSVGClipPath>
+                            </RNSVGDefs>
+                          </RNSVGGroup>
+                        </RNSVGSvgView>
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -629,33 +652,191 @@ exports[`CardImage Component renders with SVG properties 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  CardImage
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -663,49 +844,62 @@ exports[`CardImage Component renders with SVG properties 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -714,493 +908,133 @@ exports[`CardImage Component renders with SVG properties 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                CardImage
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
                     <View
                       style={
                         {
-                          "aspectRatio": 1.7361111111111112,
+                          "flex": 1,
                         }
                       }
                     >
-                      <RNSVGSvgView
-                        align="xMidYMid"
-                        bbHeight="100%"
-                        bbWidth="100%"
-                        fill="red"
-                        focusable={false}
-                        height="100%"
-                        meetOrSlice={0}
-                        minX={0}
-                        minY={0}
-                        stroke="blue"
+                      <View
                         style={
-                          [
-                            {
-                              "backgroundColor": "transparent",
-                              "borderWidth": 0,
-                            },
-                            {
-                              "flex": 0,
-                              "height": "100%",
-                              "opacity": 0.5,
-                              "width": "100%",
-                            },
-                          ]
-                        }
-                        vbHeight={194.688}
-                        vbWidth={338}
-                        width="100%"
-                      >
-                        <RNSVGGroup
-                          fill={
-                            {
-                              "payload": 4294901760,
-                              "type": 0,
-                            }
+                          {
+                            "aspectRatio": 1.7361111111111112,
                           }
-                          propList={
+                        }
+                      >
+                        <RNSVGSvgView
+                          align="xMidYMid"
+                          bbHeight="100%"
+                          bbWidth="100%"
+                          fill="red"
+                          focusable={false}
+                          height="100%"
+                          meetOrSlice={0}
+                          minX={0}
+                          minY={0}
+                          stroke="blue"
+                          style={
                             [
-                              "fill",
-                              "stroke",
+                              {
+                                "backgroundColor": "transparent",
+                                "borderWidth": 0,
+                              },
+                              {
+                                "flex": 0,
+                                "height": "100%",
+                                "opacity": 0.5,
+                                "width": "100%",
+                              },
                             ]
                           }
-                          stroke={
-                            {
-                              "payload": 4278190335,
-                              "type": 0,
-                            }
-                          }
+                          vbHeight={194.688}
+                          vbWidth={338}
+                          width="100%"
                         >
                           <RNSVGGroup
-                            clipPath="a"
                             fill={
                               {
-                                "payload": 4278190080,
+                                "payload": 4294901760,
+                                "type": 0,
+                              }
+                            }
+                            propList={
+                              [
+                                "fill",
+                                "stroke",
+                              ]
+                            }
+                            stroke={
+                              {
+                                "payload": 4278190335,
                                 "type": 0,
                               }
                             }
                           >
-                            <RNSVGRect
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              height={194.688}
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                              rx={11.465}
-                              width={338}
-                              x={0}
-                              y={0.856}
-                            />
-                            <RNSVGPath
-                              d="M135.057 112.189h50.292V36.16h-50.292v76.029ZM185.349 255.942h82.982V-4.912h-82.982v260.854ZM268.331 255.924h55.321v-102.68h-55.321v102.68Z"
-                              fill={
-                                {
-                                  "payload": 4294944384,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M323.652 214.87h42.429v-61.608h-42.429v61.608ZM268.331 153.262h97.554V71.117l-97.554-26.34v108.485ZM135.057 36.16l50.292-41.072V36.16h-50.292ZM366.081 153.262l-.196-82.145v82.145h.196ZM351.313 214.87l-27.661 41.072V214.87h27.661ZM135.057 112.189l50.292 41.073v-41.073h-50.292Z"
-                              fill={
-                                {
-                                  "payload": 4294944384,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M270.37 147.223h-17.661v31.734h17.661v-31.734Z"
-                              fill={
-                                {
-                                  "payload": 4294926080,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M253.83 163.089c0-6.167 2.86-12.054 7.682-15.867-8.747-6.896-21.474-5.382-28.371 3.42-6.84 8.747-5.326 21.418 3.477 28.314a20.131 20.131 0 0 0 24.95 0 20.192 20.192 0 0 1-7.738-15.867Z"
-                              fill={
-                                {
-                                  "payload": 4293591067,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M294.199 163.089c0 11.158-9.027 20.185-20.184 20.185a19.973 19.973 0 0 1-12.447-4.318c8.746-6.896 10.26-19.567 3.364-28.37-1.01-1.233-2.131-2.411-3.364-3.364 8.746-6.896 21.473-5.382 28.314 3.42a19.982 19.982 0 0 1 4.317 12.447Z"
-                              fill={
-                                {
-                                  "payload": 4294417947,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m265.213 125.619-24.54-7.292-18.507 11.04-12.912-.006-18.517-11.034-24.53 7.292-7.461-25.135 7.461-27.897-7.461-23.586 7.461-29.231 38.33 22.85h22.347l38.329-22.85L272.675 49l-7.462 23.586 7.462 27.897-7.462 25.135Z"
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m166.213 19.77 38.329 22.867-1.525 15.693-36.804-38.56ZM190.742 100.494l16.865 12.82-16.865 5.013v-17.833ZM206.259 79.3l-3.242-20.96-20.747 14.252-.011-.005v.01l.064 14.67 8.414-7.968h15.522ZM265.213 19.77l-38.329 22.867 1.519 15.693 36.81-38.56ZM240.684 100.494l-16.865 12.82 16.865 5.013v-17.833ZM249.161 72.597h.006-.006v-.01l-.005.005-20.748-14.251-3.241 20.958h15.517l8.418 7.968.059-14.67Z"
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m190.737 118.327-24.53 7.292-7.461-25.125h31.991v17.833ZM206.254 79.295l4.685 30.299-6.493-16.847-22.134-5.48 8.419-7.972h15.523ZM240.684 118.327l24.529 7.292 7.462-25.125h-31.991v17.833ZM225.167 79.295l-4.686 30.299 6.494-16.847 22.133-5.48-8.424-7.972h-15.517Z"
-                              fill={
-                                {
-                                  "payload": 4293085191,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m158.746 100.483 7.461-27.896h16.047l.058 14.675 22.134 5.48 6.493 16.846-3.338 3.71-16.864-12.82h-31.991v.005ZM272.675 100.483l-7.462-27.896h-16.046l-.059 14.675-22.133 5.48-6.494 16.846 3.338 3.71 16.865-12.82h31.991v.005ZM226.884 42.621h-22.347l-1.519 15.694 7.921 51.257h9.542l7.927-51.257-1.524-15.694Z"
-                              fill={
-                                {
-                                  "payload": 4294937949,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M166.207 19.77 158.746 49l7.461 23.586h16.047l20.758-14.257-36.805-38.56ZM201.616 85.38h-7.269l-3.958 3.87 14.062 3.48-2.835-7.356v.005ZM265.213 19.77 272.675 49l-7.462 23.586h-16.046L228.408 58.33l36.805-38.56ZM229.815 85.38h7.28l3.958 3.876-14.078 3.485 2.84-7.367v.005ZM222.161 119.368l1.658-6.059-3.338-3.71h-9.547l-3.338 3.71 1.658 6.059"
-                              fill={
-                                {
-                                  "payload": 4284880896,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M222.161 119.367v10.005h-12.907v-10.005h12.907Z"
-                              fill={
-                                {
-                                  "payload": 4290823373,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m190.742 118.317 18.523 11.05v-10.005l-1.658-6.058-16.865 5.013ZM240.684 118.317l-18.523 11.05v-10.005l1.658-6.058 16.865 5.013Z"
-                              fill={
-                                {
-                                  "payload": 4293389302,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M47.406 34.19v7.047h-3.662v-4.883l-4.174.483c-.917.105-1.32.403-1.32.951 0 .804.766 1.143 2.407 1.143 1.001 0 2.11-.148 3.089-.403l-1.896 2.666c-.766.17-1.512.253-2.3.253-3.321 0-5.217-1.311-5.217-3.64 0-2.053 1.49-3.131 4.877-3.513l4.474-.516c-.242-1.293-1.223-1.854-3.176-1.854-1.83 0-3.854.465-5.664 1.333l.576-3.153c1.683-.699 3.6-1.06 5.537-1.06 4.26 0 6.454 1.759 6.454 5.143l-.005.002ZM14.46 25.363l-4.003 15.873h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003l-4.003-15.875-7.52 8.875-7.518-8.875.002.002ZM29.495 9.49l-7.52 8.875-7.516-8.875-4.003 15.875h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003L29.495 9.49Zm27.538 24.552-3.238-.465c-.809-.126-1.128-.381-1.128-.825 0-.72.788-1.037 2.407-1.037 1.875 0 3.557.381 5.326 1.206l-.447-3.11c-1.428-.508-3.067-.76-4.77-.76-3.983 0-6.157 1.375-6.157 3.851 0 1.927 1.193 3.005 3.727 3.387l3.281.487c.83.126 1.171.443 1.171.951 0 .72-.765 1.06-2.32 1.06-2.045 0-4.26-.487-6.07-1.356l.362 3.11c1.555.573 3.579.912 5.475.912 4.09 0 6.218-1.42 6.218-3.938 0-2.01-1.193-3.091-3.833-3.47l-.004-.002Zm5.26-7.26v14.456h3.663V26.781h-3.662Zm7.943 7.96 5.092-5.484h-4.557l-4.815 5.672 5.134 6.306h4.622l-5.476-6.497v.002Zm-8.454-12.806c0 2.328 1.897 3.64 5.218 3.64.787 0 1.534-.086 2.3-.253l1.895-2.667c-.979.253-2.087.403-3.088.403-1.64 0-2.407-.339-2.407-1.143 0-.55.405-.846 1.32-.951l4.173-.483v4.883h3.663v-7.048c0-3.386-2.194-5.142-6.454-5.142-1.939 0-3.854.36-5.537 1.059l-.576 3.153c1.81-.868 3.833-1.333 5.665-1.333 1.952 0 2.933.561 3.175 1.854l-4.474.517c-3.386.381-4.877 1.46-4.877 3.513l.005-.002Zm-10.243-.761c0 2.921 1.704 4.403 5.069 4.403 1.342 0 2.45-.213 3.514-.7l.468-3.195c-1.023.613-2.067.93-3.11.93-1.577 0-2.28-.634-2.28-2.053v-4.234h5.558v-2.94h-5.559v-2.498l-6.964 3.661v1.777h3.3v4.847l.004.002Zm-3.6-1.334v.72h-9.898c.446 1.467 1.773 2.138 4.128 2.138 1.875 0 3.622-.382 5.175-1.121l-.447 3.09c-1.428.592-3.237.912-5.09.912-4.92 0-7.603-2.159-7.603-6.159s2.726-6.244 6.943-6.244 6.794 2.435 6.794 6.667l-.002-.003Zm-9.946-1.736h6.26c-.33-1.404-1.415-2.137-3.15-2.137-1.733 0-2.762.714-3.11 2.137Z"
-                              fill={
-                                {
-                                  "payload": 4284880896,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                          </RNSVGGroup>
-                          <RNSVGDefs>
-                            <RNSVGClipPath
+                            <RNSVGGroup
+                              clipPath="a"
                               fill={
                                 {
                                   "payload": 4278190080,
                                   "type": 0,
                                 }
                               }
-                              name="a"
                             >
                               <RNSVGRect
                                 fill={
                                   {
-                                    "payload": 4294967295,
+                                    "payload": 4294925334,
                                     "type": 0,
                                   }
                                 }
@@ -1215,19 +1049,231 @@ exports[`CardImage Component renders with SVG properties 1`] = `
                                 x={0}
                                 y={0.856}
                               />
-                            </RNSVGClipPath>
-                          </RNSVGDefs>
-                        </RNSVGGroup>
-                      </RNSVGSvgView>
+                              <RNSVGPath
+                                d="M135.057 112.189h50.292V36.16h-50.292v76.029ZM185.349 255.942h82.982V-4.912h-82.982v260.854ZM268.331 255.924h55.321v-102.68h-55.321v102.68Z"
+                                fill={
+                                  {
+                                    "payload": 4294944384,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M323.652 214.87h42.429v-61.608h-42.429v61.608ZM268.331 153.262h97.554V71.117l-97.554-26.34v108.485ZM135.057 36.16l50.292-41.072V36.16h-50.292ZM366.081 153.262l-.196-82.145v82.145h.196ZM351.313 214.87l-27.661 41.072V214.87h27.661ZM135.057 112.189l50.292 41.073v-41.073h-50.292Z"
+                                fill={
+                                  {
+                                    "payload": 4294944384,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M270.37 147.223h-17.661v31.734h17.661v-31.734Z"
+                                fill={
+                                  {
+                                    "payload": 4294926080,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M253.83 163.089c0-6.167 2.86-12.054 7.682-15.867-8.747-6.896-21.474-5.382-28.371 3.42-6.84 8.747-5.326 21.418 3.477 28.314a20.131 20.131 0 0 0 24.95 0 20.192 20.192 0 0 1-7.738-15.867Z"
+                                fill={
+                                  {
+                                    "payload": 4293591067,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M294.199 163.089c0 11.158-9.027 20.185-20.184 20.185a19.973 19.973 0 0 1-12.447-4.318c8.746-6.896 10.26-19.567 3.364-28.37-1.01-1.233-2.131-2.411-3.364-3.364 8.746-6.896 21.473-5.382 28.314 3.42a19.982 19.982 0 0 1 4.317 12.447Z"
+                                fill={
+                                  {
+                                    "payload": 4294417947,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m265.213 125.619-24.54-7.292-18.507 11.04-12.912-.006-18.517-11.034-24.53 7.292-7.461-25.135 7.461-27.897-7.461-23.586 7.461-29.231 38.33 22.85h22.347l38.329-22.85L272.675 49l-7.462 23.586 7.462 27.897-7.462 25.135Z"
+                                fill={
+                                  {
+                                    "payload": 4294925334,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m166.213 19.77 38.329 22.867-1.525 15.693-36.804-38.56ZM190.742 100.494l16.865 12.82-16.865 5.013v-17.833ZM206.259 79.3l-3.242-20.96-20.747 14.252-.011-.005v.01l.064 14.67 8.414-7.968h15.522ZM265.213 19.77l-38.329 22.867 1.519 15.693 36.81-38.56ZM240.684 100.494l-16.865 12.82 16.865 5.013v-17.833ZM249.161 72.597h.006-.006v-.01l-.005.005-20.748-14.251-3.241 20.958h15.517l8.418 7.968.059-14.67Z"
+                                fill={
+                                  {
+                                    "payload": 4294925334,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m190.737 118.327-24.53 7.292-7.461-25.125h31.991v17.833ZM206.254 79.295l4.685 30.299-6.493-16.847-22.134-5.48 8.419-7.972h15.523ZM240.684 118.327l24.529 7.292 7.462-25.125h-31.991v17.833ZM225.167 79.295l-4.686 30.299 6.494-16.847 22.133-5.48-8.424-7.972h-15.517Z"
+                                fill={
+                                  {
+                                    "payload": 4293085191,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m158.746 100.483 7.461-27.896h16.047l.058 14.675 22.134 5.48 6.493 16.846-3.338 3.71-16.864-12.82h-31.991v.005ZM272.675 100.483l-7.462-27.896h-16.046l-.059 14.675-22.133 5.48-6.494 16.846 3.338 3.71 16.865-12.82h31.991v.005ZM226.884 42.621h-22.347l-1.519 15.694 7.921 51.257h9.542l7.927-51.257-1.524-15.694Z"
+                                fill={
+                                  {
+                                    "payload": 4294937949,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M166.207 19.77 158.746 49l7.461 23.586h16.047l20.758-14.257-36.805-38.56ZM201.616 85.38h-7.269l-3.958 3.87 14.062 3.48-2.835-7.356v.005ZM265.213 19.77 272.675 49l-7.462 23.586h-16.046L228.408 58.33l36.805-38.56ZM229.815 85.38h7.28l3.958 3.876-14.078 3.485 2.84-7.367v.005ZM222.161 119.368l1.658-6.059-3.338-3.71h-9.547l-3.338 3.71 1.658 6.059"
+                                fill={
+                                  {
+                                    "payload": 4284880896,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M222.161 119.367v10.005h-12.907v-10.005h12.907Z"
+                                fill={
+                                  {
+                                    "payload": 4290823373,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m190.742 118.317 18.523 11.05v-10.005l-1.658-6.058-16.865 5.013ZM240.684 118.317l-18.523 11.05v-10.005l1.658-6.058 16.865 5.013Z"
+                                fill={
+                                  {
+                                    "payload": 4293389302,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M47.406 34.19v7.047h-3.662v-4.883l-4.174.483c-.917.105-1.32.403-1.32.951 0 .804.766 1.143 2.407 1.143 1.001 0 2.11-.148 3.089-.403l-1.896 2.666c-.766.17-1.512.253-2.3.253-3.321 0-5.217-1.311-5.217-3.64 0-2.053 1.49-3.131 4.877-3.513l4.474-.516c-.242-1.293-1.223-1.854-3.176-1.854-1.83 0-3.854.465-5.664 1.333l.576-3.153c1.683-.699 3.6-1.06 5.537-1.06 4.26 0 6.454 1.759 6.454 5.143l-.005.002ZM14.46 25.363l-4.003 15.873h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003l-4.003-15.875-7.52 8.875-7.518-8.875.002.002ZM29.495 9.49l-7.52 8.875-7.516-8.875-4.003 15.875h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003L29.495 9.49Zm27.538 24.552-3.238-.465c-.809-.126-1.128-.381-1.128-.825 0-.72.788-1.037 2.407-1.037 1.875 0 3.557.381 5.326 1.206l-.447-3.11c-1.428-.508-3.067-.76-4.77-.76-3.983 0-6.157 1.375-6.157 3.851 0 1.927 1.193 3.005 3.727 3.387l3.281.487c.83.126 1.171.443 1.171.951 0 .72-.765 1.06-2.32 1.06-2.045 0-4.26-.487-6.07-1.356l.362 3.11c1.555.573 3.579.912 5.475.912 4.09 0 6.218-1.42 6.218-3.938 0-2.01-1.193-3.091-3.833-3.47l-.004-.002Zm5.26-7.26v14.456h3.663V26.781h-3.662Zm7.943 7.96 5.092-5.484h-4.557l-4.815 5.672 5.134 6.306h4.622l-5.476-6.497v.002Zm-8.454-12.806c0 2.328 1.897 3.64 5.218 3.64.787 0 1.534-.086 2.3-.253l1.895-2.667c-.979.253-2.087.403-3.088.403-1.64 0-2.407-.339-2.407-1.143 0-.55.405-.846 1.32-.951l4.173-.483v4.883h3.663v-7.048c0-3.386-2.194-5.142-6.454-5.142-1.939 0-3.854.36-5.537 1.059l-.576 3.153c1.81-.868 3.833-1.333 5.665-1.333 1.952 0 2.933.561 3.175 1.854l-4.474.517c-3.386.381-4.877 1.46-4.877 3.513l.005-.002Zm-10.243-.761c0 2.921 1.704 4.403 5.069 4.403 1.342 0 2.45-.213 3.514-.7l.468-3.195c-1.023.613-2.067.93-3.11.93-1.577 0-2.28-.634-2.28-2.053v-4.234h5.558v-2.94h-5.559v-2.498l-6.964 3.661v1.777h3.3v4.847l.004.002Zm-3.6-1.334v.72h-9.898c.446 1.467 1.773 2.138 4.128 2.138 1.875 0 3.622-.382 5.175-1.121l-.447 3.09c-1.428.592-3.237.912-5.09.912-4.92 0-7.603-2.159-7.603-6.159s2.726-6.244 6.943-6.244 6.794 2.435 6.794 6.667l-.002-.003Zm-9.946-1.736h6.26c-.33-1.404-1.415-2.137-3.15-2.137-1.733 0-2.762.714-3.11 2.137Z"
+                                fill={
+                                  {
+                                    "payload": 4284880896,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                            </RNSVGGroup>
+                            <RNSVGDefs>
+                              <RNSVGClipPath
+                                fill={
+                                  {
+                                    "payload": 4278190080,
+                                    "type": 0,
+                                  }
+                                }
+                                name="a"
+                              >
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4294967295,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={194.688}
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  rx={11.465}
+                                  width={338}
+                                  x={0}
+                                  y={0.856}
+                                />
+                              </RNSVGClipPath>
+                            </RNSVGDefs>
+                          </RNSVGGroup>
+                        </RNSVGSvgView>
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1252,33 +1298,191 @@ exports[`CardImage Component renders with custom props and matches snapshot 1`] 
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
+          style={null}
+        >
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              style={
+                {
+                  "backgroundColor": "rgb(255, 255, 255)",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "flex": 1,
+                  "shadowColor": "rgb(216, 216, 216)",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
+                }
+              }
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
+            <View
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 718,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="header"
+                  aria-level="1"
+                  collapsable={false}
+                  numberOfLines={1}
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "color": "rgb(28, 28, 30)",
+                      "fontSize": 17,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  CardImage
+                </Text>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
+                  }
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <RNSScreenContainer
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSScreen
+          activityState={2}
+          collapsable={false}
+          gestureResponseDistance={
+            {
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
+            }
+          }
+          onGestureCancel={[Function]}
+          pointerEvents="box-none"
+          sheetAllowedDetents="large"
+          sheetCornerRadius={-1}
+          sheetExpandsWhenScrolledToEdge={true}
+          sheetGrabberVisible={false}
+          sheetLargestUndimmedDetent="all"
           style={
             {
               "bottom": 0,
               "left": 0,
-              "opacity": 1,
               "position": "absolute",
               "right": 0,
               "top": 0,
-              "zIndex": 0,
+              "zIndex": undefined,
             }
           }
         >
@@ -1286,49 +1490,62 @@ exports[`CardImage Component renders with custom props and matches snapshot 1`] 
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "flex": 1,
-                "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
+                "opacity": 1,
               }
             }
           />
           <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
             pointerEvents="box-none"
             style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
@@ -1337,480 +1554,120 @@ exports[`CardImage Component renders with custom props and matches snapshot 1`] 
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
-                  "opacity": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              >
-                CardImage
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={-1}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                enabled={false}
+                handlerTag={-1}
+                handlerType="PanGestureHandler"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
                     <View
                       style={
                         {
-                          "aspectRatio": 1.7361111111111112,
+                          "flex": 1,
                         }
                       }
                     >
-                      <RNSVGSvgView
-                        align="xMidYMid"
-                        bbHeight={100}
-                        bbWidth={200}
-                        fill="none"
-                        focusable={false}
-                        height={100}
-                        meetOrSlice={0}
-                        minX={0}
-                        minY={0}
+                      <View
                         style={
-                          [
-                            {
-                              "backgroundColor": "transparent",
-                              "borderWidth": 0,
-                            },
-                            {
-                              "flex": 0,
-                              "height": 100,
-                              "width": 200,
-                            },
-                          ]
+                          {
+                            "aspectRatio": 1.7361111111111112,
+                          }
                         }
-                        testID="custom-card-image"
-                        vbHeight={194.688}
-                        vbWidth={338}
-                        width={200}
                       >
-                        <RNSVGGroup
-                          fill={null}
-                          propList={
+                        <RNSVGSvgView
+                          align="xMidYMid"
+                          bbHeight={100}
+                          bbWidth={200}
+                          fill="none"
+                          focusable={false}
+                          height={100}
+                          meetOrSlice={0}
+                          minX={0}
+                          minY={0}
+                          style={
                             [
-                              "fill",
+                              {
+                                "backgroundColor": "transparent",
+                                "borderWidth": 0,
+                              },
+                              {
+                                "flex": 0,
+                                "height": 100,
+                                "width": 200,
+                              },
                             ]
                           }
+                          testID="custom-card-image"
+                          vbHeight={194.688}
+                          vbWidth={338}
+                          width={200}
                         >
                           <RNSVGGroup
-                            clipPath="a"
-                            fill={
-                              {
-                                "payload": 4278190080,
-                                "type": 0,
-                              }
+                            fill={null}
+                            propList={
+                              [
+                                "fill",
+                              ]
                             }
                           >
-                            <RNSVGRect
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              height={194.688}
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                              rx={11.465}
-                              width={338}
-                              x={0}
-                              y={0.856}
-                            />
-                            <RNSVGPath
-                              d="M135.057 112.189h50.292V36.16h-50.292v76.029ZM185.349 255.942h82.982V-4.912h-82.982v260.854ZM268.331 255.924h55.321v-102.68h-55.321v102.68Z"
-                              fill={
-                                {
-                                  "payload": 4294944384,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M323.652 214.87h42.429v-61.608h-42.429v61.608ZM268.331 153.262h97.554V71.117l-97.554-26.34v108.485ZM135.057 36.16l50.292-41.072V36.16h-50.292ZM366.081 153.262l-.196-82.145v82.145h.196ZM351.313 214.87l-27.661 41.072V214.87h27.661ZM135.057 112.189l50.292 41.073v-41.073h-50.292Z"
-                              fill={
-                                {
-                                  "payload": 4294944384,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M270.37 147.223h-17.661v31.734h17.661v-31.734Z"
-                              fill={
-                                {
-                                  "payload": 4294926080,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M253.83 163.089c0-6.167 2.86-12.054 7.682-15.867-8.747-6.896-21.474-5.382-28.371 3.42-6.84 8.747-5.326 21.418 3.477 28.314a20.131 20.131 0 0 0 24.95 0 20.192 20.192 0 0 1-7.738-15.867Z"
-                              fill={
-                                {
-                                  "payload": 4293591067,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M294.199 163.089c0 11.158-9.027 20.185-20.184 20.185a19.973 19.973 0 0 1-12.447-4.318c8.746-6.896 10.26-19.567 3.364-28.37-1.01-1.233-2.131-2.411-3.364-3.364 8.746-6.896 21.473-5.382 28.314 3.42a19.982 19.982 0 0 1 4.317 12.447Z"
-                              fill={
-                                {
-                                  "payload": 4294417947,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m265.213 125.619-24.54-7.292-18.507 11.04-12.912-.006-18.517-11.034-24.53 7.292-7.461-25.135 7.461-27.897-7.461-23.586 7.461-29.231 38.33 22.85h22.347l38.329-22.85L272.675 49l-7.462 23.586 7.462 27.897-7.462 25.135Z"
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m166.213 19.77 38.329 22.867-1.525 15.693-36.804-38.56ZM190.742 100.494l16.865 12.82-16.865 5.013v-17.833ZM206.259 79.3l-3.242-20.96-20.747 14.252-.011-.005v.01l.064 14.67 8.414-7.968h15.522ZM265.213 19.77l-38.329 22.867 1.519 15.693 36.81-38.56ZM240.684 100.494l-16.865 12.82 16.865 5.013v-17.833ZM249.161 72.597h.006-.006v-.01l-.005.005-20.748-14.251-3.241 20.958h15.517l8.418 7.968.059-14.67Z"
-                              fill={
-                                {
-                                  "payload": 4294925334,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m190.737 118.327-24.53 7.292-7.461-25.125h31.991v17.833ZM206.254 79.295l4.685 30.299-6.493-16.847-22.134-5.48 8.419-7.972h15.523ZM240.684 118.327l24.529 7.292 7.462-25.125h-31.991v17.833ZM225.167 79.295l-4.686 30.299 6.494-16.847 22.133-5.48-8.424-7.972h-15.517Z"
-                              fill={
-                                {
-                                  "payload": 4293085191,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m158.746 100.483 7.461-27.896h16.047l.058 14.675 22.134 5.48 6.493 16.846-3.338 3.71-16.864-12.82h-31.991v.005ZM272.675 100.483l-7.462-27.896h-16.046l-.059 14.675-22.133 5.48-6.494 16.846 3.338 3.71 16.865-12.82h31.991v.005ZM226.884 42.621h-22.347l-1.519 15.694 7.921 51.257h9.542l7.927-51.257-1.524-15.694Z"
-                              fill={
-                                {
-                                  "payload": 4294937949,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M166.207 19.77 158.746 49l7.461 23.586h16.047l20.758-14.257-36.805-38.56ZM201.616 85.38h-7.269l-3.958 3.87 14.062 3.48-2.835-7.356v.005ZM265.213 19.77 272.675 49l-7.462 23.586h-16.046L228.408 58.33l36.805-38.56ZM229.815 85.38h7.28l3.958 3.876-14.078 3.485 2.84-7.367v.005ZM222.161 119.368l1.658-6.059-3.338-3.71h-9.547l-3.338 3.71 1.658 6.059"
-                              fill={
-                                {
-                                  "payload": 4284880896,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M222.161 119.367v10.005h-12.907v-10.005h12.907Z"
-                              fill={
-                                {
-                                  "payload": 4290823373,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="m190.742 118.317 18.523 11.05v-10.005l-1.658-6.058-16.865 5.013ZM240.684 118.317l-18.523 11.05v-10.005l1.658-6.058 16.865 5.013Z"
-                              fill={
-                                {
-                                  "payload": 4293389302,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                            <RNSVGPath
-                              d="M47.406 34.19v7.047h-3.662v-4.883l-4.174.483c-.917.105-1.32.403-1.32.951 0 .804.766 1.143 2.407 1.143 1.001 0 2.11-.148 3.089-.403l-1.896 2.666c-.766.17-1.512.253-2.3.253-3.321 0-5.217-1.311-5.217-3.64 0-2.053 1.49-3.131 4.877-3.513l4.474-.516c-.242-1.293-1.223-1.854-3.176-1.854-1.83 0-3.854.465-5.664 1.333l.576-3.153c1.683-.699 3.6-1.06 5.537-1.06 4.26 0 6.454 1.759 6.454 5.143l-.005.002ZM14.46 25.363l-4.003 15.873h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003l-4.003-15.875-7.52 8.875-7.518-8.875.002.002ZM29.495 9.49l-7.52 8.875-7.516-8.875-4.003 15.875h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003L29.495 9.49Zm27.538 24.552-3.238-.465c-.809-.126-1.128-.381-1.128-.825 0-.72.788-1.037 2.407-1.037 1.875 0 3.557.381 5.326 1.206l-.447-3.11c-1.428-.508-3.067-.76-4.77-.76-3.983 0-6.157 1.375-6.157 3.851 0 1.927 1.193 3.005 3.727 3.387l3.281.487c.83.126 1.171.443 1.171.951 0 .72-.765 1.06-2.32 1.06-2.045 0-4.26-.487-6.07-1.356l.362 3.11c1.555.573 3.579.912 5.475.912 4.09 0 6.218-1.42 6.218-3.938 0-2.01-1.193-3.091-3.833-3.47l-.004-.002Zm5.26-7.26v14.456h3.663V26.781h-3.662Zm7.943 7.96 5.092-5.484h-4.557l-4.815 5.672 5.134 6.306h4.622l-5.476-6.497v.002Zm-8.454-12.806c0 2.328 1.897 3.64 5.218 3.64.787 0 1.534-.086 2.3-.253l1.895-2.667c-.979.253-2.087.403-3.088.403-1.64 0-2.407-.339-2.407-1.143 0-.55.405-.846 1.32-.951l4.173-.483v4.883h3.663v-7.048c0-3.386-2.194-5.142-6.454-5.142-1.939 0-3.854.36-5.537 1.059l-.576 3.153c1.81-.868 3.833-1.333 5.665-1.333 1.952 0 2.933.561 3.175 1.854l-4.474.517c-3.386.381-4.877 1.46-4.877 3.513l.005-.002Zm-10.243-.761c0 2.921 1.704 4.403 5.069 4.403 1.342 0 2.45-.213 3.514-.7l.468-3.195c-1.023.613-2.067.93-3.11.93-1.577 0-2.28-.634-2.28-2.053v-4.234h5.558v-2.94h-5.559v-2.498l-6.964 3.661v1.777h3.3v4.847l.004.002Zm-3.6-1.334v.72h-9.898c.446 1.467 1.773 2.138 4.128 2.138 1.875 0 3.622-.382 5.175-1.121l-.447 3.09c-1.428.592-3.237.912-5.09.912-4.92 0-7.603-2.159-7.603-6.159s2.726-6.244 6.943-6.244 6.794 2.435 6.794 6.667l-.002-.003Zm-9.946-1.736h6.26c-.33-1.404-1.415-2.137-3.15-2.137-1.733 0-2.762.714-3.11 2.137Z"
-                              fill={
-                                {
-                                  "payload": 4284880896,
-                                  "type": 0,
-                                }
-                              }
-                              propList={
-                                [
-                                  "fill",
-                                ]
-                              }
-                            />
-                          </RNSVGGroup>
-                          <RNSVGDefs>
-                            <RNSVGClipPath
+                            <RNSVGGroup
+                              clipPath="a"
                               fill={
                                 {
                                   "payload": 4278190080,
                                   "type": 0,
                                 }
                               }
-                              name="a"
                             >
                               <RNSVGRect
                                 fill={
                                   {
-                                    "payload": 4294967295,
+                                    "payload": 4294925334,
                                     "type": 0,
                                   }
                                 }
@@ -1825,19 +1682,231 @@ exports[`CardImage Component renders with custom props and matches snapshot 1`] 
                                 x={0}
                                 y={0.856}
                               />
-                            </RNSVGClipPath>
-                          </RNSVGDefs>
-                        </RNSVGGroup>
-                      </RNSVGSvgView>
+                              <RNSVGPath
+                                d="M135.057 112.189h50.292V36.16h-50.292v76.029ZM185.349 255.942h82.982V-4.912h-82.982v260.854ZM268.331 255.924h55.321v-102.68h-55.321v102.68Z"
+                                fill={
+                                  {
+                                    "payload": 4294944384,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M323.652 214.87h42.429v-61.608h-42.429v61.608ZM268.331 153.262h97.554V71.117l-97.554-26.34v108.485ZM135.057 36.16l50.292-41.072V36.16h-50.292ZM366.081 153.262l-.196-82.145v82.145h.196ZM351.313 214.87l-27.661 41.072V214.87h27.661ZM135.057 112.189l50.292 41.073v-41.073h-50.292Z"
+                                fill={
+                                  {
+                                    "payload": 4294944384,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M270.37 147.223h-17.661v31.734h17.661v-31.734Z"
+                                fill={
+                                  {
+                                    "payload": 4294926080,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M253.83 163.089c0-6.167 2.86-12.054 7.682-15.867-8.747-6.896-21.474-5.382-28.371 3.42-6.84 8.747-5.326 21.418 3.477 28.314a20.131 20.131 0 0 0 24.95 0 20.192 20.192 0 0 1-7.738-15.867Z"
+                                fill={
+                                  {
+                                    "payload": 4293591067,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M294.199 163.089c0 11.158-9.027 20.185-20.184 20.185a19.973 19.973 0 0 1-12.447-4.318c8.746-6.896 10.26-19.567 3.364-28.37-1.01-1.233-2.131-2.411-3.364-3.364 8.746-6.896 21.473-5.382 28.314 3.42a19.982 19.982 0 0 1 4.317 12.447Z"
+                                fill={
+                                  {
+                                    "payload": 4294417947,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m265.213 125.619-24.54-7.292-18.507 11.04-12.912-.006-18.517-11.034-24.53 7.292-7.461-25.135 7.461-27.897-7.461-23.586 7.461-29.231 38.33 22.85h22.347l38.329-22.85L272.675 49l-7.462 23.586 7.462 27.897-7.462 25.135Z"
+                                fill={
+                                  {
+                                    "payload": 4294925334,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m166.213 19.77 38.329 22.867-1.525 15.693-36.804-38.56ZM190.742 100.494l16.865 12.82-16.865 5.013v-17.833ZM206.259 79.3l-3.242-20.96-20.747 14.252-.011-.005v.01l.064 14.67 8.414-7.968h15.522ZM265.213 19.77l-38.329 22.867 1.519 15.693 36.81-38.56ZM240.684 100.494l-16.865 12.82 16.865 5.013v-17.833ZM249.161 72.597h.006-.006v-.01l-.005.005-20.748-14.251-3.241 20.958h15.517l8.418 7.968.059-14.67Z"
+                                fill={
+                                  {
+                                    "payload": 4294925334,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m190.737 118.327-24.53 7.292-7.461-25.125h31.991v17.833ZM206.254 79.295l4.685 30.299-6.493-16.847-22.134-5.48 8.419-7.972h15.523ZM240.684 118.327l24.529 7.292 7.462-25.125h-31.991v17.833ZM225.167 79.295l-4.686 30.299 6.494-16.847 22.133-5.48-8.424-7.972h-15.517Z"
+                                fill={
+                                  {
+                                    "payload": 4293085191,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m158.746 100.483 7.461-27.896h16.047l.058 14.675 22.134 5.48 6.493 16.846-3.338 3.71-16.864-12.82h-31.991v.005ZM272.675 100.483l-7.462-27.896h-16.046l-.059 14.675-22.133 5.48-6.494 16.846 3.338 3.71 16.865-12.82h31.991v.005ZM226.884 42.621h-22.347l-1.519 15.694 7.921 51.257h9.542l7.927-51.257-1.524-15.694Z"
+                                fill={
+                                  {
+                                    "payload": 4294937949,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M166.207 19.77 158.746 49l7.461 23.586h16.047l20.758-14.257-36.805-38.56ZM201.616 85.38h-7.269l-3.958 3.87 14.062 3.48-2.835-7.356v.005ZM265.213 19.77 272.675 49l-7.462 23.586h-16.046L228.408 58.33l36.805-38.56ZM229.815 85.38h7.28l3.958 3.876-14.078 3.485 2.84-7.367v.005ZM222.161 119.368l1.658-6.059-3.338-3.71h-9.547l-3.338 3.71 1.658 6.059"
+                                fill={
+                                  {
+                                    "payload": 4284880896,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M222.161 119.367v10.005h-12.907v-10.005h12.907Z"
+                                fill={
+                                  {
+                                    "payload": 4290823373,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="m190.742 118.317 18.523 11.05v-10.005l-1.658-6.058-16.865 5.013ZM240.684 118.317l-18.523 11.05v-10.005l1.658-6.058 16.865 5.013Z"
+                                fill={
+                                  {
+                                    "payload": 4293389302,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                              <RNSVGPath
+                                d="M47.406 34.19v7.047h-3.662v-4.883l-4.174.483c-.917.105-1.32.403-1.32.951 0 .804.766 1.143 2.407 1.143 1.001 0 2.11-.148 3.089-.403l-1.896 2.666c-.766.17-1.512.253-2.3.253-3.321 0-5.217-1.311-5.217-3.64 0-2.053 1.49-3.131 4.877-3.513l4.474-.516c-.242-1.293-1.223-1.854-3.176-1.854-1.83 0-3.854.465-5.664 1.333l.576-3.153c1.683-.699 3.6-1.06 5.537-1.06 4.26 0 6.454 1.759 6.454 5.143l-.005.002ZM14.46 25.363l-4.003 15.873h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003l-4.003-15.875-7.52 8.875-7.518-8.875.002.002ZM29.495 9.49l-7.52 8.875-7.516-8.875-4.003 15.875h4.003l1.986-7.976 3.445 4.103h4.174l3.444-4.103 1.987 7.976h4.003L29.495 9.49Zm27.538 24.552-3.238-.465c-.809-.126-1.128-.381-1.128-.825 0-.72.788-1.037 2.407-1.037 1.875 0 3.557.381 5.326 1.206l-.447-3.11c-1.428-.508-3.067-.76-4.77-.76-3.983 0-6.157 1.375-6.157 3.851 0 1.927 1.193 3.005 3.727 3.387l3.281.487c.83.126 1.171.443 1.171.951 0 .72-.765 1.06-2.32 1.06-2.045 0-4.26-.487-6.07-1.356l.362 3.11c1.555.573 3.579.912 5.475.912 4.09 0 6.218-1.42 6.218-3.938 0-2.01-1.193-3.091-3.833-3.47l-.004-.002Zm5.26-7.26v14.456h3.663V26.781h-3.662Zm7.943 7.96 5.092-5.484h-4.557l-4.815 5.672 5.134 6.306h4.622l-5.476-6.497v.002Zm-8.454-12.806c0 2.328 1.897 3.64 5.218 3.64.787 0 1.534-.086 2.3-.253l1.895-2.667c-.979.253-2.087.403-3.088.403-1.64 0-2.407-.339-2.407-1.143 0-.55.405-.846 1.32-.951l4.173-.483v4.883h3.663v-7.048c0-3.386-2.194-5.142-6.454-5.142-1.939 0-3.854.36-5.537 1.059l-.576 3.153c1.81-.868 3.833-1.333 5.665-1.333 1.952 0 2.933.561 3.175 1.854l-4.474.517c-3.386.381-4.877 1.46-4.877 3.513l.005-.002Zm-10.243-.761c0 2.921 1.704 4.403 5.069 4.403 1.342 0 2.45-.213 3.514-.7l.468-3.195c-1.023.613-2.067.93-3.11.93-1.577 0-2.28-.634-2.28-2.053v-4.234h5.558v-2.94h-5.559v-2.498l-6.964 3.661v1.777h3.3v4.847l.004.002Zm-3.6-1.334v.72h-9.898c.446 1.467 1.773 2.138 4.128 2.138 1.875 0 3.622-.382 5.175-1.121l-.447 3.09c-1.428.592-3.237.912-5.09.912-4.92 0-7.603-2.159-7.603-6.159s2.726-6.244 6.943-6.244 6.794 2.435 6.794 6.667l-.002-.003Zm-9.946-1.736h6.26c-.33-1.404-1.415-2.137-3.15-2.137-1.733 0-2.762.714-3.11 2.137Z"
+                                fill={
+                                  {
+                                    "payload": 4284880896,
+                                    "type": 0,
+                                  }
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                              />
+                            </RNSVGGroup>
+                            <RNSVGDefs>
+                              <RNSVGClipPath
+                                fill={
+                                  {
+                                    "payload": 4278190080,
+                                    "type": 0,
+                                  }
+                                }
+                                name="a"
+                              >
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4294967295,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={194.688}
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  rx={11.465}
+                                  width={338}
+                                  x={0}
+                                  y={0.856}
+                                />
+                              </RNSVGClipPath>
+                            </RNSVGDefs>
+                          </RNSVGGroup>
+                        </RNSVGSvgView>
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

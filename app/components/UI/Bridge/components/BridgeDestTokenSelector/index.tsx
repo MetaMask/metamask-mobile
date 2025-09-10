@@ -88,6 +88,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       // Open the asset details screen as a bottom sheet
       // Use dispatch with unique key to force new modal instance
       const handleInfoButtonPress = () => {
+        // TODO - This navigation logic may be a bit fragile and should be refactored
         navigation.dispatch({
           type: 'NAVIGATE',
           payload: {

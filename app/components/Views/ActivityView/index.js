@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { typography } from '@metamask/design-tokens';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, {
@@ -216,6 +217,7 @@ const ActivityView = ({ route }) => {
 
   useFocusEffect(
     useCallback(() => {
+      if (!params) return;
       if (params.redirectToOrders) {
         const orderTabNumber = 1;
         navigation.setParams({ redirectToOrders: false });
@@ -225,12 +227,7 @@ const ActivityView = ({ route }) => {
         navigation.setParams({ redirectToPerpsTransactions: false });
         tabViewRef.current?.goToPage(perpsTabNumber);
       }
-    }, [
-      navigation,
-      params.redirectToOrders,
-      isPerpsEnabled,
-      params.redirectToPerpsTransactions,
-    ]),
+    }, [navigation, params, isPerpsEnabled]),
   );
 
   // TODO: Placeholder variable for now until we update the network enablement controller

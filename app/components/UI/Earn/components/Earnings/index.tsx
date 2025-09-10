@@ -69,10 +69,10 @@ const EarningsContent = ({ asset }: EarningsProps) => {
 
   const onDisplayAnnualRateTooltip = () => {
     if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      // @ts-expect-error - outputToken can be undefined, handle case
       navigate('EarnModals', {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-        // TODO: Why is outputToken possibly undefined?
-        params: { asset: outputToken! },
+        params: { asset: outputToken },
       });
     } else if (experienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       navigate('StakeModals', {

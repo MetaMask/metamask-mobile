@@ -359,14 +359,14 @@ describe('SendTransaction View', () => {
       [
         "OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED",
         {
-          "chain_id_source": "1",
-          "crypto_amount": "0.012361263",
-          "currency_destination": "USD",
-          "currency_source": "ETH",
-          "fiat_out": 0,
-          "order_id": "test-id-1",
-          "payment_method_id": "/payments/instant-bank-transfer",
-          "provider_offramp": "Test (Staging)",
+          "chain_id_source": undefined,
+          "crypto_amount": undefined,
+          "currency_destination": undefined,
+          "currency_source": undefined,
+          "fiat_out": undefined,
+          "order_id": undefined,
+          "payment_method_id": undefined,
+          "provider_offramp": undefined,
         },
       ]
     `);

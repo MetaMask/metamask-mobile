@@ -1,4 +1,3 @@
-import React from 'react';
 import { Platform, Linking } from 'react-native';
 /* eslint-disable-next-line */
 import InAppReview from 'react-native-in-app-review';

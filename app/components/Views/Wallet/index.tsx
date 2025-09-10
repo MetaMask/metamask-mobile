@@ -389,14 +389,22 @@ const Wallet = ({ route }: WalletProps) => {
   const { colors } = theme;
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
-  const storePrivacyPolicyShownDate = () =>
-    dispatch(storePrivacyPolicyShownDateAction(Date.now()));
-  const storePrivacyPolicyClickedOrClosed = () =>
-    dispatch(storePrivacyPolicyClickedOrClosedAction());
-  const showNftFetchingLoadingIndicator = () =>
-    dispatch(showNftFetchingLoadingIndicatorAction());
-  const hideNftFetchingLoadingIndicator = () =>
-    dispatch(hideNftFetchingLoadingIndicatorAction());
+  const storePrivacyPolicyShownDate = useCallback(
+    () => dispatch(storePrivacyPolicyShownDateAction(Date.now())),
+    [dispatch],
+  );
+  const storePrivacyPolicyClickedOrClosed = useCallback(
+    () => dispatch(storePrivacyPolicyClickedOrClosedAction()),
+    [dispatch],
+  );
+  const showNftFetchingLoadingIndicator = useCallback(
+    () => dispatch(showNftFetchingLoadingIndicatorAction()),
+    [dispatch],
+  );
+  const hideNftFetchingLoadingIndicator = useCallback(
+    () => dispatch(hideNftFetchingLoadingIndicatorAction()),
+    [dispatch],
+  );
 
   const shouldShowNewPrivacyToast = useSelector(
     shouldShowNewPrivacyToastSelector,
@@ -1098,7 +1106,6 @@ const Wallet = ({ route }: WalletProps) => {
       isMultichainAccountsState2Enabled,
       turnOnBasicFunctionality,
       onChangeTab,
-      navigation,
       goToBridge,
       goToSwaps,
       displayFundButton,

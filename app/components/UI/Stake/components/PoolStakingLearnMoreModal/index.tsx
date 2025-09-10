@@ -16,7 +16,7 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import styleSheet from './PoolStakingLearnMoreModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -37,7 +37,6 @@ import {
   formatPercent,
   PercentageOutputFormat,
 } from '../../utils/value';
-import { Hex } from 'viem/_types/types/misc';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';

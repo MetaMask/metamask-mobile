@@ -187,10 +187,10 @@ const EarnInputView = ({ route }: EarnInputViewProps) => {
 
     if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
+      // @ts-expect-error - earnToken can be undefined, handle case
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-        // TODO: Why is earnToken possibly undefined?
-        params: { asset: earnToken! },
+        params: { asset: earnToken },
       });
     }
   };

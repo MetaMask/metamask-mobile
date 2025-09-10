@@ -29,7 +29,7 @@ const EarnScreenStack = () => (
   </Stack.Navigator>
 );
 
-const EarnStack = () => (
+const EarnModalStack = () => (
   <Stack.Navigator
     screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >
@@ -46,4 +46,4 @@ const EarnStack = () => (
   </Stack.Navigator>
 );
 
-export { EarnScreenStack, EarnStack };
+export { EarnScreenStack, EarnModalStack };

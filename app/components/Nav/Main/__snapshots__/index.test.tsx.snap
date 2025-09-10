@@ -13,9 +13,9 @@ exports[`Main should render correctly 1`] = `
     }
   }
 >
-  <ForwardRef(NavigationContainer)>
+  <ForwardRef(NavigationContainerInner)>
     <MainFlow />
-  </ForwardRef(NavigationContainer)>
+  </ForwardRef(NavigationContainerInner)>
 </Provider>
 `;
 
@@ -32,8 +32,8 @@ exports[`Main should render correctly with isConnectionRemoved true 1`] = `
     }
   }
 >
-  <ForwardRef(NavigationContainer)>
+  <ForwardRef(NavigationContainerInner)>
     <MainFlow />
-  </ForwardRef(NavigationContainer)>
+  </ForwardRef(NavigationContainerInner)>
 </Provider>
 `;

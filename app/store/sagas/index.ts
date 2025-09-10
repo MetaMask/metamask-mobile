@@ -1,6 +1,5 @@
 import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
-import Routes from '../../constants/navigation/Routes';
 import {
   AuthSuccessAction,
   AuthErrorAction,

@@ -628,15 +628,6 @@ export function createTypedRoute<T extends ValidRouteKey>(routeName: T): T {
   return routeName;
 }
 
-// Validation for direct route mappings (not nested objects)
-type DirectRouteValidation = {
-  readonly [K in keyof typeof Routes]: (typeof Routes)[K] extends string
-    ? (typeof Routes)[K] extends ValidRouteKey
-      ? (typeof Routes)[K]
-      : never
-    : (typeof Routes)[K]; // Allow nested objects
-};
-
 // Uncomment the line below to enable compile-time validation of direct routes
 // const _directRouteValidation: DirectRouteValidation = Routes;
 
