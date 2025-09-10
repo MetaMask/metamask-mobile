@@ -3,6 +3,7 @@ import Engine from '../../../../core/Engine';
 import { setSeasonStatus } from '../../../../actions/rewards';
 import { useDispatch } from 'react-redux';
 import { setSeasonStatusLoading } from '../../../../reducers/rewards';
+import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseSeasonStatusOptions {
   /**
@@ -40,7 +41,7 @@ export const useSeasonStatus = (options: UseSeasonStatusOptions = {}): null => {
       const statusData = await Engine.controllerMessenger.call(
         'RewardsController:getSeasonStatus',
         subscriptionId,
-        seasonId || 'current',
+        seasonId || CURRENT_SEASON_ID,
       );
 
       dispatch(setSeasonStatus(statusData));

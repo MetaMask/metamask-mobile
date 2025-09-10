@@ -254,7 +254,7 @@ interface BasePointsEventDto {
    * Bonus of the point earning activity
    * @example {}
    */
-  bonus?: {
+  bonus: {
     bips?: number | null;
     bonuses?: string[] | null;
   } | null;
@@ -579,3 +579,5 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction;
+
+export const CURRENT_SEASON_ID = 'current';

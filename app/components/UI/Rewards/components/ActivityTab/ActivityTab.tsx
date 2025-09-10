@@ -36,7 +36,7 @@ const IntermediateState: React.FC<{ message: string; isError?: boolean }> = ({
   message,
   isError = false,
 }) => (
-  <Box twClassName="flex-1 items-center justify-cente relative mt-4">
+  <Box twClassName="flex-1 items-center justify-center relative mt-4">
     {!isError && (
       <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
     )}

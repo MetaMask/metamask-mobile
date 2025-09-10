@@ -27,6 +27,7 @@ import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
 import { ActivityTab } from '../components/ActivityTab/ActivityTab';
+import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 // Tab wrapper components for TabsList
 interface TabWrapperProps {
@@ -69,7 +70,7 @@ const RewardsDashboard: React.FC = () => {
   // Sync rewards controller state with UI store
   useSeasonStatus({
     subscriptionId: subscriptionId || '',
-    seasonId: 'current',
+    seasonId: CURRENT_SEASON_ID,
   });
 
   // Set navigation title

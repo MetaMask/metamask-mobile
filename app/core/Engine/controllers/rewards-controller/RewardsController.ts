@@ -1,22 +1,23 @@
 import { BaseController } from '@metamask/base-controller';
 import { toHex } from '@metamask/controller-utils';
-import type {
-  RewardsControllerState,
-  RewardsAccountState,
-  LoginResponseDto,
-  PerpsDiscountData,
-  EstimatePointsDto,
-  EstimatedPointsDto,
-  SeasonDtoState,
-  SeasonStatusState,
-  SeasonTierState,
-  SeasonTierDto,
-  SubscriptionReferralDetailsState,
-  GeoRewardsMetadata,
-  SeasonStatusDto,
-  SubscriptionDto,
-  PaginatedPointsEventsDto,
-  GetPointsEventsDto,
+import {
+  type RewardsControllerState,
+  type RewardsAccountState,
+  type LoginResponseDto,
+  type PerpsDiscountData,
+  type EstimatePointsDto,
+  type EstimatedPointsDto,
+  type SeasonDtoState,
+  type SeasonStatusState,
+  type SeasonTierState,
+  type SeasonTierDto,
+  type SubscriptionReferralDetailsState,
+  type GeoRewardsMetadata,
+  type SeasonStatusDto,
+  type SubscriptionDto,
+  type PaginatedPointsEventsDto,
+  type GetPointsEventsDto,
+  CURRENT_SEASON_ID,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -288,7 +289,7 @@ export class RewardsController extends BaseController<
    */
   #getSeasonStatus(
     subscriptionId: string,
-    seasonId: string | 'current' = 'current',
+    seasonId: string = CURRENT_SEASON_ID,
   ): SeasonStatusState | null {
     const compositeKey = this.#createSeasonStatusCompositeKey(
       seasonId,
@@ -710,7 +711,7 @@ export class RewardsController extends BaseController<
    */
   async getSeasonStatus(
     subscriptionId: string,
-    seasonId: string | 'current' = 'current',
+    seasonId: string = CURRENT_SEASON_ID,
   ): Promise<SeasonStatusState | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {

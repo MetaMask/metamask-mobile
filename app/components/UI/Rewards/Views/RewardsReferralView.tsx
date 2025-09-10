@@ -10,6 +10,7 @@ import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useSelector } from 'react-redux';
+import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -20,7 +21,7 @@ const ReferralRewardsView: React.FC = () => {
   // Sync rewards controller state with UI store
   useSeasonStatus({
     subscriptionId: subscriptionId || '',
-    seasonId: 'current',
+    seasonId: CURRENT_SEASON_ID,
   });
 
   // Set navigation title with back button

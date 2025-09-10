@@ -7,7 +7,10 @@ import {
   getEventDetails,
   PerpsEventType,
 } from './formatUtils';
-import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  PointsEventDto,
+  PointsEventEarnType,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { IconName } from '@metamask/design-system-react-native';
 
 // Mock i18n strings
@@ -81,11 +84,7 @@ describe('formatUtils', () => {
         default:
           return {
             ...baseEvent,
-            type: type as
-              | 'REFERRAL'
-              | 'SIGN_UP_BONUS'
-              | 'LOYALTY_BONUS'
-              | 'ONE_TIME_BONUS',
+            type: type as PointsEventEarnType,
             payload: null,
           };
       }
@@ -242,11 +241,7 @@ describe('formatUtils', () => {
       it('returns undefined details for PERPS event with invalid payload', () => {
         // Given a PERPS event with invalid payload
         const event = createMockEvent('PERPS', {
-          type: 'INVALID_TYPE' as
-            | 'OPEN_POSITION'
-            | 'CLOSE_POSITION'
-            | 'TAKE_PROFIT'
-            | 'STOP_LOSS',
+          type: 'INVALID_TYPE' as PerpsEventType,
           asset: {
             symbol: 'ETH',
             amount: '1000000000000000000',
