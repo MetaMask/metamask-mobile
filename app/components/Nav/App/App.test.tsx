@@ -53,11 +53,6 @@ jest.mock('expo-sensors', () => ({
   },
 }));
 
-jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  init: jest.fn(),
-  parse: jest.fn(),
-}));
-
 const mockIsWC2Enabled = true;
 jest.mock('../../../../app/core/WalletConnect/WalletConnectV2', () => ({
   init: jest.fn().mockResolvedValue(undefined),

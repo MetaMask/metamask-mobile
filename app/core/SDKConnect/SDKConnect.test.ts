@@ -63,6 +63,11 @@ jest.mock('./RPCQueueManager');
 jest.mock('./SDKConnectConstants');
 jest.mock('./SessionManagement');
 jest.mock('./StateManagement');
+jest.mock('../../store', () => ({
+  store: {
+    dispatch: jest.fn(),
+  },
+}));
 
 describe('SDKConnect', () => {
   let sdkConnect: SDKConnect;
@@ -149,11 +154,12 @@ describe('SDKConnect', () => {
   describe('Initialization Management', () => {
     describe('init', () => {
       it('should initialize the SDKConnect instance', async () => {
-        await SDKConnect.init({ context: 'testContext' });
+        await SDKConnect.init({
+          context: 'testContext',
+        });
 
         expect(mockInit).toHaveBeenCalledTimes(1);
         expect(mockInit).toHaveBeenCalledWith({
-          navigation: mockNavigation,
           context: 'testContext',
           instance: sdkConnect,
         });

@@ -1,7 +1,6 @@
 import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import {
   hasSignature,
@@ -13,6 +12,17 @@ import {
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { capitalize } from '../../../util/general';
+import handleBrowserUrl from '../Handlers/handleBrowserUrl';
+import { handleSwapUrl } from '../Handlers/handleSwapUrl';
+import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
+import { handleOpenHome } from '../Handlers/handleOpenHome';
+import { handleSellCrypto } from '../Handlers/handleSellCrypto';
+import DeeplinkManager from '../DeeplinkManager';
+import { handleCreateAccountUrl } from '../Handlers/handleCreateAccountUrl';
+import {
+  handlePerpsAssetUrl,
+  handlePerpsUrl,
+} from '../Handlers/handlePerpsUrl';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -37,14 +47,12 @@ enum SUPPORTED_ACTIONS {
 }
 
 async function handleUniversalLink({
-  instance,
   handled,
   urlObj,
   browserCallBack,
   url,
   source,
 }: {
-  instance: DeeplinkManager;
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
   browserCallBack?: (url: string) => void;
@@ -143,51 +151,55 @@ async function handleUniversalLink({
     action === SUPPORTED_ACTIONS.BUY
   ) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleBuyCrypto(rampPath);
+    handleBuyCrypto(rampPath);
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
   ) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleSellCrypto(rampPath);
+    handleSellCrypto(rampPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
-    instance._handleOpenHome();
+    handleOpenHome();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
     const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleSwap(swapPath);
+    handleSwapUrl({ swapPath });
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     const deeplinkUrl = urlObj.href.replace(
       `${BASE_URL_ACTION}/`,
       PREFIXES[ACTIONS.DAPP],
     );
-    instance._handleBrowserUrl(deeplinkUrl, browserCallBack);
+    // Normal links (same as dapp)
+    handleBrowserUrl({
+      url: deeplinkUrl,
+      callback: browserCallBack,
+    });
   } else if (action === SUPPORTED_ACTIONS.SEND) {
     const deeplinkUrl = urlObj.href
       .replace(`${BASE_URL_ACTION}/`, PREFIXES[ACTIONS.SEND])
       .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
     // loops back to open the link with the right protocol
-    instance.parse(deeplinkUrl, { origin: source });
+    DeeplinkManager.parse(deeplinkUrl, { origin: source });
     return;
   } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handleCreateAccount(deeplinkUrl);
+    handleCreateAccountUrl({ path: deeplinkUrl });
   } else if (
     action === SUPPORTED_ACTIONS.PERPS ||
     action === SUPPORTED_ACTIONS.PERPS_MARKETS
   ) {
     const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePerps(perpsPath);
+    handlePerpsUrl({ perpsPath });
   } else if (action === SUPPORTED_ACTIONS.PERPS_ASSET) {
     const assetPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePerpsAsset(assetPath);
+    handlePerpsAssetUrl({ assetPath });
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;
 
     if (wcURL) {
-      instance.parse(wcURL, { origin: source });
+      DeeplinkManager.parse(wcURL, { origin: source });
     }
     return;
   }

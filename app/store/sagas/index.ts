@@ -22,7 +22,6 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -141,6 +140,8 @@ export function* basicFunctionalityToggle() {
 
 export function* initializeSDKServices() {
   try {
+    // Start DeeplinkManager and process branch deeplinks
+    DeeplinkManager.start();
     // Initialize WalletConnect
     yield call(() => WC2Manager.init({}));
     // Initialize SDKConnect
@@ -191,7 +192,7 @@ export function* handleDeeplinkSaga() {
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
+        DeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
@@ -212,9 +213,6 @@ export function* startAppServices() {
 
   // Start Engine service
   yield call(EngineService.start);
-
-  // Start DeeplinkManager and process branch deeplinks
-  DeeplinkManager.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();

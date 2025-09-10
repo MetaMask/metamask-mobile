@@ -8,18 +8,18 @@ import { NetworkSwitchErrorType } from '../../../constants/error';
 import { getDecimalChainId } from '../../../util/networks';
 import { MAINNET } from '../../../constants/network';
 import Engine from '../../Engine';
-import DeeplinkManager from '../DeeplinkManager';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../components/Views/confirmations/utils/deeplink';
+import switchNetwork from './switchNetwork';
+import NavigationService from '../../NavigationService';
+import approveTransaction from '../TransactionManager/approveTransaction';
 
 async function handleEthereumUrl({
-  deeplinkManager,
   url,
   origin,
 }: {
-  deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
 }) {
@@ -44,7 +44,7 @@ async function handleEthereumUrl({
       ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI) ||
       ethUrl.chain_id === CHAIN_IDS.GOERLI
     ) {
-      deeplinkManager.navigation.navigate('DeprecatedNetworkDetails', {});
+      NavigationService.navigation.navigate('DeprecatedNetworkDetails', {});
       return;
     }
 
@@ -59,18 +59,18 @@ async function handleEthereumUrl({
     /**
      * Validate and switch network before performing any other action
      */
-    deeplinkManager._handleNetworkSwitch(ethUrl.chain_id);
+    switchNetwork({ switchToChainId: ethUrl.chain_id });
 
     switch (ethUrl.function_name) {
       case ETH_ACTIONS.TRANSFER: {
-        deeplinkManager.navigation.navigate('SendView', {
+        NavigationService.navigation.navigate('SendView', {
           screen: 'Send',
           params: { txMeta: { ...txMeta, action: 'send-token' } },
         });
         break;
       }
       case ETH_ACTIONS.APPROVE: {
-        await deeplinkManager._approveTransaction(ethUrl, origin);
+        await approveTransaction({ ethUrl, origin });
         break;
       }
       default: {
@@ -78,12 +78,12 @@ async function handleEthereumUrl({
           ethUrl.parameters.value = formattedDeeplinkParsedValue(
             ethUrl.parameters.value,
           );
-          deeplinkManager.navigation.navigate('SendView', {
+          NavigationService.navigation.navigate('SendView', {
             screen: 'Send',
             params: { txMeta: { ...txMeta, action: 'send-eth' } },
           });
         } else {
-          deeplinkManager.navigation.navigate('SendFlowView', {
+          NavigationService.navigation.navigate('SendFlowView', {
             screen: 'SendTo',
             params: { txMeta },
           });
