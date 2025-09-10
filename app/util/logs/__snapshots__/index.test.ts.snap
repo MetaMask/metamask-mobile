@@ -373,6 +373,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
         "isTestnet": false,
         "lastDepositResult": null,
+        "lastDepositTransactionId": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
@@ -455,7 +456,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
@@ -1012,6 +1013,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "isTestnet": false,
         "lastDepositResult": null,
+        "lastDepositTransactionId": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
@@ -1094,7 +1096,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},

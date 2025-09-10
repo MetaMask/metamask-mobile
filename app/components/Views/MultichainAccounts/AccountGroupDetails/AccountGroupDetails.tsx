@@ -42,6 +42,12 @@ import { selectInternalAccountsById } from '../../../../selectors/accountsContro
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
 
@@ -103,12 +109,25 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   );
 
   const navigateToAddressList = useCallback(() => {
+    // Start the trace before navigating to the address list to include the
+    // navigation and render times in the trace.
+    trace({
+      name: TraceName.ShowAccountAddressList,
+      op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'account.details',
+      },
+    });
+
     navigation.navigate(
       ...createAddressListNavigationDetails({
         groupId: id,
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           metadata.name
         }`,
+        onLoad: () => {
+          endTrace({ name: TraceName.ShowAccountAddressList });
+        },
       }),
     );
   }, [id, metadata.name, navigation]);

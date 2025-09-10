@@ -157,12 +157,7 @@ const PerpsClosePositionView: React.FC = () => {
     isPartialClose,
   });
 
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      navigation.goBack();
-    },
-  });
+  const { handleClosePosition, isClosing } = usePerpsClosePosition();
 
   // Track position close screen viewed event
   useEffect(() => {
@@ -265,6 +260,9 @@ const PerpsClosePositionView: React.FC = () => {
     if (orderType === 'limit' && !limitPrice) {
       return;
     }
+
+    // Go back immediately to close the position screen
+    navigation.goBack();
 
     await handleClosePosition(
       position,
@@ -478,7 +476,6 @@ const PerpsClosePositionView: React.FC = () => {
         <PerpsAmountDisplay
           label={strings('perps.close_position.select_amount')}
           amount={displayMode === 'usd' ? closeAmountUSDString : closeAmount}
-          maxAmount={positionValue}
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}

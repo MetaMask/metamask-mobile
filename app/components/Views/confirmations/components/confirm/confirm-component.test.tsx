@@ -17,6 +17,17 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { useConfirmActions } from '../../hooks/useConfirmActions';
+
+jest.mock('../../hooks/useConfirmActions');
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
 
 jest.mock('../../../../../components/hooks/useEditNonce', () => ({
   useEditNonce: jest.fn().mockReturnValue({}),
@@ -156,6 +167,15 @@ jest.mock('../../hooks/alerts/useInsufficientPayTokenNativeAlert', () => ({
 }));
 
 describe('Confirm', () => {
+  const useConfirmActionsMock = jest.mocked(useConfirmActions);
+
+  beforeEach(() => {
+    useConfirmActionsMock.mockReturnValue({
+      onReject: jest.fn(),
+      onConfirm: jest.fn(),
+    });
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();

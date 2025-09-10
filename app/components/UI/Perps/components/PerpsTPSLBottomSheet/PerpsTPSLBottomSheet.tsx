@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
@@ -31,6 +32,10 @@ import type { Position } from '../../controllers/types';
 import { usePerpsPerformance } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  getPerpsTPSLBottomSheetSelector,
+  PerpsTPSLBottomSheetSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
@@ -248,6 +253,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ref={bottomSheetRef}
       shouldNavigateBack={false}
       onClose={handleClose}
+      testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
@@ -255,7 +261,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         {showOverlay && (
           <View style={styles.overlay}>
             <ActivityIndicator size="large" color={colors.primary.default} />
@@ -329,6 +335,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveTP,
                 ]}
                 onPress={() => handleTakeProfitPercentageButton(percentage)}
+                testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
+                  percentage,
+                )}
               >
                 <Text
                   variant={TextVariant.BodySM}
@@ -430,6 +439,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveSL,
                 ]}
                 onPress={() => handleStopLossPercentageButton(percentage)}
+                testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
+                  percentage,
+                )}
               >
                 <Text
                   variant={TextVariant.BodySM}
@@ -496,7 +508,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </Text>
           )}
         </View>
-      </View>
+      </ScrollView>
 
       <BottomSheetFooter
         buttonPropsArray={[
