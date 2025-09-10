@@ -109,11 +109,14 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   );
 
   const navigateToAddressList = useCallback(() => {
-    // Start the trace before navigating to the address list so that the
-    // navigation and render time are included in the trace.
+    // Start the trace before navigating to the address list to include the
+    // navigation and render times in the trace.
     trace({
       name: TraceName.ShowAccountAddressList,
       op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'account.details',
+      },
     });
 
     navigation.navigate(

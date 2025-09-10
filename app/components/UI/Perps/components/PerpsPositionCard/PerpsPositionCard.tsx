@@ -95,6 +95,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: marketData,
+        initialTab: 'position',
       },
     });
   };
@@ -279,11 +280,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.funding_cost')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                  {formatPrice(position.cumulativeFunding.sinceOpen, {
-                    minimumDecimals: 2,
-                    maximumDecimals: 2,
-                  })}
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={
+                    parseFloat(position.cumulativeFunding.sinceOpen) >= 0
+                      ? TextColor.Success
+                      : TextColor.Error
+                  }
+                >
+                  {formatPrice(
+                    Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
+                    {
+                      minimumDecimals: 2,
+                      maximumDecimals: 2,
+                    },
+                  )}
                 </Text>
               </View>
             </View>

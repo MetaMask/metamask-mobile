@@ -1,7 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -28,10 +27,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Keypad from '../../../../Base/Keypad';
@@ -69,6 +64,7 @@ import {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
@@ -89,7 +85,7 @@ const PerpsWithdrawView: React.FC = () => {
   // Hooks
   const { track: trackEvent } = usePerpsEventTracking();
   const { startMeasure, endMeasure } = usePerpsPerformance();
-  const { toastRef } = useContext(ToastContext);
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
   const cachedAccountState = usePerpsAccount();
 
   const perpsNetwork = usePerpsNetwork();
@@ -215,19 +211,9 @@ const PerpsWithdrawView: React.FC = () => {
     });
 
     // Show processing toast immediately
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Clock,
-      labelOptions: [
-        {
-          label: `${strings('perps.withdrawal.processing_title')}\n${strings(
-            'perps.withdrawal.processing_description',
-          )}`,
-          isBold: false,
-        },
-      ],
-      hasNoTimeout: false,
-    });
+    showToast(
+      PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
+    );
 
     // Navigate back immediately to close the withdrawal screen
     navigation.goBack();
@@ -318,7 +304,8 @@ const PerpsWithdrawView: React.FC = () => {
     isSubmittingTx,
     trackEvent,
     withdrawAmount,
-    toastRef,
+    showToast,
+    PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
     navigation,
     destToken.chainId,
     destToken.address,
