@@ -22,6 +22,10 @@ import {
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import { AddressBookController } from '@metamask/address-book-controller';
+import {
+  WebSocketService as BackendWebSocketService,
+  AccountActivityService,
+} from '@metamask/backend-platform';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -244,6 +248,8 @@ import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
+import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
+import { getAccountActivityServiceMessenger } from './messengers/account-activity-service-messenger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -300,6 +306,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  appStateWebSocketManager: AppStateWebSocketManager | null;
   rewardsDataService: RewardsDataService;
   /**
    * Creates a CoreController instance
@@ -1348,6 +1355,33 @@ export class Engine {
       selectedNetworkClientId: networkController.state.selectedNetworkClientId,
     });
 
+    // Initialize Backend Platform services as standalone services (not controllers)
+    const backendWebSocketService = new BackendWebSocketService({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'BackendWebSocketService',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      url:
+        process.env.METAMASK_BACKEND_WEBSOCKET_URL ||
+        'wss://gateway.dev-api.cx.metamask.io/v1',
+      timeout: 15000,
+      reconnectDelay: 1000,
+      maxReconnectDelay: 30000,
+      requestTimeout: 20000,
+    });
+
+    const accountActivityService = new AccountActivityService({
+      messenger: getAccountActivityServiceMessenger(this.controllerMessenger),
+      webSocketService: backendWebSocketService,
+    });
+
+    // Initialize AppStateWebSocketManager to handle reconnection and re-subscription
+    this.appStateWebSocketManager = new AppStateWebSocketManager(
+      backendWebSocketService,
+      accountActivityService,
+    );
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,
@@ -1362,6 +1396,8 @@ export class Engine {
       }),
       AppMetadataController: controllersByName.AppMetadataController,
       AssetsContractController: assetsContractController,
+      AccountActivityService: accountActivityService,
+      BackendWebSocketService: backendWebSocketService,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -1459,6 +1495,7 @@ export class Engine {
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
             'KeyringController:accountRemoved',
+            'AccountActivityService:balanceUpdated',
           ],
         }),
         // TODO: This is long, can we decrease it?
@@ -1692,7 +1729,7 @@ export class Engine {
         }
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
-        return this.controllerMessenger.call(
+        this.controllerMessenger.call(
           'SnapController:setClientActive',
           state === 'active',
         );
@@ -1728,6 +1765,11 @@ export class Engine {
       withSnapKeyring:
         withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
+
+    // Initialize AppStateWebSocketManager for mobile optimization
+    this.appStateWebSocketManager = new AppStateWebSocketManager(
+      backendWebSocketService,
+    );
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
@@ -2165,6 +2207,35 @@ export class Engine {
   }
 
   async destroyEngineInstance() {
+    // Cleanup AppStateWebSocketManager first
+    if (this.appStateWebSocketManager) {
+      this.appStateWebSocketManager.cleanup();
+      this.appStateWebSocketManager = null;
+    }
+
+    // Cleanup Backend Platform services
+    try {
+      const { BackendWebSocketService, AccountActivityService } = this.context;
+
+      // Cleanup AccountActivityService first (depends on WebSocket)
+      if (
+        AccountActivityService &&
+        typeof AccountActivityService.cleanup === 'function'
+      ) {
+        AccountActivityService.cleanup();
+      }
+
+      // Cleanup WebSocket connections
+      if (
+        BackendWebSocketService &&
+        typeof BackendWebSocketService.cleanup === 'function'
+      ) {
+        BackendWebSocketService.cleanup();
+      }
+    } catch (error) {
+      console.error('Error cleaning up Backend Platform services:', error);
+    }
+
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {

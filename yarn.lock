@@ -4960,10 +4960,8 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^75.2.0":
-  version "75.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-75.2.0.tgz#826235291f458af74f9abc0966e0a42f0a427a22"
-  integrity sha512-l/P7i2PuiKFAdmtIXGSxmrOYy+jphQyDoP3ao4+jxtwKPSeRnLc7g642xIXPNuURRzy7DrLdFZN5Apve3D35lw==
+"@metamask/assets-controllers@file:../core/packages/assets-controllers":
+  version "74.3.3"
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4972,7 +4970,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.3"
-    "@metamask/base-controller" "^8.4.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.14.0"
     "@metamask/eth-query" "^4.0.0"
@@ -5010,7 +5008,14 @@
     json-stable-stringify-without-jsonify "^1.0.1"
     loglevel "^1.9.2"
 
-"@metamask/base-controller@^7.0.1":
+"@metamask/backend-platform@file:../core/packages/backend-platform":
+  version "0.0.0"
+  dependencies:
+    "@metamask/base-controller" "^8.3.0"
+    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/utils" "^11.4.2"
+
+"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.1.1":
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.1.1.tgz#837216ee099563b2106202fa0ed376dc909dfbb9"
   integrity sha512-4nbA6RL9y0SdHdn4MmMTREX6ISJL7OGHn0GXXszv0tp1fdjsn+SBs28uu1a9ceg1J7R/lO6JH7jAAz8zRtt8Nw==
