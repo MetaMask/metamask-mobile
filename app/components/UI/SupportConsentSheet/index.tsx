@@ -57,12 +57,9 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
           {strings('support_consent.title')}
         </Text>
       </BottomSheetHeader>
-      
+
       <Box twClassName="px-4 pb-4">
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="mb-6"
-        >
+        <Text variant={TextVariant.BodyMd} twClassName="mb-6">
           {strings('support_consent.description')}
         </Text>
 
@@ -87,7 +84,7 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
             style={{ flex: 1 }}
             label={strings('support_consent.decline')}
           />
-          
+
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}

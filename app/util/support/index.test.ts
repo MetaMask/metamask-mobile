@@ -33,7 +33,8 @@ describe('getSupportUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetaMetrics);
-    (Engine.context.AuthenticationController as any) = mockAuthenticationController;
+    (Engine.context.AuthenticationController as any) =
+      mockAuthenticationController;
   });
 
   it('returns base URL when withConsent is false', async () => {
@@ -44,7 +45,9 @@ describe('getSupportUrl', () => {
   it('returns URL with app version when withConsent is true but other parameters are null', async () => {
     (mockGetVersion as any).mockResolvedValue('1.0.0');
     (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(null);
-    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue(null);
+    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue(
+      null,
+    );
 
     const result = await getSupportUrl(true);
     expect(result).toBe(`${SUPPORT_BASE_URL}?metamask_version=1.0.0`);
@@ -53,7 +56,9 @@ describe('getSupportUrl', () => {
   it('returns URL with app version when only version is available', async () => {
     (mockGetVersion as any).mockResolvedValue('1.0.0');
     (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(null);
-    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue(null);
+    (mockAuthenticationController.getSessionProfile as any).mockResolvedValue(
+      null,
+    );
 
     const result = await getSupportUrl(true);
     expect(result).toBe(`${SUPPORT_BASE_URL}?metamask_version=1.0.0`);
@@ -61,7 +66,9 @@ describe('getSupportUrl', () => {
 
   it('returns URL with all parameters when all are available', async () => {
     (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue('test-metrics-id');
+    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(
+      'test-metrics-id',
+    );
     (mockAuthenticationController.getSessionProfile as any).mockResolvedValue({
       id: 'test-profile-id',
     });
@@ -81,7 +88,9 @@ describe('getSupportUrl', () => {
 
   it('returns URL without profile ID when authentication controller fails', async () => {
     (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue('test-metrics-id');
+    (mockMetaMetrics.getMetaMetricsId as any).mockResolvedValue(
+      'test-metrics-id',
+    );
     (mockAuthenticationController.getSessionProfile as any).mockRejectedValue(
       new Error('Auth error'),
     );
@@ -94,7 +103,9 @@ describe('getSupportUrl', () => {
 
   it('returns base URL when metametrics fails', async () => {
     (mockGetVersion as any).mockResolvedValue('1.0.0');
-    (mockMetaMetrics.getMetaMetricsId as any).mockRejectedValue(new Error('Metrics error'));
+    (mockMetaMetrics.getMetaMetricsId as any).mockRejectedValue(
+      new Error('Metrics error'),
+    );
     (mockAuthenticationController.getSessionProfile as any).mockResolvedValue({
       id: 'test-profile-id',
     });
@@ -102,4 +113,4 @@ describe('getSupportUrl', () => {
     const result = await getSupportUrl(true);
     expect(result).toBe(SUPPORT_BASE_URL);
   });
-}); 
+});
