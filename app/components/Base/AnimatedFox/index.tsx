@@ -1575,8 +1575,7 @@ const AnimatedFox: React.FC<AnimatedFoxProps> = ({ bgColor }) => {
 };
 
 AnimatedFox.defaultProps = {
-  bgColor: 'white',
+  bgColor: 'red',
 };
 
 export default AnimatedFox;
-
