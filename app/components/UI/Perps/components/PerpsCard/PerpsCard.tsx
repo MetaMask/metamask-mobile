@@ -103,7 +103,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       style={styles.card}
       activeOpacity={0.7}
       onPress={handlePress}
-      disabled={markets.length === 0}
       testID={testID}
     >
       <View style={styles.cardContent}>
