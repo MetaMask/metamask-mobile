@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable } from 'react-native';
+import { Animated, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -75,6 +75,7 @@ const MAX_INPUT_LENGTH = 20;
 
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // State
@@ -154,6 +155,24 @@ const PerpsWithdrawView: React.FC = () => {
       hasTrackedWithdrawView.current = true;
     }
   }, [trackEvent, endMeasure]);
+
+  useEffect(() => {
+    // Start blinking animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [fadeAnim]);
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
@@ -378,15 +397,30 @@ const PerpsWithdrawView: React.FC = () => {
         {/* Amount Display */}
         <Pressable onPress={handleAmountPress}>
           <Box alignItems={BoxAlignItems.Center} twClassName="py-12 px-4">
-            <Text
-              variant={TextVariant.DisplayMD}
-              style={tw.style(
-                'text-[54px] leading-[70px] font-medium mb-2 text-default',
-                withdrawAmount === '0' && 'text-alternative',
-              )}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              marginBottom={2}
             >
-              {formatDisplayAmount}
-            </Text>
+              <Text
+                variant={TextVariant.DisplayMD}
+                style={tw.style(
+                  'text-[54px] leading-[70px] font-medium mb-2 text-default',
+                  withdrawAmount === '0' && 'text-alternative',
+                )}
+              >
+                {formatDisplayAmount}
+              </Text>
+              <Animated.View
+                testID="cursor"
+                style={[
+                  tw.style('w-0.5 h-14 bg-text-default ml-1'),
+                  {
+                    opacity: fadeAnim,
+                  },
+                ]}
+              />
+            </Box>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.withdrawal.available_balance', {
                 amount: formattedBalance,
