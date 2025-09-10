@@ -80,7 +80,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { CommonActions } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
@@ -142,7 +141,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState();
   const [biometryType, setBiometryType] = useState(null);
-  const [, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
@@ -394,12 +392,8 @@ const ImportFromSecretRecoveryPhrase = ({
       );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
       }
     };
 
@@ -417,11 +411,6 @@ const ImportFromSecretRecoveryPhrase = ({
     },
     [],
   );
-
-  const updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    setBiometryChoice(biometryChoice);
-  };
 
   /**
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
@@ -443,7 +432,6 @@ const ImportFromSecretRecoveryPhrase = ({
       this.setState({ loading: false, error: err.toString() });
     }
     setBiometryType(newAuthData.availableBiometryType);
-    updateBiometryChoice(false);
   };
 
   const onPasswordChange = (value) => {
