@@ -695,7 +695,7 @@ describe('rewardsReducer', () => {
         balanceTotal: 5000,
         balanceRefereePortion: 1000,
         balanceUpdatedAt: new Date('2024-01-01'),
-        seasonId: 'season-1',
+
         seasonName: 'Test Season',
         seasonStartDate: new Date('2024-01-01'),
         seasonEndDate: new Date('2024-12-31'),
@@ -760,7 +760,7 @@ describe('rewardsReducer', () => {
         balanceTotal: 2000,
         balanceRefereePortion: 400,
         balanceUpdatedAt: new Date('2024-05-01'),
-        seasonId: 'season-1',
+
         seasonName: 'Persisted Season',
         seasonStartDate: new Date('2024-01-01'),
         seasonEndDate: new Date('2024-12-31'),

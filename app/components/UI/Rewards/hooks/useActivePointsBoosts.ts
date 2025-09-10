@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
@@ -12,12 +12,13 @@ import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 
 /**
  * Custom hook to fetch and manage active points boosts data from the rewards API
- * Uses the RewardsController to get data from the rewards data service
+ * Uses the RewardsController with built-in caching that persists across component unmounts
  */
 export const useActivePointsBoosts = (): void => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const seasonId = useSelector(selectSeasonId);
+  const isLoadingRef = useRef(false);
 
   const fetchActivePointsBoosts = useCallback(async (): Promise<void> => {
     // Don't fetch if required parameters are missing
@@ -31,24 +32,25 @@ export const useActivePointsBoosts = (): void => {
       return;
     }
 
+    // Skip fetch if already loading (prevents duplicate requests)
+    if (isLoadingRef.current) {
+      Logger.log('useActivePointsBoosts: Fetch already in progress, skipping');
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       dispatch(setActiveBoostsLoading(true));
 
-      const activeBoosts: PointsBoostDto[] =
+      // RewardsController now handles caching internally
+      const fetchedBoosts: PointsBoostDto[] =
         await Engine.controllerMessenger.call(
           'RewardsController:getActivePointsBoosts',
           seasonId,
           subscriptionId,
         );
 
-      dispatch(setActiveBoosts(activeBoosts || []));
-
-      Logger.log(
-        'useActivePointsBoosts: Successfully fetched active points boosts',
-        {
-          boostCount: activeBoosts?.length || 0,
-        },
-      );
+      dispatch(setActiveBoosts(fetchedBoosts || []));
     } catch (fetchError) {
       Logger.log(
         'useActivePointsBoosts: Failed to fetch active points boosts:',
@@ -57,10 +59,12 @@ export const useActivePointsBoosts = (): void => {
       // Keep existing data on error to prevent UI flash
       // Don't dispatch setActiveBoosts([]) here
     } finally {
+      isLoadingRef.current = false;
       dispatch(setActiveBoostsLoading(false));
     }
   }, [dispatch, seasonId, subscriptionId]);
 
+  // Initial fetch and refetch when dependencies change
   useEffect(() => {
     fetchActivePointsBoosts();
   }, [fetchActivePointsBoosts]);
