@@ -12,6 +12,8 @@ import type {
   GenerateChallengeDto,
   ChallengeResponseDto,
   SubscriptionReferralDetailsDto,
+  PaginatedPointsEventsDto,
+  GetPointsEventsDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -33,6 +35,11 @@ const GEOLOCATION_URLS = {
 export interface RewardsDataServiceLoginAction {
   type: `${typeof SERVICE_NAME}:login`;
   handler: RewardsDataService['login'];
+}
+
+export interface RewardsDataServiceGetPointsEventsAction {
+  type: `${typeof SERVICE_NAME}:getPointsEvents`;
+  handler: RewardsDataService['getPointsEvents'];
 }
 
 export interface RewardsDataServiceEstimatePointsAction {
@@ -81,6 +88,7 @@ export interface RewardsDataServiceValidateReferralCodeAction {
 
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
+  | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
@@ -136,6 +144,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
       this.login.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPointsEvents`,
+      this.getPointsEvents.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
@@ -275,6 +287,34 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as LoginResponseDto;
+  }
+
+  /**
+   * Get a list of points events for the season
+   * @param params - The request parameters containing
+   * @returns The list of points events DTO.
+   */
+  async getPointsEvents(
+    params: GetPointsEventsDto,
+  ): Promise<PaginatedPointsEventsDto> {
+    const { seasonId, subscriptionId, cursor } = params;
+
+    let url = `/seasons/${seasonId}/points-events`;
+    if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
+
+    const response = await this.makeRequest(
+      url,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get points events failed: ${response.status}`);
+    }
+
+    return (await response.json()) as PaginatedPointsEventsDto;
   }
 
   /**
