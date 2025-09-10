@@ -384,6 +384,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - all-jobs-pass-merge-pr
+      - needs-e2e
       - e2e-smoke-tests-android
     steps:
       - run: |
