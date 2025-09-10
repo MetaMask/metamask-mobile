@@ -7,7 +7,12 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
-import { createMockAccountGroup } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import {
+  createMockAccountGroup,
+  createMockInternalAccountsFromGroups,
+  createMockState,
+  createMockWallet,
+} from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
 jest.mock('../../../../selectors/assets/balances', () => {
   const actual = jest.requireActual('../../../../selectors/assets/balances');
@@ -59,24 +64,17 @@ const DEFAULT_PROPS = {
 };
 
 const mockStore = configureStore([]);
-const mockInitialState = {
-  settings: {
-    useBlockieIcon: false,
-  },
-  engine: {
-    backgroundState: {
-      AccountTreeController: {
-        accountTree: {
-          wallets: {},
-        },
-      },
-    },
-  },
+const buildState = (groups: AccountGroupObject[]) => {
+  const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+  const internalAccounts = createMockInternalAccountsFromGroups(groups);
+  return createMockState([wallet], internalAccounts);
 };
 
 const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
   const props = { ...DEFAULT_PROPS, ...propOverrides };
-  const store = mockStore(mockInitialState);
+  const groups = (props.selectedAccountGroups || []) as AccountGroupObject[];
+  const state = buildState(groups);
+  const store = mockStore(state as unknown as Record<string, unknown>);
   return render(
     <Provider store={store}>
       <MultichainAccountsConnectedList {...props} />
@@ -90,7 +88,12 @@ describe('MultichainAccountsConnectedList', () => {
   });
 
   it('renders component with different account group configurations', () => {
-    const { toJSON } = renderMultichainAccountsConnectedList();
+    const { toJSON, getByText } = renderMultichainAccountsConnectedList();
+    // Assert visible content (robust behavior check)
+    expect(getByText('Account 1')).toBeTruthy();
+    expect(getByText('Account 2')).toBeTruthy();
+    expect(getByText('Edit accounts')).toBeTruthy();
+    // Snapshot for structural regressions
     expect(toJSON()).toMatchSnapshot();
   });
 

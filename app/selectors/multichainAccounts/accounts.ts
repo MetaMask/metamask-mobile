@@ -10,7 +10,7 @@ import {
 } from '@metamask/account-api';
 import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
-import { EthAccountType } from '@metamask/keyring-api';
+import { EthAccountType, EthScope } from '@metamask/keyring-api';
 
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
@@ -304,6 +304,55 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
       };
     },
   );
+
+/**
+ * Selector factory to get an icon seed address for an account group.
+ * Priority:
+ * 1) First EVM account address (any scope starting with 'eip155:')
+ * 2) If no EVM account, fallback to the first internal account address in the group
+ * 3) Otherwise undefined
+ *
+ */
+export const selectIconSeedAddressByAccountGroupId = (
+  groupId: AccountGroupId,
+) =>
+  createDeepEqualSelector(
+    [
+      selectAccountTreeControllerState,
+      selectInternalAccountsById,
+      selectInternalAccountsByGroupId,
+    ],
+    (
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+      internalAccountsByGroupId,
+    ): string => {
+      // Prefer an EVM account address if present
+      const evmAccount = findInternalAccountByScope(
+        accountTreeState,
+        internalAccountsMap,
+        groupId,
+        EthScope.Mainnet,
+      );
+      if (evmAccount?.address) {
+        return evmAccount.address;
+      }
+
+      // Fallback to the first available internal account in the group
+      const accountsInGroup = internalAccountsByGroupId(groupId);
+      if (accountsInGroup.length > 0) {
+        return accountsInGroup[0].address;
+      }
+
+      throw new Error(
+        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${groupId}`,
+      );
+    },
+  );
+
+// Backwards compatibility alias (can be removed once all usages are migrated)
+export const selectEvmAddressByAccountGroupId = (groupId: AccountGroupId) =>
+  selectIconSeedAddressByAccountGroupId(groupId);
 
 /**
  * Selector to get account groups by a list of addresses.
