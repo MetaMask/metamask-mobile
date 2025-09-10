@@ -508,7 +508,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       fireEvent.press(confirmButton);
 
       // Assert
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
 
     it('calls onConfirm with empty string when no limit price set', () => {

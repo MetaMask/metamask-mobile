@@ -743,10 +743,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          maxAmount={availableBalance * orderForm.leverage}
           showWarning={availableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
+          tokenAmount={positionSize}
+          tokenSymbol={orderForm.asset}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -1086,7 +1087,19 @@ const PerpsOrderViewContentBase: React.FC = () => {
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible}
-        onClose={() => setIsLimitPriceVisible(false)}
+        onClose={() => {
+          setIsLimitPriceVisible(false);
+          // If user dismisses without entering a price, revert order type to market (parity with close position view)
+          if (orderForm.type === 'limit' && !orderForm.limitPrice) {
+            setOrderType('market');
+            // Use existing toast option used in close position view for consistency
+            // Path: PerpsToastOptions.positionManagement.closePosition.limitClose.partial.switchToMarketOrderMissingLimitPrice
+            const revertToast =
+              PerpsToastOptions.positionManagement.closePosition.limitClose
+                .partial.switchToMarketOrderMissingLimitPrice;
+            showToast(revertToast);
+          }
+        }}
         onConfirm={(limitPrice) => {
           setLimitPrice(limitPrice);
           setIsLimitPriceVisible(false);
