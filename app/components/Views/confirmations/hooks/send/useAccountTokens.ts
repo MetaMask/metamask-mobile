@@ -36,9 +36,7 @@ export function useAccountTokens() {
     }
 
     const assetsWithBalance = filteredAssets.filter((asset) => {
-      const haveBalance =
-        asset.fiat?.balance &&
-        new BigNumber(asset.fiat.balance).isGreaterThan(0);
+      const haveBalance = new BigNumber(asset.rawBalance, 16).isGreaterThan(0);
 
       const isTestNetAsset =
         isTestNet(asset.chainId) && asset.rawBalance !== '0x0';
