@@ -111,12 +111,8 @@ export class AppStateWebSocketManager {
 
     // Cleanup WebSocket connection
     if (this.webSocketService) {
-      this.webSocketService.disconnect().catch((error) => {
-        Logger.error(
-          error as Error,
-          'Error disconnecting WebSocket during cleanup',
-        );
-      });
+      // Call destroy() to follow the standard controller pattern
+      this.webSocketService.destroy();
       this.webSocketService = null;
     }
   }

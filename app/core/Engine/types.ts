@@ -226,17 +226,12 @@ import {
   type AccountActivityServiceEvents,
   type AccountActivityServiceActions,
   type WebSocketServiceActions as BackendWebSocketServiceActions,
-  type WebSocketConnectionInfo,
+  type WebSocketServiceEvents as BackendWebSocketServiceEvents,
 } from '@metamask/backend-platform';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 
-// Define WebSocket connection state change event locally to avoid import issues
-interface BackendWebSocketConnectionStateChangedEvent {
-  type: 'BackendWebSocketService:connectionStateChanged';
-  payload: [WebSocketConnectionInfo];
-}
 import {
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerState,
@@ -498,7 +493,7 @@ type GlobalEvents =
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents
   | AccountActivityServiceEvents
-  | BackendWebSocketConnectionStateChangedEvent;
+  | BackendWebSocketServiceEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
