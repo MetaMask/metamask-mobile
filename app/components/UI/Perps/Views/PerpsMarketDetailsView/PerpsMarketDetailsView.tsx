@@ -195,8 +195,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
+
+      // Zoom to latest candle when period changes
+      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
     },
-    [market, track],
+    [market, track, visibleCandleCount],
   );
 
   const handleMorePress = useCallback(() => {

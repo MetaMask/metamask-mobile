@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NavigationService from '../NavigationService';
 import DeeplinkManager from './DeeplinkManager';
@@ -12,6 +13,8 @@ import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 import { handlePerpsUrl, handlePerpsAssetUrl } from './Handlers/handlePerpsUrl';
 import Routes from '../../constants/navigation/Routes';
+import FCMService from '../../util/notifications/services/FCMService';
+import { handleDeeplink } from './Handlers/handleDeeplink';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
@@ -22,6 +25,8 @@ jest.mock('./Handlers/switchNetwork');
 jest.mock('./Handlers/handleSwapUrl');
 jest.mock('./Handlers/handleCreateAccountUrl');
 jest.mock('./Handlers/handlePerpsUrl');
+jest.mock('./Handlers/handleDeeplink');
+jest.mock('../../util/notifications/services/FCMService');
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -182,6 +187,106 @@ describe('DeeplinkManager', () => {
     deeplinkManager._handlePerpsAsset(assetPath);
     expect(handlePerpsAssetUrl).toHaveBeenCalledWith({
       assetPath,
+    });
+  });
+});
+
+describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
+  const arrangeMocks = () => {
+    const mockOnClickPushNotificationWhenAppClosed = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppClosed,
+    );
+    const mockOnClickPushNotificationWhenAppSuspended = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppSuspended,
+    );
+    const mockHandleDeeplink = jest.mocked(handleDeeplink);
+
+    return {
+      mockOnClickPushNotificationWhenAppClosed,
+      mockOnClickPushNotificationWhenAppSuspended,
+      mockHandleDeeplink,
+    };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Push Notification - App Closed', () => {
+    const arrangeAct = async (deeplink: string | null) => {
+      const mocks = arrangeMocks();
+      mocks.mockOnClickPushNotificationWhenAppClosed.mockResolvedValue(
+        deeplink,
+      );
+
+      DeeplinkManager.start();
+
+      return mocks;
+    };
+
+    it('handles deeplink when push notification clicked from closed app', async () => {
+      const testDeeplink = 'https://link.metamask.io/perps-asset?symbol=ETH';
+
+      const mocks = await arrangeAct(testDeeplink);
+
+      await waitFor(() => {
+        expect(
+          mocks.mockOnClickPushNotificationWhenAppClosed,
+        ).toHaveBeenCalled();
+        expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+          uri: testDeeplink,
+        });
+      });
+    });
+
+    it('does not handle deeplink when no deeplink returned from closed app', async () => {
+      const mocks = await arrangeAct(null);
+
+      await waitFor(() => {
+        expect(
+          mocks.mockOnClickPushNotificationWhenAppClosed,
+        ).toHaveBeenCalled();
+        expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Push Notification - App Suspended', () => {
+    const arrangeAct = (deeplink?: string) => {
+      const mocks = arrangeMocks();
+
+      DeeplinkManager.start();
+
+      // Get the callback that was passed to onClickPushNotificationWhenAppSuspended
+      const suspendedCallback =
+        mocks.mockOnClickPushNotificationWhenAppSuspended.mock.calls[0][0];
+
+      // Simulate the callback being called
+      suspendedCallback(deeplink);
+
+      return mocks;
+    };
+
+    it('handles deeplink when push notification clicked from suspended app', () => {
+      const testDeeplink = 'https://link.metamask.io/perps-asset?symbol=ETH';
+
+      const mocks = arrangeAct(testDeeplink);
+
+      expect(
+        mocks.mockOnClickPushNotificationWhenAppSuspended,
+      ).toHaveBeenCalledWith(expect.any(Function));
+      expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: testDeeplink,
+      });
+    });
+
+    it('does not handle deeplink when no deeplink provided from suspended app', () => {
+      const mocks = arrangeAct(undefined);
+
+      expect(
+        mocks.mockOnClickPushNotificationWhenAppSuspended,
+      ).toHaveBeenCalledWith(expect.any(Function));
+      expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
     });
   });
 });
