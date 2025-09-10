@@ -58,10 +58,10 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     store.dispatch(setSdkV2Connections(v2Sessions));
   }
 
-  revokePermissions(id: string): void {
-    const allAccountsForOrigin = getPermittedAccounts(id);
+  revokePermissions(connectionId: string): void {
+    const allAccountsForOrigin = getPermittedAccounts(connectionId);
     if (allAccountsForOrigin.length > 0) {
-      removePermittedAccounts(id, allAccountsForOrigin);
+      removePermittedAccounts(connectionId, allAccountsForOrigin);
     }
   }
 }
