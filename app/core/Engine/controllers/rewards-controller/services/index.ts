@@ -2,6 +2,7 @@
 export type {
   RewardsDataServiceActions,
   RewardsDataServiceEvents,
+  RewardsDataServiceGetPointsEventsAction,
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
   RewardsDataServiceGetPerpsDiscountAction,

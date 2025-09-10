@@ -55,7 +55,7 @@ describe('KVStore', () => {
   });
 
   it('should correctly prefix the key when deleting an item', async () => {
-    const key = 'my-k	ey-to-delete';
+    const key = 'my-key-to-delete';
     const expectedPrefixedKey = `${TEST_PREFIX}${key}`;
 
     await store.delete(key);

@@ -80,3 +80,5 @@ export interface OrderFormState {
   limitPrice?: string;
   type: OrderType;
 }
+
+export type OrderDirection = 'long' | 'short';
