@@ -1,0 +1,26 @@
+diff --git a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/services/feature-announcements.cjs b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/services/feature-announcements.cjs
+index 4056b90..2f740de 100644
+--- a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/services/feature-announcements.cjs
++++ b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/services/feature-announcements.cjs
+@@ -82,6 +82,8 @@ const fetchFeatureAnnouncementNotifications = async (env, previewToken) => {
+                     mobileLinkText: mobileLinkFields?.mobileLinkText,
+                     mobileLinkUrl: mobileLinkFields?.mobileLinkUrl,
+                 },
++                extensionMinimumVersionNumber: fields.extensionMinimumVersionNumber,
++                mobileMinimumVersionNumber: fields.mobileMinimumVersionNumber,
+             },
+         };
+         return notification;
+diff --git a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts
+index 41b8e1c..43524ca 100644
+--- a/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts
++++ b/node_modules/@metamask/notification-services-controller/dist/NotificationServicesController/types/feature-announcement/type-feature-announcement.d.cts
+@@ -32,6 +32,8 @@ export type TypeFeatureAnnouncementFields = {
+         extensionLink?: EntryFieldTypes.EntryLink<TypeExtensionLinkFields>;
+         mobileLink?: EntryFieldTypes.EntryLink<TypeMobileLinkFields>;
+         clients?: EntryFieldTypes.Text<'extension' | 'mobile' | 'portfolio'>;
++        extensionMinimumVersionNumber?: EntryFieldTypes.Text;
++        mobileMinimumVersionNumber?: EntryFieldTypes.Text;
+     };
+     contentTypeId: 'productAnnouncement';
+ };

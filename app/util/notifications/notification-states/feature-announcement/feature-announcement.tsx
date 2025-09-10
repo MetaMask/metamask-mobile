@@ -1,7 +1,4 @@
-import {
-  INotification,
-  TRIGGER_TYPES,
-} from '@metamask/notification-services-controller/notification-services';
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import { ModalFieldType, ModalHeaderType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
@@ -16,24 +13,20 @@ const isFeatureAnnouncementNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
 ]);
 
-const isFilteredFeatureAnnonucementNotification = (
-  n: INotification,
-): n is FeatureAnnouncementNotification => {
+export const isFilteredFeatureAnnonucementNotification = (
+  n: FeatureAnnouncementNotification,
+) => {
   if (!isFeatureAnnouncementNotification(n)) {
     return false;
   }
 
-  // TODO - update core types add this property
-  type Data = typeof n.data & { mobileMinimumVersionNumber?: string };
-  const data = n.data as Data;
-
   // Field is not set, so show by default
-  if (!data.mobileMinimumVersionNumber) {
+  if (!n.data.mobileMinimumVersionNumber) {
     return true;
   }
 
   try {
-    return hasMinimumRequiredVersion(data.mobileMinimumVersionNumber);
+    return hasMinimumRequiredVersion(n.data.mobileMinimumVersionNumber);
   } catch {
     // Invalid mobile version number, not showing notification
     return false;
@@ -41,7 +34,7 @@ const isFilteredFeatureAnnonucementNotification = (
 };
 
 const state: NotificationState<FeatureAnnouncementNotification> = {
-  guardFn: isFilteredFeatureAnnonucementNotification,
+  guardFn: isFeatureAnnouncementNotification,
   createMenuItem: (notification) => ({
     title: notification.data.title,
 
