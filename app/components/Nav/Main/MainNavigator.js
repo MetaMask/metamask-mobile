@@ -607,7 +607,11 @@ const HomeTabs = () => {
   };
 
   return (
-    <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
+    <Tab.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={Routes.WALLET.HOME}
+      tabBar={renderTabBar}
+    >
       <Tab.Screen
         name={Routes.WALLET.HOME}
         options={options.home}
