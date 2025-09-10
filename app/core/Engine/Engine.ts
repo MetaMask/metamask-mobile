@@ -250,6 +250,7 @@ import { RewardsDataService } from './controllers/rewards-controller/services/re
 import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { getAccountActivityServiceMessenger } from './messengers/account-activity-service-messenger';
+import { getBackendWebSocketServiceMessenger } from './messengers/backend-websocket-service-messenger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1357,11 +1358,7 @@ export class Engine {
 
     // Initialize Backend Platform services as standalone services (not controllers)
     const backendWebSocketService = new BackendWebSocketService({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'BackendWebSocketService',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
+      messenger: getBackendWebSocketServiceMessenger(this.controllerMessenger),
       url:
         process.env.METAMASK_BACKEND_WEBSOCKET_URL ||
         'wss://gateway.dev-api.cx.metamask.io/v1',
@@ -2211,29 +2208,6 @@ export class Engine {
     if (this.appStateWebSocketManager) {
       this.appStateWebSocketManager.cleanup();
       this.appStateWebSocketManager = null;
-    }
-
-    // Cleanup Backend Platform services
-    try {
-      const { BackendWebSocketService, AccountActivityService } = this.context;
-
-      // Cleanup AccountActivityService first (depends on WebSocket)
-      if (
-        AccountActivityService &&
-        typeof AccountActivityService.cleanup === 'function'
-      ) {
-        AccountActivityService.cleanup();
-      }
-
-      // Cleanup WebSocket connections
-      if (
-        BackendWebSocketService &&
-        typeof BackendWebSocketService.cleanup === 'function'
-      ) {
-        BackendWebSocketService.cleanup();
-      }
-    } catch (error) {
-      console.error('Error cleaning up Backend Platform services:', error);
     }
 
     // TODO: Replace "any" with type
