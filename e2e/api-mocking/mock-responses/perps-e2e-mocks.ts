@@ -18,7 +18,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   Funding,
-} from '../../../../app/components/UI/Perps/controllers/types';
+} from '../../../app/components/UI/Perps/controllers/types';
 
 export class PerpsE2EMockService {
   private static instance: PerpsE2EMockService;
@@ -659,6 +659,9 @@ export class PerpsE2EMockService {
     }
     this.mockOrders = remainingOrders;
     this.notifyOrdersCallbacks();
+    // Notify about new positions/balances if any were created
+    this.notifyPositionCallbacks();
+    this.notifyAccountCallbacks();
 
     // Liquidation check pass for all positions of this symbol
     this.applyLiquidationChecksForSymbol(symbol, updated);

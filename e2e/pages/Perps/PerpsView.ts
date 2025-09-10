@@ -84,6 +84,25 @@ class PerpsView {
     return Matchers.getElementByID('perps-tab-scroll-view');
   }
 
+  // Orders section on the Perps main tab
+  get ordersSectionTitle(): DetoxElement {
+    return Matchers.getElementByText('Orders');
+  }
+
+  get anyOrderCardOnTab(): DetoxElement {
+    // PerpsCard has no specific testID for orders; assert by the presence of the title and any text matching limit label
+    return Matchers.getElementByText('Limit');
+  }
+
+  async expectOpenOrdersOnTab(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.ordersSectionTitle, {
+      description: 'Perps tab shows Open Orders section',
+    });
+    await Assertions.expectElementToBeVisible(this.anyOrderCardOnTab, {
+      description: 'An order card is visible on Perps tab',
+    });
+  }
+
   getTakeProfitPercentageButton(percentage: number) {
     // Support legacy tests passing index (1..4) by mapping to actual ROE%
     // TP quick buttons: [10, 25, 50, 100]
@@ -213,7 +232,15 @@ class PerpsView {
   }
 
   async tapPlaceOrderButton() {
-    await Gestures.waitAndTap(this.placeOrderButton);
+    await Utilities.waitForReadyState(this.placeOrderButton as DetoxElement, {
+      checkStability: true,
+      elemDescription: 'Place order button',
+      timeout: 7000,
+    });
+    await Gestures.waitAndTap(this.placeOrderButton, {
+      elemDescription: 'Tap Place Order',
+      checkStability: true,
+    });
   }
 
   async tapOrderSuccessToastDismissButton() {

@@ -142,6 +142,53 @@ class PerpsOrderView {
 
     await device.enableSynchronization();
   }
+
+  // Order type / Limit Price helpers
+  private get orderTypeMarket(): DetoxElement {
+    return Matchers.getElementByText('Market');
+  }
+
+  private get orderTypeLimit(): DetoxElement {
+    return Matchers.getElementByText('Limit');
+  }
+
+  async openOrderTypeSelector() {
+    // Taps the header order type button (visible text either 'Market' or 'Limit')
+    // Try 'Market' first, then 'Limit' to be resilient to current state
+    try {
+      await Gestures.waitAndTap(this.orderTypeMarket, {
+        elemDescription: 'Open order type selector (Market)',
+      });
+      return;
+    } catch {
+      // fallthrough
+    }
+    await Gestures.waitAndTap(this.orderTypeLimit, {
+      elemDescription: 'Open order type selector (Limit)',
+    });
+  }
+
+  async selectLimitOrderType() {
+    await Gestures.waitAndTap(this.orderTypeLimit, {
+      elemDescription: 'Select Limit order type',
+    });
+  }
+
+  async setLimitPricePresetLong(percentage: number) {
+    // For long orders, presets are negative values: -1, -2, -5, -10
+    const label = `${percentage > 0 ? '+' : ''}${percentage}%`;
+    const preset = Matchers.getElementByText(label) as DetoxElement;
+    await Gestures.waitAndTap(preset, {
+      elemDescription: `Select limit price preset ${label}`,
+    });
+  }
+
+  async confirmLimitPrice() {
+    const setButton = Matchers.getElementByText('Set') as DetoxElement;
+    await Gestures.waitAndTap(setButton, {
+      elemDescription: 'Confirm limit price',
+    });
+  }
 }
 
 export default new PerpsOrderView();

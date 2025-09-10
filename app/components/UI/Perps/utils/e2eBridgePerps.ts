@@ -36,7 +36,12 @@ function registerE2EPerpsDeepLinkHandler(): void {
     Linking.addEventListener('url', (event: { url: string }) => {
       try {
         const { url } = event || {};
-        if (!url?.startsWith('e2e://perps/')) {
+        // Accept both native e2e scheme and tunneled expo-metamask scheme used in Android E2E
+        const isE2EScheme = url?.startsWith('e2e://perps/');
+        const isExpoMappedScheme = url?.startsWith(
+          'expo-metamask://e2e/perps/',
+        );
+        if (!isE2EScheme && !isExpoMappedScheme) {
           return;
         }
 
@@ -48,7 +53,9 @@ function registerE2EPerpsDeepLinkHandler(): void {
           const service = mod?.PerpsE2EMockService?.getInstance?.();
 
           // Parse path and query
-          const withoutScheme = url.replace('e2e://perps/', '');
+          const withoutScheme = isExpoMappedScheme
+            ? url.replace('expo-metamask://e2e/perps/', '')
+            : url.replace('e2e://perps/', '');
           const [path, queryString] = withoutScheme.split('?');
           const params = new URLSearchParams(queryString || '');
           const symbol = params.get('symbol') || '';
