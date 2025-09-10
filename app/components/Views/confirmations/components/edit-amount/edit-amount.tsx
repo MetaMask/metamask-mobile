@@ -58,7 +58,8 @@ export function EditAmount({
   const currentAlert = alerts?.[0];
 
   const hasAlert =
-    inputChanged || currentAlert?.key === AlertKeys.PerpsHardwareAccount;
+    Boolean(alerts?.length) &&
+    (inputChanged || currentAlert?.key === AlertKeys.PerpsHardwareAccount);
 
   const alertKeyboard = hasAlert
     ? currentAlert?.title ?? (currentAlert?.message as string)
