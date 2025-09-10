@@ -8,8 +8,8 @@ import {
   BUFFER_STEP_DEFAULT,
   BUFFER_INITIAL_DEFAULT,
   ATTEMPTS_MAX_DEFAULT,
-  SLIPPAGE_INITIAL_DEFAULT,
-  SLIPPAGE_SUBSEQUENT_DEFAULT,
+  SLIPPAGE_DEFAULT,
+  BUFFER_SUBSEQUENT_DEFAULT,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -290,22 +290,22 @@ describe('MetaMask Pay Feature Flags', () => {
     );
   });
 
+  it('returns default buffer subsequent if not in feature flags', () => {
+    expect(
+      selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferSubsequent,
+    ).toEqual(BUFFER_SUBSEQUENT_DEFAULT);
+  });
+
   it('returns default attempts max if not in feature flags', () => {
     expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).attemptsMax).toEqual(
       ATTEMPTS_MAX_DEFAULT,
     );
   });
 
-  it('returns default initial slippage if not in feature flags', () => {
-    expect(
-      selectMetaMaskPayFlags(mockedEmptyFlagsState).slippageInitial,
-    ).toEqual(SLIPPAGE_INITIAL_DEFAULT);
-  });
-
-  it('returns default subsequent slippage if not in feature flags', () => {
-    expect(
-      selectMetaMaskPayFlags(mockedEmptyFlagsState).slippageSubsequent,
-    ).toEqual(SLIPPAGE_SUBSEQUENT_DEFAULT);
+  it('returns default slippage if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).slippage).toEqual(
+      SLIPPAGE_DEFAULT,
+    );
   });
 
   it('returns buffer step from feature flag', () => {
@@ -334,6 +334,19 @@ describe('MetaMask Pay Feature Flags', () => {
     expect(selectMetaMaskPayFlags(state).bufferInitial).toEqual(2.345);
   });
 
+  it('returns subsequent buffer from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          bufferSubsequent: 5.678,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).bufferSubsequent).toEqual(5.678);
+  });
+
   it('returns max attempts from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
 
@@ -347,29 +360,16 @@ describe('MetaMask Pay Feature Flags', () => {
     expect(selectMetaMaskPayFlags(state).attemptsMax).toEqual(3);
   });
 
-  it('returns initial slippage from feature flag', () => {
+  it('returns slippage from feature flag', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
 
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
         confirmation_pay: {
-          slippageInitial: 0.123,
+          slippage: 0.123,
         },
       };
 
-    expect(selectMetaMaskPayFlags(state).slippageInitial).toEqual(0.123);
-  });
-
-  it('returns subsequent slippage from feature flag', () => {
-    const state = cloneDeep(mockedEmptyFlagsState);
-
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-      {
-        confirmation_pay: {
-          slippageSubsequent: 0.234,
-        },
-      };
-
-    expect(selectMetaMaskPayFlags(state).slippageSubsequent).toEqual(0.234);
+    expect(selectMetaMaskPayFlags(state).slippage).toEqual(0.123);
   });
 });
