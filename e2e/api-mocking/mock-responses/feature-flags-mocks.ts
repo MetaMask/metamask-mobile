@@ -120,6 +120,16 @@ export const remoteFeatureMultichainAccountsAccountDetails = (
   },
 });
 
+export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
+  enabled = true,
+) => ({
+  enableMultichainAccounts: {
+    enabled,
+    featureVersion: '2',
+    minimumVersion: '7.46.0',
+  },
+});
+
 export const remoteFeatureFlagSendRedesignDisabled = {
   urlEndpoint:
     'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',

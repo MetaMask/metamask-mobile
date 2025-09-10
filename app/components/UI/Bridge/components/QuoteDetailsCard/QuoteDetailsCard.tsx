@@ -1,12 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import {
-  TouchableOpacity,
-  LayoutAnimation,
-  Platform,
-  UIManager,
-} from 'react-native';
+import React from 'react';
+import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -20,13 +15,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
-import Animated, {
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Box } from '../../../Box/Box';
 import {
   FlexDirection,
@@ -34,23 +22,17 @@ import {
   JustifyContent,
 } from '../../../Box/box.types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge/Badge.types';
-import Badge from '../../../../../component-library/components/Badges/Badge';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectIsEvmSolanaBridge,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
-import BigNumber from 'bignumber.js';
-
-const ANIMATION_DURATION_MS = 50;
+import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { useRewards } from '../../hooks/useRewards';
+import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
 
 if (
   Platform.OS === 'android' &&
@@ -59,104 +41,37 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-interface NetworkBadgeProps {
-  chainId: string;
-}
-
-const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const networkConfig = networkConfigurations[chainId];
-  const displayName = networkConfig?.name || '';
-
-  return (
-    <Box
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      gap={2}
-      style={styles.networkBadgeContainer}
-    >
-      <Badge
-        variant={BadgeVariant.Network}
-        imageSource={getNetworkImageSource({ chainId })}
-        isScaled={false}
-        size={AvatarSize.Sm}
-      />
-      <Text
-        variant={TextVariant.BodyMDMedium}
-        numberOfLines={1}
-        style={styles.networkBadgeText}
-      >
-        {displayName}
-      </Text>
-    </Box>
-  );
-};
-
 const QuoteDetailsCard = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const rotationValue = useSharedValue(0);
 
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
+  const locale = I18n.locale;
+  const intlNumberFormatter = getIntlNumberFormatter(locale, {
+    maximumFractionDigits: 3,
+  });
+
+  const {
+    formattedQuoteData,
+    activeQuote,
+    isLoading: isQuoteLoading,
+  } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
-  const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-
-  const isSameChainId = sourceToken?.chainId === destToken?.chainId;
-  // Initialize expanded state based on whether destination is Solana or it's a Solana swap
-  useEffect(() => {
-    if (isSameChainId || !isEvmSolanaBridge) {
-      setIsExpanded(true);
-    }
-  }, [isEvmSolanaBridge, isSameChainId]);
-
-  const toggleAccordion = useCallback(() => {
-    LayoutAnimation.configureNext(
-      LayoutAnimation.create(
-        ANIMATION_DURATION_MS,
-        LayoutAnimation.Types.easeInEaseOut,
-        LayoutAnimation.Properties.opacity,
-      ),
-    );
-
-    const newExpandedState = !isExpanded;
-    setIsExpanded(newExpandedState);
-    rotationValue.value = withTiming(newExpandedState ? 1 : 0, {
-      duration: ANIMATION_DURATION_MS,
-    });
-  }, [isExpanded, rotationValue]);
-
-  const arrowStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(rotationValue.value, [0, 1], [0, 180]);
-    return {
-      transform: [{ rotate: `${rotation}deg` }],
-    };
+  const {
+    estimatedPoints,
+    isLoading: isRewardsLoading,
+    shouldShowRewardsRow,
+  } = useRewards({
+    activeQuote,
+    isQuoteLoading,
   });
-
-  const handleQuoteInfoPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL,
-    });
-  };
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
-    });
-  };
-
-  const handlePriceImpactWarningPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
-      params: {
-        isGasIncluded: !!activeQuote?.quote.gasIncluded,
-      },
     });
   };
 
@@ -170,8 +85,7 @@ const QuoteDetailsCard = () => {
     return null;
   }
 
-  const { networkFee, estimatedTime, rate, priceImpact, slippage } =
-    formattedQuoteData;
+  const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
   // Check if price impact warning should be shown
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
@@ -186,55 +100,38 @@ const QuoteDetailsCard = () => {
         Number(rawPriceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.normal));
 
-  const hasFee = activeQuote
-    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
-    : false;
+  const formattedMinToTokenAmount = intlNumberFormatter.format(
+    parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
+  );
 
   return (
     <Box>
       <Box style={styles.container}>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          justifyContent={JustifyContent.spaceBetween}
-        >
-          {!isSameChainId && (
-            <>
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                style={styles.networkContainer}
+        <KeyValueRow
+          field={{
+            label: {
+              text: strings('bridge.rate'),
+              variant: TextVariant.BodyMDMedium,
+            },
+            tooltip: {
+              title: strings('bridge.quote_info_title'),
+              content: strings('bridge.quote_info_content'),
+              size: TooltipSizes.Sm,
+            },
+          }}
+          value={{
+            label: (
+              <Text
+                variant={TextVariant.BodyMD}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
               >
-                <NetworkBadge chainId={String(sourceToken.chainId)} />
-                <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
-                <NetworkBadge chainId={String(destToken.chainId)} />
-              </Box>
-              {isEvmSolanaBridge && (
-                <Animated.View style={arrowStyle}>
-                  <TouchableOpacity
-                    onPress={toggleAccordion}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      isExpanded
-                        ? 'Collapse quote details'
-                        : 'Expand quote details'
-                    }
-                    testID="expand-quote-details"
-                  >
-                    <Icon
-                      name={IconName.ArrowDown}
-                      size={IconSize.Sm}
-                      color={theme.colors.icon.muted}
-                    />
-                  </TouchableOpacity>
-                </Animated.View>
-              )}
-            </>
-          )}
-        </Box>
-
-        {/* Always visible content */}
+                {rate}
+              </Text>
+            ),
+          }}
+        />
         {activeQuote?.quote.gasIncluded ? (
           <Box
             flexDirection={FlexDirection.Row}
@@ -249,14 +146,14 @@ const QuoteDetailsCard = () => {
               alignItems={AlignItems.center}
               gap={8}
             >
-              <Text variant={TextVariant.BodyMD}>
-                {strings('bridge.included')}
-              </Text>
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.strikethroughText}
               >
                 {networkFee}
+              </Text>
+              <Text variant={TextVariant.BodyMD}>
+                {strings('bridge.included')}
               </Text>
             </Box>
           </Box>
@@ -266,6 +163,11 @@ const QuoteDetailsCard = () => {
               label: {
                 text: strings('bridge.network_fee'),
                 variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content'),
+                size: TooltipSizes.Sm,
               },
             }}
             value={{
@@ -277,148 +179,126 @@ const QuoteDetailsCard = () => {
           />
         )}
 
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('bridge.time'),
-              variant: TextVariant.BodyMDMedium,
-            },
-          }}
-          value={{
-            label: {
-              text: estimatedTime,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-        />
-
-        {/* Quote info with gradient overlay */}
-        <Box>
+        {priceImpact && (
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.quote'),
+                text: strings('bridge.price_impact'),
                 variant: TextVariant.BodyMDMedium,
               },
               tooltip: {
-                title: strings('bridge.quote_info_title'),
-                content: strings('bridge.quote_info_content'),
-                onPress: handleQuoteInfoPress,
+                title: strings('bridge.price_impact_info_title'),
+                content: gasIncluded
+                  ? strings('bridge.price_impact_info_gasless_description')
+                  : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
               },
             }}
             value={{
               label: {
-                text: rate,
+                text: priceImpact,
+                variant: TextVariant.BodyMD,
+                color: shouldShowPriceImpactWarning
+                  ? TextColor.Error
+                  : undefined,
+              },
+            }}
+          />
+        )}
+
+        <KeyValueRow
+          field={{
+            label: (
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={4}
+              >
+                <TouchableOpacity
+                  onPress={handleSlippagePress}
+                  activeOpacity={0.6}
+                  testID="edit-slippage-button"
+                  style={styles.slippageButton}
+                >
+                  <Text variant={TextVariant.BodyMDMedium}>
+                    {strings('bridge.slippage')}
+                  </Text>
+                  <Icon
+                    name={IconName.Edit}
+                    size={IconSize.Sm}
+                    color={IconColor.Muted}
+                  />
+                </TouchableOpacity>
+              </Box>
+            ),
+            tooltip: {
+              title: strings('bridge.slippage_info_title'),
+              content: strings('bridge.slippage_info_description'),
+              size: TooltipSizes.Sm,
+            },
+          }}
+          value={{
+            label: {
+              text: slippage,
+              variant: TextVariant.BodyMD,
+            },
+          }}
+        />
+
+        {activeQuote?.minToTokenAmount && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.minimum_received'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.minimum_received_tooltip_title'),
+                content: strings('bridge.minimum_received_tooltip_content'),
+                size: TooltipSizes.Sm,
+              },
+            }}
+            value={{
+              label: {
+                text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariant.BodyMD,
               },
             }}
           />
-          {!isExpanded && (
-            <Box style={styles.gradientContainer}>
-              <Svg height="30" width="100%">
-                <Defs>
-                  <LinearGradient id="fadeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <Stop
-                      offset="0"
-                      stopColor={theme.colors.background.default}
-                      stopOpacity="0"
-                    />
-                    <Stop
-                      offset="1"
-                      stopColor={theme.colors.background.default}
-                      stopOpacity="1"
-                    />
-                  </LinearGradient>
-                </Defs>
-                <Rect
-                  x="0"
-                  y="0"
-                  width="100%"
-                  height="30"
-                  fill="url(#fadeGradient)"
-                />
-              </Svg>
-            </Box>
-          )}
-        </Box>
+        )}
 
-        {/* Expandable content */}
-        {isExpanded && (
-          <Box gap={12}>
-            {priceImpact && (
-              <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('bridge.price_impact'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  ...(shouldShowPriceImpactWarning && {
-                    tooltip: {
-                      title: strings('bridge.price_impact_warning_title'),
-                      content: strings('bridge.price_impact_normal_warning'),
-                      onPress: handlePriceImpactWarningPress,
-                      size: TooltipSizes.Sm,
-                    },
-                  }),
-                }}
-                value={{
-                  label: {
-                    text: priceImpact,
-                    variant: TextVariant.BodyMD,
-                    color: shouldShowPriceImpactWarning
-                      ? TextColor.Error
-                      : undefined,
-                  },
-                }}
-              />
-            )}
-
-            <KeyValueRow
-              field={{
-                label: (
-                  <Box
-                    flexDirection={FlexDirection.Row}
-                    alignItems={AlignItems.center}
-                    gap={4}
-                  >
-                    <TouchableOpacity
-                      onPress={handleSlippagePress}
-                      activeOpacity={0.6}
-                      testID="edit-slippage-button"
-                      style={styles.slippageButton}
-                    >
-                      <Text variant={TextVariant.BodyMDMedium}>
-                        {strings('bridge.slippage')}
-                      </Text>
-                      <Icon
-                        name={IconName.Edit}
-                        size={IconSize.Sm}
-                        color={IconColor.Muted}
-                      />
-                    </TouchableOpacity>
-                  </Box>
-                ),
-              }}
-              value={{
-                label: {
-                  text: slippage,
-                  variant: TextVariant.BodyMD,
-                },
-              }}
-            />
-          </Box>
+        {/* Estimated Points */}
+        {shouldShowRewardsRow && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.points'),
+                variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.points_tooltip'),
+                content: strings('bridge.points_tooltip_content'),
+              },
+            }}
+            value={{
+              label: (
+                <Box
+                  flexDirection={FlexDirection.Row}
+                  alignItems={AlignItems.center}
+                  gap={4}
+                >
+                  <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+                  {!isRewardsLoading && estimatedPoints !== null && (
+                    <Text variant={TextVariant.BodyMD}>
+                      {estimatedPoints.toString()}
+                    </Text>
+                  )}
+                </Box>
+              ),
+            }}
+          />
         )}
       </Box>
-      {hasFee ? (
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.disclaimerText}
-        >
-          {strings('bridge.fee_disclaimer')}
-        </Text>
-      ) : null}
     </Box>
   );
 };

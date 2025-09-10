@@ -6,7 +6,6 @@ import {
 } from '@react-navigation/native';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -15,6 +14,7 @@ import React, {
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -34,10 +34,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -81,12 +77,14 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPerformance,
+  usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
+import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
@@ -125,9 +123,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
-  const toastContext = useContext(ToastContext);
-
-  const toastRef = toastContext?.toastRef;
   const { track } = usePerpsEventTracking();
   const { startMeasure, endMeasure } = usePerpsPerformance();
 
@@ -135,6 +130,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
+  const hasShownSubmittedToastRef = useRef(false);
 
   const cachedAccountState = usePerpsAccount();
 
@@ -167,78 +163,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
 
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+
   // Find formatted market data for navigation
   const navigationMarketData = useMemo(
     () => markets.find((market) => market.symbol === orderForm.asset),
     [markets, orderForm.asset],
   );
 
-  // Order execution using new hook
-  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
-    usePerpsOrderExecution({
-      onSuccess: (position) => {
-        // Track successful position open
-        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED, {
-          [PerpsEventProperties.ASSET]: orderForm.asset,
-          [PerpsEventProperties.DIRECTION]:
-            orderForm.direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderTypeRef.current,
-          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-          [PerpsEventProperties.ORDER_SIZE]: position?.size || orderForm.amount,
-          [PerpsEventProperties.ASSET_PRICE]: position?.entryPrice,
-          [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
-        });
-
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.order.confirmed'),
-              isBold: true,
-            },
-            { label: ' - ', isBold: false },
-            {
-              label: `${orderForm.direction.toUpperCase()} ${orderForm.asset}`,
-              isBold: true,
-            },
-          ],
-          iconName: IconName.CheckBold,
-          iconColor: IconColor.Success,
-          hasNoTimeout: true,
-          closeButtonOptions: {
-            label: strings('perps.order.error.dismiss'),
-            variant: ButtonVariants.Secondary,
-            onPress: () => toastRef?.current?.closeToast(),
-          },
-        });
-      },
-      onError: (error) => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.order.error.placement_failed'),
-              isBold: true,
-            },
-            { label: ': ', isBold: false },
-            {
-              label: error,
-              isBold: false,
-            },
-          ],
-          iconName: IconName.Error,
-          iconColor: IconColor.Error,
-          hasNoTimeout: true,
-          closeButtonOptions: {
-            label: strings('perps.order.error.dismiss'),
-            variant: ButtonVariants.Secondary,
-            onPress: () => toastRef?.current?.closeToast(),
-          },
-        });
-      },
-    });
   // Update ref when orderType changes
   useEffect(() => {
     orderTypeRef.current = orderForm.type;
@@ -381,32 +313,19 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Show error toast if market data is not available
   useEffect(() => {
     if (marketDataError) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('perps.order.error.invalid_asset'), isBold: true },
-          { label: ': ', isBold: false },
-          {
-            label: strings('perps.order.error.asset_not_tradable', {
-              asset: orderForm.asset,
-            }),
-            isBold: false,
-          },
-        ],
-        iconName: IconName.Error,
-        iconColor: IconColor.Error,
-        hasNoTimeout: true,
-        closeButtonOptions: {
-          label: strings('perps.order.error.go_back'),
-          variant: ButtonVariants.Secondary,
-          onPress: () => {
-            toastRef?.current?.closeToast();
-            navigation.goBack();
-          },
-        },
-      });
+      showToast(
+        PerpsToastOptions.dataFetching.market.error.marketDataUnavailable(
+          orderForm.asset,
+        ),
+      );
     }
-  }, [marketDataError, orderForm.asset, toastRef, navigation]);
+  }, [
+    marketDataError,
+    orderForm.asset,
+    navigation,
+    showToast,
+    PerpsToastOptions.dataFetching.market.error,
+  ]);
 
   // Real-time position size calculation - memoized to prevent recalculation
   const positionSize = useMemo(
@@ -419,53 +338,148 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [orderForm.amount, assetData.price, marketData?.szDecimals],
   );
 
+  // Order execution using new hook
+  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
+    usePerpsOrderExecution({
+      onSuccess: (position) => {
+        // Track successful position open
+        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED, {
+          [PerpsEventProperties.ASSET]: orderForm.asset,
+          [PerpsEventProperties.DIRECTION]:
+            orderForm.direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: orderTypeRef.current,
+          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+          [PerpsEventProperties.ORDER_SIZE]: position?.size || orderForm.amount,
+          [PerpsEventProperties.ASSET_PRICE]: position?.entryPrice,
+          [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
+        });
+
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].confirmed(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
+      },
+      onError: (error) => {
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].creationFailed(
+            error,
+          ),
+        );
+      },
+    });
+
+  useEffect(() => {
+    if (isPlacingOrder && !hasShownSubmittedToastRef.current) {
+      showToast(
+        PerpsToastOptions.orderManagement[orderForm.type].submitted(
+          orderForm.direction,
+          positionSize,
+          orderForm.asset,
+        ),
+      );
+      hasShownSubmittedToastRef.current = true;
+    } else if (!isPlacingOrder && hasShownSubmittedToastRef.current) {
+      // Reset the flag when order placement is complete
+      hasShownSubmittedToastRef.current = false;
+    }
+  }, [
+    PerpsToastOptions.orderManagement,
+    isPlacingOrder,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.type,
+    positionSize,
+    showToast,
+  ]);
+
   // Get margin required from form calculations
   const marginRequired = calculations.marginRequired;
 
   // Memoize liquidation price params to prevent infinite recalculation
-  const liquidationPriceParams = useMemo(
-    () => ({
-      entryPrice: assetData.price,
+  const liquidationPriceParams = useMemo(() => {
+    // Use limit price for limit orders, market price for market orders
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : assetData.price;
+
+    return {
+      entryPrice,
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
-    }),
-    [assetData.price, orderForm.leverage, orderForm.direction, orderForm.asset],
-  );
+    };
+  }, [
+    assetData.price,
+    orderForm.leverage,
+    orderForm.direction,
+    orderForm.asset,
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
   /**
-   * Calculate TP/SL display text with percentages
-   * Converts take profit and stop loss prices to percentage distances from current price
+   * Calculate TP/SL display text with RoE percentages
+   * Converts take profit and stop loss prices to RoE (Return on Equity) percentages
    *
    * @returns Formatted string like "TP 10%, SL 5%" or "TP off, SL off"
    *
-   * For TP: Shows the percentage gain from current price to take profit price
-   * For SL: Shows the percentage loss from current price to stop loss price
+   * For TP: Shows the RoE percentage gain at the take profit price
+   * For SL: Shows the RoE percentage loss at the stop loss price
    */
   const tpSlDisplayText = useMemo(() => {
     const price = parseFloat(currentPrice?.price || '0');
     let tpDisplay = strings('perps.order.off');
     let slDisplay = strings('perps.order.off');
 
-    if (orderForm.takeProfitPrice && price > 0) {
-      const tpPrice = parseFloat(orderForm.takeProfitPrice);
-      const tpPercentage = ((tpPrice - price) / price) * 100;
-      const absPercentage = Math.abs(tpPercentage);
-      tpDisplay = `${absPercentage.toFixed(0)}%`;
+    // Calculate proper entry price based on order type
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : price; // fallback to current price for market orders or when no limit price set
+
+    if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
+      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(tpRoE || '0'));
+      tpDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
-    if (orderForm.stopLossPrice && price > 0) {
-      const slPrice = parseFloat(orderForm.stopLossPrice);
-      const slPercentage = ((price - slPrice) / price) * 100;
-      const absPercentage = Math.abs(slPercentage);
-      slDisplay = `${absPercentage.toFixed(0)}%`;
+    if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
+      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(slRoE || '0'));
+      slDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
     return `TP ${tpDisplay}, SL ${slDisplay}`;
-  }, [currentPrice?.price, orderForm.takeProfitPrice, orderForm.stopLossPrice]);
+  }, [
+    currentPrice?.price,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.leverage,
+    orderForm.direction,
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
@@ -518,6 +532,21 @@ const PerpsOrderViewContentBase: React.FC = () => {
   ]);
 
   // Handlers
+  const handleTPSLPress = useCallback(() => {
+    if (orderForm.type === 'limit' && !orderForm.limitPrice) {
+      // We need to set a limit price for limit orders before TP/SL can be set
+      showToast(PerpsToastOptions.formValidation.orderForm.limitPriceRequired);
+      return;
+    }
+
+    setIsTPSLVisible(true);
+  }, [
+    PerpsToastOptions.formValidation.orderForm.limitPriceRequired,
+    orderForm.limitPrice,
+    orderForm.type,
+    showToast,
+  ]);
+
   const handleAmountPress = () => {
     setIsInputFocused(true);
   };
@@ -580,17 +609,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
       // Validation errors are shown in the UI
       if (!orderValidation.isValid) {
         const firstError = orderValidation.errors[0];
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            { label: strings('perps.order.validation.failed'), isBold: true },
-            { label: ': ', isBold: false },
-            { label: firstError, isBold: false },
-          ],
-          iconName: IconName.Warning,
-          iconColor: IconColor.Warning,
-          hasNoTimeout: true,
-        });
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            firstError,
+          ),
+        );
 
         // Track validation failure as error encountered
         track(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED, {
@@ -639,25 +662,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         },
       });
 
-      // Show "Order Submitted" toast immediately
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('perps.order.submitted'),
-            isBold: true,
-          },
-          { label: ' - ', isBold: false },
-          {
-            label: `${orderForm.direction.toUpperCase()} ${orderForm.asset}`,
-            isBold: true,
-          },
-        ],
-        iconName: IconName.Clock,
-        iconColor: IconColor.Primary,
-        hasNoTimeout: false, // Auto-dismiss after a few seconds
-      });
-
       // Track trade transaction submitted
       track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED, {
         [PerpsEventProperties.ASSET]: orderForm.asset,
@@ -688,16 +692,24 @@ const PerpsOrderViewContentBase: React.FC = () => {
       isSubmittingRef.current = false;
     }
   }, [
-    orderValidation,
-    toastRef,
-    orderForm,
-    positionSize,
-    assetData.price,
-    executeOrder,
+    orderValidation.isValid,
+    orderValidation.errors,
     track,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.type,
+    orderForm.leverage,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.limitPrice,
+    positionSize,
     marginRequired,
+    assetData.price,
     navigation,
     navigationMarketData,
+    executeOrder,
+    showToast,
+    PerpsToastOptions.formValidation.orderForm,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -731,10 +743,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          maxAmount={availableBalance * orderForm.leverage}
           showWarning={availableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
+          tokenAmount={positionSize}
+          tokenSymbol={orderForm.asset}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -820,7 +833,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Combined TP/SL row */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
+            <TouchableOpacity
+              onPress={handleTPSLPress}
+              testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+            >
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
@@ -933,7 +949,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}
       {isInputFocused && (
-        <View style={styles.bottomSection}>
+        <View
+          style={styles.bottomSection}
+          testID={PerpsOrderViewSelectorsIDs.KEYPAD}
+        >
           <View style={styles.percentageButtonsContainer}>
             <Button
               variant={ButtonVariants.Secondary}
@@ -1015,12 +1034,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
           setTakeProfitPrice(takeProfitPrice);
           setStopLossPrice(stopLossPrice);
           setIsTPSLVisible(false);
-
-          // TP/SL set events are tracked in the bottom sheet component
         }}
         asset={orderForm.asset}
         currentPrice={assetData.price}
         direction={orderForm.direction}
+        leverage={orderForm.leverage}
+        marginRequired={marginRequired}
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
@@ -1062,6 +1081,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         currentPrice={assetData.price}
         direction={orderForm.direction}
         asset={orderForm.asset}
+        limitPrice={orderForm.limitPrice}
+        orderType={orderForm.type}
       />
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet

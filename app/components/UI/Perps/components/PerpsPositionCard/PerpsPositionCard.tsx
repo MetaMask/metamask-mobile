@@ -95,6 +95,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: marketData,
+        initialTab: 'position',
       },
     });
   };
@@ -146,21 +147,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {position.coin} {position.leverage.value}x{' '}
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {direction}
                 </Text>
               </Text>
             </View>
             <View style={styles.headerRow}>
-              <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Alternative}
+              >
                 {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>
@@ -203,10 +201,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.entry_price')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {formatPrice(position.entryPrice, {
                     minimumDecimals: 2,
                     maximumDecimals: 2,
@@ -220,10 +215,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.liquidationPrice
                     ? formatPrice(position.liquidationPrice, {
                         minimumDecimals: 2,
@@ -239,10 +231,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.margin')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {formatPrice(position.marginUsed, {
                     minimumDecimals: 2,
                     maximumDecimals: 2,
@@ -259,10 +248,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.take_profit')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.takeProfitPrice
                     ? formatPrice(position.takeProfitPrice, {
                         minimumDecimals: 2,
@@ -278,10 +264,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.stop_loss')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.stopLossPrice
                     ? formatPrice(position.stopLossPrice, {
                         minimumDecimals: 2,
@@ -298,13 +281,20 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.funding_cost')}
                 </Text>
                 <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodySM}
+                  color={
+                    parseFloat(position.cumulativeFunding.sinceOpen) >= 0
+                      ? TextColor.Success
+                      : TextColor.Error
+                  }
                 >
-                  {formatPrice(position.cumulativeFunding.sinceOpen, {
-                    minimumDecimals: 2,
-                    maximumDecimals: 2,
-                  })}
+                  {formatPrice(
+                    Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
+                    {
+                      minimumDecimals: 2,
+                      maximumDecimals: 2,
+                    },
+                  )}
                 </Text>
               </View>
             </View>

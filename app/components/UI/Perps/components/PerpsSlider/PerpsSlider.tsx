@@ -12,7 +12,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import LinearGradient from 'react-native-linear-gradient';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -80,6 +80,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   // Store width in a ref to avoid shared value dependency issues
   const widthRef = useRef(0);
+  // Track previous value for threshold detection
+  const previousValueRef = useRef(value);
 
   // Layout handler - pure React callback
   const handleLayout = useCallback(
@@ -107,6 +109,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       // Direct assignment for instant update, no spring animation
       translateX.value = newPosition;
     }
+    // Update previous value ref when value changes externally
+    previousValueRef.current = value;
   }, [value, minimumValue, maximumValue, translateX, widthRef]);
 
   // Animated styles
@@ -126,12 +130,47 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     [onValueChange],
   );
 
+  // Haptic feedback callbacks
+  const triggerHapticFeedback = useCallback(
+    (impactStyle: ImpactFeedbackStyle) => {
+      impactAsync(impactStyle);
+    },
+    [],
+  );
+
+  // Check if value crosses 25/50/75 thresholds
+  const checkThresholdCrossing = useCallback(
+    (newValue: number) => {
+      const prevValue = previousValueRef.current;
+      const thresholds = [25, 50, 75];
+
+      for (const threshold of thresholds) {
+        const prevPercentage =
+          (prevValue / (maximumValue - minimumValue)) * 100;
+        const newPercentage = (newValue / (maximumValue - minimumValue)) * 100;
+
+        // Check if we crossed the threshold in either direction
+        if (
+          (prevPercentage < threshold && newPercentage >= threshold) ||
+          (prevPercentage > threshold && newPercentage <= threshold)
+        ) {
+          runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          break;
+        }
+      }
+
+      previousValueRef.current = newValue;
+    },
+    [maximumValue, minimumValue, triggerHapticFeedback],
+  );
+
   // Pan gesture for dragging
   const panGesture = Gesture.Pan()
     .enabled(!disabled)
     .onBegin(() => {
       isPressed.value = true;
       thumbScale.value = 1.1; // Subtle scale effect, instant
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
@@ -139,12 +178,14 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       // Real-time value update during drag
       const currentValue = positionToValue(newPosition, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+      runOnJS(checkThresholdCrossing)(currentValue);
     })
     .onEnd(() => {
       isPressed.value = false;
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onFinalize(() => {
       isPressed.value = false;
@@ -159,6 +200,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       translateX.value = newPosition; // Direct assignment for instant response
       const newValue = positionToValue(newPosition, sliderWidth.value);
       runOnJS(updateValue)(newValue);
+      runOnJS(checkThresholdCrossing)(newValue);
     });
 
   // Combined gesture
@@ -171,8 +213,15 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       const newValue =
         (percent / 100) * (maximumValue - minimumValue) + minimumValue;
       onValueChange(newValue);
+      checkThresholdCrossing(newValue);
     },
-    [disabled, maximumValue, minimumValue, onValueChange],
+    [
+      disabled,
+      maximumValue,
+      minimumValue,
+      onValueChange,
+      checkThresholdCrossing,
+    ],
   );
 
   const percentageSteps = [0, 25, 50, 75, 100];
@@ -272,7 +321,13 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       {quickValues && (
         <View style={styles.quickValuesRow}>
           {quickValues.map((val) => (
-            <TouchableOpacity key={val} onPress={() => onValueChange(val)}>
+            <TouchableOpacity
+              key={val}
+              onPress={() => {
+                onValueChange(val);
+                checkThresholdCrossing(val);
+              }}
+            >
               <Text>{val}x</Text>
             </TouchableOpacity>
           ))}

@@ -102,8 +102,11 @@ export const PerpsMarketListViewSelectorsIDs = {
   TUTORIAL_BUTTON: 'perps-market-list-tutorial-button',
   SEARCH_TOGGLE_BUTTON: 'perps-market-list-search-toggle-button',
   CLOSE_BUTTON: 'perps-market-list-close-button',
+  BACK_HEADER_BUTTON: 'perps-market-header-back-button',
+  BACK_LIST_BUTTON: 'perps-market-list-back-button',
   SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
+  LIST_HEADER: 'perps-market-list-header',
 };
 
 // ========================================
@@ -118,6 +121,8 @@ export const PerpsMarketRowItemSelectorsIDs = {
 export const getPerpsMarketRowItemSelector = {
   rowItem: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
+  tokenLogo: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
 };
 
 // ========================================
@@ -146,6 +151,8 @@ export const PerpsTokenSelectorSelectorsIDs = {
 
 export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
+  AMOUNT_LABEL: 'perps-amount-display-amount',
+  MAX_LABEL: 'perps-amount-display-max',
 };
 
 // ========================================
@@ -156,11 +163,20 @@ export const PerpsTabViewSelectorsIDs = {
   START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
     'perps-tab-view-geo-block-bottom-sheet-tooltip',
+  ONBOARDING_BUTTON: 'perps-start-trading-button',
+  BALANCE_BUTTON: 'perps-balance-button',
+  ADD_FUNDS_BUTTON: 'perps-add-funds-button',
+  WITHDRAW_BUTTON: 'perps-withdraw-button',
+  BALANCE_VALUE: 'perps-balance-value',
+  SCROLL_VIEW: 'perps-tab-scroll-view',
 };
 
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'button-icon-arrow-left',
+  POSITION_ITEM: 'perps-positions-item',
+  POSITIONS_SECTION: 'perps-positions-section',
+  POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
 };
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
@@ -176,6 +192,22 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
   CHART_CANDLES: 'chart-candles',
   CHART_CROSSHAIR: 'chart-crosshair',
   CHART_TOOLTIP: 'chart-tooltip',
+};
+
+// ========================================
+// PERPS TPSL BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsTPSLBottomSheetSelectorsIDs = {
+  BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
+  SET_BUTTON: 'bottomsheetfooter-button',
+} as const;
+
+export const getPerpsTPSLBottomSheetSelector = {
+  takeProfitPercentageButton: (percentage: number) =>
+    `perps-tpsl-take-profit-percentage-button-${percentage}`,
+  stopLossPercentageButton: (percentage: number) =>
+    `perps-tpsl-stop-loss-percentage-button-${percentage}`,
 };
 
 // ========================================
@@ -281,14 +313,6 @@ export const PerpsTestnetToggleSelectorsIDs = {
 };
 
 // ========================================
-// PERPS DEVELOPER OPTIONS SECTION SELECTORS
-// ========================================
-
-export const PerpsDeveloperOptionsSectionSelectorsIDs = {
-  PERPS_SANDBOX_BUTTON: 'perps-developer-options-section-perps-sandbox-button',
-};
-
-// ========================================
 // PERPS TRANSACTION SELECTORS
 // ========================================
 
@@ -341,6 +365,17 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 };
 
 // ========================================
+// PERPS TUTORIAL SELECTORS
+// ========================================
+
+export const PerpsTutorialSelectorsIDs = {
+  CONTINUE_BUTTON: 'perps-tutorial-continue-button',
+  SKIP_BUTTON: 'perps-tutorial-skip-button',
+  CAROUSEL: 'perps-tutorial-carousel',
+  CARD: 'perps-tutorial-card',
+} as const;
+
+// ========================================
 // PERPS GTM MODAL SELECTORS
 // ========================================
 
@@ -363,7 +398,11 @@ export const PerpsOrderViewSelectorsIDs = {
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
+  // Buttons present in PerpsOrderView (TouchableOpacity with testID)
+  TAKE_PROFIT_BUTTON: 'perps-order-view-stop-loss-button',
+  STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
+  KEYPAD: 'perps-order-view-keypad',
 };
 
 // ========================================
@@ -419,3 +458,18 @@ export const PerpsMarketTabsSelectorsIDs = {
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
   SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
 };
+
+// ========================================
+// PERPS GENERAL (CROSS-COMPONENT) SELECTORS
+// ========================================
+
+export const PerpsGeneralSelectorsIDs = {
+  // TPSL bottom sheet primary action button ("Set" / "Updating")
+  BOTTOM_SHEET_FOOTER_BUTTON: 'bottomsheetfooter-button',
+  // Order success toast dismiss button on PerpsOrderView
+  ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
+    'perps-order-success-toast-dismiss-button',
+  // Common action buttons that may appear in flows (keep for E2E compatibility)
+  CONTINUE_BUTTON: 'continue-button',
+  DONE_BUTTON: 'done-button',
+} as const;

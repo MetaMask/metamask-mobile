@@ -8,11 +8,9 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
-import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsAmountDisplayProps {
   amount: string;
-  maxAmount: number;
   showWarning?: boolean;
   warningMessage?: string;
   onPress?: () => void;
@@ -26,7 +24,6 @@ interface PerpsAmountDisplayProps {
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   amount,
-  maxAmount,
   showWarning = false,
   warningMessage = 'No funds available. Please deposit first.',
   onPress,
@@ -80,6 +77,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       )}
       <View style={styles.amountRow}>
         <RNText
+          testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
           style={[
             showTokenAmount && tokenAmount && tokenSymbol
               ? styles.amountValueToken
@@ -105,14 +103,15 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           />
         )}
       </View>
-      {showMaxAmount && (
+      {/* Display token amount equivalent for current input */}
+      {showMaxAmount && tokenAmount && tokenSymbol && (
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
           style={styles.maxAmount}
+          testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
         >
-          {formatPrice(maxAmount, { minimumDecimals: 2, maximumDecimals: 2 })}{' '}
-          {strings('perps.order.max')}
+          {formatPositionSize(tokenAmount)} {tokenSymbol}
         </Text>
       )}
       {showWarning && (

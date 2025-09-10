@@ -65,10 +65,14 @@ export const PERFORMANCE_CONFIG = {
   // Prevents excessive validation calls during rapid form input changes
   VALIDATION_DEBOUNCE_MS: 1000,
 
+  // Liquidation price debounce delay (milliseconds)
+  // Prevents excessive liquidation price calls during rapid form input changes
+  LIQUIDATION_PRICE_DEBOUNCE_MS: 500,
+
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
-  NAVIGATION_PARAMS_DELAY_MS: 100,
+  NAVIGATION_PARAMS_DELAY_MS: 200,
 
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
@@ -77,6 +81,10 @@ export const PERFORMANCE_CONFIG = {
   // Asset metadata cache duration (milliseconds)
   // How long to cache asset icon validation results
   ASSET_METADATA_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
+
+  // Max leverage cache duration (milliseconds)
+  // How long to cache max leverage values per asset (leverage rarely changes)
+  MAX_LEVERAGE_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
 } as const;
 
 /**

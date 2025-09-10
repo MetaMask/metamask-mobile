@@ -325,7 +325,7 @@ buildAndroidRun(){
 	remapEnvVariableLocal
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
 # Builds the Main APK for local development
@@ -356,13 +356,13 @@ buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
+	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
 }
 
 buildAndroidRunFlask(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
+	yarn expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
 }
 
 buildIosSimulator(){
@@ -372,7 +372,7 @@ buildIosSimulator(){
 	if [ -n "$IOS_SIMULATOR" ]; then
 		device_args=(--device "$IOS_SIMULATOR")
 	fi
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT "${device_args[@]}"
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT "${device_args[@]}"
 }
 
 buildIosSimulatorQA(){
@@ -380,13 +380,13 @@ buildIosSimulatorQA(){
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
 	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorFlask(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
@@ -411,17 +411,17 @@ runIosE2E(){
 buildIosDevice(){
 	remapEnvVariableLocal
 	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
-	npx expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
+	yarn expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
 }
 
 buildIosDeviceFlask(){
 	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
+	yarn expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
 # Generates the iOS binary for the given scheme and configuration
@@ -676,10 +676,10 @@ startWatcher() {
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
 		#react-native start --port=$WATCHER_PORT -- --reset-cache
-		npx expo start --port $WATCHER_PORT --clear
+		yarn expo start --port $WATCHER_PORT --clear
 	else
 		#react-native start --port=$WATCHER_PORT
-		npx expo start --port $WATCHER_PORT
+		yarn expo start --port $WATCHER_PORT
 	fi
 }
 
