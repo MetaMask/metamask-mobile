@@ -3,7 +3,7 @@ import { usePerpsDepositMinimumAlert } from '../../../hooks/alerts/usePerpsDepos
 import { Alert } from '../../../types/alerts';
 import { useInsufficientPayTokenBalanceAlert } from '../../../hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { ARBITRUM_USDC_ADDRESS } from './usePerpsDepositInit';
-import { usePerpsHardwareAccountAlert } from '../../../hooks/alerts/usePerpsHardwareWalletAlert';
+import { usePerpsHardwareAccountAlert } from '../../../hooks/alerts/usePerpsHardwareAccountAlert';
 
 export function usePerpsDepositAlerts({
   pendingTokenAmount,

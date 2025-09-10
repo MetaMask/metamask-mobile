@@ -64,7 +64,8 @@ export function EditAmount({
     ? currentAlert?.title ?? (currentAlert?.message as string)
     : undefined;
 
-  const alertMessage = hasAlert ? currentAlert?.message : undefined;
+  const alertMessage =
+    hasAlert && currentAlert?.title ? currentAlert?.message : undefined;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
