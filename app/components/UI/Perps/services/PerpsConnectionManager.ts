@@ -1,4 +1,5 @@
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -197,11 +198,40 @@ class PerpsConnectionManagerClass {
         this.clearError();
         return Promise.resolve();
       } catch (error) {
+        // Check if this is a rate limit error - don't treat as stale connection
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        const isRateLimitError =
+          errorMessage.includes('429') ||
+          errorMessage.includes('Too Many Requests');
+
+        if (isRateLimitError) {
+          // Track rate limit events in Sentry for monitoring API health
+          Logger.error(error as Error, {
+            message:
+              'HyperLiquid API rate limit exceeded - not treating as stale connection',
+            context: 'PerpsConnectionManager.connect',
+            provider: 'hyperliquid',
+            isTestnet:
+              Engine.context.PerpsController?.getCurrentNetwork?.() ===
+              'testnet',
+          });
+
+          // Set error but don't reset connection state - let it recover naturally
+          this.setError(
+            'API rate limit exceeded. Please try again in a moment.',
+          );
+          throw error; // Propagate the error without resetting connection
+        }
+
         // Connection is stale, reset state and reconnect
-        DevLogger.log(
-          'PerpsConnectionManager: Stale connection detected, will reconnect',
-          error,
-        );
+        Logger.error(error as Error, {
+          message: 'Stale connection detected, will reconnect',
+          context: 'PerpsConnectionManager.connect',
+          provider: 'hyperliquid',
+          isTestnet:
+            Engine.context.PerpsController?.getCurrentNetwork?.() === 'testnet',
+        });
         this.isConnected = false;
         this.isInitialized = false;
       }

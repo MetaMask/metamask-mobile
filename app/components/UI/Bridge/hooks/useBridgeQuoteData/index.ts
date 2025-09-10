@@ -13,7 +13,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import {
+  fromTokenMinimalUnit,
+  isNumberValue,
+} from '../../../../../util/number';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
@@ -112,7 +115,14 @@ export const useBridgeQuoteData = ({
 
     const { amount, valueInCurrency } = totalNetworkFee;
 
-    if (!amount || !valueInCurrency) return '-';
+    if (
+      amount == null ||
+      valueInCurrency == null ||
+      !isNumberValue(amount) ||
+      !isNumberValue(valueInCurrency)
+    ) {
+      return '-';
+    }
 
     const formattedAmount = `${formatAmount(
       locale,

@@ -144,6 +144,13 @@ jest.mock('@react-native-community/netinfo', () => ({
   })),
 }));
 
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
+jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
+}));
+
 describe('Login test suite 2', () => {
   describe('handleVaultCorruption', () => {
     beforeEach(() => {
