@@ -247,13 +247,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
   }, [activeSlideIndex, visibleSlides.length]);
 
-  // Reset card animations when slides change (but not during transitions or empty state display)
+  // Reset card animations when slides change (but not during transitions)
   useEffect(() => {
-    // Skip entire useEffect during empty state display
-    if (showEmptyState) {
-      return;
-    }
-
     if (!isAnimating.current && !isTransitioning) {
       // Use requestAnimationFrame to prevent flash during re-render
       requestAnimationFrame(() => {
@@ -295,12 +290,9 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           nextCardScale.setValue(0.95);
           nextCardTranslateY.setValue(8);
           nextCardBgOpacity.setValue(0);
-          // Never reset empty state when it's being displayed
-          if (!showEmptyState) {
-            emptyStateOpacity.setValue(0);
-            emptyStateScale.setValue(0.95);
-            emptyStateTranslateY.setValue(20);
-          }
+          emptyStateOpacity.setValue(0);
+          emptyStateScale.setValue(0.95);
+          emptyStateTranslateY.setValue(20);
         }
       });
     }
@@ -506,7 +498,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       emptyStateOpacity,
       emptyStateScale,
       emptyStateTranslateY,
-      carouselOpacity,
     ],
   );
 
@@ -719,21 +710,13 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   if (
     !isCarouselVisible ||
-    (visibleSlides.length === 0 && !isAnimating.current && !showEmptyState)
+    (visibleSlides.length === 0 && !isAnimating.current)
   ) {
     return null;
   }
 
   return (
-    <Animated.View
-      style={[
-        tw.style('mx-4'),
-        {
-          opacity: carouselOpacity, // Carousel fade for final exit
-        },
-        style,
-      ]}
-    >
+    <Animated.View style={[tw.style('mx-4'), {}, style]}>
       <Box style={{ height: BANNER_HEIGHT + 6 }}>
         <Box
           style={{ height: BANNER_HEIGHT, position: 'relative' }}
