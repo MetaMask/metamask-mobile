@@ -139,7 +139,7 @@ export const submitEvmTransaction = async ({
 };
 
 export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
-  const decimalValue = parseInt(decimals?.toString() ?? '0', 10);
+  const decimalValue = parseInt(decimals?.toString(), 10);
   const multiplier = new BN(10).pow(new BN(decimalValue));
 
   const comps = tokenValue.split('.');
