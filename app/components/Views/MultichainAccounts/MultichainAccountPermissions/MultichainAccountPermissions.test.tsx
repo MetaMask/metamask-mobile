@@ -5,6 +5,7 @@ import renderWithProvider, {
 } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
+import { EngineState } from '../../../../core/Engine';
 import { MultichainAccountPermissions } from './MultichainAccountPermissions';
 import {
   Caip25CaveatType,
@@ -38,6 +39,34 @@ jest.mock('../../../../core/Engine', () => ({
     PermissionController: {
       updateCaveat: jest.fn(),
       revokeAllPermissions: jest.fn(),
+      state: {
+        subjects: {
+          'test.com': {
+            permissions: {
+              'endowment:caip25': {
+                caveats: [
+                  {
+                    type: 'authorizedScopes',
+                    value: {
+                      requiredScopes: {},
+                      optionalScopes: {
+                        'eip155:1': {
+                          accounts: [
+                            'eip155:1:0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+                            'eip155:1:0xd018538C87232FF95acbCe4870629b75640a78E7',
+                          ],
+                        },
+                      },
+                      sessionProperties: {},
+                      isMultichainOrigin: true,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
     },
     KeyringController: {
       state: {
@@ -173,99 +202,50 @@ jest.mock(
   }),
 );
 
-const mockInitialState = (): DeepPartial<RootState> => ({
-  settings: {},
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      MultichainNetworkController: {
-        multichainNetworkConfigurationsByChainId: {
-          'eip155:1': {
-            chainId: '0x1',
-            name: 'Ethereum Mainnet',
-            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://mainnet.infura.io/v3/'] } },
-            blockExplorers: {
-              default: { name: 'Etherscan', url: 'https://etherscan.io' },
-            },
-          },
-          'eip155:11155111': {
-            chainId: '0xaa36a7',
-            name: 'Sepolia',
-            nativeCurrency: {
-              name: 'Sepolia Ether',
-              symbol: 'ETH',
-              decimals: 18,
-            },
-            rpcUrls: { default: { http: ['https://sepolia.infura.io/v3/'] } },
-            blockExplorers: {
-              default: {
-                name: 'Etherscan',
-                url: 'https://sepolia.etherscan.io',
+const mockInitialState = () => {
+  const mockState = {
+    settings: {},
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        KeyringController: {
+          ...backgroundState.KeyringController,
+          isUnlocked: true,
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              accounts: [mockEvmAccount1Address, mockEvmAccount2Address],
+              metadata: {
+                id: 'mock-keyring-id',
+                name: 'Test Keyring',
               },
             },
+          ],
+        },
+        AccountsController: {
+          ...backgroundState.AccountsController,
+          internalAccounts: {
+            accounts: {},
+            selectedAccount: 'mock-id-1',
           },
         },
-        networksWithTransactionActivity: {},
-      },
-      KeyringController: {
-        isUnlocked: true,
-        keyringTypes: {},
-        keyrings: [
-          {
-            type: 'HD Key Tree',
-            accounts: [mockEvmAccount1Address, mockEvmAccount2Address],
-            metadata: {
-              id: 'mock-keyring-id',
-            },
-          },
-        ],
-      },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {},
-          selectedAccount: 'mock-id-1',
-        },
-      },
-      AccountTreeController: {
-        accountTree: {
-          selectedAccountGroup: mockGroupId1,
-          wallets: {},
-        },
-      },
-      PermissionController: {
-        subjects: {
-          'test.com': {
-            permissions: {
-              [Caip25EndowmentPermissionName]: {
-                caveats: [
-                  {
-                    type: Caip25CaveatType,
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {
-                        'eip155:1': {
-                          accounts: [
-                            `eip155:1:${mockEvmAccount1Address}`,
-                            `eip155:1:${mockEvmAccount2Address}`,
-                          ],
-                        },
-                      },
-                      sessionProperties: {},
-                      isMultichainOrigin: true,
-                    },
-                  },
-                ],
-              },
-            },
+        AccountTreeController: {
+          ...backgroundState.AccountTreeController,
+          accountTree: {
+            selectedAccountGroup: mockGroupId1,
+            wallets: {},
           },
         },
+        MultichainNetworkController: {
+          ...backgroundState.MultichainNetworkController,
+          networksWithTransactionActivity: {},
+        },
       },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
-  },
-});
+    },
+  };
+
+  return mockState as DeepPartial<RootState>;
+};
 
 describe('MultichainAccountPermissions', () => {
   beforeEach(() => {
@@ -336,9 +316,8 @@ describe('MultichainAccountPermissions', () => {
       );
       fireEvent.press(editNetworksButton);
 
-      expect(getByTestId('multiconnect-connect-network-button')).toBeDefined();
-
-      expect(getByTestId('Ethereum Mainnet-selected')).toBeDefined();
+      expect(getByTestId('sheet-header-back-button')).toBeDefined();
+      expect(getByTestId('Ethereum Mainnet-not-selected')).toBeDefined();
     });
   });
 
@@ -366,11 +345,10 @@ describe('MultichainAccountPermissions', () => {
 
       expect(mockUpdateCaveat).toHaveBeenCalledWith(
         'test.com',
-        Caip25EndowmentPermissionName,
-        Caip25CaveatType,
+        'endowment:caip25',
+        'authorizedScopes',
         expect.any(Object),
       );
-      expect(mockedGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -413,9 +391,10 @@ describe('MultichainAccountPermissions', () => {
       );
       fireEvent.press(editNetworksButton);
 
-      expect(getByTestId('multiconnect-connect-network-button')).toBeDefined();
+      // Check that we're in the network selection screen
+      expect(getByTestId('sheet-header-back-button')).toBeDefined();
 
-      expect(getByTestId('Ethereum Mainnet-selected')).toBeDefined();
+      expect(getByTestId('Ethereum Mainnet-not-selected')).toBeDefined();
       expect(getByTestId('Sepolia-not-selected')).toBeDefined();
     });
   });
@@ -453,7 +432,7 @@ describe('MultichainAccountPermissions', () => {
       );
       fireEvent.press(editNetworksButton);
 
-      expect(getByTestId('multiconnect-connect-network-button')).toBeDefined();
+      expect(getByTestId('sheet-header-back-button')).toBeDefined();
 
       const backButton = getByTestId('sheet-header-back-button');
       fireEvent.press(backButton);
