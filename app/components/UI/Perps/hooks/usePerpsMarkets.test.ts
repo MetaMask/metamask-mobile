@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
 import type { PerpsMarketData } from '../controllers/types';
 
 // Mock dependencies
@@ -166,8 +166,13 @@ describe('usePerpsMarkets', () => {
         subscriberCallback(newMarketData);
       });
 
-      // Assert
-      expect(result.current.markets).toEqual(newMarketData);
+      expect(result.current.markets).toEqual([
+        {
+          ...newMarketData[0],
+          // used during sorting
+          volumeNumber: 100000000,
+        },
+      ]);
     });
 
     it('handles empty market data', async () => {
@@ -494,6 +499,109 @@ describe('usePerpsMarkets', () => {
 
       // Assert
       expect(unsubscribeFn).toHaveBeenCalled();
+    });
+  });
+
+  describe('parseVolume', () => {
+    describe('handles undefined and special cases', () => {
+      it('returns -1 for undefined input', () => {
+        const result = parseVolume(undefined);
+        expect(result).toBe(-1);
+      });
+
+      it('returns -1 for fallback price display', () => {
+        const result = parseVolume('—');
+        expect(result).toBe(-1);
+      });
+
+      it('returns 0.5 for very small volume indicator', () => {
+        const result = parseVolume('$<1');
+        expect(result).toBe(0.5);
+      });
+    });
+
+    describe('parses suffixed volume values', () => {
+      it('parses thousand suffix correctly', () => {
+        expect(parseVolume('$100K')).toBe(100000);
+        expect(parseVolume('$1.5K')).toBe(1500);
+        expect(parseVolume('$999K')).toBe(999000);
+      });
+
+      it('parses million suffix correctly', () => {
+        expect(parseVolume('$1M')).toBe(1000000);
+        expect(parseVolume('$2.5M')).toBe(2500000);
+        expect(parseVolume('$900M')).toBe(900000000);
+      });
+
+      it('parses billion suffix correctly', () => {
+        expect(parseVolume('$1B')).toBe(1000000000);
+        expect(parseVolume('$1.2B')).toBe(1200000000);
+        expect(parseVolume('$50B')).toBe(50000000000);
+      });
+
+      it('parses trillion suffix correctly', () => {
+        expect(parseVolume('$1T')).toBe(1000000000000);
+        expect(parseVolume('$2.5T')).toBe(2500000000000);
+      });
+
+      it('handles values without dollar sign', () => {
+        expect(parseVolume('100K')).toBe(100000);
+        expect(parseVolume('1.5M')).toBe(1500000);
+        expect(parseVolume('2B')).toBe(2000000000);
+      });
+
+      it('handles comma-separated numbers with suffixes', () => {
+        expect(parseVolume('$1,500K')).toBe(1500000);
+        expect(parseVolume('$2,300M')).toBe(2300000000);
+        expect(parseVolume('$10,000B')).toBe(10000000000000);
+      });
+    });
+
+    describe('parses regular numeric values', () => {
+      it('parses whole numbers without suffix', () => {
+        expect(parseVolume('$1000')).toBe(1000);
+        expect(parseVolume('$500000')).toBe(500000);
+        expect(parseVolume('1000')).toBe(1000);
+      });
+
+      it('parses decimal numbers without suffix', () => {
+        expect(parseVolume('$1234.56')).toBe(1234.56);
+        expect(parseVolume('$0.01')).toBe(0.01);
+        expect(parseVolume('999.99')).toBe(999.99);
+      });
+
+      it('handles comma-separated numbers without suffix', () => {
+        expect(parseVolume('$1,234')).toBe(1234);
+        expect(parseVolume('$1,234,567')).toBe(1234567);
+        expect(parseVolume('$1,234.56')).toBe(1234.56);
+      });
+    });
+
+    describe('handles invalid inputs', () => {
+      it('returns -1 for invalid numeric strings', () => {
+        expect(parseVolume('invalid')).toBe(-1);
+        expect(parseVolume('$abc')).toBe(-1);
+        expect(parseVolume('$K')).toBe(-1);
+        expect(parseVolume('')).toBe(-1);
+      });
+
+      it('returns -1 for NaN results', () => {
+        expect(parseVolume('$NaN')).toBe(-1);
+        expect(parseVolume('$...')).toBe(-1);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('handles zero values', () => {
+        expect(parseVolume('$0')).toBe(0);
+        expect(parseVolume('$0.00')).toBe(0);
+        expect(parseVolume('0K')).toBe(0);
+      });
+
+      it('handles very large numbers', () => {
+        expect(parseVolume('$999.99T')).toBe(999990000000000);
+        expect(parseVolume('$1,000T')).toBe(1000000000000000);
+      });
     });
   });
 });

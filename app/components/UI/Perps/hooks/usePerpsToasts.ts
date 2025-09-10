@@ -109,6 +109,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
     };
@@ -116,6 +117,7 @@ export interface PerpsToastOptionsConfig {
   formValidation: {
     orderForm: {
       validationError: (error: string) => PerpsToastOptions;
+      limitPriceRequired: PerpsToastOptions;
     };
   };
   dataFetching: {
@@ -180,6 +182,14 @@ const usePerpsToasts = (): {
         iconName: IconName.Loading,
         iconColor: theme.colors.icon.default,
         backgroundColor: theme.colors.primary.default,
+        hapticsType: NotificationFeedbackType.Warning,
+      },
+      info: {
+        ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Info,
+        iconColor: theme.colors.icon.default,
+        backgroundColor: theme.colors.background.alternative,
         hapticsType: NotificationFeedbackType.Warning,
       },
       error: {
@@ -532,6 +542,17 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              switchToMarketOrderMissingLimitPrice: {
+                ...perpsBaseToastOptions.info,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.order_type_reverted_to_market_order',
+                  ),
+                  strings(
+                    'perps.close_position.you_need_set_price_limit_order',
+                  ),
+                ),
+              },
             },
           },
         },
@@ -545,6 +566,15 @@ const usePerpsToasts = (): {
               error,
             ),
           }),
+          limitPriceRequired: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.validation.please_set_a_limit_price'),
+              strings(
+                'perps.order.validation.limit_price_must_be_set_before_configuring_tpsl',
+              ),
+            ),
+          },
         },
       },
       dataFetching: {
@@ -574,6 +604,7 @@ const usePerpsToasts = (): {
       navigationHandlers,
       perpsBaseToastOptions.error,
       perpsBaseToastOptions.inProgress,
+      perpsBaseToastOptions.info,
       perpsBaseToastOptions.success,
       theme.colors.background.default,
       theme.colors.primary.default,

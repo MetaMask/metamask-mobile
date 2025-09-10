@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
-import { PerpsMarketTabsProps } from './PerpsMarketTabs.types';
+import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -36,12 +36,14 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   isLoadingPosition,
   unfilledOrders = [],
   onActiveTabChange,
+  initialTab,
   nextFundingTime,
   fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasUserInteracted = useRef(false);
+  const hasSetInitialTab = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -87,14 +89,33 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
 
-  // Initialize with statistics by default
-  const [activeTabId, setActiveTabId] = useState('statistics');
+  // Initialize with initialTab or statistics by default
+  const [activeTabId, setActiveTabId] = useState<PerpsTabId>(
+    initialTab || 'statistics',
+  );
+
+  // Handle initialTab when it becomes available after data loads
+  useEffect(() => {
+    if (initialTab && !hasUserInteracted.current && !hasSetInitialTab.current) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(initialTab)) {
+        setActiveTabId(initialTab as PerpsTabId);
+        onActiveTabChange?.(initialTab);
+        hasSetInitialTab.current = true;
+      }
+    }
+  }, [initialTab, tabs, onActiveTabChange]);
 
   // Set initial tab based on data availability
   // Now we can properly distinguish between loading and empty states
   useEffect(() => {
     // If user has interacted, respect their choice
     if (hasUserInteracted.current) {
+      return;
+    }
+
+    // If we've already set the initial tab from props, don't override it
+    if (hasSetInitialTab.current) {
       return;
     }
 
@@ -125,7 +146,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         previousTab: activeTabId,
         isLoadingPosition,
       });
-      setActiveTabId(targetTabId);
+      setActiveTabId(targetTabId as PerpsTabId);
       onActiveTabChange?.(targetTabId);
     }
   }, [
@@ -142,7 +163,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!tabIds.includes(activeTabId)) {
       // Switch to first available tab if current tab is hidden
       const newTabId = tabs[0]?.id || 'statistics';
-      setActiveTabId(newTabId);
+      setActiveTabId(newTabId as PerpsTabId);
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
@@ -151,7 +172,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const handleTabChange = useCallback(
     (tabId: string) => {
       hasUserInteracted.current = true; // Mark that user has interacted
-      setActiveTabId(tabId);
+      setActiveTabId(tabId as PerpsTabId);
       onActiveTabChange?.(tabId);
     },
     [onActiveTabChange],
