@@ -124,6 +124,60 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   );
 
   /**
+   * Format limit price with proper decimal handling
+   * @param price - Price string to format
+   * @returns Formatted price string
+   */
+  const formatLimitPriceValue = useCallback((price: string) => {
+    if (!price || price === '0') {
+      return '';
+    }
+
+    const formatConfig = {
+      ranges: [
+        {
+          condition: () => true,
+          threshold: 0.00000001,
+          maximumDecimals: 7,
+          minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
+        },
+      ],
+    };
+
+    return formatPerpsFiat(price, formatConfig);
+  }, []);
+
+  /**
+   * Get text color for limit price based on value
+   * @param price - Price string to check
+   * @returns Style object with color
+   */
+  const getLimitPriceTextStyle = useCallback(
+    (price: string) => {
+      const baseStyle = styles.limitPriceValue;
+      const isEmptyOrZero = !price || price === '0';
+
+      return [baseStyle, isEmptyOrZero && { color: colors.text.muted }];
+    },
+    [colors.text.muted, styles.limitPriceValue],
+  );
+
+  /**
+   * Get animated cursor style
+   * @returns Style array for animated cursor
+   */
+  const getCursorStyle = useCallback(
+    () => [
+      tw.style('w-0.5 h-5'),
+      {
+        backgroundColor: colors.primary.default,
+        opacity: cursorOpacity,
+      },
+    ],
+    [colors.primary.default, cursorOpacity, tw],
+  );
+
+  /**
    * Calculate limit price based on percentage from current market price
    * @param percentage - Percentage to add/subtract from current price
    * @returns Calculated price as string (e.g., "45123.50")
@@ -186,40 +240,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         </Text>
         <View style={styles.limitPriceDisplay}>
           <View style={tw.style('flex-row items-center flex-1')}>
-            <Text
-              style={[
-                styles.limitPriceValue,
-                (!limitPrice || limitPrice === '0') && {
-                  color: colors.text.muted,
-                },
-              ]}
-            >
-              {!limitPrice || limitPrice === '0'
-                ? ''
-                : formatPerpsFiat(limitPrice, {
-                    ranges: [
-                      {
-                        condition: () => true,
-                        threshold: 0.00000001,
-                        maximumDecimals: 7,
-                        minimumDecimals: Math.min(
-                          limitPrice.split('.')[1]?.length || 0,
-                          7,
-                        ),
-                      },
-                    ],
-                  })}
+            <Text style={getLimitPriceTextStyle(limitPrice)}>
+              {formatLimitPriceValue(limitPrice)}
             </Text>
             {/* Blinking cursor */}
-            <Animated.View
-              style={[
-                tw.style('w-0.5 h-5'),
-                {
-                  backgroundColor: colors.primary.default,
-                  opacity: cursorOpacity,
-                },
-              ]}
-            />
+            <Animated.View style={getCursorStyle()} />
           </View>
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
