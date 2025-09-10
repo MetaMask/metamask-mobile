@@ -14,8 +14,8 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
 
 async function getInitialNotification() {
-  // I tried so many different approaches, but unable to @react-native-firebase to track the initial open intent from a push notification
-  // So using a custom native module that stores the intent and returns "similiar-ish" data to the RemoteMessage
+  // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
+  // Using a custom native module that stores the intent and returns "similiar-ish" data to the @react-native-firebase RemoteMessage
   if (Platform.OS === 'android') {
     const { NotificationModule } = NativeModules;
     const remoteMessage: FirebaseMessagingTypes.RemoteMessage | null =
@@ -229,15 +229,19 @@ class FCMService {
   onClickPushNotificationWhenAppSuspended = (
     deeplinkCallback: (deeplink?: string) => void,
   ) => {
-    messaging().onNotificationOpenedApp((remoteMessage) => {
-      try {
-        analyticsTrackPushClickEvent(remoteMessage);
-        const deeplink = remoteMessage?.data?.deeplink?.toString();
-        deeplinkCallback(deeplink);
-      } catch {
-        // Do nothing
-      }
-    });
+    try {
+      messaging().onNotificationOpenedApp((remoteMessage) => {
+        try {
+          analyticsTrackPushClickEvent(remoteMessage);
+          const deeplink = remoteMessage?.data?.deeplink?.toString();
+          deeplinkCallback(deeplink);
+        } catch {
+          // Do nothing
+        }
+      });
+    } catch {
+      // Do nothing
+    }
   };
 }
 export default new FCMService();
