@@ -5,12 +5,7 @@ import renderWithProvider, {
 } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
-import { EngineState } from '../../../../core/Engine';
 import { MultichainAccountPermissions } from './MultichainAccountPermissions';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-} from '@metamask/chain-agnostic-permission';
 import Engine from '../../../../core/Engine';
 
 const mockedNavigate = jest.fn();
