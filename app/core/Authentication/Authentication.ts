@@ -70,6 +70,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 
 /**
@@ -124,8 +125,10 @@ class AuthenticationService {
 
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
-      SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
-        Logger.error(err, 'Failed to revoke refresh token');
+
+      // renew refresh token
+      renewSeedlessControllerRefreshTokens(password).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
       });
     }
     password = this.wipeSensitiveData();
@@ -1133,11 +1136,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
-        (err) => {
-          Logger.error(err, 'Failed to revoke refresh token');
-        },
-      );
+      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
+      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });

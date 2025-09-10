@@ -116,6 +116,7 @@ export interface PerpsToastOptionsConfig {
   formValidation: {
     orderForm: {
       validationError: (error: string) => PerpsToastOptions;
+      limitPriceRequired: PerpsToastOptions;
     };
   };
   dataFetching: {
@@ -545,6 +546,15 @@ const usePerpsToasts = (): {
               error,
             ),
           }),
+          limitPriceRequired: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.validation.please_set_a_limit_price'),
+              strings(
+                'perps.order.validation.limit_price_must_be_set_before_configuing_tpsl',
+              ),
+            ),
+          },
         },
       },
       dataFetching: {
