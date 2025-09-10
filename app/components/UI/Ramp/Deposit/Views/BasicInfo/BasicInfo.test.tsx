@@ -7,7 +7,18 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
+import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
+
+const DEPOSIT_REGIONS = [
+  {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    currency: 'USD',
+    phone: { prefix: '+1', placeholder: '(555) 123-4567', template: '(###) ###-####' },
+    supported: true,
+  },
+];
 import { endTrace } from '../../../../../../util/trace';
 import Logger from '../../../../../../util/Logger';
 

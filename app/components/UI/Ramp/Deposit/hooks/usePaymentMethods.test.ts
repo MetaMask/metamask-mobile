@@ -1,66 +1,79 @@
 import { renderHook } from '@testing-library/react-native';
-import usePaymentMethods from './usePaymentMethods';
-import {
-  APPLE_PAY_PAYMENT_METHOD,
-  SUPPORTED_PAYMENT_METHODS,
-  SEPA_PAYMENT_METHOD,
-  WIRE_TRANSFER_PAYMENT_METHOD,
-} from '../constants';
-import Device from '../../../../../util/device';
+import { usePaymentMethods } from './usePaymentMethods';
+import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 
-jest.mock('../../../../../util/device', () => ({
-  isIos: jest.fn(),
+const mockPaymentMethods = [
+  {
+    id: 'credit_debit_card',
+    name: 'Credit/Debit Card',
+    iconName: 'card',
+    duration: '2-5 minutes',
+    fees: '3.99% + network fees',
+  },
+  {
+    id: 'bank_transfer',
+    name: 'Wire Transfer',
+    iconName: 'bank',
+    duration: '1-3 business days',
+    fees: 'Network fees only',
+  },
+];
+
+const mockUseDepositSdkMethod = jest.fn();
+jest.mock('./useDepositSdkMethod', () => ({
+  useDepositSdkMethod: () => mockUseDepositSdkMethod(),
 }));
 
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
-
-const mockUseDepositSDKValue: DeepPartial<ReturnType<typeof useDepositSDK>> = {
-  selectedRegion: null,
-};
-
+const mockUseDepositSDK = jest.fn();
 jest.mock('../sdk', () => ({
-  useDepositSDK: () => mockUseDepositSDKValue,
+  useDepositSDK: () => mockUseDepositSDK(),
 }));
 
 describe('usePaymentMethods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (Device.isIos as jest.Mock).mockReturnValue(true);
+    
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: { isoCode: 'US', currency: 'USD' },
+      selectedCryptoCurrency: { assetId: 'test-asset' },
+      setSelectedPaymentMethod: jest.fn(),
+      selectedPaymentMethod: null,
+    });
+
+    mockUseDepositSdkMethod.mockReturnValue([
+      { data: mockPaymentMethods, error: null, isFetching: false },
+      jest.fn(),
+    ]);
   });
 
-  it('return the supported method constant', () => {
-    const { result } = renderHook(usePaymentMethods);
-    expect(result.current).toEqual(SUPPORTED_PAYMENT_METHODS);
+  it('returns payment methods from API', () => {
+    const { result } = renderHook(() => usePaymentMethods());
+    expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
+    expect(result.current.error).toBeNull();
+    expect(result.current.isFetching).toBe(false);
   });
 
-  it('excludes Apple Pay on non-iOS devices', () => {
-    (Device.isIos as jest.Mock).mockReturnValue(false);
-    const { result } = renderHook(usePaymentMethods);
-    expect(result.current).not.toContainEqual(APPLE_PAY_PAYMENT_METHOD);
+  it('returns loading state when fetching', () => {
+    mockUseDepositSdkMethod.mockReturnValue([
+      { data: null, error: null, isFetching: true },
+      jest.fn(),
+    ]);
+
+    const { result } = renderHook(() => usePaymentMethods());
+    expect(result.current.paymentMethods).toBeNull();
+    expect(result.current.isFetching).toBe(true);
   });
 
-  it('excludes wire for EU selected region', () => {
-    mockUseDepositSDKValue.selectedRegion = { isoCode: 'DE' };
-    const { result } = renderHook(usePaymentMethods);
+  it('returns error state when API fails', () => {
+    const mockError = 'API Error';
+    mockUseDepositSdkMethod.mockReturnValue([
+      { data: null, error: mockError, isFetching: false },
+      jest.fn(),
+    ]);
 
-    const expectedMethods = SUPPORTED_PAYMENT_METHODS.filter(
-      (method) => method.id !== WIRE_TRANSFER_PAYMENT_METHOD.id,
-    );
-
-    expect(result.current).toEqual(expectedMethods);
-  });
-
-  it('excludes sepa for US selected region', () => {
-    mockUseDepositSDKValue.selectedRegion = { isoCode: 'US' };
-    const { result } = renderHook(usePaymentMethods);
-
-    const expectedMethods = SUPPORTED_PAYMENT_METHODS.filter(
-      (method) => method.id !== SEPA_PAYMENT_METHOD.id,
-    );
-
-    expect(result.current).toEqual(expectedMethods);
+    const { result } = renderHook(() => usePaymentMethods());
+    expect(result.current.paymentMethods).toBeNull();
+    expect(result.current.error).toBe(mockError);
   });
 });

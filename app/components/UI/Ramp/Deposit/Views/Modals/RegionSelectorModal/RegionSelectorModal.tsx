@@ -21,18 +21,21 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails, useParams } from '../../../../../../../util/navigation/navUtils';
 import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
 import useAnalytics from '../../../../hooks/useAnalytics';
-import { useRegions } from '../../../hooks/useRegions';
 
 const MAX_REGION_RESULTS = 20;
 
+interface RegionSelectorModalParams {
+  regions: DepositRegion[];
+}
+
 export const createRegionSelectorModalNavigationDetails =
-  createNavigationDetails(
+  createNavigationDetails<RegionSelectorModalParams>(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.REGION_SELECTOR,
   );
@@ -43,7 +46,7 @@ function RegionSelectorModal() {
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
-  const { regions, isFetching, error } = useRegions();
+  const { regions } = useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -176,17 +179,13 @@ function RegionSelectorModal() {
     () => (
       <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
-          {isFetching
-            ? 'Loading regions...'
-            : error
-            ? 'Error loading regions'
-            : strings('fiat_on_ramp_aggregator.region.no_region_results', {
-                searchString,
-              })}
+          {strings('fiat_on_ramp_aggregator.region.no_region_results', {
+            searchString,
+          })}
         </Text>
       </View>
     ),
-    [searchString, styles.emptyList, isFetching, error],
+    [searchString, styles.emptyList],
   );
 
   const handleSearchTextChange = useCallback(

@@ -28,22 +28,25 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './TokenSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { useCryptoCurrencies } from '../../../hooks/useCryptoCurrencies';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { useDepositSDK } from '../../../sdk';
 
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails, useParams } from '../../../../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
-import { DepositCryptoCurrency } from '../../../constants';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
 import useAnalytics from '../../../../hooks/useAnalytics';
 
+interface TokenSelectorModalParams {
+  cryptoCurrencies: DepositCryptoCurrency[];
+}
+
 export const createTokenSelectorModalNavigationDetails =
-  createNavigationDetails(
+  createNavigationDetails<TokenSelectorModalParams>(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.TOKEN_SELECTOR,
   );
@@ -65,14 +68,13 @@ function TokenSelectorModal() {
   const trackEvent = useAnalytics();
 
   const {
-    setCryptoCurrency,
+    setSelectedCryptoCurrency,
     selectedRegion,
-    fiatCurrency,
     isAuthenticated,
-    cryptoCurrency,
+    selectedCryptoCurrency,
   } = useDepositSDK();
 
-  const { cryptoCurrencies: supportedTokens } = useCryptoCurrencies();
+  const { cryptoCurrencies: supportedTokens } = useParams<TokenSelectorModalParams>();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
     networkFilter,
@@ -94,10 +96,10 @@ function TokenSelectorModal() {
           region: selectedRegion?.isoCode || '',
           chain_id: selectedToken.chainId,
           currency_destination: selectedToken.assetId,
-          currency_source: fiatCurrency.id,
+          currency_source: selectedRegion?.currency || '',
           is_authenticated: isAuthenticated,
         });
-        setCryptoCurrency(selectedToken);
+        setSelectedCryptoCurrency(selectedToken);
       }
       sheetRef.current?.onCloseBottomSheet();
     },
@@ -105,9 +107,9 @@ function TokenSelectorModal() {
       supportedTokens,
       trackEvent,
       selectedRegion?.isoCode,
-      fiatCurrency.id,
+      selectedRegion?.currency,
       isAuthenticated,
-      setCryptoCurrency,
+      setSelectedCryptoCurrency,
     ],
   );
 
@@ -142,7 +144,7 @@ function TokenSelectorModal() {
         DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
         <ListItemSelect
-          isSelected={cryptoCurrency.assetId === token.assetId}
+          isSelected={selectedCryptoCurrency?.assetId === token.assetId}
           onPress={() => handleSelectAssetIdCallback(token.assetId)}
           accessibilityRole="button"
           accessible
@@ -177,7 +179,7 @@ function TokenSelectorModal() {
       allNetworkConfigurations,
       colors.text.alternative,
       handleSelectAssetIdCallback,
-      cryptoCurrency.assetId,
+      selectedCryptoCurrency?.assetId,
     ],
   );
 
@@ -243,7 +245,7 @@ function TokenSelectorModal() {
             ref={listRef}
             data={searchTokenResults}
             renderItem={renderToken}
-            extraData={cryptoCurrency.assetId}
+            extraData={selectedCryptoCurrency?.assetId}
             keyExtractor={(item) => item.assetId}
             ListEmptyComponent={renderEmptyList}
             keyboardDismissMode="none"

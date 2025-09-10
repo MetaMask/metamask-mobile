@@ -16,18 +16,21 @@ import Icon, {
   IconColor,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import usePaymentMethods from '../../../hooks/usePaymentMethods';
 import { useDepositSDK } from '../../../sdk';
 import useAnalytics from '../../../../hooks/useAnalytics';
 import { useTheme } from '../../../../../../../util/theme';
 import { strings } from '../../../../../../../../locales/i18n';
 import styleSheet from './PaymentMethodSelectorModal.styles';
-import { DepositPaymentMethod } from '../../../constants';
+import { DepositPaymentMethod } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails, useParams } from '../../../../../../../util/navigation/navUtils';
+
+interface PaymentMethodSelectorModalParams {
+  paymentMethods: DepositPaymentMethod[];
+}
 
 export const createPaymentMethodSelectorModalNavigationDetails =
-  createNavigationDetails(
+  createNavigationDetails<PaymentMethodSelectorModalParams>(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.PAYMENT_METHOD_SELECTOR,
   );
@@ -41,7 +44,7 @@ function PaymentMethodSelectorModal() {
     screenHeight,
   });
 
-  const paymentMethods = usePaymentMethods();
+  const { paymentMethods } = useParams<PaymentMethodSelectorModalParams>();
   const trackEvent = useAnalytics();
   const {
     setPaymentMethod,

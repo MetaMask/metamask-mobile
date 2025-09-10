@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import DepositPhoneField from './DepositPhoneField';
-import { DepositRegion } from '../../constants';
+import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
 
 const mockSetSelectedRegion = jest.fn();
 const mockNavigation = {

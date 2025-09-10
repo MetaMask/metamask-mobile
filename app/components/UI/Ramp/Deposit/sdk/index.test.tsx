@@ -7,12 +7,40 @@ import {
   DepositSDKProvider,
   useDepositSDK,
 } from '.';
-import {
-  DEPOSIT_REGIONS,
-  USDC_TOKEN,
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  USD_CURRENCY,
-} from '../constants';
+const USD_CURRENCY = {
+  id: 'USD',
+  name: 'US Dollar',
+  symbol: '$',
+  emoji: '🇺🇸',
+};
+
+const USDC_TOKEN = {
+  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  chainId: 'eip155:1',
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+};
+
+const DEPOSIT_REGIONS = [
+  {
+    isoCode: 'US',
+    flag: '🇺🇸',
+    name: 'United States',
+    currency: 'USD',
+    phone: { prefix: '+1', placeholder: '(555) 123-4567', template: '(###) ###-####' },
+    supported: true,
+  },
+];
+
+const DEBIT_CREDIT_PAYMENT_METHOD = {
+  id: 'credit_debit_card',
+  name: 'Credit/Debit Card',
+  iconName: 'card',
+  duration: '2-5 minutes',
+  fees: '3.99% + network fees',
+};
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
@@ -530,12 +558,11 @@ describe('Deposit SDK Context', () => {
         },
       );
 
-      expect(contextValue?.paymentMethod).toEqual(DEBIT_CREDIT_PAYMENT_METHOD);
-      expect(contextValue?.cryptoCurrency).toEqual(USDC_TOKEN);
-      expect(contextValue?.fiatCurrency).toEqual(USD_CURRENCY);
+      expect(contextValue?.selectedPaymentMethod).toEqual(DEBIT_CREDIT_PAYMENT_METHOD);
+      expect(contextValue?.selectedCryptoCurrency).toEqual(USDC_TOKEN);
     });
 
-    it('allows updating payment method, crypto currency, and fiat currency', () => {
+    it('allows updating payment method and crypto currency', () => {
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
       const TestComponent = () => {
         contextValue = useDepositSDK();
@@ -556,17 +583,14 @@ describe('Deposit SDK Context', () => {
         id: 'new-method',
       };
       const newCryptoCurrency = { ...USDC_TOKEN, symbol: 'NEW' };
-      const newFiatCurrency = { ...USD_CURRENCY, id: 'NEW' };
 
       act(() => {
-        contextValue?.setPaymentMethod(newPaymentMethod);
-        contextValue?.setCryptoCurrency(newCryptoCurrency);
-        contextValue?.setFiatCurrency(newFiatCurrency);
+        contextValue?.setSelectedPaymentMethod(newPaymentMethod);
+        contextValue?.setSelectedCryptoCurrency(newCryptoCurrency);
       });
 
-      expect(contextValue?.paymentMethod).toEqual(newPaymentMethod);
-      expect(contextValue?.cryptoCurrency).toEqual(newCryptoCurrency);
-      expect(contextValue?.fiatCurrency).toEqual(newFiatCurrency);
+      expect(contextValue?.selectedPaymentMethod).toEqual(newPaymentMethod);
+      expect(contextValue?.selectedCryptoCurrency).toEqual(newCryptoCurrency);
     });
 
     it('clears authentication state when calling logoutFromProvider with requireServerInvalidation=false even if SDK logout fails', async () => {

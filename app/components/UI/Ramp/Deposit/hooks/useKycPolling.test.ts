@@ -12,10 +12,31 @@ import {
 } from '@consensys/native-ramps-sdk';
 import {
   DepositRegion,
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  USDC_TOKEN,
-  USD_CURRENCY,
-} from '../constants';
+} from '@consensys/native-ramps-sdk/dist/Deposit';
+
+const USD_CURRENCY = {
+  id: 'USD',
+  name: 'US Dollar',
+  symbol: '$',
+  emoji: '🇺🇸',
+};
+
+const USDC_TOKEN = {
+  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  chainId: 'eip155:1',
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+};
+
+const DEBIT_CREDIT_PAYMENT_METHOD = {
+  id: 'credit_debit_card',
+  name: 'Credit/Debit Card',
+  iconName: 'card',
+  duration: '2-5 minutes',
+  fees: '3.99% + network fees',
+};
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -68,12 +89,10 @@ describe('useKycPolling', () => {
         isoCode: 'US',
       } as DepositRegion,
       setSelectedRegion: jest.fn(),
-      paymentMethod: DEBIT_CREDIT_PAYMENT_METHOD,
-      setPaymentMethod: jest.fn(),
-      cryptoCurrency: USDC_TOKEN,
-      setCryptoCurrency: jest.fn(),
-      fiatCurrency: USD_CURRENCY,
-      setFiatCurrency: jest.fn(),
+      selectedPaymentMethod: DEBIT_CREDIT_PAYMENT_METHOD,
+      setSelectedPaymentMethod: jest.fn(),
+      selectedCryptoCurrency: USDC_TOKEN,
+      setSelectedCryptoCurrency: jest.fn(),
     });
   });
 

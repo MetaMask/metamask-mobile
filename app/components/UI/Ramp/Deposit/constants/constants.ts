@@ -54,3 +54,9 @@ export enum TransakFormId {
   ADDRESS = 'address',
   US_SSN = 'usSSN',
 }
+
+
+export const MANUAL_BANK_TRANSFER_PAYMENT_METHODS = [
+  'bank_transfer',
+  'sepa_bank_transfer',
+];

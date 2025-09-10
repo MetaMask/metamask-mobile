@@ -6,7 +6,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { formatNumberToTemplate } from './formatNumberToTemplate.ts';
-import { DepositRegion } from '../../constants';
+import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
 import { useDepositSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../../Views/Modals/RegionSelectorModal';
 import DepositTextField from '../DepositTextField/DepositTextField';

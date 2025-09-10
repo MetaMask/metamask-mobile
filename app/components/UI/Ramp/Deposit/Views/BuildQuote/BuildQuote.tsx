@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 import styleSheet from './BuildQuote.styles';
@@ -86,12 +86,12 @@ const BuildQuote = () => {
     const navigation = useNavigation();
     const { styles, theme } = useStyles(styleSheet, {});
     const trackEvent = useAnalytics();
-    
+
     // Waterfall: fetch regions, crypto currencies, and payment methods
-    useRegions();
+    const { regions } = useRegions();
     const { cryptoCurrencies } = useCryptoCurrencies();
-    usePaymentMethods();
-    
+    const { paymentMethods } = usePaymentMethods();
+
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const {
@@ -168,20 +168,24 @@ const BuildQuote = () => {
     }, []);
 
     const handleRegionPress = useCallback(() => {
-      navigation.navigate(...createRegionSelectorModalNavigationDetails());
-    }, [navigation]);
+      if (regions) {
+        navigation.navigate(
+          ...createRegionSelectorModalNavigationDetails({ regions }),
+        );
+      }
+    }, [navigation, regions]);
 
-    // useFocusEffect(
-    //   useCallback(() => {
-    //     if (selectedRegion && !selectedRegion.supported) {
-    //       InteractionManager.runAfterInteractions(() => {
-    //         navigation.navigate(
-    //           ...createUnsupportedRegionModalNavigationDetails(),
-    //         );
-    //       });
-    //     }
-    //   }, [selectedRegion, navigation]),
-    // );
+    useFocusEffect(
+      useCallback(() => {
+        if (selectedRegion && !selectedRegion.supported) {
+          InteractionManager.runAfterInteractions(() => {
+            navigation.navigate(
+              ...createUnsupportedRegionModalNavigationDetails(),
+            );
+          });
+        }
+      }, [selectedRegion, navigation]),
+    );
 
     const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
       navigation.navigate(
@@ -217,7 +221,7 @@ const BuildQuote = () => {
         trackEvent('RAMPS_ORDER_PROPOSED', {
           ramp_type: 'DEPOSIT',
           amount_source: amountAsNumber,
-          amount_destination: 123, // Number(tokenAmount),
+          amount_destination: Number(tokenAmount) || 0,
           payment_method_id: selectedPaymentMethod?.id || '',
           region: selectedRegion?.isoCode || '',
           chain_id: selectedCryptoCurrency?.chainId || '',
@@ -226,17 +230,7 @@ const BuildQuote = () => {
           is_authenticated: isAuthenticated,
         });
 
-        // quote = await getQuote(
-        //   // selectedFiatCurrency.transakId
-        //   // selectedCryptoCurrency.transakId,
-        //   // selectedCryptoCurrency.transakChainId,
-        //   // selectedPaymentMethod.transakId,
-        //   'USD',
-        //   'USDC',
-        //   'ethereum',
-        //   'credit_debit_card',
-        //   amount,
-        // );
+        quote = await getQuote();
 
         if (!quote) {
           throw new Error(strings('deposit.buildQuote.quoteFetchError'));
@@ -262,7 +256,7 @@ const BuildQuote = () => {
         trackEvent('RAMPS_ORDER_FAILED', {
           ramp_type: 'DEPOSIT',
           amount_source: amountAsNumber,
-          amount_destination: 123, // Number(tokenAmount),
+          amount_destination: Number(tokenAmount) || 0,
           payment_method_id: selectedPaymentMethod?.id || '',
           region: selectedRegion?.isoCode || '',
           chain_id: selectedCryptoCurrency?.chainId || '',
@@ -282,10 +276,10 @@ const BuildQuote = () => {
       }
 
       try {
-        // if (!isAuthenticated) {
-        //   navigateToVerifyIdentity({ quote });
-        //   return;
-        // }
+        if (!isAuthenticated) {
+          navigateToVerifyIdentity({ quote });
+          return;
+        }
 
         trackEvent('RAMPS_ORDER_SELECTED', {
           ramp_type: 'DEPOSIT',
@@ -308,7 +302,7 @@ const BuildQuote = () => {
           currency_source: selectedRegion?.currency || '',
         });
 
-        // await routeAfterAuthentication(quote);
+        await routeAfterAuthentication(quote);
       } catch (routeError) {
         Logger.error(
           routeError as Error,
@@ -318,7 +312,7 @@ const BuildQuote = () => {
         trackEvent('RAMPS_ORDER_FAILED', {
           ramp_type: 'DEPOSIT',
           amount_source: quote?.fiatAmount || amountAsNumber,
-          amount_destination: quote?.cryptoAmount || 123, // Number(tokenAmount),
+          amount_destination: quote?.cryptoAmount || Number(tokenAmount) || 0,
           payment_method_id: selectedPaymentMethod?.id || '',
           region: selectedRegion?.isoCode || '',
           chain_id: selectedCryptoCurrency?.chainId || '',
@@ -342,16 +336,16 @@ const BuildQuote = () => {
       handleNavigateToIncompatibleAccountTokenModal,
       trackEvent,
       amountAsNumber,
-      // tokenAmount,
+      tokenAmount,
       selectedPaymentMethod,
       selectedRegion?.isoCode,
       selectedCryptoCurrency,
       selectedRegion?.currency,
       isAuthenticated,
-      // getQuote,
+      getQuote,
       amount,
-      // routeAfterAuthentication,
-      // navigateToVerifyIdentity,
+      routeAfterAuthentication,
+      navigateToVerifyIdentity,
       shouldRouteImmediately,
     ]);
 
@@ -371,16 +365,26 @@ const BuildQuote = () => {
       [],
     );
 
-    const handleCryptoPress = useCallback(
-      () => navigation.navigate(...createTokenSelectorModalNavigationDetails()),
-      [navigation],
-    );
+    const handleCryptoPress = useCallback(() => {
+      console.log('__ CLIENT__ handleCryptoPress', cryptoCurrencies);
+      if (cryptoCurrencies) {
+        console.log(
+          '__ CLIENT__ handleCryptoPress navigating to token selector modal',
+          cryptoCurrencies,
+        );
+        navigation.navigate(
+          ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
+        );
+      }
+    }, [navigation, cryptoCurrencies]);
 
     const handlePaymentMethodPress = useCallback(() => {
-      navigation.navigate(
-        ...createPaymentMethodSelectorModalNavigationDetails(),
-      );
-    }, [navigation]);
+      if (paymentMethods) {
+        navigation.navigate(
+          ...createPaymentMethodSelectorModalNavigationDetails({ paymentMethods }),
+        );
+      }
+    }, [navigation, paymentMethods]);
 
     const networkName =
       allNetworkConfigurations[selectedCryptoCurrency?.chainId ?? '']?.name;
@@ -449,40 +453,48 @@ const BuildQuote = () => {
                   color={TextColor.Alternative}
                   style={styles.convertedAmount}
                 >
-                  {/* {isLoadingTokenAmount || errorLoadingTokenAmount ? (
+                  {isLoadingTokenAmount || errorLoadingTokenAmount ? (
                     ' '
                   ) : (
                     <>
                       {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
                       {selectedCryptoCurrency?.symbol}
                     </>
-                  )} */}{' '}
-                  {selectedCryptoCurrency?.symbol}
+                  )}
                 </Text>
               </View>
 
               <TouchableOpacity onPress={handleCryptoPress}>
                 <View style={styles.cryptoPill}>
-                  <BadgeWrapper
-                    badgePosition={BadgePosition.BottomRight}
-                    badgeElement={
-                      networkImageSource ? (
-                        <BadgeNetwork
-                          name={networkName}
-                          imageSource={networkImageSource}
+                  {selectedCryptoCurrency ? (
+                    <>
+                      <BadgeWrapper
+                        badgePosition={BadgePosition.BottomRight}
+                        badgeElement={
+                          networkImageSource ? (
+                            <BadgeNetwork
+                              name={networkName}
+                              imageSource={networkImageSource}
+                            />
+                          ) : null
+                        }
+                      >
+                        <AvatarToken
+                          name={selectedCryptoCurrency.name}
+                          imageSource={{ uri: selectedCryptoCurrency.iconUrl }}
+                          size={AvatarSize.Md}
                         />
-                      ) : null
-                    }
-                  >
-                    <AvatarToken
-                      name={selectedCryptoCurrency?.name}
-                      imageSource={{ uri: selectedCryptoCurrency?.iconUrl }}
-                      size={AvatarSize.Md}
-                    />
-                  </BadgeWrapper>
-                  <Text variant={TextVariant.HeadingLG}>
-                    {selectedCryptoCurrency?.symbol}
-                  </Text>
+                      </BadgeWrapper>
+                      <Text variant={TextVariant.HeadingLG}>
+                        {selectedCryptoCurrency.symbol}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Skeleton height={32} width={32} />
+                      <Skeleton height={24} width={60} />
+                    </>
+                  )}
 
                   <Icon
                     name={IconName.ArrowDown}

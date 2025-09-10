@@ -1,6 +1,13 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useDepositTokenExchange from './useDepositTokenExchange';
-import { DepositCryptoCurrency, USD_CURRENCY } from '../constants';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
+
+const USD_CURRENCY = {
+  id: 'USD',
+  name: 'US Dollar',
+  symbol: '$',
+  emoji: '🇺🇸',
+};
 import { useFetchTokenRatesMulti } from './useTokenRates';
 
 jest.mock('./useTokenRates', () => ({

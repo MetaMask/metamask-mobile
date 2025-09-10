@@ -6,10 +6,6 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  WIRE_TRANSFER_PAYMENT_METHOD,
-} from '../../constants';
 import { trace, endTrace } from '../../../../../../util/trace';
 
 const { InteractionManager } = jest.requireActual('react-native');
@@ -46,9 +42,15 @@ const createMockSDKReturn = (overrides = {}) => ({
     supported: true,
   },
   setSelectedRegion: jest.fn(),
-  paymentMethod: DEBIT_CREDIT_PAYMENT_METHOD,
-  setPaymentMethod: jest.fn(),
-  cryptoCurrency: {
+  selectedPaymentMethod: {
+    id: 'credit_debit_card',
+    name: 'Credit/Debit Card',
+    iconName: 'card',
+    duration: '2-5 minutes',
+    fees: '3.99% + network fees',
+  },
+  setSelectedPaymentMethod: jest.fn(),
+  selectedCryptoCurrency: {
     assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     chainId: 'eip155:1',
     name: 'USD Coin',
@@ -57,14 +59,7 @@ const createMockSDKReturn = (overrides = {}) => ({
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
   },
-  setCryptoCurrency: jest.fn(),
-  fiatCurrency: {
-    id: 'USD',
-    name: 'US Dollar',
-    symbol: '$',
-    emoji: '🇺🇸',
-  },
-  setFiatCurrency: jest.fn(),
+  setSelectedCryptoCurrency: jest.fn(),
   ...overrides,
 });
 
@@ -115,10 +110,66 @@ jest.mock('../../hooks/useDepositRouting', () => ({
   })),
 }));
 
-const mockUsePaymentMethods = jest
-  .fn()
-  .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
-jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
+jest.mock('../../hooks/usePaymentMethods', () => ({
+  usePaymentMethods: jest.fn().mockReturnValue({
+    paymentMethods: [
+      {
+        id: 'credit_debit_card',
+        name: 'Debit Card',
+        iconName: 'card',
+        duration: 'Instant',
+        fees: '3.99% + network fees',
+      },
+      {
+        id: 'bank_transfer',
+        name: 'Wire Transfer',
+        iconName: 'bank',
+        duration: '1-3 business days',
+        fees: 'Network fees only',
+      },
+    ],
+    error: null,
+    isFetching: false,
+  }),
+}));
+
+const mockUsePaymentMethods = jest.fn().mockReturnValue({
+  paymentMethods: [
+    {
+      id: 'credit_debit_card',
+      name: 'Credit/Debit Card',
+      iconName: 'card',
+      duration: '2-5 minutes',
+      fees: '3.99% + network fees',
+    },
+    {
+      id: 'bank_transfer',
+      name: 'Wire Transfer',
+      iconName: 'bank',
+      duration: '1-3 business days',
+      fees: 'Network fees only',
+    },
+  ],
+  error: null,
+  isFetching: false,
+});
+
+jest.mock('../../hooks/useCryptoCurrencies', () => ({
+  useCryptoCurrencies: jest.fn().mockReturnValue({
+    cryptoCurrencies: [
+      {
+        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainId: 'eip155:1',
+        name: 'USD Coin',
+        symbol: 'USDC',
+        decimals: 6,
+        iconUrl: 'https://example.com/usdc.png',
+      },
+    ],
+    isFetching: false,
+    error: null,
+  }),
+}));
 
 const mockUseCryptoCurrencies = jest.fn().mockReturnValue({
   cryptoCurrencies: [
@@ -134,10 +185,6 @@ const mockUseCryptoCurrencies = jest.fn().mockReturnValue({
   isFetching: false,
   error: null,
 });
-jest.mock(
-  '../../hooks/useCryptoCurrencies',
-  () => () => mockUseCryptoCurrencies(),
-);
 
 // Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -263,6 +310,24 @@ describe('BuildQuote Component', () => {
       fireEvent.press(payWithButton);
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
+        params: {
+          paymentMethods: [
+            {
+              id: 'credit_debit_card',
+              name: 'Debit Card',
+              iconName: 'card',
+              duration: 'Instant',
+              fees: '3.99% + network fees',
+            },
+            {
+              id: 'bank_transfer',
+              name: 'Wire Transfer',
+              iconName: 'bank',
+              duration: '1-3 business days',
+              fees: 'Network fees only',
+            },
+          ],
+        },
       });
     });
   });
@@ -274,6 +339,18 @@ describe('BuildQuote Component', () => {
       fireEvent.press(tokenButton);
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
+        params: {
+          cryptoCurrencies: [
+            {
+              assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              chainId: 'eip155:1',
+              name: 'USD Coin',
+              symbol: 'USDC',
+              decimals: 6,
+              iconUrl: 'https://example.com/usdc.png',
+            },
+          ],
+        },
       });
     });
   });

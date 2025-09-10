@@ -1,10 +1,9 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentMethodSelectorModal from './PaymentMethodSelectorModal';
-import usePaymentMethods from '../../../hooks/usePaymentMethods';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { DepositPaymentMethod } from '../../../constants';
+import { DepositPaymentMethod } from '@consensys/native-ramps-sdk/dist/Deposit';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 
 const mockSetPaymentMethod = jest.fn();
@@ -32,12 +31,12 @@ function renderWithProvider(component: React.ComponentType) {
   );
 }
 
+const mockUseParams = jest.fn();
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
-  useParams: jest.fn(),
+  useParams: () => mockUseParams(),
 }));
 
-jest.mock('../../../hooks/usePaymentMethods', () => jest.fn());
 
 const mockPaymentMethods: DepositPaymentMethod[] = [
   {
@@ -62,7 +61,9 @@ const mockPaymentMethods: DepositPaymentMethod[] = [
 describe('PaymentMethodSelectorModal Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (usePaymentMethods as jest.Mock).mockReturnValue(mockPaymentMethods);
+    mockUseParams.mockReturnValue({
+      paymentMethods: mockPaymentMethods,
+    });
 
     mockUseDepositSDK.mockReturnValue({
       setPaymentMethod: mockSetPaymentMethod,

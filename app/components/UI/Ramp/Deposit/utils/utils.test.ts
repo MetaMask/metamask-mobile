@@ -19,13 +19,61 @@ import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import {
   DepositPaymentMethod,
-  USDC_BASE_TOKEN,
-  USDC_LINEA_TOKEN,
-  USDC_TOKEN,
-  USDT_BASE_TOKEN,
-  USDT_LINEA_TOKEN,
-  USDT_TOKEN,
-} from '../constants';
+} from '@consensys/native-ramps-sdk/dist/Deposit';
+
+const USDC_TOKEN = {
+  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  chainId: 'eip155:1',
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+};
+
+const USDC_LINEA_TOKEN = {
+  assetId: 'eip155:59144/erc20:0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+  chainId: 'eip155:59144',
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0x176211869cA2b568f2A7D4EE941E073a821EE1ff.png',
+};
+
+const USDC_BASE_TOKEN = {
+  assetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+  chainId: 'eip155:8453',
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.png',
+};
+
+const USDT_TOKEN = {
+  assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  chainId: 'eip155:1',
+  name: 'Tether USD',
+  symbol: 'USDT',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
+};
+
+const USDT_LINEA_TOKEN = {
+  assetId: 'eip155:59144/erc20:0xA219439258ca9da29E9Cc4cE5596924745e12B93',
+  chainId: 'eip155:59144',
+  name: 'Tether USD',
+  symbol: 'USDT',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0xA219439258ca9da29E9Cc4cE5596924745e12B93.png',
+};
+
+const USDT_BASE_TOKEN = {
+  assetId: 'eip155:8453/erc20:0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
+  chainId: 'eip155:8453',
+  name: 'Tether USD',
+  symbol: 'USDT',
+  decimals: 6,
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2.png',
+};
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import { AppThemeKey } from '../../../../../util/theme/models';
