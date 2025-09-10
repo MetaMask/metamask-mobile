@@ -14,7 +14,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import Keypad, { Keys } from '../../../../Base/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -58,8 +58,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
-  // Track if last value came from a preset (affects first digit behavior only)
-  const [fromPreset, setFromPreset] = useState(false);
 
   // Get real-time price data with 1000ms throttle for limit price bottom sheet
   // Only subscribe when visible
@@ -89,57 +87,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   };
 
   const handleKeypadChange = useCallback(
-    ({
-      value,
-      pressedKey,
-    }: {
-      value: string;
-      valueAsNumber: number;
-      pressedKey: Keys;
-    }) => {
-      const isDigit = pressedKey >= '0' && pressedKey <= '9';
-      const DECIMALS = 2;
-
-      // If coming from preset and keypad blocked new digit due to decimals cap, implement shift-append:
-      // Example: 123.45 + 7 => raw=12345 -> 123457 -> 1234.57
-      if (isDigit) {
-        const prev = limitPrice || '';
-        // Ensure prev has decimal
-        const normalizedPrev = prev.includes('.')
-          ? prev
-          : prev === ''
-          ? ''
-          : `${prev}.`;
-        const parts = normalizedPrev.split('.');
-        if (parts.length === 2) {
-          const [intPart, decPartRaw] = parts;
-          const decPart = decPartRaw.padEnd(DECIMALS, '0').slice(0, DECIMALS);
-          const wasBlocked = value === prev; // keypad didn't change because of decimals cap
-          if (wasBlocked) {
-            const raw = `${intPart}${decPart}`.replace(/^0+(?=\d)/, '');
-            const newRaw = (raw === '' ? pressedKey : raw + pressedKey).replace(
-              /^0+(?=\d)/,
-              '',
-            );
-            const padded = newRaw.padStart(DECIMALS + 1, '0');
-            const intPortion = padded.slice(0, -DECIMALS) || '0';
-            const decPortion = padded.slice(-DECIMALS);
-            const nextVal = `${intPortion}.${decPortion}`;
-            setLimitPrice(nextVal);
-            setFromPreset(false);
-            return;
-          }
-        }
-      }
-
-      // If first digit after preset and value changed (i.e., user backspaced then typed), clear fromPreset
-      if (fromPreset && isDigit) {
-        setFromPreset(false);
-      }
-
+    ({ value }: { value: string; valueAsNumber: number }) => {
       setLimitPrice(value || '');
     },
-    [limitPrice, fromPreset],
+    [],
   );
 
   /**
@@ -240,10 +191,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
-                  onPress={() => {
-                    setLimitPrice(calculatePriceForPercentage(percentage));
-                    setFromPreset(true);
-                  }}
+                  onPress={() =>
+                    setLimitPrice(calculatePriceForPercentage(percentage))
+                  }
                 >
                   <Text variant={TextVariant.BodyMD}>
                     {percentage > 0 ? '+' : ''}
@@ -259,10 +209,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
-                  onPress={() => {
-                    setLimitPrice(calculatePriceForPercentage(percentage));
-                    setFromPreset(true);
-                  }}
+                  onPress={() =>
+                    setLimitPrice(calculatePriceForPercentage(percentage))
+                  }
                 >
                   <Text variant={TextVariant.BodyMD}>
                     {percentage > 0 ? '+' : ''}
