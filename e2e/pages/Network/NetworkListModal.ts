@@ -125,6 +125,14 @@ class NetworkListModal {
     await Gestures.waitAndTap(this.deleteButton);
   }
 
+  async tapDeleteNetworkButton(): Promise<void> {
+    await Gestures.waitAndTap(Matchers.getElementByText('Remove'));
+  }
+
+  async tapCancelNetworkDeleteButton(): Promise<void> {
+    await Gestures.waitAndTap(Matchers.getElementByText('Cancel'));
+  }
+
   async scrollToBottomOfNetworkMultiSelector(): Promise<void> {
     await Gestures.swipe(this.networkMultiSelectorContainer, 'up', {
       speed: 'fast',
