@@ -130,7 +130,8 @@ describe('PerpsPositionTransactionView', () => {
     // Check main transaction details
     expect(getByText('Date')).toBeOnTheScreen();
     expect(getByText('Size')).toBeOnTheScreen();
-    expect(getByText('Entry price')).toBeOnTheScreen();
+    // Closed action => label should be Close price
+    expect(getByText('Close price')).toBeOnTheScreen();
   });
 
   it('should calculate position size using BigNumber multiplication', () => {
@@ -511,16 +512,42 @@ describe('PerpsPositionTransactionView', () => {
 
     // Should render without errors for different assets
     expect(getByText('Date')).toBeOnTheScreen();
-    expect(getByText('Entry price')).toBeOnTheScreen();
+    expect(getByText('Close price')).toBeOnTheScreen();
   });
 
-  it('should format entry price correctly', () => {
+  it('should format close price correctly for closed position', () => {
     const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
       state: mockInitialState,
     });
 
-    expect(getByText('Entry price')).toBeOnTheScreen();
+    expect(getByText('Close price')).toBeOnTheScreen();
     // The actual price format would depend on the formatPerpsFiat utility
+  });
+
+  it('should show Entry price label when position is Opened', () => {
+    const openedTransaction = {
+      ...mockTransaction,
+      category: 'position_open' as const,
+      fill: {
+        ...mockTransaction.fill,
+        action: 'Opened',
+        entryPrice: 2500,
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: openedTransaction },
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PerpsPositionTransactionView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(getByText('Entry price')).toBeOnTheScreen();
+    expect(queryByText('Close price')).toBeNull();
   });
 
   it('should filter out falsy detail rows', () => {

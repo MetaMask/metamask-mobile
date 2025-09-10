@@ -1390,6 +1390,7 @@
         "date": "Date",
         "size": "Size",
         "entry_price": "Entry price",
+        "close_price": "Close price",
         "points": "Points",
         "fees": "Total fees",
         "pnl": "Net P&L"
