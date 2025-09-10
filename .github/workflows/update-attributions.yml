@@ -91,7 +91,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       - name: Install dependencies from cache
-        run: yarn --immutable --immutable-cache
+        run: yarn install --immutable --immutable-cache
       - name: Generate Attributions
         run: yarn build:attribution
       - name: Cache attributions file

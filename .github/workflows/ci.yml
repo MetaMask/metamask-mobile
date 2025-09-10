@@ -28,7 +28,8 @@ jobs:
           ruby-version: '3.1.6'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
-      - run: yarn setup
+      - run: yarn install --immutable
+      - run: yarn setup:ci
       - name: Require clean working directory
         shell: bash
         run: |
@@ -46,7 +47,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - name: Deduplicate dependencies
         run: yarn deduplicate
       - name: Print error if duplicates found
@@ -64,7 +66,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - name: Run @lavamoat/git-safe-dependencies
         run: yarn git-safe-dependencies
   scripts:
@@ -86,7 +89,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -108,7 +112,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
@@ -141,7 +146,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup --node
+      - run: yarn install --immutable
+      - run: yarn setup:ci --node
       - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
@@ -167,7 +173,7 @@ jobs:
           fi
 
   build-android-apks:
-    name: "Build Android APKs"
+    name: 'Build Android APKs'
     if: ${{ github.event_name != 'merge_group' }}
     permissions:
       contents: read
@@ -176,7 +182,7 @@ jobs:
     secrets: inherit
 
   e2e-smoke-tests-android:
-    name: "Android E2E Smoke Tests"
+    name: 'Android E2E Smoke Tests'
     permissions:
       contents: read
       id-token: write
@@ -192,8 +198,8 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - name: Install dependencies
-        run: yarn setup --no-build-android
+      - run: yarn install --immutable
+      - run: yarn setup:ci --no-build-android
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
