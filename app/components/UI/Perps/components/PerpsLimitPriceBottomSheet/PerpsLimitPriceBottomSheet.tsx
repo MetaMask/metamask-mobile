@@ -81,8 +81,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const handleConfirm = () => {
     // Remove any formatting (commas, dollar signs) before passing the value
     const cleanPrice = limitPrice.replace(/[$,]/g, '');
+    // Only call onConfirm; parent controls visibility. Avoid calling onClose here
+    // to distinguish between confirm vs dismiss (onClose used for cancel/dismiss).
     onConfirm(cleanPrice);
-    onClose();
   };
 
   const handleKeypadChange = useCallback(
