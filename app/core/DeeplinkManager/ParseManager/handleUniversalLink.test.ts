@@ -662,4 +662,63 @@ describe('handleUniversalLinks', () => {
       expect(handled).toHaveBeenCalled();
     });
   });
+
+  describe('interstitial whitelist', () => {
+    const whitelistedUrls = [
+      'https://link.metamask.io/perps-asset?symbol=ETH',
+    ] as const;
+
+    it.each(whitelistedUrls)(
+      'skips interstitial modal for whitelisted URL: %s',
+      async (testUrl) => {
+        const parsedUrl = new URL(testUrl);
+        const testUrlObj = {
+          ...urlObj,
+          hostname: parsedUrl.hostname,
+          href: testUrl,
+          pathname: parsedUrl.pathname,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandlePerpsAsset).toHaveBeenCalled();
+      },
+    );
+
+    it('shows interstitial modal for non-whitelisted URLs', async () => {
+      const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+      const nonWhitelistedUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: nonWhitelistedUrl,
+        pathname: `/${ACTIONS.DAPP}/example.com`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: nonWhitelistedUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: nonWhitelistedUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
 });
