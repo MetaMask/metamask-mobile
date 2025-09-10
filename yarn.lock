@@ -5557,21 +5557,21 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/mobile-wallet-protocol-core@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.1.0.tgz#148a7393fc603af9eed89a1e2517df371eb01018"
-  integrity sha512-YcGPtV/I7GRAjtFhGQa6R+OwGYSrgKrel3PQbnoHPyvrzJ8wYW+ObeFuAHDiS79jbi10ETbDuf/5v/U62StahA==
+"@metamask/mobile-wallet-protocol-core@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.1.1.tgz#fcd3c4ee2b2e26d5147bfc5e7d962a396c492f79"
+  integrity sha512-HT6fQTZ/CyXOG64/2i9oapg43KbruVe55f3XdOjmuQRz6vDVsWSiDqVGPn87upq/ljiU2RUuJJ5Dzp8Fkd7H/A==
   dependencies:
     centrifuge "^5.3.5"
     eventemitter3 "^5.0.1"
     uuid "^11.1.0"
 
-"@metamask/mobile-wallet-protocol-wallet-client@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.1.0.tgz#738fc8fd9a604b079e2c11e9c898a2f99ee5ab8e"
-  integrity sha512-t3UKLP2XJ0vN5LL1nkb3y7neSARrnRlMZk+wmBgICnqHC8+1ebnE41KdeVqaRSfisK/EfmYEXqqob44N/zpy3Q==
+"@metamask/mobile-wallet-protocol-wallet-client@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.1.1.tgz#de8de9bfa6c9d6e26a4b442a614ae32c158758b0"
+  integrity sha512-GosrGV//3+P7qodvov9JXc/U7EqU179kxSNAgPmv77YMFOR0K4f/uFHytMdtpJxFV30cofRT0mcYF0dY6QdFLQ==
   dependencies:
-    "@metamask/mobile-wallet-protocol-core" "^0.1.0"
+    "@metamask/mobile-wallet-protocol-core" "^0.1.1"
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 

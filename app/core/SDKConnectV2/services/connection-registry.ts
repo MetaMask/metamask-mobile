@@ -1,3 +1,4 @@
+import { AppState, AppStateStatus } from 'react-native';
 import { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import {
   ConnectionRequest,
@@ -17,6 +18,7 @@ export class ConnectionRegistry {
   private readonly hostapp: IHostApplicationAdapter;
   private readonly store: IConnectionStore;
 
+  private readonly ready: Promise<void>;
   private connections = new Map<string, Connection>();
 
   constructor(
@@ -29,6 +31,36 @@ export class ConnectionRegistry {
     this.keymanager = keymanager;
     this.hostapp = hostapp;
     this.store = store;
+    this.ready = this.initialize();
+    this.setupAppStateListener();
+  }
+
+  /**
+   * One-time initialization to resume all persisted sessions on app cold start.
+   */
+  private async initialize(): Promise<void> {
+    console.log('[SDKConnectV2] Initializing and resuming persisted connections...');
+
+    const persisted = await this.store.list();
+
+    const promises = persisted.map(async (c) => {
+      try {
+        const conn = await Connection.create(
+          c,
+          this.keymanager,
+          this.RELAY_URL,
+        );
+        await conn.resume();
+        this.connections.set(conn.id, conn);
+      } catch (error) {
+        console.error(
+          `[SDKConnectV2] Failed to resume session ${c.id}, removing.`,
+          error,
+        );
+      }
+    });
+
+    await Promise.allSettled(promises);
   }
 
   /**
@@ -119,5 +151,56 @@ export class ConnectionRegistry {
     }
 
     return connreq;
+  }
+
+  /**
+   * Sets up the listener for app state lifecycle events to handle reconnection.
+   */
+  private setupAppStateListener(): void {
+    let isColdStart = true;
+
+    AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus): void => {
+        console.log('[SDKConnectV2] App state changed to:', nextAppState);
+
+        if (nextAppState !== 'active') {
+          return;
+        }
+
+        // First 'active' event on a cold start is ignored
+        if (isColdStart) {
+          isColdStart = false;
+          return;
+        }
+
+        // For all subsequent 'active' events, we reconnect, but only after
+        // the initial setup is guaranteed to be complete to avoid race conditions.
+        this.ready.then(() => this.reconnectAll());
+      },
+    );
+  }
+
+  /**
+   * Proactively refreshes all active connections. This is the primary mechanism
+   * for preventing stale/zombie connections after the app was put in the background.
+   */
+  private async reconnectAll(): Promise<void> {
+    console.log('[SDKConnectV2] Proactively refreshing all connections...');
+
+    const connections = Array.from(this.connections.values());
+
+    const promises = connections.map((conn) => {
+      return conn.client
+        .reconnect()
+        .catch((err: Error) =>
+          console.error(
+            `[SDKConnectV2] Failed to reconnect session ${conn.id}`,
+            err,
+          ),
+        );
+    });
+
+    await Promise.allSettled(promises);
   }
 }
