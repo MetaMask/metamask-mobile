@@ -5542,8 +5542,11 @@
     },
     "invalid": {
       "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "description": "We can't find the page you're looking for.",
+      "update_to_store_link": "Update to the latest version of MetaMask",
+      "well_take_you_to_right_place": " and we'll take you to the right place."
     },
+    "go_to_home_button": "Go to the home page",
     "back_button": "Back",
     "continue_button": "Continue"
   },
