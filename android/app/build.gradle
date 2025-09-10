@@ -394,3 +394,4 @@ dependencies {
     androidTestImplementation "net.java.dev.jna:jna-platform:5.12.1"
     androidTestImplementation "org.opentest4j:opentest4j:1.2.0"
 }
+
