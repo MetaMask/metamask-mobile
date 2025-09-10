@@ -1,11 +1,12 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import {
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
 } from '../../selectors/Perps/Perps.selectors';
-import { waitFor, element as detoxElement, by as detoxBy } from 'detox';
+import { element as detoxElement, by as detoxBy } from 'detox';
 
 class PerpsOrderView {
   get placeOrderButton() {
@@ -54,43 +55,30 @@ class PerpsOrderView {
       description: 'Leverage modal title visible',
     });
 
-    // Tap quick option (2x/5x/10x/20x/40x)
-    // Robust against duplicates: detect the highest existing index and use it (button > slider label)
+    // Tap quick option (2x/5x/10x/20x/40x) deterministically using visibility checks
+    // Detect the highest existing index and use it (button > slider label)
     const label = `${leverageX}x`;
     let chosenIdx = -1;
     for (const idx of [3, 2, 1, 0]) {
-      try {
-        await waitFor(detoxElement(detoxBy.text(label)).atIndex(idx))
-          .toExist()
-          .withTimeout(250);
+      const candidate = detoxElement(detoxBy.text(label)).atIndex(idx);
+      const exists = await Utilities.isElementVisible(
+        candidate as unknown as DetoxElement,
+        250,
+      );
+      if (exists) {
         chosenIdx = idx;
         break;
-      } catch {
-        // try next lower index
       }
     }
     if (chosenIdx < 0) {
       throw new Error(`Leverage option ${label} not found`);
     }
 
-    // Prefer unwrapped Detox tap to avoid long internal retries and allow a quick fallback
-    let tapped = false;
-    for (const idx of [chosenIdx, 1, 0]) {
-      try {
-        await detoxElement(detoxBy.text(label)).atIndex(idx).tap();
-        tapped = true;
-        break;
-      } catch {
-        // try next index quickly
-      }
-    }
-    if (!tapped) {
-      // Final fallback with our wrapper to bubble a clear error
-      const option = this.leverageOption(leverageX, chosenIdx);
-      await Gestures.waitAndTap(option, {
-        elemDescription: `Select leverage ${label} at index ${chosenIdx}`,
-      });
-    }
+    // Tap the detected option index
+    const option = this.leverageOption(leverageX, chosenIdx);
+    await Gestures.waitAndTap(option, {
+      elemDescription: `Select leverage ${label} at index ${chosenIdx}`,
+    });
 
     // Confirm by tapping footer button "Set Xx"
     const confirm = Matchers.getElementByText(
@@ -152,20 +140,17 @@ class PerpsOrderView {
     return Matchers.getElementByText('Limit');
   }
 
-  async openOrderTypeSelector() {
-    // Taps the header order type button (visible text either 'Market' or 'Limit')
-    // Try 'Market' first, then 'Limit' to be resilient to current state
-    try {
-      await Gestures.waitAndTap(this.orderTypeMarket, {
-        elemDescription: 'Open order type selector (Market)',
-      });
-      return;
-    } catch {
-      // fallthrough
-    }
-    await Gestures.waitAndTap(this.orderTypeLimit, {
-      elemDescription: 'Open order type selector (Limit)',
-    });
+  async openOrderTypeSelector(): Promise<void> {
+    // Tap whichever order type label is currently visible (no try/catch)
+    const marketVisible = await Utilities.isElementVisible(
+      this.orderTypeMarket,
+      300,
+    );
+    const target = marketVisible ? this.orderTypeMarket : this.orderTypeLimit;
+    const desc = marketVisible
+      ? 'Open order type selector (Market)'
+      : 'Open order type selector (Limit)';
+    await Gestures.waitAndTap(target, { elemDescription: desc });
   }
 
   async selectLimitOrderType() {

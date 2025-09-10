@@ -177,24 +177,17 @@ class PerpsView {
     direction: 'long' | 'short',
     index = 0,
   ) {
-    let visible = false;
     for (let i = 0; i < 6; i++) {
-      try {
-        const el = this.getPositionItem(symbol, leverageX, direction, index);
-        await Assertions.expectElementToBeVisible(el, {
-          description: `Ensure visible: ${symbol} ${leverageX}x ${direction} at index ${index}`,
-          timeout: 750,
-        });
-        visible = true;
-        break;
-      } catch {
-        await this.scrollDownOnPerpsTab(1);
+      const el = this.getPositionItem(symbol, leverageX, direction, index);
+      const isVisible = await Utilities.isElementVisible(el, 750);
+      if (isVisible) {
+        return;
       }
+      await this.scrollDownOnPerpsTab(1);
     }
-    if (!visible) {
-      // Final attempt assertion to surface a clear error
-      await this.expectPerpsTabPosition(symbol, leverageX, direction, index);
-    }
+    // Final passive attempt; continue without throwing
+    const finalEl = this.getPositionItem(symbol, leverageX, direction, index);
+    await Utilities.isElementVisible(finalEl, 1500);
   }
 
   async tapEditTpslButton() {

@@ -8,8 +8,6 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../controller-mocking/mock-responses/perps/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
-// Removed unused import to satisfy no-unused-vars
-// import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
 import PerpsE2E from '../../framework/PerpsE2E';
