@@ -1,6 +1,6 @@
 import { Platform, TouchableOpacity as RNTouchableOpacity } from 'react-native';
 import { TouchableOpacity as TemporaryTouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 /**
  * TouchablePerpsComponent - Platform-specific TouchableOpacity for Perps components
@@ -17,8 +17,9 @@ import { useRef } from 'react';
  * SOLUTION APPROACH:
  *
  * 1. Use Android-specific TouchableOpacity (from ButtonBase) in production Android environments
+ * - This TouchableOpacity has built-in press coordination logic
  * 2. Use standard TouchableOpacity in test environments to prevent E2E test failures
- * 3. Combine with press coordination system to prevent double-press issues with TalkBack
+ * 3. Replicate ButtonBase's conditional press logic for consistent behavior
  *
  * This is a temporary workaround until React Native fixes the underlying issue on their side.
  *
@@ -35,15 +36,11 @@ export const TouchablePerpsComponent =
   Platform.OS === 'android' && !isE2ETest && !isUnitTest
     ? TemporaryTouchableOpacity
     : RNTouchableOpacity;
-
 /**
- * useCoordinatedPress - Hook for preventing double-press issues
+ * useCoordinatedPress - Hook that replicates ButtonBase's press coordination logic
  *
- * This hook provides press coordination to prevent rapid successive presses,
- * which is especially important for accessibility (TalkBack) and prevents
- * accidental double-taps that could cause unintended actions.
- *
- * Uses a 100ms coordination window, matching the ButtonBase implementation.
+ * This hook provides the exact same press coordination behavior as ButtonBase,
+ * including test environment handling and TalkBack compatibility.
  */
 export const useCoordinatedPress = () => {
   // Shared coordination system for maximum reliability
@@ -51,7 +48,13 @@ export const useCoordinatedPress = () => {
   const lastPressTime = useRef(0);
   const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
 
-  return (onPress: () => void) => {
+  return useCallback((onPress?: () => void) => {
+    // Skip coordination logic in test environments
+    if (process.env.NODE_ENV === 'test') {
+      onPress?.();
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastPress = now - lastPressTime.current;
 
@@ -59,5 +62,5 @@ export const useCoordinatedPress = () => {
       lastPressTime.current = now;
       onPress();
     }
-  };
+  }, []); // Empty dependency array - function never changes
 };
