@@ -13,6 +13,7 @@ import {
   TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
+  PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
@@ -82,6 +83,7 @@ import type {
   GetHistoricalPortfolioParams,
   HistoricalPortfolioResult,
 } from '../types';
+import { PERPS_ERROR_CODES } from '../PerpsController';
 
 /**
  * HyperLiquid provider implementation
@@ -113,6 +115,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
       ttl: number;
     }
   >();
+
+  // Cache for max leverage values to avoid excessive API calls
+  private maxLeverageCache = new Map<
+    string,
+    { value: number; timestamp: number }
+  >();
+
+  // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
+  private readonly ERROR_MAPPINGS = {
+    'isolated position does not have sufficient margin available to decrease leverage':
+      PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+  };
 
   constructor(options: { isTestnet?: boolean } = {}) {
     const isTestnet = options.isTestnet || false;
@@ -162,6 +176,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
       assetCount: meta.universe.length,
       coins: Array.from(this.coinToAssetId.keys()),
     });
+  }
+
+  /**
+   * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
+   */
+  private mapError(error: unknown): Error {
+    const message = error instanceof Error ? error.message : String(error);
+
+    for (const [pattern, code] of Object.entries(this.ERROR_MAPPINGS)) {
+      if (message.toLowerCase().includes(pattern.toLowerCase())) {
+        return new Error(code);
+      }
+    }
+
+    // Return original error to preserve stack trace for unmapped errors
+    return error instanceof Error ? error : new Error(String(error));
   }
 
   /**
@@ -398,10 +428,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.reduceOnly || false,
+        /**
+         * HyperLiquid Time-In-Force (TIF) options:
+         * - 'Gtc' (Good Till Canceled): Standard limit orders that remain active until filled or canceled
+         * - 'Ioc' (Immediate or Cancel): Limit orders that fill immediately or cancel unfilled portion
+         * - 'FrontendMarket': True market orders as used in HyperLiquid UI - USE THIS FOR MARKET ORDERS
+         * - 'Alo' (Add Liquidity Only): Maker-only orders that add liquidity to order book
+         * - 'LiquidationMarket': Similar to IoC, used for liquidation orders
+         *
+         * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
+         * Using 'Ioc' causes market orders to be treated as limit orders by HyperLiquid,
+         * leading to incorrect order type display in transaction history (TAT-1447)
+         */
         t:
           params.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
       };
       orders.push(mainOrder);
@@ -489,7 +531,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       };
     } catch (error) {
       DevLogger.log('Order placement failed:', error);
-      return createErrorResult(error, { success: false });
+      const mappedError = this.mapError(error);
+      return createErrorResult(mappedError, { success: false });
     }
   }
 
@@ -563,10 +606,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.newOrder.reduceOnly || false,
+        // Same TIF logic as placeOrder - see documentation above for details
         t:
           params.newOrder.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.newOrder.clientOrderId
           ? (params.newOrder.clientOrderId as Hex)
           : undefined,
@@ -1553,37 +1597,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
-      // Validate close size if provided
+      // Determine minimum order size (needed for precedence logic)
+      const minimumOrderSize = this.clientService.isTestnetMode()
+        ? TRADING_DEFAULTS.amount.testnet
+        : TRADING_DEFAULTS.amount.mainnet;
+
+      // Validate close size & minimum only if size provided (partial close)
       if (params.size) {
         const closeSize = parseFloat(params.size);
+        const price = params.currentPrice
+          ? parseFloat(params.currentPrice.toString())
+          : undefined;
+        const orderValueUSD =
+          price && !isNaN(closeSize) ? closeSize * price : undefined;
+
+        // Precedence rule: if size <= 0 treat as minimum_amount failure (more actionable)
         if (isNaN(closeSize) || closeSize <= 0) {
-          return {
-            isValid: false,
-            error: strings('perps.errors.orderValidation.sizePositive'),
-          };
-        }
-
-        // Note: Remaining position validation should be done in the UI layer
-        // where position data is available. The UI should check:
-        // 1. That closeSize doesn't exceed current position size
-        // 2. That remaining size meets minimum order requirements
-      }
-
-      // Validate minimum order value ONLY for partial closes
-      // Full closes (when size is undefined) have no minimum
-      if (params.currentPrice && params.size) {
-        const closeSize = parseFloat(params.size);
-        const price = parseFloat(params.currentPrice.toString());
-        const orderValueUSD = closeSize * price;
-
-        // Get minimum order size based on network
-        const minimumOrderSize = this.clientService.isTestnetMode()
-          ? TRADING_DEFAULTS.amount.testnet
-          : TRADING_DEFAULTS.amount.mainnet;
-
-        // Only enforce minimum for partial closes
-        // Full closes (size undefined) can be any amount
-        if (orderValueUSD < minimumOrderSize) {
           return {
             isValid: false,
             error: strings('perps.order.validation.minimum_amount', {
@@ -1591,7 +1620,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
             }),
           };
         }
+
+        // Enforce minimum order value for partial closes when price known
+        if (orderValueUSD !== undefined && orderValueUSD < minimumOrderSize) {
+          return {
+            isValid: false,
+            error: strings('perps.order.validation.minimum_amount', {
+              amount: minimumOrderSize.toString(),
+            }),
+          };
+        }
+
+        // Note: Remaining position validation stays in UI layer.
       }
+      // Full closes (size undefined) bypass minimum check by design
       // Note: For full closes (when size is undefined), there is no minimum
       // This allows users to close positions worth less than $10 completely
 
@@ -2076,6 +2118,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getMaxLeverage(asset: string): Promise<number> {
     try {
+      // Check cache first
+      const cached = this.maxLeverageCache.get(asset);
+      const now = Date.now();
+
+      if (
+        cached &&
+        now - cached.timestamp <
+          PERFORMANCE_CONFIG.MAX_LEVERAGE_CACHE_DURATION_MS
+      ) {
+        return cached.value;
+      }
+
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
@@ -2096,6 +2150,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
+
+      // Cache the result
+      this.maxLeverageCache.set(asset, {
+        value: assetInfo.maxLeverage,
+        timestamp: now,
+      });
 
       return assetInfo.maxLeverage;
     } catch (error) {

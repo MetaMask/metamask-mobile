@@ -1,20 +1,23 @@
 import { BaseController } from '@metamask/base-controller';
 import { toHex } from '@metamask/controller-utils';
-import type {
-  RewardsControllerState,
-  RewardsAccountState,
-  LoginResponseDto,
-  PerpsDiscountData,
-  EstimatePointsDto,
-  EstimatedPointsDto,
-  SeasonDtoState,
-  SeasonStatusState,
-  SeasonTierState,
-  SeasonTierDto,
-  SubscriptionReferralDetailsState,
-  GeoRewardsMetadata,
-  SeasonStatusDto,
-  SubscriptionDto,
+import {
+  type RewardsControllerState,
+  type RewardsAccountState,
+  type LoginResponseDto,
+  type PerpsDiscountData,
+  type EstimatePointsDto,
+  type EstimatedPointsDto,
+  type SeasonDtoState,
+  type SeasonStatusState,
+  type SeasonTierState,
+  type SeasonTierDto,
+  type SubscriptionReferralDetailsState,
+  type GeoRewardsMetadata,
+  type SeasonStatusDto,
+  type SubscriptionDto,
+  type PaginatedPointsEventsDto,
+  type GetPointsEventsDto,
+  CURRENT_SEASON_ID,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -197,6 +200,10 @@ export class RewardsController extends BaseController<
       this.getHasAccountOptedIn.bind(this),
     );
     this.messagingSystem.registerActionHandler(
+      'RewardsController:getPointsEvents',
+      this.getPointsEvents.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
       'RewardsController:estimatePoints',
       this.estimatePoints.bind(this),
     );
@@ -282,7 +289,7 @@ export class RewardsController extends BaseController<
    */
   #getSeasonStatus(
     subscriptionId: string,
-    seasonId: string | 'current' = 'current',
+    seasonId: string = CURRENT_SEASON_ID,
   ): SeasonStatusState | null {
     const compositeKey = this.#createSeasonStatusCompositeKey(
       seasonId,
@@ -636,6 +643,33 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Get points events for a given season
+   * @param params - The request parameters
+   * @returns Promise<PaginatedPointsEventsDto> - The points events data
+   */
+  async getPointsEvents(
+    params: GetPointsEventsDto,
+  ): Promise<PaginatedPointsEventsDto> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled)
+      return { has_more: false, cursor: null, total_results: 0, results: [] };
+
+    try {
+      const pointsEvents = await this.messagingSystem.call(
+        'RewardsDataService:getPointsEvents',
+        params,
+      );
+      return pointsEvents;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get points events:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Estimate points for a given activity
    * @param request - The estimate points request containing activity type and context
    * @returns Promise<EstimatedPointsDto> - The estimated points and bonus information
@@ -677,7 +711,7 @@ export class RewardsController extends BaseController<
    */
   async getSeasonStatus(
     subscriptionId: string,
-    seasonId: string | 'current' = 'current',
+    seasonId: string = CURRENT_SEASON_ID,
   ): Promise<SeasonStatusState | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {

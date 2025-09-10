@@ -32,6 +32,7 @@ describe('rewardsReducer', () => {
     balanceRefereePortion: 0,
     balanceUpdatedAt: null,
 
+    seasonId: null,
     seasonName: null,
     seasonStartDate: null,
     seasonEndDate: null,
@@ -670,6 +671,7 @@ describe('rewardsReducer', () => {
       const stateWithData: RewardsState = {
         activeTab: 'activity' as const,
         seasonStatusLoading: true,
+        seasonId: 'test-season-id',
         referralDetailsLoading: false,
         referralCode: 'TEST123',
         refereeCount: 10,
@@ -705,6 +707,7 @@ describe('rewardsReducer', () => {
       expect(state).toEqual(
         expect.objectContaining({
           activeTab: 'overview',
+          seasonId: null,
           seasonStatusLoading: false,
           referralDetailsLoading: false,
           referralCode: null,
@@ -734,6 +737,7 @@ describe('rewardsReducer', () => {
       const persistedRewardsState: RewardsState = {
         activeTab: 'activity',
         seasonStatusLoading: true, // This will be reset to false in rehydration
+        seasonId: 'test-season-id',
         referralDetailsLoading: false,
         referralCode: 'PERSISTED123',
         refereeCount: 15,

@@ -385,6 +385,7 @@
     "accountState": null,
     "pendingOrders": [],
     "depositInProgress": false,
+    "lastDepositTransactionId": null,
     "lastDepositResult": null,
     "lastWithdrawResult": null,
     "withdrawInProgress": false,
