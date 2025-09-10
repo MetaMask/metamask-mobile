@@ -650,7 +650,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
-          component={RewardsHome}
+          component={RewardsModalFlow}
           layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (
