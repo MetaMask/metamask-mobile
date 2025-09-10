@@ -76,7 +76,10 @@ import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
 } from '../../../selectors/seedlessOnboardingController';
-import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import {
+  AuthConnection,
+  SeedlessOnboardingControllerErrorMessage,
+} from '@metamask/seedless-onboarding-controller';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -480,8 +483,34 @@ class ResetPassword extends PureComponent {
         icon: IconName.Danger,
         isInteractable: false,
         onPrimaryButtonPress: async () => {
-          await Authentication.lockApp({ locked: true });
-          this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+          await Authentication.lockApp({ locked: true }).finally(() => {
+            this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+          });
+        },
+        closeOnPrimaryButtonPress: true,
+      },
+    });
+  };
+
+  handleSeedlessChangePasswordError = () => {
+    // show seedless password outdated modal and force user to lock app
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings(
+          'reset_password.seedless_change_password_error_modal_title',
+        ),
+        description: strings(
+          'reset_password.seedless_change_password_error_modal_content',
+        ),
+        primaryButtonLabel: strings(
+          'reset_password.seedless_change_password_error_modal_confirm',
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        isInteractable: true,
+        onPrimaryButtonPress: async () => {
+          this.props.navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
         },
         closeOnPrimaryButtonPress: true,
       },
@@ -513,6 +542,18 @@ class ResetPassword extends PureComponent {
         await this.recreateVault();
       } catch (error) {
         Logger.error(error);
+        const errorMessage = error.message;
+        if (errorMessage.includes('SeedlessOnboardingController')) {
+          if (
+            errorMessage ===
+            SeedlessOnboardingControllerErrorMessage.OutdatedPassword
+          ) {
+            this.handleSeedlessPasswordOutdated();
+          } else {
+            this.handleSeedlessChangePasswordError();
+          }
+          return;
+        }
         throw error;
       }
 
@@ -562,7 +603,7 @@ class ResetPassword extends PureComponent {
         this.setState({ loading: false });
       } else if (error.message.includes('SeedlessOnboardingController')) {
         // prompt sheet
-        Logger.info(error);
+        Logger.log(error);
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
