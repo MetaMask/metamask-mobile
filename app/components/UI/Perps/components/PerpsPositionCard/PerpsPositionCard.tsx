@@ -284,10 +284,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   variant={TextVariant.BodySM}
                   color={
                     parseFloat(position.cumulativeFunding.sinceOpen) >= 0
-                      ? TextColor.Success
-                      : TextColor.Error
+                      ? TextColor.Error
+                      : TextColor.Success
                   }
                 >
+                  {parseFloat(position.cumulativeFunding.sinceOpen) >= 0
+                    ? '-'
+                    : '+'}
                   {formatPrice(
                     Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
                     {
