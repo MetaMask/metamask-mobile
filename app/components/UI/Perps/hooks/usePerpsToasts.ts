@@ -311,16 +311,16 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.inProgress,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.processing_title'),
-              strings('perps.withdrawal.eta_will_be_shared_shortly'),
             ),
           },
           withdrawalSuccess: (amount: string, assetSymbol: string) => ({
             ...perpsBaseToastOptions.success,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.success_toast'),
-              strings('perps.withdrawal.arrival_time', {
+              strings('perps.withdrawal.success_toast_description', {
                 amount,
                 symbol: assetSymbol,
+                networkName: 'Arbitrum',
               }),
             ),
           }),
