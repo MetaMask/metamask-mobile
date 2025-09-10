@@ -10,8 +10,9 @@ declare const device: any; // eslint-disable-line @typescript-eslint/no-explicit
 export async function openE2EUrl(url: string): Promise<void> {
   // eslint-disable-next-line no-console
   console.log(`[E2E] DeepLink open: ${url}`);
+
   try {
-    if (device?.openURL) {
+    if (device.getPlatform() === 'ios' && device.openURL) {
       await device.openURL({ url });
       return;
     }
@@ -20,7 +21,7 @@ export async function openE2EUrl(url: string): Promise<void> {
   }
 
   // Android fallback (and generic fallback)
-  if (device?.launchApp) {
+  if (device.getPlatform() === 'android' && device.launchApp) {
     await device.launchApp({ newInstance: false, url });
   }
 }
