@@ -29,6 +29,7 @@ import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativesdk.NativeSDKPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
+import io.metamask.nativeModules.NotificationPackage
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -44,6 +45,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 packages.add(RCTMinimizerPackage())
                 packages.add(NativeSDKPackage())
                 packages.add(RNTarPackage())
+                packages.add(NotificationPackage()) 
                 return packages
             }
 
