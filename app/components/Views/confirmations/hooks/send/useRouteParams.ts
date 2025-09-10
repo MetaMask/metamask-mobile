@@ -1,7 +1,7 @@
 import { toHex } from 'viem';
+import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useEffect } from 'react';
 
-import { isNonEvmAddress } from '../../../../../core/Multichain/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AssetType, Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
@@ -20,7 +20,7 @@ export const useRouteParams = () => {
   useEffect(() => {
     if (paramsAsset) {
       const paramChainId =
-        isNonEvmAddress(paramsAsset.address) && paramsAsset?.chainId
+        isEvmAddress(paramsAsset.address) && paramsAsset?.chainId
           ? toHex(paramsAsset?.chainId)
           : paramsAsset?.chainId?.toString().toLowerCase();
 
