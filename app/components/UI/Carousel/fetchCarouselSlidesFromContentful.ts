@@ -147,7 +147,7 @@ function mapContentfulEntriesToSlides(
     };
 
     if (!isValidMinimumVersion(mobileMinimumVersionNumber)) {
-      break;
+      continue;
     }
 
     if (priorityPlacement) {
