@@ -12,6 +12,7 @@ export interface RewardsState {
   seasonStatusLoading: boolean;
 
   // Season state
+  seasonId: string | null;
   seasonName: string | null;
   seasonStartDate: Date | null;
   seasonEndDate: Date | null;
@@ -45,6 +46,7 @@ export const initialState: RewardsState = {
   activeTab: 'overview',
   seasonStatusLoading: false,
 
+  seasonId: null,
   seasonName: null,
   seasonStartDate: null,
   seasonEndDate: null,
@@ -90,6 +92,7 @@ const rewardsSlice = createSlice({
       action: PayloadAction<SeasonStatusState | null>,
     ) => {
       // Season state
+      state.seasonId = action.payload?.season.id || null;
       state.seasonName = action.payload?.season.name || null;
       state.seasonStartDate = action.payload?.season.startDate
         ? new Date(action.payload.season.startDate)
