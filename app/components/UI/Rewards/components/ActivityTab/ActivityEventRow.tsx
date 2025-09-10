@@ -1,4 +1,7 @@
 import React from 'react';
+import { Image } from 'react-native';
+import { SvgUri } from 'react-native-svg';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
@@ -13,10 +16,18 @@ import {
 import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getEventDetails, formatRewardsDate } from '../../utils/formatUtils';
 
-export const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({
-  event,
-}) => {
-  const eventDetails = getEventDetails(event);
+export const ActivityEventRow: React.FC<{
+  event: PointsEventDto;
+}> = ({ event }) => {
+  const tw = useTailwind();
+  const eventDetails = React.useMemo(
+    () => (event ? getEventDetails(event) : undefined),
+    [event],
+  );
+
+  if (!event || !eventDetails) return <></>;
+
+  const isSVG = eventDetails?.badgeImageUri?.includes('.svg');
 
   return (
     <Box
@@ -27,12 +38,30 @@ export const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({
       gap={3}
     >
       <Box
-        twClassName="bg-muted rounded-full items-center justify-center size-12"
+        twClassName="bg-muted rounded-full items-center justify-center size-12 relative"
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
       >
         <Icon name={eventDetails.icon} size={IconSize.Lg} />
+        {eventDetails.badgeImageUri && (
+          <Box twClassName="absolute -bottom-1 -right-1 bg-muted items-center justify-center size-5 z-10">
+            {isSVG ? (
+              <SvgUri
+                uri={eventDetails.badgeImageUri}
+                width="100%"
+                height="100%"
+                style={tw.style('size-4')}
+              />
+            ) : (
+              <Image
+                source={{ uri: eventDetails.badgeImageUri }}
+                style={tw.style('size-4')}
+                resizeMode="contain"
+              />
+            )}
+          </Box>
+        )}
       </Box>
       <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Start}>
         <Box
@@ -46,6 +75,7 @@ export const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({
           >
             <Text>{eventDetails.title}</Text>
           </Box>
+
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.End}
@@ -54,7 +84,7 @@ export const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({
             {event.bonus?.bips && (
               <Text
                 variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
+                color={TextColor.TextAlternative}
                 twClassName="ml-1"
               >
                 +{event.bonus?.bips / 100}%
@@ -62,15 +92,16 @@ export const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({
             )}
           </Box>
         </Box>
+
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
         >
-          <Text variant={TextVariant.BodySm} twClassName="text-muted">
+          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
             {eventDetails.details}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-muted">
-            {formatRewardsDate(event.timestamp.getTime())}
+          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            {formatRewardsDate(new Date(event.timestamp).getTime())}
           </Text>
         </Box>
       </Box>

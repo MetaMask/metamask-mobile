@@ -5604,19 +5604,25 @@
     "referral_stats_referrals": "Referrals",
     "loading_activity": "Loading activity...",
     "error_loading_activity": "Error loading activity",
+    "activity_empty_title": "No recent activity.",
+    "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
+    "activity_empty_link": "See ways to earn",
 
     "events": {
-      "swap": "Swap",
-      "perps": "Perps",
-      "referral": "Referral",
-      "sign_up_bonus": "Sign up bonus",
-      "loyalty_bonus": "Loyalty bonus",
-      "one_time_bonus": "One-time bonus",
-      "open_position": "Opened position",
-      "close_position": "Closed position",
-      "take_profit": "Take profit",
-      "stop_loss": "Stop loss",
-      "uncategorized_event": "Uncategorized event"
+      "type": {
+        "swap": "Swap",
+        "perps": "Perps",
+        "referral": "Referral",
+        "referral_action": "Referral action",
+        "sign_up_bonus": "Sign up bonus",
+        "loyalty_bonus": "Loyalty bonus",
+        "one_time_bonus": "One-time bonus",
+        "open_position": "Opened position",
+        "close_position": "Closed position",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss",
+        "uncategorized_event": "Uncategorized event"
+      }
     },
 
     "onboarding": {

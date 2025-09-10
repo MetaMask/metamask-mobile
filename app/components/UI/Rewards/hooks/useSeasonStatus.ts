@@ -28,7 +28,7 @@ export const useSeasonStatus = (options: UseSeasonStatusOptions = {}): null => {
 
   const fetchSeasonStatus = useCallback(async (): Promise<void> => {
     // Don't fetch if required parameters are missing
-    if (!seasonId || !subscriptionId) {
+    if (!subscriptionId) {
       dispatch(setSeasonStatus(null));
       dispatch(setSeasonStatusLoading(false));
       return;
@@ -40,7 +40,7 @@ export const useSeasonStatus = (options: UseSeasonStatusOptions = {}): null => {
       const statusData = await Engine.controllerMessenger.call(
         'RewardsController:getSeasonStatus',
         subscriptionId,
-        seasonId,
+        seasonId || 'current',
       );
 
       dispatch(setSeasonStatus(statusData));

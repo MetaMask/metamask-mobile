@@ -1,6 +1,10 @@
 import { IconName } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
-import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  PointsEventDto,
+  SwapEventPayload,
+  PerpsEventPayload,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
 
@@ -40,45 +44,44 @@ const getPerpsEventDirection = (direction: string) => {
   }
 };
 
-const getPerpsEventTitle = (event: PointsEventDto): string => {
-  const { payload } = event;
-
-  switch (payload?.type) {
+const getPerpsEventTitle = (payload: PerpsEventPayload): string => {
+  switch (payload.type) {
     case PerpsEventType.TAKE_PROFIT:
-      return strings('rewards.events.take_profit');
+      return strings('rewards.events.type.take_profit');
     case PerpsEventType.CLOSE_POSITION:
-      return strings('rewards.events.close_position');
+      return strings('rewards.events.type.close_position');
     case PerpsEventType.STOP_LOSS:
-      return strings('rewards.events.stop_loss');
+      return strings('rewards.events.type.stop_loss');
     case PerpsEventType.OPEN_POSITION:
-      return strings('rewards.events.open_position');
+      return strings('rewards.events.type.open_position');
     default:
-      return strings('rewards.events.uncategorized_event');
+      return strings('rewards.events.type.uncategorized_event');
   }
 };
 
-const getPerpsEventDetails = (event: PointsEventDto): string | undefined => {
-  const { payload } = event;
-
+const getPerpsEventDetails = (
+  payload: PerpsEventPayload,
+): string | undefined => {
   if (
-    isNullOrUndefined(payload?.token?.amount) ||
-    isNullOrUndefined(payload?.token?.decimals) ||
-    isNullOrUndefined(payload?.token?.symbol)
+    isNullOrUndefined(payload?.asset?.amount) ||
+    isNullOrUndefined(payload?.asset?.decimals) ||
+    isNullOrUndefined(payload?.asset?.symbol)
   )
     return undefined;
 
-  const { amount, decimals, symbol } = payload.token;
+  const { amount, decimals, symbol } = payload.asset;
+  const formattedAmount = formatUnits(BigInt(amount), decimals);
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
       if (isNullOrUndefined(payload.direction)) return undefined;
-      return `${getPerpsEventDirection(payload.direction)} ${
-        (amount as number) / (decimals as number)
-      } ${symbol}`;
+      return `${getPerpsEventDirection(
+        payload.direction,
+      )} ${formattedAmount} ${symbol}`;
     case PerpsEventType.CLOSE_POSITION:
     case PerpsEventType.TAKE_PROFIT:
     case PerpsEventType.STOP_LOSS:
-      return `$${symbol} ${(amount as number) / (decimals as number)}`;
+      return `$${symbol} ${formattedAmount}`;
     default:
       return undefined;
   }
@@ -86,23 +89,23 @@ const getPerpsEventDetails = (event: PointsEventDto): string | undefined => {
 
 /**
  * Formats a swap event details
- * @param event - The swap event
+ * @param payload - The swap event payload
  * @returns The swap event details
  */
-const getSwapEventDetails = (event: PointsEventDto): string | undefined => {
-  const { payload } = event;
-
+const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
   if (
-    isNullOrUndefined(payload?.srcAsset?.amount) ||
-    isNullOrUndefined(payload?.srcAsset?.decimals) ||
-    isNullOrUndefined(payload?.srcAsset?.symbol)
+    isNullOrUndefined(payload.srcAsset?.amount) ||
+    isNullOrUndefined(payload.srcAsset?.decimals) ||
+    isNullOrUndefined(payload.srcAsset?.symbol)
   )
     return undefined;
 
   const { amount, decimals, symbol } = payload.srcAsset;
   const formattedAmount = formatUnits(BigInt(amount), decimals);
 
-  return `${formattedAmount} ${symbol} to ${payload.destAsset.symbol}`;
+  return `${formattedAmount} ${symbol} to ${
+    payload.destAsset?.symbol || 'Unknown'
+  }`;
 };
 
 /**
@@ -116,49 +119,57 @@ export const getEventDetails = (
   title: string;
   details: string | undefined;
   icon: IconName;
+  badgeImageUri?: string;
 } => {
   switch (event.type) {
     case 'SWAP':
       return {
-        title: strings('rewards.events.swap'),
-        details: getSwapEventDetails(event),
+        title: strings('rewards.events.type.swap'),
+        details: getSwapEventDetails(event.payload as SwapEventPayload),
         icon: IconName.SwapVertical,
+        badgeImageUri: (event.payload as SwapEventPayload).srcAsset.iconUrl,
       };
     case 'PERPS':
       return {
-        title: getPerpsEventTitle(event),
-        details: getPerpsEventDetails(event),
+        title: getPerpsEventTitle(event.payload as PerpsEventPayload),
+        details: getPerpsEventDetails(event.payload as PerpsEventPayload),
         icon: IconName.Candlestick,
+        badgeImageUri: (event.payload as PerpsEventPayload).asset.iconUrl,
       };
     case 'REFERRAL':
       return {
-        title: 'Referral action',
+        title: strings('rewards.events.type.referral_action'),
         details: undefined,
         icon: IconName.UserCircleAdd,
+        badgeImageUri: undefined,
       };
     case 'SIGN_UP_BONUS':
       return {
-        title: strings('rewards.events.sign_up_bonus'),
+        title: strings('rewards.events.type.sign_up_bonus'),
         details: undefined,
         icon: IconName.Edit,
+        badgeImageUri: undefined,
       };
     case 'LOYALTY_BONUS':
       return {
-        title: strings('rewards.events.loyalty_bonus'),
+        title: strings('rewards.events.type.loyalty_bonus'),
         details: undefined, // TODO: Missing data
         icon: IconName.ThumbUp,
+        badgeImageUri: undefined,
       };
     case 'ONE_TIME_BONUS':
       return {
-        title: strings('rewards.events.one_time_bonus'),
+        title: strings('rewards.events.type.one_time_bonus'),
         details: undefined,
         icon: IconName.Gift,
+        badgeImageUri: undefined,
       };
     default:
       return {
-        title: strings('rewards.events.uncategorized_event'),
+        title: strings('rewards.events.type.uncategorized_event'),
         details: undefined,
         icon: IconName.Star,
+        badgeImageUri: undefined,
       };
   }
 };

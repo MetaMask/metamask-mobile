@@ -1,14 +1,28 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FlatList, ListRenderItem, ActivityIndicator } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { usePointsEvents } from '../../hooks/usePointsEvents';
 import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import { ActivityEventRow } from './ActivityEventRow';
-import { selectSeasonId } from '../../../../../reducers/rewards/selectors';
+import {
+  selectSeasonId,
+  selectSeasonStatusLoading,
+} from '../../../../../reducers/rewards/selectors';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
+import MetamaskRewardsActivityEmptyImage from '../../../../../images/metamask-rewards-activity-empty.svg';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import { setActiveTab } from '../../../../../actions/rewards';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
@@ -16,29 +30,70 @@ const LoadingFooter: React.FC = () => (
   </Box>
 );
 
-const ItemSeparator: React.FC = () => <Box twClassName="h-4" />;
+const ItemSeparator: React.FC = () => <Box twClassName="h-6" />;
 
-const EmptyState: React.FC<{ message: string; isError?: boolean }> = ({
+const IntermediateState: React.FC<{ message: string; isError?: boolean }> = ({
   message,
   isError = false,
 }) => (
-  <Box twClassName="flex-1 items-center justify-cente relative">
+  <Box twClassName="flex-1 items-center justify-cente relative mt-4">
     {!isError && (
       <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
     )}
 
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName={isError ? 'text-error z-10' : 'text-muted z-10'}
-    >
-      {message}
-    </Text>
+    {isError ? (
+      <BannerAlert severity={BannerAlertSeverity.Error} description={message} />
+    ) : (
+      <Text variant={TextVariant.BodyMd} twClassName="text-alternative z-10">
+        {message}
+      </Text>
+    )}
   </Box>
 );
 
+const EmptyState: React.FC = () => {
+  const dispatch = useDispatch();
+
+  const handleSeeWaysToEarn = () => {
+    dispatch(setActiveTab('overview'));
+  };
+
+  return (
+    <Box twClassName="flex-1 items-center p-20 gap-8">
+      <MetamaskRewardsActivityEmptyImage
+        name="MetamaskRewardsActivityEmptyImage"
+        width={120}
+        height={120}
+      />
+
+      <Box twClassName="items-center gap-2">
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="text-alternative text-center"
+        >
+          {strings('rewards.activity_empty_title')}
+        </Text>
+
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="text-alternative text-center"
+        >
+          {strings('rewards.activity_empty_description')}
+        </Text>
+
+        <Button variant={ButtonVariant.Tertiary} onPress={handleSeeWaysToEarn}>
+          {strings('rewards.activity_empty_link')}
+        </Button>
+      </Box>
+    </Box>
+  );
+};
+
 export const ActivityTab: React.FC = () => {
+  const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const seasonId = useSelector(selectSeasonId);
+  const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
   const {
     pointsEvents,
     isLoading,
@@ -63,17 +118,21 @@ export const ActivityTab: React.FC = () => {
     return null;
   };
 
-  if (isLoading && !isRefreshing) {
-    return <EmptyState message={strings('rewards.loading_activity')} />;
+  if ((isLoading || seasonStatusLoading) && !isRefreshing) {
+    return <IntermediateState message={strings('rewards.loading_activity')} />;
   }
 
   if (error) {
     return (
-      <EmptyState
+      <IntermediateState
         message={`${strings('rewards.error_loading_activity')}: ${error}`}
         isError
       />
     );
+  }
+
+  if (pointsEvents.length === 0) {
+    return <EmptyState />;
   }
 
   return (
@@ -89,6 +148,8 @@ export const ActivityTab: React.FC = () => {
       ItemSeparatorComponent={ItemSeparator}
       onRefresh={refresh}
       refreshing={isRefreshing}
+      horizontal={false}
+      style={tw.style('mt-6')}
     />
   );
 };

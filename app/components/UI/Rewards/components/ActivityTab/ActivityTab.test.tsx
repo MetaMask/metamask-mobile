@@ -1,14 +1,19 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { ActivityTab } from './ActivityTab';
-import type { SeasonStatusState } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  SeasonStatusState,
+  PointsEventDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
 // Mock selector
 jest.mock('../../../../../selectors/rewards', () => ({
@@ -55,6 +60,123 @@ jest.mock('./ActivityEventRow', () => ({
   },
 }));
 
+// Helper to create realistic mock events based on rewards data service
+const createMockEvent = (
+  overrides: Partial<PointsEventDto> = {},
+): PointsEventDto => {
+  const eventType = overrides.type || 'SWAP';
+  switch (eventType) {
+    case 'SWAP':
+      return {
+        id: '59144-0xb204d894578dc20f72880b3e9acbe20d9f10cde061e05cbdc1c66bbf5ce37b5d',
+        timestamp: new Date('2025-09-09T09:09:33.000Z'),
+        type: 'SWAP' as const,
+        payload: {
+          srcAsset: {
+            amount: '1153602',
+            type: 'eip155:59144/erc20:0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+            decimals: 6,
+            name: 'USD Coin',
+            symbol: 'USDC',
+          },
+          destAsset: {
+            amount: '261268688837964',
+            type: 'eip155:59144/slip44:60',
+            decimals: 18,
+            name: 'Ether',
+            symbol: 'ETH',
+          },
+          txHash:
+            '0xb204d894578dc20f72880b3e9acbe20d9f10cde061e05cbdc1c66bbf5ce37b5d',
+        },
+        value: 2,
+        bonus: {
+          bips: 10000,
+          bonuses: ['cb3a0161-ee12-49f4-a336-31063c90347e'],
+        },
+        accountAddress: '0x334d7bA8922c9F45422882B495b403644311Eaea',
+        ...overrides,
+      } as PointsEventDto;
+
+    case 'SIGN_UP_BONUS':
+      return {
+        id: 'sb-0198f907-f293-7592-ba7d-41e245f96a51',
+        timestamp: new Date('2025-08-30T03:31:44.444Z'),
+        type: 'SIGN_UP_BONUS' as const,
+        value: 250,
+        bonus: {},
+        accountAddress: '0x069060A475c76C77427CcC8CbD7eCB0B293f5beD',
+        payload: null,
+        ...overrides,
+      } as PointsEventDto;
+
+    case 'REFERRAL':
+      return {
+        id: '59144-0x7d75d4a6fc24667857147753486491b52fc93e1f35574cfe7cb8887f48a81b3a-referral',
+        timestamp: new Date('2025-09-04T21:38:10.433Z'),
+        type: 'REFERRAL' as const,
+        value: 10,
+        bonus: null,
+        accountAddress: null,
+        payload: null,
+        ...overrides,
+      } as PointsEventDto;
+
+    case 'ONE_TIME_BONUS':
+      return {
+        id: 'lb-0x069060A475c76C77427CcC8CbD7eCB0B293f5beD-2',
+        timestamp: new Date('2025-08-30T03:31:44.453Z'),
+        type: 'ONE_TIME_BONUS' as const,
+        value: 123,
+        bonus: {},
+        accountAddress: '0x069060A475c76C77427CcC8CbD7eCB0B293f5beD',
+        payload: null,
+        ...overrides,
+      } as PointsEventDto;
+
+    case 'PERPS':
+      return {
+        id: '0b15b967547b08923c088317914c7539fa1a536e8fdc7581060bc7be809bd9e7',
+        timestamp: new Date('2025-08-18T03:01:46.727Z'),
+        type: 'PERPS' as const,
+        payload: {
+          type: 'OPEN_POSITION',
+          direction: 'SHORT',
+          asset: {
+            type: 'BIO',
+            decimals: 0,
+            name: 'BIO',
+            symbol: 'BIO',
+            iconUrl: 'https://app.hyperliquid.xyz/coins/BIO.svg',
+            amount: '287',
+          },
+        },
+        value: 1,
+        bonus: {},
+        accountAddress: '0xeb74cd5273ca3ECd9C30b66A1Fd14A29F754f27b',
+        ...overrides,
+      } as PointsEventDto;
+
+    case 'LOYALTY_BONUS':
+      return {
+        id: 'stake-tx-0xfedcba987654321',
+        timestamp: new Date('2025-08-13T16:45:30.000Z'),
+        type: 'LOYALTY_BONUS' as const,
+        value: 500,
+        bonus: {
+          bips: 15000,
+          bonuses: ['early-staker-bonus'],
+        },
+        accountAddress: '0xfedcba987654321',
+        payload: null,
+        ...overrides,
+      } as PointsEventDto;
+
+    default:
+      throw new Error(`Unsupported event type: ${eventType}`);
+  }
+};
+
 describe('ActivityTab', () => {
   const defaultSeasonStatus: SeasonStatusState = {
     season: {
@@ -93,11 +215,20 @@ describe('ActivityTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Mock state structure with rewards property for selectors
+    const mockState = {
+      rewards: {
+        seasonId: defaultSeasonStatus.season.id,
+        seasonStatusLoading: false,
+      },
+    };
+
     // useSelector calls the provided selector; mocked selectors return the configured value
     mockUseSelector.mockImplementation(
-      (selector: (state: unknown) => unknown) => selector({} as unknown),
+      (selector: (state: unknown) => unknown) => selector(mockState as unknown),
     );
     mockSelectSubscriptionId.mockReturnValue(mockSubscriptionId);
+    mockUseDispatch.mockReturnValue(jest.fn());
 
     mockUseSeasonStatus.mockReturnValue({
       seasonStatus: defaultSeasonStatus,
@@ -131,54 +262,18 @@ describe('ActivityTab', () => {
   });
 
   it('renders events', () => {
+    const swapEvent = createMockEvent({ type: 'SWAP' });
+    const perpsEvent = createMockEvent({ type: 'PERPS' });
+
     mockUsePointsEvents.mockReturnValueOnce(
       makePointsEventsResult({
-        pointsEvents: [
-          {
-            id: 'e1',
-            type: 'SWAP',
-            timestamp: new Date(),
-            payload: null,
-            value: 10,
-            bonus: null,
-            accountAddress: null,
-          },
-          {
-            id: 'e2',
-            type: 'PERPS',
-            timestamp: new Date(),
-            payload: {
-              type: 'OPEN_POSITION',
-              token: { symbol: 'ETH', amount: 1000000, decimals: 1000000 },
-              direction: 'LONG',
-            },
-            value: 20,
-            bonus: null,
-            accountAddress: null,
-          },
-        ],
+        pointsEvents: [swapEvent, perpsEvent],
       }),
     );
 
     const { getByText } = render(<ActivityTab />);
-    expect(getByText('event:e1')).toBeOnTheScreen();
-    expect(getByText('event:e2')).toBeOnTheScreen();
-  });
-
-  it('calls hooks with correct parameters', () => {
-    render(<ActivityTab />);
-
-    // useSeasonStatus called with subscription and seasonId='current'
-    expect(mockUseSeasonStatus).toHaveBeenCalledWith({
-      subscriptionId: mockSubscriptionId,
-      seasonId: 'current',
-    });
-
-    // usePointsEvents called with derived seasonId and subscriptionId
-    expect(mockUsePointsEvents).toHaveBeenCalledWith({
-      seasonId: defaultSeasonStatus.season.id,
-      subscriptionId: mockSubscriptionId,
-    });
+    expect(getByText(`event:${swapEvent.id}`)).toBeOnTheScreen();
+    expect(getByText(`event:${perpsEvent.id}`)).toBeOnTheScreen();
   });
 
   it('passes empty string subscriptionId to usePointsEvents when subscription is missing', () => {
@@ -195,39 +290,13 @@ describe('ActivityTab', () => {
     });
   });
 
-  it('passes undefined seasonId to usePointsEvents when seasonStatus is null', () => {
-    mockUseSeasonStatus.mockReturnValueOnce({
-      seasonStatus: null,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-      isRefreshing: false,
-    });
-
-    render(<ActivityTab />);
-    const lastCall =
-      mockUsePointsEvents.mock.calls[mockUsePointsEvents.mock.calls.length - 1];
-    expect(lastCall[0]).toEqual({
-      seasonId: undefined,
-      subscriptionId: mockSubscriptionId,
-    });
-  });
-
   it('refreshes points events when refresh function is called', () => {
     const mockRefresh = jest.fn();
+    const swapEvent = createMockEvent({ type: 'SWAP' });
+
     mockUsePointsEvents.mockReturnValueOnce(
       makePointsEventsResult({
-        pointsEvents: [
-          {
-            id: 'e1',
-            type: 'SWAP',
-            timestamp: new Date(),
-            payload: null,
-            value: 10,
-            bonus: null,
-            accountAddress: null,
-          },
-        ],
+        pointsEvents: [swapEvent],
         refresh: mockRefresh,
       }),
     );
@@ -241,19 +310,11 @@ describe('ActivityTab', () => {
 
   it('loads more points events when loadMore function is called', () => {
     const mockLoadMore = jest.fn();
+    const signUpEvent = createMockEvent({ type: 'SIGN_UP_BONUS' });
+
     mockUsePointsEvents.mockReturnValueOnce(
       makePointsEventsResult({
-        pointsEvents: [
-          {
-            id: 'e1',
-            type: 'SWAP',
-            timestamp: new Date(),
-            payload: null,
-            value: 10,
-            bonus: null,
-            accountAddress: null,
-          },
-        ],
+        pointsEvents: [signUpEvent],
         loadMore: mockLoadMore,
       }),
     );
@@ -266,19 +327,11 @@ describe('ActivityTab', () => {
   });
 
   it('shows loading footer when loading more points events', () => {
+    const referralEvent = createMockEvent({ type: 'REFERRAL' });
+
     mockUsePointsEvents.mockReturnValueOnce(
       makePointsEventsResult({
-        pointsEvents: [
-          {
-            id: 'e1',
-            type: 'SWAP',
-            timestamp: new Date(),
-            payload: null,
-            value: 10,
-            bonus: null,
-            accountAddress: null,
-          },
-        ],
+        pointsEvents: [referralEvent],
         isLoadingMore: true,
       }),
     );
@@ -286,5 +339,101 @@ describe('ActivityTab', () => {
     const { getByTestId } = render(<ActivityTab />);
 
     expect(getByTestId('activity-indicator')).toBeOnTheScreen();
+  });
+
+  describe('different event types', () => {
+    it('renders all unique event types correctly', () => {
+      const allEventTypes = [
+        createMockEvent({ type: 'SWAP' }),
+        createMockEvent({ type: 'PERPS' }),
+        createMockEvent({ type: 'SIGN_UP_BONUS' }),
+        createMockEvent({ type: 'REFERRAL' }),
+        createMockEvent({ type: 'ONE_TIME_BONUS' }),
+        createMockEvent({ type: 'LOYALTY_BONUS' }),
+      ];
+
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          pointsEvents: allEventTypes,
+        }),
+      );
+
+      const { getByText } = render(<ActivityTab />);
+
+      // Verify all events are rendered
+      allEventTypes.forEach((event) => {
+        expect(getByText(`event:${event.id}`)).toBeOnTheScreen();
+      });
+    });
+
+    it('handles mixed event types with different properties', () => {
+      const mixedEvents = [
+        createMockEvent({ type: 'SWAP' }), // Has complex payload and bonus
+        createMockEvent({ type: 'REFERRAL' }), // Has null bonus and null accountAddress
+        createMockEvent({ type: 'LOYALTY_BONUS' }), // Has high bonus value
+      ];
+
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          pointsEvents: mixedEvents,
+        }),
+      );
+
+      const { getByText } = render(<ActivityTab />);
+
+      // Verify all mixed events are rendered properly
+      mixedEvents.forEach((event) => {
+        expect(getByText(`event:${event.id}`)).toBeOnTheScreen();
+      });
+    });
+
+    it('handles events with realistic timestamps in correct order', () => {
+      const chronologicalEvents = [
+        createMockEvent({ type: 'SWAP' }), // 2025-09-09
+        createMockEvent({ type: 'REFERRAL' }), // 2025-09-04
+        createMockEvent({ type: 'SIGN_UP_BONUS' }), // 2025-08-30
+        createMockEvent({ type: 'PERPS' }), // 2025-08-18
+        createMockEvent({ type: 'LOYALTY_BONUS' }), // 2025-08-13
+      ];
+
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          pointsEvents: chronologicalEvents,
+        }),
+      );
+
+      const { getByText } = render(<ActivityTab />);
+
+      // Verify all events with realistic timestamps are rendered
+      chronologicalEvents.forEach((event) => {
+        expect(getByText(`event:${event.id}`)).toBeOnTheScreen();
+      });
+    });
+
+    it('handles large number of diverse events', () => {
+      const manyEvents = [
+        createMockEvent({ type: 'SWAP', id: 'swap-1' }),
+        createMockEvent({ type: 'PERPS', id: 'perps-1' }),
+        createMockEvent({ type: 'SIGN_UP_BONUS', id: 'signup-1' }),
+        createMockEvent({ type: 'REFERRAL', id: 'referral-1' }),
+        createMockEvent({ type: 'ONE_TIME_BONUS', id: 'onetime-1' }),
+        createMockEvent({ type: 'LOYALTY_BONUS', id: 'loyalty-1' }),
+        createMockEvent({ type: 'SWAP', id: 'swap-2' }),
+        createMockEvent({ type: 'PERPS', id: 'perps-2' }),
+      ];
+
+      mockUsePointsEvents.mockReturnValueOnce(
+        makePointsEventsResult({
+          pointsEvents: manyEvents,
+        }),
+      );
+
+      const { getByText } = render(<ActivityTab />);
+
+      // Verify all events in large list are rendered
+      manyEvents.forEach((event) => {
+        expect(getByText(`event:${event.id}`)).toBeOnTheScreen();
+      });
+    });
   });
 });

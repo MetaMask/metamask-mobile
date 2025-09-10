@@ -10,6 +10,25 @@ import {
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { IconName } from '@metamask/design-system-react-native';
 
+// Mock i18n strings
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const t: Record<string, string> = {
+      'rewards.events.type.swap': 'Swap',
+      'rewards.events.type.referral_action': 'Referral action',
+      'rewards.events.type.sign_up_bonus': 'Sign up bonus',
+      'rewards.events.type.loyalty_bonus': 'Loyalty bonus',
+      'rewards.events.type.one_time_bonus': 'One-time bonus',
+      'rewards.events.type.open_position': 'Opened position',
+      'rewards.events.type.close_position': 'Closed position',
+      'rewards.events.type.take_profit': 'Take profit',
+      'rewards.events.type.stop_loss': 'Stop loss',
+      'rewards.events.type.uncategorized_event': 'Uncategorized event',
+    };
+    return t[key] || key;
+  }),
+}));
+
 describe('formatUtils', () => {
   describe('formatRewardsDate', () => {
     it('formats timestamp correctly with default locale', () => {
@@ -37,15 +56,40 @@ describe('formatUtils', () => {
     const createMockEvent = (
       type: PointsEventDto['type'],
       payload: PointsEventDto['payload'] = null,
-    ): PointsEventDto => ({
-      id: 'test-id',
-      type,
-      timestamp: new Date('2024-01-15T14:30:00Z'),
-      payload,
-      value: 100,
-      bonus: null,
-      accountAddress: null,
-    });
+    ): PointsEventDto => {
+      const baseEvent = {
+        id: 'test-id',
+        timestamp: new Date('2024-01-15T14:30:00Z'),
+        value: 100,
+        bonus: null,
+        accountAddress: null,
+      };
+
+      switch (type) {
+        case 'SWAP':
+          return {
+            ...baseEvent,
+            type: 'SWAP' as const,
+            payload: payload as (PointsEventDto & { type: 'SWAP' })['payload'],
+          };
+        case 'PERPS':
+          return {
+            ...baseEvent,
+            type: 'PERPS' as const,
+            payload: payload as (PointsEventDto & { type: 'PERPS' })['payload'],
+          };
+        default:
+          return {
+            ...baseEvent,
+            type: type as
+              | 'REFERRAL'
+              | 'SIGN_UP_BONUS'
+              | 'LOYALTY_BONUS'
+              | 'ONE_TIME_BONUS',
+            payload: null,
+          };
+      }
+    };
 
     describe('SWAP events', () => {
       it('returns correct details for SWAP event', () => {
@@ -53,13 +97,15 @@ describe('formatUtils', () => {
         const event = createMockEvent('SWAP', {
           srcAsset: {
             symbol: 'ETH',
-            amount: 420000000000,
+            amount: '420000000000',
             decimals: 9,
+            type: 'eip155:1/slip44:60',
           },
           destAsset: {
             symbol: 'USDC',
-            amount: 1000000,
+            amount: '1000000',
             decimals: 6,
+            type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           },
         });
 
@@ -81,10 +127,11 @@ describe('formatUtils', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
-          token: {
+          asset: {
             symbol: 'ETH',
-            amount: 1000000, // 1 ETH with 6 decimals
-            decimals: 1000000,
+            amount: '1000000000000000000', // 1 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
           },
         });
 
@@ -104,10 +151,11 @@ describe('formatUtils', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'SHORT',
-          token: {
+          asset: {
             symbol: 'BTC',
-            amount: 500000, // 0.5 BTC with 6 decimals
-            decimals: 1000000,
+            amount: '500000000000000000', // 0.5 BTC with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:0',
           },
         });
 
@@ -126,12 +174,12 @@ describe('formatUtils', () => {
         // Given a PERPS CLOSE_POSITION event
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.CLOSE_POSITION,
-          token: {
+          asset: {
             symbol: 'ETH',
-            amount: 1000000, // 1 ETH with 6 decimals
-            decimals: 1000000,
+            amount: '1000000000000000000', // 1 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
           },
-          direction: null,
         });
 
         // When getting event details
@@ -149,12 +197,12 @@ describe('formatUtils', () => {
         // Given a PERPS TAKE_PROFIT event
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.TAKE_PROFIT,
-          token: {
+          asset: {
             symbol: 'BTC',
-            amount: 250000, // 0.25 BTC with 6 decimals
-            decimals: 1000000,
+            amount: '250000000000000000', // 0.25 BTC with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:0',
           },
-          direction: null,
         });
 
         // When getting event details
@@ -172,12 +220,12 @@ describe('formatUtils', () => {
         // Given a PERPS STOP_LOSS event
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.STOP_LOSS,
-          token: {
+          asset: {
             symbol: 'ETH',
-            amount: 500000, // 0.5 ETH with 6 decimals
-            decimals: 1000000,
+            amount: '500000000000000000', // 0.5 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
           },
-          direction: null,
         });
 
         // When getting event details
@@ -194,13 +242,17 @@ describe('formatUtils', () => {
       it('returns undefined details for PERPS event with invalid payload', () => {
         // Given a PERPS event with invalid payload
         const event = createMockEvent('PERPS', {
-          type: 'INVALID_TYPE',
-          token: {
+          type: 'INVALID_TYPE' as
+            | 'OPEN_POSITION'
+            | 'CLOSE_POSITION'
+            | 'TAKE_PROFIT'
+            | 'STOP_LOSS',
+          asset: {
             symbol: 'ETH',
-            amount: 1000000,
-            decimals: 1000000,
+            amount: '1000000000000000000',
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
           },
-          direction: null,
         });
 
         // When getting event details
@@ -214,14 +266,15 @@ describe('formatUtils', () => {
         });
       });
 
-      it('returns undefined details for PERPS event with undefined token decimals', () => {
+      it('returns undefined details for PERPS event with undefined asset decimals', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
-          token: {
+          asset: {
             symbol: 'ETH',
-            amount: 1000000,
+            amount: '1000000000000000000',
             decimals: undefined as unknown as number,
+            type: 'eip155:1/slip44:60',
           },
         });
 
@@ -229,18 +282,6 @@ describe('formatUtils', () => {
 
         expect(result).toEqual({
           title: 'Opened position',
-          details: undefined,
-          icon: IconName.Candlestick,
-        });
-      });
-
-      it('handles PERPS event with undefined payload', () => {
-        const event = createMockEvent('PERPS', undefined);
-
-        const result = getEventDetails(event);
-
-        expect(result).toEqual({
-          title: 'Uncategorized event',
           details: undefined,
           icon: IconName.Candlestick,
         });
@@ -322,10 +363,11 @@ describe('formatUtils', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
-          token: {
+          asset: {
             symbol: 'ETH',
-            amount: 0,
-            decimals: 1000000,
+            amount: '0',
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
           },
         });
 
@@ -342,10 +384,11 @@ describe('formatUtils', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
-          token: {
+          asset: {
             symbol: 'ETH',
-            amount: 1000000000000, // 1,000,000 ETH with 6 decimals
-            decimals: 1000000,
+            amount: '1000000000000000000000000', // 1,000,000 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
           },
         });
 
@@ -362,10 +405,11 @@ describe('formatUtils', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
-          token: {
+          asset: {
             symbol: 'ETH',
-            amount: 1500000, // 1.5 ETH with 6 decimals
-            decimals: 1000000,
+            amount: '1500000000000000000', // 1.5 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
           },
         });
 

@@ -1,9 +1,5 @@
 import { ControllerGetStateAction } from '@metamask/base-controller';
-import {
-  CaipAccountAddress,
-  CaipAccountId,
-  CaipAssetType,
-} from '@metamask/utils';
+import { CaipAccountId, CaipAssetType } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface LoginResponseDto {
@@ -149,9 +145,93 @@ export interface PaginatedPointsEventsDto {
 }
 
 /**
- * Points event
+ * Asset information for events
  */
-export interface PointsEventDto {
+export interface EventAssetDto {
+  /**
+   * Amount of the token as a string
+   * @example '1000000000000000000'
+   */
+  amount: string;
+
+  /**
+   * CAIP-19 asset type
+   * @example 'eip155:1/slip44:60'
+   */
+  type: string;
+
+  /**
+   * Decimals of the token
+   * @example 18
+   */
+  decimals: number;
+
+  /**
+   * Name of the token
+   * @example 'Ethereum'
+   */
+  name?: string;
+
+  /**
+   * Symbol of the token
+   * @example 'ETH'
+   */
+  symbol?: string;
+
+  /**
+   * Icon URL of the token
+   * @example 'https://example.com/icon.png'
+   */
+  iconUrl?: string;
+}
+
+/**
+ * Swap event payload
+ */
+export interface SwapEventPayload {
+  /**
+   * Source asset details
+   */
+  srcAsset: EventAssetDto;
+
+  /**
+   * Destination asset details
+   */
+  destAsset?: EventAssetDto;
+
+  /**
+   * Transaction hash
+   * @example '0x.......'
+   */
+  txHash?: string;
+}
+
+/**
+ * PERPS event payload
+ */
+export interface PerpsEventPayload {
+  /**
+   * Type of the PERPS event
+   * @example 'OPEN_POSITION'
+   */
+  type: 'OPEN_POSITION' | 'CLOSE_POSITION' | 'TAKE_PROFIT' | 'STOP_LOSS';
+
+  /**
+   * Direction of the position
+   * @example 'LONG'
+   */
+  direction?: 'LONG' | 'SHORT';
+
+  /**
+   * Asset information
+   */
+  asset: EventAssetDto;
+}
+
+/**
+ * Base points event interface
+ */
+interface BasePointsEventDto {
   /**
    * ID of the point earning activity
    * @example '01974010-377f-7553-a365-0c33c8130980'
@@ -159,23 +239,10 @@ export interface PointsEventDto {
   id: string;
 
   /**
-   * Type of point earning activity
-   * @example 'SWAP'
-   */
-  type: PointsEventEarnType;
-
-  /**
    * Timestamp of the point earning activity
    * @example '2021-01-01T00:00:00.000Z'
    */
   timestamp: Date;
-
-  /**
-   * Payload of the point earning activity
-   * @example 'string'
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: Record<string, any> | null;
 
   /**
    * Value of the point earning activity
@@ -187,17 +254,36 @@ export interface PointsEventDto {
    * Bonus of the point earning activity
    * @example {}
    */
-  bonus: {
+  bonus?: {
     bips?: number | null;
     bonuses?: string[] | null;
   } | null;
 
   /**
-   * Account address performing the activity in CAIP-10 format
-   * @example '0x1234567890123456789012345678901234567890'
+   * Account address of the point earning activity
+   * @example '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
    */
-  accountAddress: CaipAccountAddress | null;
+  accountAddress: string | null;
 }
+
+/**
+ * Points event with discriminated union for payloads
+ */
+export type PointsEventDto = BasePointsEventDto &
+  (
+    | {
+        type: 'SWAP';
+        payload: SwapEventPayload | null;
+      }
+    | {
+        type: 'PERPS';
+        payload: PerpsEventPayload | null;
+      }
+    | {
+        type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
+        payload: null;
+      }
+  );
 
 export interface EstimatePointsDto {
   /**

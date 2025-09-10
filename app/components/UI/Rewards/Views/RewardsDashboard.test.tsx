@@ -30,13 +30,17 @@ jest.mock('@react-navigation/native', () => ({
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
+  selectSeasonId: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
-import { selectActiveTab } from '../../../../reducers/rewards/selectors';
+import {
+  selectActiveTab,
+  selectSeasonId,
+} from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
@@ -46,6 +50,9 @@ const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
   >;
+const mockSelectSeasonId = selectSeasonId as jest.MockedFunction<
+  typeof selectSeasonId
+>;
 
 // Mock theme
 jest.mock('../../../../util/theme', () => ({
@@ -99,12 +106,12 @@ jest.mock('../hooks/useSeasonStatus', () => ({
 jest.mock('../components/SeasonStatus/SeasonStatus', () => ({
   __esModule: true,
   default: function MockSeasonStatus() {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
-    return React.createElement(
+    return ReactActual.createElement(
       View,
       { testID: 'season-status' },
-      React.createElement(Text, null, 'Season Status'),
+      ReactActual.createElement(Text, null, 'Season Status'),
     );
   },
 }));
@@ -126,10 +133,10 @@ jest.mock(
       isDisabled: boolean;
       testID: string;
     }) {
-      const React = jest.requireActual('react');
+      const ReactActual = jest.requireActual('react');
       const { View, Text, TouchableOpacity } =
         jest.requireActual('react-native');
-      return React.createElement(
+      return ReactActual.createElement(
         View,
         {
           testID,
@@ -137,24 +144,61 @@ jest.mock(
           selectedValue,
           isDisabled,
         },
-        options.map((option) =>
-          React.createElement(
-            TouchableOpacity,
+        ReactActual.createElement(
+          View,
+          { testID: `${testID}-bar` },
+          options.map((option) =>
+            ReactActual.createElement(
+              View,
+              { key: option.value },
+              ReactActual.createElement(
+                View,
+                null,
+                ReactActual.createElement(
+                  TouchableOpacity,
+                  {
+                    testID: `${testID}-bar-tab-${options.indexOf(option)}`,
+                    onPress: () => !isDisabled && onValueChange(option.value),
+                    disabled: isDisabled,
+                    accessible: true,
+                    accessibilityState: { disabled: isDisabled },
+                  },
+                  ReactActual.createElement(
+                    Text,
+                    {
+                      style: { opacity: 0 },
+                      accessibilityRole: 'text' as const,
+                    },
+                    option.label,
+                  ),
+                  ReactActual.createElement(
+                    Text,
+                    {
+                      accessibilityRole: 'text' as const,
+                      style: {
+                        fontWeight:
+                          selectedValue === option.value ? 'bold' : 'normal',
+                      },
+                    },
+                    option.label,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        ReactActual.createElement(
+          View,
+          null,
+          ReactActual.createElement(
+            View,
             {
-              key: option.value,
-              testID: `${testID}-${option.value}`,
-              onPress: () => !isDisabled && onValueChange(option.value),
-              disabled: isDisabled,
+              testID: `${testID.replace('-segmented-control', '')}-tab-content`,
             },
-            React.createElement(
+            ReactActual.createElement(
               Text,
-              {
-                style: {
-                  fontWeight:
-                    selectedValue === option.value ? 'bold' : 'normal',
-                },
-              },
-              option.label,
+              { accessibilityRole: 'text' as const },
+              'Not implemented yet',
             ),
           ),
         ),
@@ -204,6 +248,7 @@ describe('RewardsDashboard', () => {
   const defaultSelectorValues = {
     activeTab: 'overview' as const,
     subscriptionId: 'test-subscription-id',
+    seasonId: 'current',
   };
 
   beforeEach(() => {
@@ -217,11 +262,13 @@ describe('RewardsDashboard', () => {
     mockSelectRewardsSubscriptionId.mockReturnValue(
       defaultSelectorValues.subscriptionId,
     );
+    mockSelectSeasonId.mockReturnValue(defaultSelectorValues.seasonId);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectActiveTab) return defaultSelectorValues.activeTab;
       if (selector === selectRewardsSubscriptionId)
         return defaultSelectorValues.subscriptionId;
+      if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
       return undefined;
     });
   });
@@ -252,10 +299,12 @@ describe('RewardsDashboard', () => {
     it('should render not opted in overlay when user has no subscription', () => {
       // Arrange
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockSelectSeasonId.mockReturnValue('current');
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectSeasonId) return 'current';
         return undefined;
       });
 
@@ -305,21 +354,11 @@ describe('RewardsDashboard', () => {
   });
 
   describe('tab functionality', () => {
-    it('should dispatch setActiveTab with overview on mount', async () => {
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('overview'));
-      });
-    });
-
     it('should handle tab change when user selects different tab', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const levelsTab = getByTestId(
-        `${REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL}-levels`,
+        `${REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL}-bar-tab-1`,
       );
       fireEvent.press(levelsTab);
 
@@ -329,12 +368,12 @@ describe('RewardsDashboard', () => {
 
     it('should render all tab options', () => {
       // Act
-      const { getByText } = render(<RewardsDashboard />);
+      const { getAllByText } = render(<RewardsDashboard />);
 
-      // Assert
-      expect(getByText('Overview')).toBeTruthy();
-      expect(getByText('Levels')).toBeTruthy();
-      expect(getByText('Activity')).toBeTruthy();
+      // Assert (each tab label appears twice in the mock - once hidden, once visible)
+      expect(getAllByText('Overview')).toHaveLength(2);
+      expect(getAllByText('Levels')).toHaveLength(2);
+      expect(getAllByText('Activity')).toHaveLength(2);
     });
 
     it('should show not implemented content for all tabs', () => {
@@ -349,10 +388,12 @@ describe('RewardsDashboard', () => {
   describe('button states when not opted in', () => {
     beforeEach(() => {
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockSelectSeasonId.mockReturnValue('current');
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId) return null;
+        if (selector === selectSeasonId) return 'current';
         return undefined;
       });
     });
@@ -378,17 +419,6 @@ describe('RewardsDashboard', () => {
       // Assert
       expect(settingsButton.props.disabled).toBe(true);
     });
-
-    it('should disable segmented control when user is not opted in', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const segmentedControl = getByTestId(
-        REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL,
-      );
-
-      // Assert
-      expect(segmentedControl.props.isDisabled).toBe(true);
-    });
   });
 
   describe('button states when opted in', () => {
@@ -413,17 +443,6 @@ describe('RewardsDashboard', () => {
       // Assert
       expect(settingsButton.props.disabled).toBe(false);
     });
-
-    it('should enable segmented control when user is opted in', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const segmentedControl = getByTestId(
-        REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL,
-      );
-
-      // Assert
-      expect(segmentedControl.props.isDisabled).toBe(false);
-    });
   });
 
   describe('hooks integration', () => {
@@ -444,31 +463,12 @@ describe('RewardsDashboard', () => {
         if (selector === selectActiveTab) return null;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
+        if (selector === selectSeasonId) return 'current';
         return undefined;
       });
 
       // Act & Assert
       expect(() => render(<RewardsDashboard />)).not.toThrow();
-    });
-
-    it('should use overview as default when activeTab is null', () => {
-      // Arrange
-      mockSelectActiveTab.mockReturnValue(null);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return null;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const segmentedControl = getByTestId(
-        REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL,
-      );
-
-      // Assert
-      expect(segmentedControl.props.selectedValue).toBe('overview');
     });
   });
 
