@@ -4999,6 +4999,7 @@
     "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/gas-fee-controller" "^24.0.0"
+    "@metamask/intent-manager" "file:../../Library/Caches/Yarn/v6/npm-@metamask-bridge-controller-42.0.0-1cb1ae65-46dc-42c1-8f3d-ec7637a4cee2-1757489636346/node_modules/@metamask/Intent-manager"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/multichain-network-controller" "^0.12.0"
@@ -5013,6 +5014,7 @@
   dependencies:
     "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
+    "@metamask/intent-manager" "file:../../Library/Caches/Yarn/v6/npm-@metamask-bridge-status-controller-42.0.0-68ab8550-c1a5-4af9-ac18-2b117a760b9c-1757489636351/node_modules/@metamask/Intent-manager"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/superstruct" "^3.1.0"
@@ -5380,6 +5382,22 @@
     "@types/uuid" "^8.3.0"
     bn.js "^5.2.1"
     uuid "^8.3.2"
+
+"@metamask/intent-manager@file:../core/packages/Intent-manager":
+  version "1.0.0"
+  dependencies:
+    "@metamask/base-controller" "^8.3.0"
+    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
+
+"@metamask/intent-manager@file:../core/packages/intent-manager":
+  version "1.0.0"
+  dependencies:
+    "@metamask/base-controller" "^8.3.0"
+    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
 
 "@metamask/json-rpc-engine@^10.0.0", "@metamask/json-rpc-engine@^10.0.2", "@metamask/json-rpc-engine@^10.0.3":
   version "10.0.3"

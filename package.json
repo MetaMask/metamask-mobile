@@ -222,6 +222,7 @@
     "@metamask/assets-controllers": "^74.3.2",
     "@metamask/base-controller": "^8.3.0",
     "@metamask/bitcoin-wallet-snap": "^1.0.0",
+    "@metamask/intent-manager": "file:../core/packages/intent-manager",
     "@metamask/bridge-controller": "file:../core/packages/bridge-controller",
     "@metamask/bridge-status-controller": "file:../core/packages/bridge-status-controller",
     "@metamask/chain-agnostic-permission": "^1.1.0",
@@ -729,7 +730,10 @@
       "appium-xcuitest-driver>appium-ios-simulator>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
-      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false
+      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
+      "@metamask/notification-services-controller>firebase>@firebase/util": false,
+      "@storybook/builder-webpack5>@storybook/core-common>esbuild": false,
+      "eslint-import-resolver-typescript>unrs-resolver": false
     }
   },
   "packageManager": "yarn@1.22.22",
