@@ -4864,16 +4864,16 @@
     "@metamask/snaps-utils" "^11.0.0"
     lodash "^4.17.21"
 
-"@metamask/accounts-controller@^32.0.1":
-  version "32.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.2.tgz#2cb1cf84710813d27dba621deade3e698b44d532"
-  integrity sha512-zyn+tDfiyVRTMxn0rt/n0p+Uowaf3I3Rua1QDGXJMh4Vo+PN622g30AF/A8QwpMNmx61PX6V2rje1TSK/RUO0A==
+"@metamask/accounts-controller@^33.0.0":
+  version "33.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-33.0.0.tgz#0dbdc18672f2cbcdb48c71a34c9c6e4eecc3c3c9"
+  integrity sha512-KgM5x2TXd8rWHUo87TbJh1M1dvnd2yz1lOVDzee4fswRc8TDkRUJjTlBnYeYXWXupASgGoyNp2e5lxWpmMSzCA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/eth-snap-keyring" "^16.0.0"
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-internal-api" "^8.0.0"
+    "@metamask/base-controller" "^8.1.0"
+    "@metamask/eth-snap-keyring" "^16.1.0"
+    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-internal-api" "^8.1.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
@@ -5641,14 +5641,14 @@
     "@solana/addresses" "^2.0.0"
     lodash "^4.17.21"
 
-"@metamask/multichain-transactions-controller@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-4.0.1.tgz#029c2fd2dfd73c66eb5bf27cd90613f58eaa0e55"
-  integrity sha512-AyfoUHv2ZD6+BAg69bY6Pla3msKDOKxO0Fe3cexpQSNPqWI8yHaNJdqkpci1RghttXq9GiYRQNs6UQHGs6JKoA==
+"@metamask/multichain-transactions-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-5.0.0.tgz#e22d6e4cd75753079c237a6d4b13d12d42da0458"
+  integrity sha512-lXL+9besuuYoORbtPRPKFZw13/paJa/f4U0GgPfpUP6IBYLafkdVBMg0FJGvsZOE+fcegeBGGXi12iIAVBFlGA==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-internal-api" "^8.0.0"
+    "@metamask/base-controller" "^8.1.0"
+    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-internal-api" "^8.1.0"
     "@metamask/keyring-snap-client" "^7.0.0"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -5973,13 +5973,13 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@2.6.0":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-2.6.0.tgz#0e0145ece5d0963626cfe788fa574608e0cde64d"
-  integrity sha512-oD+ywbKiTnOszOZSHIEf32dfNVo1RvtBIdL71t6GvUlhExAIQXT69pbc89oVvmnGXuOypN3rYyBYYtCWf2RIBg==
+"@metamask/seedless-onboarding-controller@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-4.0.0.tgz#a433f06dbe0d72e77af3018d7d9352a55035ac22"
+  integrity sha512-coLkKhUQ3Eg5MwpHTm/UxPCFLmhPITziKt78I+Vx/0xCJghNsb59K9vJlWaVx8+boESISj5YD6K2KI2NTwNZeA==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.0"
-    "@metamask/base-controller" "^8.1.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/toprf-secure-backup" "^0.7.1"
     "@metamask/utils" "^11.4.2"
     "@noble/ciphers" "^1.3.0"

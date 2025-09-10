@@ -104,7 +104,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     if (widthRef.current > 0) {
       // Handle case where min and max are equal (e.g., zero balance)
       const range = maximumValue - minimumValue;
-      const percentage = range === 0 ? 0 : (value - minimumValue) / range;
+      const percentage =
+        range === 0 ? 0 : Math.min(1, (value - minimumValue) / range);
       const newPosition = percentage * widthRef.current;
       // Direct assignment for instant update, no spring animation
       translateX.value = newPosition;
@@ -255,10 +256,12 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
           {showPercentageLabels &&
             percentageSteps.map((percent) => {
               // Don't show dots at 0% and 100%
-              if (percent === 0 || percent === 100) return null;
 
               let dotStyle;
               switch (percent) {
+                case 0:
+                  dotStyle = styles.percentageDot0;
+                  break;
                 case 25:
                   dotStyle = styles.percentageDot25;
                   break;
@@ -267,6 +270,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
                   break;
                 case 75:
                   dotStyle = styles.percentageDot75;
+                  break;
+                case 100:
+                  dotStyle = styles.percentageDot100;
                   break;
                 default:
                   dotStyle = {};

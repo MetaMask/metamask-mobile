@@ -1217,6 +1217,23 @@ export class PerpsController extends BaseController<
         }),
       ]);
 
+      // Add safety check for accountState to prevent TypeError
+      if (!accountState) {
+        const error = new Error(
+          'Failed to get account state: received null/undefined response',
+        );
+
+        // Track null account state errors in Sentry for API monitoring
+        Logger.error(error, {
+          message: 'Received null/undefined account state from provider',
+          context: 'PerpsController.getAccountState',
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        });
+
+        throw error;
+      }
+
       // fallback to the current account total value if possible
       const historicalPortfolioToUse: HistoricalPortfolioResult =
         historicalPortfolio ?? {
