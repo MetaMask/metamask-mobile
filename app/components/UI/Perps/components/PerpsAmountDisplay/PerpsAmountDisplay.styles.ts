@@ -15,13 +15,11 @@ const createStyles = (colors: Theme['colors']) =>
       fontSize: 54,
       fontWeight: '600',
       color: colors.text.default,
-      lineHeight: 72,
     },
     amountValueToken: {
-      fontSize: 48,
+      fontSize: 54,
       fontWeight: '600',
       color: colors.text.default,
-      lineHeight: 56,
       letterSpacing: -0.5,
     },
     amountValueActive: {
