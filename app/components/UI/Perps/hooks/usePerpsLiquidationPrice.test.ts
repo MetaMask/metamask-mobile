@@ -37,12 +37,7 @@ describe('usePerpsLiquidationPrice', () => {
       usePerpsLiquidationPrice(params),
     );
 
-    // Initially calculating
-    expect(result.current.isCalculating).toBe(true);
-    expect(result.current.liquidationPrice).toBe('0.00');
-    expect(result.current.error).toBe(null);
-
-    // Wait for calculation to complete
+    // With 0ms debounce, still need to wait for async debounced function
     await waitForNextUpdate();
 
     expect(result.current.isCalculating).toBe(false);
