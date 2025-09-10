@@ -3,6 +3,7 @@ import Engine from '../../../core/Engine';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import Logger from 'app/util/Logger';
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
@@ -19,6 +20,7 @@ export default function useSubmitBridgeTx() {
       },
       stxEnabled,
     );
+    Logger.log('Bridge transaction submitted', txResult);
 
     return txResult;
   };

@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
-import { PerpsMarketTabsProps } from './PerpsMarketTabs.types';
+import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -25,19 +25,27 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
+import { getOrderDirection } from '../../utils/orderUtils';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { OrderDirection } from '../../types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
+  symbol,
   marketStats,
   position,
   isLoadingPosition,
   unfilledOrders = [],
   onActiveTabChange,
+  initialTab,
   nextFundingTime,
   fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasUserInteracted = useRef(false);
+  const hasSetInitialTab = useRef(false);
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -81,14 +89,33 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
 
-  // Initialize with statistics by default
-  const [activeTabId, setActiveTabId] = useState('statistics');
+  // Initialize with initialTab or statistics by default
+  const [activeTabId, setActiveTabId] = useState<PerpsTabId>(
+    initialTab || 'statistics',
+  );
+
+  // Handle initialTab when it becomes available after data loads
+  useEffect(() => {
+    if (initialTab && !hasUserInteracted.current && !hasSetInitialTab.current) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(initialTab)) {
+        setActiveTabId(initialTab as PerpsTabId);
+        onActiveTabChange?.(initialTab);
+        hasSetInitialTab.current = true;
+      }
+    }
+  }, [initialTab, tabs, onActiveTabChange]);
 
   // Set initial tab based on data availability
   // Now we can properly distinguish between loading and empty states
   useEffect(() => {
     // If user has interacted, respect their choice
     if (hasUserInteracted.current) {
+      return;
+    }
+
+    // If we've already set the initial tab from props, don't override it
+    if (hasSetInitialTab.current) {
       return;
     }
 
@@ -119,7 +146,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         previousTab: activeTabId,
         isLoadingPosition,
       });
-      setActiveTabId(targetTabId);
+      setActiveTabId(targetTabId as PerpsTabId);
       onActiveTabChange?.(targetTabId);
     }
   }, [
@@ -136,7 +163,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!tabIds.includes(activeTabId)) {
       // Switch to first available tab if current tab is hidden
       const newTabId = tabs[0]?.id || 'statistics';
-      setActiveTabId(newTabId);
+      setActiveTabId(newTabId as PerpsTabId);
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
@@ -145,7 +172,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const handleTabChange = useCallback(
     (tabId: string) => {
       hasUserInteracted.current = true; // Mark that user has interacted
-      setActiveTabId(tabId);
+      setActiveTabId(tabId as PerpsTabId);
       onActiveTabChange?.(tabId);
     },
     [onActiveTabChange],
@@ -162,19 +189,64 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const handleOrderCancel = useCallback(async (orderToCancel: Order) => {
-    try {
-      DevLogger.log('Canceling order:', orderToCancel.orderId);
-      const controller = Engine.context.PerpsController;
-      await controller.cancelOrder({
-        orderId: orderToCancel.orderId,
-        coin: orderToCancel.symbol,
-      });
-      DevLogger.log('Order cancellation request sent');
-    } catch (error) {
-      DevLogger.log('Failed to cancel order:', error);
-    }
-  }, []);
+  const handleOrderCancel = useCallback(
+    async (orderToCancel: Order) => {
+      try {
+        DevLogger.log('Canceling order:', orderToCancel.orderId);
+        const controller = Engine.context.PerpsController;
+
+        const orderDirection = getOrderDirection(
+          orderToCancel.side,
+          position?.size,
+        );
+
+        showToast(
+          PerpsToastOptions.orderManagement.limit.cancellationInProgress(
+            orderDirection as OrderDirection,
+            orderToCancel.remainingSize,
+            orderToCancel.symbol,
+          ),
+        );
+
+        const result = await controller.cancelOrder({
+          orderId: orderToCancel.orderId,
+          coin: orderToCancel.symbol,
+        });
+
+        if (result.success) {
+          if (orderToCancel.reduceOnly) {
+            // Distinction is important since reduce-only orders don't require margin.
+            // So we shouldn't display "Your funds are available to trade" in the toast.
+            showToast(
+              PerpsToastOptions.orderManagement.limit.reduceOnlyClose
+                .cancellationSuccess,
+            );
+          } else {
+            // In regular limit order, funds are "locked up" and the "funds are available to trade" text in toast makes sense.
+            showToast(
+              PerpsToastOptions.orderManagement.limit.cancellationSuccess,
+            );
+          }
+          return;
+        }
+
+        // Open order cancellation failed
+        // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
+        if (orderToCancel.reduceOnly) {
+          showToast(
+            PerpsToastOptions.orderManagement.limit.reduceOnlyClose
+              .cancellationFailed,
+          );
+        } else {
+          // Display "Funds have been returned to you" toast
+          showToast(PerpsToastOptions.orderManagement.limit.cancellationFailed);
+        }
+      } catch (error) {
+        DevLogger.log('Failed to cancel order:', error);
+      }
+    },
+    [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
+  );
 
   const renderTooltipModal = useCallback(() => {
     if (!selectedTooltip) return null;
@@ -236,6 +308,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         </Text>
 
         <PerpsMarketStatisticsCard
+          symbol={symbol}
           marketStats={marketStats}
           onTooltipPress={handleTooltipPress}
           nextFundingTime={nextFundingTime}
@@ -302,6 +375,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             testID={PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT}
           >
             <PerpsMarketStatisticsCard
+              symbol={symbol}
               marketStats={marketStats}
               onTooltipPress={handleTooltipPress}
               nextFundingTime={nextFundingTime}

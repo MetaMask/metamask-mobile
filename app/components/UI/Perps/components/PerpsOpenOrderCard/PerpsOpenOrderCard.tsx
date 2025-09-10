@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -30,6 +30,9 @@ import type {
 } from './PerpsOpenOrderCard.types';
 import BigNumber from 'bignumber.js';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import { useSelector } from 'react-redux';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 
 /**
  * PerpsOpenOrderCard Component
@@ -65,6 +68,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   rightAccessory,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+  const isEligible = useSelector(selectPerpsEligibility);
 
   // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
@@ -105,15 +112,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   }
 
   const handleCancelPress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
       orderId: order.orderId,
     });
-    if (onCancel) {
-      onCancel(order);
-    } else {
-      // Future: Navigate to order cancellation flow
-      DevLogger.log('PerpsOpenOrderCard: No onCancel handler provided');
-    }
+
+    onCancel?.(order);
   };
 
   return (
@@ -268,6 +276,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>
+      )}
+
+      {isEligibilityModalVisible && (
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={() => setIsEligibilityModalVisible(false)}
+            contentKey={'geo_block'}
+          />
+        </Modal>
       )}
     </TouchableOpacity>
   );

@@ -5,7 +5,6 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -156,16 +155,8 @@ export const importWalletWithRecoveryPhrase = async ({
 }) => {
   // tap on import seed phrase button
 
-  if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(
-      OnboardingCarouselView.container,
-      {
-        description: 'Onboarding Carousel should be visible',
-      },
-    );
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await acceptTermOfUse();
-  }
+  // OnboardingCarousel has been removed from the navigation flow
+  // The app now starts directly with the Onboarding page
 
   await Assertions.expectElementToBeVisible(
     OnboardingView.existingWalletButton,
@@ -202,15 +193,18 @@ export const importWalletWithRecoveryPhrase = async ({
       await MetaMetricsOptIn.tapNoThanksButton();
     }
   }
+  // Dealing with flakiness
+  await device.disableSynchronization();
+
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  // await skipNotificationsDeviceSettings();
-
-  // dealing with flakiness on bitrise.
+  // Dealing with flakiness
+  // Workaround for token list hanging
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -238,10 +232,6 @@ export const importWalletWithRecoveryPhrase = async ({
  */
 export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
-
-  // tap on import seed phrase button
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -282,14 +272,17 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
+  await device.disableSynchronization(); // Detox is hanging after wallet creation
+
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
 };
 
 /**
@@ -387,6 +380,22 @@ export const loginToApp = async (password?: string) => {
     description: 'Login View password input should be visible',
   });
   await LoginView.enterPassword(PASSWORD);
+
+  // Wait for wallet to load and perform pull-to-refresh to ensure token list is updated
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description: 'Wallet container should be visible after login',
+  });
+
+  await device.disableSynchronization(); // Workaround for tokens list hanging after login
+  try {
+    await WalletView.pullToRefreshTokensList();
+    logger.debug('Pull-to-refresh completed after login');
+    await device.enableSynchronization();
+  } catch (error) {
+    logger.warn('Pull-to-refresh failed after login:', error);
+    // Continue even if pull-to-refresh fails
+    await device.enableSynchronization();
+  }
 };
 
 /**

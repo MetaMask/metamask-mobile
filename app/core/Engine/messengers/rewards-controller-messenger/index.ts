@@ -8,6 +8,13 @@ import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
   RewardsDataServiceGetPerpsDiscountAction,
+  RewardsDataServiceGetSeasonStatusAction,
+  RewardsDataServiceGetReferralDetailsAction,
+  RewardsDataServiceGenerateChallengeAction,
+  RewardsDataServiceOptinAction,
+  RewardsDataServiceLogoutAction,
+  RewardsDataServiceFetchGeoLocationAction,
+  RewardsDataServiceValidateReferralCodeAction,
 } from '../../controllers/rewards-controller/services';
 import {
   RewardsControllerActions,
@@ -26,7 +33,14 @@ type AllowedActions =
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction;
+  | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceGetSeasonStatusAction
+  | RewardsDataServiceGetReferralDetailsAction
+  | RewardsDataServiceGenerateChallengeAction
+  | RewardsDataServiceOptinAction
+  | RewardsDataServiceLogoutAction
+  | RewardsDataServiceFetchGeoLocationAction
+  | RewardsDataServiceValidateReferralCodeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -38,7 +52,7 @@ export type RewardsControllerMessenger = RestrictedMessenger<
   RewardsControllerActions | AllowedActions,
   RewardsControllerEvents | AllowedEvents,
   AllowedActions['type'],
-  AllowedEvents['type']
+  AllowedEvents['type'] // ← This was wrong!
 >;
 
 export function getRewardsControllerMessenger(
@@ -55,6 +69,13 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:login',
       'RewardsDataService:estimatePoints',
       'RewardsDataService:getPerpsDiscount',
+      'RewardsDataService:getSeasonStatus',
+      'RewardsDataService:getReferralDetails',
+      'RewardsDataService:generateChallenge',
+      'RewardsDataService:optin',
+      'RewardsDataService:logout',
+      'RewardsDataService:fetchGeoLocation',
+      'RewardsDataService:validateReferralCode',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',

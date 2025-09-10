@@ -27,7 +27,10 @@ import {
 } from '../../utils/formatUtils';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import styleSheet from './PerpsPositionCard.styles';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -46,6 +49,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+
+  const isEligible = useSelector(selectPerpsEligibility);
 
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
@@ -87,11 +95,17 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market: marketData,
+        initialTab: 'position',
       },
     });
   };
 
   const handleClosePress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     DevLogger.log('PerpsPositionCard: Navigating to close position screen');
     navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
   };
@@ -104,6 +118,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
 
   const handleEditTPSL = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     setSelectedPosition(position);
     setIsTPSLVisible(true);
   };
@@ -128,21 +147,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {position.coin} {position.leverage.value}x{' '}
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {direction}
                 </Text>
               </Text>
             </View>
             <View style={styles.headerRow}>
-              <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Alternative}
+              >
                 {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>
@@ -185,10 +201,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.entry_price')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {formatPrice(position.entryPrice, {
                     minimumDecimals: 2,
                     maximumDecimals: 2,
@@ -202,10 +215,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.liquidationPrice
                     ? formatPrice(position.liquidationPrice, {
                         minimumDecimals: 2,
@@ -221,10 +231,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.margin')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {formatPrice(position.marginUsed, {
                     minimumDecimals: 2,
                     maximumDecimals: 2,
@@ -241,10 +248,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.take_profit')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.takeProfitPrice
                     ? formatPrice(position.takeProfitPrice, {
                         minimumDecimals: 2,
@@ -260,10 +264,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.stop_loss')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.stopLossPrice
                     ? formatPrice(position.stopLossPrice, {
                         minimumDecimals: 2,
@@ -280,13 +281,20 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.funding_cost')}
                 </Text>
                 <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodySM}
+                  color={
+                    parseFloat(position.cumulativeFunding.sinceOpen) >= 0
+                      ? TextColor.Success
+                      : TextColor.Error
+                  }
                 >
-                  {formatPrice(position.cumulativeFunding.sinceOpen, {
-                    minimumDecimals: 2,
-                    maximumDecimals: 2,
-                  })}
+                  {formatPrice(
+                    Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
+                    {
+                      minimumDecimals: 2,
+                      maximumDecimals: 2,
+                    },
+                  )}
                 </Text>
               </View>
             </View>
@@ -340,6 +348,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             initialTakeProfitPrice={selectedPosition.takeProfitPrice}
             initialStopLossPrice={selectedPosition.stopLossPrice}
             isUpdating={isUpdating}
+          />
+        </Modal>
+      )}
+      {isEligibilityModalVisible && (
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={() => setIsEligibilityModalVisible(false)}
+            contentKey={'geo_block'}
           />
         </Modal>
       )}

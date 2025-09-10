@@ -63,6 +63,16 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  TRANSACTION_DETAILS: 'TransactionDetails',
+  REWARDS_VIEW: 'RewardsView',
+  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
+  REWARDS_DASHBOARD: 'RewardsDashboard',
+  REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
+  REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
+  REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
+  REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
+  REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
+  REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -80,6 +90,7 @@ const Routes = {
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
     DEEP_LINK_MODAL: 'DeepLinkModal',
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
+    REWARDS_ERROR_MODAL: 'RewardsErrorModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -159,7 +170,9 @@ const Routes = {
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
-      EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
+      ACCOUNT_ACTIONS: 'MultichainAccountActions',
+      EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
+      LEGACY_EDIT_ACCOUNT_NAME: 'LegacyEditMultichainAccountName',
       EDIT_WALLET_NAME: 'EditWalletName',
       SHARE_ADDRESS: 'ShareAddress',
       SHARE_ADDRESS_QR: 'ShareAddressQR',
@@ -226,6 +239,7 @@ const Routes = {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
       BALANCE_MODAL: 'PerpsBalanceModal',
+      GTM_MODAL: 'PerpsGTMModal',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -310,7 +324,6 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
-  REWARDS_VIEW: 'RewardsView',
 };
 
 export default Routes;

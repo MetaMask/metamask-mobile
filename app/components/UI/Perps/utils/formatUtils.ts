@@ -2,6 +2,11 @@
  * Shared formatting utilities for Perps components
  */
 import { formatWithThreshold } from '../../../../util/assets';
+import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
+import {
+  getIntlNumberFormatter,
+  getIntlDateTimeFormatter,
+} from '../../../../util/intl';
 
 /**
  * Formats a balance value as USD currency with appropriate decimal places
@@ -82,7 +87,7 @@ export const formatPnl = (pnl: string | number): string => {
     return '$0.00';
   }
 
-  const formatted = new Intl.NumberFormat('en-US', {
+  const formatted = getIntlNumberFormatter('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
@@ -112,6 +117,37 @@ export const formatPercentage = (
   }
 
   return `${num >= 0 ? '+' : ''}${num.toFixed(decimals)}%`;
+};
+
+/**
+ * Formats funding rate for display
+ * @param value - Raw funding rate value (decimal, not percentage)
+ * @param options - Optional formatting options
+ * @param options.showZero - Whether to return zero display value for zero/undefined (default: true)
+ * @returns Formatted funding rate as percentage string
+ * @example formatFundingRate(0.0005) => "0.0500%"
+ * @example formatFundingRate(-0.0001) => "-0.0100%"
+ * @example formatFundingRate(undefined) => "0.0000%"
+ */
+export const formatFundingRate = (
+  value?: number | null,
+  options?: { showZero?: boolean },
+): string => {
+  const showZero = options?.showZero ?? true;
+
+  if (value === undefined || value === null) {
+    return showZero ? FUNDING_RATE_CONFIG.ZERO_DISPLAY : '';
+  }
+
+  const percentage = value * FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
+  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.DECIMALS);
+
+  // Check if the result is effectively zero
+  if (showZero && parseFloat(formatted) === 0) {
+    return FUNDING_RATE_CONFIG.ZERO_DISPLAY;
+  }
+
+  return `${formatted}%`;
 };
 
 /**
@@ -331,12 +367,12 @@ export const parsePercentageString = (formattedValue: string): number => {
  */
 export const formatTransactionDate = (timestamp: number): string => {
   const date = new Date(timestamp);
-  const dateStr = new Intl.DateTimeFormat('en-US', {
+  const dateStr = getIntlDateTimeFormatter('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   }).format(date);
-  const timeStr = new Intl.DateTimeFormat('en-US', {
+  const timeStr = getIntlDateTimeFormatter('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -374,10 +410,10 @@ export const formatDateSection = (timestamp: number): string => {
     return 'Yesterday';
   }
 
-  const month = new Intl.DateTimeFormat('en-US', {
+  const month = getIntlDateTimeFormatter('en-US', {
     month: 'short',
   }).format(new Date(timestamp));
-  const day = new Intl.DateTimeFormat('en-US', {
+  const day = getIntlDateTimeFormatter('en-US', {
     day: 'numeric',
   }).format(new Date(timestamp));
 

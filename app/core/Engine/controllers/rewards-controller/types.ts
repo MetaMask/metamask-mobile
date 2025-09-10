@@ -1,15 +1,40 @@
 import { ControllerGetStateAction } from '@metamask/base-controller';
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
 }
 
-export interface SubscriptionDto {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionDto = {
   id: string;
   referralCode: string;
-  [key: string]: string;
+  accounts: {
+    address: string;
+    chainId: number;
+  }[];
+};
+
+export interface GenerateChallengeDto {
+  address: string;
+}
+
+export interface ChallengeResponseDto {
+  id: string;
+  message: string;
+  domain?: string;
+  address?: string;
+  issuedAt?: string;
+  expirationTime?: string;
+  nonce?: string;
+}
+
+export interface LoginDto {
+  challengeId: string;
+  signature: string;
+  referralCode?: string;
 }
 
 export interface EstimateAssetDto {
@@ -17,7 +42,7 @@ export interface EstimateAssetDto {
    * Asset identifier in CAIP-19 format
    * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
    */
-  id: string;
+  id: CaipAssetType;
   /**
    * Amount of the asset as a string
    * @example '25739959426'
@@ -131,27 +156,98 @@ export interface EstimatedPointsDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type RewardsSubscriptionState = {
-  subscription: SubscriptionDto;
-  // season status
-  // referral details
+export type SeasonTierDto = {
+  id: string;
+  name: string;
+  pointsNeeded: number;
+  // Add other tier properties as needed
+};
+
+export interface SeasonDto {
+  id: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  tiers: SeasonTierDto[];
+}
+
+export interface SeasonStatusBalanceDto {
+  total: number;
+  refereePortion: number;
+  updatedAt?: Date;
+}
+
+export interface SeasonStatusDto {
+  season: SeasonDto;
+  balance: SeasonStatusBalanceDto;
+  currentTierId: string;
+}
+
+export interface SubscriptionReferralDetailsDto {
+  referralCode: string;
+  totalReferees: number;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionReferralDetailsState = {
+  referralCode: string;
+  totalReferees: number;
+  lastFetched?: number;
+};
+
+// Serializable versions for state storage (Date objects converted to timestamps)
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonDtoState = {
+  id: string;
+  name: string;
+  startDate: number; // timestamp
+  endDate: number; // timestamp
+  tiers: SeasonTierDto[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonStatusBalanceDtoState = {
+  total: number;
+  refereePortion: number;
+  updatedAt?: number; // timestamp
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonTierState = {
+  currentTier: SeasonTierDto;
+  nextTier: SeasonTierDto | null;
+  nextTierPointsNeeded: number | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonStatusState = {
+  season: SeasonDtoState;
+  balance: SeasonStatusBalanceDtoState;
+  tier: SeasonTierState;
+  lastFetched?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
-  hasOptedIn: boolean;
+  hasOptedIn?: boolean;
   subscriptionId: string | null;
-  lastAuthTime: number;
+  lastCheckedAuth: number;
+  lastCheckedAuthError: boolean;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
-  lastAuthenticatedAccount: RewardsAccountState | null;
+  activeAccount: RewardsAccountState | null;
   accounts: { [account: CaipAccountId]: RewardsAccountState };
-  subscriptions: { [subscriptionId: string]: RewardsSubscriptionState };
+  subscriptions: { [subscriptionId: string]: SubscriptionDto };
+  seasons: { [seasonId: string]: SeasonDtoState };
+  subscriptionReferralDetails: {
+    [subscriptionId: string]: SubscriptionReferralDetailsState;
+  };
+  seasonStatuses: { [compositeId: string]: SeasonStatusState };
 };
 
 /**
@@ -169,6 +265,14 @@ export interface Patch {
   op: 'replace' | 'add' | 'remove';
   path: string[];
   value?: unknown;
+}
+
+/**
+ * Action for updating state with opt-in response
+ */
+export interface RewardsControllerOptInAction {
+  type: 'RewardsController:optIn';
+  handler: (account: InternalAccount, referralCode?: string) => Promise<void>;
 }
 
 /**
@@ -195,6 +299,20 @@ export interface PerpsDiscountData {
    * @example 5.5
    */
   discount: number;
+}
+
+/**
+ * Geo rewards metadata containing location and support info
+ */
+export interface GeoRewardsMetadata {
+  /**
+   * The geographic location string (e.g., 'US', 'CA-ON', 'FR')
+   */
+  geoLocation: string;
+  /**
+   * Whether the location is allowed for opt-in
+   */
+  optinAllowedForGeo: boolean;
 }
 
 /**
@@ -230,6 +348,51 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
 }
 
 /**
+ * Action for getting season status with caching
+ */
+export interface RewardsControllerGetSeasonStatusAction {
+  type: 'RewardsController:getSeasonStatus';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<SeasonStatusState | null>;
+}
+
+/**
+ * Action for getting referral details with caching
+ */
+export interface RewardsControllerGetReferralDetailsAction {
+  type: 'RewardsController:getReferralDetails';
+  handler: (
+    subscriptionId: string,
+  ) => Promise<SubscriptionReferralDetailsState | null>;
+}
+
+/**
+ * Action for logging out a user
+ */
+export interface RewardsControllerLogoutAction {
+  type: 'RewardsController:logout';
+  handler: () => Promise<void>;
+}
+
+/**
+ * Action for getting geo rewards metadata
+ */
+export interface RewardsControllerGetGeoRewardsMetadataAction {
+  type: 'RewardsController:getGeoRewardsMetadata';
+  handler: () => Promise<GeoRewardsMetadata>;
+}
+
+/**
+ * Action for validating referral codes
+ */
+export interface RewardsControllerValidateReferralCodeAction {
+  type: 'RewardsController:validateReferralCode';
+  handler: (code: string) => Promise<boolean>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -237,4 +400,10 @@ export type RewardsControllerActions =
   | RewardsControllerGetHasAccountOptedInAction
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
-  | RewardsControllerIsRewardsFeatureEnabledAction;
+  | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerGetSeasonStatusAction
+  | RewardsControllerGetReferralDetailsAction
+  | RewardsControllerOptInAction
+  | RewardsControllerLogoutAction
+  | RewardsControllerGetGeoRewardsMetadataAction
+  | RewardsControllerValidateReferralCodeAction;
