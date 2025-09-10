@@ -43,9 +43,13 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     const formattedPrice = formatPerpsFiat(currentPrice, {
       ranges: PRICE_RANGES_DETAILED_VIEW,
     });
+    const comparisonPrice = formatPerpsFiat(currentPrice, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
 
     // Only update if price actually changed
-    if (livePrice.price === market.price) {
+    if (comparisonPrice === market.price) {
       return market;
     }
 
