@@ -10,7 +10,6 @@ import {
   View,
   Image,
   Linking,
-  Pressable,
   Platform,
   ImageStyle,
   ViewStyle,
