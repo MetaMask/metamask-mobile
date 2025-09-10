@@ -397,10 +397,10 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.localState.isOAuthLoginAttempted) {
+    if (OAuthLoginService.getOAuthLoginAttempted()) {
       // Disable metrics
       await this.props.metrics.enable(false);
-      OAuthLoginService.localState.isOAuthLoginAttempted = false;
+      OAuthLoginService.setOAuthLoginAttempted(false);
     }
 
     trace({ name: TraceName.OnboardingCreateWallet });
@@ -428,10 +428,10 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.localState.isOAuthLoginAttempted) {
-      // Disable metrics for OAuth users
+    if (OAuthLoginService.getOAuthLoginAttempted()) {
+      // Disable metrics
       await this.props.metrics.enable(false);
-      OAuthLoginService.localState.isOAuthLoginAttempted = false;
+      OAuthLoginService.setOAuthLoginAttempted(false);
     }
     const action = async () => {
       trace({
@@ -544,7 +544,7 @@ class Onboarding extends PureComponent {
     // Enable metrics for OAuth users
     await this.props.metrics.enable();
     await setupSentry();
-    OAuthLoginService.localState.isOAuthLoginAttempted = true;
+    OAuthLoginService.setOAuthLoginAttempted(true);
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -692,7 +692,7 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = (actionType) => {
+  handleCtaActions = async (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
@@ -706,9 +706,9 @@ class Onboarding extends PureComponent {
       });
       // else
     } else if (actionType === 'create') {
-      this.onPressCreate();
+      await this.onPressCreate();
     } else {
-      this.onPressImport();
+      await this.onPressImport();
     }
   };
 
