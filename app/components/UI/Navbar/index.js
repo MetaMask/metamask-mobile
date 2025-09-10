@@ -2183,6 +2183,9 @@ export const getSettingsNavigationOptions = (
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
+    accessories: {
+      marginHorizontal: 8,
+    },
   });
   return {
     headerLeft: null,
