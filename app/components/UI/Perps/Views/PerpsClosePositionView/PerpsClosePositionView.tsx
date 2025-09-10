@@ -564,7 +564,6 @@ const PerpsClosePositionView: React.FC = () => {
         <PerpsAmountDisplay
           label={strings('perps.close_position.select_amount')}
           amount={displayMode === 'usd' ? closeAmountUSDString : closeAmount}
-          maxAmount={positionValue}
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
