@@ -317,10 +317,7 @@ const RootRPCMethodsUI = (props) => {
                 throw transactionMeta.error;
               }
             } catch (error) {
-              console.error(
-                error,
-                'error while trying to send transaction (Main)',
-              );
+              console.error(error, 'error while trying to send transaction');
             }
           },
           (transactionMeta) => transactionMeta.id === transactionId,
