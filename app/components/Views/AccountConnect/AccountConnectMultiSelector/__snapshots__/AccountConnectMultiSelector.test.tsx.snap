@@ -5,8 +5,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#ffffff",
-        "flex": 1,
         "height": "100%",
       }
     }
