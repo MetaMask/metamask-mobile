@@ -302,6 +302,7 @@ describe('toTokenMinimalUnit', () => {
     expect(toTokenMinimalUnit('0', 2)).toEqual(new BN('0'));
     expect(toTokenMinimalUnit('', 2)).toEqual(new BN('0'));
     expect(toTokenMinimalUnit('0.75', 6)).toEqual(new BN('750000'));
+    expect(toTokenMinimalUnit('0.750251', 2)).toEqual(new BN('75'));
   });
 });
 
