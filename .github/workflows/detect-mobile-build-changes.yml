@@ -75,6 +75,9 @@ jobs:
               - 'patches/**'                       # Dependency patches
               - 'ppom/**'                          # PPOM sub-project
 
+            catch_all:
+              - '**/*'                             # Matches everything for conservative fallback
+
       - name: Set final outputs
         id: set-outputs
         run: |
@@ -83,6 +86,7 @@ jobs:
           ios="${{ steps.filter.outputs.ios }}"
           shared="${{ steps.filter.outputs.shared }}"
           ignore="${{ steps.filter.outputs.ignore }}"
+          catch_all="${{ steps.filter.outputs.catch_all }}"
           
           # State Machine for Build Decisions:
           # 1. Purely ignored changes -> Skip both
@@ -90,29 +94,55 @@ jobs:
           # 3. Android-only changes -> Android only
           # 4. iOS-only changes -> iOS only
           # 5. Unmatched/new files -> Conservative (Build both)
+          # 6. Ignore + new/unmatched files -> Build both (conservative)
 
-          # Determine build decisions
-          if [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' ]]; then
-            echo "Ignoring - no mobile code changes"
-            android_final="false"
-            ios_final="false"
+          # Determine state
+          if [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$catch_all" == "$ignore" ]]; then
+            state="PURE_IGNORE"
           elif [[ "$shared" == 'true' ]]; then
-            echo "Building both platforms"
-            android_final="true"
-            ios_final="true"
+            state="SHARED"
           elif [[ "$android" == 'true' && "$ios" != 'true' ]]; then
-            echo "Building Android only"
-            android_final="true"
-            ios_final="false"
+            state="ANDROID_ONLY"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
-            echo "Building iOS only"
-            android_final="false"
-            ios_final="true"
+            state="IOS_ONLY"
+          elif [[ "$ignore" == 'true' ]]; then
+            state="IGNORE_WITH_NEW"
           else
-            echo "Building both platforms (conservative)"
-            android_final="true"
-            ios_final="true"
+            state="CONSERVATIVE"
           fi
+
+          case "$state" in
+            "PURE_IGNORE")
+              echo "Ignoring - no mobile code changes"
+              android_final="false"
+              ios_final="false"
+              ;;
+            "SHARED")
+              echo "Building both platforms"
+              android_final="true"
+              ios_final="true"
+              ;;
+            "ANDROID_ONLY")
+              echo "Building Android only"
+              android_final="true"
+              ios_final="false"
+              ;;
+            "IOS_ONLY")
+              echo "Building iOS only"
+              android_final="false"
+              ios_final="true"
+              ;;
+            "IGNORE_WITH_NEW")
+              echo "Building both platforms (ignore + new files)"
+              android_final="true"
+              ios_final="true"
+              ;;
+            "CONSERVATIVE")
+              echo "Building both platforms (conservative)"
+              android_final="true"
+              ios_final="true"
+              ;;
+          esac
 
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
           echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
