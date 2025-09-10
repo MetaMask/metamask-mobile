@@ -143,7 +143,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             color={isPositiveChange ? TextColor.Success : TextColor.Error}
             style={styles.priceChange}
           >
-            {displayMarket.change24h} ({displayMarket.change24hPercent})
+            {displayMarket.change24hPercent}
           </Text>
         </View>
       </View>
