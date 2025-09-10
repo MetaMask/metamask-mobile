@@ -102,7 +102,7 @@ jobs:
               "build_params": {
                 "branch": "${{ github.ref_name }}",
                 "workflow_id": "build_ios_main_prod",
-                "commit_message": "Triggered by iOS Dual Versions workflow - with-SRP",
+                "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
               },
@@ -110,7 +110,7 @@ jobs:
                 "type": "bitrise",
                 "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
               },
-              "triggered_by": "GitHub Actions iOS Dual Versions - with-SRP"
+              "triggered_by": "GitHub Actions iOS Dual Versions - Build with Predefined-SRP"
             }')
           
           echo "Build response: $BUILD_RESPONSE"
@@ -135,12 +135,17 @@ jobs:
             BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
             echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
             
-            if [ "$BUILD_STATUS" = "success" ]; then
+            # Check for successful completion (status 1 or success/succeeded)
+            if [ "$BUILD_STATUS" = "1" ] || [ "$BUILD_STATUS" = "success" ] || [ "$BUILD_STATUS" = "succeeded" ]; then
               echo "Build completed successfully"
               break
-            elif [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
+            elif [ "$BUILD_STATUS" = "0" ] || [ "$BUILD_STATUS" = "in_progress" ] || [ "$BUILD_STATUS" = "running" ]; then
+              echo "Build is in progress..."
+            elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
               echo "Build failed with status: $BUILD_STATUS"
               exit 1
+            else
+              echo "Unknown build status: $BUILD_STATUS"
             fi
             
             sleep 30
@@ -219,7 +224,7 @@ jobs:
               "build_params": {
                 "branch": "${{ github.ref_name }}",
                 "workflow_id": "build_ios_qa_prod",
-                "commit_message": "Triggered by iOS Dual Versions workflow - without-SRP",
+                "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
               },
@@ -227,7 +232,7 @@ jobs:
                 "type": "bitrise",
                 "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
               },
-              "triggered_by": "GitHub Actions iOS Dual Versions - without-SRP"
+              "triggered_by": "GitHub Actions iOS Dual Versions - Build without Predefined-SRP"
             }')
           
           echo "Build response: $BUILD_RESPONSE"
@@ -252,12 +257,17 @@ jobs:
             BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
             echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
             
-            if [ "$BUILD_STATUS" = "success" ]; then
+            # Check for successful completion (status 1 or success/succeeded)
+            if [ "$BUILD_STATUS" = "1" ] || [ "$BUILD_STATUS" = "success" ] || [ "$BUILD_STATUS" = "succeeded" ]; then
               echo "Build completed successfully"
               break
-            elif [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
+            elif [ "$BUILD_STATUS" = "0" ] || [ "$BUILD_STATUS" = "in_progress" ] || [ "$BUILD_STATUS" = "running" ]; then
+              echo "Build is in progress..."
+            elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
               echo "Build failed with status: $BUILD_STATUS"
               exit 1
+            else
+              echo "Unknown build status: $BUILD_STATUS"
             fi
             
             sleep 30
