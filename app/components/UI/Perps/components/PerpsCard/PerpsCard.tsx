@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -18,6 +18,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
+import { TouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
 
 /**
  * PerpsCard Component
@@ -38,7 +39,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   const symbol = position?.coin || order?.symbol || '';
 
   // Get all markets data to find the specific market when navigating
-  const { markets } = usePerpsMarkets();
+  const { markets, isLoading: isLoadingMarkets } = usePerpsMarkets();
 
   // Calculate display values
   let primaryText = '';
@@ -89,6 +90,8 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         });
       }
     }
+    // Note: TouchableOpacity is now disabled when markets are loading or empty
+    // This prevents the appearance of inactive touchables
   }, [onPress, markets, symbol, navigation, order, position]);
 
   if (!position && !order) {
@@ -100,6 +103,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       style={styles.card}
       activeOpacity={0.7}
       onPress={handlePress}
+      disabled={isLoadingMarkets || markets.length === 0}
       testID={testID}
     >
       <View style={styles.cardContent}>
