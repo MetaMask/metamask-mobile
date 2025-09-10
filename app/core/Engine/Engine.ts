@@ -327,7 +327,6 @@ export class Engine {
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
         useNftDetection: true, // set this to true to enable nft detection by default to new users
-        // @ts-expect-error displayNftMedia is not in PreferencesState type yet
         displayNftMedia: true,
         securityAlertsEnabled: true,
         smartTransactionsOptInStatus: true,
@@ -2053,7 +2052,6 @@ export class Engine {
       useTokenDetection,
       privacyMode,
       useNftDetection,
-      // @ts-expect-error displayNftMedia may not be present on PreferencesState in all contexts
       displayNftMedia,
       isMultiAccountBalancesEnabled,
       showTestNetworks,
