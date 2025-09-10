@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/account-api/dist/api/bip44.cjs b/node_modules/@metamask/account-api/dist/api/bip44.cjs
+index 733a72b..35199b9 100644
+--- a/node_modules/@metamask/account-api/dist/api/bip44.cjs
++++ b/node_modules/@metamask/account-api/dist/api/bip44.cjs
+@@ -12,7 +12,7 @@ const superstruct_1 = require("@metamask/superstruct");
+  */
+ function isBip44Account(account) {
+     // To be BIP-44 compatible, you just need to use this set of options:
+-    return (0, superstruct_1.is)(account.options.entropy, keyring_api_1.KeyringAccountEntropyMnemonicOptionsStruct);
++    return account.options.entropy?.type === 'mnemonic';
+ }
+ /**
+  * Asserts a keyring account is BIP-44 compatible.
