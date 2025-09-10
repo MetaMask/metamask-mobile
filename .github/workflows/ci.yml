@@ -166,28 +166,28 @@ jobs:
             echo "No changes detected"
           fi
 
-  detect-changes:
-    name: "Detect Mobile Build Changes"
+  needs_e2e_build:
+    name: "Check if builds will happen"
     if: ${{ github.event_name != 'merge_group' }}
-    uses: ./.github/workflows/detect-mobile-build-changes.yml
+    uses: ./.github/workflows/needs-e2e-build.yml
 
   build-android-apks:
     name: "Build Android APKs"
-    if: ${{ github.event_name != 'merge_group' && needs.detect-changes.outputs.android_changed == 'true' }}
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [detect-changes]
+    needs: [needs_e2e_build]
     uses: ./.github/workflows/build-android-e2e.yml
     secrets: inherit
 
   e2e-smoke-tests-android:
     name: "Android E2E Smoke Tests"
-    if: ${{ github.event_name != 'merge_group' && needs.detect-changes.outputs.android_changed == 'true' }}
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [detect-changes, build-android-apks]
+    needs: [needs_e2e_build, build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     secrets: inherit
 
@@ -344,7 +344,7 @@ jobs:
   all-jobs-pass-merge-pr:
     name: All jobs pass
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && !cancelled() }}
+    if: ${{ github.event_name != 'merge_group' }}
     needs:
       [
         check-diff,
@@ -384,16 +384,26 @@ jobs:
   check-all-jobs-pass-merge-pr:
     name: Check all jobs pass
     runs-on: ubuntu-latest
-    needs: all-jobs-pass-merge-pr
     if: ${{ github.event_name != 'merge_group' && always() }}
+    needs: [all-jobs-pass-merge-pr, e2e-smoke-tests-android, needs_e2e_build]
     steps:
       - run: |
-          if [[ "${{ needs.all-jobs-pass-merge-pr.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
-            echo "All jobs passed. Unblock PR."
-          else
-            echo "All jobs passed step skipped. Block PR."
+          # Check if all non-mobile jobs passed
+          if [[ "${{ needs.all-jobs-pass-merge-pr.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
+            echo "Non-mobile jobs failed"
             exit 1
           fi
+
+          # Check E2E tests only if they should have run
+          # The 'builds' output indicates whether mobile builds/tests were triggered
+          if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
+            if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
+              echo "Android E2E tests failed"
+              exit 1
+            fi
+          fi
+
+          echo "All required jobs passed"
   check-all-jobs-pass:
     name: Check all jobs pass (merge_group)
     runs-on: ubuntu-latest
@@ -420,3 +430,4 @@ jobs:
       GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
       SPREADSHEET_ID: ${{ secrets.GOOGLE_MERGE_QUEUE_SPREADSHEET_ID }}
       SHEET_NAME: ${{ secrets.GOOGLE_MERGE_QUEUE_SHEET_NAME }}
+

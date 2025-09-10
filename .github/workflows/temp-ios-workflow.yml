@@ -18,7 +18,7 @@ jobs:
   detect-changes:
     name: "Detect Mobile Build Changes"
     if: ${{ github.event_name != 'merge_group' }}
-    uses: ./.github/workflows/detect-mobile-build-changes.yml
+    uses: ./.github/workflows/needs-e2e-build.yml
 
   build-ios-apps:
     name: "Build iOS Apps"

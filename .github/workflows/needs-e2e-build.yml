@@ -12,18 +12,22 @@ on:
     outputs:
       android_changed:
         description: 'Whether Android-impacting files changed'
-        value: ${{ jobs.detect.outputs.android }}
+        value: ${{ jobs.needs-e2e-build.outputs.android }}
       ios_changed:
         description: 'Whether iOS-impacting files changed'
-        value: ${{ jobs.detect.outputs.ios }}
+        value: ${{ jobs.needs-e2e-build.outputs.ios }}
+      builds:
+        description: 'Whether any builds will happen'
+        value: ${{ jobs.needs-e2e-build.outputs.builds }}
 
 jobs:
-  detect:
-    name: Detect platform changes (Android/iOS)
+  needs-e2e-build:
+    name: Check if builds will happen
     runs-on: ubuntu-latest
     outputs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
+      builds: ${{ steps.set-outputs.outputs.builds }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -150,9 +154,10 @@ jobs:
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
           echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
 
-      - name: Summary
-        run: |
-          {
-            echo "Android changed: ${{ steps.set-outputs.outputs.android_final }}"
-            echo "iOS changed: ${{ steps.set-outputs.outputs.ios_final }}"
-          } >> "${GITHUB_STEP_SUMMARY}"
+          # Check if any builds will happen
+          if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
+            builds=true
+          else
+            builds=false
+          fi
+          echo "builds=$builds" >> "${GITHUB_OUTPUT}"
