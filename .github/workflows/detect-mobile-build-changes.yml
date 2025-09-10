@@ -87,11 +87,19 @@ jobs:
           ios="${{ steps.filter.outputs.ios }}"
           shared="${{ steps.filter.outputs.shared }}"
           ignore="${{ steps.filter.outputs.ignore }}"
-          catch_all="${{ steps.filter.outputs.catch_all }}"
 
           # Get lists of files
           ignore_files="${{ steps.filter.outputs.ignore_files }}"
           catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
+
+          # Use Cases for State Machine:
+          # 1. Purely ignored changes -> Skip both
+          # 2. Shared changes -> Build both
+          # 3. Android-only changes -> Android only
+          # 4. iOS-only changes -> iOS only
+          # 5. Unmatched/new files -> Conservative (Build both)
+          # 6. If ignore is true BUT also new files are added, builds both.
+          # 7. Everything else (new files only caught by catch_all) build both
 
           # State Machine
           if [[ "$shared" == 'true' ]]; then
