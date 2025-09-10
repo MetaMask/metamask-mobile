@@ -54,8 +54,17 @@ export const SendContextProvider: React.FC<{
   const accounts = useSelector(selectInternalAccountsById);
   const selectedGroup = useSelector(selectSelectedAccountGroup);
 
+  const updateValue = useCallback(
+    (val: string, maxMode?: boolean) => {
+      setMaxValueMode(maxMode ?? false);
+      setValue(val);
+    },
+    [setMaxValueMode, setValue],
+  );
+
   const handleUpdateAsset = useCallback(
     (updatedAsset?: AssetType | Nft) => {
+      updateValue(undefined, false);
       updateAsset(updatedAsset);
       if (
         updatedAsset?.accountId &&
@@ -92,18 +101,11 @@ export const SendContextProvider: React.FC<{
     [
       accounts,
       fromAccount?.id,
+      updateValue,
       updateAsset,
       updateFromAccount,
       selectedGroup?.accounts,
     ],
-  );
-
-  const updateValue = useCallback(
-    (val: string, maxMode?: boolean) => {
-      setMaxValueMode(maxMode ?? false);
-      setValue(val);
-    },
-    [setMaxValueMode, setValue],
   );
 
   const chainId =

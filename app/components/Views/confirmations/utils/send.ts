@@ -20,7 +20,7 @@ import {
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
@@ -137,6 +137,31 @@ export const submitEvmTransaction = async ({
     type: transactionType,
   });
 };
+
+export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
+  const base = new BN(Math.pow(10, decimals).toString());
+
+  const comps = tokenValue.split('.');
+
+  let whole = comps[0],
+    fraction = comps[1];
+  if (!whole) {
+    whole = '0';
+  }
+  if (!fraction) {
+    fraction = '';
+  }
+  if (fraction.length > decimals) {
+    fraction = fraction.slice(0, decimals);
+  } else {
+    fraction = fraction.padEnd(decimals, '0');
+  }
+
+  whole = new BN(whole);
+  fraction = new BN(fraction);
+  const tokenMinimal = whole.mul(base).add(fraction);
+  return new BN(tokenMinimal.toString(10), 10);
+}
 
 export function formatToFixedDecimals(
   value: string,
@@ -286,4 +311,10 @@ export const getConfusableCharacterInfo = (
     };
   }
   return {};
+};
+
+export const getFractionLength = (value: string) => {
+  const result = value.replace(/^-/, '').split('.');
+  const fracPart = result[1] ?? '';
+  return fracPart.length;
 };

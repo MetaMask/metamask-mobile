@@ -1,3 +1,4 @@
+import BN from 'bnjs4';
 import {
   TransactionMeta,
   TransactionType,
@@ -18,11 +19,13 @@ import {
   fromHexWithDecimals,
   fromTokenMinUnits,
   getConfusableCharacterInfo,
+  getFractionLength,
   getLayer1GasFeeForSend,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
   toBNWithDecimals,
+  toTokenMinimalUnit,
 } from './send';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -286,6 +289,28 @@ describe('getLayer1GasFeeForSend', () => {
       value: '10',
     });
     expect(mockGetLayer1GasFee).toHaveBeenCalled();
+  });
+});
+
+describe('toTokenMinimalUnit', () => {
+  it('converts string value to token minimal units', () => {
+    expect(toTokenMinimalUnit('.1', 18)).toEqual(
+      new BN('100000000000000000', 10),
+    );
+    expect(toTokenMinimalUnit('1.75', 4)).toEqual(new BN('17500'));
+    expect(toTokenMinimalUnit('0', 0)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('0', 2)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('', 2)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('0.75', 6)).toEqual(new BN('750000'));
+  });
+});
+
+describe('getFractionLength', () => {
+  it('return width of fractional part', () => {
+    expect(getFractionLength('.1')).toEqual(1);
+    expect(getFractionLength('0')).toEqual(0);
+    expect(getFractionLength('.0001')).toEqual(4);
+    expect(getFractionLength('0.075')).toEqual(3);
   });
 });
 

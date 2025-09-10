@@ -21,6 +21,7 @@ import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../types/token';
+import { getFractionLength } from '../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
@@ -75,11 +76,15 @@ export const Amount = () => {
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
+      if (getFractionLength(amt) > asset.decimals) {
+        return;
+      }
       setAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
       setAmountInputMethodManual();
     },
     [
+      asset,
       fiatMode,
       getNativeValue,
       setAmount,
