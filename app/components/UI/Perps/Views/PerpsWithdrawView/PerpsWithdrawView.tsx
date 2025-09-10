@@ -381,7 +381,7 @@ const PerpsWithdrawView: React.FC = () => {
             <Text
               variant={TextVariant.DisplayMD}
               style={tw.style(
-                'text-[64px] leading-[70px] font-medium mb-2 text-default',
+                'text-[54px] leading-[70px] font-medium mb-2 text-default',
                 withdrawAmount === '0' && 'text-alternative',
               )}
             >
@@ -445,7 +445,7 @@ const PerpsWithdrawView: React.FC = () => {
                 size={AvatarSize.Sm}
               />
             </BadgeWrapper>
-            <Text variant={TextVariant.BodyLGMedium}>{USDC_SYMBOL}</Text>
+            <Text variant={TextVariant.BodyMD}>{USDC_SYMBOL}</Text>
           </Box>
         </Box>
 
@@ -481,7 +481,8 @@ const PerpsWithdrawView: React.FC = () => {
             value={{
               label: {
                 text: formattedQuoteData?.networkFee || '$1.00',
-                variant: TextVariant.BodyLGMedium,
+                variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
             }}
           />
@@ -509,7 +510,8 @@ const PerpsWithdrawView: React.FC = () => {
             value={{
               label: {
                 text: formattedQuoteData?.estimatedTime,
-                variant: TextVariant.BodyLGMedium,
+                variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
               },
             }}
           />
@@ -527,7 +529,7 @@ const PerpsWithdrawView: React.FC = () => {
             value={{
               label: {
                 text: formatReceiveAmount,
-                variant: TextVariant.HeadingMD,
+                variant: TextVariant.BodyMD,
               },
             }}
           />
