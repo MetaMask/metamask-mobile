@@ -30,6 +30,7 @@ interface PerpsOrderHeaderProps {
   onBack?: () => void;
   title?: string;
   onOrderTypePress?: () => void;
+  isLoading?: boolean;
 }
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
@@ -41,6 +42,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   onBack,
   onOrderTypePress,
   title,
+  isLoading,
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -109,6 +111,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       <TouchableOpacity
         onPress={handleOrderTypePress}
         testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
+        disabled={isLoading}
       >
         <View style={styles.marketButton}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>

@@ -829,6 +829,119 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
+  describe('Additional Coverage - Input & Error Filtering', () => {
+    it('updates close percentage via percentage buttons and tracks after done', async () => {
+      // Arrange
+      const track = jest.fn();
+      usePerpsEventTrackingMock.mockReturnValue({ track });
+
+      // Ensure validation passes
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        isValid: true,
+        errors: [],
+        warnings: [],
+      });
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Initial track call count (screen view etc.)
+      const initialTrackCalls = track.mock.calls.length;
+
+      // Focus input (opens keypad & percentage buttons)
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
+
+      // Press 25% button
+      const pct25Button = getByText('25%');
+      fireEvent.press(pct25Button);
+
+      // Press Done to close keypad (uses deposit done button string key)
+      const doneLabel = strings('perps.deposit.done_button');
+      const doneButton = getByText(doneLabel);
+      fireEvent.press(doneButton);
+
+      // Keypad should now be hidden (percentage buttons gone), confirm button visible
+      await waitFor(() => {
+        expect(queryByTestId('perps-amount-display')).toBeDefined();
+        // Confirm button should reappear
+        expect(
+          getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        ).toBeDefined();
+      });
+
+      // Track should have more calls (value change + others) after interactions
+      expect(track.mock.calls.length).toBeGreaterThan(initialTrackCalls);
+    });
+
+    it('filters validation errors to only show minimum amount error', () => {
+      const minError = strings('perps.order.validation.minimum_amount', {
+        amount: '$10',
+      });
+      const otherError = 'Limit price is required';
+
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        isValid: false,
+        errors: [minError, otherError],
+        warnings: [],
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Minimum amount error should be visible
+      expect(getByText(minError)).toBeDefined();
+      // Other error should be filtered out
+      expect(queryByText(otherError)).toBeNull();
+    });
+
+    it('handles Max button press while editing input', async () => {
+      const track = jest.fn();
+      usePerpsEventTrackingMock.mockReturnValue({ track });
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        isValid: true,
+        errors: [],
+        warnings: [],
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Open keypad
+      fireEvent.press(getByTestId('perps-amount-display'));
+
+      // Press Max
+      const maxLabel = strings('perps.deposit.max_button');
+      fireEvent.press(getByText(maxLabel));
+
+      // Press Done
+      const doneLabel = strings('perps.deposit.done_button');
+      fireEvent.press(getByText(doneLabel));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        ).toBeDefined();
+      });
+
+      // Track called for interactions
+      expect(track).toHaveBeenCalled();
+    });
+  });
+
   describe('Limit Order Features', () => {
     it('switches between market and limit order types', () => {
       // Given a close position view

@@ -551,6 +551,7 @@ const PerpsClosePositionView: React.FC = () => {
         orderType={orderType}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
         title={strings('perps.close_position.title')}
+        isLoading={isClosing}
       />
 
       <ScrollView
@@ -795,7 +796,7 @@ const PerpsClosePositionView: React.FC = () => {
               labelOptions: [
                 {
                   label: strings(
-                    'perps.order.limit_price_required_toast_message',
+                    'perps.close_position.limit_price_required_toast_message',
                   ),
                   isBold: false,
                 },
