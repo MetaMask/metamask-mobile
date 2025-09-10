@@ -159,7 +159,7 @@ export async function login(device, scenarioType) {
   // Wait for app to settle after unlock
   await dismissSystemDialogs(device);
 }
-async function tapPerpsBottomSheetGotItButton(device) {
+export async function tapPerpsBottomSheetGotItButton(device) {
   console.log('No perps onboarding!');
   // const button = await AppwrightSelectors.getElementByID(
   //   device,
