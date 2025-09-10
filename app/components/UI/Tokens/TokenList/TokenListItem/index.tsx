@@ -224,7 +224,7 @@ export const TokenListItem = React.memo(
 
     // Reorganized layout: Fiat -> Percentage -> Token Amount
     // Main balance shows fiat value
-    if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
+    if (shouldNotShowBalanceOnTestnets || !balanceFiat) {
       mainBalance = undefined;
     } else {
       mainBalance =
