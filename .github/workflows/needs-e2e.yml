@@ -60,6 +60,6 @@ jobs:
               echo "NEEDS_E2E=false" >> "$GITHUB_OUTPUT"
               echo "-> Skipping E2E tests due to 'skip-e2e' tag"
             else
-              echo "-> E2E tests needed"
+              echo "-> Tag 'skip-e2e' not found. E2E tests could run."
             fi
           fi
