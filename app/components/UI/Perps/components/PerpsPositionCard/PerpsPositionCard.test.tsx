@@ -765,7 +765,9 @@ describe('PerpsPositionCard', () => {
       const positionWithZeroFunding = {
         ...mockPosition,
         cumulativeFunding: {
+          allTime: '0.00',
           sinceOpen: '0.00',
+          sinceChange: '0.00',
         },
       };
 
@@ -782,7 +784,9 @@ describe('PerpsPositionCard', () => {
       const positionWithPositiveFunding = {
         ...mockPosition,
         cumulativeFunding: {
+          allTime: '5.25',
           sinceOpen: '5.25',
+          sinceChange: '0.00',
         },
       };
 
@@ -796,7 +800,9 @@ describe('PerpsPositionCard', () => {
       const positionWithNegativeFunding = {
         ...mockPosition,
         cumulativeFunding: {
+          allTime: '-3.75',
           sinceOpen: '-3.75',
+          sinceChange: '0.00',
         },
       };
 
@@ -810,7 +816,9 @@ describe('PerpsPositionCard', () => {
       const positionWithSmallFunding = {
         ...mockPosition,
         cumulativeFunding: {
+          allTime: '0.01',
           sinceOpen: '0.01',
+          sinceChange: '0.00',
         },
       };
 
@@ -824,7 +832,9 @@ describe('PerpsPositionCard', () => {
       const positionWithSmallNegativeFunding = {
         ...mockPosition,
         cumulativeFunding: {
+          allTime: '-0.01',
           sinceOpen: '-0.01',
+          sinceChange: '0.00',
         },
       };
 
@@ -838,7 +848,9 @@ describe('PerpsPositionCard', () => {
       const positionWithPreciseFunding = {
         ...mockPosition,
         cumulativeFunding: {
+          allTime: '12.345678',
           sinceOpen: '12.345678',
+          sinceChange: '0.00',
         },
       };
 
