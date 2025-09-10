@@ -84,6 +84,7 @@ export function useTransactionPayTokenAmounts({
 
         return {
           address: value.address,
+          allowUnderMinimum: value.allowUnderMinimum,
           amountHuman,
           amountRaw,
           targetAmountRaw: value.amountRaw,

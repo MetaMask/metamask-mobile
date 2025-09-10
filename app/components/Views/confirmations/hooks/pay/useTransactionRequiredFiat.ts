@@ -11,6 +11,7 @@ const log = createProjectLogger('transaction-pay');
 
 export interface TransactionRequiredFiat {
   address: Hex;
+  allowUnderMinimum: boolean;
   amountFiat: number;
   amountRaw: string;
   balanceFiat: number;
@@ -78,6 +79,7 @@ export function useTransactionRequiredFiat({
 
         return {
           address: target.address,
+          allowUnderMinimum: target.allowUnderMinimum,
           amountFiat: amountFiat.toNumber(),
           amountRaw: target.amountRaw,
           balanceFiat: balanceFiat.toNumber(),

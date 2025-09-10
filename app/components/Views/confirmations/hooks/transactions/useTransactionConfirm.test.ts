@@ -282,6 +282,7 @@ describe('useTransactionConfirm', () => {
             gas: '0x1',
             isAfter: false,
             to: QUOTE_MOCK.approval.to,
+            type: TransactionType.swapApproval,
             value: QUOTE_MOCK.approval.value,
           },
           {
@@ -289,6 +290,7 @@ describe('useTransactionConfirm', () => {
             gas: '0x2',
             isAfter: false,
             to: QUOTE_MOCK.trade.to,
+            type: TransactionType.swap,
             value: QUOTE_MOCK.trade.value,
           },
         ],

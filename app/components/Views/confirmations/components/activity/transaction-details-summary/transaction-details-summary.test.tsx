@@ -34,6 +34,7 @@ const REQUIRED_TRANSACTION_ID_MOCK = '123-456';
 const REQUIRED_TRANSACTION_ID_2_MOCK = '789-012';
 const SYMBOL_MOCK = 'TST1';
 const SYMBOL_2_MOCK = 'TST2';
+const BATCH_ID_MOCK = '0x123';
 
 const TRANSACTION_META_MOCK = {
   id: transactionIdMock,
@@ -160,6 +161,49 @@ describe('TransactionDetailsSummary', () => {
     ).toBeDefined();
   });
 
+  it('renders swap approval line title', () => {
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.swapApproval },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.swap_approval')),
+    ).toBeDefined();
+  });
+
+  it('renders swap line title', () => {
+    const { getByText } = render({
+      transactions: [{ ...TRANSACTION_META_MOCK, type: TransactionType.swap }],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.swap')),
+    ).toBeDefined();
+  });
+
+  it('renders default line title', () => {
+    selectBridgeHistoryForAccountMock.mockReturnValue({
+      test: {
+        approvalTxId: TRANSACTION_META_MOCK.id,
+        quote: {
+          srcAsset: { symbol: SYMBOL_MOCK },
+        },
+      } as BridgeHistoryItem,
+    });
+
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.contractInteraction },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.default')),
+    ).toBeDefined();
+  });
+
   it('renders submitted time', () => {
     const { getByText } = render({
       transactions: [
@@ -200,10 +244,6 @@ describe('TransactionDetailsSummary', () => {
       transactions: [
         {
           ...TRANSACTION_META_MOCK,
-          type: TransactionType.simpleSend,
-        },
-        {
-          ...TRANSACTION_META_MOCK,
           id: REQUIRED_TRANSACTION_ID_MOCK,
           type: TransactionType.perpsDeposit,
         },
@@ -226,6 +266,40 @@ describe('TransactionDetailsSummary', () => {
           targetSymbol: SYMBOL_2_MOCK,
         }),
       ),
+    ).toBeDefined();
+  });
+
+  it('renders lines for batch transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+        batchId: BATCH_ID_MOCK,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render({
+      transactions: [
+        {
+          ...TRANSACTION_META_MOCK,
+          id: REQUIRED_TRANSACTION_ID_MOCK,
+          batchId: BATCH_ID_MOCK,
+          type: TransactionType.perpsDeposit,
+        },
+        {
+          ...TRANSACTION_META_MOCK,
+          id: REQUIRED_TRANSACTION_ID_2_MOCK,
+          batchId: BATCH_ID_MOCK,
+          type: TransactionType.swap,
+        },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.perps_deposit')),
+    ).toBeDefined();
+
+    expect(
+      getByText(strings('transaction_details.summary_title.swap')),
     ).toBeDefined();
   });
 

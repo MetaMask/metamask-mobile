@@ -5720,7 +5720,10 @@
     "summary_title": {
       "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
-      "perps_deposit": "Add funds"
+      "default": "Transaction",
+      "perps_deposit": "Add funds",
+      "swap": "Swap tokens",
+      "swap_approval": "Approve tokens"
     }
   }
 }

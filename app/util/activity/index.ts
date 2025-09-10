@@ -1,6 +1,9 @@
 import { areAddressesEqual } from '../../util/address';
 import { TX_UNAPPROVED } from '../../constants/transaction';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
 
@@ -83,10 +86,12 @@ export const filterByAddressAndNetwork = (
   allTransactions?: TransactionMeta[],
 ): boolean => {
   const {
+    batchId,
     id: transactionId,
     isTransfer,
     transferInformation,
     txParams: { from, to },
+    type,
   } = tx;
 
   const requiredTransactionIds = allTransactions
@@ -104,6 +109,16 @@ export const filterByAddressAndNetwork = (
     .map((t) => t.hash?.toLowerCase());
 
   if (requiredTransactionHashes?.includes(tx.hash?.toLowerCase())) {
+    return false;
+  }
+
+  const isInBatchWithPerpsDeposit =
+    type !== TransactionType.perpsDeposit &&
+    allTransactions?.some(
+      (t) => t.batchId === batchId && t.type === TransactionType.perpsDeposit,
+    );
+
+  if (isInBatchWithPerpsDeposit) {
     return false;
   }
 

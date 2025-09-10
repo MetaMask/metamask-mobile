@@ -13,7 +13,10 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details-summary.styles';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
-import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
+import {
+  selectTransactionsByBatchId,
+  selectTransactionsByIds,
+} from '../../../../../../selectors/transactionController';
 import { useSelector } from 'react-redux';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { RootState } from '../../../../../../reducers';
@@ -34,10 +37,23 @@ import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridg
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
   const { transactionMeta } = useTransactionDetails();
-  const { requiredTransactionIds } = transactionMeta;
+  const {
+    batchId,
+    id: transactionId,
+    requiredTransactionIds,
+  } = transactionMeta;
+
+  const batchTransactions = useSelector((state: RootState) =>
+    selectTransactionsByBatchId(state, batchId ?? ''),
+  );
+
+  const batchTransactionIds = batchTransactions
+    .filter((t) => t.id !== transactionId)
+    .map((t) => t.id);
 
   const transactionIds = [
     ...(requiredTransactionIds ?? []),
+    ...(batchTransactionIds ?? []),
     transactionMeta.id,
   ];
 
@@ -188,7 +204,11 @@ function getLineTitle(
       });
     case TransactionType.perpsDeposit:
       return strings('transaction_details.summary_title.perps_deposit');
+    case TransactionType.swap:
+      return strings('transaction_details.summary_title.swap');
+    case TransactionType.swapApproval:
+      return strings('transaction_details.summary_title.swap_approval');
     default:
-      return undefined;
+      return strings('transaction_details.summary_title.default');
   }
 }
