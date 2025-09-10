@@ -148,7 +148,7 @@ const createStyles = (colors) =>
       borderRadius: 12,
       width: diameter,
       height: diameter,
-      borderWidth: 0,
+      borderWidth: 2,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -159,7 +159,7 @@ const createStyles = (colors) =>
       borderColor: colors.primary.default,
     },
     unselectedAvatarWrapper: {
-      borderWidth: 0,
+      borderWidth: 2,
       borderColor: colors.background.transparent,
     },
   });
