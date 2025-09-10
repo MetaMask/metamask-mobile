@@ -43,9 +43,9 @@ export function BridgeFeeRow() {
   return (
     <>
       <InfoRow
-        label={strings('confirm.label.bridge_fee')}
+        label={strings('confirm.label.transaction_fee')}
         tooltip={getTooltip(type)}
-        tooltipTitle="Fees"
+        tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
       >
         {isQuotesLoading ? (
           <AnimatedSpinner size={SpinnerSize.SM} />
@@ -79,12 +79,14 @@ function FeesTooltip() {
 
   return (
     <Box gap={14}>
-      <Text>{strings('confirm.tooltip.perps_deposit.bridge_fee')}</Text>
+      <Text>{strings('confirm.tooltip.perps_deposit.transaction_fee')}</Text>
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>Network fee</Text>
+        <Text color={TextColor.Alternative}>
+          {strings('confirm.label.network_fee')}
+        </Text>
         <Text color={TextColor.Alternative}>
           {totalNativeEstimatedFormatted}
         </Text>
@@ -93,7 +95,9 @@ function FeesTooltip() {
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>Bridge provider fee</Text>
+        <Text color={TextColor.Alternative}>
+          {strings('confirm.label.bridge_fee')}
+        </Text>
         <Text color={TextColor.Alternative}>{totalBridgeFeeFormatted}</Text>
       </Box>
     </Box>

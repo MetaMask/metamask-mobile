@@ -5096,8 +5096,10 @@
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
       "total": "Total",
-      "bridge_fee": "Transaction fee",
-      "metamask_fee": "MetaMask fee"
+      "transaction_fee": "Transaction fee",
+      "metamask_fee": "MetaMask fee",
+      "network_fee": "Network fee",
+      "bridge_fee": "Bridge provider fee"
     },
     "title": {
       "signature": "Signature request",
@@ -5127,7 +5129,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "bridge_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "title": {
+        "transaction_fee": "Fees"
       }
     },
     "spending_cap": "Spending cap",
