@@ -527,6 +527,31 @@ describe('BuildQuote View', () => {
         mockCryptoCurrenciesData[1],
       );
     });
+
+    it('calls setSelectedAsset when selecting a crypto from different chain', async () => {
+      const mockPolygonToken = {
+        ...mockCryptoCurrenciesData[0],
+        network: {
+          chainId: '137',
+          active: true,
+          chainName: 'Polygon',
+          shortName: 'Polygon',
+        },
+        name: 'Polygon Token',
+      };
+
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockPolygonToken],
+      };
+
+      render(BuildQuote);
+
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
+      fireEvent.press(getByRoleButton('Polygon Token'));
+
+      expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockPolygonToken);
+    });
   });
 
   describe('Payment Method Data', () => {
