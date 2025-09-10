@@ -1,5 +1,9 @@
 import { Platform } from 'react-native';
-import AuthTokenHandler from './AuthTokenHandler';
+import AuthTokenHandler, {
+  AUTH_SERVER_RENEW_PATH,
+  AUTH_SERVER_REVOKE_PATH,
+  AUTH_SERVER_TOKEN_PATH,
+} from './AuthTokenHandler';
 import { AuthConnection } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
 
@@ -20,11 +24,13 @@ jest.mock('react-native', () => {
 
 const mockPlatform = Platform;
 
+const mockServerUrl = 'https://test-auth-server.com';
+
 describe('AuthTokenHandler', () => {
   const mockLoginHandler = {
     options: {
       clientId: 'test-client-id',
-      authServerUrl: 'https://test-auth-server.com',
+      authServerUrl: mockServerUrl,
       web3AuthNetwork: 'test-network',
     },
   };
@@ -73,7 +79,7 @@ describe('AuthTokenHandler', () => {
         mockConnection,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://test-auth-server.com/api/v2/oauth/token',
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
         {
           method: 'POST',
           headers: {
@@ -204,7 +210,7 @@ describe('AuthTokenHandler', () => {
         mockConnection,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://test-auth-server.com/api/v2/oauth/renew_refresh_token',
+        `${mockServerUrl}${AUTH_SERVER_RENEW_PATH}`,
         {
           method: 'POST',
           headers: {
@@ -325,7 +331,7 @@ describe('AuthTokenHandler', () => {
         mockConnection,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://test-auth-server.com/api/v2/oauth/revoke',
+        `${mockServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
         {
           method: 'POST',
           headers: {

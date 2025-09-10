@@ -2,9 +2,9 @@ import { Platform } from 'react-native';
 import { AuthConnection } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
 
-const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
-const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
-const AUTH_SERVER_TOKEN_PATH = '/api/v2/oauth/token';
+export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
+export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
+export const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
 
 class AuthTokenHandler {
   async refreshJWTToken(params: {
