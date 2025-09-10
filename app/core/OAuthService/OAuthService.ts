@@ -8,6 +8,7 @@ import {
   AuthResponse,
   OAuthUserInfo,
   OAuthLoginResultType,
+  MarketingOptInRequest,
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import {
@@ -298,6 +299,62 @@ export class OAuthService {
       oauthLoginSuccess: false,
       oauthLoginError: null,
     });
+  };
+
+  /**
+   * Update marketing opt-in status for the authenticated user
+   * @param marketingOptIn - Whether the user has opted in to marketing communications
+   * @returns Promise<void> - Resolves when the API call is successful
+   */
+  updateMarketingOptInStatus = async (
+    marketingOptIn: boolean,
+  ): Promise<void> => {
+    try {
+      // Get access token from SeedlessOnboardingController state
+      const accessToken =
+        Engine.context.SeedlessOnboardingController.state?.accessToken;
+
+      if (!accessToken) {
+        throw new Error('No access token found. User must be authenticated.');
+      }
+
+      const requestBody: MarketingOptInRequest = {
+        opt_in_status: marketingOptIn,
+      };
+
+      const response = await fetch(
+        `https://auth-service.dev-api.cx.metamask.io/api/v1/oauth/marketing-opt-in`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(requestBody),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to update marketing opt-in status: ${response.status} - ${
+            errorData.message || response.statusText
+          }`,
+        );
+      }
+
+      Logger.log('updateMarketingOptInStatus: success', {
+        marketingOptIn,
+        status: response.status,
+      });
+    } catch (error) {
+      Logger.log(error as Error, {
+        message: 'updateMarketingOptInStatus',
+        marketingOptIn,
+      });
+
+      throw error;
+    }
   };
 }
 

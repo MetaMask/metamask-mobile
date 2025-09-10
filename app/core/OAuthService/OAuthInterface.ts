@@ -84,3 +84,7 @@ export interface LoginHandler {
   get authServerPath(): string;
   login(): Promise<LoginHandlerResult>;
 }
+
+export interface MarketingOptInRequest {
+  opt_in_status: boolean;
+}

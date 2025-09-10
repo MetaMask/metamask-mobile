@@ -79,6 +79,12 @@ const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
     }),
 }));
 
+let mockSeedlessOnboardingControllerState: {
+  accessToken?: string;
+} = {
+  accessToken: 'mock-access-token',
+};
+
 jest.mock('../Engine', () => ({
   context: {
     SeedlessOnboardingController: {
@@ -86,6 +92,9 @@ jest.mock('../Engine', () => ({
         nodeAuthTokens: [],
         isNewUser: false,
       })),
+      get state() {
+        return mockSeedlessOnboardingControllerState;
+      },
     },
   },
 }));
@@ -226,5 +235,96 @@ describe('OAuth login service', () => {
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
     expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('updateMarketingOptInStatus', () => {
+  const mockAccessToken = 'mock-access-token';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockSeedlessOnboardingControllerState = {
+      accessToken: mockAccessToken,
+    };
+  });
+
+  it('should successfully update marketing opt-in status to true', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+    });
+
+    await OAuthLoginService.updateMarketingOptInStatus(true);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      `https://auth-service.dev-api.cx.metamask.io/api/v1/oauth/marketing-opt-in`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${mockAccessToken}`,
+        },
+        body: JSON.stringify({ opt_in_status: true }),
+      },
+    );
+  });
+
+  it('should successfully update marketing opt-in status to false', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+    });
+
+    await OAuthLoginService.updateMarketingOptInStatus(false);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      `https://auth-service.dev-api.cx.metamask.io/api/v1/oauth/marketing-opt-in`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${mockAccessToken}`,
+        },
+        body: JSON.stringify({ opt_in_status: false }),
+      },
+    );
+  });
+
+  it('should throw error when no access token is available', async () => {
+    mockSeedlessOnboardingControllerState = {
+      accessToken: undefined,
+    };
+
+    await expect(
+      OAuthLoginService.updateMarketingOptInStatus(true),
+    ).rejects.toThrow('No access token found. User must be authenticated.');
+  });
+
+  it('should throw error when API request fails', async () => {
+    const mockErrorResponse = {
+      message: 'Invalid request',
+    };
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      statusText: 'Bad Request',
+      json: jest.fn().mockResolvedValue(mockErrorResponse),
+    });
+
+    await expect(
+      OAuthLoginService.updateMarketingOptInStatus(true),
+    ).rejects.toThrow(
+      'Failed to update marketing opt-in status: 400 - Invalid request',
+    );
+  });
+
+  it('should handle network error', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+    await expect(
+      OAuthLoginService.updateMarketingOptInStatus(true),
+    ).rejects.toThrow('Network error');
   });
 });
