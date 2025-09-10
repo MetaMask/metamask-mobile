@@ -209,9 +209,7 @@ export const calculatePriceForRoE = (
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
   if (!basePrice || basePrice <= 0) {
-    // Return a reasonable default instead of empty string
-    // For stop loss, return a value that's 1% away from 0 to avoid division by zero
-    return isProfit ? '' : '0.01';
+    return '';
   }
 
   const isLong = direction === 'long';

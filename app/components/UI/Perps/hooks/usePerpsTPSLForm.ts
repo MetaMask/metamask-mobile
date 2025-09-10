@@ -18,6 +18,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_POSITION_VIEW,
 } from '../utils/formatUtils';
+import { regex } from '../../../../util/regex';
 
 interface UsePerpsTPSLFormParams {
   asset: string;
@@ -620,11 +621,15 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && parseFloat(price) > 0) {
-        setTakeProfitPrice(
-          formatPerpsFiat(price.toString(), {
-            ranges: PRICE_RANGES_POSITION_VIEW,
-          }).replace(/[^0-9.]/g, ''),
+        const priceString = price.toString();
+        const formattedPriceString = formatPerpsFiat(priceString, {
+          ranges: PRICE_RANGES_POSITION_VIEW,
+        });
+        const sanitizedPriceString = formattedPriceString.replace(
+          regex.nonNumber,
+          '',
         );
+        setTakeProfitPrice(sanitizedPriceString);
         setTakeProfitPercentage(
           safeParseRoEPercentage(roePercentage.toString()),
         );
@@ -669,11 +674,15 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && parseFloat(price) > 0) {
-        setStopLossPrice(
-          formatPerpsFiat(price.toString(), {
-            ranges: PRICE_RANGES_POSITION_VIEW,
-          }).replace(/[^0-9.]/g, ''),
+        const priceString = price.toString();
+        const formattedPriceString = formatPerpsFiat(priceString, {
+          ranges: PRICE_RANGES_POSITION_VIEW,
+        });
+        const sanitizedPriceString = formattedPriceString.replace(
+          regex.nonNumber,
+          '',
         );
+        setStopLossPrice(sanitizedPriceString);
         // Show the percentage as positive in the UI (magnitude of loss)
         setStopLossPercentage(safeParseRoEPercentage(roePercentage.toString()));
       } else {

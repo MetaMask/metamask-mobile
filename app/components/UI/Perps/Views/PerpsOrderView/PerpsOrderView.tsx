@@ -36,7 +36,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   endTrace,
   trace,
@@ -537,94 +536,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     endMeasure,
   ]);
 
-  // Clear invalid TP/SL values when limit price changes
-  useEffect(() => {
-    // Simple check: if we have a limit order with a limit price
-    if (
-      orderForm.type === 'limit' &&
-      orderForm.limitPrice &&
-      parseFloat(orderForm.limitPrice) > 0
-    ) {
-      const limitPriceNum = parseFloat(orderForm.limitPrice || '0');
-      const isLong = orderForm.direction === 'long';
-
-      // Check if take profit price is still valid with new limit price
-      if (orderForm.takeProfitPrice) {
-        const tpPrice = parseFloat(orderForm.takeProfitPrice);
-        const isTpValid = isLong
-          ? tpPrice > limitPriceNum
-          : tpPrice < limitPriceNum;
-
-        if (!isTpValid) {
-          DevLogger.log(
-            '[Order View] Take profit price is invalid with new limit price, clearing',
-            {
-              takeProfitPrice: orderForm.takeProfitPrice,
-              limitPrice: orderForm.limitPrice,
-              direction: orderForm.direction,
-            },
-          );
-          // Clear the invalid take profit value
-          DevLogger.log(
-            '[Order Debug] Clearing invalid TP due to limit price change',
-          );
-          // Set to undefined - the TP/SL form will sync via the initialTakeProfitPrice prop
-          setTakeProfitPrice(undefined);
-        }
-      }
-
-      // Check if stop loss price is still valid with new limit price
-      if (orderForm.stopLossPrice) {
-        const slPrice = parseFloat(orderForm.stopLossPrice);
-        const isSlValid = isLong
-          ? slPrice < limitPriceNum
-          : slPrice > limitPriceNum;
-
-        DevLogger.log('[Order Debug] SL validation:', {
-          slPrice,
-          limitPrice: limitPriceNum,
-          isLong,
-          isSlValid,
-          expectedCondition: isLong ? 'SL < limit' : 'SL > limit',
-          willClear: !isSlValid,
-        });
-
-        if (!isSlValid) {
-          DevLogger.log(
-            '[Order View] Stop loss price is invalid with new limit price, WILL CLEAR',
-            {
-              stopLossPrice: orderForm.stopLossPrice,
-              slPrice,
-              limitPrice: orderForm.limitPrice,
-              limitPriceNum,
-              direction: orderForm.direction,
-              isLong,
-              expectedCondition: isLong ? 'SL < limit' : 'SL > limit',
-              actualCondition: isLong
-                ? slPrice < limitPriceNum
-                : slPrice > limitPriceNum,
-            },
-          );
-          // Clear the invalid stop loss value - force it to undefined
-          DevLogger.log(
-            '[Order Debug] Calling setStopLossPrice(undefined) to clear invalid SL',
-          );
-          // Clear by setting to undefined
-          setStopLossPrice(undefined);
-        }
-      }
-    }
-  }, [
-    orderForm.type,
-    orderForm.limitPrice,
-    orderForm.takeProfitPrice,
-    orderForm.stopLossPrice,
-    orderForm.direction,
-    setTakeProfitPrice,
-    setStopLossPrice,
-    orderForm.asset,
-  ]);
-
   // Handlers
   const handleTPSLPress = useCallback(() => {
     if (orderForm.type === 'limit' && !orderForm.limitPrice) {
@@ -742,10 +653,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
         orderType: orderForm.type,
         currentPrice: assetData.price,
         leverage: orderForm.leverage,
+        // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
           : {}),
-        // Only add TP/SL if they are truthy and not empty strings
         ...(orderForm.takeProfitPrice && orderForm.takeProfitPrice !== ''
           ? { takeProfitPrice: orderForm.takeProfitPrice }
           : {}),
@@ -824,6 +735,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
+  const amountTimesLeverage = availableBalance * orderForm.leverage;
+  const isAmountDisabled = amountTimesLeverage < 10;
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -857,10 +771,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => setAmount(Math.floor(value).toString())}
               minimumValue={0}
-              maximumValue={availableBalance * orderForm.leverage}
+              maximumValue={amountTimesLeverage}
               step={1}
               showPercentageLabels
-              disabled={parseFloat(orderForm.amount || '0') < 10}
+              disabled={isAmountDisabled}
             />
           </View>
         )}
