@@ -98,29 +98,21 @@ jobs:
 
           # Use Cases for State Machine:
           # 1. Purely ignored changes -> Skip both
-          # 2. Shared changes -> Build both
-          # 3. Android-only changes -> Android only
-          # 4. iOS-only changes -> iOS only
-          # 5. Unmatched/new files -> Conservative (Build both)
-          # 6. If ignore is true BUT also new files are added, builds both.
-          # 7. Everything else (new files only caught by catch_all) build both
+          # 2. Shared changes -> Build both 
+          # 3. Mixed ignore + new/unmatched files -> Build both (conservative)
+          # 4. New/unmatched files only -> Build both (conservative)
+          # 5. Android-only changes -> Android only
+          # 6. iOS-only changes -> iOS only
 
           # State Machine
-          if [[ "$shared" == 'true' ]]; then
-            state="SHARED"
-          elif [[ "$android" == 'true' && "$ios" != 'true' ]]; then
+          if [[ "$android" == 'true' && "$ios" != 'true' ]]; then
             state="ANDROID_ONLY"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
             state="IOS_ONLY"
           elif [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$ignore_files" == "$catch_all_files" ]]; then
             state="PURE_IGNORE"
           else
-            state="CONSERVATIVE"
-          fi
-
-          # Handle the case for ignore + new files separately if needed
-          if [[ "$state" == "PURE_IGNORE" && "$ignore_files" != "$catch_all_files" ]]; then
-            state="CONSERVATIVE"
+            state="SHARED"
           fi
 
           case "$state" in
@@ -142,11 +134,6 @@ jobs:
             "IOS_ONLY")
               echo "Building iOS only"
               android_final="false"
-              ios_final="true"
-              ;;
-            "CONSERVATIVE")
-              echo "Building both platforms (conservative)"
-              android_final="true"
               ios_final="true"
               ;;
           esac
