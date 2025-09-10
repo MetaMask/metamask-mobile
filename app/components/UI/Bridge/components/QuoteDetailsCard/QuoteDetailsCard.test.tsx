@@ -120,22 +120,6 @@ describe('QuoteDetailsCard', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders expanded state', () => {
-    const { getByLabelText, toJSON } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    // Expand the accordion
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('displays fee amount', () => {
     const { getByText } = renderScreen(
       QuoteDetailsCard,
@@ -146,22 +130,6 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('0.01')).toBeDefined();
-  });
-
-  it('displays processing time', () => {
-    const { getByText, getByLabelText } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    // Expand the accordion to show the time field
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
-    expect(getByText('1 min')).toBeDefined();
   });
 
   it('displays quote rate', () => {
@@ -176,45 +144,14 @@ describe('QuoteDetailsCard', () => {
     expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
   });
 
-  it('toggles content visibility on chevron press', () => {
-    const { getByLabelText, queryByText } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    // Initially slippage should not be visible (it's in the expandable section)
-    expect(queryByText(strings('bridge.slippage'))).toBeNull();
-
-    // Press chevron to expand
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
-    // After expansion, slippage should be visible
-    expect(queryByText(strings('bridge.slippage'))).toBeDefined();
-    expect(queryByText('0.5%')).toBeDefined();
-
-    // Press chevron again to collapse
-    fireEvent.press(expandButton);
-
-    // After collapse, slippage should not be visible
-    expect(queryByText(strings('bridge.slippage'))).toBeNull();
-  });
-
   it('navigates to slippage modal on edit press', () => {
-    const { getByLabelText, getByTestId } = renderScreen(
+    const { getByTestId } = renderScreen(
       QuoteDetailsCard,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: testState },
     );
-
-    // Expand the accordion first
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // Find and press the edit button
     const editButton = getByTestId('edit-slippage-button');
@@ -227,17 +164,13 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays slippage value', () => {
-    const { getByLabelText, getByText } = renderScreen(
+    const { getByText } = renderScreen(
       QuoteDetailsCard,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: testState },
     );
-
-    // Expand the accordion first
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
@@ -326,9 +259,6 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
     try {
       const priceImpactTooltip = getByLabelText(
         /Price Impact Warning tooltip/i,
@@ -385,14 +315,11 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText, queryByLabelText } = renderScreen(
+    const { queryByLabelText } = renderScreen(
       QuoteDetailsCard,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
-
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // With low price impact, the warning tooltip should not exist
     expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
@@ -422,14 +349,11 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText, getByText, queryByLabelText } = renderScreen(
+    const { getByText, queryByLabelText } = renderScreen(
       QuoteDetailsCard,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
-
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // The key is testing the shouldShowPriceImpactWarning conditional branches
     // Verify the Price Impact section is visible (this exercises the component logic)
@@ -481,15 +405,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, getByText } = renderScreen(
+      const { getByText } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion to see rewards
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the rewards row should be displayed
       await waitFor(() => {
@@ -516,15 +436,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText, UNSAFE_getByProps } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the rewards row should be shown but without points value
       await waitFor(() => {
@@ -550,15 +466,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText } = renderScreen(
+      const { queryByText } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the rewards row should not be displayed
       await waitFor(() => {
@@ -581,15 +493,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText } = renderScreen(
+      const { queryByText } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the rewards row should not be displayed
       await waitFor(() => {
@@ -615,15 +523,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, UNSAFE_getByProps } = renderScreen(
+      const { UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the MetaMask rewards points image should be displayed
       await waitFor(() => {
@@ -654,15 +558,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText, UNSAFE_getByProps } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the rewards row should be shown but without points value
       await waitFor(() => {
@@ -693,15 +593,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText, UNSAFE_getByProps } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the rewards row should be shown
       await waitFor(() => {
@@ -739,10 +635,6 @@ describe('QuoteDetailsCard', () => {
         { state: testState },
       );
 
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
-
       // Then the rewards tooltip should be available
       await waitFor(() => {
         const rewardsTooltip = getByLabelText(/Points tooltip/i);
@@ -768,15 +660,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText, UNSAFE_getByProps } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then the rewards row should be displayed
       await waitFor(() => {
@@ -805,15 +693,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText, UNSAFE_getByProps } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
 
       // Then rewards row should be shown but without points value
       await waitFor(() => {
@@ -824,36 +708,6 @@ describe('QuoteDetailsCard', () => {
       });
       // No numeric value should be displayed
       expect(queryByText(/^\d+$/)).toBeNull();
-    });
-
-    it('does not show rewards in collapsed state', async () => {
-      // Given rewards should be shown
-      mockEngine.controllerMessenger.call.mockImplementation(
-        (method: string) => {
-          if (method === 'RewardsController:isRewardsFeatureEnabled') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:getHasAccountOptedIn') {
-            return Promise.resolve(true);
-          }
-          if (method === 'RewardsController:estimatePoints') {
-            return Promise.resolve({ pointsEstimate: 100 });
-          }
-          return Promise.resolve(null);
-        },
-      );
-
-      // When rendering the component without expanding
-      const { queryByText } = renderScreen(
-        QuoteDetailsCard,
-        { name: Routes.BRIDGE.ROOT },
-        { state: testState },
-      );
-
-      // Then rewards should not be visible in collapsed state
-      await waitFor(() => {
-        expect(queryByText(strings('bridge.points'))).toBeNull();
-      });
     });
 
     it('handles quote loading state with rewards', async () => {
@@ -892,18 +746,11 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText } = renderScreen(
+      const { queryByText } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
-
-      // Expand the accordion
-      const expandButton = getByLabelText('Expand quote details');
-      fireEvent.press(expandButton);
-
-      // Component should still render without crashing
-      expect(expandButton).toBeOnTheScreen();
 
       // Rewards row should be shown
       await waitFor(() => {
