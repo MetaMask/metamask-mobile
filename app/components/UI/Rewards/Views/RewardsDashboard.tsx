@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -17,8 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
-import SegmentedControl from '../../../../component-library/components-temp/SegmentedControl';
-import { ButtonSize } from '../../../../component-library/components/Buttons/Button/Button.types';
+import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { Alert } from 'react-native';
@@ -27,6 +26,38 @@ import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
+import { ActivityTab } from '../components/ActivityTab/ActivityTab';
+import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
+
+// Tab wrapper components for TabsList
+interface TabWrapperProps {
+  tabLabel: string;
+  isDisabled?: boolean;
+}
+
+const OverviewTab: React.FC<TabWrapperProps> = () => (
+  <Box
+    twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
+    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
+  >
+    <Text variant={TextVariant.BodyMd}>
+      {strings('rewards.not_implemented')}
+    </Text>
+  </Box>
+);
+
+const LevelsTab: React.FC<TabWrapperProps> = () => (
+  <Box
+    twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
+    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
+  >
+    <Text variant={TextVariant.BodyMd}>
+      {strings('rewards.not_implemented')}
+    </Text>
+  </Box>
+);
+
+const ActivityTabWrapper: React.FC<TabWrapperProps> = () => <ActivityTab />;
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -37,7 +68,10 @@ const RewardsDashboard: React.FC = () => {
   const dispatch = useDispatch();
 
   // Sync rewards controller state with UI store
-  useSeasonStatus();
+  useSeasonStatus({
+    subscriptionId: subscriptionId || '',
+    seasonId: CURRENT_SEASON_ID,
+  });
 
   // Set navigation title
   useEffect(() => {
@@ -51,49 +85,41 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [colors, navigation]);
 
-  const tabOptions = [
-    {
-      value: 'overview' as const,
-      label: strings('rewards.tab_overview_title'),
-    },
-    {
-      value: 'levels' as const,
-      label: strings('rewards.tab_levels_title'),
-    },
-    {
-      value: 'activity' as const,
-      label: strings('rewards.tab_activity_title'),
-    },
-  ];
-
-  const handleTabChange = useCallback(
-    (value: string) => {
-      const newTab = value as RewardsTab;
-      dispatch(setActiveTab(newTab));
-    },
-    [dispatch],
+  const tabOptions = useMemo(
+    () => [
+      {
+        value: 'overview' as const,
+        label: strings('rewards.tab_overview_title'),
+      },
+      {
+        value: 'levels' as const,
+        label: strings('rewards.tab_levels_title'),
+      },
+      {
+        value: 'activity' as const,
+        label: strings('rewards.tab_activity_title'),
+      },
+    ],
+    [],
   );
 
-  // Initialize active tab in UI store
-  useEffect(() => {
-    dispatch(setActiveTab('overview'));
-  }, [dispatch]);
+  const getActiveIndex = () =>
+    tabOptions.findIndex((tab) => tab.value === activeTab);
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      default:
-        return (
-          <Text variant={TextVariant.BodyMd}>
-            {strings('rewards.not_implemented')}
-          </Text>
-        );
-    }
-  };
+  const handleTabChange = useCallback(
+    ({ i }: { i: number }) => {
+      const newTab = tabOptions[i]?.value as RewardsTab;
+      if (newTab) {
+        dispatch(setActiveTab(newTab));
+      }
+    },
+    [dispatch, tabOptions],
+  );
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView style={tw.style('flex-1 bg-default')}>
-        <Box twClassName="flex-1 px-4 py-4 bg-default gap-8 relative">
+        <Box twClassName="flex-1 px-4 bg-default gap-8 relative">
           {/* Header row */}
           <Box twClassName="flex-row  justify-between">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
@@ -125,26 +151,27 @@ const RewardsDashboard: React.FC = () => {
 
           <SeasonStatus />
 
-          <SegmentedControl
-            options={tabOptions}
-            selectedValue={activeTab || 'overview'}
-            onValueChange={handleTabChange}
-            size={ButtonSize.Md}
-            isButtonWidthFlexible={false}
-            style={tw.style('px-4')}
-            isDisabled={!subscriptionId}
+          <TabsList
+            initialActiveIndex={getActiveIndex()}
+            onChangeTab={handleTabChange}
             testID={REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL}
-          />
-
-          {/* Tab Content */}
-          <Box
-            twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md"
-            testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
           >
-            <Text variant={TextVariant.BodyMd} twClassName="text-default">
-              {renderTabContent()}
-            </Text>
-          </Box>
+            <OverviewTab
+              key="overview"
+              tabLabel={strings('rewards.tab_overview_title')}
+              isDisabled={!subscriptionId}
+            />
+            <LevelsTab
+              key="levels"
+              tabLabel={strings('rewards.tab_levels_title')}
+              isDisabled={!subscriptionId}
+            />
+            <ActivityTabWrapper
+              key="activity"
+              tabLabel={strings('rewards.tab_activity_title')}
+              isDisabled={!subscriptionId}
+            />
+          </TabsList>
         </Box>
 
         {!subscriptionId && (
