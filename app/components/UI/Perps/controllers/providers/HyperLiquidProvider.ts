@@ -13,6 +13,7 @@ import {
   TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
+  PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
@@ -113,6 +114,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       timestamp: number;
       ttl: number;
     }
+  >();
+
+  // Cache for max leverage values to avoid excessive API calls
+  private maxLeverageCache = new Map<
+    string,
+    { value: number; timestamp: number }
   >();
 
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
@@ -421,10 +428,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.reduceOnly || false,
+        /**
+         * HyperLiquid Time-In-Force (TIF) options:
+         * - 'Gtc' (Good Till Canceled): Standard limit orders that remain active until filled or canceled
+         * - 'Ioc' (Immediate or Cancel): Limit orders that fill immediately or cancel unfilled portion
+         * - 'FrontendMarket': True market orders as used in HyperLiquid UI - USE THIS FOR MARKET ORDERS
+         * - 'Alo' (Add Liquidity Only): Maker-only orders that add liquidity to order book
+         * - 'LiquidationMarket': Similar to IoC, used for liquidation orders
+         *
+         * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
+         * Using 'Ioc' causes market orders to be treated as limit orders by HyperLiquid,
+         * leading to incorrect order type display in transaction history (TAT-1447)
+         */
         t:
           params.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
       };
       orders.push(mainOrder);
@@ -587,10 +606,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.newOrder.reduceOnly || false,
+        // Same TIF logic as placeOrder - see documentation above for details
         t:
           params.newOrder.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.newOrder.clientOrderId
           ? (params.newOrder.clientOrderId as Hex)
           : undefined,
@@ -2100,6 +2120,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getMaxLeverage(asset: string): Promise<number> {
     try {
+      // Check cache first
+      const cached = this.maxLeverageCache.get(asset);
+      const now = Date.now();
+
+      if (
+        cached &&
+        now - cached.timestamp <
+          PERFORMANCE_CONFIG.MAX_LEVERAGE_CACHE_DURATION_MS
+      ) {
+        return cached.value;
+      }
+
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
@@ -2120,6 +2152,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
+
+      // Cache the result
+      this.maxLeverageCache.set(asset, {
+        value: assetInfo.maxLeverage,
+        timestamp: now,
+      });
 
       return assetInfo.maxLeverage;
     } catch (error) {
