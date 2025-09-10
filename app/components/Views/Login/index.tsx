@@ -113,6 +113,7 @@ import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnb
 import FOX_LOGO from '../../../images/branding/fox.png';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -411,21 +412,19 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     // if no network available
     if (!netInfo.isConnected || !netInfo.isInternetReachable) {
+      const params: SuccessErrorSheetParams = {
+        title: strings(`error_sheet.no_internet_connection_title`),
+        description: strings(`error_sheet.no_internet_connection_description`),
+        descriptionAlign: 'left',
+        primaryButtonLabel: strings(
+          `error_sheet.no_internet_connection_button`,
+        ),
+        closeOnPrimaryButtonPress: true,
+        type: 'error',
+      };
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings(`error_sheet.no_internet_connection_title`),
-          description: strings(
-            `error_sheet.no_internet_connection_description`,
-          ),
-          descriptionAlign: 'left',
-          buttonLabel: strings(`error_sheet.no_internet_connection_button`),
-          primaryButtonLabel: strings(
-            `error_sheet.no_internet_connection_button`,
-          ),
-          closeOnPrimaryButtonPress: true,
-          type: 'error',
-        },
+        params,
       });
       return;
     }
