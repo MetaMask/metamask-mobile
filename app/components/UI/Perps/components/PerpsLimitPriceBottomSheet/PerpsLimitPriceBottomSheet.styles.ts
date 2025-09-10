@@ -29,7 +29,6 @@ export const createStyles = (colors: Theme['colors']) =>
       fontSize: 16,
       fontWeight: '500',
       color: colors.text.default,
-      flex: 1,
     },
     limitPriceCurrency: {
       fontSize: 16,

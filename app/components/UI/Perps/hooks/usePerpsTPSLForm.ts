@@ -14,6 +14,10 @@ import {
   validateTPSLPrices,
 } from '../utils/tpslValidation';
 import type { Position } from '../controllers/types';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_POSITION_VIEW,
+} from '../utils/formatUtils';
 
 interface UsePerpsTPSLFormParams {
   asset: string;
@@ -107,11 +111,12 @@ export function usePerpsTPSLForm(
   } = params;
 
   // Initialize form state with raw values (no currency formatting for inputs)
+  // Don't default to empty string - preserve undefined to properly clear values
   const [takeProfitPrice, setTakeProfitPrice] = useState(
-    initialTakeProfitPrice || '',
+    initialTakeProfitPrice ?? '',
   );
   const [stopLossPrice, setStopLossPrice] = useState(
-    initialStopLossPrice || '',
+    initialStopLossPrice ?? '',
   );
   const [takeProfitPercentage, setTakeProfitPercentage] = useState('');
   const [stopLossPercentage, setStopLossPercentage] = useState('');
@@ -158,32 +163,56 @@ export function usePerpsTPSLForm(
     ? parseFloat(position.entryPrice)
     : propEntryPrice || currentPrice;
 
-  // Calculate initial RoE percentages only once when component first becomes visible
+  // Reset form state when bottom sheet becomes visible with new initial values
   useEffect(() => {
-    if (isVisible && currentPrice && leverage) {
-      // Calculate initial RoE percentages when opening
-      if (initialTakeProfitPrice && takeProfitPercentage === '') {
-        const roePercent = calculateRoEForPrice(initialTakeProfitPrice, true, {
-          currentPrice,
-          direction: actualDirection,
-          leverage,
-          entryPrice,
-        });
-        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+    if (isVisible) {
+      // Update prices from initial values (including undefined to clear)
+      setTakeProfitPrice(initialTakeProfitPrice ?? '');
+      setStopLossPrice(initialStopLossPrice ?? '');
+
+      // Ensure we have valid prices before calculating RoE
+      const hasValidPrices =
+        (entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0);
+
+      if (hasValidPrices && leverage) {
+        // Calculate initial RoE percentages when opening
+        if (initialTakeProfitPrice) {
+          const roePercent = calculateRoEForPrice(
+            initialTakeProfitPrice,
+            true,
+            {
+              currentPrice,
+              direction: actualDirection,
+              leverage,
+              entryPrice,
+            },
+          );
+          setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+        } else {
+          setTakeProfitPercentage('');
+        }
+
+        if (initialStopLossPrice) {
+          const roePercent = calculateRoEForPrice(initialStopLossPrice, false, {
+            currentPrice,
+            direction: actualDirection,
+            leverage,
+            entryPrice,
+          });
+          setStopLossPercentage(safeParseRoEPercentage(roePercent));
+        } else {
+          setStopLossPercentage('');
+        }
       }
 
-      if (initialStopLossPrice && stopLossPercentage === '') {
-        const roePercent = calculateRoEForPrice(initialStopLossPrice, false, {
-          currentPrice,
-          direction: actualDirection,
-          leverage,
-          entryPrice,
-        });
-        setStopLossPercentage(safeParseRoEPercentage(roePercent));
-      }
+      // Clear selection states when reopening
+      setSelectedTpPercentage(null);
+      setSelectedSlPercentage(null);
+      setTpUsingPercentage(false);
+      setSlUsingPercentage(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isVisible]); // Only run when visibility changes, not on price updates
+  }, [isVisible, initialTakeProfitPrice, initialStopLossPrice]); // Run when visibility or initial values change
 
   // Update ROE% display when leverage changes (keep trigger prices constant)
   // Prevent updates when user is actively editing to avoid input interference
@@ -192,7 +221,11 @@ export function usePerpsTPSLForm(
     const leverageChanged = prevLeverageRef.current !== leverage;
     prevLeverageRef.current = leverage;
 
-    if (leverage && isVisible) {
+    // Ensure we have valid prices before calculating RoE
+    const hasValidPrices =
+      (entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0);
+
+    if (leverage && isVisible && hasValidPrices) {
       // For take profit: recalculate ROE% based on new leverage or price
       // Only update if user is not actively editing the percentage field or if this is a leverage change
       if (
@@ -256,20 +289,32 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
+      // Allow erasing but prevent adding when there are more than 5 decimal places
+      if (parts[1]?.length > 5 && sanitized.length >= takeProfitPrice.length)
+        return;
+
       setTakeProfitPrice(sanitized);
 
       // Set price as source of truth when user is actively typing
       setTpSourceOfTruth('price');
 
       // Update RoE percentage based on price only if percentage field is not focused
-      if (sanitized && leverage && !tpPercentInputFocused) {
+      // and we have valid base prices for calculation
+      if (
+        sanitized &&
+        leverage &&
+        !tpPercentInputFocused &&
+        ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
+      ) {
         const roePercent = calculateRoEForPrice(sanitized, true, {
           currentPrice,
           direction: actualDirection,
           leverage,
           entryPrice,
         });
-        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+        if (roePercent && roePercent !== '') {
+          setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+        }
       } else if (!sanitized) {
         setTakeProfitPercentage('');
       }
@@ -282,6 +327,7 @@ export function usePerpsTPSLForm(
       leverage,
       entryPrice,
       tpPercentInputFocused,
+      takeProfitPrice,
     ],
   );
 
@@ -292,6 +338,12 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
+      // Allow erasing but prevent adding when there are more than 5 decimal places
+      if (
+        parts[1]?.length > 5 &&
+        sanitized.length >= takeProfitPercentage.length
+      )
+        return;
 
       setTakeProfitPercentage(sanitized);
 
@@ -320,7 +372,14 @@ export function usePerpsTPSLForm(
       }
       setTpUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [currentPrice, actualDirection, leverage, entryPrice, tpPriceInputFocused],
+    [
+      currentPrice,
+      actualDirection,
+      leverage,
+      entryPrice,
+      tpPriceInputFocused,
+      takeProfitPercentage.length,
+    ],
   );
 
   const handleStopLossPriceChange = useCallback(
@@ -330,13 +389,23 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
+      // Allow erasing but prevent adding when there are more than 5 decimal places
+      if (parts[1]?.length > 5 && sanitized.length >= stopLossPrice.length)
+        return;
+
       setStopLossPrice(sanitized);
 
       // Set price as source of truth when user is actively typing
       setSlSourceOfTruth('price');
 
       // Update RoE percentage based on price only if percentage field is not focused
-      if (sanitized && leverage && !slPercentInputFocused) {
+      // and we have valid base prices for calculation
+      if (
+        sanitized &&
+        leverage &&
+        !slPercentInputFocused &&
+        ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
+      ) {
         const roePercent = calculateRoEForPrice(sanitized, false, {
           currentPrice,
           direction: actualDirection,
@@ -344,7 +413,9 @@ export function usePerpsTPSLForm(
           entryPrice,
         });
         // Always show stop loss RoE as positive (it's a loss magnitude)
-        setStopLossPercentage(safeParseRoEPercentage(roePercent));
+        if (roePercent && roePercent !== '') {
+          setStopLossPercentage(safeParseRoEPercentage(roePercent));
+        }
       } else if (!sanitized) {
         setStopLossPercentage('');
       }
@@ -357,6 +428,7 @@ export function usePerpsTPSLForm(
       leverage,
       entryPrice,
       slPercentInputFocused,
+      stopLossPrice,
     ],
   );
 
@@ -367,6 +439,9 @@ export function usePerpsTPSLForm(
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
+      // Allow erasing but prevent adding when there are more than 5 decimal places
+      if (parts[1]?.length > 5 && sanitized.length >= stopLossPercentage.length)
+        return;
       setStopLossPercentage(sanitized);
 
       // Set percentage as source of truth when user is actively typing
@@ -394,7 +469,14 @@ export function usePerpsTPSLForm(
       }
       setSlUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [currentPrice, actualDirection, leverage, entryPrice, slPriceInputFocused],
+    [
+      currentPrice,
+      actualDirection,
+      leverage,
+      entryPrice,
+      slPriceInputFocused,
+      stopLossPercentage.length,
+    ],
   );
 
   // Focus/blur event handlers to manage source of truth and prevent input interference
@@ -407,15 +489,22 @@ export function usePerpsTPSLForm(
     setTpPriceInputFocused(false);
     setTpSourceOfTruth(null); // Clear source of truth to allow bidirectional updates
     // Don't format input value on blur - keep it as clean number for input
-    // Update percentage field if we have a valid price and leverage
-    if (takeProfitPrice && leverage && !isNaN(parseFloat(takeProfitPrice))) {
+    // Update percentage field if we have a valid price and leverage and valid entry price
+    if (
+      takeProfitPrice &&
+      leverage &&
+      !isNaN(parseFloat(takeProfitPrice)) &&
+      ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
+    ) {
       const roePercent = calculateRoEForPrice(takeProfitPrice, true, {
         currentPrice,
         direction: actualDirection,
         leverage,
         entryPrice,
       });
-      setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+      if (roePercent && roePercent !== '') {
+        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+      }
     }
   }, [takeProfitPrice, leverage, currentPrice, actualDirection, entryPrice]);
 
@@ -459,15 +548,22 @@ export function usePerpsTPSLForm(
     setSlPriceInputFocused(false);
     setSlSourceOfTruth(null); // Clear source of truth to allow bidirectional updates
     // Don't format input value on blur - keep it as clean number for input
-    // Update percentage field if we have a valid price and leverage
-    if (stopLossPrice && leverage && !isNaN(parseFloat(stopLossPrice))) {
+    // Update percentage field if we have a valid price and leverage and valid entry price
+    if (
+      stopLossPrice &&
+      leverage &&
+      !isNaN(parseFloat(stopLossPrice)) &&
+      ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
+    ) {
       const roePercent = calculateRoEForPrice(stopLossPrice, false, {
         currentPrice,
         direction: actualDirection,
         leverage,
         entryPrice,
       });
-      setStopLossPercentage(safeParseRoEPercentage(roePercent));
+      if (roePercent && roePercent !== '') {
+        setStopLossPercentage(safeParseRoEPercentage(roePercent));
+      }
     }
   }, [stopLossPrice, leverage, currentPrice, actualDirection, entryPrice]);
 
@@ -522,10 +618,24 @@ export function usePerpsTPSLForm(
         entryPrice,
       });
 
-      setTakeProfitPrice(price.toString());
-      setTakeProfitPercentage(safeParseRoEPercentage(roePercentage.toString()));
-      setSelectedTpPercentage(roePercentage);
-      setTpUsingPercentage(true);
+      // Only set values if we got a valid price
+      if (price && price !== '' && parseFloat(price) > 0) {
+        setTakeProfitPrice(
+          formatPerpsFiat(price.toString(), {
+            ranges: PRICE_RANGES_POSITION_VIEW,
+          }).replace(/[^0-9.]/g, ''),
+        );
+        setTakeProfitPercentage(
+          safeParseRoEPercentage(roePercentage.toString()),
+        );
+        setSelectedTpPercentage(roePercentage);
+        setTpUsingPercentage(true);
+      } else {
+        DevLogger.log(
+          '[TPSL Debug] Invalid take profit price calculated, not updating',
+          { price, roePercentage, entryPrice, currentPrice },
+        );
+      }
     },
     [asset, currentPrice, actualDirection, leverage, entryPrice],
   );
@@ -557,21 +667,34 @@ export function usePerpsTPSLForm(
         entryPrice,
       });
 
-      setStopLossPrice(price.toString());
-      // Show the percentage as positive in the UI (magnitude of loss)
-      setStopLossPercentage(safeParseRoEPercentage(roePercentage.toString()));
+      // Only set values if we got a valid price
+      if (price && price !== '' && parseFloat(price) > 0) {
+        setStopLossPrice(
+          formatPerpsFiat(price.toString(), {
+            ranges: PRICE_RANGES_POSITION_VIEW,
+          }).replace(/[^0-9.]/g, ''),
+        );
+        // Show the percentage as positive in the UI (magnitude of loss)
+        setStopLossPercentage(safeParseRoEPercentage(roePercentage.toString()));
+      } else {
+        DevLogger.log(
+          '[TPSL Debug] Invalid stop loss price calculated, not updating',
+          { price, roePercentage, entryPrice, currentPrice },
+        );
+      }
       setSelectedSlPercentage(roePercentage);
       setSlUsingPercentage(true);
     },
     [asset, currentPrice, actualDirection, leverage, entryPrice],
   );
 
-  // "Off" button handlers
+  // "Off" button handlers - clear all related state
   const handleTakeProfitOff = useCallback(() => {
     setTakeProfitPrice('');
     setTakeProfitPercentage('');
     setSelectedTpPercentage(null);
     setTpUsingPercentage(false);
+    setTpSourceOfTruth(null);
   }, []);
 
   const handleStopLossOff = useCallback(() => {
@@ -579,11 +702,23 @@ export function usePerpsTPSLForm(
     setStopLossPercentage('');
     setSelectedSlPercentage(null);
     setSlUsingPercentage(false);
+    setSlSourceOfTruth(null);
   }, []);
 
   // Validation logic
+  // Use entryPrice for validation (which is the limit price for limit orders, or current price for market orders)
+  // This ensures TP/SL are validated against the price where the order will execute
+  const referencePrice = entryPrice || currentPrice;
+
+  // Determine what type of price we're comparing against for error messages
+  const priceType = position
+    ? 'entry'
+    : entryPrice && entryPrice !== currentPrice
+    ? 'limit'
+    : 'current';
+
   const isValid = validateTPSLPrices(takeProfitPrice, stopLossPrice, {
-    currentPrice,
+    currentPrice: referencePrice,
     direction: actualDirection,
   });
 
@@ -596,22 +731,22 @@ export function usePerpsTPSLForm(
 
   const takeProfitError =
     !isValidTakeProfitPrice(takeProfitPrice, {
-      currentPrice,
+      currentPrice: referencePrice,
       direction: actualDirection,
     }) && takeProfitPrice
       ? `Take profit must be ${getTakeProfitErrorDirection(
           actualDirection,
-        )} current price`
+        )} ${priceType} price`
       : '';
 
   const stopLossError =
     !isValidStopLossPrice(stopLossPrice, {
-      currentPrice,
+      currentPrice: referencePrice,
       direction: actualDirection,
     }) && stopLossPrice
       ? `Stop loss must be ${getStopLossErrorDirection(
           actualDirection,
-        )} current price`
+        )} ${priceType} price`
       : '';
 
   // Display helpers

@@ -36,6 +36,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   endTrace,
   trace,
@@ -82,7 +83,12 @@ import {
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
-import { formatPrice } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  formatPrice,
+  PRICE_RANGES_DETAILED_VIEW,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
@@ -531,6 +537,94 @@ const PerpsOrderViewContentBase: React.FC = () => {
     endMeasure,
   ]);
 
+  // Clear invalid TP/SL values when limit price changes
+  useEffect(() => {
+    // Simple check: if we have a limit order with a limit price
+    if (
+      orderForm.type === 'limit' &&
+      orderForm.limitPrice &&
+      parseFloat(orderForm.limitPrice) > 0
+    ) {
+      const limitPriceNum = parseFloat(orderForm.limitPrice || '0');
+      const isLong = orderForm.direction === 'long';
+
+      // Check if take profit price is still valid with new limit price
+      if (orderForm.takeProfitPrice) {
+        const tpPrice = parseFloat(orderForm.takeProfitPrice);
+        const isTpValid = isLong
+          ? tpPrice > limitPriceNum
+          : tpPrice < limitPriceNum;
+
+        if (!isTpValid) {
+          DevLogger.log(
+            '[Order View] Take profit price is invalid with new limit price, clearing',
+            {
+              takeProfitPrice: orderForm.takeProfitPrice,
+              limitPrice: orderForm.limitPrice,
+              direction: orderForm.direction,
+            },
+          );
+          // Clear the invalid take profit value
+          DevLogger.log(
+            '[Order Debug] Clearing invalid TP due to limit price change',
+          );
+          // Set to undefined - the TP/SL form will sync via the initialTakeProfitPrice prop
+          setTakeProfitPrice(undefined);
+        }
+      }
+
+      // Check if stop loss price is still valid with new limit price
+      if (orderForm.stopLossPrice) {
+        const slPrice = parseFloat(orderForm.stopLossPrice);
+        const isSlValid = isLong
+          ? slPrice < limitPriceNum
+          : slPrice > limitPriceNum;
+
+        DevLogger.log('[Order Debug] SL validation:', {
+          slPrice,
+          limitPrice: limitPriceNum,
+          isLong,
+          isSlValid,
+          expectedCondition: isLong ? 'SL < limit' : 'SL > limit',
+          willClear: !isSlValid,
+        });
+
+        if (!isSlValid) {
+          DevLogger.log(
+            '[Order View] Stop loss price is invalid with new limit price, WILL CLEAR',
+            {
+              stopLossPrice: orderForm.stopLossPrice,
+              slPrice,
+              limitPrice: orderForm.limitPrice,
+              limitPriceNum,
+              direction: orderForm.direction,
+              isLong,
+              expectedCondition: isLong ? 'SL < limit' : 'SL > limit',
+              actualCondition: isLong
+                ? slPrice < limitPriceNum
+                : slPrice > limitPriceNum,
+            },
+          );
+          // Clear the invalid stop loss value - force it to undefined
+          DevLogger.log(
+            '[Order Debug] Calling setStopLossPrice(undefined) to clear invalid SL',
+          );
+          // Clear by setting to undefined
+          setStopLossPrice(undefined);
+        }
+      }
+    }
+  }, [
+    orderForm.type,
+    orderForm.limitPrice,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.direction,
+    setTakeProfitPrice,
+    setStopLossPrice,
+    orderForm.asset,
+  ]);
+
   // Handlers
   const handleTPSLPress = useCallback(() => {
     if (orderForm.type === 'limit' && !orderForm.limitPrice) {
@@ -640,17 +734,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
       });
 
       // Execute order using the new hook
+      // Only include TP/SL if they have valid, non-empty values
       const orderParams: OrderParams = {
         coin: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize,
         orderType: orderForm.type,
-        takeProfitPrice: orderForm.takeProfitPrice,
-        stopLossPrice: orderForm.stopLossPrice,
         currentPrice: assetData.price,
         leverage: orderForm.leverage,
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
+          : {}),
+        // Only add TP/SL if they are truthy and not empty strings
+        ...(orderForm.takeProfitPrice && orderForm.takeProfitPrice !== ''
+          ? { takeProfitPrice: orderForm.takeProfitPrice }
+          : {}),
+        ...(orderForm.stopLossPrice && orderForm.stopLossPrice !== ''
+          ? { stopLossPrice: orderForm.stopLossPrice }
           : {}),
       };
 
@@ -760,6 +860,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               maximumValue={availableBalance * orderForm.leverage}
               step={1}
               showPercentageLabels
+              disabled={parseFloat(orderForm.amount || '0') < 10}
             />
           </View>
         )}
@@ -917,7 +1018,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {parseFloat(orderForm.amount) > 0
-                ? formatPrice(liquidationPrice)
+                ? formatPerpsFiat(liquidationPrice, {
+                    ranges: PRICE_RANGES_DETAILED_VIEW,
+                  })
                 : '--'}
             </Text>
           </View>
@@ -941,7 +1044,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {parseFloat(orderForm.amount) > 0
-                ? formatPrice(estimatedFees)
+                ? formatPerpsFiat(estimatedFees, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
                 : '--'}
             </Text>
           </View>
@@ -1031,8 +1136,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
         isVisible={isTPSLVisible}
         onClose={() => setIsTPSLVisible(false)}
         onConfirm={(takeProfitPrice, stopLossPrice) => {
-          setTakeProfitPrice(takeProfitPrice);
-          setStopLossPrice(stopLossPrice);
+          // Use the same clearing approach as the "Off" button
+          // If values are undefined or empty, ensure they're cleared properly
+          const tpToSet = takeProfitPrice || undefined;
+          const slToSet = stopLossPrice || undefined;
+
+          setTakeProfitPrice(tpToSet);
+          setStopLossPrice(slToSet);
           setIsTPSLVisible(false);
         }}
         asset={orderForm.asset}
@@ -1042,6 +1152,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         marginRequired={marginRequired}
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
+        orderType={orderForm.type}
+        limitPrice={orderForm.limitPrice}
       />
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
@@ -1049,6 +1161,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
         onClose={() => setIsLeverageVisible(false)}
         onConfirm={(leverage, inputMethod) => {
           setLeverage(leverage);
+
+          // Check if current amount exceeds new maximum value and adjust if needed
+          const currentAmount = parseFloat(orderForm.amount || '0');
+          const newMaxAmount = availableBalance * leverage;
+          if (currentAmount > newMaxAmount) {
+            setAmount(Math.floor(newMaxAmount).toString());
+          }
+
           setIsLeverageVisible(false);
 
           // Track leverage change (consolidated here to avoid duplicate tracking)

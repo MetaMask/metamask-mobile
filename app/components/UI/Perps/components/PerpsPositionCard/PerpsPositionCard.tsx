@@ -29,9 +29,12 @@ import type {
 } from '../../controllers/types';
 import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import {
+  formatPerpsFiat,
   formatPnl,
   formatPositionSize,
   formatPrice,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_POSITION_VIEW,
 } from '../../utils/formatUtils';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -134,6 +137,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       return;
     }
 
+    DevLogger.log('PerpsPositionCard: Editing TPSL', { position });
     setSelectedPosition(position);
     setIsTPSLVisible(true);
   };
@@ -213,9 +217,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.entry_price')}
                 </Text>
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                  {formatPrice(position.entryPrice, {
-                    minimumDecimals: 2,
-                    maximumDecimals: 2,
+                  {formatPerpsFiat(position.entryPrice, {
+                    ranges: PRICE_RANGES_POSITION_VIEW,
                   })}
                 </Text>
               </View>
@@ -228,9 +231,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.liquidationPrice
-                    ? formatPrice(position.liquidationPrice, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
+                    ? formatPerpsFiat(position.liquidationPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
                       })
                     : 'N/A'}
                 </Text>
@@ -243,9 +245,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.margin')}
                 </Text>
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                  {formatPrice(position.marginUsed, {
-                    minimumDecimals: 2,
-                    maximumDecimals: 2,
+                  {formatPerpsFiat(position.marginUsed, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })}
                 </Text>
               </View>
@@ -261,9 +262,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.takeProfitPrice
-                    ? formatPrice(position.takeProfitPrice, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
+                    ? formatPerpsFiat(position.takeProfitPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
                       })
                     : strings('perps.position.card.not_set')}
                 </Text>
@@ -277,9 +277,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {position.stopLossPrice
-                    ? formatPrice(position.stopLossPrice, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
+                    ? formatPerpsFiat(position.stopLossPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
                       })
                     : strings('perps.position.card.not_set')}
                 </Text>
@@ -321,11 +320,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {parseFloat(position.cumulativeFunding.sinceOpen) >= 0
                     ? '-'
                     : '+'}
-                  {formatPrice(
+                  {formatPerpsFiat(
                     Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
                     {
-                      minimumDecimals: 2,
-                      maximumDecimals: 2,
+                      ranges: PRICE_RANGES_MINIMAL_VIEW,
                     },
                   )}
                 </Text>

@@ -1257,7 +1257,8 @@
         "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
-        "update_success": "TP/SL updated successfully"
+        "update_success": "TP/SL updated successfully",
+        "update_failed": "Failed to update TP/SL"
       }
     },
     "markets": {
