@@ -214,7 +214,7 @@ const DeepLinkModal = () => {
     });
   }, []);
 
-  const onContinuePressed = useCallback(() => {
+  const onPrimaryButtonPressed = useCallback(() => {
     dismissModal(() => {
       if (linkType === DeepLinkModalLinkType.INVALID) {
         // Navigate to home page for invalid links
@@ -224,6 +224,7 @@ const DeepLinkModal = () => {
             screen: Routes.WALLET_VIEW,
           },
         });
+        params.onBack();
       } else {
         // Track analytics for valid links
         const eventContinue = LINK_TYPE_MAP[linkType].eventContinue;
@@ -237,8 +238,8 @@ const DeepLinkModal = () => {
               .build(),
           );
         }
+        params.onContinue();
       }
-      params.onContinue();
     });
   }, [
     trackEvent,
@@ -311,7 +312,7 @@ const DeepLinkModal = () => {
           LINK_TYPE_MAP[linkType].buttonLabel ||
           strings('deep_link_modal.continue_button')
         }
-        onPress={onContinuePressed}
+        onPress={onPrimaryButtonPressed}
         style={styles.actionButtonMargin}
       />
     </BottomSheet>

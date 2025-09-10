@@ -29,7 +29,6 @@ type PrivateLinkParams = CommonLinkParams & {
 
 type InvalidLinkParams = CommonLinkParams & {
   linkType: DeepLinkModalLinkType.INVALID;
-  onContinue: () => void;
 };
 
 /**

@@ -242,7 +242,7 @@ describe('DeepLinkModal', () => {
     });
   });
 
-  it('navigates to home page when continue button is pressed for invalid link', async () => {
+  it('navigates to home page when primary button is pressed for invalid link', async () => {
     (useParams as jest.Mock).mockReturnValue({
       ...baseParams,
       linkType: 'invalid',
@@ -264,7 +264,7 @@ describe('DeepLinkModal', () => {
         screen: 'WalletView',
       },
     });
-    expect(mockOnContinue).toHaveBeenCalled();
+    expect(mockOnBack).toHaveBeenCalled();
   });
 
   it('toggles checkbox, dispatches action, and tracks event', () => {
