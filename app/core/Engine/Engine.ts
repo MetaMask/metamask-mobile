@@ -1513,6 +1513,8 @@ export class Engine {
             'NetworkController:stateChange',
             'KeyringController:accountRemoved',
             'AccountActivityService:balanceUpdated',
+            'AccountActivityService:websocketConnected',
+            'AccountActivityService:websocketDisconnected',
           ],
         }),
         // TODO: This is long, can we decrease it?

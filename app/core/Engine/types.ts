@@ -511,7 +511,9 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
+  AccountActivityService: AccountActivityService;
   AccountsController: AccountsController;
+  BackendWebSocketService: BackendWebSocketService;
   AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
