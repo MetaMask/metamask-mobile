@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 // Force E2E mode
 jest.mock('../../../../util/test/utils', () => ({ isE2E: true }));
 
@@ -52,19 +53,26 @@ jest.mock(
   }),
 );
 
-import { PerpsE2EMockService } from '../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks';
-import { getE2EMockStreamManager } from './e2eBridgePerps';
-
 describe('E2E liquidation trigger (no UI)', () => {
   it('liquidates BTC long when price <= liquidation', () => {
-    // Arrange
-    expect(getE2EMockStreamManager()).toBeTruthy();
-    const service = PerpsE2EMockService.getInstance();
+    // Arrange/Act/Assert in isolated module context to ensure mocks apply before require
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const { getE2EMockStreamManager } = require('./e2eBridgePerps');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const {
+        PerpsE2EMockService,
+      } = require('../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks');
 
-    // Act
-    service.mockPushPrice('BTC', '50000.00');
+      // Arrange
+      expect(getE2EMockStreamManager()).toBeTruthy();
+      const service = PerpsE2EMockService.getInstance();
 
-    // Assert: mockPushPrice was called; liquidation side-effects are covered in E2E service unit
-    expect(service.mockPushPrice).toHaveBeenCalledWith('BTC', '50000.00');
+      // Act
+      service.mockPushPrice('BTC', '50000.00');
+
+      // Assert: mockPushPrice was called; liquidation side-effects are covered in E2E service unit
+      expect(service.mockPushPrice).toHaveBeenCalledWith('BTC', '50000.00');
+    });
   });
 });
