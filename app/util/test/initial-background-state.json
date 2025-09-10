@@ -166,96 +166,6 @@
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
-      },
-      "0xa": {
-        "blockExplorerUrls": [],
-        "chainId": "0xa",
-        "defaultRpcEndpointIndex": 0,
-        "name": "OP Mainnet",
-        "nativeCurrency": "ETH",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "optimism-mainnet",
-            "type": "infura",
-            "url": "https://optimism-mainnet.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
-          }
-        ]
-      },
-      "0x38": {
-        "blockExplorerUrls": [],
-        "chainId": "0x38",
-        "defaultRpcEndpointIndex": 0,
-        "name": "BNB Smart Chain",
-        "nativeCurrency": "BNB",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "bsc-mainnet",
-            "type": "infura",
-            "url": "https://bsc-mainnet.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
-          }
-        ]
-      },
-      "0x89": {
-        "blockExplorerUrls": [],
-        "chainId": "0x89",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Polygon Mainnet",
-        "nativeCurrency": "POL",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "polygon-mainnet",
-            "type": "infura",
-            "url": "https://polygon-mainnet.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
-          }
-        ]
-      },
-      "0xa4b1": {
-        "blockExplorerUrls": [],
-        "chainId": "0xa4b1",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Arbitrum One",
-        "nativeCurrency": "ETH",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "arbitrum-mainnet",
-            "type": "infura",
-            "url": "https://arbitrum-mainnet.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
-          }
-        ]
-      },
-      "0xa86a": {
-        "blockExplorerUrls": [],
-        "chainId": "0xa86a",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Avalanche C-Chain",
-        "nativeCurrency": "AVAX",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "avalanche-mainnet",
-            "type": "custom",
-            "url": "https://api.avax.network/ext/bc/C/rpc",
-            "failoverUrls": []
-          }
-        ]
-      },
-      "0x144": {
-        "blockExplorerUrls": [],
-        "chainId": "0x144",
-        "defaultRpcEndpointIndex": 0,
-        "name": "zkSync Era Mainnet",
-        "nativeCurrency": "ETH",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "zksync-era-mainnet",
-            "type": "custom",
-            "url": "https://mainnet.era.zksync.io",
-            "failoverUrls": []
-          }
-        ]
       }
     }
   },
@@ -268,12 +178,6 @@
       },
       "eip155": {
         "0x1": true,
-        "0xa": true,
-        "0x38": true,
-        "0x89": true,
-        "0xa4b1": true,
-        "0xa86a": true,
-        "0x144": true,
         "0x2105": true,
         "0xe708": true
       },
@@ -615,54 +519,6 @@
         "isEvm": false,
         "name": "Solana Devnet",
         "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
-      },
-      "eip155:10": {
-        "chainId": "eip155:10",
-        "name": "OP Mainnet",
-        "nativeCurrency": "ETH",
-        "isEvm": true
-      },
-      "eip155:56": {
-        "chainId": "eip155:56",
-        "name": "BNB Smart Chain",
-        "nativeCurrency": "BNB",
-        "isEvm": true
-      },
-      "eip155:137": {
-        "chainId": "eip155:137",
-        "name": "Polygon Mainnet",
-        "nativeCurrency": "POL",
-        "isEvm": true
-      },
-      "eip155:42161": {
-        "chainId": "eip155:42161",
-        "name": "Arbitrum One",
-        "nativeCurrency": "ETH",
-        "isEvm": true
-      },
-      "eip155:43114": {
-        "chainId": "eip155:43114",
-        "name": "Avalanche C-Chain",
-        "nativeCurrency": "AVAX",
-        "isEvm": true
-      },
-      "eip155:324": {
-        "chainId": "eip155:324",
-        "name": "zkSync Era Mainnet",
-        "nativeCurrency": "ETH",
-        "isEvm": true
-      },
-      "eip155:8453": {
-        "chainId": "eip155:8453",
-        "name": "Base Mainnet",
-        "nativeCurrency": "ETH",
-        "isEvm": true
-      },
-      "eip155:59144": {
-        "chainId": "eip155:59144",
-        "name": "Linea Mainnet",
-        "nativeCurrency": "ETH",
-        "isEvm": true
       }
     }
   },
