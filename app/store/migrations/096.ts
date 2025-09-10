@@ -52,6 +52,8 @@ const migration = async (state: unknown): Promise<unknown> => {
       if (isObject(order) && fixCondition(order)) {
         const cryptocurrency = isObject(order.cryptocurrency)
           ? order.cryptocurrency?.symbol
+          : typeof order.cryptocurrency === 'string'
+          ? order.cryptocurrency
           : undefined;
 
         const network = isObject(order.cryptocurrency)
