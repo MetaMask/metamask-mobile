@@ -146,16 +146,20 @@ const createStyles = (colors) =>
     },
     avatarWrapper: {
       borderRadius: 12,
-      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      borderWidth: 2,
+      width: diameter,
+      height: diameter,
+      borderWidth: 0,
       justifyContent: 'center',
       alignItems: 'center',
     },
     selectedAvatarWrapper: {
+      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
+      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
+      borderWidth: 2,
       borderColor: colors.primary.default,
     },
     unselectedAvatarWrapper: {
+      borderWidth: 0,
       borderColor: colors.background.transparent,
     },
   });
