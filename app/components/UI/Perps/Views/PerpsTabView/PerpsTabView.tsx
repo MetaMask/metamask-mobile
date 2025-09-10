@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,6 +47,7 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { TouchableOpacity } from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase';
 
 interface PerpsTabViewProps {}
 

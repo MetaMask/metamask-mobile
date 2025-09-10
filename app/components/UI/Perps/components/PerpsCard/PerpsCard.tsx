@@ -39,7 +39,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   const symbol = position?.coin || order?.symbol || '';
 
   // Get all markets data to find the specific market when navigating
-  const { markets, isLoading: isLoadingMarkets } = usePerpsMarkets();
+  const { markets } = usePerpsMarkets();
 
   // Calculate display values
   let primaryText = '';
@@ -103,7 +103,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       style={styles.card}
       activeOpacity={0.7}
       onPress={handlePress}
-      disabled={isLoadingMarkets || markets.length === 0}
+      disabled={markets.length === 0}
       testID={testID}
     >
       <View style={styles.cardContent}>
