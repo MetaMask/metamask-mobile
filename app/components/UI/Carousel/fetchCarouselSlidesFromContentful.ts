@@ -160,7 +160,7 @@ function mapContentfulEntriesToSlides(
   return { prioritySlides, regularSlides };
 }
 
-export function isValidMinimumVersion(contentfulMinimumVersionNumber?: string) {
+function isValidMinimumVersion(contentfulMinimumVersionNumber?: string) {
   // Field is not set, show by default
   if (!contentfulMinimumVersionNumber) {
     return true;
