@@ -59,14 +59,11 @@ jest.mock('react-redux', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockNavigation = {
+
+(useNavigation as jest.Mock).mockReturnValue({
   navigate: mockNavigate,
   goBack: mockGoBack,
-};
-
-(useNavigation as jest.MockedFn<typeof useNavigation>).mockReturnValue(
-  mockNavigation as any,
-);
+} as never);
 
 describe('DeepLinkModal', () => {
   const mockOnContinue = jest.fn();
