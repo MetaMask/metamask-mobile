@@ -39,6 +39,7 @@ import Text, {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { colors as staticColors } from '../../../../styles/common';
 
 const diameter = 40;
 const spacing = 8;
@@ -146,21 +147,17 @@ const createStyles = (colors) =>
     },
     avatarWrapper: {
       borderRadius: 12,
-      width: diameter,
-      height: diameter,
+      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
+      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
       borderWidth: 2,
       justifyContent: 'center',
       alignItems: 'center',
     },
     selectedAvatarWrapper: {
-      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      borderWidth: 2,
       borderColor: colors.primary.default,
     },
     unselectedAvatarWrapper: {
-      borderWidth: 2,
-      borderColor: colors.background.transparent,
+      borderColor: staticColors.transparent,
     },
   });
 
