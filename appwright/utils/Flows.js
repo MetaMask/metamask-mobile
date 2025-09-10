@@ -153,7 +153,7 @@ export async function login(device, scenarioType) {
   const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
-  await LoginScreen.typePassword('qwertyui');
+  await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
   await tapPerpsBottomSheetGotItButton(device);
   // Wait for app to settle after unlock
