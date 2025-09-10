@@ -397,10 +397,9 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.getOAuthLoginAttempted()) {
+    if (OAuthLoginService.localState.isOAuthLoginAttempted) {
       // Disable metrics
       await this.props.metrics.enable(false);
-      OAuthLoginService.setOAuthLoginAttempted(false);
     }
 
     trace({ name: TraceName.OnboardingCreateWallet });
@@ -428,10 +427,9 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.getOAuthLoginAttempted()) {
+    if (OAuthLoginService.localState.isOAuthLoginAttempted) {
       // Disable metrics
       await this.props.metrics.enable(false);
-      OAuthLoginService.setOAuthLoginAttempted(false);
     }
     const action = async () => {
       trace({
@@ -544,7 +542,7 @@ class Onboarding extends PureComponent {
     // Enable metrics for OAuth users
     await this.props.metrics.enable();
     await setupSentry();
-    OAuthLoginService.setOAuthLoginAttempted(true);
+    OAuthLoginService.localState.isOAuthLoginAttempted = true;
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {

@@ -302,14 +302,9 @@ export class OAuthService {
       loginInProgress: false,
       oauthLoginSuccess: false,
       oauthLoginError: null,
+      isOAuthLoginAttempted: false,
     });
   };
-
-  public setOAuthLoginAttempted = (value: boolean) => {
-    this.localState.isOAuthLoginAttempted = value;
-  };
-
-  public getOAuthLoginAttempted = (): boolean => this.localState.isOAuthLoginAttempted;
 }
 
 export default new OAuthService({
