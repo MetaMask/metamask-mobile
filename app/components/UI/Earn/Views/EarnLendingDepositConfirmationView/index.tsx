@@ -601,48 +601,58 @@ const EarnLendingDepositConfirmationView = () => {
         });
 
       if (!allowanceResetTransaction?.transactionMeta?.id) {
-        setIsAllowanceResetLoading(false);
-        setIsConfirmButtonDisabled(false);
+        unsetAllowanceResetLoadingState();
         return;
       }
 
       return allowanceResetTransaction;
-    } catch (e) {
-      setIsAllowanceResetLoading(false);
-      setIsConfirmButtonDisabled(false);
+    } catch (error) {
+      unsetAllowanceResetLoadingState();
+      Logger.error(
+        error as Error,
+        '[resetTokenAllowance] Lending deposit failed',
+      );
     }
   };
 
   const increaseTokenAllowance = async (networkClientId: string) => {
-    if (!earnToken?.experience?.market?.protocol || !earnToken?.chainId) return;
+    try {
+      if (!earnToken?.experience?.market?.protocol || !earnToken?.chainId)
+        return;
 
-    setIsApprovalLoading(true);
+      setIsApprovalLoading(true);
 
-    const allowanceIncreaseTransaction =
-      await Engine.context.EarnController.executeLendingTokenApprove({
-        protocol: earnToken?.experience?.market?.protocol,
-        amount: amountTokenMinimalUnit,
-        chainId: earnToken.chainId,
-        underlyingTokenAddress:
-          earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {
-          gasLimit: 'none',
-        },
-        txOptions: {
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          type: TransactionType.tokenMethodIncreaseAllowance,
-        },
-      });
+      const allowanceIncreaseTransaction =
+        await Engine.context.EarnController.executeLendingTokenApprove({
+          protocol: earnToken?.experience?.market?.protocol,
+          amount: amountTokenMinimalUnit,
+          chainId: earnToken.chainId,
+          underlyingTokenAddress:
+            earnToken?.experience?.market?.underlying?.address,
+          gasOptions: {
+            gasLimit: 'none',
+          },
+          txOptions: {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            networkClientId,
+            origin: ORIGIN_METAMASK,
+            type: TransactionType.tokenMethodIncreaseAllowance,
+          },
+        });
 
-    if (!allowanceIncreaseTransaction) {
-      setIsApprovalLoading(false);
-      setIsConfirmButtonDisabled(false);
-      return;
+      if (!allowanceIncreaseTransaction) {
+        unsetAllowanceIncreaseLoadingState();
+        return;
+      }
+
+      return allowanceIncreaseTransaction;
+    } catch (error) {
+      unsetAllowanceIncreaseLoadingState();
+      Logger.error(
+        error as Error,
+        '[increaseTokenAllowance] Lending deposit failed',
+      );
     }
-
-    return allowanceIncreaseTransaction;
   };
 
   const depositTokens = async (networkClientId: string) => {
@@ -682,16 +692,15 @@ const EarnLendingDepositConfirmationView = () => {
         });
 
       if (!depositTransaction) {
+        unsetDepositLoadingState();
         return;
       }
 
       return depositTransaction;
-    } catch (error: Error | unknown) {
+    } catch (error) {
+      unsetDepositLoadingState();
       Logger.error(error as Error, '[depositTokens] Lending deposit failed');
       return;
-    } finally {
-      setIsDepositLoading(false);
-      setIsConfirmButtonDisabled(false);
     }
   };
 
@@ -765,7 +774,6 @@ const EarnLendingDepositConfirmationView = () => {
       createTransactionEventListeners(transactionId, txType);
     } catch (error) {
       // allow user to try again
-      setIsDepositLoading(false);
       setIsConfirmButtonDisabled(false);
     }
   };

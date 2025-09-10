@@ -163,6 +163,10 @@ describe('RewardsController', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getPointsEvents',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsController:estimatePoints',
         expect.any(Function),
       );
@@ -547,6 +551,142 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(new Error('API error'));
 
       await expect(controller.estimatePoints(mockRequest)).rejects.toThrow(
+        'API error',
+      );
+    });
+  });
+
+  describe('getPointsEvents', () => {
+    beforeEach(() => {
+      // Mock feature flag to be enabled by default for existing tests
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return empty response when feature flag is disabled', async () => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: null,
+      };
+
+      const result = await controller.getPointsEvents(mockRequest);
+
+      expect(result).toEqual({
+        has_more: false,
+        cursor: null,
+        total_results: 0,
+        results: [],
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEvents',
+        expect.anything(),
+      );
+    });
+
+    it('should successfully get points events', async () => {
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: null,
+      };
+
+      const mockResponse = {
+        has_more: true,
+        cursor: 'next-cursor',
+        total_results: 50,
+        results: [
+          {
+            id: 'event-123',
+            timestamp: new Date('2024-01-01T10:00:00Z'),
+            value: 100,
+            bonus: { bips: 200, bonuses: ['loyalty'] },
+            accountAddress: '0x123456789',
+            type: 'SWAP' as const,
+            payload: {
+              srcAsset: {
+                amount: '1000000000000000000',
+                type: 'eip155:1/slip44:60',
+                decimals: 18,
+                name: 'Ethereum',
+                symbol: 'ETH',
+              },
+              destAsset: {
+                amount: '4500000000',
+                type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                decimals: 6,
+                name: 'USD Coin',
+                symbol: 'USDC',
+              },
+              txHash: '0xabcdef123456',
+            },
+          },
+        ],
+      };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      const result = await controller.getPointsEvents(mockRequest);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEvents',
+        mockRequest,
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should successfully get points events with cursor', async () => {
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: 'cursor-abc',
+      };
+
+      const mockResponse = {
+        has_more: false,
+        cursor: null,
+        total_results: 25,
+        results: [
+          {
+            id: 'event-456',
+            timestamp: new Date('2024-01-01T11:00:00Z'),
+            value: 50,
+            bonus: null,
+            accountAddress: '0x987654321',
+            type: 'REFERRAL' as const,
+            payload: null,
+          },
+        ],
+      };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      const result = await controller.getPointsEvents(mockRequest);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEvents',
+        mockRequest,
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should handle getPointsEvents errors and rethrow them', async () => {
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: null,
+      };
+
+      const apiError = new Error('API error');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(controller.getPointsEvents(mockRequest)).rejects.toThrow(
+        'API error',
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get points events:',
         'API error',
       );
     });

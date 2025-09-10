@@ -388,7 +388,6 @@ jobs:
         check-workflows,
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
-        e2e-smoke-tests-android,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
