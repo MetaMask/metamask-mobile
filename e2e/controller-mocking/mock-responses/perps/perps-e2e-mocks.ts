@@ -18,7 +18,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   Funding,
-} from '../../../app/components/UI/Perps/controllers/types';
+} from '../../../../app/components/UI/Perps/controllers/types';
 
 export class PerpsE2EMockService {
   private static instance: PerpsE2EMockService;
@@ -38,6 +38,7 @@ export class PerpsE2EMockService {
   private mockOrders: Order[] = [];
   private mockOrderFills: OrderFill[] = [];
   private mockPricesMap: Record<string, PriceUpdate> = {};
+  private orderMeta: Record<string, { leverage: number }> = {};
 
   private orderIdCounter = 1;
   private fillIdCounter = 1;
@@ -45,6 +46,7 @@ export class PerpsE2EMockService {
   // Stream callbacks to notify about data changes
   private positionCallbacks: ((positions: Position[]) => void)[] = [];
   private accountCallbacks: ((account: AccountState) => void)[] = [];
+  private ordersCallbacks: ((orders: Order[]) => void)[] = [];
 
   private constructor() {
     this.reset();
@@ -158,10 +160,12 @@ export class PerpsE2EMockService {
     this.mockOrderFills = [];
     this.orderIdCounter = 1;
     this.fillIdCounter = 1;
+    this.orderMeta = {};
 
     // Clear callbacks
     this.positionCallbacks = [];
     this.accountCallbacks = [];
+    this.ordersCallbacks = [];
 
     // Initialize price map with default prices
     this.mockPricesMap = this.buildDefaultPrices();
@@ -171,7 +175,29 @@ export class PerpsE2EMockService {
   public async mockPlaceOrder(params: OrderParams): Promise<OrderResult> {
     const orderId = `mock_order_${this.orderIdCounter++}`;
 
-    // Calculate mock values
+    // If this is a limit order, add to open orders and do not create a position yet
+    if (params.orderType === 'limit' && params.price) {
+      const openOrder: Order = {
+        orderId,
+        symbol: params.coin,
+        side: params.isBuy ? 'buy' : 'sell',
+        orderType: 'limit',
+        size: params.size,
+        originalSize: params.size,
+        price: params.price,
+        filledSize: '0',
+        remainingSize: params.size,
+        status: 'open',
+        timestamp: Date.now(),
+      };
+      this.mockOrders.push(openOrder);
+      // Track leverage metadata for later fill
+      this.orderMeta[orderId] = { leverage: params.leverage || 1 };
+      this.notifyOrdersCallbacks();
+      return { success: true, orderId };
+    }
+
+    // Calculate mock values for market orders
     const notionalValue =
       parseFloat(params.size) * (params.currentPrice || 50000);
     const marginUsed = notionalValue / (params.leverage || 1);
@@ -395,6 +421,29 @@ export class PerpsE2EMockService {
     });
   }
 
+  private notifyOrdersCallbacks(): void {
+    try {
+      const snapshot = this.getMockOrders();
+      this.ordersCallbacks.forEach((callback) => {
+        try {
+          callback([...snapshot]);
+        } catch {
+          // no-op
+        }
+      });
+    } catch {
+      // no-op
+    }
+  }
+
+  public registerOrderCallback(callback: (orders: Order[]) => void): void {
+    this.ordersCallbacks.push(callback);
+  }
+
+  public unregisterOrderCallback(callback: (orders: Order[]) => void): void {
+    this.ordersCallbacks = this.ordersCallbacks.filter((cb) => cb !== callback);
+  }
+
   // Getter methods
   public getMockAccountState(): AccountState {
     return { ...this.mockAccount };
@@ -527,6 +576,92 @@ export class PerpsE2EMockService {
       const delta = (parsed - entry) * Math.abs(size) * direction;
       return { ...pos, unrealizedPnl: delta.toFixed(2) };
     });
+
+    // Evaluate open limit orders for potential fills (remove when triggered and open position)
+    const remainingOrders: Order[] = [];
+    for (const order of this.mockOrders) {
+      if (order.symbol !== symbol) {
+        remainingOrders.push(order);
+        continue;
+      }
+      if (order.orderType === 'limit') {
+        const limitPx = parseFloat(order.price);
+        const fill =
+          (order.side === 'buy' && parsed <= limitPx) ||
+          (order.side === 'sell' && parsed >= limitPx);
+        if (!fill) {
+          remainingOrders.push(order);
+        } else {
+          // Mark fill in history and drop from open orders
+          const mockFill: OrderFill = {
+            orderId: order.orderId,
+            symbol: order.symbol,
+            size: order.size,
+            price: order.price,
+            timestamp: Date.now(),
+            side: order.side,
+            fee: '0.00',
+            feeToken: 'USDC',
+            pnl: '0.00',
+            direction: order.side === 'buy' ? 'long' : 'short',
+          };
+          this.mockOrderFills.push(mockFill);
+
+          // Create a position at the limit price using stored leverage metadata
+          const leverage = this.orderMeta[order.orderId]?.leverage || 1;
+          const numericSize = Math.abs(parseFloat(order.size) || 0);
+          const signedSize = order.side === 'buy' ? numericSize : -numericSize;
+          const entry = parseFloat(order.price);
+          const notional = numericSize * entry;
+          const marginUsed = notional / leverage;
+
+          // Update account balances for margin usage
+          const newAvailableBalance =
+            parseFloat(this.mockAccount.availableBalance) - marginUsed;
+          const newMarginUsed =
+            parseFloat(this.mockAccount.marginUsed) + marginUsed;
+          this.mockAccount = {
+            ...this.mockAccount,
+            availableBalance: newAvailableBalance.toString(),
+            marginUsed: newMarginUsed.toString(),
+          };
+
+          // Add position
+          const newPosition: Position = {
+            coin: order.symbol,
+            entryPrice: entry.toFixed(2),
+            size: signedSize.toString(),
+            positionValue: notional.toFixed(2),
+            unrealizedPnl: '0',
+            marginUsed: marginUsed.toFixed(2),
+            leverage: { type: 'cross', value: leverage },
+            liquidationPrice: this.calculateMockLiquidationPrice(
+              entry,
+              leverage,
+              order.side === 'buy',
+            ).toFixed(2),
+            maxLeverage: 50,
+            returnOnEquity: '0',
+            cumulativeFunding: {
+              allTime: '0',
+              sinceChange: '0',
+              sinceOpen: '0',
+            },
+          };
+          this.mockPositions.push(newPosition);
+
+          // Cleanup order meta
+          delete this.orderMeta[order.orderId];
+        }
+      } else {
+        remainingOrders.push(order);
+      }
+    }
+    this.mockOrders = remainingOrders;
+    this.notifyOrdersCallbacks();
+    // Notify about new positions/balances if any were created
+    this.notifyPositionCallbacks();
+    this.notifyAccountCallbacks();
 
     // Liquidation check pass for all positions of this symbol
     this.applyLiquidationChecksForSymbol(symbol, updated);

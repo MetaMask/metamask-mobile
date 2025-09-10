@@ -28,7 +28,7 @@ jest.mock('react-native', () => {
 // Mock E2E modules dynamically imported by the bridge
 const mockPushPrice = jest.fn().mockReturnValue(true);
 jest.mock(
-  '../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks',
+  '../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks',
   () => ({
     PerpsE2EMockService: {
       getInstance: () => ({
@@ -43,7 +43,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../../e2e/api-mocking/mock-config/perps-controller-mixin',
+  '../../../../../e2e/controller-mocking/mock-config/perps-controller-mixin',
   () => ({
     applyE2EPerpsControllerMocks: jest.fn(),
     createE2EMockStreamManager: jest.fn(() => ({ prices: {}, positions: {} })),

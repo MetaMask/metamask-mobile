@@ -7,7 +7,7 @@
  */
 
 import type { Mockttp } from 'mockttp';
-import type { TestSpecificMock } from '../../framework';
+import type { TestSpecificMock } from '../../../framework';
 
 // Static mock responses for Arbitrum RPC calls
 const MOCK_RESPONSES: Record<string, unknown> = {

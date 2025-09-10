@@ -98,11 +98,11 @@ describe('e2eBridgePerps - isE2E switch', () => {
     jest.doMock('../../../../util/test/utils', () => ({ isE2E: true }));
     // Mock E2E modules as absent (empty stubs)
     jest.doMock(
-      '../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks',
+      '../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks',
       () => ({}),
     );
     jest.doMock(
-      '../../../../../e2e/api-mocking/mock-config/perps-controller-mixin',
+      '../../../../../e2e/controller-mocking/mock-config/perps-controller-mixin',
       () => ({}),
     );
 
@@ -133,7 +133,7 @@ describe('e2eBridgePerps - isE2E switch', () => {
 
     // Mock E2E modules required by bridge
     jest.doMock(
-      '../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks',
+      '../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks',
       () => ({
         PerpsE2EMockService: { getInstance: mockGetInstance },
       }),
@@ -144,7 +144,7 @@ describe('e2eBridgePerps - isE2E switch', () => {
     const createE2EMockStreamManager = jest.fn(() => mockStreamManager);
 
     jest.doMock(
-      '../../../../../e2e/api-mocking/mock-config/perps-controller-mixin',
+      '../../../../../e2e/controller-mocking/mock-config/perps-controller-mixin',
       () => ({
         applyE2EPerpsControllerMocks,
         createE2EMockStreamManager,

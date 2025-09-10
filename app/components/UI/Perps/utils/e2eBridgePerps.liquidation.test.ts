@@ -39,14 +39,14 @@ const mockGetInstance = () => ({
 });
 
 jest.mock(
-  '../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks',
+  '../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks',
   () => ({
     PerpsE2EMockService: { getInstance: mockGetInstance },
   }),
 );
 
 jest.mock(
-  '../../../../../e2e/api-mocking/mock-config/perps-controller-mixin',
+  '../../../../../e2e/controller-mocking/mock-config/perps-controller-mixin',
   () => ({
     applyE2EPerpsControllerMocks: jest.fn(),
     createE2EMockStreamManager: jest.fn(() => ({ prices: {}, positions: {} })),
@@ -62,7 +62,7 @@ describe('E2E liquidation trigger (no UI)', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       const {
         PerpsE2EMockService,
-      } = require('../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks');
+      } = require('../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks');
 
       // Arrange
       expect(getE2EMockStreamManager()).toBeTruthy();

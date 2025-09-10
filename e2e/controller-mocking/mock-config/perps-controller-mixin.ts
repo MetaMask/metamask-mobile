@@ -6,7 +6,7 @@
  * controller methods without modifying production code.
  */
 
-import { PerpsE2EMockService } from '../../controller-mocking/mock-responses/perps/perps-e2e-mocks';
+import { PerpsE2EMockService } from '../mock-responses/perps/perps-e2e-mocks';
 import type {
   OrderParams,
   OrderResult,

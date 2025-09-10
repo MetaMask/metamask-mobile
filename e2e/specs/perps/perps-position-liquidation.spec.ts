@@ -6,14 +6,13 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { PERPS_ARBITRUM_MOCKS } from '../../controller-mocking/mock-responses/perps/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 // Removed unused import to satisfy no-unused-vars
 // import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
 import PerpsE2E from '../../framework/PerpsE2E';
-import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
@@ -64,9 +63,6 @@ describe(RegressionTrade('Perps Position'), () => {
         // Assertion 1: still have 2 positions (the default and the recently opened)
         await PerpsView.ensurePerpsTabPositionVisible('BTC', 5, 'long', 0);
         await PerpsView.ensurePerpsTabPositionVisible('BTC', 3, 'long', 1);
-
-        // Small stabilization wait before pushing price
-        await TestHelpers.delay(2000);
 
         // add price change and force liquidation - BTC below 30k triggers default BTC liquidation
         await PerpsE2E.updateMarketPrice('BTC', '30000.00');

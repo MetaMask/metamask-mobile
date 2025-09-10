@@ -7,7 +7,7 @@ import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../pages/Perps/PerpsOnboarding';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { PERPS_ARBITRUM_MOCKS } from '../../controller-mocking/mock-responses/perps/perps-arbitrum-mocks';
 
 describe(
   RegressionTrade('Perps - no funds shows Start Trading and tutorial'),

@@ -44,7 +44,7 @@ function registerE2EPerpsDeepLinkHandler(): void {
         /* eslint-disable @typescript-eslint/no-require-imports */
         try {
           // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const mod = require('../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks');
+          const mod = require('../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks');
           const service = mod?.PerpsE2EMockService?.getInstance?.();
 
           // Parse path and query
@@ -104,11 +104,11 @@ function autoConfigureE2EBridge(): void {
     /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
     const {
       PerpsE2EMockService,
-    } = require('../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks');
+    } = require('../../../../../e2e/controller-mocking/mock-responses/perps/perps-e2e-mocks');
     const {
       applyE2EPerpsControllerMocks,
       createE2EMockStreamManager,
-    } = require('../../../../../e2e/api-mocking/mock-config/perps-controller-mixin');
+    } = require('../../../../../e2e/controller-mocking/mock-config/perps-controller-mixin');
     /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 
     // Initialize mock service
