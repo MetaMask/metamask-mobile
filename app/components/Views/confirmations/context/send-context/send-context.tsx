@@ -64,7 +64,7 @@ export const SendContextProvider: React.FC<{
 
   const handleUpdateAsset = useCallback(
     (updatedAsset?: AssetType | Nft) => {
-      updateValue(undefined, false);
+      updateValue('', false);
       updateAsset(updatedAsset);
       if (
         updatedAsset?.accountId &&

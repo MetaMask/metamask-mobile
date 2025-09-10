@@ -1,5 +1,5 @@
 import BN from 'bnjs4';
-import { BNToHex, toHex } from '@metamask/controller-utils';
+import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -20,7 +20,7 @@ import {
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { hexToBN, toWei } from '../../../../util/number';
+import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
@@ -157,9 +157,9 @@ export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
     fraction = fraction.padEnd(decimals, '0');
   }
 
-  whole = new BN(whole);
-  fraction = new BN(fraction);
-  const tokenMinimal = whole.mul(base).add(fraction);
+  const wholeBN = new BN(whole);
+  const fractionBN = new BN(fraction);
+  const tokenMinimal = wholeBN.mul(base).add(fractionBN);
   return new BN(tokenMinimal.toString(10), 10);
 }
 
