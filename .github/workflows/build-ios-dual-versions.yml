@@ -44,31 +44,19 @@ env:
   BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
 
 jobs:
-  trigger-ios-dual-builds:
-    name: Trigger iOS Dual Builds on Bitrise
+  trigger-ios-with-srp-build:
+    name: Trigger iOS with-SRP Build on Bitrise
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        build_config:
-          - type: with-srp
-            workflow: build_ios_main_prod
-            artifact_pattern: metamask-device-main-prod-[0-9]+\\.ipa
-          - type: without-srp
-            workflow: build_ios_qa_prod
-            artifact_pattern: metamask-device-qa-prod-[0-9]+\\.ipa
     outputs:
-      with-srp-build-id: ${{ steps.trigger-builds.outputs.with-srp-build-id }}
-      without-srp-build-id: ${{ steps.trigger-builds.outputs.without-srp-build-id }}
-      with-srp-build-slug: ${{ steps.trigger-builds.outputs.with-srp-build-slug }}
-      without-srp-build-slug: ${{ steps.trigger-builds.outputs.without-srp-build-slug }}
+      build-id: ${{ steps.trigger-build.outputs.build-id }}
+      build-slug: ${{ steps.trigger-build.outputs.build-slug }}
     
     steps:
-      - name: Trigger iOS ${{ matrix.build_config.type }} Build on Bitrise
-        id: trigger-builds
+      - name: Trigger iOS with-SRP Build on Bitrise
+        id: trigger-build
         run: |
-          echo "Triggering iOS ${{ matrix.build_config.type }} build on Bitrise..."
-          echo "Workflow: ${{ matrix.build_config.workflow }}"
+          echo "Triggering iOS with-SRP build on Bitrise..."
+          echo "Workflow: build_ios_main_prod"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
           echo "Current branch: ${{ github.ref_name }}"
           
@@ -86,36 +74,25 @@ jobs:
             exit 1
           fi
           
-          # Set environment variables based on build type
-          if [ "${{ matrix.build_config.type }}" = "with-srp" ]; then
-            ENV_VARS='[
-              {
-                "mapped_to": "ADDITIONAL_SRP_1",
-                "value": "'"${{ secrets.TEST_SRP_1 }}"'",
-                "is_expand": true
-              },
-              {
-                "mapped_to": "PREDEFINED_PASSWORD", 
-                "value": "'"${{ secrets.E2E_PASSWORD }}"'",
-                "is_expand": true
-              },
-              {
-                "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
-                "value": "true",
-                "is_expand": true
-              }
-            ]'
-            CUSTOM_ID="MetaMask-iOS-With-SRP-${{ github.run_id }}"
-          else
-            ENV_VARS='[
-              {
-                "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
-                "value": "true", 
-                "is_expand": true
-              }
-            ]'
-            CUSTOM_ID="MetaMask-iOS-Without-SRP-${{ github.run_id }}"
-          fi
+          # Set environment variables for with-SRP build
+          ENV_VARS='[
+            {
+              "mapped_to": "ADDITIONAL_SRP_1",
+              "value": "'"${{ secrets.TEST_SRP_1 }}"'",
+              "is_expand": true
+            },
+            {
+              "mapped_to": "PREDEFINED_PASSWORD", 
+              "value": "'"${{ secrets.E2E_PASSWORD }}"'",
+              "is_expand": true
+            },
+            {
+              "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
+              "value": "true",
+              "is_expand": true
+            }
+          ]'
+          CUSTOM_ID="MetaMask-iOS-With-SRP-${{ github.run_id }}"
           
           # Trigger iOS workflow
           BUILD_RESPONSE=$(curl -s -X POST \
@@ -124,8 +101,8 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
-                "workflow_id": "${{ matrix.build_config.workflow }}",
-                "commit_message": "Triggered by iOS Dual Versions workflow - ${{ matrix.build_config.type }}",
+                "workflow_id": "build_ios_main_prod",
+                "commit_message": "Triggered by iOS Dual Versions workflow - with-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
               },
@@ -133,7 +110,7 @@ jobs:
                 "type": "bitrise",
                 "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
               },
-              "triggered_by": "GitHub Actions iOS Dual Versions - ${{ matrix.build_config.type }}"
+              "triggered_by": "GitHub Actions iOS Dual Versions - with-SRP"
             }')
           
           echo "Build response: $BUILD_RESPONSE"
@@ -147,7 +124,7 @@ jobs:
           fi
           
           # Wait for the workflow to complete
-          echo "Waiting for ${{ matrix.build_config.workflow }} to complete..."
+          echo "Waiting for build_ios_main_prod to complete..."
           TIMEOUT=1800  # 30 minutes
           ELAPSED=0
           
@@ -188,24 +165,134 @@ jobs:
           echo "Build ID: $BUILD_ID"
           echo "Build Slug: $BUILD_SLUG"
           
-          # Set outputs based on build type
-          if [ "${{ matrix.build_config.type }}" = "with-srp" ]; then
-            {
-              echo "with-srp-build-id=$BUILD_ID"
-              echo "with-srp-build-slug=$BUILD_SLUG"
-            } >> "$GITHUB_OUTPUT"
-          else
-            {
-              echo "without-srp-build-id=$BUILD_ID"
-              echo "without-srp-build-slug=$BUILD_SLUG"
-            } >> "$GITHUB_OUTPUT"
+          # Set outputs
+          {
+            echo "build-id=$BUILD_ID"
+            echo "build-slug=$BUILD_SLUG"
+          } >> "$GITHUB_OUTPUT"
+
+  trigger-ios-without-srp-build:
+    name: Trigger iOS without-SRP Build on Bitrise
+    runs-on: ubuntu-latest
+    outputs:
+      build-id: ${{ steps.trigger-build.outputs.build-id }}
+      build-slug: ${{ steps.trigger-build.outputs.build-slug }}
+    
+    steps:
+      - name: Trigger iOS without-SRP Build on Bitrise
+        id: trigger-build
+        run: |
+          echo "Triggering iOS without-SRP build on Bitrise..."
+          echo "Workflow: build_ios_qa_prod"
+          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
+          echo "Current branch: ${{ github.ref_name }}"
+          
+          # Validate required environment variables
+          if [[ -z "$BITRISE_APP_ID" ]]; then
+            echo "Error: BITRISE_APP_ID is not set"
+            exit 1
           fi
+          if [[ -z "$BITRISE_BUILD_TRIGGER_TOKEN" ]]; then
+            echo "Error: BITRISE_BUILD_TRIGGER_TOKEN is not set"
+            exit 1
+          fi
+          if [[ -z "$BITRISE_API_TOKEN" ]]; then
+            echo "Error: BITRISE_API_TOKEN is not set"
+            exit 1
+          fi
+          
+          # Set environment variables for without-SRP build
+          ENV_VARS='[
+            {
+              "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
+              "value": "true", 
+              "is_expand": true
+            }
+          ]'
+          CUSTOM_ID="MetaMask-iOS-Without-SRP-${{ github.run_id }}"
+          
+          # Trigger iOS workflow
+          BUILD_RESPONSE=$(curl -s -X POST \
+            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_params": {
+                "branch": "${{ github.ref_name }}",
+                "workflow_id": "build_ios_qa_prod",
+                "commit_message": "Triggered by iOS Dual Versions workflow - without-SRP",
+                "environments": '"$ENV_VARS"',
+                "custom_id": "'"$CUSTOM_ID"'"
+              },
+              "hook_info": {
+                "type": "bitrise",
+                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
+              },
+              "triggered_by": "GitHub Actions iOS Dual Versions - without-SRP"
+            }')
+          
+          echo "Build response: $BUILD_RESPONSE"
+          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
+          echo "Build slug: $BUILD_SLUG"
+          
+          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+            echo "Error: Failed to get build slug"
+            echo "Full response: $BUILD_RESPONSE"
+            exit 1
+          fi
+          
+          # Wait for the workflow to complete
+          echo "Waiting for build_ios_qa_prod to complete..."
+          TIMEOUT=1800  # 30 minutes
+          ELAPSED=0
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
+            
+            BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
+            echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
+            
+            if [ "$BUILD_STATUS" = "success" ]; then
+              echo "Build completed successfully"
+              break
+            elif [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
+              echo "Build failed with status: $BUILD_STATUS"
+              exit 1
+            fi
+            
+            sleep 30
+            ELAPSED=$((ELAPSED + 30))
+          done
+          
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+            echo "Timeout waiting for build to complete"
+            echo "Final build status: $BUILD_STATUS"
+            echo "Build slug: $BUILD_SLUG"
+            exit 1
+          fi
+          
+          # Get the build ID from the completed build
+          BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
+          
+          if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get build ID"
+            exit 1
+          fi
+          
+          echo "Build ID: $BUILD_ID"
+          echo "Build Slug: $BUILD_SLUG"
+          
+          # Set outputs
+          {
+            echo "build-id=$BUILD_ID"
+            echo "build-slug=$BUILD_SLUG"
+          } >> "$GITHUB_OUTPUT"
 
   download-and-upload-to-browserstack:
     name: Download IPAs and Upload to BrowserStack
     runs-on: ubuntu-latest
-    needs: trigger-ios-dual-builds
-    if: always() && (needs.trigger-ios-dual-builds.result == 'success' || needs.trigger-ios-dual-builds.result == 'partial_success')
+    needs: [trigger-ios-with-srp-build, trigger-ios-without-srp-build]
+    if: always() && (needs.trigger-ios-with-srp-build.result == 'success' || needs.trigger-ios-with-srp-build.result == 'partial_success') && (needs.trigger-ios-without-srp-build.result == 'success' || needs.trigger-ios-without-srp-build.result == 'partial_success')
     outputs:
       with-srp-ipa-uploaded: ${{ steps.browserstack-upload.outputs.with-srp-ipa-uploaded }}
       without-srp-ipa-uploaded: ${{ steps.browserstack-upload.outputs.without-srp-ipa-uploaded }}
@@ -238,11 +325,18 @@ jobs:
             echo "without-srp-ipa-uploaded=false"
           } >> "$GITHUB_OUTPUT"
           
+          # Get build IDs from job outputs
+          WITH_SRP_BUILD_ID="${{ needs.trigger-ios-with-srp-build.outputs.build-id }}"
+          WITHOUT_SRP_BUILD_ID="${{ needs.trigger-ios-without-srp-build.outputs.build-id }}"
+          
+          echo "With-SRP build ID: $WITH_SRP_BUILD_ID"
+          echo "Without-SRP build ID: $WITHOUT_SRP_BUILD_ID"
+          
           # Download with-SRP IPA
-          if [ -n "${{ needs.trigger-ios-dual-builds.outputs.with-srp-build-id }}" ]; then
+          if [ -n "$WITH_SRP_BUILD_ID" ]; then
             echo "Downloading with-SRP IPA..."
             WITH_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.with-srp-build-id }}/artifacts")
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts")
             
             # Find the IPA artifact with main-prod pattern
             WITH_SRP_IPA_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[] | 
@@ -252,7 +346,7 @@ jobs:
             if [[ -n "$WITH_SRP_IPA_ARTIFACT" ]]; then
               WITH_SRP_IPA_SLUG=$(echo "$WITH_SRP_IPA_ARTIFACT" | jq -r '.slug')
               WITH_SRP_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.with-srp-build-id }}/artifacts/$WITH_SRP_IPA_SLUG" | \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts/$WITH_SRP_IPA_SLUG" | \
                 jq -r '.data.expiring_download_url')
               
               if [[ -n "$WITH_SRP_DOWNLOAD_URL" && "$WITH_SRP_DOWNLOAD_URL" != "null" ]]; then
@@ -290,10 +384,10 @@ jobs:
           fi
           
           # Download without-SRP IPA
-          if [ -n "${{ needs.trigger-ios-dual-builds.outputs.without-srp-build-id }}" ]; then
+          if [ -n "$WITHOUT_SRP_BUILD_ID" ]; then
             echo "Downloading without-SRP IPA..."
             WITHOUT_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.without-srp-build-id }}/artifacts")
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts")
             
             # Find the IPA artifact with qa-prod pattern
             WITHOUT_SRP_IPA_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[] | 
@@ -303,7 +397,7 @@ jobs:
             if [[ -n "$WITHOUT_SRP_IPA_ARTIFACT" ]]; then
               WITHOUT_SRP_IPA_SLUG=$(echo "$WITHOUT_SRP_IPA_ARTIFACT" | jq -r '.slug')
               WITHOUT_SRP_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/${{ needs.trigger-ios-dual-builds.outputs.without-srp-build-id }}/artifacts/$WITHOUT_SRP_IPA_SLUG" | \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts/$WITHOUT_SRP_IPA_SLUG" | \
                 jq -r '.data.expiring_download_url')
               
               if [[ -n "$WITHOUT_SRP_DOWNLOAD_URL" && "$WITHOUT_SRP_DOWNLOAD_URL" != "null" ]]; then
