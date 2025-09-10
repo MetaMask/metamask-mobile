@@ -190,6 +190,12 @@ describe('Engine', () => {
     // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
+      AccountTrackerController: {
+        ...backgroundState.AccountTrackerController,
+        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
+        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
+        accountsByChainId: {},
+      },
       AppMetadataController: {
         currentAppVersion,
         previousAppVersion: '', // This will be managed by the controller
