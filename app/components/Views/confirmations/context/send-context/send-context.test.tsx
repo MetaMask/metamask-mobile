@@ -164,11 +164,11 @@ describe('useSendContext', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 
     act(() => {
-      result.current.updateValue('10', false);
+      result.current.updateValue('10', true);
       result.current.updateAsset(mockAssetEvm);
     });
 
-    expect(result.current.value).toEqual(undefined);
+    expect(result.current.value).toEqual('');
     expect(result.current.maxValueMode).toEqual(false);
   });
 
