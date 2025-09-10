@@ -11,7 +11,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PredictMarketMultiple.styles';
-
 import {
   Box,
   BoxAlignItems,
@@ -68,6 +67,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   }, 0);
 
   const totalVolumeDisplay = formatVolume(totalVolume);
+
+  const truncateLabel = (label: string): string => label.length > 3 ? `${label.substring(0, 3)}.` : label;
 
   return (
     <View style={styles.marketContainer}>
@@ -132,7 +133,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                       style={tw.style('font-bold')}
                       color={TextColor.Success}
                     >
-                      {outcomeLabels[0]}
+                      {truncateLabel(outcomeLabels[0])}
                     </Text>
                   }
                   onPress={() =>
@@ -146,7 +147,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   width={ButtonWidthTypes.Full}
                   label={
                     <Text style={tw.style('font-bold')} color={TextColor.Error}>
-                      {outcomeLabels[1]}
+                      {truncateLabel(outcomeLabels[1])}
                     </Text>
                   }
                   onPress={() =>

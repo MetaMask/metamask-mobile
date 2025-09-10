@@ -68,6 +68,7 @@ export function usePredictPositions(
       try {
         if (isRefresh) {
           setIsRefreshing(true);
+          setPositions([]);
         } else {
           setIsLoading(true);
         }

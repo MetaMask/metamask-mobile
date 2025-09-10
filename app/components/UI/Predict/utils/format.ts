@@ -46,10 +46,11 @@ export const formatPercentage = (value: string | number): string => {
  */
 export const formatPrice = (
   price: string | number,
-  options?: { minimumDecimals?: number },
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
   const minDecimals = options?.minimumDecimals ?? 2;
+  const maxDecimals = options?.maximumDecimals ?? 4;
 
   if (isNaN(num)) {
     return minDecimals === 0 ? '$0' : '$0.00';
@@ -61,7 +62,7 @@ export const formatPrice = (
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: minDecimals,
-      maximumFractionDigits: Math.max(minDecimals, 2),
+      maximumFractionDigits: Math.max(minDecimals, maxDecimals),
     });
   }
 
@@ -70,7 +71,7 @@ export const formatPrice = (
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: minDecimals,
-    maximumFractionDigits: 4,
+    maximumFractionDigits: maxDecimals,
   });
 };
 

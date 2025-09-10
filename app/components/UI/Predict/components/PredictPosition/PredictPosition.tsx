@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, TouchableOpacity } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -11,10 +11,14 @@ import { formatPrice, formatPercentage } from '../../utils/format';
 
 interface PredictPositionProps {
   position: PredictPositionType;
+  onPress?: (position: PredictPositionType) => void;
 }
 
 const PredictPosition: React.FC<PredictPositionProps> = ({
-  position: {
+  position,
+  onPress,
+}: PredictPositionProps) => {
+  const {
     icon,
     title,
     initialValue,
@@ -22,12 +26,14 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     outcome,
     avgPrice,
     currentValue,
-  },
-}: PredictPositionProps) => {
+  } = position;
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.positionContainer}>
+    <TouchableOpacity
+      style={styles.positionContainer}
+      onPress={() => onPress?.(position)}
+    >
       <View style={styles.positionImage}>
         <Image source={{ uri: icon }} style={styles.positionImage} />
       </View>
@@ -47,7 +53,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
       </View>
       <View style={styles.positionPnl}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {formatPrice(currentValue, { minimumDecimals: 2 })}
+          {formatPrice(currentValue, { maximumDecimals: 2 })}
         </Text>
         <Text
           variant={TextVariant.BodyMD}
@@ -56,7 +62,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           {formatPercentage(percentPnl)}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

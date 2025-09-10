@@ -19,6 +19,12 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       width: '100%',
     },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+    },
     marketListContainer: {
       flexDirection: 'column',
       justifyContent: 'space-between',
@@ -31,13 +37,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'flex-start',
       width: '100%',
     },
-    viewAllMarkets: {
-      marginTop: 16,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: '100%',
-    },
     bottomSheetContent: {
       padding: 24,
     },
@@ -47,6 +46,22 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     actionButton: {
       marginBottom: 12,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 48,
+    },
+    loadingContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+    },
+    skeleton: {
+      marginBottom: 12,
+      borderRadius: 16,
     },
   });
 };

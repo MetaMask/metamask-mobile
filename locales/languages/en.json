@@ -1517,7 +1517,11 @@
     "prediction_markets": "Prediction Markets",
     "market_list": "Market List",
     "market_details": "Market Details",
-    "view_available_markets": "View available markets",
+    "tab": {
+      "no_predictions": "No predictions yet",
+      "no_predictions_description": "Open a prediction to get started.",
+      "explore": "Explore markets"
+    },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
     "buy_yes": "Buy Yes",
@@ -1541,7 +1545,9 @@
         "politics": "Politics"
     },
     "search_placeholder": "Search prediction markets",
-    "search_cancel": "Cancel"
+    "search_cancel": "Cancel",
+    "claim_button": "Claim",
+    "markets_won": "Markets won"
   },
   "receive": {
     "title": "Receive"

@@ -172,6 +172,7 @@ export type PredictPosition = {
   status: 'open' | 'redeemable' | 'won' | 'lost';
   size: number;
   outcomeIndex: number;
+  realizedPnl?: number;
   curPrice: number;
   conditionId: string;
   percentPnl: number;
