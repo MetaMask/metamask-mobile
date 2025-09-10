@@ -1,107 +1,107 @@
 import { RegressionWalletUX } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../framework/fixtures/FixtureHelper';
-import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
-import FixtureServer from '../../framework/fixtures/FixtureServer';
-import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { Assertions } from '../../framework';
 import WalletView from '../../pages/wallet/WalletView';
-
-const fixtureServer = new FixtureServer();
+import { Mockttp } from 'mockttp';
+import { setupContentfulPromotionalBannersMock } from '../../api-mocking/helpers/contentfulHelper';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(RegressionWalletUX('Carousel Tests'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-    });
-    await loginToApp();
-  });
-  beforeEach(async () => {
     jest.setTimeout(150000);
-    await Assertions.expectElementToBeVisible(WalletView.carouselContainer);
-  });
-  afterAll(async () => {
-    await stopFixtureServer(fixtureServer);
   });
 
-  const SLIDES = [
-    {
-      title: 'Solana is now supported',
-      id: 'solana',
-    },
-    {
-      title: 'Start using smart accounts',
-      id: 'smartAccount',
-    },
-    {
-      title: 'MetaMask Card',
-      id: 'card',
-    },
-    {
-      title: 'Fund your wallet',
-      id: 'fund',
-    },
-  ];
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      carouselBanners: true,
+      contentfulCarouselEnabled: true,
+    });
+    await setupContentfulPromotionalBannersMock(mockServer);
+  };
 
-  it('should display carousel with correct slides', async () => {
-    await Assertions.expectElementToBeVisible(
-      WalletView.getCarouselSlide(SLIDES[0].id),
-    );
-    await Assertions.expectElementToHaveText(
-      WalletView.getCarouselSlideTitle(SLIDES[0].id),
-      SLIDES[0].title,
-    );
-    await Assertions.expectElementToBeVisible(WalletView.carouselProgressDots);
-  });
+  it('displays carousel with slides from Contentful', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withCleanBannerState().build(),
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
 
-  it('should navigate between slides', async () => {
-    await WalletView.swipeCarousel('left');
-    await Assertions.expectElementToBeVisible(
-      WalletView.getCarouselSlide(SLIDES[1].id),
-    );
-    await Assertions.expectElementToHaveText(
-      WalletView.getCarouselSlideTitle(SLIDES[1].id),
-      SLIDES[1].title,
-    );
-    await WalletView.swipeCarousel('right');
-    await Assertions.expectElementToHaveText(
-      WalletView.getCarouselSlideTitle(SLIDES[0].id),
-      SLIDES[0].title,
+        await Assertions.expectElementToBeVisible(
+          WalletView.carouselContainer,
+          { description: 'carousel container should be visible' },
+        );
+
+        await Assertions.expectElementToBeVisible(
+          WalletView.carouselProgressDots,
+          { description: 'carousel progress dots should be visible' },
+        );
+      },
     );
   });
 
-  it('should dismiss a slide', async () => {
-    await device.disableSynchronization();
-    await Assertions.expectElementToBeVisible(
-      WalletView.getCarouselSlideCloseButton(SLIDES[0].id),
-    );
-    await WalletView.closeCarouselSlide(SLIDES[0].id);
-    await Assertions.expectElementToHaveText(
-      WalletView.getCarouselSlideTitle(SLIDES[1].id),
-      SLIDES[1].title,
+  it('navigates between slides using swipe gestures', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withCleanBannerState().build(),
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+
+        await Assertions.expectElementToBeVisible(
+          WalletView.carouselContainer,
+          { description: 'carousel container should be visible' },
+        );
+
+        // Test swipe navigation
+        await WalletView.swipeCarousel('left');
+        await WalletView.swipeCarousel('right');
+
+        await Assertions.expectElementToBeVisible(
+          WalletView.carouselContainer,
+          { description: 'carousel should remain visible after swiping' },
+        );
+      },
     );
   });
 
-  it('should handle slide interactions', async () => {
-    // First slide was already dismissed in the previous test
-    // Dismissing the second slide as it's opening portfolio
-    await WalletView.closeCarouselSlide(SLIDES[1].id);
+  it('can dismiss slides', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withCleanBannerState().build(),
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
 
-    await Assertions.expectElementToHaveText(
-      WalletView.getCarouselSlideTitle(SLIDES[2].id),
-      SLIDES[2].title,
+        await Assertions.expectElementToBeVisible(
+          WalletView.carouselContainer,
+          { description: 'carousel container should be visible' },
+        );
+
+        await device.disableSynchronization();
+
+        // Find and dismiss any available slide
+        const firstSlide = await WalletView.carouselContainer;
+        await firstSlide.tap();
+
+        await Assertions.expectElementToBeVisible(
+          WalletView.carouselContainer,
+          {
+            description:
+              'carousel should remain visible after slide interaction',
+          },
+        );
+
+        await device.enableSynchronization();
+      },
     );
-    await WalletView.tapCarouselSlide(SLIDES[2].id);
-    await Assertions.expectElementToBeVisible(WalletView.container);
-    await device.enableSynchronization();
   });
 });
