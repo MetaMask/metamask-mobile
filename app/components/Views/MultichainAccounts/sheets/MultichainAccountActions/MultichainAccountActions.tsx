@@ -108,7 +108,7 @@ const MultichainAccountActions = () => {
       <View style={styles.container}>
         <AccountAction
           actionTitle={strings('account_details.title')}
-          iconName={IconName.Add}
+          iconName={IconName.Details}
           onPress={goToAccountDetails}
           testID={MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS}
           style={styles.accountAction}
