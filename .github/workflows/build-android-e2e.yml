@@ -19,7 +19,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: ubuntu-latest
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
     outputs:
