@@ -39,6 +39,29 @@ jobs:
           # Specifying `ref` ensures that the head commit is checked out directly.
           ref: ${{ env.HEAD_COMMIT_HASH }}
 
+      - name: Check skip commit tag
+        id: skip-tag
+        run: |
+          echo "SKIP=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            if git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[skip-e2e]'; then
+              echo "SKIP=true" >> "$GITHUB_OUTPUT"
+              echo "-> SKIP=true due to [skip-e2e] tag in last commit message"
+            fi
+          fi
+
+      - name: Check skip label
+        id: skip-label
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "SKIP=false" >> "$GITHUB_OUTPUT"
+          if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -qx "skip-e2e"; then
+            echo "SKIP=true" >> "$GITHUB_OUTPUT"
+            echo "-> SKIP=true due to 'skip-e2e' label on PR"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}    
+      
       - name: Paths filter (Android/iOS impact)
         id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -91,6 +114,16 @@ jobs:
       - name: Set final outputs
         id: set-outputs
         run: |
+
+          # Skip if [skip-e2e] tag found or label exists on PR
+          if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
+            echo "android_final=false" >> "${GITHUB_OUTPUT}"
+            echo "ios_final=false" >> "${GITHUB_OUTPUT}"
+            echo "builds=false" >> "${GITHUB_OUTPUT}"
+            echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
+            exit 0
+          fi                   
+          
           # Get filter results
           android="${{ steps.filter.outputs.android }}"
           ios="${{ steps.filter.outputs.ios }}"
@@ -148,8 +181,8 @@ jobs:
 
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
-            builds=true
+            builds="true"
           else
-            builds=false
+            builds="false"
           fi
           echo "builds=$builds" >> "${GITHUB_OUTPUT}"
