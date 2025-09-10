@@ -69,9 +69,9 @@ export interface CarouselProps {
    */
   style?: ViewStyle;
   /**
-   * Optional dummy data for testing purposes
+   * Callback when empty state should be shown
    */
-  dummyData?: CarouselSlide[];
+  onEmptyState?: () => void;
 }
 
 export interface CarouselStyleSheetVars {
