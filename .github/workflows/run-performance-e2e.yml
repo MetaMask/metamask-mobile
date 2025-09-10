@@ -91,8 +91,13 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies
-        run: yarn setup
+      - name: Install dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup
       
       - name: Cache node_modules
         uses: actions/cache@v4
@@ -374,9 +379,14 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies (if cache miss)
+      - name: Install dependencies with retry (if cache miss)
         if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn setup
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup
       
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
@@ -417,13 +427,13 @@ jobs:
             echo "Either provide browserstack_app_url_android as input or ensure trigger-qa-builds-and-upload job runs successfully"
             exit 1
           fi
-          
+
           # Use app version from trigger job if available, otherwise default
           APP_VERSION="${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
           if [ -z "$APP_VERSION" ]; then
             APP_VERSION="Manual-Input"
           fi
-          
+
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
@@ -432,7 +442,7 @@ jobs:
             echo "QA_APP_VERSION=$APP_VERSION"
             echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
-      
+
       - name: Run Android Tests on ${{ matrix.device.name }}
         env:
           BROWSERSTACK_LOCAL: true
@@ -444,9 +454,9 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "QA App Version: $QA_APP_VERSION"
           echo "BrowserStack Android App URL: $BROWSERSTACK_ANDROID_APP_URL"
-          
+
           yarn run-appwright:android-bs
-      
+
       - name: Upload Android Test Results
         uses: actions/upload-artifact@v4
         if: always()
@@ -472,7 +482,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Restore node_modules cache
         id: cache
         uses: actions/cache@v4
@@ -484,41 +494,46 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-      
-      - name: Install dependencies (if cache miss)
+
+      - name: Install dependencies with retry (if cache miss)
         if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn setup
-      
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup
+
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
           username: ${{ env.BROWSERSTACK_USERNAME }}
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
-      
+
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
           local-identifier: ${{ github.run_id }}
           local-args: --force-local --verbose
-      
+
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
           sleep 30
           echo "BrowserStack Local should be ready now"
-      
+
       - name: Set iOS Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
-          
+
           # Use BrowserStack URL from trigger job if it ran, otherwise from input
           IOS_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
           if [ -z "$IOS_APP_URL" ]; then
