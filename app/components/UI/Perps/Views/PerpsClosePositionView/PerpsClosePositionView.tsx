@@ -439,7 +439,7 @@ const PerpsClosePositionView: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
-  const marginValue = useMemo(() => {
+  const realizedPnl = useMemo(() => {
     const price = Math.abs(pnl * (closePercentage / 100));
     const formattedPrice = formatPrice(price, {
       maximumDecimals: 2,
@@ -487,11 +487,11 @@ const PerpsClosePositionView: React.FC = () => {
             <Text
               variant={TextVariant.BodySM}
               color={
-                marginValue.isNegative ? TextColor.Error : TextColor.Success
+                realizedPnl.isNegative ? TextColor.Error : TextColor.Success
               }
             >
-              {marginValue.isNegative ? '-' : '+'}
-              {marginValue.formattedPrice}
+              {realizedPnl.isNegative ? '-' : '+'}
+              {realizedPnl.formattedPrice}
             </Text>
           </View>
         </View>
