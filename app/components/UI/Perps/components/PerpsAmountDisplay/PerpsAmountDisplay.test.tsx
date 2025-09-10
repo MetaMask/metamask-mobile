@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, screen } from '@testing-library/react-native';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 
@@ -38,30 +39,23 @@ describe('PerpsAmountDisplay', () => {
   });
 
   describe('Rendering', () => {
-    it('displays amount and max amount with proper formatting', () => {
+    it('displays amount with proper formatting', () => {
       // Arrange
       const amount = '1000';
-      const maxAmount = 5000;
 
       // Act
-      const { getByText } = render(
-        <PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />,
-      );
+      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert
       expect(getByText('$1000')).toBeTruthy();
-      expect(getByText('$5000 max')).toBeTruthy();
     });
 
     it('displays $0 when amount is empty', () => {
       // Arrange
       const emptyAmount = '';
-      const maxAmount = 5000;
 
       // Act
-      const { getByText } = render(
-        <PerpsAmountDisplay amount={emptyAmount} maxAmount={maxAmount} />,
-      );
+      const { getByText } = render(<PerpsAmountDisplay amount={emptyAmount} />);
 
       // Assert
       expect(getByText('$0')).toBeTruthy();
@@ -71,15 +65,10 @@ describe('PerpsAmountDisplay', () => {
       // Arrange - Testing branch coverage for line 72
       const label = 'Enter Amount';
       const amount = '1000';
-      const maxAmount = 10000;
 
       // Act
       const { getByText } = render(
-        <PerpsAmountDisplay
-          amount={amount}
-          label={label}
-          maxAmount={maxAmount}
-        />,
+        <PerpsAmountDisplay amount={amount} label={label} />,
       );
 
       // Assert
@@ -91,13 +80,11 @@ describe('PerpsAmountDisplay', () => {
       const tokenAmount = '0.5';
       const tokenSymbol = 'ETH';
       const amount = '1000';
-      const maxAmount = 10000;
 
       // Act
-      const { getByText } = render(
+      render(
         <PerpsAmountDisplay
           amount={amount}
-          maxAmount={maxAmount}
           showTokenAmount
           tokenAmount={tokenAmount}
           tokenSymbol={tokenSymbol}
@@ -105,7 +92,11 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      expect(getByText(`${tokenAmount} ${tokenSymbol}`)).toBeTruthy();
+      // There will be 2 elements: one in the main display and one in the token amount section
+      const tokenElements = screen.getAllByText(
+        `${tokenAmount} ${tokenSymbol}`,
+      );
+      expect(tokenElements.length).toBe(2);
       expect(formatPositionSize).toHaveBeenCalledWith(tokenAmount);
     });
   });
@@ -114,15 +105,10 @@ describe('PerpsAmountDisplay', () => {
     it('shows default warning when showWarning is true and maxAmount is 0', () => {
       // Arrange
       const amount = '1000';
-      const maxAmount = 0;
 
       // Act
       const { getByText } = render(
-        <PerpsAmountDisplay
-          amount={amount}
-          maxAmount={maxAmount}
-          showWarning
-        />,
+        <PerpsAmountDisplay amount={amount} showWarning />,
       );
 
       // Assert
@@ -135,13 +121,11 @@ describe('PerpsAmountDisplay', () => {
       // Arrange
       const customMessage = 'Insufficient balance';
       const amount = '1000';
-      const maxAmount = 5000;
 
       // Act
       const { getByText } = render(
         <PerpsAmountDisplay
           amount={amount}
-          maxAmount={maxAmount}
           showWarning
           warningMessage={customMessage}
         />,
@@ -157,15 +141,10 @@ describe('PerpsAmountDisplay', () => {
       // Arrange
       const onPressMock = jest.fn();
       const amount = '1000';
-      const maxAmount = 5000;
 
       // Act
       const { getByText } = render(
-        <PerpsAmountDisplay
-          amount={amount}
-          maxAmount={maxAmount}
-          onPress={onPressMock}
-        />,
+        <PerpsAmountDisplay amount={amount} onPress={onPressMock} />,
       );
       fireEvent.press(getByText('$1000'));
 
@@ -176,12 +155,9 @@ describe('PerpsAmountDisplay', () => {
     it('handles press gracefully when onPress is not provided', () => {
       // Arrange
       const amount = '1000';
-      const maxAmount = 5000;
 
       // Act
-      const { getByText } = render(
-        <PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />,
-      );
+      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - This should not throw an error
       expect(() => fireEvent.press(getByText('$1000'))).not.toThrow();
@@ -192,11 +168,10 @@ describe('PerpsAmountDisplay', () => {
     it('shows cursor when isActive is true', () => {
       // Arrange
       const amount = '1000';
-      const maxAmount = 5000;
 
       // Act
       const { getByTestId } = render(
-        <PerpsAmountDisplay amount={amount} maxAmount={maxAmount} isActive />,
+        <PerpsAmountDisplay amount={amount} isActive />,
       );
 
       // Assert
@@ -206,15 +181,10 @@ describe('PerpsAmountDisplay', () => {
     it('hides cursor when isActive is false', () => {
       // Arrange
       const amount = '1000';
-      const maxAmount = 5000;
 
       // Act
       const { queryByTestId } = render(
-        <PerpsAmountDisplay
-          amount={amount}
-          maxAmount={maxAmount}
-          isActive={false}
-        />,
+        <PerpsAmountDisplay amount={amount} isActive={false} />,
       );
 
       // Assert
@@ -222,33 +192,90 @@ describe('PerpsAmountDisplay', () => {
     });
   });
 
+  describe('Token Amount Display', () => {
+    it('displays token amount when showMaxAmount is true with token data', () => {
+      // Arrange
+      const amount = '1000';
+      const tokenAmount = '0.025';
+      const tokenSymbol = 'BTC';
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showMaxAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      expect(getByText('0.025 BTC')).toBeTruthy();
+      expect(formatPositionSize).toHaveBeenCalledWith(tokenAmount);
+    });
+
+    it('does not display token amount when showMaxAmount is false', () => {
+      // Arrange
+      const amount = '1000';
+      const tokenAmount = '0.025';
+      const tokenSymbol = 'BTC';
+
+      // Act
+      const { queryByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          showMaxAmount={false}
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      expect(queryByText('0.025 BTC')).toBeNull();
+    });
+
+    it('does not display anything when showMaxAmount is true but no token data', () => {
+      // Arrange
+      const amount = '1000';
+
+      // Act
+      const { queryByTestId } = render(
+        <PerpsAmountDisplay amount={amount} showMaxAmount />,
+      );
+
+      // Assert - The component should not show the token amount section
+      // When no token data is provided, the token amount section won't be rendered
+      // We verify by checking if the amount display is there but no token text
+      expect(
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
+      ).toBeTruthy();
+      // No token amount should be displayed
+      expect(screen.queryByText(/BTC|ETH|SOL/)).toBeNull();
+    });
+  });
+
   describe('Formatting', () => {
     it('formats prices with correct decimal places', () => {
       // Arrange
       const amount = '1234.56';
-      const maxAmount = 9876.54;
 
       // Act
-      render(<PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />);
+      render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert
       expect(formatPrice).toHaveBeenCalledWith('1234.56', {
         minimumDecimals: 0,
         maximumDecimals: 2,
       });
-      expect(formatPrice).toHaveBeenCalledWith(9876.54, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      });
+      // Note: formatPrice is no longer called with maxAmount for display
     });
 
     it('formats USD amounts with maximum 2 decimal places', () => {
       // Arrange
       const amount = '1234.5678';
-      const maxAmount = 5000;
 
       // Act
-      render(<PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />);
+      render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - Verify USD amounts are limited to 2 decimal places
       expect(formatPrice).toHaveBeenCalledWith('1234.5678', {
