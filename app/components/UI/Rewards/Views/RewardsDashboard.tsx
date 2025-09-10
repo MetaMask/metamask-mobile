@@ -74,7 +74,7 @@ const RewardsDashboard: React.FC = () => {
         style={tw.style('relative w-60')}
         tabStyle={tw.style('border-none pb-0')}
         underlineStyle={[
-          tw.style('w-20 bg-white '),
+          tw.style('w-20 bg-text-default'),
           { marginLeft: `-${currentTabIndex * 16}%` },
         ]}
         {...tabBarProps}

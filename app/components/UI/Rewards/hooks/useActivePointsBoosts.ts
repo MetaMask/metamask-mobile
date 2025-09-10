@@ -8,7 +8,7 @@ import {
 import Engine from '../../../../core/Engine';
 import type { PointsBoostDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Logger from '../../../../util/Logger';
-import { selectCurrentSeasonId } from '../../../../reducers/rewards/selectors';
+import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 
 /**
  * Custom hook to fetch and manage active points boosts data from the rewards API
@@ -17,7 +17,7 @@ import { selectCurrentSeasonId } from '../../../../reducers/rewards/selectors';
 export const useActivePointsBoosts = (): void => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const seasonId = useSelector(selectCurrentSeasonId);
+  const seasonId = useSelector(selectSeasonId);
 
   const fetchActivePointsBoosts = useCallback(async (): Promise<void> => {
     // Don't fetch if required parameters are missing

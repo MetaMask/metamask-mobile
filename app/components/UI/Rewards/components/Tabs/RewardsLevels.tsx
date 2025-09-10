@@ -12,7 +12,7 @@ interface RewardsLevelsProps {
 const RewardsLevels: React.FC<RewardsLevelsProps> = () => (
   <Box
     twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
-    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
+    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_LEVELS}
   >
     <Text variant={TextVariant.BodyMd}>
       {strings('rewards.not_implemented')}
