@@ -300,20 +300,27 @@ const RootRPCMethodsUI = (props) => {
         Engine.controllerMessenger.subscribeOnceIf(
           'TransactionController:transactionFinished',
           (transactionMeta) => {
-            if (transactionMeta.status === 'submitted') {
-              NotificationManager.watchSubmittedTransaction({
-                ...transactionMeta,
-                assetType: transactionMeta.txParams.assetType,
-              });
-            } else {
-              if (swapsTransactions[transactionMeta.id]?.analytics) {
-                trackSwaps(
-                  MetaMetricsEvents.SWAP_FAILED,
-                  transactionMeta,
-                  swapsTransactions,
-                );
+            try {
+              if (transactionMeta.status === 'submitted') {
+                NotificationManager.watchSubmittedTransaction({
+                  ...transactionMeta,
+                  assetType: transactionMeta.txParams.assetType,
+                });
+              } else {
+                if (swapsTransactions[transactionMeta.id]?.analytics) {
+                  trackSwaps(
+                    MetaMetricsEvents.SWAP_FAILED,
+                    transactionMeta,
+                    swapsTransactions,
+                  );
+                }
+                throw transactionMeta.error;
               }
-              throw transactionMeta.error;
+            } catch (error) {
+              console.error(
+                error,
+                'error while trying to send transaction (Main)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transactionId,
