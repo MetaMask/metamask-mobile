@@ -1,5 +1,5 @@
 import BN from 'bnjs4';
-import { toHex } from '@metamask/controller-utils';
+import { BNToHex, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -20,7 +20,7 @@ import {
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { BNToHex, hexToBN, toWei } from '../../../../util/number';
+import { hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
