@@ -1002,8 +1002,9 @@
         "liquidation_warning": "Position is close to liquidation price",
         "limit_price_required": "Please set a limit price for limit orders",
         "please_set_a_limit_price": "Please set a limit price",
-        "limit_price_must_be_set_before_configuing_tpsl": "Limit price must be set before configuring TP/SL",
-        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
+        "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
+        "limit_price_far_warning": "Limit price is far from current market price"
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1120,7 +1121,9 @@
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
       "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
-      "no_amount_selected": "Please select an amount to close"
+      "no_amount_selected": "Please select an amount to close",
+      "order_type_reverted_to_market_order": "Changed to market order",
+      "you_need_set_price_limit_order": "You need to set a price for a limit order."
     },
     "tpsl": {
       "title": "Take profit and stop loss",
@@ -3630,16 +3633,16 @@
       "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted",
       "lido_withdrawal_completed_title": "Withdrawal completed",
       "lido_withdrawal_completed_description": "Your Lido withdrawal was successful",
-      "perps_position_liquidated_title": "😟 Position liquidated",
+      "perps_position_liquidated_title": "Position liquidated",
       "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
       "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
-      "perps_stop_loss_triggered_title": "🛑 Stop loss triggered",
+      "perps_stop_loss_triggered_title": "Stop loss triggered",
       "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
       "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
-      "perps_take_profit_triggered_title": "📈 Take profit triggered",
+      "perps_take_profit_triggered_title": "Take profit triggered",
       "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
       "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
-      "perps_limit_order_filled_title": "✅ Limit order filled",
+      "perps_limit_order_filled_title": "Limit order filled",
       "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
       "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
     },
