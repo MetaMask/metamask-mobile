@@ -190,7 +190,6 @@ jobs:
       contents: read
       id-token: write
     needs: [build-android-apks, needs-e2e]
-    if: ${{ needs.needs-e2e.outputs.needs-e2e == 'true' }}
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     secrets: inherit
 
