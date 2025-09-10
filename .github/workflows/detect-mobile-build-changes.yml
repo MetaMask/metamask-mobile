@@ -59,7 +59,7 @@ jobs:
               - '**/*.md'                          # Documentation files
               - 'docs/**'                          # Documentation directory
               - '**/*.yml'                         # Workflow files  
-              #- '.github/**'                       # GitHub workflow changes
+              - '.github/**'                       # GitHub workflow changes
               - 'LICENSE'                          # License file
               - 'README.md'                        # Main README
               - 'RELEASE.MD'                       # Release notes
