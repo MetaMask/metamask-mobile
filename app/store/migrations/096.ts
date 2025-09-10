@@ -23,7 +23,7 @@ function fixCondition(order: Order): boolean {
  * Migration: Fix deposit orders data with invalid type of values by forcing refresh
  */
 const migration = async (state: unknown): Promise<unknown> => {
-  const migrationVersion = 99;
+  const migrationVersion = 96;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(state, migrationVersion)) {
