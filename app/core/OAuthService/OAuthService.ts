@@ -302,7 +302,6 @@ export class OAuthService {
       loginInProgress: false,
       oauthLoginSuccess: false,
       oauthLoginError: null,
-      isOAuthLoginAttempted: false,
     });
   };
 }

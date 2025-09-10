@@ -91,17 +91,20 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
 }));
 
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
-  handleOAuthLogin: jest.fn().mockResolvedValue({
-    type: 'success',
-    existingUser: false,
-    accountName: 'test@example.com',
-  }),
-  resetOauthState: jest.fn(),
-  localState: {
-    isOAuthLoginAttempted: false,
-    loginInProgress: false,
-    oauthLoginSuccess: false,
-    oauthLoginError: null,
+  __esModule: true,
+  default: {
+    handleOAuthLogin: jest.fn().mockResolvedValue({
+      type: 'success',
+      existingUser: false,
+      accountName: 'test@example.com',
+    }),
+    resetOauthState: jest.fn(),
+    localState: {
+      isOAuthLoginAttempted: false,
+      loginInProgress: false,
+      oauthLoginSuccess: false,
+      oauthLoginError: null,
+    },
   },
 }));
 
@@ -154,7 +157,10 @@ interface MetricsProps {
   };
 }
 
-jest.mock('../../hooks/useMetrics/withMetricsAwareness', () => <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
+jest.mock(
+  '../../hooks/useMetrics/withMetricsAwareness',
+  () =>
+    <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
     (props: P) =>
       (
         <Component
@@ -166,7 +172,8 @@ jest.mock('../../hooks/useMetrics/withMetricsAwareness', () => <P extends object
             createEventBuilder: mockCreateEventBuilder,
           }}
         />
-      ));
+      ),
+);
 
 const mockSeedlessOnboardingEnabled = jest.fn();
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
@@ -681,7 +688,7 @@ describe('Onboarding', () => {
   describe('OAuth Login Methods', () => {
     const mockOAuthService = jest.requireMock(
       '../../../core/OAuthService/OAuthService',
-    );
+    ).default;
     const mockCreateLoginHandler = jest.requireMock(
       '../../../core/OAuthService/OAuthLoginHandlers',
     ).createLoginHandler;
@@ -1089,12 +1096,158 @@ describe('Onboarding', () => {
         }),
       );
     });
+
+    it('should enable metrics when OAuth login succeeds', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+      mockEnable.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockEnable).toHaveBeenCalledWith();
+      expect(mockOAuthService.localState.isOAuthLoginAttempted).toBe(true);
+    });
+  });
+
+  describe('Metrics Enable/Disable Tests', () => {
+    const mockOAuthService = jest.requireMock(
+      '../../../core/OAuthService/OAuthService',
+    ).default;
+
+    beforeEach(() => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+      mockOAuthService.localState.isOAuthLoginAttempted = false;
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      mockSeedlessOnboardingEnabled.mockReset();
+      mockOAuthService.localState.isOAuthLoginAttempted = false;
+    });
+
+    it('should disable metrics when OAuth user creates wallet', async () => {
+      mockOAuthService.localState.isOAuthLoginAttempted = true;
+      mockEnable.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      expect(mockEnable).toHaveBeenCalledWith(false);
+    });
+
+    it('should disable metrics when OAuth user imports wallet', async () => {
+      mockOAuthService.localState.isOAuthLoginAttempted = true;
+      mockEnable.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importWalletButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importWalletButton);
+      });
+
+      expect(mockEnable).toHaveBeenCalledWith(false);
+    });
+
+    it('should not disable metrics when non-OAuth user creates wallet', async () => {
+      mockOAuthService.localState.isOAuthLoginAttempted = false;
+      mockEnable.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      expect(mockEnable).not.toHaveBeenCalledWith(false);
+    });
+
+    it('should not disable metrics when non-OAuth user imports wallet', async () => {
+      mockOAuthService.localState.isOAuthLoginAttempted = false;
+      mockEnable.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importWalletButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importWalletButton);
+      });
+
+      expect(mockEnable).not.toHaveBeenCalledWith(false);
+    });
   });
 
   describe('ErrorBoundary Tests', () => {
     const mockOAuthService = jest.requireMock(
       '../../../core/OAuthService/OAuthService',
-    );
+    ).default;
     const mockCreateLoginHandler = jest.requireMock(
       '../../../core/OAuthService/OAuthLoginHandlers',
     ).createLoginHandler;
