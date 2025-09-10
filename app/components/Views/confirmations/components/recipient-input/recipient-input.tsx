@@ -18,9 +18,11 @@ import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
+  setIsRecipientSelectedFromList,
   setPastedRecipient,
 }: {
   isRecipientSelectedFromList: boolean;
+  setIsRecipientSelectedFromList: (val: boolean) => void;
   setPastedRecipient: (recipient?: string) => void;
 }) => {
   const { to, updateTo } = useSendContext();
@@ -29,6 +31,7 @@ export const RecipientInput = ({
     useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
+    setIsRecipientSelectedFromList(false);
     try {
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
@@ -45,7 +48,13 @@ export const RecipientInput = ({
       // Might consider showing an alert here if pasting fails
       // for now just ignore it
     }
-  }, [updateTo, inputRef, setPastedRecipient, setRecipientInputMethodPasted]);
+  }, [
+    updateTo,
+    inputRef,
+    setPastedRecipient,
+    setIsRecipientSelectedFromList,
+    setRecipientInputMethodPasted,
+  ]);
 
   const handleClearInput = useCallback(() => {
     updateTo('');
@@ -56,11 +65,17 @@ export const RecipientInput = ({
 
   const handleTextChange = useCallback(
     async (toAddress: string) => {
+      setIsRecipientSelectedFromList(false);
       updateTo(toAddress);
       setRecipientInputMethodManual();
       setPastedRecipient(undefined);
     },
-    [setPastedRecipient, setRecipientInputMethodManual, updateTo],
+    [
+      setIsRecipientSelectedFromList,
+      setPastedRecipient,
+      setRecipientInputMethodManual,
+      updateTo,
+    ],
   );
 
   const defaultStartAccessory = useMemo(
