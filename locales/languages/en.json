@@ -433,7 +433,10 @@
     "warning_password_cancel_button": "Cancel",
     "changing_password": "Changing password...",
     "changing_password_subtitle": "This shouldn’t take long",
-    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "seedless_change_password_error_modal_title": "Change password failed",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "Import a wallet",
