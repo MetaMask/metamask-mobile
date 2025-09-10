@@ -1579,4 +1579,3 @@ AnimatedFox.defaultProps = {
 };
 
 export default AnimatedFox;
-
