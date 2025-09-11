@@ -75,7 +75,7 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         OAuthErrorType.UnknownError,
       );
     } catch (error) {
-      Logger.error(error as Error, 'handleGoogleLogin: error');
+      Logger.log(error, 'handleGoogleLogin: error');
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
