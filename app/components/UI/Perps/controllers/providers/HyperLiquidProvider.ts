@@ -772,7 +772,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         (order) =>
           order.coin === coin &&
           order.reduceOnly === true &&
-          order.sz === position.size &&
+          Math.abs(parseFloat(order.sz)) ===
+            Math.abs(parseFloat(position.size)) &&
           order.isTrigger === true &&
           (order.orderType.includes('Take Profit') ||
             order.orderType.includes('Stop')),
