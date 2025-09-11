@@ -153,6 +153,7 @@ import { PayWithNetworkModal } from '../../Views/confirmations/components/modals
 import { useMetrics } from '../../hooks/useMetrics';
 import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
+import { RewardsWaysToEarnSwap } from '../../UI/Rewards/components/Overview/WaysToEarn/WaysToEarnSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -376,6 +377,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.REWARDS_WAYS_TO_EARN_SWAP}
+      component={RewardsWaysToEarnSwap}
     />
     <Stack.Screen
       name={Routes.SHEET.ADDRESS_SELECTOR}

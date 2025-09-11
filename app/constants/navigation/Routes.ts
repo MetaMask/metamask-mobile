@@ -166,6 +166,7 @@ const Routes = {
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
     ONBOARDING_SHEET: 'OnboardingSheet',
+    REWARDS_WAYS_TO_EARN_SWAP: 'RewardsWaysToEarnSwap',
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
