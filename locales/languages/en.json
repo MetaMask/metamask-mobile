@@ -911,14 +911,16 @@
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
       },
-      "success_toast": "Your perps account was funded",
-      "success_message": "You have {{amount}} available to trade",
+      "success_toast": "Your Perps account was funded",
+      "success_message": "{{amount}} available to trade",
+      "funds_are_ready_to_trade": "Funds are ready to trade",
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
-      "in_progress": "Adding funds to your account",
-      "estimated_processing_time": "Estimated time is {{time}}",
+      "in_progress": "Adding funds to Perps",
+      "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
-      "your_funds_are_available_to_trade": "Your funds are available to trade"
+      "your_funds_are_available_to_trade": "Your funds are available to trade",
+      "track": "Track"
     },
     "withdrawal": {
       "title": "Withdraw",
