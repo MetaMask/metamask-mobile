@@ -86,11 +86,11 @@ jobs:
           export NODE_OPTIONS="--max-old-space-size=8192"
           # Use dedicated dual versions properties file for ARM architectures
           cp android/gradle.properties.github.dual-versions android/gradle.properties
-          yarn build:android:main:e2e
+          yarn build:android:main:prod
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: qa
+          METAMASK_ENVIRONMENT: prod
           METAMASK_BUILD_TYPE: main
           IS_TEST: false
           E2E: "true"
