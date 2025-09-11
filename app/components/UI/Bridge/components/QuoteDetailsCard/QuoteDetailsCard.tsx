@@ -83,11 +83,10 @@ const QuoteDetailsCard = () => {
   // Refs for Rive animation and tracking previous state
   const riveRef = useRef<RiveRef>(null);
   const previousPointsRef = useRef<number | null>(null);
-  const hasInitializedRef = useRef(false);
 
   // Handle Rive animation triggers based on points state changes
   useEffect(() => {
-    if (isRewardsLoading || !shouldShowRewardsRow || !riveRef.current) {
+    if (!shouldShowRewardsRow || !riveRef.current) {
       return;
     }
 
@@ -95,39 +94,22 @@ const QuoteDetailsCard = () => {
     const previousPoints = previousPointsRef.current;
 
     // Skip if no change in points value
-    if (currentPoints === previousPoints) {
+    if (!isRewardsLoading && currentPoints === previousPoints) {
+      // console.log('RIVE - no change in points value');
       return;
     }
 
     try {
-      if (!hasInitializedRef.current && currentPoints && currentPoints > 0) {
-        // First time showing points - trigger Start
-        riveRef.current.fireState('default', RewardsIconTriggers.Start);
-        hasInitializedRef.current = true;
-      } else if (
-        previousPoints &&
-        previousPoints > 0 &&
-        currentPoints &&
-        currentPoints > 0
-      ) {
-        // Points value changed but still have points - trigger Refresh
-        riveRef.current.fireState('default', RewardsIconTriggers.Refresh);
-      } else if (
-        previousPoints &&
-        previousPoints > 0 &&
-        (!currentPoints || currentPoints === 0)
-      ) {
-        // Had points but now have none - trigger Disable
+      if ((shouldShowRewardsRow && isRewardsLoading) || hasRewardsError) {
+        // console.log('RIVE - triggering Disable state 1');
         riveRef.current.fireState('default', RewardsIconTriggers.Disable);
-        hasInitializedRef.current = false;
-      } else if (
-        (!previousPoints || previousPoints === 0) &&
-        currentPoints &&
-        currentPoints > 0
-      ) {
-        // Didn't have points but now have some - trigger Start
+        return;
+      }
+
+      if (currentPoints && currentPoints > 0) {
+        // First time showing points - trigger Start
+        // console.log('RIVE - triggering Start state 1');
         riveRef.current.fireState('default', RewardsIconTriggers.Start);
-        hasInitializedRef.current = true;
       }
     } catch (error) {
       console.warn('Error triggering Rive animation:', error);
@@ -366,7 +348,6 @@ const QuoteDetailsCard = () => {
                     source={RewardsIconAnimation}
                     fit={Fit.FitHeight}
                     alignment={Alignment.CenterRight}
-                    autoplay
                   />
                   {!isRewardsLoading && (
                     <Text variant={TextVariant.BodyMD}>
