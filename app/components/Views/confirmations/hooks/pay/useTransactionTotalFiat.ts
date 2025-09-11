@@ -53,6 +53,7 @@ export function useTransactionTotalFiat({
     ...getEstimatedNetworkFeeTotal(quotes, fiatFormatter),
     ...getMaxNetworkFeeTotal(quotes, fiatFormatter),
     ...getEstimatedNativeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
+    ...getTransactionFeeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
     ...getTotal(quotes, values, estimatedFeeFiatPrecise, fiatFormatter),
   };
 
@@ -89,6 +90,24 @@ function getTotal(
   return {
     total: total.toString(10),
     totalFormatted: format(total),
+  };
+}
+
+function getTransactionFeeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const total = new BigNumber(
+    getBridgeFeeTotal(quotes, format).totalBridgeFee,
+  ).plus(
+    getEstimatedNativeTotal(quotes, estimatedGasFeeFiat, format)
+      .totalNativeEstimated,
+  );
+
+  return {
+    totalTransactionFee: total.toString(10),
+    totalTransactionFeeFormatted: format(total),
   };
 }
 
