@@ -56,7 +56,7 @@ class AccountListBottomSheet {
     );
   }
 
-  async createAccountLink(index: number): DetoxElement {
+  createAccountLink(index: number): DetoxElement {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       index,
@@ -72,9 +72,7 @@ class AccountListBottomSheet {
     );
   }
 
-  async getAccountElementByAccountNameV2(
-    accountName: string,
-  ): Promise<DetoxElement> {
+  getAccountElementByAccountNameV2(accountName: string): DetoxElement {
     return Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName);
   }
 
