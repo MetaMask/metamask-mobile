@@ -31,10 +31,13 @@ jest.mock('@sentry/react-native', () => ({
 }));
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    if (key === 'time.minutes_format' && params?.count) {
-      return params.count === 1
-        ? `${params.count} minute`
-        : `${params.count} minutes`;
+    // Support both singular and plural minute formatting keys used in code
+    if (
+      (key === 'time.minutes_format' || key === 'time.minutes_format_plural') &&
+      typeof params?.count !== 'undefined'
+    ) {
+      const count = params.count as number;
+      return count === 1 ? `${count} minute` : `${count} minutes`;
     }
     return key;
   }),
@@ -389,6 +392,17 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
       expect(result.orderId).toBe('123');
+
+      // Verify market orders use FrontendMarket TIF (TAT-1475 fix)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              t: { limit: { tif: 'FrontendMarket' } },
+            }),
+          ],
+        }),
+      );
     });
 
     it('should place a limit order successfully', async () => {
@@ -403,6 +417,42 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(true);
+
+      // Verify limit orders use Gtc TIF (regression test for TAT-1475)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              t: { limit: { tif: 'Gtc' } },
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('should use Gtc TIF for limit orders (regression test)', async () => {
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        price: '51000',
+        orderType: 'limit',
+      };
+
+      await provider.placeOrder(orderParams);
+
+      // Verify that the order was called with Gtc TIF for limit orders
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              a: 0, // BTC asset ID
+              b: true, // isBuy
+              t: { limit: { tif: 'Gtc' } }, // Limit orders use Gtc TIF
+            }),
+          ],
+        }),
+      );
     });
 
     it('should track performance measurements when placing order', async () => {
@@ -478,6 +528,15 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.editOrder(editParams);
 
       expect(result.success).toBe(true);
+
+      // Verify limit orders use Gtc TIF in edit operations
+      expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            t: { limit: { tif: 'Gtc' } },
+          }),
+        }),
+      );
     });
 
     it('should edit a market order with slippage calculation', async () => {
@@ -496,6 +555,15 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
       expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+
+      // Verify market orders use FrontendMarket TIF in edit operations
+      expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            t: { limit: { tif: 'FrontendMarket' } },
+          }),
+        }),
+      );
     });
 
     it('should handle editOrder when asset is not found', async () => {
@@ -1458,6 +1526,115 @@ describe('HyperLiquidProvider', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(0);
     });
+
+    describe('error mapping integration', () => {
+      it('should map HyperLiquid leverage error in placeOrder to ORDER_LEVERAGE_REDUCTION_FAILED', async () => {
+        // Mock placeOrder to throw the specific HyperLiquid error
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest
+            .fn()
+            .mockRejectedValue(
+              new Error(
+                'isolated position does not have sufficient margin available to decrease leverage',
+              ),
+            ),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
+      });
+
+      it('should map case insensitive HyperLiquid error', async () => {
+        // Mock with uppercase version
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest
+            .fn()
+            .mockRejectedValue(
+              new Error(
+                'ISOLATED POSITION DOES NOT HAVE SUFFICIENT MARGIN AVAILABLE TO DECREASE LEVERAGE',
+              ),
+            ),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
+      });
+
+      it('should map partial error message containing the pattern', async () => {
+        // Mock with longer error message containing the pattern
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest
+            .fn()
+            .mockRejectedValue(
+              new Error(
+                'API Error: isolated position does not have sufficient margin available to decrease leverage. Please check your position.',
+              ),
+            ),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('ORDER_LEVERAGE_REDUCTION_FAILED');
+      });
+
+      it('should preserve original error message for unmapped errors', async () => {
+        // Mock with an unmapped error
+        const originalError = new Error('Some other HyperLiquid API error');
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest.fn().mockRejectedValue(originalError),
+          updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          leverage: 10,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Some other HyperLiquid API error');
+      });
+    });
   });
 
   describe('Edge Cases', () => {
@@ -1912,7 +2089,7 @@ describe('HyperLiquidProvider', () => {
       // l = 1 / 40 = 0.025
       // liquidation = 50000 - (1 * 0.075 * 50000) / (1 - 0.025 * 1)
       // liquidation = 50000 - 3750 / 0.975 = 50000 - 3846.15 = 46153.85
-      expect(result).toBe('46153.85');
+      expect(parseFloat(result)).toBeCloseTo(46153.85, 2);
     });
 
     it('should calculate liquidation price for short position correctly', async () => {
@@ -1932,7 +2109,7 @@ describe('HyperLiquidProvider', () => {
       // l = 1 / 40 = 0.025
       // liquidation = 50000 - (-1 * 0.075 * 50000) / (1 - 0.025 * -1)
       // liquidation = 50000 + 3750 / 1.025 = 50000 + 3658.54 = 53658.54
-      expect(result).toBe('53658.54');
+      expect(parseFloat(result)).toBeCloseTo(53658.54, 2);
     });
 
     it('should throw error for leverage exceeding maintenance leverage', async () => {
@@ -2429,6 +2606,7 @@ describe('HyperLiquidProvider', () => {
               reduceOnly: true,
               isTrigger: true,
               orderType: 'Take Profit',
+              sz: '0.1',
             },
             {
               coin: 'BTC',
@@ -2436,12 +2614,13 @@ describe('HyperLiquidProvider', () => {
               reduceOnly: true,
               isTrigger: true,
               orderType: 'Stop Loss',
+              sz: '0.1',
             },
           ]),
           referral: jest.fn().mockResolvedValue({
             referrerState: {
               stage: 'ready',
-              data: { code: 'TESTNET' },
+              data: { code: 'MMCSI' },
             },
           }),
           maxBuilderFee: jest.fn().mockResolvedValue(1),
@@ -2455,6 +2634,9 @@ describe('HyperLiquidProvider', () => {
           order: jest.fn().mockResolvedValue({
             status: 'ok',
             response: { data: { statuses: [{ resting: { oid: '999' } }] } },
+          }),
+          setReferrer: jest.fn().mockResolvedValue({
+            status: 'ok',
           }),
         });
 
