@@ -853,4 +853,43 @@ describe('App', () => {
       });
     });
   });
+
+  it('should use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
+    jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+      if (key === OPTIN_META_METRICS_UI_SEEN) {
+        return false; // OptinMetrics UI has not been seen
+      }
+      return null; // Default for other keys
+    });
+
+    renderScreen(
+      App,
+      { name: 'App' },
+      {
+        state: {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+        },
+      },
+    );
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
+          },
+        ],
+      });
+    });
+  });
 });
