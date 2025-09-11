@@ -397,7 +397,7 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.getIsOAuthLoginAttempted()) {
+    if (OAuthLoginService.getMetricStateBeforeOauth() === false) {
       // Disable metrics
       await this.props.metrics.enable(false);
     }
@@ -427,7 +427,7 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.getIsOAuthLoginAttempted()) {
+    if (OAuthLoginService.getMetricStateBeforeOauth() === false) {
       // Disable metrics
       await this.props.metrics.enable(false);
     }

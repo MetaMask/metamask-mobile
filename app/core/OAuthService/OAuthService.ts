@@ -19,6 +19,7 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
+import { MetaMetrics } from '../Analytics';
 
 export interface OAuthServiceConfig {
   authConnectionConfig: {
@@ -39,7 +40,7 @@ interface OAuthServiceLocalState {
   loginInProgress: boolean;
   oauthLoginSuccess: boolean;
   oauthLoginError: string | null;
-  isOAuthLoginAttempted: boolean;
+  metricStateBeforeOauth: boolean | null;
 }
 export class OAuthService {
   public localState: OAuthServiceLocalState;
@@ -54,7 +55,7 @@ export class OAuthService {
       accountName: undefined,
       oauthLoginSuccess: false,
       oauthLoginError: null,
-      isOAuthLoginAttempted: false,
+      metricStateBeforeOauth: null,
     };
     this.config = {
       authConnectionConfig,
@@ -65,9 +66,14 @@ export class OAuthService {
 
   #dispatchLogin = () => {
     this.resetOauthState();
+    const metricStateBeforeOauth =
+      this.localState.metricStateBeforeOauth === null
+        ? MetaMetrics.getInstance().isEnabled()
+        : this.localState.metricStateBeforeOauth;
+
     this.updateLocalState({
       loginInProgress: true,
-      isOAuthLoginAttempted: true,
+      metricStateBeforeOauth,
     });
   };
 
@@ -305,10 +311,11 @@ export class OAuthService {
     });
   };
 
-  getIsOAuthLoginAttempted = (): boolean => this.localState.isOAuthLoginAttempted;
+  getMetricStateBeforeOauth = (): boolean | null =>
+    this.localState.metricStateBeforeOauth;
 
-  setOAuthLoginAttempted = (value: boolean) => {
-    this.updateLocalState({ isOAuthLoginAttempted: value });
+  setMetricStateBeforeOauth = (value: boolean) => {
+    this.updateLocalState({ metricStateBeforeOauth: value });
   };
 }
 
