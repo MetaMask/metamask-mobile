@@ -239,7 +239,7 @@ export function transformFundingToTransactions(
       type: 'funding',
       category: 'funding_fee',
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
-      subtitle: ``,
+      subtitle: symbol,
       timestamp,
       asset: symbol,
       fundingAmount: {

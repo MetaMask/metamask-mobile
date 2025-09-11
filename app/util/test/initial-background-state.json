@@ -380,6 +380,7 @@
     "accountState": null,
     "pendingOrders": [],
     "depositInProgress": false,
+    "lastDepositTransactionId": null,
     "lastDepositResult": null,
     "lastWithdrawResult": null,
     "withdrawInProgress": false,
@@ -405,7 +406,8 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {}
+    "domains": {},
+    "activeDappNetwork": null
   },
   "SignatureController": {
     "signatureRequests": {},

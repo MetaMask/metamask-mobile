@@ -155,10 +155,13 @@ const ImportFromSecretRecoveryPhrase = ({
     onTransactionComplete: false,
   });
 
-  const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhrase.length),
-    [seedPhrase],
-  );
+  const isSRPContinueButtonDisabled = useMemo(() => {
+    const updatedSeedPhrase = [...seedPhrase];
+    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
+      (word) => word !== '',
+    ).length;
+    return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
+  }, [seedPhrase]);
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -204,22 +207,46 @@ const ImportFromSecretRecoveryPhrase = ({
           }
 
           // Build the new seed phrase array
-          const newSeedPhrase = [
+          const mergedSeedPhrase = [
             ...seedPhrase.slice(0, index),
             ...splitArray,
             ...seedPhrase.slice(index + 1),
           ];
 
-          // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace && index === seedPhrase.length - 1) {
-            newSeedPhrase.push('');
+          const normalizedWords = mergedSeedPhrase
+            .map((w) => w.trim())
+            .filter((w) => w !== '');
+          const maxAllowed = Math.max(...SRP_LENGTHS);
+          const hasReachedMax = normalizedWords.length >= maxAllowed;
+          const isCompleteAndValid =
+            SRP_LENGTHS.includes(normalizedWords.length) &&
+            isValidMnemonic(normalizedWords.join(' '));
+
+          // Prepare next state, retaining a single trailing empty input only when appropriate
+          let nextSeedPhraseState = normalizedWords;
+          if (
+            isEndWithSpace &&
+            index === seedPhrase.length - 1 &&
+            !isCompleteAndValid &&
+            !hasReachedMax
+          ) {
+            nextSeedPhraseState = [...normalizedWords, ''];
+          }
+
+          // Always update component state before handling keyboard/focus
+          setSeedPhrase(nextSeedPhraseState);
+
+          if (isCompleteAndValid || hasReachedMax) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
           }
 
           const targetIndex = Math.min(
-            newSeedPhrase.length - 1,
+            nextSeedPhraseState.length - 1,
             index + splitArray.length,
           );
-          setSeedPhrase(newSeedPhrase);
           setTimeout(() => {
             setNextSeedPhraseInputFocusedIndex(targetIndex);
           }, 0);
@@ -831,10 +858,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             setNextSeedPhraseInputFocusedIndex(index);
                           }}
                           onChangeText={(text) => {
-                            // Don't process masked text input
-                            if (!isFirstInput && text.includes('•')) {
-                              return;
-                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index);

@@ -159,7 +159,7 @@ describe('validateToAddress', () => {
     jest
       .spyOn(ENSUtils, 'doENSLookup')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValue({ ensName: 'test.eth' } as any);
+      .mockReturnValue('dummy_address' as any);
     jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
     expect(
       await validateToAddress({
@@ -175,6 +175,7 @@ describe('validateToAddress', () => {
     ).toStrictEqual({
       warning:
         "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam. - 'ⅼ' is similar to 'l'",
+      resolvedAddress: 'dummy_address',
     });
   });
 
@@ -182,7 +183,7 @@ describe('validateToAddress', () => {
     jest
       .spyOn(ENSUtils, 'doENSLookup')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValue({ ensName: 'test.eth' } as any);
+      .mockReturnValue('dummy_address' as any);
     jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
     jest.spyOn(ConfusablesUtils, 'hasZeroWidthPoints').mockReturnValue(true);
     expect(
@@ -200,6 +201,7 @@ describe('validateToAddress', () => {
       warning:
         'We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.',
       error: 'Invalid address',
+      resolvedAddress: 'dummy_address',
     });
   });
 });
