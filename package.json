@@ -200,7 +200,8 @@
     "appwright/**/@ffmpeg-installer/linux-ia32": "npm:noop-fn@1.0.0",
     "appwright/**/@ffmpeg-installer/linux-x64": "npm:noop-fn@1.0.0",
     "appwright/**/@ffmpeg-installer/win32-ia32": "npm:noop-fn@1.0.0",
-    "appwright/**/@ffmpeg-installer/win32-x64": "npm:noop-fn@1.0.0"
+    "appwright/**/@ffmpeg-installer/win32-x64": "npm:noop-fn@1.0.0",
+    "appwright/form-data": "4.0.4"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
