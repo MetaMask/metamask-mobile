@@ -911,14 +911,16 @@
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
       },
-      "success_toast": "Your perps account was funded",
-      "success_message": "You have {{amount}} available to trade",
+      "success_toast": "Your Perps account was funded",
+      "success_message": "{{amount}} available to trade",
+      "funds_are_ready_to_trade": "Funds are ready to trade",
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
-      "in_progress": "Adding funds to your account",
-      "estimated_processing_time": "Estimated time is {{time}}",
+      "in_progress": "Adding funds to Perps",
+      "estimated_processing_time": "Est. {{time}}",
       "funds_available_momentarily": "Funds will be available momentarily",
-      "your_funds_are_available_to_trade": "Your funds are available to trade"
+      "your_funds_are_available_to_trade": "Your funds are available to trade",
+      "track": "Track"
     },
     "withdrawal": {
       "title": "Withdraw",
@@ -944,8 +946,8 @@
       "wait_time_message": "Your funds should arrive within 5 minutes",
       "submitting": "Submitting...",
       "error": "Withdrawal failed",
-      "success_toast": "Withdrawal successful",
-      "arrival_time": "{{amount}} {{symbol}} will arrive within 5 minutes",
+      "success_toast": "Withdrawal confirmed",
+      "success_toast_description": "You'll receive {{amount}} {{symbol}} on {{networkName}} within 5 minutes",
       "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
       "invalid_amount": "Please enter a valid amount",
@@ -1220,7 +1222,7 @@
       "title": "Positions",
       "card": {
         "entry_price": "Entry price",
-        "funding_cost": "Funding cost",
+        "funding_cost": "Funding",
         "liquidation_price": "Liq. Price",
         "take_profit": "Take profit",
         "stop_loss": "Stop loss",
@@ -1255,7 +1257,8 @@
         "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
-        "update_success": "TP/SL updated successfully"
+        "update_success": "TP/SL updated successfully",
+        "update_failed": "Failed to update TP/SL"
       }
     },
     "markets": {
@@ -1335,11 +1338,11 @@
       },
       "receive": {
         "title": "Receive",
-        "content": "The amount of USDC you'll receive in your wallet after withdrawal."
+        "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
       },
       "withdrawal_fees": {
         "title": "Provider Fee",
-        "content": "A network fee charged for processing your withdrawal transaction."
+        "content": "A flat fee charged by the provider on each withdrawal."
       },
       "tp_sl": {
         "title": "Take Profit & Stop Loss",
@@ -1383,7 +1386,8 @@
       "tabs": {
         "trades": "Trades",
         "orders": "Orders",
-        "funding": "Funding"
+        "funding": "Funding",
+        "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
       },
       "not_found": "Transaction not found",
       "position": {
@@ -5266,6 +5270,9 @@
     "points": "Points",
     "points_tooltip": "Points",
     "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
+    "unable_to_load": "Unable to load",
+    "points_error": "We can't load points right now",
+    "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
@@ -5542,8 +5549,11 @@
     },
     "invalid": {
       "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "description": "We can't find the page you're looking for.",
+      "update_to_store_link": "Update to the latest version of MetaMask",
+      "well_take_you_to_right_place": " and we'll take you to the right place."
     },
+    "go_to_home_button": "Go to the home page",
     "back_button": "Back",
     "continue_button": "Continue"
   },
