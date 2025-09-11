@@ -320,7 +320,7 @@ android {
             def isE2E = System.getenv("E2E")
 
             if (env == 'exp') {
-                signingConfig signingConfigs.mainExp
+                signingConfig signingConfigs.mainRc
             } else if (env == 'test') {
                 signingConfig signingConfigs.mainTest
             } else if (env == 'e2e') {
