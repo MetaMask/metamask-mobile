@@ -218,7 +218,7 @@ function TradeWalletActions() {
             maskElement={
               <View style={tw.style('flex-1 bg-transparent')}>
                 <View style={tw.style('flex-1 bg-black')} />
-                <View style={tw.style('flex-row')}>
+                <View style={tw.style('flex-row mt-[-1px]')}>
                   <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
                   <BottomShape
                     width={buttonLayout.width * 4}
