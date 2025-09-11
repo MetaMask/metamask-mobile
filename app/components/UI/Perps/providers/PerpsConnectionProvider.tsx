@@ -58,6 +58,7 @@ export const PerpsConnectionProvider: React.FC<
         isConnecting: false,
         isInitialized: true,
         isDisconnecting: false,
+        isInGracePeriod: false,
         error: null,
       });
       return;
@@ -71,6 +72,8 @@ export const PerpsConnectionProvider: React.FC<
           prevState.isConnected !== state.isConnected ||
           prevState.isConnecting !== state.isConnecting ||
           prevState.isInitialized !== state.isInitialized ||
+          prevState.isDisconnecting !== state.isDisconnecting ||
+          prevState.isInGracePeriod !== state.isInGracePeriod ||
           prevState.error !== state.error
         ) {
           return state;
@@ -105,6 +108,8 @@ export const PerpsConnectionProvider: React.FC<
         prevState.isConnected !== state.isConnected ||
         prevState.isConnecting !== state.isConnecting ||
         prevState.isInitialized !== state.isInitialized ||
+        prevState.isDisconnecting !== state.isDisconnecting ||
+        prevState.isInGracePeriod !== state.isInGracePeriod ||
         prevState.error !== state.error
       ) {
         return state;
@@ -129,6 +134,8 @@ export const PerpsConnectionProvider: React.FC<
         prevState.isConnected !== state.isConnected ||
         prevState.isConnecting !== state.isConnecting ||
         prevState.isInitialized !== state.isInitialized ||
+        prevState.isDisconnecting !== state.isDisconnecting ||
+        prevState.isInGracePeriod !== state.isInGracePeriod ||
         prevState.error !== state.error
       ) {
         return state;
