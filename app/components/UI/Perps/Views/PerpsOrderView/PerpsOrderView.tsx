@@ -77,6 +77,7 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPerformance,
+  useMinimumOrderAmount,
   usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -431,6 +432,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
+  // Minimum order amount (in USD notional) for the current asset/network
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: orderForm.asset,
+  });
+
   /**
    * Calculate TP/SL display text with RoE percentages
    * Converts take profit and stop loss prices to RoE (Return on Equity) percentages
@@ -494,6 +500,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
     availableBalance,
     marginRequired,
   });
+
+  // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
+  // Hide the "Size must be a positive number" message from the error list
+  const filteredErrors = useMemo(() => {
+    const sizePositiveMsg = strings(
+      'perps.errors.orderValidation.sizePositive',
+    );
+    return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
+  }, [orderValidation.errors]);
 
   // Track dependent metrics update performance when amount or leverage changes
   const prevInputValuesRef = useRef({ amount: '', leverage: 1 });
@@ -608,6 +623,28 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const handleDonePress = () => {
     setIsInputFocused(false);
   };
+
+  // Clamp amount to the maximum allowed once the keypad/input is dismissed
+  // Mirrors the PerpsClosePositionView behavior where, after leaving input,
+  // values are normalized to valid limits.
+  useEffect(() => {
+    if (!isInputFocused) {
+      const currentAmount = parseFloat(orderForm.amount || '0');
+      const maxAllowed = Math.floor(availableBalance * orderForm.leverage);
+
+      // If user-entered amount exceeds the max purchasable with current balance/leverage,
+      // snap it down to the maximum once input is closed.
+      if (currentAmount > maxAllowed) {
+        setAmount(String(maxAllowed));
+      }
+    }
+  }, [
+    isInputFocused,
+    orderForm.amount,
+    availableBalance,
+    orderForm.leverage,
+    setAmount,
+  ]);
 
   const handlePlaceOrder = useCallback(async () => {
     if (isSubmittingRef.current) {
@@ -742,7 +779,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
-  const isAmountDisabled = amountTimesLeverage < 10;
+  const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
+
+  // Button label: show Insufficient funds when user's max notional is below minimum
+  const placeOrderLabel =
+    amountTimesLeverage < minimumOrderAmount
+      ? strings('perps.order.validation.insufficient_funds')
+      : strings(
+          orderForm.direction === 'long'
+            ? 'perps.order.button.long'
+            : 'perps.order.button.short',
+          { asset: orderForm.asset },
+        );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -768,7 +816,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           isActive={isInputFocused}
           tokenAmount={positionSize}
           tokenSymbol={orderForm.asset}
-          hasError={!!orderValidation.errors.length}
+          hasError={availableBalance > 0 && !!filteredErrors.length}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -1022,9 +1070,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={styles.fixedBottomContainer}>
-          {orderValidation.errors.length > 0 && (
+          {filteredErrors.length > 0 && (
             <View style={styles.validationContainer}>
-              {orderValidation.errors.map((error) => (
+              {filteredErrors.map((error) => (
                 <Text
                   key={error}
                   variant={TextVariant.BodySM}
@@ -1039,12 +1087,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={strings(
-              orderForm.direction === 'long'
-                ? 'perps.order.button.long'
-                : 'perps.order.button.short',
-              { asset: orderForm.asset },
-            )}
+            label={placeOrderLabel}
             onPress={handlePlaceOrder}
             isDisabled={!orderValidation.isValid || isPlacingOrder}
             loading={isPlacingOrder}
