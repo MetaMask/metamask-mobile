@@ -33,7 +33,6 @@ import {
 
 interface PaymentMethodSelectorModalParams {
   paymentMethods: DepositPaymentMethod[];
-  error?: string | null;
 }
 
 export const createPaymentMethodSelectorModalNavigationDetails =
@@ -51,7 +50,7 @@ function PaymentMethodSelectorModal() {
     screenHeight,
   });
 
-  const { paymentMethods, error } =
+  const { paymentMethods } =
     useParams<PaymentMethodSelectorModalParams>();
   const trackEvent = useAnalytics();
   const {
@@ -128,39 +127,20 @@ function PaymentMethodSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {error
-            ? 'Error'
-            : strings('deposit.payment_modal.select_a_payment_method')}
+          {strings('deposit.payment_modal.select_a_payment_method')}
         </Text>
       </BottomSheetHeader>
 
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Xl}
-            color={theme.colors.error.default}
-          />
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.errorText}
-          >
-            There was an error loading payment methods. Please check back later.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          style={styles.list}
-          ref={listRef}
-          data={paymentMethods}
-          renderItem={renderPaymentMethod}
-          extraData={selectedPaymentMethod?.id}
-          keyExtractor={(item) => item.id}
-          keyboardDismissMode="none"
-          keyboardShouldPersistTaps="always"
-        ></FlatList>
-      )}
+      <FlatList
+        style={styles.list}
+        ref={listRef}
+        data={paymentMethods}
+        renderItem={renderPaymentMethod}
+        extraData={selectedPaymentMethod?.id}
+        keyExtractor={(item) => item.id}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+      ></FlatList>
     </BottomSheet>
   );
 }

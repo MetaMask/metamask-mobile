@@ -15,7 +15,6 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
 
   const [{ data: cryptoCurrencies, error, isFetching }] = useDepositSdkMethod(
     'getCryptoCurrencies',
-
     selectedRegion?.isoCode,
   );
 

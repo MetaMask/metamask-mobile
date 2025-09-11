@@ -176,26 +176,15 @@ const BuildQuote = () => {
   }, []);
 
   const handleRegionPress = useCallback(() => {
-    if (isFetchingRegions) {
-      // Loading case: do nothing (button should be disabled via skeleton)
+    if (isFetchingRegions || regionsError || !regions || regions.length === 0) {
+      // Don't open modal if there's an error, loading, or no data
       return;
     }
 
-    if (regions && regions.length > 0) {
-      // Normal case: show regions
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({ regions }),
-      );
-    } else if (regionsError || (regions && regions.length === 0)) {
-      // Error case OR empty collection case: show error modal
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({
-          regions: [],
-          error: regionsError || 'No regions available',
-        }),
-      );
-    }
-    // Loading case: do nothing (button should be disabled via skeleton)
+    // Normal case: show regions
+    navigation.navigate(
+      ...createRegionSelectorModalNavigationDetails({ regions }),
+    );
   }, [navigation, regions, regionsError, isFetchingRegions]);
 
   useFocusEffect(
@@ -388,48 +377,30 @@ const BuildQuote = () => {
   );
 
   const handleCryptoPress = useCallback(() => {
-    if (cryptoCurrencies && cryptoCurrencies.length > 0) {
-      // Normal case: show crypto currencies
-      navigation.navigate(
-        ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
-      );
-    } else if (
-      cryptosError ||
-      (cryptoCurrencies && cryptoCurrencies.length === 0)
-    ) {
-      // Error case OR empty collection case: show error modal
-      navigation.navigate(
-        ...createTokenSelectorModalNavigationDetails({
-          cryptoCurrencies: [],
-          error: cryptosError || 'No tokens available',
-        }),
-      );
+    if (isFetchingCryptos || cryptosError || !cryptoCurrencies || cryptoCurrencies.length === 0) {
+      // Don't open modal if there's an error, loading, or no data
+      return;
     }
-    // Loading case: do nothing (button should be disabled via skeleton)
-  }, [navigation, cryptoCurrencies, cryptosError]);
+
+    // Normal case: show crypto currencies
+    navigation.navigate(
+      ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
+    );
+  }, [navigation, cryptoCurrencies, cryptosError, isFetchingCryptos]);
 
   const handlePaymentMethodPress = useCallback(() => {
-    if (paymentMethods && paymentMethods.length > 0) {
-      // Normal case: show payment methods
-      navigation.navigate(
-        ...createPaymentMethodSelectorModalNavigationDetails({
-          paymentMethods,
-        }),
-      );
-    } else if (
-      paymentMethodsError ||
-      (paymentMethods && paymentMethods.length === 0)
-    ) {
-      // Error case OR empty collection case: show error modal
-      navigation.navigate(
-        ...createPaymentMethodSelectorModalNavigationDetails({
-          paymentMethods: [],
-          error: paymentMethodsError || 'No payment methods available',
-        }),
-      );
+    if (isFetchingPaymentMethods || paymentMethodsError || !paymentMethods || paymentMethods.length === 0) {
+      // Don't open modal if there's an error, loading, or no data
+      return;
     }
-    // Loading case: do nothing (button should be disabled via skeleton)
-  }, [navigation, paymentMethods, paymentMethodsError]);
+
+    // Normal case: show payment methods
+    navigation.navigate(
+      ...createPaymentMethodSelectorModalNavigationDetails({
+        paymentMethods,
+      }),
+    );
+  }, [navigation, paymentMethods, paymentMethodsError, isFetchingPaymentMethods]);
 
   const networkName =
     allNetworkConfigurations[selectedCryptoCurrency?.chainId ?? '']?.name;
@@ -465,7 +436,7 @@ const BuildQuote = () => {
                 <TouchableOpacity
                   style={styles.fiatSelector}
                   onPress={handleRegionPress}
-                  disabled={false}
+                  disabled={!!regionsError || !regions || regions.length === 0}
                 >
                   <View style={styles.regionContent}>
                     {regionsError ||
@@ -554,7 +525,7 @@ const BuildQuote = () => {
                   />
                 </View>
               ) : (
-                <TouchableOpacity onPress={handleCryptoPress} disabled={false}>
+                <TouchableOpacity onPress={handleCryptoPress} disabled={!!cryptosError || !cryptoCurrencies || cryptoCurrencies.length === 0}>
                   <View style={styles.cryptoPill}>
                     {cryptosError ||
                     (cryptoCurrencies && cryptoCurrencies.length === 0) ||
@@ -642,7 +613,7 @@ const BuildQuote = () => {
               <TouchableOpacity
                 style={styles.paymentMethodBox}
                 onPress={handlePaymentMethodPress}
-                disabled={false}
+                disabled={!!paymentMethodsError || !paymentMethods || paymentMethods.length === 0}
               >
                 <ListItem gap={8}>
                   <ListItemColumn widthType={WidthType.Fill}>

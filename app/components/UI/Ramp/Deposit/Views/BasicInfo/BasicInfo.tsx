@@ -47,6 +47,8 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import Logger from '../../../../../../util/Logger';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import useSDKMethod from '../../../Aggregator/hooks/useSDKMethod';
+import { useRegions } from '../../hooks/useRegions';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -92,6 +94,8 @@ const BasicInfo = (): JSX.Element => {
     dob: localTimestampToUseInternally,
     ssn: '',
   };
+
+  const { regions } = useRegions();
 
   const validateForm = (
     formData: BasicInfoFormData,
@@ -340,6 +344,7 @@ const BasicInfo = (): JSX.Element => {
 
             <DepositPhoneField
               label={strings('deposit.basic_info.phone_number')}
+              regions={regions}
               value={formData.mobileNumber}
               onChangeText={handleFieldChange(
                 'mobileNumber',

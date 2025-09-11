@@ -203,4 +203,52 @@ describe('RegionSelectorModal Component', () => {
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
+
+  it('receives and uses regions from navigation params', () => {
+    // Arrange
+    const customRegions = [
+      {
+        isoCode: 'GB',
+        flag: '🇬🇧',
+        name: 'United Kingdom',
+        phone: { prefix: '+44', placeholder: '20 7123 4567', template: 'XX XXXX XXXX' },
+        currency: 'GBP',
+        supported: true,
+      },
+      {
+        isoCode: 'AU',
+        flag: '🇦🇺',
+        name: 'Australia',
+        phone: { prefix: '+61', placeholder: '2 1234 5678', template: 'X XXXX XXXX' },
+        currency: 'AUD',
+        supported: true,
+      },
+    ];
+
+    mockUseParams.mockReturnValue({
+      regions: customRegions,
+      error: null,
+    });
+
+    // Act
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+
+    // Assert - verify custom regions are displayed
+    expect(getByText('United Kingdom')).toBeOnTheScreen();
+    expect(getByText('Australia')).toBeOnTheScreen();
+  });
+
+  it('handles empty regions array from navigation params', () => {
+    // Arrange
+    mockUseParams.mockReturnValue({
+      regions: [],
+      error: null,
+    });
+
+    // Act
+    const { toJSON } = renderWithProvider(RegionSelectorModal);
+
+    // Assert - should render without crashing and show empty state
+    expect(toJSON()).toMatchSnapshot();
+  });
 });

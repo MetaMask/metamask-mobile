@@ -18,6 +18,7 @@ interface PhoneFieldProps {
   onChangeText: (text: string) => void;
   error?: string;
   onSubmitEditing?: () => void;
+  regions: DepositRegion[];
 }
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -40,7 +41,10 @@ const styleSheet = (params: { theme: Theme }) => {
 };
 
 const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
-  ({ label, value = '', onChangeText, error, onSubmitEditing }, ref) => {
+  (
+    { label, value = '', onChangeText, error, onSubmitEditing, regions },
+    ref,
+  ) => {
     const { styles } = useStyles(styleSheet, {});
     const { selectedRegion, setSelectedRegion } = useDepositSDK();
     const navigation = useNavigation();
@@ -70,22 +74,13 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
       [onChangeText, selectedRegion],
     );
 
-    const handleRegionSelect = useCallback(
-      (newRegion: DepositRegion) => {
-        onChangeText('');
-        setSelectedRegion(newRegion);
-      },
-      [setSelectedRegion, onChangeText],
-    );
-
     const handleFlagPress = useCallback(() => {
       navigation.navigate(
         ...createRegionSelectorModalNavigationDetails({
-          selectedRegionCode: selectedRegion?.isoCode,
-          handleSelectRegion: handleRegionSelect,
+          regions,
         }),
       );
-    }, [navigation, selectedRegion, handleRegionSelect]);
+    }, [navigation, regions]);
 
     const countryPrefixAccessory = (
       <TouchableOpacity

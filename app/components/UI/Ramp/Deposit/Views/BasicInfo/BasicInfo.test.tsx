@@ -15,7 +15,11 @@ const DEPOSIT_REGIONS = [
     flag: '🇺🇸',
     name: 'United States',
     currency: 'USD',
-    phone: { prefix: '+1', placeholder: '(555) 123-4567', template: '(###) ###-####' },
+    phone: {
+      prefix: '+1',
+      placeholder: '(555) 123-4567',
+      template: '(###) ###-####',
+    },
     supported: true,
   },
 ];
@@ -33,9 +37,7 @@ const mockQuote = {
   quoteId: 'test-quote-id',
 } as BuyQuote;
 
-const mockSelectedRegion = DEPOSIT_REGIONS.find(
-  (region) => region.isoCode === 'US',
-) as DepositRegion;
+const mockSelectedRegion = DEPOSIT_REGIONS[0];
 
 let mockUseParamsReturnValue: {
   quote: BuyQuote;
@@ -92,6 +94,11 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   },
 }));
 
+const mockUseRegions = jest.fn();
+jest.mock('../../hooks/useRegions', () => ({
+  useRegions: () => mockUseRegions(),
+}));
+
 jest.mock('../../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../../util/trace'),
   endTrace: jest.fn(),
@@ -121,6 +128,12 @@ describe('BasicInfo Component', () => {
 
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: mockSelectedRegion,
+    });
+
+    mockUseRegions.mockReturnValue({
+      regions: DEPOSIT_REGIONS,
+      isFetching: false,
+      error: null,
     });
 
     mockPostKycForm.mockResolvedValue(undefined);
@@ -358,5 +371,36 @@ describe('BasicInfo Component', () => {
       mockError,
       'Unexpected error during basic info form submission',
     );
+  });
+
+  it('passes regions to DepositPhoneField component', () => {
+    // Arrange
+    const customRegions = [
+      ...DEPOSIT_REGIONS,
+      {
+        isoCode: 'CA',
+        flag: '🇨🇦',
+        name: 'Canada',
+        currency: 'CAD',
+        phone: {
+          prefix: '+1',
+          placeholder: '(555) 123-4567',
+          template: '(###) ###-####',
+        },
+        supported: true,
+      },
+    ];
+
+    mockUseRegions.mockReturnValue({
+      regions: customRegions,
+      isFetching: false,
+      error: null,
+    });
+
+    // Act
+    render(BasicInfo);
+
+    // Assert - verify the component renders with regions (snapshot will capture the regions prop)
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

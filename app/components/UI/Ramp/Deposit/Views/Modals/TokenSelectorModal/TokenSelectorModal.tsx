@@ -51,7 +51,6 @@ import useAnalytics from '../../../../hooks/useAnalytics';
 
 interface TokenSelectorModalParams {
   cryptoCurrencies: DepositCryptoCurrency[];
-  error?: string | null;
 }
 
 export const createTokenSelectorModalNavigationDetails =
@@ -83,7 +82,7 @@ function TokenSelectorModal() {
     selectedCryptoCurrency,
   } = useDepositSDK();
 
-  const { cryptoCurrencies: supportedTokens, error } =
+  const { cryptoCurrencies: supportedTokens } =
     useParams<TokenSelectorModalParams>();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
@@ -218,30 +217,12 @@ function TokenSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {error
-            ? 'Error'
-            : isEditingNetworkFilter
+          {isEditingNetworkFilter
             ? strings('deposit.networks_filter_selector.select_network')
             : strings('deposit.token_modal.select_token')}
         </Text>
       </BottomSheetHeader>
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Xl}
-            color={theme.colors.error.default}
-          />
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.errorText}
-          >
-            There was an error loading available tokens. Please check back
-            later.
-          </Text>
-        </View>
-      ) : isEditingNetworkFilter ? (
+      {isEditingNetworkFilter ? (
         <NetworksFilterSelector
           networks={uniqueNetworks}
           networkFilter={networkFilter}

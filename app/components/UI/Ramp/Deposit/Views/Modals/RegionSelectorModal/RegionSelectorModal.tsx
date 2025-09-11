@@ -39,7 +39,6 @@ const MAX_REGION_RESULTS = 20;
 
 interface RegionSelectorModalParams {
   regions: DepositRegion[];
-  error?: string | null;
 }
 
 export const createRegionSelectorModalNavigationDetails =
@@ -54,7 +53,7 @@ function RegionSelectorModal() {
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
-  const { regions, error } = useParams<RegionSelectorModalParams>();
+  const { regions } = useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles, theme } = useStyles(styleSheet, {
@@ -83,7 +82,7 @@ function RegionSelectorModal() {
       const results = fuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
-      return results?.map((result) => result.item).filter(Boolean) || [];
+      return results || [];
     }
 
     return [...regions].sort((a, b) => {
@@ -213,53 +212,33 @@ function RegionSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {error ? 'Error' : strings('deposit.region_modal.select_a_region')}
+          {strings('deposit.region_modal.select_a_region')}
         </Text>
       </BottomSheetHeader>
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Xl}
-            color={theme.colors.error.default}
-          />
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.errorText}
-          >
-            There was an error loading regional availability. Please check back
-            later.
-          </Text>
-        </View>
-      ) : (
-        <>
-          <View style={styles.searchContainer}>
-            <TextFieldSearch
-              value={searchString}
-              showClearButton={searchString.length > 0}
-              onPressClearButton={clearSearchText}
-              onFocus={scrollToTop}
-              onChangeText={handleSearchTextChange}
-              placeholder={strings('deposit.region_modal.search_by_country')}
-            />
-          </View>
-          <FlatList
-            ref={listRef}
-            style={styles.list}
-            data={dataSearchResults}
-            renderItem={renderRegionItem}
-            extraData={selectedRegion?.isoCode}
-            keyExtractor={(item) => item?.isoCode || 'unknown'}
-            ListEmptyComponent={renderEmptyList}
-            keyboardDismissMode="none"
-            keyboardShouldPersistTaps="always"
-            removeClippedSubviews={false}
-            scrollEnabled
-            nestedScrollEnabled
-          />
-        </>
-      )}
+      <View style={styles.searchContainer}>
+        <TextFieldSearch
+          value={searchString}
+          showClearButton={searchString.length > 0}
+          onPressClearButton={clearSearchText}
+          onFocus={scrollToTop}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('deposit.region_modal.search_by_country')}
+        />
+      </View>
+      <FlatList
+        ref={listRef}
+        style={styles.list}
+        data={dataSearchResults}
+        renderItem={renderRegionItem}
+        extraData={selectedRegion?.isoCode}
+        keyExtractor={(item) => item?.isoCode || 'unknown'}
+        ListEmptyComponent={renderEmptyList}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+        removeClippedSubviews={false}
+        scrollEnabled
+        nestedScrollEnabled
+      />
     </BottomSheet>
   );
 }

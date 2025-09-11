@@ -311,6 +311,42 @@ describe('BuildQuote Component', () => {
         });
       });
     });
+
+    it('does not open region modal when regions error occurs', () => {
+      const { useRegions } = require('../../hooks/useRegions');
+      useRegions.mockReturnValue({
+        regions: [],
+        error: 'Failed to fetch regions',
+        isFetching: false,
+      });
+
+      render(BuildQuote);
+      const regionButton = screen.getByText('Error');
+      fireEvent.press(regionButton);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open region modal when regions array is empty', () => {
+      const { useRegions } = require('../../hooks/useRegions');
+      useRegions.mockReturnValue({
+        regions: [],
+        error: null,
+        isFetching: false,
+      });
+
+      render(BuildQuote);
+      const regionButton = screen.getByText('No region');
+      fireEvent.press(regionButton);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
+      });
+    });
   });
 
   describe('Payment Method Selection', () => {
@@ -340,6 +376,42 @@ describe('BuildQuote Component', () => {
         },
       });
     });
+
+    it('does not open payment method modal when payment methods error occurs', () => {
+      const { usePaymentMethods } = require('../../hooks/usePaymentMethods');
+      usePaymentMethods.mockReturnValue({
+        paymentMethods: [],
+        error: 'Failed to fetch payment methods',
+        isFetching: false,
+      });
+
+      render(BuildQuote);
+      const errorText = screen.getByText('Error loading payment methods');
+      fireEvent.press(errorText);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open payment method modal when payment methods array is empty', () => {
+      const { usePaymentMethods } = require('../../hooks/usePaymentMethods');
+      usePaymentMethods.mockReturnValue({
+        paymentMethods: [],
+        error: null,
+        isFetching: false,
+      });
+
+      render(BuildQuote);
+      const errorText = screen.getByText('No payment methods available');
+      fireEvent.press(errorText);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: expect.any(Object),
+      });
+    });
   });
 
   describe('Token Selection', () => {
@@ -362,6 +434,42 @@ describe('BuildQuote Component', () => {
             },
           ],
         },
+      });
+    });
+
+    it('does not open token modal when crypto currencies error occurs', () => {
+      const { useCryptoCurrencies } = require('../../hooks/useCryptoCurrencies');
+      useCryptoCurrencies.mockReturnValue({
+        cryptoCurrencies: [],
+        error: 'Failed to fetch cryptos',
+        isFetching: false,
+      });
+
+      render(BuildQuote);
+      const errorText = screen.getByText('Error');
+      fireEvent.press(errorText);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open token modal when crypto currencies array is empty', () => {
+      const { useCryptoCurrencies } = require('../../hooks/useCryptoCurrencies');
+      useCryptoCurrencies.mockReturnValue({
+        cryptoCurrencies: [],
+        error: null,
+        isFetching: false,
+      });
+
+      render(BuildQuote);
+      const errorText = screen.getByText('No tokens');
+      fireEvent.press(errorText);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: expect.any(Object),
       });
     });
   });

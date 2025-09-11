@@ -32,6 +32,16 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
+jest.mock('../../Views/Modals/RegionSelectorModal', () => ({
+  createRegionSelectorModalNavigationDetails: jest.fn((params) => [
+    'DepositModals',
+    {
+      screen: 'DepositRegionSelectorModal',
+      params,
+    },
+  ]),
+}));
+
 describe('DepositPhoneField', () => {
   const mockOnChangeText = jest.fn();
 
@@ -39,6 +49,7 @@ describe('DepositPhoneField', () => {
     label: 'Phone Number',
     onChangeText: mockOnChangeText,
     value: '',
+    regions: [] as DepositRegion[],
   };
 
   beforeEach(() => {
@@ -51,6 +62,7 @@ describe('DepositPhoneField', () => {
         label="Phone Number"
         onChangeText={mockOnChangeText}
         value=""
+        regions={[]}
       />,
     );
 
@@ -64,6 +76,7 @@ describe('DepositPhoneField', () => {
         onChangeText={mockOnChangeText}
         value=""
         error="Invalid phone number"
+        regions={[]}
       />,
     );
 
@@ -76,6 +89,7 @@ describe('DepositPhoneField', () => {
         label="Phone Number"
         onChangeText={mockOnChangeText}
         value="+15551234567"
+        regions={[]}
       />,
     );
 
@@ -303,8 +317,8 @@ describe('DepositPhoneField', () => {
 
   describe('region selection', () => {
     it('navigates to region selector when flag is pressed', () => {
-      (mockUseDepositSDK as jest.Mock).mockReturnValue({
-        selectedRegion: {
+      const testRegions = [
+        {
           isoCode: 'US',
           flag: '🇺🇸',
           name: 'United States',
@@ -316,21 +330,75 @@ describe('DepositPhoneField', () => {
           currency: 'USD',
           supported: true,
         } as DepositRegion,
+      ];
+
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: testRegions[0],
         setSelectedRegion: mockSetSelectedRegion,
       });
 
-      const { getByRole } = render(<DepositPhoneField {...defaultProps} />);
+      const { getByRole } = render(
+        <DepositPhoneField {...defaultProps} regions={testRegions} />
+      );
       const flagButton = getByRole('button');
 
       fireEvent.press(flagButton);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: 'US',
-          handleSelectRegion: expect.any(Function),
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        'DepositModals',
+        {
+          screen: 'DepositRegionSelectorModal',
+          params: {
+            regions: testRegions,
+          },
+        }
+      );
+    });
+
+    it('passes regions prop to region selector modal when flag is pressed', () => {
+      // Arrange
+      const testRegions = [
+        {
+          isoCode: 'US',
+          flag: '🇺🇸',
+          name: 'United States',
+          phone: { prefix: '+1', placeholder: '(555) 555-1234', template: '(XXX) XXX-XXXX' },
+          currency: 'USD',
+          supported: true,
         },
+        {
+          isoCode: 'CA',
+          flag: '🇨🇦',
+          name: 'Canada',
+          phone: { prefix: '+1', placeholder: '(555) 123-4567', template: '(###) ###-####' },
+          currency: 'CAD',
+          supported: true,
+        },
+      ] as DepositRegion[];
+
+      (mockUseDepositSDK as jest.Mock).mockReturnValue({
+        selectedRegion: testRegions[0],
+        setSelectedRegion: mockSetSelectedRegion,
       });
+
+      const { getByRole } = render(
+        <DepositPhoneField {...defaultProps} regions={testRegions} />
+      );
+
+      // Act
+      const flagButton = getByRole('button');
+      fireEvent.press(flagButton);
+
+      // Assert
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        'DepositModals',
+        {
+          screen: 'DepositRegionSelectorModal',
+          params: {
+            regions: testRegions,
+          },
+        }
+      );
     });
 
     it('clears input and updates region when new region is selected', () => {
