@@ -97,8 +97,14 @@ describe('MultichainAccountSelectorList', () => {
   };
 
   it('shows accounts correctly', () => {
-    const account1 = createMockAccountGroup('group1', 'Account 1');
-    const account2 = createMockAccountGroup('group2', 'Account 2');
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const account2 = createMockAccountGroup(
+      'keyring:wallet2/group2',
+      'Account 2',
+    );
     const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
     const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
 
@@ -117,8 +123,14 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   it('shows accounts correctly when there are multiple accounts with different categories', () => {
-    const srpAccount = createMockAccountGroup('srp-group', 'SRP Account');
-    const snapAccount = createMockAccountGroup('snap-group', 'Snap Account');
+    const srpAccount = createMockAccountGroup(
+      'keyring:srp-wallet/srp-group',
+      'SRP Account',
+    );
+    const snapAccount = createMockAccountGroup(
+      'keyring:snap-wallet/snap-group',
+      'Snap Account',
+    );
     const srpWallet = createMockWallet('srp-wallet', 'Wallet 1', [srpAccount]);
     const snapWallet = createMockWallet('snap-wallet', 'Simple Keyring', [
       snapAccount,
@@ -139,9 +151,12 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   it('shows accounts correctly when there are multiple accounts with hardware wallets', () => {
-    const srpAccount = createMockAccountGroup('srp-group', 'SRP Account');
+    const srpAccount = createMockAccountGroup(
+      'keyring:srp-wallet/srp-group',
+      'SRP Account',
+    );
     const ledgerAccount = createMockAccountGroup(
-      'ledger-group',
+      'keyring:ledger-wallet/ledger-group',
       'Ledger Account',
     );
     const srpWallet = createMockWallet('srp-wallet', 'Wallet 1', [srpAccount]);
@@ -164,8 +179,14 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   it('shows the correct account as selected', () => {
-    const account1 = createMockAccountGroup('group1', 'Account 1');
-    const account2 = createMockAccountGroup('group2', 'Account 2');
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const account2 = createMockAccountGroup(
+      'keyring:wallet1/group2',
+      'Account 2',
+    );
     const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
       account1,
       account2,
