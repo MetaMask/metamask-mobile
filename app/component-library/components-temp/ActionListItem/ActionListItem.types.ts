@@ -51,4 +51,9 @@ export interface ActionListItemProps extends Omit<PressableProps, 'disabled'> {
    * When true, applies 50% opacity and disables interactions.
    */
   isDisabled?: boolean;
+  /**
+   * Whether the list item has rounded corners.
+   * When true, applies a border radius to the item container.
+   */
+  rounded?: boolean;
 }
