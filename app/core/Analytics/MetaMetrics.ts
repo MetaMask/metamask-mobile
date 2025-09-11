@@ -155,6 +155,13 @@ class MetaMetrics implements IMetaMetrics {
   private enabled = false;
 
   /**
+   * Indicate if MetaMetrics is enabled for social login
+   *
+   * @private
+   */
+  private isSocialLoginEnabled = false;
+
+  /**
    * Indicate if data has been recorded since the last deletion request
    * @private
    */
@@ -597,11 +604,21 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Enable or disable Social Login Metrics
+   *
+   * @param isSocialLoginEnabled - Boolean indicating if Social Login Metrics should be enabled or disabled
+   */
+  enableSocialLogin = async (isSocialLoginEnabled = true): Promise<void> => {
+    this.isSocialLoginEnabled = isSocialLoginEnabled;
+    await this.#storeMetricsOptInPreference(this.isSocialLoginEnabled);
+  };
+
+  /**
    * Check if MetaMetrics is enabled
    *
    * @returns Boolean indicating if MetaMetrics is enabled or disabled
    */
-  isEnabled = () => this.enabled;
+  isEnabled = () => this.isSocialLoginEnabled || this.enabled;
 
   /**
    * Add traits to the user and identify them

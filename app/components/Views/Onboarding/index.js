@@ -397,10 +397,7 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.getMetricStateBeforeOauth() === false) {
-      // Disable metrics
-      await this.props.metrics.enable(false);
-    }
+    await this.props.metrics.enableSocialLogin(false);
 
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
@@ -427,10 +424,8 @@ class Onboarding extends PureComponent {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-    if (OAuthLoginService.getMetricStateBeforeOauth() === false) {
-      // Disable metrics
-      await this.props.metrics.enable(false);
-    }
+    await this.props.metrics.enableSocialLogin(false);
+
     const action = async () => {
       trace({
         name: TraceName.OnboardingExistingSrpImport,
@@ -540,7 +535,7 @@ class Onboarding extends PureComponent {
     this.props.navigation.navigate('Onboarding');
 
     // Enable metrics for OAuth users
-    await this.props.metrics.enable();
+    await this.props.metrics.enableSocialLogin(true);
     await setupSentry();
 
     if (createWallet) {
