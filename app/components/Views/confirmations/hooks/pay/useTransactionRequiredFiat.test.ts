@@ -50,6 +50,7 @@ describe('useTransactionRequiredFiat', () => {
     useTransactionRequiredTokensMock.mockReturnValue([
       {
         address: tokenAddress1Mock,
+        allowUnderMinimum: true,
         amountHuman: '2',
         amountRaw: '2000',
         balanceHuman: '10',
@@ -57,6 +58,7 @@ describe('useTransactionRequiredFiat', () => {
       },
       {
         address: tokenAddress2Mock,
+        allowUnderMinimum: false,
         amountHuman: '3',
         amountRaw: '3000',
         balanceHuman: '20',
@@ -73,6 +75,7 @@ describe('useTransactionRequiredFiat', () => {
     expect(values).toStrictEqual([
       {
         address: tokenAddress1Mock,
+        allowUnderMinimum: true,
         amountFiat: 8,
         amountRaw: '2000',
         balanceFiat: 40,
@@ -82,6 +85,7 @@ describe('useTransactionRequiredFiat', () => {
       },
       {
         address: tokenAddress2Mock,
+        allowUnderMinimum: false,
         amountFiat: 15,
         amountRaw: '3000',
         balanceFiat: 100,
@@ -107,6 +111,7 @@ describe('useTransactionRequiredFiat', () => {
     expect(values).toStrictEqual([
       {
         address: tokenAddress1Mock,
+        allowUnderMinimum: true,
         amountFiat: 16,
         amountRaw: '2000',
         balanceFiat: 40,
@@ -116,6 +121,7 @@ describe('useTransactionRequiredFiat', () => {
       },
       {
         address: tokenAddress2Mock,
+        allowUnderMinimum: false,
         amountFiat: 15,
         amountRaw: '3000',
         balanceFiat: 100,

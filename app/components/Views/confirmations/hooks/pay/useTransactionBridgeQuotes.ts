@@ -100,9 +100,12 @@ export function useTransactionBridgeQuotes() {
     return sourceAmounts.map((sourceAmount) => {
       const {
         address: targetTokenAddress,
+        allowUnderMinimum,
         amountRaw: sourceTokenAmount,
         targetAmountRaw,
       } = sourceAmount;
+
+      const targetAmountMinimum = allowUnderMinimum ? '0' : targetAmountRaw;
 
       return {
         attemptsMax,
@@ -115,7 +118,7 @@ export function useTransactionBridgeQuotes() {
         sourceChainId,
         sourceTokenAddress,
         sourceTokenAmount,
-        targetAmountMinimum: targetAmountRaw,
+        targetAmountMinimum,
         targetChainId,
         targetTokenAddress,
       };
