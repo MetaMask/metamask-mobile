@@ -3,7 +3,6 @@ import {
   AccountListBottomSheetSelectorsIDs,
   AccountListBottomSheetSelectorsText,
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
-import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
@@ -81,10 +80,6 @@ class AccountListBottomSheet {
 
   async getSelectElement(index: number): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, index);
-  }
-
-  async getAccountMenu(index: number): DetoxElement {
-    return Matchers.getElementByID(AccountCellIds.MENU, index);
   }
 
   async getMultiselectElement(index: number): Promise<DetoxElement> {
@@ -188,13 +183,6 @@ class AccountListBottomSheet {
     const element = this.getAccountElementByAccountNameV2(accountName);
     await Gestures.waitAndTap(element, {
       elemDescription: `Tap on account with name: ${accountName}`,
-    });
-  }
-
-  async tapOnAccountMenu(index: number): Promise<void> {
-    const element = this.getAccountMenu(index);
-    await Gestures.waitAndTap(element, {
-      elemDescription: `Tap on account menu`,
     });
   }
 

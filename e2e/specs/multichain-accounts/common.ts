@@ -11,7 +11,6 @@ import {
   remoteFeatureMultichainAccountsAccountDetailsV2,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import TestHelpers from '../../helpers';
 
 export interface Account {
   name: string;
@@ -79,7 +78,6 @@ export const withMultichainAccountDetailsV2Enabled = async (
     },
     async () => {
       await loginToApp();
-      await TestHelpers.delay(1000);
       await WalletView.tapIdenticon();
       await testFn();
     },

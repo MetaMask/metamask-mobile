@@ -1,8 +1,11 @@
 import { SmokeAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
 import { withMultichainAccountDetailsV2Enabled } from '../multichain-accounts/common';
+import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
+import AddressList from '../../pages/MultichainAccounts/AddressList';
 
 describe(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
@@ -22,17 +25,39 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       for (const accountName of visibleAccounts) {
         await Assertions.expectElementToBeVisible(
           AccountListBottomSheet.getAccountElementByAccountNameV2(accountName),
+          {
+            description: `Account ${accountName} should be visible`,
+          },
         );
       }
 
-      await AccountListBottomSheet.tapOnAccountMenu(LAST);
-      //MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS
+      await AccountListBottomSheet.tapAccountEllipsisButtonV2(LAST);
+      await AccountActionsBottomSheet.tapAccountDetails();
+      await AccountDetails.tapNetworksLink();
+
+      const visibleNetworks = [
+        'Ethereum Main Network',
+        'Linea Main Network',
+        'Solana',
+      ];
+      for (const networkName of visibleNetworks) {
+        await Assertions.expectTextDisplayed(networkName, {
+          description: `Network ${networkName} should be visible`,
+        });
+      }
+      await AddressList.tapBackButton();
+      await AccountDetails.tapBackButton();
 
       await AccountListBottomSheet.tapAccountByNameV2(visibleAccounts[LAST]);
       await Assertions.expectElementToHaveText(
         WalletView.accountName,
         visibleAccounts[LAST],
+        {
+          description: `Expect selected account to be ${visibleAccounts[LAST]}`,
+        },
       );
+
+      // TODO: Add check that after switching to Solana we are still on the same account
     });
   });
 });
