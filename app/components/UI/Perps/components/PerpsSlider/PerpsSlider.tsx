@@ -94,7 +94,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       // Handle case where min and max are equal (e.g., zero balance)
       const range = maximumValue - minimumValue;
       const percentage = range === 0 ? 0 : (value - minimumValue) / range;
-      translateX.value = percentage * width;
+      // Clamp percentage between 0 and 1 to prevent thumb from exceeding track width
+      const clampedPercentage = Math.max(0, Math.min(1, percentage));
+      translateX.value = clampedPercentage * width;
     },
     [value, minimumValue, maximumValue, sliderWidth, translateX],
   );

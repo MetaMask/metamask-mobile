@@ -183,10 +183,14 @@ describe('usePerpsToasts', () => {
             'USDC',
           );
 
-        expect(config.labelOptions).toContainEqual({
-          label: '100 USDC will arrive within 5 minutes',
-          isBold: false,
-        });
+        expect(config.labelOptions).toEqual([
+          { isBold: true, label: 'Withdrawal confirmed' },
+          { isBold: false, label: '\n' },
+          {
+            isBold: false,
+            label: "You'll receive 99.00 USDC on Arbitrum within 5 minutes",
+          },
+        ]);
       });
 
       it('returns withdrawal failed configuration with custom error', () => {

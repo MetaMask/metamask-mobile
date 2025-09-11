@@ -11,6 +11,7 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
+import { isHardwareAccount } from '../../../../../util/address';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -27,6 +28,14 @@ export function useAutomaticTransactionPayToken({
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
+  const { setPayToken } = useTransactionPayToken();
+  const { totalFiat } = useTransactionRequiredFiat();
+  const requiredTokens = useTransactionRequiredTokens({ log: true });
+
+  const {
+    chainId,
+    txParams: { from },
+  } = useTransactionMetadataRequest() ?? { txParams: {} };
 
   const chainIds = useMemo(
     () => (!isUpdated.current ? supportedChains.map((c) => c.chainId) : []),
@@ -34,10 +43,8 @@ export function useAutomaticTransactionPayToken({
   );
 
   const tokens = useTokensWithBalance({ chainIds });
-  const requiredTokens = useTransactionRequiredTokens({ log: true });
-  const { chainId } = useTransactionMetadataRequest() ?? {};
-  const { setPayToken } = useTransactionPayToken();
-  const { totalFiat } = useTransactionRequiredFiat();
+
+  const isHardwareWallet = isHardwareAccount(from ?? '');
   let automaticToken: { address: string; chainId?: string } | undefined;
 
   if (!isUpdated.current) {
@@ -86,6 +93,10 @@ export function useAutomaticTransactionPayToken({
       sameChainHighestBalanceToken ??
       alternateChainHighestBalanceToken ??
       targetTokenFallback;
+
+    if (isHardwareWallet) {
+      automaticToken = targetTokenFallback;
+    }
   }
 
   useEffect(() => {
