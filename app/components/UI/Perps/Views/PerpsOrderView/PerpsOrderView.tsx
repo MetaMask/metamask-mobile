@@ -770,7 +770,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <PerpsSlider
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => setAmount(Math.floor(value).toString())}
-              minimumValue={0}
+              minimumValue={10}
               maximumValue={amountTimesLeverage}
               step={1}
               showPercentageLabels
