@@ -96,6 +96,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
           }),
           animatedStyle,
         ]}
+        testID="trade-tab-bar-item-icon-container"
         onLayout={(event) => {
           event.target.measureInWindow((x, y, width, height) => {
             setButtonLayout({ x, y, width, height });
