@@ -1,28 +1,35 @@
 name: Performance E2E Test Manual WorkFlow
-
-# name: Performance E2E Tests - Android Only
 on:
-  schedule:
-    - cron: '0 3 * * 1-6'
   workflow_dispatch:
     inputs:
-      description:
-        description: 'Optional description for this test run'
+      info:
+        description: 'This workflow runs performance tests on multiple devices for both iOS and Android platforms. Device matrix is automatically read from appwright/device-matrix.json, or you can provide a custom matrix or filter by category.'
         required: false
         type: string
-      browserstack_app_url_android_with_srp:
-        description: 'BrowserStack Android App URL with SRP (bs://...)'
+      browserstack_app_url_android:
+        description: 'BrowserStack Android App URL (bs://...)'
+        required: true
+        type: string
+      browserstack_app_url_ios:
+        description: 'BrowserStack iOS App URL (bs://...)'
+        required: true
+        type: string
+      test_suite:
+        description: 'Test suite to run (e.g., **/tests/*.spec.js for all tests)'
+        required: false
+        default: '**/tests/performance/*.spec.js'
+        type: string
+      device_matrix:
+        description: 'Device matrix JSON string (leave empty to use default from appwright/device-matrix.json)'
         required: false
         type: string
-      browserstack_app_url_android_without_srp:
-        description: 'BrowserStack Android App URL without SRP (bs://...)'
+      device_category:
+        description: 'Filter devices by category (high, medium, low, or leave empty for all)'
         required: false
         type: string
-
 permissions:
   contents: read
   id-token: write
-
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
   BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -30,15 +37,16 @@ env:
   TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
   TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
   TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
-  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
+  # Job to read device matrix from JSON file
   read-device-matrix:
-    name: Read Android Device Matrix
+    name: Read Device Matrix
     runs-on: ubuntu-latest
     outputs:
       android_matrix: ${{ steps.matrix.outputs.android }}
+      ios_matrix: ${{ steps.matrix.outputs.ios }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -47,62 +55,68 @@ jobs:
         id: matrix
         run: |
           # This step reads the device matrix from appwright/device-matrix.json
-          echo "Reading Android device matrix from appwright/device-matrix.json"
+          # You can override this by providing a custom device_matrix input
+          # You can also filter devices by category using the device_category input
           
-          # Extract Android devices
-          ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-          
-          {
-            echo "android=$ANDROID_MATRIX"
-          } >> "$GITHUB_OUTPUT"
-          
-          echo "Android matrix: $ANDROID_MATRIX"
-          
-          # Validate that we have devices
-          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
-          
-          echo "Found $ANDROID_COUNT Android devices"
-          
-          if [ "$ANDROID_COUNT" -eq 0 ]; then
-            echo "Error: No Android devices found in device-matrix.json"
-            exit 1
+          if [ -n "${{ github.event.inputs.device_matrix }}" ]; then
+            # Use custom device matrix from input
+            echo "Using custom device matrix from input"
+            {
+              echo "android=${{ github.event.inputs.device_matrix }}"
+              echo "ios=${{ github.event.inputs.device_matrix }}"
+            } >> "$GITHUB_OUTPUT"
+          else
+            # Read from JSON file and filter by category
+            echo "Reading device matrix from appwright/device-matrix.json"
+            
+            # Build jq filter based on category input
+            CATEGORY_FILTER=""
+            if [ -n "${{ github.event.inputs.device_category }}" ]; then
+              CATEGORY_FILTER="| map(select(.category == \"${{ github.event.inputs.device_category }}\"))"
+              echo "Filtering devices by category: ${{ github.event.inputs.device_category }}"
+            else
+              echo "No category filter applied - using all devices"
+            fi
+            
+            # Extract Android devices with optional category filtering
+            ANDROID_MATRIX=$(jq -r ".android_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
+            # Extract iOS devices with optional category filtering
+            IOS_MATRIX=$(jq -r ".ios_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
+            
+            {
+              echo "android=$ANDROID_MATRIX"
+              echo "ios=$IOS_MATRIX"
+            } >> "$GITHUB_OUTPUT"
+            
+            echo "Android matrix: $ANDROID_MATRIX"
+            echo "iOS matrix: $IOS_MATRIX"
+            
+            # Validate that we have devices
+            ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
+            IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
+            
+            echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
+            
+            if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
+              echo "Error: No devices found matching the criteria"
+              if [ -n "${{ github.event.inputs.device_category }}" ]; then
+                echo "Try removing the category filter or check if '${{ github.event.inputs.device_category }}' is a valid category"
+              fi
+              exit 1
+            fi
           fi
-
-  # Job to build dual Android versions and upload to BrowserStack
-  build-android-dual-versions:
-    name: Build Dual Android Versions
-    uses: ./.github/workflows/build-android-dual-versions.yml
-    # Only run if Android URLs are not provided
-    if: ${{ !inputs.browserstack_app_url_android_with_srp && !inputs.browserstack_app_url_android_without_srp }}
-    secrets: inherit
-
-  # Android Tests - With SRP (Pre-imported wallet)
-  android-tests-with-srp:
-    name: Android Tests (With SRP)
+  android-tests:
+    name: Android Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    needs: [read-device-matrix, build-android-dual-versions]
-    # Always run after device matrix is ready, regardless of build job status
-    if: always() && !failure() && !cancelled()
+    needs: read-device-matrix
     strategy:
       fail-fast: false
       matrix:
         device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Restore node_modules cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -110,8 +124,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies (if cache miss)
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Install dependencies
         run: yarn setup
       
       - name: BrowserStack Env Setup
@@ -125,7 +138,7 @@ jobs:
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
-          local-identifier: ${{ github.run_id }}-with-srp
+          local-identifier: ${{ github.run_id }}
           local-args: --force-local --verbose
       
       - name: Wait for BrowserStack Local
@@ -134,98 +147,51 @@ jobs:
           sleep 30
           echo "BrowserStack Local should be ready now"
       
-      - name: Set Android Test Environment (With SRP)
+      - name: Set Android Test Environment
         run: |
-          echo "Setting test environment for device: ${{ matrix.device.name }} (With SRP)"
-          
-          # Use BrowserStack URL from dual build job if it ran, otherwise from input
-          ANDROID_APP_URL="${{ needs.build-android-dual-versions.outputs.with-srp-browserstack-url }}"
-          if [ -z "$ANDROID_APP_URL" ]; then
-            ANDROID_APP_URL="${{ inputs.browserstack_app_url_android_with_srp }}"
-            echo "ℹ️ Using Android With-SRP URL from input (dual build job was skipped)"
-          else
-            echo "ℹ️ Using Android With-SRP URL from dual build job"
-          fi
-          
-          # Validate that we have a BrowserStack URL
-          if [ -z "$ANDROID_APP_URL" ]; then
-            echo "❌ Error: No Android With-SRP BrowserStack URL available"
-            echo "Either provide browserstack_app_url_android_with_srp as input or ensure build-android-dual-versions job runs successfully"
-            exit 1
-          fi
-          
-          # Use app version from dual build job if available, otherwise default
-          APP_VERSION="${{ needs.build-android-dual-versions.outputs.with-srp-version }}"
-          if [ -z "$APP_VERSION" ]; then
-            APP_VERSION="Manual-Input"
-          fi
-          
+          echo "Setting test environment for device: ${{ matrix.device.name }}"
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_ANDROID_APP_URL=$ANDROID_APP_URL"
-            echo "BROWSERSTACK_ANDROID_CLEAN_APP_URL="
+            echo "BROWSERSTACK_ANDROID_APP_URL=${{ github.event.inputs.browserstack_app_url_android }}"
+            echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch"
             echo "TEST_PLATFORM=android"
-            echo "QA_APP_VERSION=$APP_VERSION"
-            echo "BROWSERSTACK_BUILD_NAME=Android-Performance-With-SRP-${{ github.ref_name }}-Branch"
-            echo "WALLET_TYPE=with-srp"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
           } >> "$GITHUB_ENV"
       
-      - name: Run Android Tests on ${{ matrix.device.name }} (With SRP)
+      - name: Run Android Tests on ${{ matrix.device.name }}
         env:
           BROWSERSTACK_LOCAL: true
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}-with-srp
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
         run: |
-          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }} Class) - With SRP ==="
+          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }}) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Category: ${{ matrix.device.category }}"
           echo "Branch: ${{ github.ref_name }}"
-          echo "QA App Version: $QA_APP_VERSION"
-          echo "BrowserStack Android App URL (Pre-imported): $BROWSERSTACK_ANDROID_APP_URL"
-          echo "BrowserStack Android Clean App URL: $BROWSERSTACK_ANDROID_CLEAN_APP_URL"
-          echo "Wallet Type: With SRP (Pre-imported wallet)"
-          echo "Using: BROWSERSTACK_ANDROID_APP_URL for pre-imported wallet tests"
           
           yarn run-appwright:android-bs
       
-      - name: Upload Android Test Results (With SRP)
+      - name: Upload Android Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: android-test-results-with-srp-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: android-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports
           if-no-files-found: ignore
           retention-days: 7
-
-  # Android Tests - Without SRP (Fresh wallet)
-  android-tests-without-srp:
-    name: Android Tests (Without SRP)
+  ios-tests:
+    name: iOS Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    needs: [read-device-matrix, build-android-dual-versions]
-    # Always run after device matrix is ready, regardless of build job status
-    if: always() && !failure() && !cancelled()
+    needs: read-device-matrix
     strategy:
       fail-fast: false
       matrix:
-        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Restore node_modules cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -233,8 +199,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies (if cache miss)
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Install dependencies
         run: yarn setup
       
       - name: BrowserStack Env Setup
@@ -248,394 +213,63 @@ jobs:
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
-          local-identifier: ${{ github.run_id }}-without-srp
+          local-identifier: ${{ github.run_id }}
           local-args: --force-local --verbose
       
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          sleep 30
+          sleep 15
           echo "BrowserStack Local should be ready now"
       
-      - name: Set Android Test Environment (Without SRP)
+      - name: Set iOS Test Environment
         run: |
-          echo "Setting test environment for device: ${{ matrix.device.name }} (Without SRP)"
-          
-          # Use BrowserStack URL from dual build job if it ran, otherwise from input
-          ANDROID_CLEAN_APP_URL="${{ needs.build-android-dual-versions.outputs.without-srp-browserstack-url }}"
-          if [ -z "$ANDROID_CLEAN_APP_URL" ]; then
-            ANDROID_CLEAN_APP_URL="${{ inputs.browserstack_app_url_android_without_srp }}"
-            echo "ℹ️ Using Android Without-SRP URL from input (dual build job was skipped)"
-          else
-            echo "ℹ️ Using Android Without-SRP URL from dual build job"
-          fi
-          
-          # Validate that we have a BrowserStack URL
-          if [ -z "$ANDROID_CLEAN_APP_URL" ]; then
-            echo "❌ Error: No Android Without-SRP BrowserStack URL available"
-            echo "Either provide browserstack_app_url_android_without_srp as input or ensure build-android-dual-versions job runs successfully"
-            exit 1
-          fi
-          
-          # Use app version from dual build job if available, otherwise default
-          APP_VERSION="${{ needs.build-android-dual-versions.outputs.without-srp-version }}"
-          if [ -z "$APP_VERSION" ]; then
-            APP_VERSION="Manual-Input"
-          fi
-          
+          echo "Setting test environment for device: ${{ matrix.device.name }}"
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_ANDROID_APP_URL="
-            echo "BROWSERSTACK_ANDROID_CLEAN_APP_URL=$ANDROID_CLEAN_APP_URL"
-            echo "TEST_PLATFORM=android"
-            echo "QA_APP_VERSION=$APP_VERSION"
-            echo "BROWSERSTACK_BUILD_NAME=Android-Performance-Without-SRP-${{ github.ref_name }}-Branch"
-            echo "WALLET_TYPE=without-srp"
+            echo "BROWSERSTACK_IOS_APP_URL=${{ github.event.inputs.browserstack_app_url_ios }}"
+            echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
           } >> "$GITHUB_ENV"
       
-      - name: Run Android Tests on ${{ matrix.device.name }} (Without SRP)
+      - name: Run iOS Tests on ${{ matrix.device.name }}
         env:
           BROWSERSTACK_LOCAL: true
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}-without-srp
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
         run: |
-          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }} Class) - Without SRP ==="
+          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }}) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Category: ${{ matrix.device.category }}"
           echo "Branch: ${{ github.ref_name }}"
-          echo "QA App Version: $QA_APP_VERSION"
-          echo "BrowserStack Android App URL (Pre-imported): $BROWSERSTACK_ANDROID_APP_URL"
-          echo "BrowserStack Android Clean App URL (Fresh wallet): $BROWSERSTACK_ANDROID_CLEAN_APP_URL"
-          echo "Wallet Type: Without SRP (Fresh wallet)"
-          echo "Using: BROWSERSTACK_ANDROID_CLEAN_APP_URL for fresh wallet/onboarding tests"
+          if [ "${{ matrix.device.os_version }}" == "13" ] || [ "${{ matrix.device.os_version }}" == "11" ]; then
+            echo "Warning: iOS ${{ matrix.device.os_version }} may not be supported by MetaMask app"
+          fi
           
-          yarn run-appwright:android-onboarding-bs
+          yarn run-appwright:ios-bs
       
-      - name: Upload Android Test Results (Without SRP)
+      - name: Upload iOS Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: android-test-results-without-srp-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ios-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports
           if-no-files-found: ignore
           retention-days: 7
-
   # Results Gathering Job
   gather-results:
     name: Gather Test Results
     runs-on: ubuntu-latest
-    needs: [android-tests-with-srp, android-tests-without-srp]
-    if: always()  # Always run, even if previous jobs failed
+    needs: [read-device-matrix, android-tests, ios-tests]
+    if: always()
     
     steps:
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
           path: appwright/test-reports/
-        continue-on-error: true  # Continue even if some artifacts are missing due to failed tests
-      
-      - name: Aggregate Performance Reports
-        run: |
-          echo "🔍 Searching for JSON performance reports..."
-          echo "📊 Job status context:"
-          echo "  Android tests (with SRP): ${{ needs.android-tests-with-srp.result }}"
-          echo "  Android tests (without SRP): ${{ needs.android-tests-without-srp.result }}"
-          
-          # Set environment variables for job results
-          export ANDROID_WITH_SRP_JOB_STATUS="${{ needs.android-tests-with-srp.result }}"
-          export ANDROID_WITHOUT_SRP_JOB_STATUS="${{ needs.android-tests-without-srp.result }}"
-          
-          # Create output directory
-          mkdir -p appwright/aggregated-reports
-          
-          # Create aggregated report structure
-          cat > aggregate_reports.js << 'EOF'
-          const fs = require('fs');
-          const path = require('path');
-          
-          function findJsonFiles(dir, jsonFiles = []) {
-            if (!fs.existsSync(dir)) return jsonFiles;
-            
-            const files = fs.readdirSync(dir);
-            for (const file of files) {
-              const fullPath = path.join(dir, file);
-              if (fs.statSync(fullPath).isDirectory()) {
-                findJsonFiles(fullPath, jsonFiles);
-              } else if (file.endsWith('.json') && file.includes('performance-metrics')) {
-                jsonFiles.push(fullPath);
-              }
-            }
-            return jsonFiles;
-          }
-          
-          function aggregateReports() {
-            try {
-              console.log('🔍 Looking for performance JSON reports...');
-            
-            const jsonFiles = findJsonFiles('appwright/test-reports');
-            console.log(`📊 Found ${jsonFiles.length} JSON report files:`);
-            
-            if (jsonFiles.length === 0) {
-              console.log('❌ No performance JSON files found - creating empty report structure');
-              
-              // Create empty report structure when no files are found
-              const emptyReport = {
-                "Android-With-SRP": {},
-                "Android-Without-SRP": {}
-              };
-              
-              const outputPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
-              fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
-              
-              // Create empty summary
-              const emptySummary = {
-                totalTests: 0,
-                platforms: { "android-with-srp": 0, "android-without-srp": 0 },
-                testsByPlatform: { "android-with-srp": 0, "android-without-srp": 0 },
-                devices: [],
-                platformDevices: { "Android-With-SRP": [], "Android-Without-SRP": [] },
-                generatedAt: new Date().toISOString(),
-                branch: process.env.GITHUB_REF_NAME || 'unknown',
-                commit: process.env.GITHUB_SHA || 'unknown',
-                warning: 'No test results found'
-              };
-              
-              fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
-              
-              console.log('✅ Empty report structure created successfully');
-              console.log(`📄 Empty report saved to: ${outputPath}`);
-              console.log('📋 Empty summary saved to: appwright/aggregated-reports/summary.json');
-              return;
-            }
-            
-            // Create the new grouped structure
-            const groupedResults = {
-              "Android-With-SRP": {},
-              "Android-Without-SRP": {}
-            };
-            
-            const metadata = {
-              generatedAt: new Date().toISOString(),
-              totalReports: jsonFiles.length,
-              platforms: {
-                "android-with-srp": 0,
-                "android-without-srp": 0
-              },
-              jobResults: {
-                "android-with-srp": process.env.ANDROID_WITH_SRP_JOB_STATUS || 'unknown',
-                "android-without-srp": process.env.ANDROID_WITHOUT_SRP_JOB_STATUS || 'unknown'
-              },
-              branch: process.env.GITHUB_REF_NAME || 'unknown',
-              commit: process.env.GITHUB_SHA || 'unknown',
-              workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
-            };
-            
-            jsonFiles.forEach(filePath => {
-              try {
-                const content = fs.readFileSync(filePath, 'utf8');
-                const reportData = JSON.parse(content);
-                
-                // Extract platform and device info from path or content
-                const pathParts = filePath.split('/');
-                let platform = 'unknown';
-                let platformKey = 'Unknown';
-                let deviceInfo = 'unknown';
-                let deviceKey = 'Unknown Device';
-                
-                // Try to determine platform from path
-                if (filePath.includes('android-test-results-with-srp')) {
-                  platform = 'android-with-srp';
-                  platformKey = 'Android-With-SRP';
-                  metadata.platforms['android-with-srp']++;
-                } else if (filePath.includes('android-test-results-without-srp')) {
-                  platform = 'android-without-srp';
-                  platformKey = 'Android-Without-SRP';
-                  metadata.platforms['android-without-srp']++;
-                }
-                
-                // Extract device info from path
-                const deviceMatch = pathParts.find(part => part.includes('-test-results-'));
-                if (deviceMatch) {
-                  const parts = deviceMatch.split('-');
-                  if (parts.length >= 4) {
-                    deviceInfo = parts.slice(3).join('-');
-                    // Create device key in format "DeviceName+OSVersion"
-                    const deviceParts = deviceInfo.split('-');
-                    if (deviceParts.length >= 2) {
-                      const osVersion = deviceParts[deviceParts.length - 1];
-                      const deviceName = deviceParts.slice(0, -1).join(' ');
-                      deviceKey = `${deviceName}+${osVersion}`;
-                    } else {
-                      deviceKey = deviceInfo;
-                    }
-                  }
-                } else {
-                  // Fallback: try to extract from full path or use device info from report data
-                  if (Array.isArray(reportData) && reportData.length > 0 && reportData[0].device) {
-                    const device = reportData[0].device;
-                    deviceKey = `${device.name}+${device.osVersion}`;
-                  } else if (reportData.device) {
-                    const device = reportData.device;
-                    deviceKey = `${device.name}+${device.osVersion}`;
-                  }
-                }
-                
-                // Initialize platform and device arrays if they don't exist
-                if (!groupedResults[platformKey]) {
-                  groupedResults[platformKey] = {};
-                }
-                if (!groupedResults[platformKey][deviceKey]) {
-                  groupedResults[platformKey][deviceKey] = [];
-                }
-                
-                // Process the report data (array of test results)
-                const processTestReport = (testReport) => {
-                  const cleanedReport = {
-                    testName: testReport.testName,
-                    steps: testReport.steps || [],
-                    totalTime: testReport.total,
-                    videoURL: testReport.videoURL || null
-                  };
-                  
-                  // Add failure info if test failed
-                  if (testReport.testFailed) {
-                    cleanedReport.testFailed = true;
-                    cleanedReport.failureReason = testReport.failureReason;
-                  }
-                  
-                  groupedResults[platformKey][deviceKey].push(cleanedReport);
-                };
-                
-                if (Array.isArray(reportData)) {
-                  reportData.forEach(processTestReport);
-                } else {
-                  // Single test report
-                  processTestReport(reportData);
-                }
-              } catch (error) {
-                console.error(`❌ Error processing ${filePath}: ${error.message}`);
-                return;
-              }
-            });
-            
-            // Create final report in the exact format requested
-            const finalReport = {
-              "Android-With-SRP": groupedResults["Android-With-SRP"] || {},
-              "Android-Without-SRP": groupedResults["Android-Without-SRP"] || {}
-            };
-            
-            // Write the aggregated report
-            const outputPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
-            fs.writeFileSync(outputPath, JSON.stringify(finalReport, null, 2));
-            
-            // Also create a pretty-formatted version for easier viewing
-            const prettyOutputPath = 'appwright/aggregated-reports/performance-results.json';
-            fs.writeFileSync(prettyOutputPath, JSON.stringify(finalReport, null, 4));
-            
-            // Count total tests across all platforms and devices
-            let totalTests = 0;
-            const devices = [];
-            
-            Object.keys(groupedResults).forEach(platform => {
-              Object.keys(groupedResults[platform]).forEach(device => {
-                devices.push(`${platform}-${device}`);
-                totalTests += groupedResults[platform][device].length;
-              });
-            });
-            
-            console.log(`✅ Aggregated report saved: ${totalTests} tests across ${devices.length} device configurations`);
-            console.log(`📊 Platform summary:`);
-            console.log(`   Android With-SRP: ${metadata.platforms['android-with-srp']} reports (job: ${metadata.jobResults['android-with-srp']})`);
-            console.log(`   Android Without-SRP: ${metadata.platforms['android-without-srp']} reports (job: ${metadata.jobResults['android-without-srp']})`);
-            
-            // Create summary file with metadata
-            const summary = {
-              totalTests,
-              platforms: metadata.platforms,
-              testsByPlatform: {
-                "android-with-srp": 0,
-                "android-without-srp": 0
-              },
-              devices: [],
-              platformDevices: {
-                "Android-With-SRP": Object.keys(groupedResults["Android-With-SRP"] || {}),
-                "Android-Without-SRP": Object.keys(groupedResults["Android-Without-SRP"] || {})
-              },
-              metadata,
-              generatedAt: metadata.generatedAt,
-              branch: metadata.branch,
-              commit: metadata.commit
-            };
-            
-            // Count tests by platform and collect device info
-            Object.keys(groupedResults).forEach(platform => {
-              Object.keys(groupedResults[platform]).forEach(device => {
-                const testsCount = groupedResults[platform][device].length;
-                if (platform === 'Android-With-SRP') {
-                  summary.testsByPlatform['android-with-srp'] += testsCount;
-                } else if (platform === 'Android-Without-SRP') {
-                  summary.testsByPlatform['android-without-srp'] += testsCount;
-                }
-                summary.devices.push({ platform, device, testCount: testsCount });
-              });
-            });
-            
-            fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
-            console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
-            
-            } catch (error) {
-              console.error('❌ Error during aggregation:', error.message);
-              console.log('🔄 Creating fallback empty report due to aggregation error...');
-              
-              // Create fallback empty report structure
-              const fallbackReport = {
-                "Android-With-SRP": {},
-                "Android-Without-SRP": {}
-              };
-              
-              try {
-                fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
-                fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
-                  totalTests: 0,
-                  platforms: { "android-with-srp": 0, "android-without-srp": 0 },
-                  error: error.message,
-                  generatedAt: new Date().toISOString()
-                }, null, 2));
-                console.log('✅ Fallback reports created successfully');
-              } catch (writeError) {
-                console.error('❌ Failed to create fallback reports:', writeError.message);
-              }
-            }
-          }
-          
-          aggregateReports();
-          EOF
-          
-          # Run the aggregation script
-          echo ""
-          echo "🔄 Running aggregation script..."
-          node aggregate_reports.js || {
-            echo "⚠️ Aggregation script had issues, but continuing to ensure reports are available"
-            echo "This is normal when some test jobs failed - we'll aggregate whatever data is available"
-          }
-          
-          # Ensure output directory exists even if script failed
-          mkdir -p appwright/aggregated-reports
-          
-          # List generated files and show structure
-          echo "📁 Generated files:"
-          ls -la appwright/aggregated-reports/ || echo "📁 No aggregated reports directory found"
-          
-          # Show a sample of the aggregated report structure if it exists
-          if [ -f "appwright/aggregated-reports/aggregated-performance-report.json" ]; then
-            echo ""
-            echo "📋 Sample of aggregated report structure:"
-            echo "========================================="
-            head -50 appwright/aggregated-reports/aggregated-performance-report.json || echo "Could not display file contents"
-            echo "========================================="
-          fi
       
       - name: Upload Combined Reports
         if: always()
@@ -645,178 +279,15 @@ jobs:
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports
-            appwright/aggregated-reports/
           if-no-files-found: ignore
           retention-days: 14
     
-      - name: Check Test Results  
-        id: test-results
+      - name: Check Test Results
         run: |
-          ANDROID_WITH_SRP_STATUS="${{ needs.android-tests-with-srp.result }}"
-          ANDROID_WITHOUT_SRP_STATUS="${{ needs.android-tests-without-srp.result }}"
-          
-          echo "📊 Test Results Summary:"
-          echo "  Android tests (with SRP): $ANDROID_WITH_SRP_STATUS"
-          echo "  Android tests (without SRP): $ANDROID_WITHOUT_SRP_STATUS"
-          
-          # Check if we have any performance data available
-          if [ -f "appwright/aggregated-reports/aggregated-performance-report.json" ]; then
-            echo "✅ Performance data aggregated successfully from available test results"
-            
-            if [ "$ANDROID_WITH_SRP_STATUS" == "failure" ] || [ "$ANDROID_WITHOUT_SRP_STATUS" == "failure" ]; then
-              echo "⚠️ Some tests failed, but performance data was collected from successful tests"
-              echo "Note: This is expected behavior - we collect data from passing tests even when others fail"
-              echo "overall_status=partial_success" >> "$GITHUB_OUTPUT"
-            else
-              echo "🎉 All test jobs completed successfully with full performance data!"
-              echo "overall_status=success" >> "$GITHUB_OUTPUT"
-            fi
+          if [ "${{ needs.android-tests.result }}" == "failure" ] || [ "${{ needs.ios-tests.result }}" == "failure" ]; then
+            echo "Some tests failed. Check the individual job results above."
+            echo "Note: iOS 13 and iOS 11 failures are expected due to MetaMask app compatibility."
+            exit 1
           else
-            echo "❌ No performance data could be aggregated - all tests may have failed"
-            echo "overall_status=failure" >> "$GITHUB_OUTPUT"
+            echo "All test jobs completed successfully!"
           fi
-    
-    outputs:
-      overall_status: ${{ steps.test-results.outputs.overall_status }}
-
-  # All Status Check Job
-  all-status:
-    name: Check All Job Statuses
-    runs-on: ubuntu-latest
-    needs: [read-device-matrix, build-android-dual-versions, android-tests-with-srp, android-tests-without-srp, gather-results]
-    if: always()
-    outputs:
-      overall_status: ${{ steps.status-check.outputs.overall_status }}
-      android_with_srp_status: ${{ steps.status-check.outputs.android_with_srp_status }}
-      android_without_srp_status: ${{ steps.status-check.outputs.android_without_srp_status }}
-      build_status: ${{ steps.status-check.outputs.build_status }}
-    
-    steps:
-      - name: Check All Job Statuses
-        id: status-check
-        run: |
-          echo "Checking status of all jobs..."
-          
-          BUILD_RESULT="${{ needs.build-android-dual-versions.result }}"
-          ANDROID_WITH_SRP_RESULT="${{ needs.android-tests-with-srp.result }}"
-          ANDROID_WITHOUT_SRP_RESULT="${{ needs.android-tests-without-srp.result }}"
-          
-          echo "Job Results:"
-          echo "- build-android-dual-versions: $BUILD_RESULT"
-          echo "- android-tests-with-srp: $ANDROID_WITH_SRP_RESULT"
-          echo "- android-tests-without-srp: $ANDROID_WITHOUT_SRP_RESULT"
-          
-          # Get gather-results status
-          GATHER_RESULT="${{ needs.gather-results.outputs.overall_status }}"
-          echo "- gather-results: $GATHER_RESULT"
-          
-          # Determine overall status
-          if [ "$BUILD_RESULT" = "failure" ]; then
-            OVERALL_STATUS="❌ FAILED"
-            echo "Overall Status: FAILED (Android builds failed)"
-          elif [ "$GATHER_RESULT" = "failure" ]; then
-            OVERALL_STATUS="❌ FAILED"
-            echo "Overall Status: FAILED (No performance data collected - all tests failed)"
-          elif [ "$GATHER_RESULT" = "partial_success" ] || [ "$ANDROID_WITH_SRP_RESULT" = "failure" ] || [ "$ANDROID_WITHOUT_SRP_RESULT" = "failure" ]; then
-            OVERALL_STATUS="⚠️ PARTIAL SUCCESS"
-            echo "Overall Status: PARTIAL SUCCESS (Some tests failed, but performance data was collected)"
-          else
-            OVERALL_STATUS="✅ PASSED"
-            if [ "$BUILD_RESULT" = "skipped" ]; then
-              echo "Overall Status: PASSED (All tests passed with performance data - used provided BrowserStack URLs)"
-            else
-              echo "Overall Status: PASSED (All tests passed with performance data)"
-            fi
-          fi
-          
-          # Set outputs
-          {
-            echo "overall_status=$OVERALL_STATUS"
-            echo "android_with_srp_status=$ANDROID_WITH_SRP_RESULT"
-            echo "android_without_srp_status=$ANDROID_WITHOUT_SRP_RESULT"
-            echo "build_status=$BUILD_RESULT"
-          } >> "$GITHUB_OUTPUT"
-
-  # Slack Notification Job
-  slack-notification:
-    name: Send Slack Notification
-    runs-on: ubuntu-latest
-    needs: [all-status]
-    if: always()
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Generate Test Summary
-        id: test-summary
-        run: |
-          echo "Generating test summary..."
-          
-          # Get device matrix for device names
-          DEVICE_MATRIX=$(cat appwright/device-matrix.json)
-          
-          # Extract device information
-          ANDROID_DEVICES=$(echo "$DEVICE_MATRIX" | jq -r '.android_devices[] | "\(.name) (\(.os_version))"')
-          
-          # Get status from all-status job
-          ANDROID_WITH_SRP_STATUS="${{ needs.all-status.outputs.android_with_srp_status }}"
-          ANDROID_WITHOUT_SRP_STATUS="${{ needs.all-status.outputs.android_without_srp_status }}"
-          
-          # Format status for display
-          if [ "$ANDROID_WITH_SRP_STATUS" = "success" ]; then
-            ANDROID_WITH_SRP_DISPLAY="✅ PASSED"
-          else
-            ANDROID_WITH_SRP_DISPLAY="❌ FAILED"
-          fi
-          
-          if [ "$ANDROID_WITHOUT_SRP_STATUS" = "success" ]; then
-            ANDROID_WITHOUT_SRP_DISPLAY="✅ PASSED"
-          else
-            ANDROID_WITHOUT_SRP_DISPLAY="❌ FAILED"
-          fi
-          
-          # Create summary
-          SUMMARY="*Performance E2E Tests - Android Only*\n\n"
-          
-          SUMMARY+="---------------\n\n"
-          SUMMARY+="*Devices Tested:*\n"
-          SUMMARY+="• Android (With SRP - Pre-imported wallet):\n"
-          while IFS= read -r device; do
-            if [ -n "$device" ]; then
-              SUMMARY+="  • $device\n"
-            fi
-          done <<< "$ANDROID_DEVICES"
-          SUMMARY+="• Android (Without SRP - Fresh wallet):\n"
-          while IFS= read -r device; do
-            if [ -n "$device" ]; then
-              SUMMARY+="  • $device\n"
-            fi
-          done <<< "$ANDROID_DEVICES"
-          SUMMARY+="\n"
-          SUMMARY+="---------------\n\n"
-          SUMMARY+="*Test Results:*\n"
-          SUMMARY+="• Android Tests (With SRP): $ANDROID_WITH_SRP_DISPLAY\n"
-          SUMMARY+="• Android Tests (Without SRP): $ANDROID_WITHOUT_SRP_DISPLAY\n\n"
-          SUMMARY+="---------------\n\n"
-          SUMMARY+="*Build Info:*\n"
-          SUMMARY+="• Commit Hash: \`${{ github.sha }}\`\n"
-          SUMMARY+="---------------\n\n"
-          SUMMARY+="<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Results>"
-          
-          {
-            echo "summary<<EOF"
-            echo "$SUMMARY"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          
-          echo "Test summary generated"
-      
-      # - name: Send Slack Notification
-      #   uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
-      #   with:
-      #     webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
-      #     webhook-type: incoming-webhook
-      #     payload: |
-      #       {
-      #         "text": "${{ steps.test-summary.outputs.summary }}"
-      #       }
