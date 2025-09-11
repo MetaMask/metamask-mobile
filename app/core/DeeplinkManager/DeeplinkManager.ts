@@ -5,6 +5,7 @@ import { Dispatch } from 'redux';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
 import handleRampUrl from './Handlers/handleRampUrl';
+import handleDepositCashUrl from './Handlers/handleDepositCashUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
@@ -92,6 +93,13 @@ class DeeplinkManager {
       rampPath,
       navigation: this.navigation,
       rampType: RampType.SELL,
+    });
+  }
+
+  _handleDepositCash(depositCashPath: string) {
+    handleDepositCashUrl({
+      depositPath: depositCashPath,
+      navigation: this.navigation,
     });
   }
 

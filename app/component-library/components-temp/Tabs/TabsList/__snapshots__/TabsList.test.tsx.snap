@@ -40,25 +40,7 @@ exports[`TabsList handles empty children gracefully 1`] = `
           undefined,
         ]
       }
-    >
-      <View
-        collapsable={false}
-        style={
-          {
-            "backgroundColor": "#121314",
-            "bottom": 0,
-            "height": 2,
-            "position": "absolute",
-            "transform": [
-              {
-                "translateX": 0,
-              },
-            ],
-            "width": 0,
-          }
-        }
-      />
-    </View>
+    />
   </View>
   <View
     style={
