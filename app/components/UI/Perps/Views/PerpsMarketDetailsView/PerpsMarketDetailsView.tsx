@@ -49,13 +49,12 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import {
-  usePerpsAccount,
   usePerpsConnection,
   usePerpsPerformance,
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
-import { usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
@@ -121,7 +120,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const account = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
