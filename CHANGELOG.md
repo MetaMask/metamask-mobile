@@ -10,12 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.54.2]
 
 ### Fixed
--  
+- fix(deposit): disable Base & Linea USDT ([#19557](https://github.com/MetaMask/metamask-mobile/pull/19557))
+- fix(deposit): get started mUSD ([#19552](https://github.com/MetaMask/metamask-mobile/pull/19552))
+- fix(deposit): add force update and fix faulty data migration ([#19541](https://github.com/MetaMask/metamask-mobile/pull/19541))
+- fix: Unnecessary truncation for MainActionButton ([#19612](https://github.com/MetaMask/metamask-mobile/pull/19612))
 
 ## [7.54.1]
 
+### Added
+- Added auto-create-release-pr workflow to automatically create release ([#19254](https://github.com/MetaMask/metamask-mobile/pull/19254)) 
+- fix: add logging to get more info around blocking login biometrics: ([#19274](https://github.com/MetaMask/metamask-mobile/pull/19274)) 
+
 ### Fixed
-- 
+- update solana to 2.3.6 ([#19241](https://github.com/MetaMask/metamask-mobile/pull/19241))
+- fix: stable sync secret ([#19252](https://github.com/MetaMask/metamask-mobile/pull/19252))
 
 ## [7.54.0]
 
