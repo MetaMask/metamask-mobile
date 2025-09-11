@@ -59,6 +59,7 @@ jobs:
           command: |
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
+            exit 1
 
       - name: Build Android E2E APKs
         run: |
