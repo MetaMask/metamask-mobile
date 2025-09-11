@@ -1,15 +1,15 @@
 # GitHub Actions-specific Gradle settings
-# High-performance settings for 32GB/8CPU runners
+# Aggressive memory conservation for 32GB/8CPU runners to prevent OOM
 
-# JVM configuration - optimized for 8CPU/32GB GitHub Actions runners
-org.gradle.jvmargs=-Xmx16g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
+# JVM configuration - aggressive memory limits for stability
+org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC -XX:G1HeapRegionSize=4m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC
 
-# Enable all performance optimizations for GitHub Actions
+# Conservative performance settings to stay within memory limits
 org.gradle.parallel=true
 org.gradle.configureondemand=true
 org.gradle.caching=true
 org.gradle.daemon=true
-org.gradle.workers.max=6
+org.gradle.workers.max=2
 org.gradle.vfs.watch=true
 
 # CI-specific optimizations - enabled for GitHub Actions
@@ -62,5 +62,10 @@ android.enablePngCrunchInReleaseBuilds=false
 # Disable R8 full mode to reduce memory usage during compilation
 android.enableR8.fullMode=false
 
-# Reduce dex memory usage
-org.gradle.jvmargs.dex=-Xmx2g
+# Aggressive dex memory reduction
+org.gradle.jvmargs.dex=-Xmx1g
+
+# Additional aggressive memory optimizations
+android.enableDexingArtifactTransform=false
+android.enableBuildCache=false
+kotlin.daemon.jvm.options=-Xmx1g

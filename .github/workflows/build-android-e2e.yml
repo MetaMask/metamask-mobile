@@ -56,7 +56,7 @@ jobs:
           yarn setup:github-ci --no-build-ios
           
           echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=4096"
+          export NODE_OPTIONS="--max-old-space-size=2048"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:main:e2e
         shell: bash
@@ -69,11 +69,13 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
-          NODE_OPTIONS: "--max-old-space-size=4096"
+          NODE_OPTIONS: "--max-old-space-size=2048"
           REACT_NATIVE_ARCHITECTURES: "x86_64"
           # E2E memory optimizations - disable heavy features
           DISABLE_SENTRY_SOURCE_MAPS: "true"
           SKIP_BUNDLING_OPTIMIZATION: "true"
+          # Let gradle.properties.github handle all Gradle memory settings
+          ANDROID_GRADLE_DAEMON_MAX_IDLE_TIME: "10000"
           MM_UNIFIED_SWAPS_ENABLED: "true"
           MM_BRIDGE_ENABLED: "true"
           BRIDGE_USE_DEV_APIS: "true"
