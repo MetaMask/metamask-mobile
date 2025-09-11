@@ -56,7 +56,7 @@ jobs:
           yarn setup:github-ci --no-build-ios
           
           echo "🏗 Building Android E2E APKs..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
+          export NODE_OPTIONS="--max-old-space-size=4096"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:main:e2e
         shell: bash
@@ -69,7 +69,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
-          NODE_OPTIONS: "--max-old-space-size=8192"
+          NODE_OPTIONS: "--max-old-space-size=4096"
           MM_UNIFIED_SWAPS_ENABLED: "true"
           MM_BRIDGE_ENABLED: "true"
           BRIDGE_USE_DEV_APIS: "true"

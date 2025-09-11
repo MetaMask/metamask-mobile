@@ -1,15 +1,15 @@
 # GitHub Actions-specific Gradle settings
-# High-performance settings for 64GB/16CPU runners
+# High-performance settings for 32GB/8CPU runners
 
-# JVM configuration - high-performance for GitHub Actions
-org.gradle.jvmargs=-Xmx32g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=32m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
+# JVM configuration - optimized for 8CPU/32GB GitHub Actions runners
+org.gradle.jvmargs=-Xmx16g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
 
 # Enable all performance optimizations for GitHub Actions
 org.gradle.parallel=true
 org.gradle.configureondemand=true
 org.gradle.caching=true
 org.gradle.daemon=true
-org.gradle.workers.max=12
+org.gradle.workers.max=6
 org.gradle.vfs.watch=true
 
 # CI-specific optimizations - enabled for GitHub Actions
