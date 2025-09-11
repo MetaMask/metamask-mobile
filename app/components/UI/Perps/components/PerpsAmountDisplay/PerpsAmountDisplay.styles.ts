@@ -13,7 +13,14 @@ const createStyles = (colors: Theme['colors']) =>
     },
     amountValue: {
       fontSize: 54,
-      lineHeight: 74,
+      fontWeight: '600',
+      color: colors.text.default,
+    },
+    amountValueToken: {
+      fontSize: 54,
+      fontWeight: '600',
+      color: colors.text.default,
+      letterSpacing: -0.5,
     },
     amountValueActive: {
       color: colors.text.default,
@@ -30,8 +37,6 @@ const createStyles = (colors: Theme['colors']) =>
     amountRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      // borderWidth: 1,
-      // borderColor: 'blue',
     },
     maxAmount: {
       marginTop: 4,
