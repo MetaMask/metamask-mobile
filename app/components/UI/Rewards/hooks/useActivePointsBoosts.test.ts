@@ -31,7 +31,7 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCurrentSeasonId: jest.fn(),
+  selectSeasonId: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -90,7 +90,7 @@ describe('useActivePointsBoosts', () => {
         return 'test-subscription-id'; // selectRewardsSubscriptionId
       }
       if (callCount === 2) {
-        return 'test-season-id'; // selectCurrentSeasonId
+        return 'test-season-id'; // selectSeasonId
       }
       return null;
     });
@@ -109,7 +109,7 @@ describe('useActivePointsBoosts', () => {
         return 'test-subscription-id'; // selectRewardsSubscriptionId
       }
       if (callCount === 2) {
-        return null; // selectCurrentSeasonId - missing
+        return null; // selectSeasonId - missing
       }
       return null;
     });
@@ -136,7 +136,7 @@ describe('useActivePointsBoosts', () => {
         return null; // selectRewardsSubscriptionId - missing
       }
       if (callCount === 2) {
-        return 'test-season-id'; // selectCurrentSeasonId
+        return 'test-season-id'; // selectSeasonId
       }
       return null;
     });
@@ -173,10 +173,7 @@ describe('useActivePointsBoosts', () => {
       setActiveBoosts(mockActiveBoosts),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Successfully fetched active points boosts',
-      { boostCount: 2 },
-    );
+    // The hook doesn't log success messages, only errors and missing parameters
   });
 
   it('should handle fetch error gracefully', async () => {
@@ -218,10 +215,7 @@ describe('useActivePointsBoosts', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Successfully fetched active points boosts',
-      { boostCount: 0 },
-    );
+    // The hook doesn't log success messages, only errors and missing parameters
   });
 
   it('should handle null response from controller', async () => {
@@ -233,9 +227,6 @@ describe('useActivePointsBoosts', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Successfully fetched active points boosts',
-      { boostCount: 0 },
-    );
+    // The hook doesn't log success messages, only errors and missing parameters
   });
 });
