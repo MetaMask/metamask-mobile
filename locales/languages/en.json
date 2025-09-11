@@ -61,6 +61,10 @@
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
+    },
+    "perps_hardware_account": {
+      "title": "Wallet not supported",
+      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
     }
   },
   "blockaid_banner": {
@@ -2734,6 +2738,7 @@
     "submitted": "Submitted",
     "failed": "Failed",
     "cancelled": "Cancelled",
+    "signed": "Pending",
     "tokenContractAddressWarning_1": "This address is a ",
     "tokenContractAddressWarning_2": "token contract address",
     "tokenContractAddressWarning_3": ". If you send tokens to this address, you will lose them.",
@@ -5099,7 +5104,10 @@
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
       "total": "Total",
-      "bridge_fee": "Swap Fee"
+      "transaction_fee": "Transaction fee",
+      "metamask_fee": "MetaMask fee",
+      "network_fee": "Network fee",
+      "bridge_fee": "Bridge provider fee"
     },
     "title": {
       "signature": "Signature request",
@@ -5129,8 +5137,10 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "bridge_fee": "You need USDC on HyperEVM to use Perps. We'll move your funds for you. Swap providers may charge a fee, but MetaMask doesn't.",
-        "total": "You might get a small amount of USDC on Arbitrum, depending on slippage."
+        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "title": {
+        "transaction_fee": "Fees"
       }
     },
     "spending_cap": "Spending cap",
@@ -5717,7 +5727,11 @@
     },
     "summary_title": {
       "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
-      "perps_deposit": "Add funds"
+      "bridge_approval": "Approve {{approveSymbol}}",
+      "default": "Transaction",
+      "perps_deposit": "Add funds",
+      "swap": "Swap tokens",
+      "swap_approval": "Approve tokens"
     }
   }
 }
