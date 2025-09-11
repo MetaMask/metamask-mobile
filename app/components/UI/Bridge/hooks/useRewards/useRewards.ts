@@ -21,6 +21,7 @@ import {
 } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
+import usePrevious from '../../../../hooks/usePrevious';
 
 interface UseRewardsParams {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -62,6 +63,7 @@ export const useRewards = ({
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
   const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const prevRequestId = usePrevious(activeQuote?.quote?.requestId);
 
   // Selectors
   const sourceToken = useSelector(selectSourceToken);
@@ -91,15 +93,15 @@ export const useRewards = ({
 
     try {
       // Check if rewards feature is enabled
-      const isRewardsEnabled = await Engine.controllerMessenger.call(
-        'RewardsController:isRewardsFeatureEnabled',
-      );
+      // const isRewardsEnabled = await Engine.controllerMessenger.call(
+      //   'RewardsController:isRewardsFeatureEnabled',
+      // );
 
-      if (!isRewardsEnabled) {
-        setEstimatedPoints(null);
-        setIsLoading(false);
-        return;
-      }
+      // if (!isRewardsEnabled) {
+      //   setEstimatedPoints(null);
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       // Format account to CAIP-10
       const caipAccount = formatAccountToCaipAccountId(
@@ -114,16 +116,16 @@ export const useRewards = ({
       }
 
       // Check if account has opted in
-      const hasOptedIn = await Engine.controllerMessenger.call(
-        'RewardsController:getHasAccountOptedIn',
-        caipAccount,
-      );
+      // const hasOptedIn = await Engine.controllerMessenger.call(
+      //   'RewardsController:getHasAccountOptedIn',
+      //   caipAccount,
+      // );
 
-      if (!hasOptedIn) {
-        setEstimatedPoints(null);
-        setIsLoading(false);
-        return;
-      }
+      // if (!hasOptedIn) {
+      //   setEstimatedPoints(null);
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       setShouldShowRewardsRow(true);
 
@@ -190,11 +192,14 @@ export const useRewards = ({
 
   // Estimate points when dependencies change
   useEffect(() => {
-    estimatePoints();
+    if (prevRequestId !== activeQuote?.quote?.requestId) {
+      estimatePoints();
+    }
   }, [
     estimatePoints,
     // Only re-estimate when quote changes (not during loading)
     activeQuote?.quote?.requestId,
+    prevRequestId,
   ]);
 
   return {
