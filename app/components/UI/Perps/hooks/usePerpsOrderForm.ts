@@ -2,9 +2,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderFormState } from '../types';
 import { calculateMarginRequired } from '../utils/orderCalculations';
-import { usePerpsAccount } from './usePerpsAccount';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
+import { usePerpsLiveAccount } from './stream';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -50,11 +50,11 @@ export function usePerpsOrderForm(
   } = params;
 
   const currentNetwork = usePerpsNetwork();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
-  // Get available balance
+  // Get available balance from live account data
   const availableBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+    account?.availableBalance?.toString() || '0',
   );
 
   // Determine default amount based on network
