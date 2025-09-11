@@ -257,4 +257,25 @@ describe('useTransactionBridgeQuotes', () => {
 
     expect(getBridgeQuotesMock).toHaveBeenCalledTimes(2);
   });
+
+  it('requests bridge quote with no minimum if allowUnderMinimum', () => {
+    useTransactionPayTokenAmountsMock.mockReturnValue({
+      amounts: [
+        {
+          address: TOKEN_ADDRESS_TARGET_1_MOCK,
+          allowUnderMinimum: true,
+          amountRaw: SOURCE_AMOUNT_1_MOCK,
+          targetAmountRaw: MINIMUM_TOKEN_AMOUNT_1_MOCK,
+        },
+      ],
+    } as ReturnType<typeof useTransactionPayTokenAmounts>);
+
+    runHook();
+
+    expect(getBridgeQuotesMock).toHaveBeenCalledWith([
+      expect.objectContaining({
+        targetAmountMinimum: '0',
+      }),
+    ]);
+  });
 });

@@ -21,17 +21,17 @@ class PerpsOrderView {
   }
 
   // Leverage chip by visible text, e.g., "3x", "10x", "20x"
-  leverageOption(leverageX: number, index = 0) {
+  leverageOption(leverageX: number, index = 0): DetoxElement {
     return Matchers.getElementByText(`${leverageX}x`, index);
   }
 
   // Row label to open the leverage modal (uses visible text "Leverage")
-  get leverageRowLabel() {
+  get leverageRowLabel(): DetoxElement {
     return Matchers.getElementByText('Leverage');
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
-  get leverageModalTitle() {
+  get leverageModalTitle(): DetoxElement {
     return Matchers.getElementByText('Set Leverage');
   }
 
@@ -50,8 +50,7 @@ class PerpsOrderView {
     });
 
     // Wait for the modal to be visible
-    const title = this.leverageModalTitle as unknown as DetoxElement;
-    await Assertions.expectElementToBeVisible(title, {
+    await Assertions.expectElementToBeVisible(this.leverageModalTitle, {
       description: 'Leverage modal title visible',
     });
 
@@ -87,10 +86,7 @@ class PerpsOrderView {
     }
     if (!tapped) {
       // Final fallback with our wrapper to bubble a clear error
-      const option = this.leverageOption(
-        leverageX,
-        chosenIdx,
-      ) as unknown as DetoxElement;
+      const option = this.leverageOption(leverageX, chosenIdx);
       await Gestures.waitAndTap(option, {
         elemDescription: `Select leverage ${label} at index ${chosenIdx}`,
       });
@@ -99,18 +95,18 @@ class PerpsOrderView {
     // Confirm by tapping footer button "Set Xx"
     const confirm = Matchers.getElementByText(
       `Set ${leverageX}x`,
-    ) as unknown as DetoxElement;
+    ) as DetoxElement;
     await Gestures.waitAndTap(confirm, {
       elemDescription: `Confirm leverage ${leverageX}x`,
     });
   }
 
   // Amount handling
-  get amountDisplay() {
+  get amountDisplay(): DetoxElement {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.CONTAINER);
   }
 
-  get amountValue() {
+  get amountValue(): DetoxElement {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
   }
 
@@ -118,28 +114,27 @@ class PerpsOrderView {
   async setAmountUSD(amount: string) {
     // Open keypad by tapping the value by ID (more reliable than tapping the container)
     await device.disableSynchronization();
-    const amountEl = this.amountValue as unknown as DetoxElement;
-    await Assertions.expectElementToBeVisible(amountEl, {
+    await Assertions.expectElementToBeVisible(this.amountValue, {
       description: 'Amount value is visible',
     });
-    await Gestures.waitAndTap(amountEl, {
+    await Gestures.waitAndTap(this.amountValue, {
       elemDescription: 'Open amount keypad by tapping amount label',
       checkEnabled: false,
       checkVisibility: false,
     });
     // Type each character using the native keypad (buttons 0-9 and '.')
     for (const ch of amount) {
-      const key = Matchers.getElementByText(ch);
-      await Gestures.waitAndTap(key as unknown as DetoxElement, {
+      const key = Matchers.getElementByText(ch) as DetoxElement;
+      await Gestures.waitAndTap(key, {
         elemDescription: `Keypad: ${ch}`,
         checkEnabled: false,
         checkVisibility: false,
       });
     }
     // Close the keypad using the Done button (with locale fallbacks)
-    const doneByText = Matchers.getElementByText('Done');
+    const doneByText = Matchers.getElementByText('Done') as DetoxElement;
 
-    await Gestures.waitAndTap(doneByText as unknown as DetoxElement, {
+    await Gestures.waitAndTap(doneByText, {
       elemDescription: 'Tap Done (by text) to close keypad',
       checkEnabled: false,
       checkVisibility: false,

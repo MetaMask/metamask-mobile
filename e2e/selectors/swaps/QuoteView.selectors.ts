@@ -16,4 +16,5 @@ export const QuoteViewSelectorIDs = {
   SOURCE_TOKEN_AREA: 'source-token-area',
   DESTINATION_TOKEN_AREA: 'dest-token-area',
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
+  CONFIRM_BUTTON: 'bridge-confirm-button',
 };

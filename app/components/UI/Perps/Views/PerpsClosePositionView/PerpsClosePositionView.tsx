@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,8 +28,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import type { OrderType, Position } from '../../controllers/types';
@@ -34,6 +38,7 @@ import {
   usePerpsClosePositionValidation,
   usePerpsClosePosition,
   usePerpsMarketData,
+  usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
@@ -53,10 +58,18 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsClosePositionViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsClosePositionViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -68,6 +81,8 @@ const PerpsClosePositionView: React.FC = () => {
 
   const hasTrackedCloseView = useRef(false);
   const { track } = usePerpsEventTracking();
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Track screen load performance
   usePerpsScreenTracking({
@@ -157,12 +172,7 @@ const PerpsClosePositionView: React.FC = () => {
     isPartialClose,
   });
 
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      navigation.goBack();
-    },
-  });
+  const { handleClosePosition, isClosing } = usePerpsClosePosition();
 
   // Track position close screen viewed event
   useEffect(() => {
@@ -266,16 +276,15 @@ const PerpsClosePositionView: React.FC = () => {
       return;
     }
 
+    // Go back immediately to close the position screen
+    navigation.goBack();
+
     await handleClosePosition(
       position,
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
     );
-  };
-
-  const handleCancel = () => {
-    navigation.goBack();
   };
 
   const handleAmountPress = () => {
@@ -430,44 +439,121 @@ const PerpsClosePositionView: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Lg}
-            color={IconColor.Default}
-          />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.close_position.title')}
+  const realizedPnl = useMemo(() => {
+    const price = Math.abs(pnl * (closePercentage / 100));
+    const formattedPrice = formatPrice(price, {
+      maximumDecimals: 2,
+    });
+
+    return { formattedPrice, price, isNegative: pnl < 0 };
+  }, [pnl, closePercentage]);
+
+  // Hide provider-level limit price required error on this UI
+  // Only display the minimum amount error (e.g. minimum $10) and suppress others
+  const filteredErrors = useMemo(() => {
+    const minimumAmountErrorPrefix = strings(
+      'perps.order.validation.minimum_amount',
+      {
+        amount: '',
+      },
+    ).replace(/\s+$/, '');
+    // The actual minimum amount string includes the amount placeholder; match by key detection.
+    return validationResult.errors.filter((err) =>
+      err.startsWith(minimumAmountErrorPrefix),
+    );
+  }, [validationResult.errors]);
+
+  const Summary = (
+    <View
+      style={[
+        styles.summaryContainer,
+        isInputFocused && styles.paddingHorizontal,
+      ]}
+    >
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryLabel}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.close_position.margin')}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() => setIsOrderTypeVisible(true)}
-          testID={PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON}
-        >
-          <View style={styles.marketButton}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {orderType === 'market'
-                ? strings('perps.order.market')
-                : strings('perps.order.limit')}
+        <View style={styles.summaryValue}>
+          <Text variant={TextVariant.BodyMD}>
+            {formatPrice(effectiveMargin * (closePercentage / 100), {
+              maximumDecimals: 2,
+            })}
+          </Text>
+          <View style={styles.inclusiveFeeRow}>
+            <Text variant={TextVariant.BodySM}>includes</Text>
+            <Text
+              variant={TextVariant.BodySM}
+              color={
+                realizedPnl.isNegative ? TextColor.Error : TextColor.Success
+              }
+            >
+              {realizedPnl.isNegative ? '-' : '+'}
+              {realizedPnl.formattedPrice}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryLabel}>
+          <TouchableOpacity
+            onPress={() => handleTooltipPress('closing_fees')}
+            style={styles.labelWithTooltip}
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.close_position.fees')}
             </Text>
             <Icon
-              name={IconName.ArrowDown}
+              name={IconName.Info}
               size={IconSize.Xs}
-              color={IconColor.Default}
-              style={styles.marketButtonIcon}
+              color={IconColor.Muted}
             />
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.summaryValue}>
+          <Text variant={TextVariant.BodyMD}>
+            -{formatPrice(feeResults.totalFee, { maximumDecimals: 2 })}
+          </Text>
+        </View>
       </View>
+
+      <View style={[styles.summaryRow, styles.summaryTotalRow]}>
+        <View style={styles.summaryLabel}>
+          <Text variant={TextVariant.BodyMD}>
+            {strings('perps.close_position.you_receive')}
+          </Text>
+        </View>
+        <View style={styles.summaryValue}>
+          <Text variant={TextVariant.BodyMD}>
+            {formatPrice(Math.max(0, receiveAmount), {
+              maximumDecimals: 2,
+            })}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <PerpsOrderHeader
+        asset={position.coin}
+        price={currentPrice}
+        priceChange={parseFloat(
+          priceData[position.coin]?.percentChange24h ?? '0',
+        )}
+        orderType={orderType}
+        onOrderTypePress={() => setIsOrderTypeVisible(true)}
+        title={strings('perps.close_position.title')}
+        isLoading={isClosing}
+      />
 
       <ScrollView
         style={styles.content}
+        alwaysBounceVertical={false}
         contentContainerStyle={[
           styles.scrollViewContent,
           isInputFocused && styles.scrollViewContentWithKeypad,
@@ -478,7 +564,6 @@ const PerpsClosePositionView: React.FC = () => {
         <PerpsAmountDisplay
           label={strings('perps.close_position.select_amount')}
           amount={displayMode === 'usd' ? closeAmountUSDString : closeAmount}
-          maxAmount={positionValue}
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
@@ -516,7 +601,7 @@ const PerpsClosePositionView: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Slider - Hide when keypad is active */}
+        {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
           <View style={styles.sliderSection}>
             <PerpsSlider
@@ -531,113 +616,58 @@ const PerpsClosePositionView: React.FC = () => {
           </View>
         )}
 
-        {/* Limit Price - only show for limit orders */}
+        {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {orderType === 'limit' && !isInputFocused && (
-          <View style={styles.detailsSection}>
-            <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
-              <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('perps.order.limit_price'),
-                    variant: TextVariant.BodyMD,
-                    color: TextColor.Alternative,
-                  },
-                  tooltip: {
-                    title: strings('perps.tooltips.limit_price.title'),
-                    content: strings('perps.tooltips.limit_price.content'),
-                    size: TooltipSizes.Sm,
-                    onPress: () => handleTooltipPress('limit_price'),
-                  },
-                }}
-                value={{
-                  label: {
-                    text: limitPrice
-                      ? `$${formatPrice(limitPrice, { maximumDecimals: 2 })}`
-                      : 'Set price',
-                    variant: TextVariant.BodyMD,
-                    color: TextColor.Default,
-                  },
-                }}
-              />
-            </TouchableOpacity>
+          <View style={styles.detailsWrapper}>
+            <View style={[styles.detailItem, styles.detailListItem]}>
+              <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
+                <ListItem>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <View style={styles.detailLeft}>
+                      <Text
+                        variant={TextVariant.BodyLGMedium}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('perps.order.limit_price')}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleTooltipPress('limit_price')}
+                        style={styles.infoIcon}
+                      >
+                        <Icon
+                          name={IconName.Info}
+                          size={IconSize.Sm}
+                          color={IconColor.Muted}
+                          testID={
+                            PerpsOrderViewSelectorsIDs.LIMIT_PRICE_INFO_ICON
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Default}
+                    >
+                      {limitPrice
+                        ? `${formatPrice(limitPrice, { maximumDecimals: 2 })}`
+                        : 'Set price'}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
-        {/* Order Details - Always visible */}
-        <View style={styles.detailsSection}>
-          <View style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.close_position.margin')}
-            </Text>
-            <Text variant={TextVariant.BodyMD}>
-              {formatPrice(effectiveMargin * (closePercentage / 100), {
-                maximumDecimals: 2,
-              })}
-            </Text>
-          </View>
+        {/* Order Details moved to footer summary */}
 
-          <View style={styles.detailRow}>
-            <View style={styles.labelWithTooltip}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.close_position.estimated_pnl')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('estimated_pnl')}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Xs}
-                  color={IconColor.Muted}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={pnl >= 0 ? TextColor.Success : TextColor.Error}
-            >
-              {pnl >= 0 ? '+' : '-'}
-              {formatPrice(Math.abs(pnl * (closePercentage / 100)), {
-                maximumDecimals: 2,
-              })}
-            </Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <View style={styles.labelWithTooltip}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.close_position.fees')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('closing_fees')}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Xs}
-                  color={IconColor.Muted}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text variant={TextVariant.BodyMD}>
-              -{formatPrice(feeResults.totalFee, { maximumDecimals: 2 })}
-            </Text>
-          </View>
-
-          <View style={[styles.detailRow, styles.totalRow]}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('perps.close_position.you_receive')}
-            </Text>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {formatPrice(Math.max(0, receiveAmount), {
-                maximumDecimals: 2,
-              })}
-            </Text>
-          </View>
-        </View>
-
-        {/* Validation Messages - Hide when keypad is active */}
-        {!isInputFocused && validationResult.errors.length > 0 && (
+        {/* Validation Messages - keep visible while typing */}
+        {/* Filter the errors and only show minimum $10 error */}
+        {filteredErrors.length > 0 && (
           <View style={styles.validationSection}>
-            {validationResult.errors.map((error, index) => (
+            {filteredErrors.map((error, index) => (
               <View key={index} style={styles.errorMessage}>
                 <Icon
                   name={IconName.Danger}
@@ -651,28 +681,13 @@ const PerpsClosePositionView: React.FC = () => {
             ))}
           </View>
         )}
-
-        {!isInputFocused && validationResult.warnings.length > 0 && (
-          <View style={styles.validationSection}>
-            {validationResult.warnings.map((warning, index) => (
-              <View key={index} style={styles.warningMessage}>
-                <Icon
-                  name={IconName.Warning}
-                  size={IconSize.Sm}
-                  color={IconColor.Warning}
-                />
-                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
-                  {warning}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
       </ScrollView>
 
-      {/* Keypad Section - Show when input is focused */}
+      {/* Keypad Section - Show when input is focused; keep summary and slider above */}
       {isInputFocused && (
         <View style={styles.bottomSection}>
+          {/* Summary shown above keypad while editing */}
+          {Summary}
           <View style={styles.percentageButtonsContainer}>
             <Button
               variant={ButtonVariants.Secondary}
@@ -716,9 +731,11 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
       )}
 
-      {/* Action Buttons - Hide when keypad is active */}
-      {!isInputFocused && (
-        <View style={styles.footer}>
+      {/* Summary + Action Buttons - Always visible (button hidden when keypad active) */}
+      <View style={[styles.footer, styles.footerWithSummary]}>
+        {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
+        {!isInputFocused && Summary}
+        {!isInputFocused && (
           <Button
             label={
               isClosing
@@ -742,19 +759,8 @@ const PerpsClosePositionView: React.FC = () => {
               PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
             }
           />
-          <Button
-            label={strings('perps.close_position.cancel')}
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            onPress={handleCancel}
-            isDisabled={isClosing}
-            testID={
-              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON
-            }
-          />
-        </View>
-      )}
+        )}
+      </View>
 
       {/* Order Type Bottom Sheet */}
       <PerpsOrderTypeBottomSheet
@@ -776,9 +782,20 @@ const PerpsClosePositionView: React.FC = () => {
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible}
-        onClose={() => setIsLimitPriceVisible(false)}
+        onClose={() => {
+          setIsLimitPriceVisible(false);
+          // If user dismisses without entering a price, revert order type to market
+          if (orderType === 'limit' && !limitPrice) {
+            setOrderType('market');
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.limitClose
+                .partial.switchToMarketOrderMissingLimitPrice,
+            );
+          }
+        }}
         onConfirm={(price) => {
           setLimitPrice(price);
+          // Close after confirmation explicitly
           setIsLimitPriceVisible(false);
         }}
         asset={position.coin}
@@ -788,13 +805,13 @@ const PerpsClosePositionView: React.FC = () => {
       />
 
       {/* Tooltip Bottom Sheet */}
-      {selectedTooltip && (
+      {selectedTooltip ? (
         <PerpsBottomSheetTooltip
           isVisible
           onClose={handleTooltipClose}
-          contentKey={selectedTooltip}
+          contentKey={selectedTooltip as PerpsTooltipContentKey}
           key={selectedTooltip}
-          {...(selectedTooltip === ('closing_fees' as PerpsTooltipContentKey)
+          {...(selectedTooltip === 'closing_fees'
             ? {
                 data: {
                   metamaskFeeRate: feeResults.metamaskFeeRate,
@@ -803,7 +820,7 @@ const PerpsClosePositionView: React.FC = () => {
               }
             : {})}
         />
-      )}
+      ) : null}
     </SafeAreaView>
   );
 };
