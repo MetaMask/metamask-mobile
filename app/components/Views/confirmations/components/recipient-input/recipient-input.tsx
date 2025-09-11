@@ -22,7 +22,7 @@ export const RecipientInput = ({
   setPastedRecipient,
 }: {
   isRecipientSelectedFromList: boolean;
-  resetStateOnInput: (val: boolean) => void;
+  resetStateOnInput: () => void;
   setPastedRecipient: (recipient?: string) => void;
 }) => {
   const { to, updateTo } = useSendContext();
@@ -31,7 +31,7 @@ export const RecipientInput = ({
     useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
-    resetStateOnInput(false);
+    resetStateOnInput();
     try {
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
@@ -67,7 +67,7 @@ export const RecipientInput = ({
 
   const handleTextChange = useCallback(
     async (toAddress: string) => {
-      resetStateOnInput(false);
+      resetStateOnInput();
       updateTo(toAddress);
       setRecipientInputMethodManual();
       setPastedRecipient(undefined);
