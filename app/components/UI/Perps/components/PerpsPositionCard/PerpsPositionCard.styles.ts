@@ -64,7 +64,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingVertical: 16,
-      marginBottom: 16,
+      marginBottom: 4,
     },
     bodyRow: {
       flexDirection: 'row',

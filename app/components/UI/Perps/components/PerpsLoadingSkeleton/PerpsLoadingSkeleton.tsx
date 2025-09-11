@@ -7,6 +7,7 @@ import {
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
@@ -44,7 +45,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
       />
 
       {/* Main Text */}
-      <Text variant={TextVariant.HeadingMd} twClassName="text-default mb-2">
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative} twClassName="text-default mb-2">
         {strings('perps.connection.connecting_to_perps')}
       </Text>
     </Box>

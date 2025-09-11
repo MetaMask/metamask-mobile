@@ -419,7 +419,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 color={TextColor.Alternative}
                 onPress={handleTradingViewPress}
               >
-                Trading View
+                Trading View.
               </Text>
             </Text>
           </View>

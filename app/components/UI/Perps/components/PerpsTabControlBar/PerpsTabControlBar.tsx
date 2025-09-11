@@ -166,8 +166,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           <View style={styles.rightSection}>
             <Animated.View style={[getBalanceAnimatedStyle]}>
               <Text
-                style={styles.valueText}
-                variant={TextVariant.HeadingSM}
+                variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
                 testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
               >
@@ -197,8 +196,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           <View style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
               <Text
-                style={styles.pnlValueText}
-                variant={TextVariant.HeadingSM}
+                variant={TextVariant.BodyMD}
                 color={pnlColor}
               >
                 {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})

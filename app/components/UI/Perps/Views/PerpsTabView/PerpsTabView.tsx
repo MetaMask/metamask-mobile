@@ -52,6 +52,8 @@ import {
   useCoordinatedPress,
 } from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
@@ -218,13 +220,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const renderPositionsSection = () => {
     if (isInitialLoading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-            {strings('perps.position.list.loading')}
-          </Text>
-        </View>
-      );
+      // Removed loading state as it was redundant to the first loading state and only appeared for very little time
+      return <Skeleton height={30} width="100%" style={styles.loadingContainer}/>;
     }
 
     if (positions.length === 0) {
@@ -281,6 +278,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+          alwaysBounceVertical={false}
         >
           {!isInitialLoading && hasNoPositionsOrOrders ? (
             <View style={styles.firstTimeContent}>
@@ -300,7 +299,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 </Text>
                 <Text
                   variant={TextVariant.BodyMD}
-                  color={TextColor.Muted}
+                  color={TextColor.Alternative}
                   style={styles.firstTimeDescription}
                 >
                   {strings('perps.position.list.first_time_description')}
