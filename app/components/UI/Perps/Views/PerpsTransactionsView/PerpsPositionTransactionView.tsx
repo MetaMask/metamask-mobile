@@ -97,7 +97,10 @@ const PerpsPositionTransactionView: React.FC = () => {
       )}`,
     },
     transaction.fill?.entryPrice && {
-      label: strings('perps.transactions.position.entry_price'),
+      label:
+        transaction.fill?.action === 'Closed'
+          ? strings('perps.transactions.position.close_price')
+          : strings('perps.transactions.position.entry_price'),
       value: `${formatPerpsFiat(transaction.fill?.entryPrice || '0')}`,
     },
   ].filter(Boolean);

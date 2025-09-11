@@ -23,7 +23,6 @@ const createStyles = (_theme: Theme) =>
       paddingTop: Device.isLargeDevice() ? 40 : 10,
       fontFamily: 'MM Poly Regular',
       color: importedColors.gettingStartedTextColor,
-      fontWeight: '900',
       letterSpacing: -1,
     },
     titleDescription: {
