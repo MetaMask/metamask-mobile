@@ -33,6 +33,7 @@ import {
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -60,6 +61,8 @@ const MultichainAccountSelectorList = ({
     () => new Set(selectedAccountGroups.map((g) => g.id)),
     [selectedAccountGroups],
   );
+
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   // Debounce search text with 200ms delay
   useEffect(() => {
@@ -212,6 +215,7 @@ const MultichainAccountSelectorList = ({
             return (
               <AccountListCell
                 accountGroup={item.data}
+                avatarAccountType={avatarAccountType}
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
               />
@@ -231,7 +235,12 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedIdSet, handleSelectAccount, handleAccountCreated],
+      [
+        selectedIdSet,
+        handleSelectAccount,
+        handleAccountCreated,
+        avatarAccountType,
+      ],
     );
 
   const keyExtractor = useCallback(

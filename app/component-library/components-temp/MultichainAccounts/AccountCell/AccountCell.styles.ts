@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
+import { colors as staticColors } from '../../../../styles/common';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -15,13 +16,20 @@ const styleSheet = (params: {
       paddingTop: 16,
       paddingBottom: 16,
     },
-    avatar: {
+    avatarWrapper: {
       borderRadius: 8,
+      width: 36, // 32 (avatar size) + 2*2 (border width)
+      height: 36, // 32 (avatar size) + 2*2 (border width)
+      borderWidth: 2,
+      borderColor: isSelected ? colors.info.default : staticColors.transparent,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatar: {
+      borderRadius: 6, // Slightly smaller to account for wrapper border
       width: 32,
       height: 32,
       backgroundColor: colors.background.muted,
-      borderWidth: isSelected ? 2 : 0,
-      borderColor: isSelected ? colors.info.default : colors.background.default,
     },
     accountName: {
       display: 'flex',
