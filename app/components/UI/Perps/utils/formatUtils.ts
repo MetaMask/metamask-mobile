@@ -723,8 +723,7 @@ export const parsePercentageString = (formattedValue: string): number => {
 export const formatTransactionDate = (timestamp: number): string => {
   const date = new Date(timestamp);
   const dateStr = getIntlDateTimeFormatter('en-US', {
-    year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
   }).format(date);
   const timeStr = getIntlDateTimeFormatter('en-US', {

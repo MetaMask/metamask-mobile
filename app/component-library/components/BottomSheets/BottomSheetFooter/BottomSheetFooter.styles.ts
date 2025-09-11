@@ -37,6 +37,7 @@ const styleSheet = (params: {
           buttonsAlignment === ButtonsAlignment.Horizontal ? 'row' : 'column',
         paddingVertical: 4,
         paddingHorizontal: 8,
+        marginHorizontal: 12,
       } as ViewStyle,
       style,
     ) as ViewStyle,

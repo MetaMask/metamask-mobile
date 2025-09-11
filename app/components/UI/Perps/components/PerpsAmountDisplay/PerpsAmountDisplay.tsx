@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Text as RNText, TouchableOpacity, View } from 'react-native';
+import { Animated, TouchableOpacity, View } from 'react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
   TextColor,
@@ -76,21 +76,18 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         </Text>
       )}
       <View style={styles.amountRow}>
-        <RNText
+        <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          style={[
-            showTokenAmount && tokenAmount && tokenSymbol
-              ? styles.amountValueToken
-              : styles.amountValue,
-            isActive && styles.amountValueActive,
-          ]}
+          variant={TextVariant.DisplayLG}
+          color={TextColor.Default}
+          style={styles.amountValue}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
             : amount
             ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
             : '$0'}
-        </RNText>
+        </Text>
         {isActive && (
           <Animated.View
             testID="cursor"

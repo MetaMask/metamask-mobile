@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -25,7 +25,7 @@ const createStyles = (colors: Colors) =>
       borderTopColor: colors.border.muted,
       paddingHorizontal: 24,
       paddingTop: 16,
-      paddingBottom: 32,
+      paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     },
     sliderSection: {
       paddingHorizontal: 32,
@@ -36,7 +36,10 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       flex: 1,
       flexGrow: 1,
-      gap: 2,
+      gap: 1,
+    },
+    detailItemWrapper: {
+      paddingVertical: 12,
     },
     detailItem: {
       backgroundColor: colors.background.section,
@@ -81,13 +84,13 @@ const createStyles = (colors: Colors) =>
     percentageButtonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingBottom: 8,
+      paddingBottom: 12,
       gap: 8,
+      paddingHorizontal: 16,
     },
     percentageButton: {
       flex: 1,
-      minWidth: 0, // Ensures buttons can shrink properly
+      minWidth: 0,
     },
     keypad: {
       paddingHorizontal: 16,

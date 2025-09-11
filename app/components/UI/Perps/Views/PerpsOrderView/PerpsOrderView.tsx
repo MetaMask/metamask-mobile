@@ -785,11 +785,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
           {/* Leverage */}
           <View style={[styles.detailItem, styles.detailItemFirst]}>
             <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
-              <ListItem>
+              <ListItem style={styles.detailItemWrapper}>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
+                      variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                     >
                       {strings('perps.order.leverage')}
@@ -808,10 +808,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text
-                    variant={TextVariant.BodyLGMedium}
-                    color={TextColor.Default}
-                  >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
                   </Text>
                 </ListItemColumn>
@@ -823,10 +820,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
           {orderForm.type === 'limit' && (
             <View style={styles.detailItem}>
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
-                <ListItem>
+                <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
+                      variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                     >
                       {strings('perps.order.limit_price')}
@@ -834,7 +831,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
+                      variant={TextVariant.BodyMD}
                       color={TextColor.Default}
                     >
                       {orderForm.limitPrice
@@ -853,11 +850,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
               onPress={handleTPSLPress}
               testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
             >
-              <ListItem>
+              <ListItem style={styles.detailItemWrapper}>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
+                      variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                     >
                       {strings('perps.order.tp_sl')}
@@ -876,10 +873,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text
-                    variant={TextVariant.BodyLGMedium}
-                    color={TextColor.Default}
-                  >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {tpSlDisplayText}
                   </Text>
                 </ListItemColumn>
@@ -889,7 +883,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
         </View>
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
+        <View
+          style={[
+            styles.infoSection,
+            // TODO: Remove negative margin
+            { marginBottom: orderValidation.errors.length > 0 ? 16 : -16 },
+          ]}
+        >
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

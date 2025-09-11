@@ -8,11 +8,12 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
-import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
-
-// E2E environment setup - mocks auto-configure via isE2E flag
+import PerpsE2E from '../../framework/PerpsE2E';
+import Assertions from '../../framework/Assertions';
+import Matchers from '../../framework/Matchers';
+import { PerpsPositionsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
@@ -40,29 +41,47 @@ describe(RegressionTrade('Perps Position'), () => {
 
         await WalletActionsBottomSheet.tapPerpsButton();
 
+        await device.disableSynchronization();
         await PerpsMarketListView.tapFirstMarketRowItem();
         await PerpsMarketDetailsView.tapLongButton();
-        await PerpsOrderView.tapTakeProfitButton();
-        await PerpsView.tapTakeProfitPercentageButton(1);
-        await PerpsView.tapStopLossPercentageButton(1);
-        await PerpsView.tapSetTpslButton();
+
         await PerpsView.tapPlaceOrderButton();
 
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
-        // Wait for screen ready and assert Close Position availability
-        await PerpsMarketDetailsView.waitForScreenReady();
-        await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+        await PerpsView.tapBackButtonPositionSheet();
+        await PerpsView.tapBackButtonMarketList();
 
-        await PerpsView.tapClosePositionButton();
+        // add price change and liquidation -> not yet liquidated
+        await PerpsE2E.updateMarketPrice('BTC', '80000.00');
+        await PerpsE2E.triggerLiquidation('BTC');
+        logger.info('🔥 E2E Mock: Liquidation triggered. Not yet liquidated');
 
-        logger.info('📉 E2E Mock: Preparing to close position');
+        // Assertion 1: still have 2 positions (the default and the recently opened)
+        await PerpsView.ensurePerpsTabPositionVisible('BTC', 5, 'long', 0);
+        await PerpsView.ensurePerpsTabPositionVisible('BTC', 3, 'long', 1);
 
-        await PerpsView.tapClosePositionBottomSheetButton();
+        // add price change and force liquidation - BTC below 30k triggers default BTC liquidation
+        await PerpsE2E.updateMarketPrice('BTC', '30000.00');
+        await PerpsE2E.triggerLiquidation('BTC');
+        logger.info('🔥 E2E Mock: Liquidation triggered. Liquidated');
 
-        logger.info('🎉 E2E Mock: Position closed successfully');
-        logger.info('💰 E2E Mock: Balance updated with P&L');
+        // Assertion 2: only BTC 3x is visible
+        // 1) The expected (first item) exists and is visible
+        await Assertions.expectElementToBeVisible(
+          PerpsView.getPositionItem('BTC', 3, 'long', 0),
+          { description: 'BTC 3x long en índice 0' },
+        );
+
+        // 2) There is no second item of position (verification by index with base ID)
+        const secondItem = (await Matchers.getElementByID(
+          PerpsPositionsViewSelectorsIDs.POSITION_ITEM,
+          1,
+        )) as unknown as DetoxElement;
+        await Assertions.expectElementToNotBeVisible(secondItem, {
+          description: 'No second position card should be visible',
+        });
       },
     );
   });

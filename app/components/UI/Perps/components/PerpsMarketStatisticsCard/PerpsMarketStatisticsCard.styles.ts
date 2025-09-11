@@ -13,8 +13,7 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     },
     statisticsItem: {
       flex: 1,
-      backgroundColor: theme.colors.background.alternative,
-      padding: 16,
+      padding: 4,
       borderRadius: 8,
     },
     statisticsLabelContainer: {
