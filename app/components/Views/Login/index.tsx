@@ -622,7 +622,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingExistingSocialLogin });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      if (oauthLoginSuccess) {
+      if (isComingFromOauthOnboarding) {
         await navigateToHome();
       } else {
         await checkMetricsUISeen();
@@ -654,7 +654,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      if (oauthLoginSuccess) {
+      if (isComingFromOauthOnboarding) {
         await navigateToHome();
       } else {
         await checkMetricsUISeen();
