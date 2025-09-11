@@ -2767,8 +2767,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
