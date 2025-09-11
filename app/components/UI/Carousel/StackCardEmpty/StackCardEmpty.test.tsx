@@ -7,13 +7,39 @@ import { StackCardEmpty } from './StackCardEmpty';
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),
+    color: jest.fn(() => '#000000'),
   }),
+}));
+
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => ({
+  Box: 'View',
+  Text: 'Text',
+  TextVariant: {
+    BodyMd: 'BodyMd',
+  },
+  TextColor: {
+    TextAlternative: 'TextAlternative',
+  },
+  FontWeight: {
+    Medium: 'Medium',
+  },
 }));
 
 jest.mock('../animations/animationTimings', () => ({
   ANIMATION_TIMINGS: {
     EMPTY_STATE_IDLE_TIME: 500,
   },
+}));
+
+// Mock i18n
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => {
+    const translations = {
+      'wallet.carousel.empty_state': "You're all caught up!",
+    };
+    return translations[key] || key;
+  }),
 }));
 
 describe('StackCardEmpty', () => {
