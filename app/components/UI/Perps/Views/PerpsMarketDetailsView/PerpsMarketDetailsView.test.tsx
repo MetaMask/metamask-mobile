@@ -1112,7 +1112,6 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Notification tooltip should not be visible
       expect(
         queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
       ).toBeOnTheScreen();
@@ -1131,7 +1130,6 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Notification tooltip should not be visible
       expect(
         queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
       ).toBeNull();
@@ -1150,7 +1148,6 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Notification tooltip should not be visible even when navigating from order success
       expect(
         queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
       ).toBeNull();
