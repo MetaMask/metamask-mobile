@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "Gửi",
     "buy_button": "Mua",
-    "fund_button": "Fund",
     "token_marketplace": "Thị trường token",
     "sell_button": "Withdraw",
     "receive_button": "Nhận",

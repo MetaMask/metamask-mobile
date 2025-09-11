@@ -59,7 +59,7 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to buy page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
@@ -76,7 +76,7 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to sell page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
@@ -93,7 +93,7 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
 
   it('should maintain account selection across ramp flows', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
@@ -101,7 +101,7 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
       await Assertions.expectTextDisplayed('Account 3');
       await BuildQuoteView.tapCancelButton();
       await TabBarComponent.tapWallet();
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await Assertions.expectTextDisplayed('Account 3', {

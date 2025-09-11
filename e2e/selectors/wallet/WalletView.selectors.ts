@@ -75,7 +75,7 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
   // Wallet-specific action buttons to avoid conflicts with TokenOverview
-  WALLET_FUND_BUTTON: 'wallet-fund-button',
+  WALLET_BUY_BUTTON: 'wallet-buy-button',
   WALLET_SWAP_BUTTON: 'wallet-swap-button',
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',

@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "보내기",
     "buy_button": "구매",
-    "fund_button": "Fund",
     "token_marketplace": "토큰 마켓플레이스",
     "sell_button": "Withdraw",
     "receive_button": "받기",

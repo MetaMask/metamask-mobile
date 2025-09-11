@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "Enviar",
     "buy_button": "Comprar",
-    "fund_button": "Fund",
     "token_marketplace": "Marketplace de tokens",
     "sell_button": "Withdraw",
     "receive_button": "Receber",
