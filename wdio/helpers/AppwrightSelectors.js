@@ -39,12 +39,49 @@ export default class AppwrightSelectors {
     return device.webDriverClient.capabilities.platformName === 'iOS' || device.webDriverClient.capabilities.platformName === 'ios';
   }
 
+
   static isAndroid(device) {
     return device.webDriverClient.capabilities.platformName === 'android' || device.webDriverClient.capabilities.platformName === 'Android';
   }
 
   static async hideKeyboard(device) {
     if (AppwrightSelectors.isAndroid(device)) await device.webDriverClient.hideKeyboard(); // only needed for Android
+  }
+
+  static async dismissAlertWithTimeout(device, timeoutMs = 5000) {
+    const isIOS = AppwrightSelectors.isIOS(device);
+    const timeout = isIOS ? timeoutMs : 2000; // Longer timeout for iOS
+    
+    try {
+      // Set a custom timeout for the alert dismissal
+      const originalTimeout = device.webDriverClient.timeouts.implicit;
+      device.webDriverClient.timeouts.implicit = timeout;
+      
+      await device.webDriverClient.dismissAlert();
+      console.log(`✅ Alert dismissed (${isIOS ? 'iOS' : 'Android'}) with ${timeout}ms timeout`);
+      
+      // Restore original timeout
+      device.webDriverClient.timeouts.implicit = originalTimeout;
+    } catch (error) {
+      // Restore original timeout even if dismissal fails
+      device.webDriverClient.timeouts.implicit = originalTimeout;
+      
+      if (error.message.includes('no such alert')) {
+        console.log('ℹ️ No alert to dismiss');
+      } else {
+        console.log(`⚠️ Alert dismissal failed: ${error.message}`);
+        throw error;
+      }
+    }
+  }
+
+  static async dismissAlert(device) {
+    // Simple wrapper that uses appropriate timeout for platform
+    const isIOS = AppwrightSelectors.isIOS(device);
+    const timeout = isIOS ? 8000 : 2000; // 8 seconds for iOS, 2 for Android
+    await device.waitForTimeout(timeout);
+    return await device.webDriverClient.dismissAlert();
+
   }
 
   static async scrollIntoView(device, element) {

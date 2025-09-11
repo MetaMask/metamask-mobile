@@ -20,35 +20,127 @@ import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selec
  * @param {Object} device - The device object from Appwright
  */
 export async function dismissSystemDialogs(device) {
-  await device.waitForTimeout(3000);
+  if (!AppwrightSelectors.isAndroid(device)) {
+    console.log('system alerts are accepted as expected on android');
+    return;
+  }
+  try {
+    await AppwrightSelectors.dismissAlert(device);
+  } catch (error) {
+    // Ignore "no such alert" errors - this is normal when no dialogs are present
+    if (
+      !error.message.includes('no such alert') &&
+      !error.message.includes('modal dialog when one was not open')
+    ) {
+      console.log(`Alert dismissal error: ${error.message}`);
+    }
+  }
+}
+
+/**
+ * Safe element interaction that dismisses alerts before and after tapping
+ * Use this instead of direct element.tap() calls for critical elements
+ * @param {Object} element - The element to tap
+ * @param {Object} device - The device object
+ * @param {string} elementName - Name of element for logging
+ */
+export async function safeTap(element, device, elementName = 'element') {
+  // Dismiss any alerts before tapping
+  await dismissSystemDialogs(device);
 
   try {
-    // Wait 3 seconds for dialog to appear
+    await element.tap();
+    console.log(`Successfully tapped ${elementName}`);
+  } catch (error) {
+    console.log(
+      `Failed to tap ${elementName}, trying alert dismissal and retry...`,
+    );
 
-    // Try common permission dialog selectors using AppwrightSelectors
-    const dialogSelectors = ['Allow', 'OK', 'Allow Notifications'];
+    // Try dismissing alerts and retry once
+    await dismissSystemDialogs(device);
+    await device.waitForTimeout(1000);
 
-    for (const selector of dialogSelectors) {
-      try {
-        const allowButton = await AppwrightSelectors.getElementByCatchAll(
-          device,
-          selector,
+    try {
+      await element.tap();
+      console.log(`Successfully tapped ${elementName} on retry`);
+    } catch (retryError) {
+      console.log(
+        `Failed to tap ${elementName} even after retry: ${retryError.message}`,
+      );
+      throw retryError;
+    }
+  }
+
+  // Dismiss any alerts that appeared after tapping
+  await dismissSystemDialogs(device);
+}
+
+/**
+ * Safe element interaction with visibility check
+ * Ensures element is visible before attempting to tap
+ * @param {Object} element - The element to tap
+ * @param {Object} device - The device object
+ * @param {string} elementName - Name of element for logging
+ */
+export async function safeTapWithVisibility(
+  element,
+  device,
+  elementName = 'element',
+) {
+  // Dismiss any alerts first
+  await dismissSystemDialogs(device);
+
+  // Wait for element to be visible
+  try {
+    await element.isVisible({ timeout: 5000 });
+  } catch (error) {
+    console.log(
+      `⚠️ ${elementName} not visible, dismissing alerts and retrying...`,
+    );
+    await dismissSystemDialogs(device);
+    await element.isVisible({ timeout: 5000 });
+  }
+
+  // Now tap safely
+  await safeTap(element, device, elementName);
+}
+
+/**
+ * Handle delayed alerts that appear during test execution
+ * Call this at critical points in your test flow
+ * @param {Object} device - The device object
+ * @param {number} maxAttempts - Maximum number of attempts to dismiss alerts
+ */
+export async function handleDelayedAlerts(device, maxAttempts = 3) {
+  if (!AppwrightSelectors.isAndroid(device)) {
+    return; // Only handle alerts on Android
+  }
+
+  console.log('🔍 Checking for delayed alerts...');
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await AppwrightSelectors.dismissAlert(device);
+      console.log(`✅ Dismissed delayed alert (attempt ${attempt})`);
+
+      // Wait a bit to see if more alerts appear
+      await device.waitForTimeout(1000);
+    } catch (error) {
+      if (
+        error.message.includes('no such alert') ||
+        error.message.includes('modal dialog when one was not open')
+      ) {
+        console.log(`ℹ️ No more alerts found (attempt ${attempt})`);
+        break;
+      } else {
+        console.log(
+          `⚠️ Alert dismissal failed on attempt ${attempt}: ${error.message}`,
         );
-        if (allowButton) {
-          await device.tap(allowButton);
-          console.log(`Tapped permission dialog button: ${selector}`);
-          return;
+        if (attempt === maxAttempts) {
+          throw error;
         }
-      } catch (e) {
-        // Continue to next selector
       }
     }
-
-    console.log(
-      'No permission dialog found - autoAcceptAlerts may have handled it',
-    );
-  } catch (error) {
-    console.debug('Error handling permission dialog:', error.message);
   }
 }
 
@@ -161,15 +253,24 @@ export async function login(device, scenarioType) {
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   // Only skip perps onboarding on Android devices
-  if (!AppwrightSelectors.isIOS(device)) {
-    console.log('Skipping perps onboarding skip - not an iOS device');
+  if (!AppwrightSelectors.isAndroid(device)) {
+    console.log('Skipping perps onboarding skip - not an Android device');
     return;
   }
 
-  // console.log('No perps onboarding! (Android only)');
-  const button = await AppwrightSelectors.getElementByID(
-    device,
-    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
-  );
-  await button.tap();
+  try {
+    console.log('Looking for perps onboarding button...');
+    const button = await AppwrightSelectors.getElementByID(
+      device,
+      PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+    );
+
+    // Use safe tap to handle any alerts that might interfere
+    await safeTapWithVisibility(button, device, 'perps onboarding button');
+    console.log('Perps onboarding dismissed');
+  } catch (error) {
+    console.log(
+      `ℹPerps onboarding button not found or already dismissed: ${error.message}`,
+    );
+  }
 }
