@@ -1108,7 +1108,7 @@
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
-      "position_close_order_placed": "Position close order placed",
+      "position_close_order_placed": "Placed order to close position",
       "partially_closing_position": "Partially closing position",
       "partial_close_submitted": "Partial close submitted",
       "position_partially_closed": "Position partially closed",
