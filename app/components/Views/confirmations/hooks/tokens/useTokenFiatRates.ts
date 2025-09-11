@@ -25,7 +25,7 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
         );
 
         const token = chainTokens.find(
-          (t) => t.tokenAddress.toLowerCase() === address.toLowerCase(),
+          (t) => t?.tokenAddress?.toLowerCase() === address.toLowerCase(),
         );
 
         const networkConfiguration = networkConfigurations[chainId];
