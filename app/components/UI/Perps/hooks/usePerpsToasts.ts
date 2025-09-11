@@ -15,6 +15,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
 import { OrderDirection } from '../types';
 import { formatDurationForDisplay } from '../utils/time';
+import { formatPerpsFiat } from '../utils/formatUtils';
 
 export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
@@ -22,9 +23,10 @@ export type PerpsToastOptions = ToastOptions & {
 export interface PerpsToastOptionsConfig {
   accountManagement: {
     deposit: {
-      success: (amountFormatted: string) => PerpsToastOptions;
+      success: (amount: string) => PerpsToastOptions;
       inProgress: (
         processingTimeInSeconds: number | undefined,
+        transactionId: string,
       ) => PerpsToastOptions;
       error: PerpsToastOptions;
     };
@@ -109,6 +111,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
     };
@@ -153,6 +156,7 @@ const getPerpsToastLabels = (primary: string, secondary?: string) => {
 };
 
 const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
+  // TODO: Determine if necessary or if it causes persistent toasts.
   hasNoTimeout: false,
 };
 
@@ -170,8 +174,8 @@ const usePerpsToasts = (): {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.CheckBold,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.primary.default,
+        iconColor: theme.colors.accent03.dark,
+        backgroundColor: theme.colors.accent03.normal,
         hapticsType: NotificationFeedbackType.Success,
       },
       // Intentional duplication for now to avoid coupling with success options.
@@ -179,16 +183,24 @@ const usePerpsToasts = (): {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
+        iconColor: theme.colors.accent04.dark,
+        backgroundColor: theme.colors.accent04.normal,
+        hapticsType: NotificationFeedbackType.Warning,
+      },
+      info: {
+        ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Info,
         iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.primary.default,
+        backgroundColor: theme.colors.background.alternative,
         hapticsType: NotificationFeedbackType.Warning,
       },
       error: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.error.default,
+        iconColor: theme.colors.accent01.dark,
+        backgroundColor: theme.colors.accent01.light,
         hapticsType: NotificationFeedbackType.Error,
       },
     }),
@@ -209,6 +221,18 @@ const usePerpsToasts = (): {
         toastRef?.current?.closeToast();
         navigation.navigate(Routes.PERPS.ROOT);
       },
+      goToActivity: (transactionId: string) => {
+        toastRef?.current?.closeToast();
+        // Navigate to the Transactions tab first
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+
+        // Then use a timeout to navigate to the specific transaction details
+        setTimeout(() => {
+          navigation.navigate(Routes.TRANSACTION_DETAILS, {
+            transactionId,
+          });
+        }, 100);
+      },
     }),
     [navigation, toastRef],
   );
@@ -218,16 +242,27 @@ const usePerpsToasts = (): {
     () => ({
       accountManagement: {
         deposit: {
-          success: (amountFormatted: string) => ({
-            ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.deposit.success_toast'),
-              strings('perps.deposit.success_message', {
-                amount: amountFormatted,
-              }),
-            ),
-          }),
-          inProgress: (processingTimeInSeconds: number | undefined) => {
+          success: (amount: string) => {
+            let subtext = strings('perps.deposit.funds_are_ready_to_trade');
+
+            if (amount && amount !== '0') {
+              subtext = strings('perps.deposit.success_message', {
+                amount: formatPerpsFiat(amount),
+              });
+            }
+
+            return {
+              ...perpsBaseToastOptions.success,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.deposit.success_toast'),
+                subtext,
+              ),
+            };
+          },
+          inProgress: (
+            processingTimeInSeconds: number | undefined,
+            transactionId: string,
+          ) => {
             let processingMessage = strings(
               'perps.deposit.funds_available_momentarily',
             );
@@ -244,12 +279,23 @@ const usePerpsToasts = (): {
               );
             }
 
+            let closeButtonOptions;
+
+            if (processingTimeInSeconds) {
+              closeButtonOptions = {
+                label: strings('perps.deposit.track'),
+                onPress: () => navigationHandlers.goToActivity(transactionId),
+                variant: ButtonVariants.Link,
+              };
+            }
+
             return {
               ...perpsBaseToastOptions.inProgress,
               labelOptions: getPerpsToastLabels(
                 strings('perps.deposit.in_progress'),
                 processingMessage,
               ),
+              closeButtonOptions,
             };
           },
           error: {
@@ -265,16 +311,18 @@ const usePerpsToasts = (): {
             ...perpsBaseToastOptions.inProgress,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.processing_title'),
-              strings('perps.withdrawal.eta_will_be_shared_shortly'),
             ),
           },
           withdrawalSuccess: (amount: string, assetSymbol: string) => ({
             ...perpsBaseToastOptions.success,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.success_toast'),
-              strings('perps.withdrawal.arrival_time', {
-                amount,
+              strings('perps.withdrawal.success_toast_description', {
+                amount: amount
+                  ? (parseFloat(amount) - 1).toFixed(2)
+                  : undefined,
                 symbol: assetSymbol,
+                networkName: 'Arbitrum',
               }),
             ),
           }),
@@ -295,7 +343,7 @@ const usePerpsToasts = (): {
             amount: string,
             assetSymbol: string,
           ) => ({
-            ...perpsBaseToastOptions.success,
+            ...perpsBaseToastOptions.inProgress,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_submitted'),
               strings('perps.order.order_placement_subtitle', {
@@ -312,9 +360,6 @@ const usePerpsToasts = (): {
             assetSymbol: string,
           ) => ({
             ...perpsBaseToastOptions.success,
-            iconName: IconName.Check,
-            iconColor: theme.colors.primary.default,
-            backgroundColor: theme.colors.background.default,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_filled'),
               strings('perps.order.order_placement_subtitle', {
@@ -360,9 +405,6 @@ const usePerpsToasts = (): {
             assetSymbol: string,
           ) => ({
             ...perpsBaseToastOptions.success,
-            iconName: IconName.Check,
-            iconColor: theme.colors.primary.default,
-            backgroundColor: theme.colors.background.default,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_placed'),
               strings('perps.order.order_placement_subtitle', {
@@ -533,6 +575,17 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              switchToMarketOrderMissingLimitPrice: {
+                ...perpsBaseToastOptions.info,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.order_type_reverted_to_market_order',
+                  ),
+                  strings(
+                    'perps.close_position.you_need_set_price_limit_order',
+                  ),
+                ),
+              },
             },
           },
         },
@@ -551,7 +604,7 @@ const usePerpsToasts = (): {
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.please_set_a_limit_price'),
               strings(
-                'perps.order.validation.limit_price_must_be_set_before_configuing_tpsl',
+                'perps.order.validation.limit_price_must_be_set_before_configuring_tpsl',
               ),
             ),
           },
@@ -584,9 +637,8 @@ const usePerpsToasts = (): {
       navigationHandlers,
       perpsBaseToastOptions.error,
       perpsBaseToastOptions.inProgress,
+      perpsBaseToastOptions.info,
       perpsBaseToastOptions.success,
-      theme.colors.background.default,
-      theme.colors.primary.default,
     ],
   );
 
