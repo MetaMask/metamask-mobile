@@ -64,6 +64,7 @@ const QuoteDetailsCard = () => {
     estimatedPoints,
     isLoading: isRewardsLoading,
     shouldShowRewardsRow,
+    hasError: hasRewardsError,
   } = useRewards({
     activeQuote,
     isQuoteLoading,
@@ -278,6 +279,7 @@ const QuoteDetailsCard = () => {
               tooltip: {
                 title: strings('bridge.points_tooltip'),
                 content: strings('bridge.points_tooltip_content'),
+                size: TooltipSizes.Sm,
               },
             }}
             value={{
@@ -288,13 +290,22 @@ const QuoteDetailsCard = () => {
                   gap={4}
                 >
                   <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
-                  {!isRewardsLoading && estimatedPoints !== null && (
+                  {!isRewardsLoading && (
                     <Text variant={TextVariant.BodyMD}>
-                      {estimatedPoints.toString()}
+                      {hasRewardsError
+                        ? strings('bridge.unable_to_load')
+                        : estimatedPoints?.toString() ?? ''}
                     </Text>
                   )}
                 </Box>
               ),
+              ...(hasRewardsError && {
+                tooltip: {
+                  title: strings('bridge.points_error'),
+                  content: strings('bridge.points_error_content'),
+                  size: TooltipSizes.Sm,
+                },
+              }),
             }}
           />
         )}

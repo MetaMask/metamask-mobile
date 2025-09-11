@@ -218,7 +218,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           delayPressOut={0}
         >
           <Text
-            variant={TextVariant.BodyMDBold}
+            variant={TextVariant.BodySMBold}
             style={isActive ? null : styles.filterTabText}
           >
             {strings(`perps.transactions.tabs.${tab.toLowerCase()}`)}
@@ -348,6 +348,13 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     [],
   );
 
+  const filterTabDescription = useMemo(() => {
+    if (activeFilter === 'Funding') {
+      return strings('perps.transactions.tabs.funding_description');
+    }
+    return null;
+  }, [activeFilter]);
+
   return (
     <View style={styles.container}>
       <View style={styles.filterContainer} pointerEvents="box-none">
@@ -361,6 +368,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           {filterTabs.map(renderFilterTab)}
         </ScrollView>
       </View>
+
+      {filterTabDescription && (
+        <View style={styles.tabDescription}>
+          <Text variant={TextVariant.BodySM}>{filterTabDescription}</Text>
+        </View>
+      )}
 
       <FlashList
         ref={flashListRef}

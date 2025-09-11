@@ -212,25 +212,30 @@ jobs:
             echo "No changes detected"
           fi
 
+  needs_e2e_build:
+    uses: ./.github/workflows/needs-e2e-build.yml
+
   build-android-apks:
     name: "Build Android APKs"
-    if: ${{ github.event_name != 'merge_group' }}
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
+    needs: [needs_e2e_build]
     uses: ./.github/workflows/build-android-e2e.yml
     secrets: inherit
 
   needs-e2e:
+    needs: [needs_e2e_build]
     uses: ./.github/workflows/needs-e2e.yml
 
   e2e-smoke-tests-android:
     name: "Android E2E Smoke Tests"
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && needs.needs-e2e.outputs.needs-e2e == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [build-android-apks, needs-e2e]
-    if: ${{ needs.needs-e2e.outputs.needs-e2e == 'true' }}
+    needs: [needs_e2e_build, build-android-apks, needs-e2e]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     secrets: inherit
 
@@ -450,7 +455,7 @@ jobs:
             if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
               echo "Android E2E tests failed"
               exit 1
-            fi            
+            fi
           fi
 
           echo "All required jobs passed"
@@ -480,3 +485,4 @@ jobs:
       GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
       SPREADSHEET_ID: ${{ secrets.GOOGLE_MERGE_QUEUE_SPREADSHEET_ID }}
       SHEET_NAME: ${{ secrets.GOOGLE_MERGE_QUEUE_SHEET_NAME }}
+
