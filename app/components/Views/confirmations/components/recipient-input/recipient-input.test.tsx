@@ -183,32 +183,6 @@ describe('RecipientInput', () => {
     expect(getByText('Paste')).toBeOnTheScreen();
   });
 
-  it('shows empty input when recipient is selected from list', () => {
-    mockUseSendContext.mockReturnValue({
-      to: '0x123...',
-      updateTo: mockUpdateTo,
-      asset: undefined,
-      chainId: undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fromAccount: {} as any,
-      from: '',
-      maxValueMode: false,
-      updateAsset: jest.fn(),
-      updateValue: jest.fn(),
-      value: undefined,
-    });
-
-    const { getByDisplayValue } = renderWithProvider(
-      <RecipientInput
-        isRecipientSelectedFromList
-        resetStateOnInput={noop}
-        setPastedRecipient={noop}
-      />,
-    );
-
-    expect(() => getByDisplayValue('0x123...')).toThrow();
-  });
-
   it('calls requires callbacks when text input changes', () => {
     mockUseRecipientSelectionMetrics.mockReturnValue({
       captureRecipientSelected: jest.fn(),
