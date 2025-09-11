@@ -55,7 +55,6 @@ import {
   passcodeType,
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -163,10 +162,13 @@ const ImportFromSecretRecoveryPhrase = ({
     onTransactionComplete: false,
   });
 
-  const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhrase.length),
-    [seedPhrase],
-  );
+  const isSRPContinueButtonDisabled = useMemo(() => {
+    const updatedSeedPhrase = [...seedPhrase];
+    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
+      (word) => word !== '',
+    ).length;
+    return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
+  }, [seedPhrase]);
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -212,22 +214,46 @@ const ImportFromSecretRecoveryPhrase = ({
           }
 
           // Build the new seed phrase array
-          const newSeedPhrase = [
+          const mergedSeedPhrase = [
             ...seedPhrase.slice(0, index),
             ...splitArray,
             ...seedPhrase.slice(index + 1),
           ];
 
-          // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace && index === seedPhrase.length - 1) {
-            newSeedPhrase.push('');
+          const normalizedWords = mergedSeedPhrase
+            .map((w) => w.trim())
+            .filter((w) => w !== '');
+          const maxAllowed = Math.max(...SRP_LENGTHS);
+          const hasReachedMax = normalizedWords.length >= maxAllowed;
+          const isCompleteAndValid =
+            SRP_LENGTHS.includes(normalizedWords.length) &&
+            isValidMnemonic(normalizedWords.join(' '));
+
+          // Prepare next state, retaining a single trailing empty input only when appropriate
+          let nextSeedPhraseState = normalizedWords;
+          if (
+            isEndWithSpace &&
+            index === seedPhrase.length - 1 &&
+            !isCompleteAndValid &&
+            !hasReachedMax
+          ) {
+            nextSeedPhraseState = [...normalizedWords, ''];
+          }
+
+          // Always update component state before handling keyboard/focus
+          setSeedPhrase(nextSeedPhraseState);
+
+          if (isCompleteAndValid || hasReachedMax) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
           }
 
           const targetIndex = Math.min(
-            newSeedPhrase.length - 1,
+            nextSeedPhraseState.length - 1,
             index + splitArray.length,
           );
-          setSeedPhrase(newSeedPhrase);
           setTimeout(() => {
             setNextSeedPhraseInputFocusedIndex(targetIndex);
           }, 0);
@@ -410,16 +436,6 @@ const ImportFromSecretRecoveryPhrase = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
 
-  const termsOfUse = useCallback(async () => {
-    if (navigation) {
-      await navigateTermsOfUse(navigation.navigate);
-    }
-  }, [navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
-
   useEffect(
     () => () => {
       if (passwordSetupAttemptTraceCtxRef.current) {
@@ -600,6 +616,18 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        trace({
+          name: TraceName.OnboardingSRPAccountImportTime,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: {
+            is_social_login: oauthLoginSuccess,
+            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
+            biometrics_enabled: Boolean(biometryType),
+          },
+        });
         const authData = await Authentication.componentAuthenticationType(
           biometryChoice,
           rememberMe,
@@ -642,6 +670,7 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
+        endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
         endTrace({ name: TraceName.OnboardingExistingSrpImport });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -864,10 +893,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             setNextSeedPhraseInputFocusedIndex(index);
                           }}
                           onChangeText={(text) => {
-                            // Don't process masked text input
-                            if (!isFirstInput && text.includes('•')) {
-                              return;
-                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index);

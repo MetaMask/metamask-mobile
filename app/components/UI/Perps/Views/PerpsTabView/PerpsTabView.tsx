@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, TouchableOpacity, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -40,10 +40,17 @@ import {
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
-import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import styleSheet from './PerpsTabView.styles';
+import {
+  PerpsTabViewSelectorsIDs,
+  PerpsPositionsViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 
 interface PerpsTabViewProps {}
 
@@ -51,6 +58,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
@@ -158,10 +166,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
+  const coordinatedPress = useCoordinatedPress();
+
+  const memoizedPressHandler = useCallback(() => {
+    coordinatedPress(handleNewTrade);
+  }, [coordinatedPress, handleNewTrade]);
+
   const renderStartTradeCTA = () => (
-    <TouchableOpacity
+    <TouchablePerpsComponent
       style={styles.startTradeCTA}
-      onPress={handleNewTrade}
+      onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
       <View style={styles.startTradeContent}>
@@ -176,7 +190,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchableOpacity>
+    </TouchablePerpsComponent>
   );
 
   const renderOrdersSection = () => {
@@ -220,14 +234,36 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     return (
       <>
         <View style={styles.sectionHeader}>
-          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            style={styles.sectionTitle}
+            testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION_TITLE}
+          >
             {strings('perps.position.title')}
           </Text>
         </View>
         <View>
-          {positions.map((position, index) => (
-            <PerpsCard key={`${position.coin}-${index}`} position={position} />
-          ))}
+          {positions.map((position, index) => {
+            const sizeValue = parseFloat(position.size);
+            const directionSegment = Number.isFinite(sizeValue)
+              ? sizeValue > 0
+                ? 'long'
+                : sizeValue < 0
+                ? 'short'
+                : 'unknown'
+              : 'unknown';
+            return (
+              <View
+                key={`${position.coin}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+              >
+                <PerpsCard
+                  key={`${position.coin}-${index}`}
+                  position={position}
+                />
+              </View>
+            );
+          })}
           {renderStartTradeCTA()}
         </View>
       </>

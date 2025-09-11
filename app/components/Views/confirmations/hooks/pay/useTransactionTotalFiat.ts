@@ -11,12 +11,18 @@ import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFi
 import { TransactionBridgeQuote } from '../../utils/bridge';
 import { useFeeCalculations } from '../gas/useFeeCalculations';
 import { useDeepMemo } from '../useDeepMemo';
+import { useEffect } from 'react';
+import { createProjectLogger } from '@metamask/utils';
+
+const log = createProjectLogger('transaction-pay');
 
 type TransactionBridgeQuoteExtended = TransactionBridgeQuote & {
   requiredFiat: number;
 };
 
-export function useTransactionTotalFiat() {
+export function useTransactionTotalFiat({
+  log: isLoggingEnabled,
+}: { log?: boolean } = {}) {
   const fiatFormatter = useFiatFormatter();
   const { values } = useTransactionRequiredFiat();
   const transactionMeta = useTransactionMetadataOrThrow();
@@ -47,10 +53,18 @@ export function useTransactionTotalFiat() {
     ...getEstimatedNetworkFeeTotal(quotes, fiatFormatter),
     ...getMaxNetworkFeeTotal(quotes, fiatFormatter),
     ...getEstimatedNativeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
+    ...getTransactionFeeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
     ...getTotal(quotes, values, estimatedFeeFiatPrecise, fiatFormatter),
   };
 
-  return useDeepMemo(() => result, [result]);
+  const stableResult = useDeepMemo(() => result, [result]);
+
+  useEffect(() => {
+    if (!isLoggingEnabled) return;
+    log('Transaction total fiat', stableResult);
+  }, [isLoggingEnabled, stableResult]);
+
+  return stableResult;
 }
 
 function getTotal(
@@ -60,11 +74,7 @@ function getTotal(
   format: (value: BigNumber) => string,
 ) {
   const balanceTotal = requiredFiat
-    .filter(
-      (token) =>
-        !token.skipIfBalance ||
-        new BigNumber(token.balanceFiat).isLessThan(token.amountFiat),
-    )
+    .filter((token) => !token.skipIfBalance)
     .reduce(
       (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
       new BigNumber(0),
@@ -80,6 +90,24 @@ function getTotal(
   return {
     total: total.toString(10),
     totalFormatted: format(total),
+  };
+}
+
+function getTransactionFeeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const total = new BigNumber(
+    getBridgeFeeTotal(quotes, format).totalBridgeFee,
+  ).plus(
+    getEstimatedNativeTotal(quotes, estimatedGasFeeFiat, format)
+      .totalNativeEstimated,
+  );
+
+  return {
+    totalTransactionFee: total.toString(10),
+    totalTransactionFeeFormatted: format(total),
   };
 }
 

@@ -10,9 +10,8 @@ import React, {
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
-import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
-import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
+import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 
 interface PerpsConnectionContextValue {
@@ -49,15 +48,21 @@ export const PerpsConnectionProvider: React.FC<
   const [retryAttempts, setRetryAttempts] = useState(0);
   const pollIntervalRef = useRef<NodeJS.Timeout>();
 
-  // Enable deposit status monitoring and toasts at the provider level
-  // This ensures it runs only once for all Perps screens
-  usePerpsDepositStatus();
-
-  // Enable withdrawal status monitoring and toasts at the provider level
-  usePerpsWithdrawStatus();
-
   // Poll connection state to sync with singleton
   useEffect(() => {
+    // Skip polling in E2E mode to prevent timer interference
+    if (isE2E) {
+      // Set mock connected state for E2E
+      setConnectionState({
+        isConnected: true,
+        isConnecting: false,
+        isInitialized: true,
+        isDisconnecting: false,
+        error: null,
+      });
+      return;
+    }
+
     const updateState = () => {
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState((prevState) => {

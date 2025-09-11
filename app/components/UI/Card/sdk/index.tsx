@@ -10,7 +10,6 @@ import { useSelector } from 'react-redux';
 import { CardSDK } from './CardSDK';
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 export interface ICardSDK {
   sdk: CardSDK | null;
@@ -36,7 +35,6 @@ export const CardSDKProvider = ({
     if (cardFeatureFlag) {
       const cardSDK = new CardSDK({
         cardFeatureFlag,
-        rawChainId: LINEA_CHAIN_ID,
       });
       setSdk(cardSDK);
     } else {

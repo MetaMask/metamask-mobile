@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
@@ -31,10 +32,17 @@ import type { Position } from '../../controllers/types';
 import { usePerpsPerformance } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  getPerpsTPSLBottomSheetSelector,
+  PerpsTPSLBottomSheetSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
-import { formatPrice } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_POSITION_VIEW,
+} from '../../utils/formatUtils';
 
 // Quick percentage buttons constants - RoE percentages
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
@@ -54,6 +62,8 @@ interface PerpsTPSLBottomSheetProps {
   isUpdating?: boolean;
   leverage?: number; // For new orders
   marginRequired?: string; // For new orders
+  orderType?: 'market' | 'limit'; // Order type for new orders
+  limitPrice?: string; // Limit price for limit orders
 }
 
 const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
@@ -68,6 +78,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   initialStopLossPrice,
   isUpdating = false,
   leverage: propLeverage,
+  orderType,
+  limitPrice,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -94,6 +106,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     initialCurrentPrice ||
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
+  // Determine the entry price based on order type
+  // For limit orders, use the limit price as entry price if available
+  // For market orders or when limit price is not set, use current price
+  // Ensure we always have a valid price > 0 for calculations
+  const effectiveEntryPrice = position?.entryPrice
+    ? parseFloat(position.entryPrice)
+    : orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+    ? parseFloat(limitPrice)
+    : currentPrice > 0
+    ? currentPrice
+    : livePrice || initialCurrentPrice || 0;
+
   // Use the TPSL form hook for all state management and business logic
   const tpslForm = usePerpsTPSLForm({
     asset,
@@ -103,9 +127,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     initialTakeProfitPrice,
     initialStopLossPrice,
     leverage: propLeverage,
-    entryPrice: position?.entryPrice
-      ? parseFloat(position.entryPrice)
-      : currentPrice,
+    entryPrice: effectiveEntryPrice,
     isVisible,
   });
 
@@ -181,10 +203,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
-    const parseTakeProfitPrice = takeProfitPrice
+    // Check for non-empty strings (empty strings should be treated as undefined)
+    const parseTakeProfitPrice = takeProfitPrice?.trim()
       ? takeProfitPrice.replace(/[$,]/g, '')
       : undefined;
-    const parseStopLossPrice = stopLossPrice
+    const parseStopLossPrice = stopLossPrice?.trim()
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
@@ -248,6 +271,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ref={bottomSheetRef}
       shouldNavigateBack={false}
       onClose={handleClose}
+      testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
@@ -255,7 +279,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         {showOverlay && (
           <View style={styles.overlay}>
             <ActivityIndicator size="large" color={colors.primary.default} />
@@ -278,7 +302,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               {strings('perps.tpsl.current_price')}
             </Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {currentPrice ? formatPrice(currentPrice) : '--'}
+              {currentPrice
+                ? formatPerpsFiat(currentPrice, {
+                    ranges: PRICE_RANGES_POSITION_VIEW,
+                  })
+                : '--'}
             </Text>
           </View>
           <View style={styles.priceInfoRow}>
@@ -289,7 +317,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               {displayLiquidationPrice &&
               displayLiquidationPrice !== 'null' &&
               displayLiquidationPrice !== '0.00'
-                ? formatPrice(parseFloat(displayLiquidationPrice))
+                ? formatPerpsFiat(displayLiquidationPrice, {
+                    ranges: PRICE_RANGES_POSITION_VIEW,
+                  })
                 : '--'}
             </Text>
           </View>
@@ -329,11 +359,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveTP,
                 ]}
                 onPress={() => handleTakeProfitPercentageButton(percentage)}
+                testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
+                  percentage,
+                )}
               >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Default}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   +{percentage}%
                 </Text>
@@ -359,6 +393,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 keyboardType="numeric"
                 onFocus={handleTakeProfitPriceFocus}
                 onBlur={handleTakeProfitPriceBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.tpsl.usd_label')}
@@ -381,6 +417,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 keyboardType="numeric"
                 onFocus={handleTakeProfitPercentageFocus}
                 onBlur={handleTakeProfitPercentageBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 %
@@ -430,11 +468,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveSL,
                 ]}
                 onPress={() => handleStopLossPercentageButton(percentage)}
+                testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
+                  percentage,
+                )}
               >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Default}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   -{percentage}%
                 </Text>
@@ -460,6 +502,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 keyboardType="numeric"
                 onFocus={handleStopLossPriceFocus}
                 onBlur={handleStopLossPriceBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.tpsl.usd_label')}
@@ -482,6 +526,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 keyboardType="numeric"
                 onFocus={handleStopLossPercentageFocus}
                 onBlur={handleStopLossPercentageBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 %
@@ -496,7 +542,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </Text>
           )}
         </View>
-      </View>
+      </ScrollView>
 
       <BottomSheetFooter
         buttonPropsArray={[
