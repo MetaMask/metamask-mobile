@@ -564,6 +564,8 @@ const ImportFromSecretRecoveryPhrase = ({
             biometrics_enabled: Boolean(biometryType),
           },
         });
+
+        // latest ux changes - we are forcing user to enable biometric by default
         const authData = await Authentication.componentAuthenticationType(
           true,
           true,

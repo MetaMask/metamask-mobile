@@ -435,6 +435,7 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: true });
       const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
+      // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
         true,
         true,

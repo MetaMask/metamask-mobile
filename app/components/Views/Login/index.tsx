@@ -537,9 +537,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
       setLoading(true);
 
+      // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
-        biometryChoice,
-        rememberMe,
+        true,
+        true,
       );
       if (oauthLoginSuccess) {
         authType.oauth2Login = true;
