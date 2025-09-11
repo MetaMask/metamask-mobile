@@ -63,6 +63,28 @@ describe('useRouteParams', () => {
     });
   });
 
+  it('does not call function mockUpdateAsset is asset is already defined', async () => {
+    const asset = {
+      id: '123',
+      address: 'dummy_address',
+      chainId: 'summy_chainId',
+    };
+    mockUseParams.mockReturnValue({ asset });
+    const mockUpdateAsset = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      asset,
+      updateAsset: mockUpdateAsset,
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseAccountTokens.mockReturnValue([]);
+    mockUseNfts.mockReturnValue([]);
+
+    renderHookWithProvider(() => useRouteParams(), mockState);
+
+    await waitFor(() => {
+      expect(mockUpdateAsset).not.toHaveBeenCalled();
+    });
+  });
+
   it('call function mockUpdateAsset with token if returned by useAccountTokens', async () => {
     const asset = {
       id: '123',
