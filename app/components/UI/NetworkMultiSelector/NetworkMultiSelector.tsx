@@ -1,12 +1,12 @@
 // third party dependencies
 import React, { useCallback, useState, useMemo, memo } from 'react';
-import { View } from 'react-native';
 import { KnownCaipNamespace, CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { useStyles } from '../../../component-library/hooks/useStyles';
+import { Box } from '@metamask/design-system-react-native';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { PopularList } from '../../../util/networks/customNetworks';
 import CustomNetwork from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
@@ -18,6 +18,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
@@ -67,9 +68,20 @@ const NetworkMultiSelector = ({
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
+
+  const {
+    networksToUse,
+    areAllNetworksSelectedCombined,
+    isMultichainAccountsState2Enabled,
+  } = useNetworksToUse({
+    networks,
+    networkType: NetworkType.Popular,
+    areAllNetworksSelected,
+  });
+
   const { selectPopularNetwork, selectAllPopularNetworks } =
     useNetworkSelection({
-      networks,
+      networks: networksToUse,
     });
 
   const selectedChainIds = useMemo(
@@ -135,15 +147,21 @@ const NetworkMultiSelector = ({
 
   const additionalNetworksComponent = useMemo(
     () =>
-      namespace === KnownCaipNamespace.Eip155 ? (
-        <View
+      namespace === KnownCaipNamespace.Eip155 ||
+      isMultichainAccountsState2Enabled ? (
+        <Box
           style={styles.customNetworkContainer}
           testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
         >
           <CustomNetwork {...customNetworkProps} />
-        </View>
+        </Box>
       ) : null,
-    [namespace, styles.customNetworkContainer, customNetworkProps],
+    [
+      namespace,
+      customNetworkProps,
+      isMultichainAccountsState2Enabled,
+      styles.customNetworkContainer,
+    ],
   );
 
   const onSelectAllPopularNetworks = useCallback(async () => {
@@ -160,7 +178,7 @@ const NetworkMultiSelector = ({
   const selectAllNetworksComponent = useMemo(
     () => (
       <Cell
-        isSelected={areAllNetworksSelected}
+        isSelected={areAllNetworksSelectedCombined}
         variant={CellVariant.Select}
         title={strings('networks.all_popular_networks')}
         onPress={onSelectAllPopularNetworks}
@@ -171,7 +189,7 @@ const NetworkMultiSelector = ({
         }}
       />
     ),
-    [areAllNetworksSelected, onSelectAllPopularNetworks],
+    [areAllNetworksSelectedCombined, onSelectAllPopularNetworks],
   );
 
   return (
@@ -182,12 +200,12 @@ const NetworkMultiSelector = ({
     >
       <NetworkMultiSelectorList
         openModal={openModal}
-        networks={networks}
+        networks={networksToUse}
         selectedChainIds={selectedChainIds}
         onSelectNetwork={onSelectNetwork}
         additionalNetworksComponent={additionalNetworksComponent}
         selectAllNetworksComponent={selectAllNetworksComponent}
-        areAllNetworksSelected={areAllNetworksSelected}
+        areAllNetworksSelected={areAllNetworksSelectedCombined}
       />
     </ScrollView>
   );

@@ -13,6 +13,21 @@ import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
 
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    ...actual,
+    // Run focus effects as a normal effect during tests
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = effect();
+        return cleanup;
+      }, []);
+    },
+  };
+});
+
 const mockAccounts: RecipientType[] = [
   {
     accountName: 'Account 1',
@@ -169,9 +184,11 @@ describe('Recipient', () => {
     mockUseContacts.mockReturnValue(mockContacts);
 
     mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressValidated: undefined,
       toAddressWarning: undefined,
-      validateToAddress: jest.fn(),
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({
@@ -271,12 +288,22 @@ describe('Recipient', () => {
     expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
-  it('calls DNSResolver when address it is an EVMSendType on submission', () => {
-    mockUseToAddressValidation.mockReturnValue({
-      toAddressError: undefined,
-      toAddressWarning: undefined,
-      validateToAddress: jest.fn(),
+  it('call handleSubmitPress with reolved address when submitted', () => {
+    const mockHandleSubmitPress = jest.fn();
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPress,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
     });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: 'some_dummy_address',
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
     mockUseSendContext.mockReturnValue({
       to: '0x1234567890123456789012345678901234567890',
       updateTo: mockUpdateTo,
@@ -295,7 +322,7 @@ describe('Recipient', () => {
 
     fireEvent.press(getByTestId('review-button-send'));
 
-    expect(mockDoENSLookup).toHaveBeenCalledTimes(1);
+    expect(mockHandleSubmitPress).toHaveBeenCalledWith('some_dummy_address');
   });
 
   it('passes correct isRecipientSelectedFromList prop to RecipientInput initially', () => {
@@ -360,9 +387,11 @@ describe('Recipient', () => {
 
   it('renders warning banner when toAddressWarning is present', () => {
     mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressValidated: undefined,
       toAddressWarning: 'Warning',
-      validateToAddress: jest.fn(),
     });
 
     mockUseSendContext.mockReturnValue({
@@ -385,9 +414,11 @@ describe('Recipient', () => {
 
   it('renders warning banner and disabled button when toAddressWarning and toAddressError is present', () => {
     mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
       toAddressError: 'Error',
+      toAddressValidated: undefined,
       toAddressWarning: 'Warning',
-      validateToAddress: jest.fn(),
     });
 
     mockUseSendContext.mockReturnValue({
@@ -409,5 +440,41 @@ describe('Recipient', () => {
     expect(getByTestId('to-address-warning-banner')).toBeOnTheScreen();
     expect(queryByText('Review')).not.toBeOnTheScreen();
     expect(queryByText('Error')).toBeOnTheScreen();
+  });
+
+  it('button is disabled if loading returned by validating hook is true', () => {
+    const mockHandleSubmitPress = jest.fn();
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPress,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: true,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: 'Warning',
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByText } = renderWithProvider(<Recipient />);
+    fireEvent.press(getByText('Review'));
+
+    expect(mockHandleSubmitPress).not.toHaveBeenCalled();
   });
 });

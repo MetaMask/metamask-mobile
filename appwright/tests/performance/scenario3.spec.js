@@ -12,7 +12,7 @@ import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAc
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
-
+import { dismissSystemDialogs } from '../../utils/Flows.js';
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,
@@ -33,7 +33,6 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   WalletMainScreen.device = device;
   ImportFromSeedScreen.device = device;
   CreatePasswordScreen.device = device;
-
   const timer1 = new TimerHelper(
     'Time since the user clicks on "Get Started" button until the Term of Use screen is visible',
   );
@@ -117,7 +116,7 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   timer9.start();
   await WalletMainScreen.isTokenVisible('Ethereum');
   timer9.stop();
-
+  await dismissSystemDialogs(device);
   timer10.start();
   await WalletMainScreen.tapIdenticon();
   timer10.stop();
