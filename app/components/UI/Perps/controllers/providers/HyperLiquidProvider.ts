@@ -202,15 +202,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const supportedAssets = getSupportedPaths({ ...params, isTestnet });
     const bridgeInfo = getBridgeInfo(isTestnet);
 
+    const estimatedTimeString =
+      HYPERLIQUID_WITHDRAWAL_MINUTES > 1
+        ? strings('time.minutes_format_plural', {
+            count: HYPERLIQUID_WITHDRAWAL_MINUTES,
+          })
+        : strings('time.minutes_format', {
+            count: HYPERLIQUID_WITHDRAWAL_MINUTES,
+          });
+
     return supportedAssets.map((assetId) => ({
       assetId,
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
       constraints: {
         minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
-        estimatedTime: strings('time.minutes_format', {
-          count: HYPERLIQUID_WITHDRAWAL_MINUTES,
-        }),
+        estimatedTime: estimatedTimeString,
         fees: {
           fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
           token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,
