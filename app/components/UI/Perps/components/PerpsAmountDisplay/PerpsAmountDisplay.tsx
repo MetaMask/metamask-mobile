@@ -20,6 +20,7 @@ interface PerpsAmountDisplayProps {
   tokenAmount?: string;
   tokenSymbol?: string;
   showMaxAmount?: boolean;
+  hasError?: boolean;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
@@ -33,6 +34,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   tokenAmount,
   tokenSymbol,
   showMaxAmount = true,
+  hasError = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -83,6 +85,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               ? styles.amountValueToken
               : styles.amountValue,
             isActive && styles.amountValueActive,
+            hasError && styles.amountValueError,
           ]}
         >
           {showTokenAmount && tokenAmount && tokenSymbol

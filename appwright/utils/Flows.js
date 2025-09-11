@@ -153,13 +153,13 @@ export async function onboardingFlowImportSRP(device, srp) {
   CreatePasswordScreen.device = device;
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
-  await WelcomeScreen.clickGetStartedButton();
+  /*await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
 
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
 
-  await TermOfUseScreen.tapAcceptButton();
+  await TermOfUseScreen.tapAcceptButton();*/
   await OnboardingScreen.isScreenTitleVisible();
 
   await OnboardingScreen.tapHaveAnExistingWallet();
