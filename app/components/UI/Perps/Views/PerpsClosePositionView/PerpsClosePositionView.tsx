@@ -809,6 +809,7 @@ const PerpsClosePositionView: React.FC = () => {
         limitPrice={limitPrice}
         currentPrice={currentPrice}
         direction={isLong ? 'short' : 'long'} // Opposite direction for closing
+        isClosingPosition
       />
 
       {/* Tooltip Bottom Sheet */}

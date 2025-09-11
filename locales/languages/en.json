@@ -1050,7 +1050,9 @@
         "current_price": "Current price",
         "ask_price": "Ask price",
         "bid_price": "Bid price",
-        "difference_from_market": "Difference from market:"
+        "difference_from_market": "Difference from market:",
+        "limit_price_above": "Limit price is above current price",
+        "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
         "title": "Set Leverage",

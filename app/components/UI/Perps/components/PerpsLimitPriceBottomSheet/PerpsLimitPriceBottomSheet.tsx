@@ -37,6 +37,7 @@ interface PerpsLimitPriceBottomSheetProps {
   limitPrice?: string;
   currentPrice?: number;
   direction?: 'long' | 'short';
+  isClosingPosition?: boolean;
 }
 
 /**
@@ -57,6 +58,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   limitPrice: initialLimitPrice,
   currentPrice: passedCurrentPrice = 0,
   direction = 'long',
+  isClosingPosition = false,
 }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -183,6 +185,46 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   );
 
   /**
+   * Compute contextual warning based on limit price vs current price
+   * Open Long: warn if limit > current (above)
+   * Open Short: warn if limit < current (below)
+   * Close Long (isClosingPosition && direction === 'short'): warn if limit < current (below)
+   * Close Short (isClosingPosition && direction === 'long'): warn if limit > current (above)
+   */
+  const limitPriceWarning = React.useMemo(() => {
+    // Sanitize inputs
+    const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
+    const price = Number(currentPrice);
+
+    if (!limitPrice || isNaN(parsedLimit) || !price || price <= 0) {
+      return '';
+    }
+
+    // Opening orders
+    if (!isClosingPosition) {
+      if (direction === 'long' && parsedLimit > price) {
+        return strings('perps.order.limit_price_modal.limit_price_above');
+      }
+      if (direction === 'short' && parsedLimit < price) {
+        return strings('perps.order.limit_price_modal.limit_price_below');
+      }
+      return '';
+    }
+
+    // Closing positions: direction prop is opposite of the underlying position
+    // direction === 'short' => closing a LONG position
+    if (isClosingPosition && direction === 'short' && parsedLimit < price) {
+      return strings('perps.order.limit_price_modal.limit_price_below');
+    }
+    // direction === 'long' => closing a SHORT position
+    if (isClosingPosition && direction === 'long' && parsedLimit > price) {
+      return strings('perps.order.limit_price_modal.limit_price_above');
+    }
+
+    return '';
+  }, [limitPrice, currentPrice, direction, isClosingPosition]);
+
+  /**
    * Calculate limit price based on percentage from current market price
    * @param percentage - Percentage to add/subtract from current price
    * @returns Calculated price as string (e.g., "45123.50")
@@ -253,7 +295,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           </View>
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
-
+        {limitPriceWarning && (
+          <Text style={styles.errorText}>{limitPriceWarning}</Text>
+        )}
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
           {asset}-USD{' '}
