@@ -1004,6 +1004,7 @@
         "failed": "Order validation failed",
         "amount_required": "Order amount must be greater than 0",
         "minimum_amount": "Minimum order size is ${{amount}}",
+        "insufficient_funds": "Insufficient funds",
         "insufficient_balance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
         "invalid_leverage": "Leverage must be between {{min}}x and {{max}}x",
         "high_leverage_warning": "High leverage increases liquidation risk",
@@ -1053,7 +1054,9 @@
         "current_price": "Current price",
         "ask_price": "Ask price",
         "bid_price": "Bid price",
-        "difference_from_market": "Difference from market:"
+        "difference_from_market": "Difference from market:",
+        "limit_price_above": "Limit price is above current price",
+        "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
         "title": "Set Leverage",
@@ -1402,6 +1405,7 @@
         "date": "Date",
         "size": "Size",
         "entry_price": "Entry price",
+        "close_price": "Close price",
         "points": "Points",
         "fees": "Total fees",
         "pnl": "Net P&L"

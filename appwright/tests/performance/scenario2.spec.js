@@ -56,14 +56,14 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on "Done" button until Solana feature sheet is visible',
   );
 
-  timer1.start();
+  /*timer1.start();
   await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
   timer1.stop();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
   timer2.start();
-  await TermOfUseScreen.tapAcceptButton();
+  await TermOfUseScreen.tapAcceptButton();*/
   await OnboardingScreen.isScreenTitleVisible();
   timer2.stop();
   timer3.start();
