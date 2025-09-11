@@ -118,6 +118,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      // Enforce 9-digit limit (ignore non-digits like '.' or ',')
+      const digitCount = (value.match(/\d/g) || []).length;
+      if (digitCount > 9) {
+        return; // Ignore input that would exceed 9 digits
+      }
       setLimitPrice(value || '');
     },
     [],

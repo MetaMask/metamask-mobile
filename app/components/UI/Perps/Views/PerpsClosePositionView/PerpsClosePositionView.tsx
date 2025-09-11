@@ -321,6 +321,12 @@ const PerpsClosePositionView: React.FC = () => {
         setIsUserInputActive(true);
       }
 
+      // Enforce 9-digit limit (ignoring non-digits). Block the change if exceeded.
+      const digitCount = (adjustedValue.match(/\d/g) || []).length;
+      if (digitCount > 9) {
+        return; // Ignore input that would exceed 9 digits
+      }
+
       if (displayMode === 'usd') {
         // USD decimal input logic - preserve raw string for display
         // Use adjustedValue instead of original value

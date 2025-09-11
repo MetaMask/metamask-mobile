@@ -558,6 +558,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      // Enforce 9-digit limit (ignoring non-digits like separators)
+      const digitCount = (value.match(/\d/g) || []).length;
+      if (digitCount > 9) {
+        return; // Ignore input that would exceed 9 digits
+      }
       setAmount(value || '0');
 
       // Track position size entry with proper event properties
