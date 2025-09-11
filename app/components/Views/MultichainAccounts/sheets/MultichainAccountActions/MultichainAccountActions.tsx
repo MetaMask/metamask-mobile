@@ -12,6 +12,7 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AccountAction from '../../../AccountAction/AccountAction';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -28,6 +29,12 @@ import {
 } from './MultichainAccountActions.testIds';
 import { createAddressListNavigationDetails } from '../../AddressList/AddressList';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 
 export const createAccountGroupDetailsNavigationDetails =
   createNavigationDetails<{
@@ -62,6 +69,11 @@ const MultichainAccountActions = () => {
   const sheetRef = React.useRef<BottomSheetRef>(null);
   const { navigate, goBack } = useNavigation();
 
+  const handleOnClose = useCallback(() => {
+    // Close the entire modal stack by going back to the parent
+    goBack();
+  }, [goBack]);
+
   const goToAccountDetails = useCallback(() => {
     // Close the modal and navigate to account details
     goBack();
@@ -82,6 +94,16 @@ const MultichainAccountActions = () => {
   }, [navigate, accountGroup]);
 
   const goToAddresses = useCallback(() => {
+    // Start the trace before navigating to the address list to include the
+    // navigation and render times in the trace.
+    trace({
+      name: TraceName.ShowAccountAddressList,
+      op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'account.actions',
+      },
+    });
+
     // Close the modal and navigate to address list
     goBack();
     navigate(
@@ -90,16 +112,22 @@ const MultichainAccountActions = () => {
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           accountGroup.metadata.name
         }`,
+        onLoad: () => {
+          endTrace({ name: TraceName.ShowAccountAddressList });
+        },
       }),
     );
   }, [accountGroup.id, accountGroup.metadata.name, navigate, goBack]);
 
   return (
     <BottomSheet ref={sheetRef}>
+      <BottomSheetHeader onClose={handleOnClose}>
+        {accountGroup?.metadata?.name || 'Account Group'}
+      </BottomSheetHeader>
       <View style={styles.container}>
         <AccountAction
           actionTitle={strings('account_details.title')}
-          iconName={IconName.Add}
+          iconName={IconName.Details}
           onPress={goToAccountDetails}
           testID={MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS}
           style={styles.accountAction}

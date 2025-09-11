@@ -1169,7 +1169,7 @@
       "title": "Positionen",
       "card": {
         "entry_price": "Entry price",
-        "funding_cost": "Funding cost",
+        "funding_cost": "Funding",
         "liquidation_price": "Liq. Price",
         "take_profit": "Take profit",
         "stop_loss": "Stop loss",
@@ -2311,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Zur App zurückkehren",
+    "postNetworkSwitchTitle": "Netzwerk erfolgreich gewechselt",
     "description": "Bitte kehren Sie zur App zurück, um ihre Dienste weiter zu nutzen."
   },
   "sdk_feedback_modal": {

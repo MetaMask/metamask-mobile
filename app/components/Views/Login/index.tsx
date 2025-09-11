@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   View,
@@ -27,7 +27,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -109,7 +109,11 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -157,7 +161,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
+  // coming from oauth onboarding flow flag
+  const isComingFromOauthOnboarding = route?.params?.oauthLoginSuccess ?? false;
+
+  const { isDeletingInProgress, promptSeedlessRelogin } =
+    usePromptSeedlessRelogin();
+
+  const finalLoading = useMemo(
+    () => loading || isDeletingInProgress,
+    [loading, isDeletingInProgress],
+  );
+
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
 
   const track = (
     event: IMetaMetricsEvent,
@@ -172,7 +189,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleBackPress = () => {
-    if (!oauthLoginSuccess) {
+    if (!isComingFromOauthOnboarding) {
       Authentication.lockApp();
     } else {
       navigation.goBack();
@@ -185,7 +202,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtxFromRoute) {
       passwordLoginAttemptTraceCtxRef.current = trace({
@@ -194,11 +219,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         parentContext: onboardingTraceCtxFromRoute,
       });
     }
+  }, [route.params?.onboardingTraceCtx]);
 
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+  const [refreshAuthPref, setRefreshAuthPref] = useState(false);
+  useEffect(() => {
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+      // password outdated, reset biometric password and choice
+      Authentication.resetPassword()
+        .then(() => {
+          // set to fupate authPref
+          setRefreshAuthPref(true);
+        })
+        .catch((e) => {
+          Logger.error(e);
+        });
+    }
+  }, [isSeedlessPasswordOutdated]);
 
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
+  useEffect(() => {
     const getUserAuthPreferences = async () => {
       const authData = await Authentication.getType();
 
@@ -233,12 +272,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     };
 
     getUserAuthPreferences();
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [route?.params?.locked, refreshAuthPref]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -367,6 +401,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
+  const netInfo = useNetInfo();
   const handleSeedlessOnboardingControllerError = (
     seedlessError:
       | Error
@@ -374,6 +409,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       | SeedlessOnboardingControllerError,
   ) => {
     setLoading(false);
+
+    // if no network available
+    if (!netInfo.isConnected || !netInfo.isInternetReachable) {
+      const params: SuccessErrorSheetParams = {
+        title: strings(`error_sheet.no_internet_connection_title`),
+        description: strings(`error_sheet.no_internet_connection_description`),
+        descriptionAlign: 'left',
+        primaryButtonLabel: strings(
+          `error_sheet.no_internet_connection_button`,
+        ),
+        closeOnPrimaryButtonPress: true,
+        type: 'error',
+      };
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params,
+      });
+      return;
+    }
 
     if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
       if (
@@ -405,6 +459,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         setError(strings('login.seedless_password_outdated'));
         return;
       }
+    } else if (!isComingFromOauthOnboarding) {
+      // for non oauth login (rehydration) failure, prompt user to reset and rehydrate
+      // do we want to capture and report the error?
+      if (isMetricsEnabled()) {
+        captureException(seedlessError, {
+          tags: {
+            view: 'Re-login',
+            context:
+              'seedless flow unlock wallet failed - user consented to analytics',
+          },
+        });
+      }
+      promptSeedlessRelogin();
+      return;
     }
     const errMessage = seedlessError.message.replace(
       'SeedlessOnboardingController - ',
@@ -412,26 +480,27 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     );
     setError(errMessage);
 
-    // If user has already consented to analytics, report error using regular Sentry
-    if (isMetricsEnabled()) {
-      oauthLoginSuccess &&
+    // capture unexpected exception for oauth login (rehydration) failures
+    if (isComingFromOauthOnboarding) {
+      // If user has already consented to analytics, report error using regular Sentry
+      if (isMetricsEnabled()) {
         captureException(seedlessError, {
           tags: {
             view: 'Login',
             context: 'OAuth rehydration failed - user consented to analytics',
           },
         });
-    } else {
-      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      oauthLoginSuccess &&
+      } else {
+        // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
         setErrorToThrow(
           new Error(`OAuth rehydration failed: ${seedlessError.message}`),
         );
+      }
     }
   };
 
   const handlePasswordError = (loginErrorMessage: string) => {
-    if (oauthLoginSuccess) {
+    if (isComingFromOauthOnboarding) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
         account_type: 'social',
         failed_attempts: rehydrationFailedAttempts,
@@ -504,7 +573,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
-    if (oauthLoginSuccess) {
+    if (isComingFromOauthOnboarding) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
         account_type: 'social',
         biometrics: biometryChoice,
@@ -516,7 +585,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (locked) {
         throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
       }
-      if (loading || locked) return;
+      if (finalLoading || locked) return;
 
       setLoading(true);
 
@@ -524,7 +593,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         biometryChoice,
         rememberMe,
       );
-      if (oauthLoginSuccess) {
+      if (isComingFromOauthOnboarding) {
         authType.oauth2Login = true;
       }
 
@@ -538,7 +607,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      if (oauthLoginSuccess) {
+      if (isComingFromOauthOnboarding) {
         track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
           account_type: 'social',
           biometrics: biometryChoice,
@@ -602,7 +671,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
       params: {
-        oauthLoginSuccess,
+        oauthLoginSuccess: isComingFromOauthOnboarding,
       },
     });
   };
@@ -632,8 +701,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     downloadStateLogs(fullState, false);
   };
 
+  // for rehydration and when global password is outdated
+  // hide biometric button
   const shouldHideBiometricAccessoryButton = !(
-    !oauthLoginSuccess &&
+    !isComingFromOauthOnboarding &&
+    !isSeedlessPasswordOutdated &&
     biometryChoice &&
     biometryType &&
     hasBiometricCredentials &&
@@ -749,25 +821,27 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 size={ButtonSize.Lg}
                 onPress={onLogin}
                 label={strings('login.unlock_button')}
-                isDisabled={password.length === 0 || disabledInput || loading}
+                isDisabled={
+                  password.length === 0 || disabledInput || finalLoading
+                }
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                loading={loading}
+                loading={finalLoading}
               />
 
-              {!oauthLoginSuccess && (
+              {!isComingFromOauthOnboarding && (
                 <Button
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
-                  isDisabled={loading}
+                  isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
               )}
             </View>
 
-            {oauthLoginSuccess && (
+            {isComingFromOauthOnboarding && (
               <View style={styles.footer}>
                 <Button
                   style={styles.goBack}
@@ -775,8 +849,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={handleUseOtherMethod}
                   testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   label={strings('login.other_methods')}
-                  loading={loading}
-                  isDisabled={loading}
+                  loading={finalLoading}
+                  isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
               </View>
