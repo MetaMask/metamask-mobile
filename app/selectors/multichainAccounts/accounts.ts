@@ -310,7 +310,7 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
  * Priority:
  * 1) First EVM account address (any scope starting with 'eip155:')
  * 2) If no EVM account, fallback to the first internal account address in the group
- * 3) Otherwise undefined
+ * 3) Otherwise throw an error
  *
  */
 export const selectIconSeedAddressByAccountGroupId = (
