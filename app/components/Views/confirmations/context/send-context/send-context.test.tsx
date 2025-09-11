@@ -172,6 +172,18 @@ describe('useSendContext', () => {
     expect(result.current.maxValueMode).toEqual(false);
   });
 
+  it('does not reset amount when calling updateAsset with isNavigationUpdate true', () => {
+    const { result } = renderHook(() => useSendContext(), { wrapper });
+
+    act(() => {
+      result.current.updateValue('10', true);
+      result.current.updateAsset(mockAssetEvm, true);
+    });
+
+    expect(result.current.value).toEqual('10');
+    expect(result.current.maxValueMode).toEqual(true);
+  });
+
   it('updates to address when calling updateTo', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 
@@ -280,7 +292,7 @@ describe('useSendContext', () => {
     expect(result.current.asset).toEqual(mockAssetEvm);
 
     act(() => {
-      result.current.updateAsset(undefined);
+      result.current.updateAsset(undefined as unknown as AssetType);
     });
 
     expect(result.current.asset).toBeUndefined();

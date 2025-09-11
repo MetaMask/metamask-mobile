@@ -59,7 +59,7 @@ describe('useRouteParams', () => {
     renderHookWithProvider(() => useRouteParams(), mockState);
 
     await waitFor(() => {
-      expect(mockUpdateAsset).toHaveBeenCalledWith(asset);
+      expect(mockUpdateAsset).toHaveBeenCalledWith(asset, true);
     });
   });
 
@@ -85,7 +85,7 @@ describe('useRouteParams', () => {
     renderHookWithProvider(() => useRouteParams(), mockState);
 
     await waitFor(() => {
-      expect(mockUpdateAsset).toHaveBeenCalledWith(assetToken);
+      expect(mockUpdateAsset).toHaveBeenCalledWith(assetToken, true);
     });
   });
 
@@ -111,7 +111,7 @@ describe('useRouteParams', () => {
     renderHookWithProvider(() => useRouteParams(), mockState);
 
     await waitFor(() => {
-      expect(mockUpdateAsset).toHaveBeenCalledWith(assetNft);
+      expect(mockUpdateAsset).toHaveBeenCalledWith(assetNft, true);
     });
   });
 });

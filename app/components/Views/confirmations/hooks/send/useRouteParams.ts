@@ -36,7 +36,7 @@ export const useRouteParams = () => {
             chainId?.toLowerCase() === paramChainId,
         );
       }
-      updateAsset(asset ?? paramsAsset);
+      updateAsset(asset ?? paramsAsset, true);
     }
   }, [paramsAsset, nfts, tokens, updateAsset]);
 };

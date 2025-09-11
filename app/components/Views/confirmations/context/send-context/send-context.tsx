@@ -24,7 +24,7 @@ export interface SendContextType {
   from?: string;
   maxValueMode: boolean;
   to?: string;
-  updateAsset: (asset?: AssetType | Nft) => void;
+  updateAsset: (asset: AssetType | Nft, isNavigationUpdate?: boolean) => void;
   updateTo: (to: string) => void;
   updateValue: (value: string, maxMode?: boolean) => void;
   value?: string;
@@ -63,8 +63,10 @@ export const SendContextProvider: React.FC<{
   );
 
   const handleUpdateAsset = useCallback(
-    (updatedAsset?: AssetType | Nft) => {
-      updateValue('', false);
+    (updatedAsset: AssetType | Nft, isNavigationUpdate = false) => {
+      if (!isNavigationUpdate) {
+        updateValue('', false);
+      }
       updateAsset(updatedAsset);
       if (
         updatedAsset?.accountId &&
