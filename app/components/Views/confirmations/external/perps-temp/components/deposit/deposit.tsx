@@ -31,38 +31,51 @@ export function PerpsDeposit() {
     setPendingTokenAmount(amount);
   }, []);
 
+  const handleKeyboardShow = useCallback(() => {
+    setIsKeyboardVisible(true);
+  }, []);
+
+  const handleKeyboardHide = useCallback(() => {
+    setIsKeyboardVisible(false);
+  }, []);
+
+  const amountRenderCallback = useCallback(
+    (amountHuman: string) => (
+      <>
+        <PayTokenAmount amountHuman={amountHuman} />
+        {!isKeyboardVisible && isPayTokenSelected && (
+          <AlertBanner
+            blockingFields
+            excludeFields={[RowAlertKey.Amount]}
+            inline
+          />
+        )}
+        <InfoSection>
+          <PayWithRow />
+        </InfoSection>
+        {isFullView && (
+          <InfoSection>
+            <GasFeeFiatRow />
+            <BridgeFeeRow />
+            <BridgeTimeRow />
+            <TotalRow />
+          </InfoSection>
+        )}
+      </>
+    ),
+    [isKeyboardVisible, isPayTokenSelected, isFullView],
+  );
+
   return (
     <>
       <EditAmount
         alerts={alerts}
         autoKeyboard
         onChange={handleChange}
-        onKeyboardShow={() => setIsKeyboardVisible(true)}
-        onKeyboardHide={() => setIsKeyboardVisible(false)}
+        onKeyboardShow={handleKeyboardShow}
+        onKeyboardHide={handleKeyboardHide}
       >
-        {(amountHuman) => (
-          <>
-            <PayTokenAmount amountHuman={amountHuman} />
-            {!isKeyboardVisible && isPayTokenSelected && (
-              <AlertBanner
-                blockingFields
-                excludeFields={[RowAlertKey.Amount]}
-                inline
-              />
-            )}
-            <InfoSection>
-              <PayWithRow />
-            </InfoSection>
-            {isFullView && (
-              <InfoSection>
-                <GasFeeFiatRow />
-                <BridgeFeeRow />
-                <BridgeTimeRow />
-                <TotalRow />
-              </InfoSection>
-            )}
-          </>
-        )}
+        {amountRenderCallback}
       </EditAmount>
     </>
   );
