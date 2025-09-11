@@ -184,12 +184,12 @@ jobs:
           
           # Fallback: if not found in subdirectories, try direct search
           if [ -z "$WITH_SRP_APK" ]; then
-            echo "⚠️ With-SRP APK not found in subdirectory, trying direct search..."
+            echo "With-SRP APK not found in subdirectory, trying direct search..."
             WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" | head -1)
           fi
           
           if [ -z "$WITHOUT_SRP_APK" ]; then
-            echo "⚠️ Without-SRP APK not found in subdirectory, trying direct search..."
+            echo "Without-SRP APK not found in subdirectory, trying direct search..."
             WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" | head -1)
           fi
           
@@ -223,7 +223,7 @@ jobs:
             WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url')
             WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id')
             
-            echo "✅ With-SRP APK uploaded successfully"
+            echo "With-SRP APK uploaded successfully"
             echo "  App URL: $WITH_SRP_APP_URL"
             echo "  App ID: $WITH_SRP_APP_ID"
             
@@ -233,7 +233,7 @@ jobs:
               echo "with-srp-version=Manual-Input"
             } >> "$GITHUB_OUTPUT"
           else
-            echo "❌ With-SRP APK not found"
+            echo "With-SRP APK not found"
             {
               echo "with-srp-browserstack-url="
               echo "with-srp-app-id="
@@ -253,8 +253,8 @@ jobs:
             WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
             
             echo "Without-SRP APK uploaded successfully"
-            echo "  App URL: $WITHOUT_SRP_APP_URL"
-            echo "  App ID: $WITHOUT_SRP_APP_ID"
+            echo "App URL: $WITHOUT_SRP_APP_URL"
+            echo "App ID: $WITHOUT_SRP_APP_ID"
             
             {
               echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"

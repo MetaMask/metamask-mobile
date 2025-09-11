@@ -418,8 +418,8 @@ jobs:
                 WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
                 
                 echo "Without-SRP IPA uploaded successfully"
-                echo "  App URL: $WITHOUT_SRP_APP_URL"
-                echo "  App ID: $WITHOUT_SRP_APP_ID"
+                echo "App URL: $WITHOUT_SRP_APP_URL"
+                echo "App ID: $WITHOUT_SRP_APP_ID"
                 
                 {
                   echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
