@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import { isE2E } from '../../../util/test/utils';
 /**
  * Hook to check and show WhatsNewModal when appropriate
  *
@@ -23,6 +24,11 @@ const useCheckWhatsNewModal = () => {
 
   const checkAndShowWhatsNewModal = useCallback(async () => {
     try {
+      // Don't show What's New modal in E2E environment to prevent test interference
+      if (isE2E) {
+        return;
+      }
+
       // If Solana onboarding is enabled, check if the modal has been shown
       if (solanaOnboardingModalEnabled) {
         const hasSeenModal = await StorageWrapper.getItem(
