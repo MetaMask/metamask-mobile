@@ -4,6 +4,7 @@ import AccountCell from './AccountCell';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { createMockAccountGroup } from '../test-utils';
+import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -56,7 +57,7 @@ const renderAccountCell = (
   return renderWithProvider(<AccountCell {...defaultProps} />, {
     state: {
       settings: {
-        useBlockieIcon: false,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
     },
   });
@@ -103,8 +104,14 @@ describe('AccountCell', () => {
     const { getByTestId } = renderAccountCell();
     const menuButton = getByTestId('multichain-account-cell-menu');
     fireEvent.press(menuButton);
-    expect(mockNavigate).toHaveBeenCalledWith('MultichainAccountActions', {
-      accountGroup: mockAccountGroup,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'MultichainAccountActions',
+        params: {
+          accountGroup: mockAccountGroup,
+        },
+      },
+    );
   });
 });

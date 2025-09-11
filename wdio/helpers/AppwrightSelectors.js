@@ -48,7 +48,7 @@ export default class AppwrightSelectors {
   }
 
   static async scrollIntoView(device, element) {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 20; i++) {
       try {
         const isVisible = await element.isVisible({ timeout: 2000 });
         
@@ -74,8 +74,13 @@ export default class AppwrightSelectors {
           }
         ]);
       } else {
-        // For iOS
-        await driver.scroll();
+        // For iOS, use mobile: scroll command
+        await driver.executeScript("mobile: scroll", [
+          {
+            direction: "down",
+            percent: 0.75
+          }
+        ]);
       }
       
       // Wait a bit for the scroll to complete

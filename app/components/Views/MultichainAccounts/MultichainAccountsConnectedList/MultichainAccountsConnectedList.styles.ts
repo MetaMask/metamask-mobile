@@ -3,10 +3,7 @@ import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
-import {
-  ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
-  MAX_VISIBLE_ITEMS,
-} from '../../../UI/PermissionsSummary/PermissionSummary.constants';
+import { ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT } from '../../../UI/PermissionsSummary/PermissionSummary.constants';
 
 interface MultichainAccountsConnectedListStyleSheetVars {
   itemHeight: number;
@@ -23,12 +20,11 @@ const styleSheet = (params: {
 }) => {
   const { theme } = params;
   const { colors } = theme;
-  const { numOfAccounts } = params.vars;
 
   return StyleSheet.create({
     // Account List Item
     container: {
-      maxHeight: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * MAX_VISIBLE_ITEMS,
+      flex: 1,
     },
     accountListItem: {
       borderWidth: 0,
@@ -38,8 +34,7 @@ const styleSheet = (params: {
     accountsConnectedContainer: {
       backgroundColor: colors.background.default,
       marginTop: 8,
-      overflow: 'hidden',
-      minHeight: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * numOfAccounts,
+      flex: 1,
     },
     // Balances Container
     balancesContainer: {
@@ -51,7 +46,7 @@ const styleSheet = (params: {
     },
     // Edit Accounts
     editAccountsContainer: {
-      marginTop: 8,
+      marginTop: 16,
       marginLeft: 16,
       flexDirection: 'row',
       justifyContent: 'flex-start',

@@ -11,6 +11,8 @@ import {
   calculateRoEForPrice,
   safeParseRoEPercentage,
   formatRoEPercentageDisplay,
+  getMaxStopLossPercentage,
+  isValidStopLossPercentage,
 } from './tpslValidation';
 
 describe('TPSL Validation Utilities', () => {
@@ -676,12 +678,12 @@ describe('TPSL Validation Utilities', () => {
         expect(calculateRoEForPrice('$99.00', false, params)).toBe('10.00');
       });
 
-      it('should return negative RoE for invalid directions', () => {
+      it('should return zero RoE for invalid directions', () => {
         // TP price below entry for long (wrong direction)
-        expect(calculateRoEForPrice('99', true, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('99', true, params)).toBe('0.00');
 
         // SL price above entry for long (wrong direction)
-        expect(calculateRoEForPrice('101', false, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('101', false, params)).toBe('0.00');
       });
 
       it('should handle different leverage values', () => {
@@ -720,12 +722,12 @@ describe('TPSL Validation Utilities', () => {
         expect(calculateRoEForPrice('110', false, params)).toBe('100.00');
       });
 
-      it('should return negative RoE for invalid directions', () => {
+      it('should return zero RoE for invalid directions', () => {
         // TP price above entry for short (wrong direction)
-        expect(calculateRoEForPrice('101', true, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('101', true, params)).toBe('0.00');
 
         // SL price below entry for short (wrong direction)
-        expect(calculateRoEForPrice('99', false, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('99', false, params)).toBe('0.00');
       });
     });
 
@@ -855,16 +857,31 @@ describe('TPSL Validation Utilities', () => {
 
   describe('formatRoEPercentageDisplay', () => {
     describe('when input is focused', () => {
-      it('should preserve user input precision for editing', () => {
+      it('should preserve valid numeric input patterns for editing', () => {
         expect(formatRoEPercentageDisplay('10.123', true)).toBe('10.123');
         expect(formatRoEPercentageDisplay('25.5678', true)).toBe('25.5678');
         expect(formatRoEPercentageDisplay('100', true)).toBe('100');
         expect(formatRoEPercentageDisplay('0', true)).toBe('0');
+        expect(formatRoEPercentageDisplay('10.', true)).toBe('10.');
+        expect(formatRoEPercentageDisplay('.5', true)).toBe('.5');
       });
 
       it('should handle negative values by showing absolute value', () => {
         expect(formatRoEPercentageDisplay('-10.123', true)).toBe('10.123');
         expect(formatRoEPercentageDisplay('-25', true)).toBe('25');
+      });
+
+      it('should return empty string for invalid patterns when focused', () => {
+        expect(formatRoEPercentageDisplay('abc', true)).toBe('');
+      });
+
+      it('should handle edge cases in pattern matching', () => {
+        // '10..5' is parsed as 10 by parseFloat, so it returns the absolute value
+        expect(formatRoEPercentageDisplay('10..5', true)).toBe('10');
+        // '10.5.3' is parsed as 10.5 by parseFloat, so it returns the absolute value
+        expect(formatRoEPercentageDisplay('10.5.3', true)).toBe('10.5');
+        expect(formatRoEPercentageDisplay('5.', true)).toBe('5.');
+        expect(formatRoEPercentageDisplay('.', true)).toBe('.');
       });
     });
 
@@ -904,6 +921,69 @@ describe('TPSL Validation Utilities', () => {
         expect(formatRoEPercentageDisplay('0.0', false)).toBe('0');
         expect(formatRoEPercentageDisplay('0.00', false)).toBe('0');
       });
+    });
+  });
+
+  describe('getMaxStopLossPercentage', () => {
+    it('should calculate maximum stop loss percentage based on leverage', () => {
+      expect(getMaxStopLossPercentage(1)).toBe(99);
+      expect(getMaxStopLossPercentage(5)).toBe(495);
+      expect(getMaxStopLossPercentage(10)).toBe(990);
+      expect(getMaxStopLossPercentage(20)).toBe(999); // Capped at 999
+    });
+
+    it('should cap maximum stop loss at 999%', () => {
+      expect(getMaxStopLossPercentage(50)).toBe(999); // 50 * 99 = 4950, but capped at 999
+      expect(getMaxStopLossPercentage(100)).toBe(999); // 100 * 99 = 9900, but capped at 999
+    });
+
+    it('should handle edge cases', () => {
+      expect(getMaxStopLossPercentage(0)).toBe(0);
+      expect(getMaxStopLossPercentage(0.5)).toBe(49.5);
+      expect(getMaxStopLossPercentage(1.5)).toBe(148.5);
+    });
+  });
+
+  describe('isValidStopLossPercentage', () => {
+    describe('with 10x leverage', () => {
+      const leverage = 10;
+
+      it('should return true for valid percentages', () => {
+        expect(isValidStopLossPercentage(1, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(50, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(99, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(990, leverage)).toBe(true); // Max for 10x leverage
+      });
+
+      it('should return false for invalid percentages', () => {
+        expect(isValidStopLossPercentage(0, leverage)).toBe(false);
+        expect(isValidStopLossPercentage(-5, leverage)).toBe(false);
+        expect(isValidStopLossPercentage(991, leverage)).toBe(false); // Above max
+        expect(isValidStopLossPercentage(1500, leverage)).toBe(false);
+      });
+    });
+
+    describe('with high leverage (50x)', () => {
+      const leverage = 50;
+
+      it('should cap at 999% regardless of leverage', () => {
+        expect(isValidStopLossPercentage(999, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(1000, leverage)).toBe(false);
+      });
+    });
+
+    describe('with low leverage (1x)', () => {
+      const leverage = 1;
+
+      it('should allow up to 99% for 1x leverage', () => {
+        expect(isValidStopLossPercentage(99, leverage)).toBe(true);
+        expect(isValidStopLossPercentage(100, leverage)).toBe(false);
+      });
+    });
+
+    it('should handle edge cases', () => {
+      expect(isValidStopLossPercentage(0.1, 10)).toBe(true);
+      expect(isValidStopLossPercentage(-0.1, 10)).toBe(false);
     });
   });
 });

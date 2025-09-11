@@ -53,12 +53,13 @@ import {
   usePerpsConnection,
   usePerpsPerformance,
   usePerpsTrading,
+  usePerpsNetworkManagement,
 } from '../../hooks';
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 import TradingViewChart, {
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
@@ -74,6 +75,7 @@ import ButtonSemantic, {
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  initialTab?: PerpsTabId;
   isNavigationFromOrderSuccess?: boolean;
 }
 
@@ -81,7 +83,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, isNavigationFromOrderSuccess } = route.params || {};
+  const { market, initialTab, isNavigationFromOrderSuccess } =
+    route.params || {};
   const { track } = usePerpsEventTracking();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -121,7 +124,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
-
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
@@ -191,8 +194,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
+
+      // Zoom to latest candle when period changes
+      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
     },
-    [market, track],
+    [market, track, visibleCandleCount],
   );
 
   const handleMorePress = useCallback(() => {
@@ -260,16 +266,28 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
-  const handleAddFundsPress = () => {
-    // Navigate immediately to confirmations screen for instant UI response
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
+  const handleAddFundsPress = async () => {
+    try {
+      if (!isEligible) {
+        setIsEligibilityModalVisible(true);
+        return;
+      }
 
-    // Initialize deposit in the background without blocking
-    depositWithConfirmation().catch((error) => {
-      console.error('Failed to initialize deposit:', error);
-    });
+      // Ensure the network exists before proceeding
+      await ensureArbitrumNetworkExists();
+
+      // Navigate immediately to confirmations screen for instant UI response
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+
+      // Initialize deposit in the background without blocking
+      depositWithConfirmation().catch((error) => {
+        console.error('Failed to initialize deposit:', error);
+      });
+    } catch (error) {
+      console.error('Failed to navigate to deposit:', error);
+    }
   };
 
   const handleTradingViewPress = useCallback(() => {
@@ -375,6 +393,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
+              initialTab={initialTab}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
             />
@@ -472,14 +491,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}
-      {isNotificationsEnabled &&
-        PERPS_NOTIFICATIONS_FEATURE_ENABLED &&
-        isNavigationFromOrderSuccess && (
-          <PerpsNotificationTooltip
-            orderSuccess={isNavigationFromOrderSuccess}
-            testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
-          />
-        )}
+      {isNotificationsEnabled && isNavigationFromOrderSuccess && (
+        <PerpsNotificationTooltip
+          orderSuccess={isNavigationFromOrderSuccess}
+          testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
+        />
+      )}
     </SafeAreaView>
   );
 };

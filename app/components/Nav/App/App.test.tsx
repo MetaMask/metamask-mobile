@@ -13,7 +13,6 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
 } from '../../../constants/storage';
-import { strings } from '../../../../locales/i18n';
 import {
   NavigationContainer,
   NavigationState,
@@ -30,6 +29,7 @@ import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -113,7 +113,7 @@ const mockRoutes = [
             index: 0,
             routes: [
               {
-                name: 'OnboardingCarousel',
+                name: 'Onboarding',
                 params: {},
               },
             ],
@@ -539,52 +539,6 @@ describe('App', () => {
       });
     });
   });
-  describe('OnboardingRootNav', () => {
-    it('renders the very first onboarding screen when you navigate into OnboardingRootNav', async () => {
-      const routeState = {
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            state: {
-              index: 0,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.NAV,
-                  state: {
-                    index: 0,
-                    routes: [
-                      {
-                        name: 'OnboardingCarousel',
-                        params: {},
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      };
-      const mockStore = configureMockStore();
-      const store = mockStore(initialState);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer initialState={routeState}>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      const { getByText } = render(<App />, { wrapper: Providers });
-
-      expect(
-        getByText(strings('onboarding_carousel.get_started')),
-      ).toBeTruthy();
-    });
-  });
 
   describe('Renders multichain account details', () => {
     const mockLoggedInState = {
@@ -593,7 +547,7 @@ describe('App', () => {
         userLoggedIn: true,
       },
       settings: {
-        useBlockieIcon: true,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       engine: {
         ...initialState.engine,
@@ -716,7 +670,8 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Edit Account Name')).toBeTruthy();
+        expect(getByText('Account Group')).toBeTruthy();
+        expect(getByText('Account name')).toBeTruthy();
       });
     });
 

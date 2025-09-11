@@ -14,7 +14,7 @@ import { View } from 'react-native';
 
 export function TotalRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
-  const { formatted: totalFiat } = useTransactionTotalFiat();
+  const { totalFormatted } = useTransactionTotalFiat({ log: true });
 
   const isQuotesLoading = useSelector((state: RootState) =>
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
@@ -26,7 +26,7 @@ export function TotalRow() {
         {isQuotesLoading ? (
           <AnimatedSpinner size={SpinnerSize.SM} />
         ) : (
-          <Text>{totalFiat}</Text>
+          <Text>{totalFormatted}</Text>
         )}
       </InfoRow>
     </View>
