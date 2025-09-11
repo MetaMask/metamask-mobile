@@ -210,7 +210,7 @@ const createStyles = ({ colors }: Theme) =>
       marginBottom: 16,
     },
     carousel: {
-      marginBottom: 4,
+      marginBottom: 16,
       overflow: 'hidden', // Allow for smooth height animations
     },
   });
