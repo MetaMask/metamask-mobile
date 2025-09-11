@@ -172,6 +172,7 @@ import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import useCheckWhatsNewModal from '../../hooks/useCheckWhatsNewModal';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -738,6 +739,10 @@ const Wallet = ({
    * Show multi rpc modal if there are networks duplicated and if never showed before
    */
   useCheckMultiRpcModal();
+  /**
+   * Show whats new modal if the user is on a new version
+   */
+  useCheckWhatsNewModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
