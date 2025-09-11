@@ -33,7 +33,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-1 bg-default"
+      twClassName="flex-1 bg-default mt-20"
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
     >

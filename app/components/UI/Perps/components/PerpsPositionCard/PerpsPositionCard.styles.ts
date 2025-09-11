@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.section,
       borderRadius: 12,
       padding: 16,
-      marginVertical: 6,
+      marginVertical: 8,
     },
     collapsedContainer: {
       borderRadius: 8,

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, TouchableOpacity, View } from 'react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
   TextColor,
@@ -8,6 +8,7 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -39,6 +40,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const tw = useTailwind();
 
   useEffect(() => {
     if (isActive) {
@@ -78,15 +80,12 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         </Text>
       )}
       <View style={styles.amountRow}>
+        {/* Text only takes 1 arg */}
         <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          style={[
-            showTokenAmount && tokenAmount && tokenSymbol
-              ? styles.amountValueToken
-              : styles.amountValue,
-            isActive && styles.amountValueActive,
-            hasError && styles.amountValueError,
-          ]}
+          color={hasError ? TextColor.Error : TextColor.Default}
+          variant={TextVariant.BodyMDBold}
+          style={Platform.OS === 'android' ? styles.amountValueTokenAndroid : styles.amountValueToken}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`

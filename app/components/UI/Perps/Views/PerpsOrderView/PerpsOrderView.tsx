@@ -19,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
@@ -92,6 +91,8 @@ import {
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
+import ButtonSemantic, { ButtonSemanticSeverity } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -835,7 +836,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         )}
 
         {/* Order Details */}
-        <View style={styles.detailsWrapper}>
+        {!isInputFocused && <View style={styles.detailsWrapper}>
           {/* Leverage */}
           <View style={[styles.detailItem, styles.detailItemFirst]}>
             <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
@@ -935,13 +936,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
-
+        }
         {/* Info Section */}
         <View
           style={[
             styles.infoSection,
             // TODO: Remove negative margin
             { marginBottom: orderValidation.errors.length > 0 ? 16 : -16 },
+            { marginTop: isInputFocused ? 16 : 0 },
           ]}
         >
           <View style={styles.infoRow}>
@@ -1083,16 +1085,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
               ))}
             </View>
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={placeOrderLabel}
+
+          <ButtonSemantic
+            severity={orderForm.direction === 'long' ? ButtonSemanticSeverity.Success : ButtonSemanticSeverity.Danger}
             onPress={handlePlaceOrder}
+            isFullWidth
+            size={ButtonSizeRNDesignSystem.Lg}
             isDisabled={!orderValidation.isValid || isPlacingOrder}
-            loading={isPlacingOrder}
+            isLoading={isPlacingOrder}
             testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-          />
+          >
+            {placeOrderLabel}
+          </ButtonSemantic>
         </View>
       )}
       {/* TP/SL Bottom Sheet */}

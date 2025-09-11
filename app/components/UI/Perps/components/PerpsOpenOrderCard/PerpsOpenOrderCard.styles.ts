@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.section, // Darker contrasting background
       borderRadius: 12,
       padding: 16,
-      marginVertical: 6,
+      marginVertical: 8,
     },
     collapsedContainer: {
       backgroundColor: colors.background.section, // Same darker contrasting background as expanded
@@ -63,7 +63,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingVertical: 16,
-      marginBottom: 16,
+      marginBottom: 4,
     },
     bodyRow: {
       flexDirection: 'row',

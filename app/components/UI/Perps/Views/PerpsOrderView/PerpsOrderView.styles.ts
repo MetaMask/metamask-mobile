@@ -23,7 +23,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       paddingTop: 16,
       paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     },
