@@ -767,7 +767,7 @@ describe('Login test suite 2', () => {
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
-    it('handle OAuth login success when metrics UI is not seen', async () => {
+    it('handle non OAuth login success when metrics UI is not seen', async () => {
       mockIsEnabled.mockReturnValue(false);
       mockRoute.mockReturnValue({
         params: {
@@ -808,7 +808,7 @@ describe('Login test suite 2', () => {
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
-    it('replace navigation when non-OAuth login ', async () => {
+    it('replace navigation when non-OAuth login', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,

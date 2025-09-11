@@ -891,7 +891,7 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
   });
 
-  it('should navigate to support article when learn more link is pressed when oauth2Login is true', async () => {
+  it('should navigate to support article when learn more link is pressed when oauth2Login is false', async () => {
     const props: ChoosePasswordProps = {
       ...defaultProps,
       route: {
