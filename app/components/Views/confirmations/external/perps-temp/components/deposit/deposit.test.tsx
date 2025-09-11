@@ -8,7 +8,6 @@ import { otherControllersMock } from '../../../../__mocks__/controllers/other-co
 import { useTokensWithBalance } from '../../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { emptySignatureControllerMock } from '../../../../__mocks__/controllers/signature-controller-mock';
 import { useGasFeeEstimates } from '../../../../hooks/gas/useGasFeeEstimates';
-import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionPayToken } from '../../../../hooks/pay/useTransactionPayToken';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { useTokenAsset } from '../../../../hooks/useTokenAsset';
@@ -23,6 +22,7 @@ jest.mock('../../hooks/usePerpsDepositView');
 jest.mock('../../../../hooks/useTokenAsset');
 jest.mock('../../../../hooks/useTokenAmount');
 jest.mock('../../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../../hooks/pay/useTransactionBridgeQuotes');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -107,19 +107,5 @@ describe('PerpsDeposit', () => {
     );
 
     expect(queryByTestId('total-row')).toBeNull();
-  });
-
-  it('hides gas fee', async () => {
-    const { queryByTestId } = renderWithProvider(
-      <PerpsDeposit />,
-      {
-        state: STATE_MOCK,
-      },
-      true,
-    );
-
-    expect(
-      queryByTestId(ConfirmationRowComponentIDs.GAS_FEES_DETAILS),
-    ).toBeNull();
   });
 });

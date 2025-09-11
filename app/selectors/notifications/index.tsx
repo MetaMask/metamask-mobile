@@ -13,6 +13,9 @@ import {
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 import { selectRemoteFeatureFlags } from '../featureFlagController';
+import featureAnnouncement, {
+  isFilteredFeatureAnnonucementNotification,
+} from '../../util/notifications/notification-states/feature-announcement/feature-announcement';
 
 type NotificationServicesState = NotificationServicesControllerState;
 
@@ -87,30 +90,40 @@ export const getmetamaskNotificationsReadList = createSelector(
 );
 export const getNotificationsList = createDeepEqualSelector(
   selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.metamaskNotificationsList,
+  (notificationServicesControllerState: NotificationServicesState) => {
+    const notificationList =
+      notificationServicesControllerState.metamaskNotificationsList;
+
+    return notificationList.filter((n) => {
+      // Check announcements
+      if (featureAnnouncement.guardFn(n)) {
+        return isFilteredFeatureAnnonucementNotification(n);
+      }
+
+      // Return rest
+      return true;
+    });
+  },
 );
 
 export const getMetamaskNotificationsUnreadCount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: INotification) => !notification.isRead).length,
+  getNotificationsList,
+  (metamaskNotificationsList) =>
+    (metamaskNotificationsList ?? []).filter(
+      (notification: INotification) => !notification.isRead,
+    ).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification: INotification) => notification.isRead).length,
+  getNotificationsList,
+  (metamaskNotificationsList) =>
+    (metamaskNotificationsList ?? []).filter(
+      (notification: INotification) => notification.isRead,
+    ).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter(
+  getNotificationsList,
+  (metamaskNotificationsList) =>
+    (metamaskNotificationsList ?? []).filter(
       (notification: INotification) =>
         !notification.isRead &&
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,

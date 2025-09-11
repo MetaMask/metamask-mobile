@@ -7,12 +7,9 @@ import { PayTokenAmount } from '../../../../components/pay-token-amount';
 import { TotalRow } from '../../../../components/rows/total-row';
 import InfoSection from '../../../../components/UI/info-row/info-section/info-section';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
-import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 import AlertBanner from '../../../../components/alert-banner';
-import { Box } from '../../../../../../UI/Box/Box';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
-import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
 import { BridgeFeeRow } from '../../../../components/rows/bridge-fee-row';
@@ -23,7 +20,6 @@ export function PerpsDeposit() {
 
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [pendingTokenAmount, setPendingTokenAmount] = useState<string>();
-  const [inputChanged, setInputChanged] = useState(false);
   const alerts = usePerpsDepositAlerts({ pendingTokenAmount });
 
   const { isFullView, isPayTokenSelected } = usePerpsDepositView({
@@ -32,7 +28,6 @@ export function PerpsDeposit() {
 
   const handleChange = useCallback((amount: string) => {
     setPendingTokenAmount(amount);
-    setInputChanged(true);
   }, []);
 
   return (
@@ -46,10 +41,7 @@ export function PerpsDeposit() {
       >
         {(amountHuman) => (
           <>
-            <Box gap={16}>
-              {inputChanged && <AlertMessage alerts={alerts} />}
-              <PayTokenAmount amountHuman={amountHuman} />
-            </Box>
+            <PayTokenAmount amountHuman={amountHuman} />
             {!isKeyboardVisible && isPayTokenSelected && (
               <AlertBanner
                 blockingFields
@@ -62,7 +54,6 @@ export function PerpsDeposit() {
             </InfoSection>
             {isFullView && (
               <InfoSection>
-                <GasFeeFiatRow />
                 <BridgeFeeRow />
                 <BridgeTimeRow />
                 <TotalRow />

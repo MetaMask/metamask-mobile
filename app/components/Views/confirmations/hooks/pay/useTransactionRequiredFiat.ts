@@ -9,19 +9,38 @@ import { useSelector } from 'react-redux';
 
 const log = createProjectLogger('transaction-pay');
 
+export interface TransactionRequiredFiat {
+  address: Hex;
+  allowUnderMinimum: boolean;
+  amountFiat: number;
+  amountRaw: string;
+  balanceFiat: number;
+  feeFiat: number;
+  totalFiat: number;
+  skipIfBalance: boolean;
+}
+
 /**
  * Calculate the fiat value of any tokens required by the transaction.
  * Necessary for MetaMask Pay to calculate how much of the selected pay token is needed.
  */
 export function useTransactionRequiredFiat({
   amountOverrides,
+  log: isLoggingEnabled,
 }: {
   amountOverrides?: Record<Hex, string>;
-} = {}) {
+  log?: boolean;
+} = {}): {
+  values: TransactionRequiredFiat[];
+  totalFiat: number;
+} {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
-  const { bufferInitial } = useSelector(selectMetaMaskPayFlags);
+
+  const { bufferInitial, bufferSubsequent } = useSelector(
+    selectMetaMaskPayFlags,
+  );
 
   const fiatRequests = useMemo(
     () =>
@@ -48,7 +67,9 @@ export function useTransactionRequiredFiat({
           targetFiatRate,
         );
 
-        const feeFiat = amountFiat.multipliedBy(bufferInitial);
+        const feeFiat = amountFiat.multipliedBy(
+          index === 0 ? bufferInitial : bufferSubsequent,
+        );
 
         const balanceFiat = new BigNumber(target.balanceHuman).multipliedBy(
           targetFiatRate,
@@ -58,6 +79,7 @@ export function useTransactionRequiredFiat({
 
         return {
           address: target.address,
+          allowUnderMinimum: target.allowUnderMinimum,
           amountFiat: amountFiat.toNumber(),
           amountRaw: target.amountRaw,
           balanceFiat: balanceFiat.toNumber(),
@@ -66,7 +88,13 @@ export function useTransactionRequiredFiat({
           skipIfBalance: target.skipIfBalance,
         };
       }),
-    [amountOverrides, bufferInitial, requiredTokens, tokenFiatRates],
+    [
+      amountOverrides,
+      bufferInitial,
+      bufferSubsequent,
+      requiredTokens,
+      tokenFiatRates,
+    ],
   );
 
   const totalFiat = values.reduce<number>(
@@ -75,10 +103,12 @@ export function useTransactionRequiredFiat({
   );
 
   useEffect(() => {
+    if (!isLoggingEnabled) return;
+
     log('Required fiat', values, {
       totalFiat,
     });
-  }, [values, totalFiat]);
+  }, [isLoggingEnabled, totalFiat, values]);
 
   return {
     values,

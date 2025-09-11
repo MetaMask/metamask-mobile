@@ -377,7 +377,7 @@ const generateTermsOfUseTask = {
 const installHuskyTask = {
   title: 'Install Husky git hooks',
   task: async () => {
-    await $`npx husky install`;
+    await $`yarn husky install`;
   },
 };
 

@@ -7,6 +7,7 @@ import type {
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsMarketData } from '../controllers/types';
 import { formatVolume } from './formatUtils';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
  * HyperLiquid-specific market data structure
@@ -139,7 +140,7 @@ export function formatPrice(price: number): string {
   const absPrice = Math.abs(price);
 
   if (absPrice >= 1000) {
-    return new Intl.NumberFormat('en-US', {
+    return getIntlNumberFormatter('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
@@ -147,7 +148,7 @@ export function formatPrice(price: number): string {
     }).format(price);
   }
   if (absPrice >= 1) {
-    return new Intl.NumberFormat('en-US', {
+    return getIntlNumberFormatter('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
@@ -155,14 +156,14 @@ export function formatPrice(price: number): string {
     }).format(price);
   }
   if (absPrice >= 0.01) {
-    return new Intl.NumberFormat('en-US', {
+    return getIntlNumberFormatter('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 4,
       maximumFractionDigits: 4,
     }).format(price);
   }
-  return new Intl.NumberFormat('en-US', {
+  return getIntlNumberFormatter('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 6,
@@ -182,7 +183,7 @@ export function formatChange(change: number): string {
   const absChange = Math.abs(change);
   const decimalPlaces = absChange >= 1 ? 2 : absChange >= 0.01 ? 4 : 6;
 
-  const formatted = new Intl.NumberFormat('en-US', {
+  const formatted = getIntlNumberFormatter('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: decimalPlaces,
@@ -199,7 +200,7 @@ export function formatPercentage(percent: number): string {
   if (isNaN(percent) || !isFinite(percent)) return '0.00%';
   if (percent === 0) return '0.00%';
 
-  const formatted = new Intl.NumberFormat('en-US', {
+  const formatted = getIntlNumberFormatter('en-US', {
     style: 'percent',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
