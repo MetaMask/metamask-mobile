@@ -1412,7 +1412,10 @@ describe('Authentication', () => {
 
       expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(importError);
+      expect(Logger.error).toHaveBeenCalledWith(
+        importError,
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+      );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
@@ -1487,7 +1490,10 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+      );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });

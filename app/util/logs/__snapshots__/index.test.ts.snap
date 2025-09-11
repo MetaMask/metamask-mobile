@@ -499,6 +499,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "vaultEncryptionSalt": true,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {
@@ -1126,6 +1127,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "vaultEncryptionSalt": false,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {

@@ -148,7 +148,11 @@ const TransactionsView = ({
             .filter(([, enabled]) => enabled)
             .map(([chainId]) => chainId);
 
-          return isTransactionOnChains(tx, enabledChainIds, allTransactions);
+          return isTransactionOnChains(
+            tx,
+            enabledChainIds,
+            allTransactionsSorted,
+          );
         });
       } else {
         allTransactionsFiltered = isPopularNetwork
@@ -165,7 +169,7 @@ const TransactionsView = ({
               );
             })
           : allTransactions.filter((tx) =>
-              isTransactionOnChains(tx, [chainId], allTransactions),
+              isTransactionOnChains(tx, [chainId], allTransactionsSorted),
             );
       }
 

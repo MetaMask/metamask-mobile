@@ -21,6 +21,8 @@ import {
   formatPrice,
   formatPositionSize,
   formatTransactionDate,
+  PRICE_RANGES_DETAILED_VIEW,
+  formatPerpsFiat,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -201,7 +203,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Default}
               >
-                {formatPrice(order.price)}
+                {formatPerpsFiat(order.price, {
+                  ranges: PRICE_RANGES_DETAILED_VIEW,
+                })}
               </Text>
             </View>
             {/* Only show TP/SL for non-trigger orders */}
@@ -219,7 +223,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                     color={TextColor.Default}
                   >
                     {order.takeProfitPrice
-                      ? formatPrice(order.takeProfitPrice)
+                      ? formatPerpsFiat(order.takeProfitPrice, {
+                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                        })
                       : strings('perps.position.card.not_set')}
                   </Text>
                 </View>
@@ -235,7 +241,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                     color={TextColor.Default}
                   >
                     {order.stopLossPrice
-                      ? formatPrice(order.stopLossPrice)
+                      ? formatPerpsFiat(order.stopLossPrice, {
+                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                        })
                       : strings('perps.position.card.not_set')}
                   </Text>
                 </View>

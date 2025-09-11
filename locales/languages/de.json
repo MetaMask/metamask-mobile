@@ -1169,7 +1169,7 @@
       "title": "Positionen",
       "card": {
         "entry_price": "Entry price",
-        "funding_cost": "Funding cost",
+        "funding_cost": "Funding",
         "liquidation_price": "Liq. Price",
         "take_profit": "Take profit",
         "stop_loss": "Stop loss",

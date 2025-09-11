@@ -84,6 +84,25 @@ class PerpsView {
     return Matchers.getElementByID('perps-tab-scroll-view');
   }
 
+  // Orders section on the Perps main tab
+  get ordersSectionTitle(): DetoxElement {
+    return Matchers.getElementByText('Orders');
+  }
+
+  get anyOrderCardOnTab(): DetoxElement {
+    // PerpsCard has no specific testID for orders; assert by the presence of the title and any text matching limit label
+    return Matchers.getElementByText('Limit');
+  }
+
+  async expectOpenOrdersOnTab(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.ordersSectionTitle, {
+      description: 'Perps tab shows Open Orders section',
+    });
+    await Assertions.expectElementToBeVisible(this.anyOrderCardOnTab, {
+      description: 'An order card is visible on Perps tab',
+    });
+  }
+
   getTakeProfitPercentageButton(percentage: number) {
     // Support legacy tests passing index (1..4) by mapping to actual ROE%
     // TP quick buttons: [10, 25, 50, 100]
@@ -158,24 +177,20 @@ class PerpsView {
     direction: 'long' | 'short',
     index = 0,
   ) {
-    let visible = false;
     for (let i = 0; i < 6; i++) {
-      try {
-        const el = this.getPositionItem(symbol, leverageX, direction, index);
-        await Assertions.expectElementToBeVisible(el, {
-          description: `Ensure visible: ${symbol} ${leverageX}x ${direction} at index ${index}`,
-          timeout: 750,
-        });
-        visible = true;
-        break;
-      } catch {
-        await this.scrollDownOnPerpsTab(1);
+      const el = this.getPositionItem(symbol, leverageX, direction, index);
+      const isVisible = await Utilities.isElementVisible(el, 750);
+      if (isVisible) {
+        return;
       }
+      await this.scrollDownOnPerpsTab(1);
     }
-    if (!visible) {
-      // Final attempt assertion to surface a clear error
-      await this.expectPerpsTabPosition(symbol, leverageX, direction, index);
-    }
+    // Final assert to avoid masking regressions
+    const finalEl = this.getPositionItem(symbol, leverageX, direction, index);
+    await Assertions.expectElementToBeVisible(finalEl, {
+      description: `Perps tab position should be visible: ${symbol} ${leverageX}x ${direction} at index ${index}`,
+      timeout: 5000,
+    });
   }
 
   async tapEditTpslButton() {
@@ -213,7 +228,15 @@ class PerpsView {
   }
 
   async tapPlaceOrderButton() {
-    await Gestures.waitAndTap(this.placeOrderButton);
+    await Utilities.waitForReadyState(this.placeOrderButton as DetoxElement, {
+      checkStability: true,
+      elemDescription: 'Place order button',
+      timeout: 7000,
+    });
+    await Gestures.waitAndTap(this.placeOrderButton, {
+      elemDescription: 'Tap Place Order',
+      checkStability: true,
+    });
   }
 
   async tapOrderSuccessToastDismissButton() {

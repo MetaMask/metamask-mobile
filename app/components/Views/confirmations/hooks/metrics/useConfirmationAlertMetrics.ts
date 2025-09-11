@@ -115,6 +115,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.NoPayTokenQuotes]: 'no_pay_token_quotes',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
   [AlertKeys.PerpsDepositMinimum]: 'perps_deposit_minimum',
+  [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
 };
 

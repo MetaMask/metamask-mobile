@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  formatPrice,
+  formatPerpsFiat,
   formatPercentage,
   formatPnl,
 } from '../../utils/formatUtils';
@@ -18,8 +18,8 @@ describe('LivePriceHeader', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
     typeof usePerpsLivePrices
   >;
-  const mockFormatPrice = formatPrice as jest.MockedFunction<
-    typeof formatPrice
+  const mockFormatPerpsFiat = formatPerpsFiat as jest.MockedFunction<
+    typeof formatPerpsFiat
   >;
   const mockFormatPercentage = formatPercentage as jest.MockedFunction<
     typeof formatPercentage
@@ -29,7 +29,7 @@ describe('LivePriceHeader', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFormatPrice.mockImplementation((price) => {
+    mockFormatPerpsFiat.mockImplementation((price) => {
       const num = typeof price === 'string' ? parseFloat(price) : price;
       return `$${num.toFixed(2)}`;
     });
