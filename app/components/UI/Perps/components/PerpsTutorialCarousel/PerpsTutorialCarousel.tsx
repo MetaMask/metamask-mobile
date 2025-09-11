@@ -203,9 +203,6 @@ const PerpsTutorialCarousel: React.FC = () => {
       continueDebounceRef.current = null;
     }, 100);
 
-    // Mark tutorial as completed
-    markTutorialCompleted();
-
     if (isLastScreen) {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
@@ -216,6 +213,9 @@ const PerpsTutorialCarousel: React.FC = () => {
         [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
         [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
       });
+
+      // Mark tutorial as completed
+      markTutorialCompleted();
 
       // We need to enable Arbitrum for desposits to work
       // Arbitrum One is already added for all users as a default network
@@ -268,9 +268,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   ]);
 
   const handleSkip = useCallback(() => {
-    // Mark tutorial as completed
-    markTutorialCompleted();
-
     if (isLastScreen) {
       // Track tutorial completed when skipping from last screen
       const completionDuration = Date.now() - tutorialStartTime.current;
@@ -283,6 +280,8 @@ const PerpsTutorialCarousel: React.FC = () => {
       });
     }
 
+    // Mark tutorial as completed
+    markTutorialCompleted();
     navigateToMarketsList();
   }, [
     isLastScreen,
