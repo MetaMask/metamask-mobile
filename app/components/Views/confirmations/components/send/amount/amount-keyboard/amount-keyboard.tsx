@@ -78,7 +78,7 @@ export const AmountKeyboard = ({
       const fractionSize = getFractionLength(amt);
       if (
         (fiatMode && fractionSize > 2) ||
-        fractionSize > ((asset as AssetType)?.decimals ?? 0)
+        (!fiatMode && fractionSize > ((asset as AssetType)?.decimals ?? 0))
       ) {
         return;
       }
