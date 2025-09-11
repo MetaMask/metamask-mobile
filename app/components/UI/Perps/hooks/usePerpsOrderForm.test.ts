@@ -57,11 +57,10 @@ const createMockStreamManager = (): PerpsStreamManager => {
 
 // Test wrapper component
 function TestWrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(
-    PerpsStreamProvider,
-    { testStreamManager: createMockStreamManager() },
+  return React.createElement(PerpsStreamProvider, {
+    testStreamManager: createMockStreamManager(),
     children,
-  );
+  } as React.ComponentProps<typeof PerpsStreamProvider>);
 }
 
 describe('usePerpsOrderForm', () => {
