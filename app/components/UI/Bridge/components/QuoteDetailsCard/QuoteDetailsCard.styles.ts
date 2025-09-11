@@ -43,6 +43,10 @@ const createStyles = ({ colors }: Theme) =>
     networkBadgeText: {
       flex: 1,
     },
+    riveIcon: {
+      width: 16,
+      height: 16,
+    },
   });
 
 export default createStyles;
