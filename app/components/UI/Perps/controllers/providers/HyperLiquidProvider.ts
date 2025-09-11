@@ -438,7 +438,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
          *
          * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
          * Using 'Ioc' causes market orders to be treated as limit orders by HyperLiquid,
-         * leading to incorrect order type display in transaction history (TAT-1447)
+         * leading to incorrect order type display in transaction history (TAT-1475)
          */
         t:
           params.orderType === 'limit'
@@ -765,6 +765,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         (order) =>
           order.coin === coin &&
           order.reduceOnly === true &&
+          order.sz === position.size &&
           order.isTrigger === true &&
           (order.orderType.includes('Take Profit') ||
             order.orderType.includes('Stop')),
@@ -2082,14 +2083,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const denominator = 1 - l * side;
       if (Math.abs(denominator) < 0.0001) {
         // Avoid division by very small numbers
-        return entryPrice.toFixed(2);
+        return String(entryPrice);
       }
 
       const liquidationPrice =
         entryPrice - (side * marginAvailable * entryPrice) / denominator;
 
       // Ensure liquidation price is non-negative
-      return Math.max(0, liquidationPrice).toFixed(2);
+      return String(Math.max(0, liquidationPrice));
     } catch (error) {
       DevLogger.log('Error calculating liquidation price:', error);
       return '0.00';

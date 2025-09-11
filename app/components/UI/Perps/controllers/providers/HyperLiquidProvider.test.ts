@@ -390,7 +390,7 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
       expect(result.orderId).toBe('123');
 
-      // Verify market orders use FrontendMarket TIF (TAT-1447 fix)
+      // Verify market orders use FrontendMarket TIF (TAT-1475 fix)
       expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
         expect.objectContaining({
           orders: [
@@ -415,7 +415,7 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
 
-      // Verify limit orders use Gtc TIF (regression test for TAT-1447)
+      // Verify limit orders use Gtc TIF (regression test for TAT-1475)
       expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
         expect.objectContaining({
           orders: [
@@ -525,6 +525,15 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.editOrder(editParams);
 
       expect(result.success).toBe(true);
+
+      // Verify limit orders use Gtc TIF in edit operations
+      expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            t: { limit: { tif: 'Gtc' } },
+          }),
+        }),
+      );
     });
 
     it('should edit a market order with slippage calculation', async () => {
@@ -543,6 +552,15 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
       expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+
+      // Verify market orders use FrontendMarket TIF in edit operations
+      expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            t: { limit: { tif: 'FrontendMarket' } },
+          }),
+        }),
+      );
     });
 
     it('should handle editOrder when asset is not found', async () => {
@@ -2068,7 +2086,7 @@ describe('HyperLiquidProvider', () => {
       // l = 1 / 40 = 0.025
       // liquidation = 50000 - (1 * 0.075 * 50000) / (1 - 0.025 * 1)
       // liquidation = 50000 - 3750 / 0.975 = 50000 - 3846.15 = 46153.85
-      expect(result).toBe('46153.85');
+      expect(parseFloat(result)).toBeCloseTo(46153.85, 2);
     });
 
     it('should calculate liquidation price for short position correctly', async () => {
@@ -2088,7 +2106,7 @@ describe('HyperLiquidProvider', () => {
       // l = 1 / 40 = 0.025
       // liquidation = 50000 - (-1 * 0.075 * 50000) / (1 - 0.025 * -1)
       // liquidation = 50000 + 3750 / 1.025 = 50000 + 3658.54 = 53658.54
-      expect(result).toBe('53658.54');
+      expect(parseFloat(result)).toBeCloseTo(53658.54, 2);
     });
 
     it('should throw error for leverage exceeding maintenance leverage', async () => {
@@ -2585,6 +2603,7 @@ describe('HyperLiquidProvider', () => {
               reduceOnly: true,
               isTrigger: true,
               orderType: 'Take Profit',
+              sz: '0.1',
             },
             {
               coin: 'BTC',
@@ -2592,12 +2611,13 @@ describe('HyperLiquidProvider', () => {
               reduceOnly: true,
               isTrigger: true,
               orderType: 'Stop Loss',
+              sz: '0.1',
             },
           ]),
           referral: jest.fn().mockResolvedValue({
             referrerState: {
               stage: 'ready',
-              data: { code: 'TESTNET' },
+              data: { code: 'MMCSI' },
             },
           }),
           maxBuilderFee: jest.fn().mockResolvedValue(1),
@@ -2611,6 +2631,9 @@ describe('HyperLiquidProvider', () => {
           order: jest.fn().mockResolvedValue({
             status: 'ok',
             response: { data: { statuses: [{ resting: { oid: '999' } }] } },
+          }),
+          setReferrer: jest.fn().mockResolvedValue({
+            status: 'ok',
           }),
         });
 

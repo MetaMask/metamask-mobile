@@ -81,6 +81,8 @@ const PerpsWithdrawView: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(true); // Start with keypad open
   const [showPercentageButtons, setShowPercentageButtons] = useState(true); // Show percentage buttons initially
   const hasTrackedWithdrawView = useRef(false);
+  const [withdrawAmountDetailed, setWithdrawAmountDetailed] =
+    useState<string>('');
 
   // Hooks
   const { track: trackEvent } = usePerpsEventTracking();
@@ -158,7 +160,7 @@ const PerpsWithdrawView: React.FC = () => {
 
       // Preserve trailing zeros by storing the raw string value
       setWithdrawAmount(value);
-
+      setWithdrawAmountDetailed(value);
       // Hide percentage buttons when user types a value > 0
       const numValue = parseFloat(value) || 0;
       if (numValue > 0) {
@@ -179,9 +181,15 @@ const PerpsWithdrawView: React.FC = () => {
       if (!hasPositiveBalance) return;
 
       const amount = availableBalance * percentage;
-      // Format to 2 decimal places for USDC
-      const formattedAmount = amount.toFixed(2);
+      // Format to 2 or 6 decimal places for USDC
+      let formattedAmount = '0';
+      if (amount < 0.01) {
+        formattedAmount = amount.toFixed(6);
+      } else {
+        formattedAmount = amount.toFixed(2);
+      }
       setWithdrawAmount(formattedAmount);
+      setWithdrawAmountDetailed(amount.toFixed(6));
 
       // Hide percentage buttons after selection and show withdrawal button
       if (amount > 0) {
@@ -233,7 +241,7 @@ const PerpsWithdrawView: React.FC = () => {
         : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
 
       DevLogger.log('Initiating withdrawal with params:', {
-        amount: withdrawAmount,
+        amount: withdrawAmountDetailed,
         destination: destToken.address,
         assetId,
         chainId: destToken.chainId,
@@ -249,7 +257,7 @@ const PerpsWithdrawView: React.FC = () => {
       );
 
       const result = await controller.withdraw({
-        amount: withdrawAmount,
+        amount: withdrawAmountDetailed,
         assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
       });
 
@@ -264,7 +272,7 @@ const PerpsWithdrawView: React.FC = () => {
 
         // Track withdrawal completed with duration
         trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
-          amount: withdrawAmount,
+          amount: withdrawAmountDetailed,
           completionDuration: confirmationDuration,
         });
 
@@ -312,6 +320,7 @@ const PerpsWithdrawView: React.FC = () => {
     isTestnet,
     startMeasure,
     endMeasure,
+    withdrawAmountDetailed,
   ]);
 
   const handleBack = useCallback(() => {
