@@ -83,9 +83,9 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     const quote = quotes[quoteIndex];
 
     if (quote) {
-      properties.mm_pay_quotes_attempts = quote.metrics.attempts;
-      properties.mm_pay_quotes_buffer_size = quote.metrics.buffer;
-      properties.mm_pay_quotes_latency = quote.metrics.latency;
+      properties.mm_pay_quotes_attempts = quote.metrics?.attempts;
+      properties.mm_pay_quotes_buffer_size = quote.metrics?.buffer;
+      properties.mm_pay_quotes_latency = quote.metrics?.latency;
       properties.mm_pay_bridge_provider = quote.quote.bridgeId;
     }
 
