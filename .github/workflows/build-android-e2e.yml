@@ -1,7 +1,6 @@
 # Pure Android E2E build workflow - just builds APKs and uploads artifacts
 # No testing, no unnecessary setup - optimized for speed and efficiency
 
-
 name: Build Android E2E APKs
 
 on:
@@ -20,7 +19,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ubuntu-latest
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
     outputs:
@@ -33,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-benchmark
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
         with:
           platform: android
           setup-simulator: false
