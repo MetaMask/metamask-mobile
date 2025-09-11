@@ -20,6 +20,7 @@ interface PerpsAmountDisplayProps {
   tokenAmount?: string;
   tokenSymbol?: string;
   showMaxAmount?: boolean;
+  hasError?: boolean;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
@@ -33,6 +34,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   tokenAmount,
   tokenSymbol,
   showMaxAmount = true,
+  hasError = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -78,9 +80,13 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       <View style={styles.amountRow}>
         <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          variant={TextVariant.DisplayLG}
-          color={TextColor.Default}
-          style={styles.amountValue}
+          style={[
+            showTokenAmount && tokenAmount && tokenSymbol
+              ? styles.amountValueToken
+              : styles.amountValue,
+            isActive && styles.amountValueActive,
+            hasError && styles.amountValueError,
+          ]}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
