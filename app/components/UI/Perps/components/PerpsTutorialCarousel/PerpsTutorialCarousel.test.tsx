@@ -466,7 +466,7 @@ describe('PerpsTutorialCarousel', () => {
 
         // Skip button should be enabled for eligible users
         const skipButton = screen.getByTestId('perps-tutorial-skip-button');
-        expect(skipButton).not.toBeDisabled();
+        expect(skipButton.props.disabled).toBe(false);
       });
 
       it('allows eligible users to skip tutorial', () => {
@@ -563,7 +563,7 @@ describe('PerpsTutorialCarousel', () => {
           screen.getByText(strings('perps.tutorial.close_anytime.title')),
         ).toBeOnTheScreen();
 
-        // Should show "Got it" buttons (both main and skip button show this text)
+        // Should show "Got it" buttons (both main button and skip button show this text)
         const gotItButtons = screen.getAllByText(
           strings('perps.tutorial.got_it'),
         );
@@ -575,22 +575,31 @@ describe('PerpsTutorialCarousel', () => {
         ).not.toBeOnTheScreen();
       });
 
-      it('skip button is disabled for non-eligible users', () => {
+      it('shows skip button for non-eligible users on non-last screens', () => {
         render(<PerpsTutorialCarousel />);
 
-        // Skip button should have disabled prop for non-eligible users
+        // Skip button should be visible and enabled for non-eligible users on first screen
         const skipButton = screen.getByTestId('perps-tutorial-skip-button');
-        expect(skipButton.props.disabled).toBe(true);
+        expect(skipButton).toBeOnTheScreen();
+        expect(skipButton.props.disabled).toBe(false);
       });
 
-      it('skip button remains disabled throughout tutorial for non-eligible users', async () => {
+      it('disables skip button for non-eligible users on last screen', async () => {
         render(<PerpsTutorialCarousel />);
 
         // Navigate through all screens to get to last screen (4 clicks for 5 screens)
         await navigateToScreen(4);
 
-        // Skip button should still be disabled for non-eligible users on last screen
+        // Verify we're on the last screen (close_anytime screen for non-eligible users)
+        expect(
+          screen.getByText(strings('perps.tutorial.close_anytime.title')),
+        ).toBeOnTheScreen();
+
+        // Skip button should be present but disabled for non-eligible users on last screen
         const skipButton = screen.getByTestId('perps-tutorial-skip-button');
+        expect(skipButton).toBeOnTheScreen();
+
+        // The button should be disabled for non-eligible users on last screen
         expect(skipButton.props.disabled).toBe(true);
       });
 

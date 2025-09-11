@@ -394,7 +394,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           <View style={styles.skipButton}>
             <TouchableOpacity
               onPress={handleSkip}
-              disabled={!isEligible}
+              disabled={isLastScreen && !isEligible}
               testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
             >
               <Text
