@@ -1131,8 +1131,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -2972,8 +2973,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -4813,8 +4815,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -6693,8 +6696,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -8534,8 +8538,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -10375,8 +10380,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -12785,8 +12791,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }
@@ -14626,8 +14633,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         {
                                           "flexDirection": "row",
                                           "gap": 8,
+                                          "paddingBottom": 0,
                                           "paddingHorizontal": 16,
-                                          "paddingVertical": 20,
+                                          "paddingTop": 24,
                                           "width": "100%",
                                         }
                                       }

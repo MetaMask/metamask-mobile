@@ -6,8 +6,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     {
       "flexDirection": "row",
       "gap": 8,
+      "paddingBottom": 0,
       "paddingHorizontal": 16,
-      "paddingVertical": 20,
+      "paddingTop": 24,
       "width": "100%",
     }
   }
