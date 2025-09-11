@@ -6,9 +6,8 @@ import {
   Text,
 } from '@metamask/design-system-react-native';
 import ProgressBar from 'react-native-progress/Bar';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
 import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import SeasonTierImage from '../SeasonTierImage';
@@ -23,18 +22,7 @@ import {
   selectCurrentTier,
   selectNextTier,
 } from '../../../../../reducers/rewards/selectors';
-import { formatTimeRemaining } from '../../utils/formatUtils';
-
-const formatNumber = (value: number | null): string => {
-  if (value === null || value === undefined) {
-    return '0';
-  }
-  try {
-    return getIntlNumberFormatter(I18n.locale).format(value);
-  } catch (e) {
-    return String(value);
-  }
-};
+import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 
 const SeasonStatus: React.FC = () => {
   const currentTier = useSelector(selectCurrentTier);

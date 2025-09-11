@@ -343,8 +343,18 @@ export type SeasonTierDto = {
   id: string;
   name: string;
   pointsNeeded: number;
-  // Add other tier properties as needed
+  image: ThemeImage;
+  levelNumber: string;
+  rewards: SeasonRewardDto[];
 };
+
+export interface SeasonRewardDto {
+  id: string;
+  name: string;
+  shortDescription: string;
+  iconName: string;
+  rewardType: string;
+}
 
 export interface SeasonDto {
   id: string;
@@ -400,12 +410,34 @@ export type SubscriptionReferralDetailsState = {
 
 // Serializable versions for state storage (Date objects converted to timestamps)
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonRewardDtoState = {
+  id: string;
+  name: string;
+  shortDescription: string;
+  iconName: string;
+  rewardType: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonTierDtoState = {
+  id: string;
+  name: string;
+  pointsNeeded: number;
+  image: {
+    lightModeUrl: string;
+    darkModeUrl: string;
+  };
+  levelNumber: string;
+  rewards: SeasonRewardDtoState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonDtoState = {
   id: string;
   name: string;
   startDate: number; // timestamp
   endDate: number; // timestamp
-  tiers: SeasonTierDto[];
+  tiers: SeasonTierDtoState[];
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -417,8 +449,8 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDto;
-  nextTier: SeasonTierDto | null;
+  currentTier: SeasonTierDtoState;
+  nextTier: SeasonTierDtoState | null;
   nextTierPointsNeeded: number | null;
 };
 
@@ -462,7 +494,7 @@ export type RewardsAccountState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
   activeAccount: RewardsAccountState | null;
-  accounts: { [account: CaipAccountId]: RewardsAccountState };
+  accounts: { [account: string]: RewardsAccountState };
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {

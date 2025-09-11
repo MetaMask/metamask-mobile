@@ -5837,7 +5837,9 @@
       }
     },
     "active_boosts_title": "Active Boosts",
-    "season_1": "Season 1"
+    "season_1": "Season 1",
+    "upcoming_rewards_title": "Upcoming Rewards",
+    "points_needed": "{{points}} points"
 
   },
   "time": {

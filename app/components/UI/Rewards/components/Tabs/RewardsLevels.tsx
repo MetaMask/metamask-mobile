@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
+import UpcomingRewards from './LevelsTab/UpcomingRewards';
+import { ScrollView } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface RewardsLevelsProps {
   tabLabel?: string;

@@ -8,6 +8,7 @@ import {
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
  * Formats a timestamp for rewards date
@@ -181,5 +182,16 @@ export const getEventDetails = (
         icon: IconName.Star,
         badgeImageUri: undefined,
       };
+  }
+};
+
+export const formatNumber = (value: number | null): string => {
+  if (value === null || value === undefined) {
+    return '0';
+  }
+  try {
+    return getIntlNumberFormatter(I18n.locale).format(value);
+  } catch (e) {
+    return String(value);
   }
 };

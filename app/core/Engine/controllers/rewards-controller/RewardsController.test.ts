@@ -75,10 +75,50 @@ const CAIP_ACCOUNT_3: CaipAccountId = 'eip155:1:0x789' as CaipAccountId;
 
 // Helper function to create test tier data
 const createTestTiers = (): SeasonTierDto[] => [
-  { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-  { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
-  { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
-  { id: 'platinum', name: 'Platinum', pointsNeeded: 10000 },
+  {
+    id: 'bronze',
+    name: 'Bronze',
+    pointsNeeded: 0,
+    image: {
+      lightModeUrl: 'bronze-light',
+      darkModeUrl: 'bronze-dark',
+    },
+    levelNumber: '1',
+    rewards: [],
+  },
+  {
+    id: 'silver',
+    name: 'Silver',
+    pointsNeeded: 1000,
+    image: {
+      lightModeUrl: 'silver-light',
+      darkModeUrl: 'silver-dark',
+    },
+    levelNumber: '2',
+    rewards: [],
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    pointsNeeded: 5000,
+    image: {
+      lightModeUrl: 'gold-light',
+      darkModeUrl: 'gold-dark',
+    },
+    levelNumber: '3',
+    rewards: [],
+  },
+  {
+    id: 'platinum',
+    name: 'Platinum',
+    pointsNeeded: 10000,
+    image: {
+      lightModeUrl: 'platinum-light',
+      darkModeUrl: 'platinum-dark',
+    },
+    levelNumber: '4',
+    rewards: [],
+  },
 ];
 
 // Helper function to create test season status (API response format with Date objects)
@@ -1071,8 +1111,28 @@ describe('RewardsController', () => {
           updatedAt: Date.now() - 3600000, // 1 hour ago
         },
         tier: {
-          currentTier: { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
-          nextTier: { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
+          currentTier: {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 1000,
+            image: {
+              lightModeUrl: 'silver-light',
+              darkModeUrl: 'silver-dark',
+            },
+            levelNumber: '2',
+            rewards: [],
+          },
+          nextTier: {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 5000,
+            image: {
+              lightModeUrl: 'gold-light',
+              darkModeUrl: 'gold-dark',
+            },
+            levelNumber: '3',
+            rewards: [],
+          },
           nextTierPointsNeeded: 3500, // 5000 - 1500
         },
         lastFetched: recentTime,
@@ -1893,10 +1953,50 @@ describe('RewardsController', () => {
     it('should sort tiers by points needed before processing', () => {
       // Arrange - Create tiers in random order
       const unsortedTiers: SeasonTierDto[] = [
-        { id: 'platinum', name: 'Platinum', pointsNeeded: 10000 },
-        { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-        { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
-        { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
+        {
+          id: 'platinum',
+          name: 'Platinum',
+          pointsNeeded: 10000,
+          image: {
+            lightModeUrl: 'platinum-light',
+            darkModeUrl: 'platinum-dark',
+          },
+          levelNumber: '4',
+          rewards: [],
+        },
+        {
+          id: 'bronze',
+          name: 'Bronze',
+          pointsNeeded: 0,
+          image: {
+            lightModeUrl: 'bronze-light',
+            darkModeUrl: 'bronze-dark',
+          },
+          levelNumber: '1',
+          rewards: [],
+        },
+        {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 5000,
+          image: {
+            lightModeUrl: 'gold-light',
+            darkModeUrl: 'gold-dark',
+          },
+          levelNumber: '3',
+          rewards: [],
+        },
+        {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'silver-light',
+            darkModeUrl: 'silver-dark',
+          },
+          levelNumber: '2',
+          rewards: [],
+        },
       ];
       const currentTierId = 'silver';
       const currentPoints = 1500;
