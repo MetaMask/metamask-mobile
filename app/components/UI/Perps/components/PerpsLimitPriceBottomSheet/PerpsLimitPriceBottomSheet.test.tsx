@@ -726,4 +726,70 @@ describe('PerpsLimitPriceBottomSheet', () => {
       expect(screen.getByTestId('keypad-button-clear')).toBeOnTheScreen();
     });
   });
+
+  describe('Limit Price Warnings', () => {
+    it('warns when opening a Long order and limit price is above current', () => {
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="long"
+          limitPrice="3100"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_above'),
+      ).toBeOnTheScreen();
+    });
+
+    it('warns when opening a Short order and limit price is below current', () => {
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="short"
+          limitPrice="2990"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_below'),
+      ).toBeOnTheScreen();
+    });
+
+    it('warns when closing a Long position and limit price is below current', () => {
+      // Closing a long position passes direction="short" with isClosingPosition
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="short"
+          isClosingPosition
+          limitPrice="2990"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_below'),
+      ).toBeOnTheScreen();
+    });
+
+    it('warns when closing a Short position and limit price is above current', () => {
+      // Closing a short position passes direction="long" with isClosingPosition
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="long"
+          isClosingPosition
+          limitPrice="3100"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_above'),
+      ).toBeOnTheScreen();
+    });
+  });
 });
