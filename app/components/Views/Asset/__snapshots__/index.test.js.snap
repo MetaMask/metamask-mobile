@@ -1141,6 +1141,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -1229,6 +1230,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -1248,6 +1250,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -1336,6 +1339,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -1355,6 +1359,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -1443,6 +1448,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -1462,6 +1468,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -1550,6 +1557,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -1569,6 +1577,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -1657,6 +1666,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -2988,6 +2998,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -3076,6 +3087,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -3095,6 +3107,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -3183,6 +3196,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -3202,6 +3216,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -3290,6 +3305,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -3309,6 +3325,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -3397,6 +3414,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -3416,6 +3434,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -3504,6 +3523,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -4835,6 +4855,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -4923,6 +4944,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -4942,6 +4964,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -5030,6 +5053,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -5049,6 +5073,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -5137,6 +5162,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -5156,6 +5182,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -5244,6 +5271,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -5263,6 +5291,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -5351,6 +5380,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -6721,6 +6751,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -6809,6 +6840,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -6828,6 +6860,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -6916,6 +6949,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -6935,6 +6969,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -7023,6 +7058,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -7042,6 +7078,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -7130,6 +7167,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -7149,6 +7187,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -7237,6 +7276,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -8568,6 +8608,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -8656,6 +8697,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -8675,6 +8717,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -8763,6 +8806,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -8782,6 +8826,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -8870,6 +8915,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -8889,6 +8935,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -8977,6 +9024,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -8996,6 +9044,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -9084,6 +9133,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -10415,6 +10465,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -10503,6 +10554,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -10522,6 +10574,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -10610,6 +10663,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -10629,6 +10683,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -10717,6 +10772,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -10736,6 +10792,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -10824,6 +10881,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -10843,6 +10901,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -10931,6 +10990,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -12831,6 +12891,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -12919,6 +12980,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -12938,6 +13000,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -13026,6 +13089,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -13045,6 +13109,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -13133,6 +13198,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -13152,6 +13218,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -13240,6 +13307,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -13259,6 +13327,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -13347,6 +13416,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -14678,6 +14748,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -14766,6 +14837,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -14785,6 +14857,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -14873,6 +14946,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -14892,6 +14966,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -14980,6 +15055,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -14999,6 +15075,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -15087,6 +15164,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
@@ -15106,6 +15184,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                         style={
                                           {
                                             "flex": 1,
+                                            "overflow": "hidden",
                                           }
                                         }
                                       >
@@ -15194,6 +15273,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 style={
                                                   {
                                                     "color": "#121314",
+                                                    "flexShrink": 0,
                                                     "fontFamily": "Geist Medium",
                                                     "fontSize": 14,
                                                     "letterSpacing": 0,
