@@ -27,10 +27,10 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
   const navigation = useNavigation();
 
   const handleRemoveAccountClick = useCallback(() => {
-    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
-      params: { account },
-    });
+    navigation.navigate(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
+      { account },
+    );
   }, [account, navigation]);
 
   return (

@@ -50,8 +50,6 @@ import ConnectionDetails from '../../../components/Views/AccountPermissions/Conn
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
-import DetectedTokens from '../../Views/DetectedTokens';
-import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -154,19 +152,6 @@ import { PayWithNetworkModal } from '../../Views/confirmations/components/modals
 import { useMetrics } from '../../hooks/useMetrics';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import { RootParamList } from '../../../util/navigation';
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-    cardStyleInterpolator: () => ({
-      overlayStyle: {
-        opacity: 0,
-      },
-    }),
-  },
-  animationEnabled: false,
-};
 
 const Stack = createStackNavigator<RootParamList>();
 
@@ -304,19 +289,6 @@ const AddNetworkFlow = () => {
   );
 };
 
-const DetectedTokensFlow = () => (
-  <Stack.Navigator
-    screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
-    initialRouteName={'DetectedTokens'}
-  >
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-    <Stack.Screen
-      name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation}
-    />
-  </Stack.Navigator>
-);
-
 const ImportPrivateKeyView = () => (
   <Stack.Navigator
     screenOptions={{
@@ -429,71 +401,6 @@ const MultichainAccountGroupDetails = () => {
   );
 };
 
-const MultichainAccountDetailsActions = () => {
-  const route = useRoute();
-
-  // Configure transparent background to show AccountDetails screen beneath modal overlays
-  const commonScreenOptions = {
-    //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-    cardStyle: { backgroundColor: importedColors.transparent },
-    cardStyleInterpolator: () => ({
-      overlayStyle: {
-        opacity: 0,
-      },
-    }),
-  };
-
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: false,
-      }}
-    >
-      <Stack.Screen
-        name="MultichainEditAccountName"
-        component={MultichainEditAccountName}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name="ShareAddress"
-        component={ShareAddress}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name="ShareAddressQR"
-        component={ShareAddressQR}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name="DeleteAccount"
-        component={DeleteAccount}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name="SRPRevealQuizInMultichainAccountDetails"
-        component={SRPQuiz}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name="MultichainRevealPrivateCredential"
-        component={RevealPrivateKey}
-        initialParams={route?.params}
-      />
-      <Stack.Screen
-        name="RevealSRPCredential"
-        component={RevealSRP}
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
-};
-
 const MultichainWalletDetails = () => {
   const route = useRoute();
 
@@ -531,64 +438,6 @@ const MultichainAddressList = () => {
     </Stack.Navigator>
   );
 };
-
-const MultichainPrivateKeyList = () => {
-  const route = useRoute();
-
-  return (
-    <Stack.Navigator
-      screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
-    >
-      <Stack.Screen
-        name="MultichainPrivateKeyList"
-        component={MultichainAccountPrivateKeyList}
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
-};
-
-const ModalConfirmationRequest = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
-    }}
-  >
-    <Stack.Screen name="ConfirmationRequestModal" component={Confirm} />
-  </Stack.Navigator>
-);
-
-const ModalSwitchAccountType = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
-    }}
-  >
-    <Stack.Screen
-      name="ConfirmationSwitchAccountType"
-      component={SwitchAccountTypeModal}
-    />
-  </Stack.Navigator>
-);
-
-const ModalSmartAccountOptIn = () => (
-  <Stack.Navigator
-    screenOptions={{
-      presentation: 'modal',
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-  >
-    <Stack.Screen
-      name="SmartAccountOptIn"
-      component={SmartAccountUpdateModal}
-    />
-  </Stack.Navigator>
-);
 
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
@@ -728,10 +577,6 @@ const AppFlow = () => {
             name={'AssetHideConfirmation'}
             component={AssetHideConfirmation}
           />
-          <Stack.Screen
-            name={'DetectedTokens'}
-            component={DetectedTokensFlow}
-          />
           <Stack.Screen name="AssetOptions" component={AssetOptions} />
           <Stack.Screen name="NftOptions" component={NftOptions} />
           <Stack.Screen name="UpdateNeededModal" component={UpdateNeeded} />
@@ -765,19 +610,51 @@ const AppFlow = () => {
           />
           <Stack.Screen name="TooltipModal" component={TooltipModal} />
           <Stack.Screen name="DeepLinkModal" component={DeepLinkModal} />
+          <Stack.Screen
+            name="MultichainPrivateKeyList"
+            component={MultichainAccountPrivateKeyList}
+          />
+          {/* Multichain Account Details Modals */}
+          <Stack.Screen
+            name="MultichainEditAccountName"
+            component={MultichainEditAccountName}
+          />
+          <Stack.Screen name="ShareAddress" component={ShareAddress} />
+          <Stack.Screen name="ShareAddressQR" component={ShareAddressQR} />
+          <Stack.Screen name="DeleteAccount" component={DeleteAccount} />
+          <Stack.Screen
+            name="SRPRevealQuizInMultichainAccountDetails"
+            component={SRPQuiz}
+          />
+          {/* Ledger Modals */}
+          <Stack.Screen
+            name="LedgerTransactionModal"
+            component={LedgerTransactionModal}
+          />
+          <Stack.Screen
+            name="LedgerMessageSignModal"
+            component={LedgerMessageSignModal}
+          />
+          <Stack.Screen name="ConfirmationRequestModal" component={Confirm} />
+          <Stack.Screen
+            name="ConfirmationSwitchAccountType"
+            component={SwitchAccountTypeModal}
+          />
+          <Stack.Screen
+            name="SmartAccountOptIn"
+            component={SmartAccountUpdateModal}
+          />
         </Stack.Group>
         <Stack.Screen
           name="ImportPrivateKeyView"
           component={ImportPrivateKeyView}
           options={{ animationEnabled: true }}
         />
-        {
-          <Stack.Screen
-            name="ImportSRPView"
-            component={ImportSRPView}
-            options={{ animationEnabled: true }}
-          />
-        }
+        <Stack.Screen
+          name="ImportSRPView"
+          component={ImportSRPView}
+          options={{ animationEnabled: true }}
+        />
         <Stack.Screen
           name="ConnectQRHardwareFlow"
           component={ConnectQRHardwareFlow}
@@ -801,8 +678,8 @@ const AppFlow = () => {
           component={MultichainAccountActions}
         />
         <Stack.Screen
-          name="MultichainAccountDetailActions"
-          component={MultichainAccountDetailsActions}
+          name="MultichainRevealPrivateCredential"
+          component={RevealPrivateKey}
         />
         <Stack.Screen
           name="MultichainWalletDetails"
@@ -811,36 +688,6 @@ const AppFlow = () => {
         <Stack.Screen
           name="MultichainAddressList"
           component={MultichainAddressList}
-        />
-        <Stack.Screen
-          name="MultichainPrivateKeyList"
-          component={MultichainPrivateKeyList}
-        />
-        <Stack.Screen
-          options={{
-            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-            cardStyle: { backgroundColor: importedColors.transparent },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
-          }}
-          name="LedgerTransactionModal"
-          component={LedgerTransactionModal}
-        />
-        <Stack.Screen
-          options={{
-            //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-            cardStyle: { backgroundColor: importedColors.transparent },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
-          }}
-          name="LedgerMessageSignModal"
-          component={LedgerMessageSignModal}
         />
         <Stack.Screen name="OptionsSheet" component={OptionsSheet} />
         <Stack.Screen
@@ -864,18 +711,6 @@ const AppFlow = () => {
           name="LockScreen"
           component={LockScreen}
           options={{ gestureEnabled: false }}
-        />
-        <Stack.Screen
-          name="ConfirmationRequestModal"
-          component={ModalConfirmationRequest}
-        />
-        <Stack.Screen
-          name="ConfirmationSwitchAccountType"
-          component={ModalSwitchAccountType}
-        />
-        <Stack.Screen
-          name="SmartAccountOptIn"
-          component={ModalSmartAccountOptIn}
         />
         <Stack.Screen
           name="ConfirmationPayWithModal"

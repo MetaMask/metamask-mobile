@@ -369,7 +369,6 @@ const Routes = {
     WHATS_NEW: RouteNames.WhatsNewModal,
     TURN_OFF_REMEMBER_ME: RouteNames.TurnOffRememberMeModal,
     UPDATE_NEEDED: RouteNames.UpdateNeededModal,
-    DETECTED_TOKENS: RouteNames.DetectedTokens,
     SRP_REVEAL_QUIZ: RouteNames.SRPRevealQuiz,
     WALLET_ACTIONS: RouteNames.WalletActions,
     FUND_ACTION_MENU: RouteNames.FundActionMenu,
@@ -377,8 +376,6 @@ const Routes = {
     MULTI_RPC_MIGRATION_MODAL: RouteNames.MultiRPcMigrationModal,
     MAX_BROWSER_TABS_MODAL: RouteNames.MaxBrowserTabsModal,
     DEEP_LINK_MODAL: RouteNames.DeepLinkModal,
-    MULTICHAIN_ACCOUNT_DETAIL_ACTIONS:
-      RouteNames.MultichainAccountDetailActions,
   },
   ONBOARDING: {
     ROOT_NAV: RouteNames.OnboardingRootNav,
@@ -466,7 +463,6 @@ const Routes = {
       SHARE_ADDRESS_QR: RouteNames.ShareAddressQR,
       DELETE_ACCOUNT: RouteNames.DeleteAccount,
       REVEAL_PRIVATE_CREDENTIAL: RouteNames.MultichainRevealPrivateCredential,
-      REVEAL_SRP_CREDENTIAL: RouteNames.RevealSRPCredential,
       SRP_REVEAL_QUIZ: RouteNames.SRPRevealQuizInMultichainAccountDetails,
       SMART_ACCOUNT: RouteNames.SmartAccount,
     },

@@ -90,7 +90,7 @@ import { RegionSelectorModalParams } from '../../components/UI/Ramp/Deposit/View
 
 // This MUST use type and not interface according to docs - https://reactnavigation.org/docs/typescript/?config=dynamic#type-checking-screens
 export type RootParamList = {
-  // Detected Tokens Flow
+  // TODO - The detected tokens screens does not seem to be used anymore
   DetectedTokensConfirmation: { isHidingAll?: boolean; onConfirm: () => void };
   DetectedTokens: undefined;
 
@@ -260,6 +260,7 @@ export type RootParamList = {
   };
   SRPRevealQuizInMultichainAccountDetails: SRPQuizParams | undefined;
   MultichainRevealPrivateCredential: MultichainRevealPrivateCredentialParams;
+  // TODO - This screen does not seem to be used anymore
   RevealSRPCredential: {
     account: InternalAccount;
   };

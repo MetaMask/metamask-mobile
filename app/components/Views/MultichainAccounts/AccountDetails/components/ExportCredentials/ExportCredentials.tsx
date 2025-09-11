@@ -87,10 +87,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   }, [navigate, account.options.entropySource]);
 
   const onExportPrivateKey = useCallback(() => {
-    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
-      params: { account },
-    });
+    navigate(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+      { account },
+    );
   }, [navigate, account]);
 
   return (

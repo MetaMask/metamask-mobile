@@ -64,14 +64,11 @@ export const AddressList = ({ route }: AddressListProps) => {
             {
               name: IconName.QrCode,
               callback: () => {
-                navigation.navigate('MultichainAccountDetailActions', {
-                  screen: 'ShareAddressQR',
-                  params: {
-                    address: item.account.address,
-                    networkName: item.networkName,
-                    chainId: item.scope,
-                    accountName: item.account.metadata.name,
-                  },
+                navigation.navigate('ShareAddressQR', {
+                  address: item.account.address,
+                  networkName: item.networkName,
+                  chainId: item.scope,
+                  accountName: item.account.metadata.name,
                 });
               },
               testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
