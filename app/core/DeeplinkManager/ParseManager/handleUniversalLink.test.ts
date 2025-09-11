@@ -40,6 +40,7 @@ describe('handleUniversalLinks', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
+  const mockHandleDepositCash = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockHandleOpenHome = jest.fn();
   const mockHandleSwap = jest.fn();
@@ -61,6 +62,7 @@ describe('handleUniversalLinks', () => {
     parse: mockParse,
     _handleBuyCrypto: mockHandleBuyCrypto,
     _handleSellCrypto: mockHandleSellCrypto,
+    _handleDepositCash: mockHandleDepositCash,
     _handleBrowserUrl: mockHandleBrowserUrl,
     _handleOpenHome: mockHandleOpenHome,
     _handleSwap: mockHandleSwap,
@@ -82,10 +84,10 @@ describe('handleUniversalLinks', () => {
     >;
   // Default mock implementation that resolves with true
   mockHandleDeepLinkModalDisplay.mockImplementation((callbackParams) => {
-    if ('onContinue' in callbackParams) {
-      callbackParams.onContinue();
-    } else {
+    if (callbackParams.linkType === 'invalid') {
       callbackParams.onBack();
+    } else {
+      callbackParams.onContinue();
     }
   });
 
@@ -155,6 +157,28 @@ describe('handleUniversalLinks', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockHandleSellCrypto).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('ACTIONS.DEPOSIT', () => {
+    it('calls instance._handleDepositCash if action is ACTIONS.DEPOSIT', async () => {
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DEPOSIT}/additional/path`,
+        href: 'test-href',
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DEPOSIT}/additional/path/additional/path`;
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandleDepositCash).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -653,6 +677,65 @@ describe('handleUniversalLinks', () => {
       });
 
       expect(DevLogger.log).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+        linkType: DeepLinkModalLinkType.PUBLIC,
+        pageTitle: 'Dapp',
+        onContinue: expect.any(Function),
+        onBack: expect.any(Function),
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('interstitial whitelist', () => {
+    const whitelistedUrls = [
+      'https://link.metamask.io/perps-asset?symbol=ETH',
+    ] as const;
+
+    it.each(whitelistedUrls)(
+      'skips interstitial modal for whitelisted URL: %s',
+      async (testUrl) => {
+        const parsedUrl = new URL(testUrl);
+        const testUrlObj = {
+          ...urlObj,
+          hostname: parsedUrl.hostname,
+          href: testUrl,
+          pathname: parsedUrl.pathname,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandlePerpsAsset).toHaveBeenCalled();
+      },
+    );
+
+    it('shows interstitial modal for non-whitelisted URLs', async () => {
+      const nonWhitelistedUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.DAPP}/example.com`;
+      const nonWhitelistedUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: nonWhitelistedUrl,
+        pathname: `/${ACTIONS.DAPP}/example.com`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: nonWhitelistedUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: nonWhitelistedUrl,
+        source: 'test-source',
+      });
+
       expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
         linkType: DeepLinkModalLinkType.PUBLIC,
         pageTitle: 'Dapp',

@@ -20,11 +20,13 @@ interface HandlePerpsAssetUrlParams {
  *
  * @param params Object containing the perps path
  *
- * URL format: https://link.metamask.io/perps or https://link.metamask.io/perps-markets
+ * URL format: https://link.metamask.io/perps or https://link.metamask.io/perps?screen=markets
  *
  * Behavior:
- * - First-time users: Navigate to tutorial
- * - Returning users: Navigate to markets list
+ * - First-time users: Always go to tutorial (regardless of parameters)
+ * - Returning users: Route based on parameters:
+ * - perps (no params): Navigate to wallet home with Perps tab selected
+ * - perps?screen=markets: Navigate directly to markets list (PerpsMarketListView)
  */
 export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   DevLogger.log(
@@ -32,27 +34,44 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     perpsPath,
   );
   try {
-    // Check if user is first-time perps user using selector
+    // Check if user is first-time perps user - always goes to tutorial first
     const isFirstTime = selectIsFirstTimePerpsUser(store.getState());
     DevLogger.log('[handlePerpsUrl] isFirstTimeUser:', isFirstTime);
 
     if (isFirstTime) {
       DevLogger.log(
-        '[handlePerpsUrl] Navigating to tutorial with isFromDeeplink: true',
+        '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL',
       );
-      // Navigate to tutorial for first-time users
+      // First-time users always go to tutorial, regardless of URL
       NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.TUTORIAL,
         params: {
           isFromDeeplink: true,
         },
       });
+      return;
+    }
+
+    // Returning users: route based on URL parameters
+    // Parse URL parameters to check for screen parameter
+    const urlParams = new URLSearchParams(
+      perpsPath.includes('?') ? perpsPath.split('?')[1] : '',
+    );
+    const screenParam = urlParams.get('screen');
+
+    if (screenParam === 'markets') {
+      DevLogger.log(
+        '[handlePerpsUrl] Returning user requesting markets, navigating directly to markets list',
+      );
+      // Direct to markets list for screen=markets parameter
+      NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
     } else {
       DevLogger.log(
-        '[handlePerpsUrl] Navigating to wallet home with Perps tab selected for returning user',
+        '[handlePerpsUrl] Returning user requesting perps, navigating to wallet home with Perps tab',
       );
-
-      // Navigate to wallet home first
+      // Regular perps URL: go to wallet tab for returning users
       NavigationService.navigation.navigate(Routes.WALLET.HOME);
 
       // The timeout is REQUIRED - React Navigation needs time to:

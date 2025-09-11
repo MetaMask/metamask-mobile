@@ -8,11 +8,9 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
-import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsAmountDisplayProps {
   amount: string;
-  maxAmount: number;
   showWarning?: boolean;
   warningMessage?: string;
   onPress?: () => void;
@@ -22,11 +20,11 @@ interface PerpsAmountDisplayProps {
   tokenAmount?: string;
   tokenSymbol?: string;
   showMaxAmount?: boolean;
+  hasError?: boolean;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   amount,
-  maxAmount,
   showWarning = false,
   warningMessage = 'No funds available. Please deposit first.',
   onPress,
@@ -36,6 +34,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   tokenAmount,
   tokenSymbol,
   showMaxAmount = true,
+  hasError = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -86,6 +85,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               ? styles.amountValueToken
               : styles.amountValue,
             isActive && styles.amountValueActive,
+            hasError && styles.amountValueError,
           ]}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
@@ -106,15 +106,15 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           />
         )}
       </View>
-      {showMaxAmount && (
+      {/* Display token amount equivalent for current input */}
+      {showMaxAmount && tokenAmount && tokenSymbol && (
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
           style={styles.maxAmount}
           testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
         >
-          {formatPrice(maxAmount, { minimumDecimals: 2, maximumDecimals: 2 })}{' '}
-          {strings('perps.order.max')}
+          {formatPositionSize(tokenAmount)} {tokenSymbol}
         </Text>
       )}
       {showWarning && (

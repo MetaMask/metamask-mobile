@@ -508,6 +508,9 @@ describe('getSettingsNavigationOptions', () => {
       default: '#FFFFFF',
     },
   };
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
 
   describe('Basic Functionality', () => {
     it('should return navigation options object', () => {
@@ -544,6 +547,74 @@ describe('getSettingsNavigationOptions', () => {
 
       expect(options.headerStyle.shadowColor).toBe('transparent');
       expect(options.headerStyle.elevation).toBe(0);
+    });
+  });
+
+  describe('Rewards Enabled Functionality', () => {
+    it('should show close button when rewards are enabled', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+        true,
+      );
+
+      expect(options.headerRight).toBeDefined();
+      expect(typeof options.headerRight).toBe('function');
+    });
+
+    it('should not show close button when rewards are disabled', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+        false,
+      );
+
+      expect(options.headerRight()).toBeNull();
+    });
+
+    it('should call navigation.goBack when close button is pressed', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        mockNavigation,
+        true,
+      );
+
+      const HeaderRightComponent = options.headerRight;
+      const { getByTestId } = renderWithProvider(<HeaderRightComponent />, {
+        state: { engine: { backgroundState } },
+      });
+
+      const closeButton = getByTestId('close-network-icon');
+      fireEvent.press(closeButton);
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle missing navigation object gracefully', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        null,
+        true,
+      );
+
+      expect(options.headerRight).toBeDefined();
+      expect(typeof options.headerRight).toBe('function');
+    });
+
+    it('should handle undefined navigation object when rewards enabled', () => {
+      const options = getSettingsNavigationOptions(
+        mockTitle,
+        mockThemeColors,
+        undefined,
+        true,
+      );
+
+      expect(options.headerRight).toBeDefined();
+      expect(typeof options.headerRight).toBe('function');
     });
   });
 
@@ -621,6 +692,30 @@ describe('getSettingsNavigationOptions', () => {
       expect(() => {
         const options = getSettingsNavigationOptions(null, mockThemeColors);
         expect(options).toBeDefined();
+      }).not.toThrow();
+    });
+
+    it('should handle new navigation and isRewardsEnabled parameters', () => {
+      expect(() => {
+        const options = getSettingsNavigationOptions(
+          mockTitle,
+          mockThemeColors,
+          mockNavigation,
+          true,
+        );
+        expect(options).toBeDefined();
+        expect(options.headerRight).toBeDefined();
+      }).not.toThrow();
+
+      expect(() => {
+        const options = getSettingsNavigationOptions(
+          mockTitle,
+          mockThemeColors,
+          mockNavigation,
+          false,
+        );
+        expect(options).toBeDefined();
+        expect(options.headerRight()).toBeNull();
       }).not.toThrow();
     });
   });
