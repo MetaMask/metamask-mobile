@@ -8,7 +8,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { TokenStandard } from '../../../../types/token';
+import { AssetType, TokenStandard } from '../../../../types/token';
+import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
@@ -74,10 +75,13 @@ export const AmountKeyboard = ({
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
+      if (getFractionLength(amt) > ((asset as AssetType)?.decimals ?? 0)) {
+        return;
+      }
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
     },
-    [fiatMode, getNativeValue, updateAmount, updateValue],
+    [asset, fiatMode, getNativeValue, updateAmount, updateValue],
   );
 
   const goToNextPage = useCallback(() => {
