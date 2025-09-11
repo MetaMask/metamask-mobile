@@ -37,13 +37,16 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   const [showTimeout, setShowTimeout] = useState(false);
 
   // Set timeout to show retry option after CONNECTION_TIMEOUT_MS
+  // Restarts timer whenever showTimeout becomes false (i.e., when user retries)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowTimeout(true);
-    }, PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS);
+    if (!showTimeout) {
+      const timer = setTimeout(() => {
+        setShowTimeout(true);
+      }, PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS);
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [showTimeout]);
 
   const handleRetry = async () => {
     // Reset timeout state and reconnect with new context

@@ -261,4 +261,40 @@ describe('PerpsLoadingSkeleton', () => {
     // Assert
     expect(getByTestId(`${testId}-retry-button`)).toBeOnTheScreen();
   });
+
+  it('restarts timeout timer after retry (fixes infinite loading bug)', () => {
+    // Arrange
+    const { getByText, queryByText } = render(<PerpsLoadingSkeleton />);
+
+    // Act - wait for initial timeout
+    act(() => {
+      jest.advanceTimersByTime(10000);
+    });
+    expect(getByText('Connection timeout')).toBeOnTheScreen();
+
+    // Act - press retry (this should restart the timer)
+    const retryButton = getByText('Retry Connection');
+    act(() => {
+      fireEvent.press(retryButton);
+    });
+    expect(getByText('Connecting to Perps...')).toBeOnTheScreen();
+    expect(queryByText('Connection timeout')).toBeNull();
+
+    // Act - advance time just before second timeout
+    act(() => {
+      jest.advanceTimersByTime(9999);
+    });
+    expect(getByText('Connecting to Perps...')).toBeOnTheScreen();
+    expect(queryByText('Connection timeout')).toBeNull();
+
+    // Act - advance to second timeout (timer should have restarted)
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    // Assert - timeout UI should appear again (proving timer restarted)
+    expect(getByText('Connection timeout')).toBeOnTheScreen();
+    expect(getByText('Retry Connection')).toBeOnTheScreen();
+    expect(queryByText('Connecting to Perps...')).toBeNull();
+  });
 });
