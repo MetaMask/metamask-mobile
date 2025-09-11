@@ -325,7 +325,10 @@ export class HyperLiquidSubscriptionService {
               const coin = order.coin;
               const position = positions.find(
                 (p) =>
-                  p.coin === coin && order.reduceOnly && p.size === order.sz,
+                  p.coin === coin &&
+                  order.reduceOnly &&
+                  Math.abs(parseFloat(p.size)) ===
+                    Math.abs(parseFloat(order.sz)),
               );
 
               if (position) {

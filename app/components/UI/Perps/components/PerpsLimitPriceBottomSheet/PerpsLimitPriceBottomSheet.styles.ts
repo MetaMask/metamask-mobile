@@ -12,6 +12,10 @@ export const createStyles = (colors: Theme['colors']) =>
       marginTop: 12,
       marginBottom: 8,
     },
+    errorText: {
+      fontSize: 14,
+      color: colors.error.default,
+    },
     limitPriceDisplay: {
       backgroundColor: colors.background.section,
       borderRadius: 8,
