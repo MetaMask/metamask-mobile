@@ -1372,7 +1372,7 @@
       "retry_connection": "Retry Connection",
       "retrying_connection": "Connecting...",
       "connecting_to_perps": "Connecting to Perps",
-      "timeout_title": "Connection taking longer than expected..."
+      "timeout_title": "Connection taking longer than expected"
     },
     "chart": {
       "no_data": "No chart data available",
