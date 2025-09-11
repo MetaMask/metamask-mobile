@@ -37,6 +37,13 @@ import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
 
+// These come from the Rive file, need to go into the Rive Editor to see them, or talk to designers
+enum RewardsIconTriggers {
+  Disable = 'Disable',
+  Start = 'Start',
+  Refresh = 'Refresh',
+}
+
 if (
   Platform.OS === 'android' &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -95,7 +102,7 @@ const QuoteDetailsCard = () => {
     try {
       if (!hasInitializedRef.current && currentPoints && currentPoints > 0) {
         // First time showing points - trigger Start
-        riveRef.current.fireState('default', 'Start');
+        riveRef.current.fireState('default', RewardsIconTriggers.Start);
         hasInitializedRef.current = true;
       } else if (
         previousPoints &&
@@ -104,14 +111,14 @@ const QuoteDetailsCard = () => {
         currentPoints > 0
       ) {
         // Points value changed but still have points - trigger Refresh
-        riveRef.current.fireState('default', 'Refresh');
+        riveRef.current.fireState('default', RewardsIconTriggers.Refresh);
       } else if (
         previousPoints &&
         previousPoints > 0 &&
         (!currentPoints || currentPoints === 0)
       ) {
         // Had points but now have none - trigger Disable
-        riveRef.current.fireState('default', 'Disable');
+        riveRef.current.fireState('default', RewardsIconTriggers.Disable);
         hasInitializedRef.current = false;
       } else if (
         (!previousPoints || previousPoints === 0) &&
@@ -119,7 +126,7 @@ const QuoteDetailsCard = () => {
         currentPoints > 0
       ) {
         // Didn't have points but now have some - trigger Start
-        riveRef.current.fireState('default', 'Start');
+        riveRef.current.fireState('default', RewardsIconTriggers.Start);
         hasInitializedRef.current = true;
       }
     } catch (error) {
