@@ -15,9 +15,12 @@ export const useRouteParams = () => {
   const { asset: paramsAsset } = useParams<{
     asset: AssetType;
   }>();
-  const { updateAsset } = useSendContext();
+  const { asset, updateAsset } = useSendContext();
 
   useEffect(() => {
+    if (asset) {
+      return;
+    }
     if (paramsAsset) {
       const paramChainId =
         isEvmAddress(paramsAsset.address) && paramsAsset?.chainId
@@ -38,5 +41,5 @@ export const useRouteParams = () => {
       }
       updateAsset(asset ?? paramsAsset);
     }
-  }, [paramsAsset, nfts, tokens, updateAsset]);
+  }, [asset, paramsAsset, nfts, tokens, updateAsset]);
 };

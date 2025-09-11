@@ -7,4 +7,5 @@ export const AccountActionsBottomSheetSelectorsIDs = {
   REMOVE_HARDWARE_ACCOUNT: 'remove-hardware-account-action',
   REMOVE_SNAP_ACCOUNT: 'remove-snap-account-action',
   SHOW_SECRET_RECOVERY_PHRASE: 'show-secret-recovery-phrase-action',
+  MULTICHAIN_EDIT_NAME: 'multichain-account-actions-edit-name',
 };

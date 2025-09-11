@@ -18,7 +18,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
   Funding,
-} from '../../../app/components/UI/Perps/controllers/types';
+} from '../../../../app/components/UI/Perps/controllers/types';
 
 export class PerpsE2EMockService {
   private static instance: PerpsE2EMockService;
@@ -37,6 +37,8 @@ export class PerpsE2EMockService {
   private mockPositions: Position[] = [];
   private mockOrders: Order[] = [];
   private mockOrderFills: OrderFill[] = [];
+  private mockPricesMap: Record<string, PriceUpdate> = {};
+  private orderMeta: Record<string, { leverage: number }> = {};
 
   private orderIdCounter = 1;
   private fillIdCounter = 1;
@@ -44,6 +46,7 @@ export class PerpsE2EMockService {
   // Stream callbacks to notify about data changes
   private positionCallbacks: ((positions: Position[]) => void)[] = [];
   private accountCallbacks: ((account: AccountState) => void)[] = [];
+  private ordersCallbacks: ((orders: Order[]) => void)[] = [];
 
   private constructor() {
     this.reset();
@@ -157,17 +160,44 @@ export class PerpsE2EMockService {
     this.mockOrderFills = [];
     this.orderIdCounter = 1;
     this.fillIdCounter = 1;
+    this.orderMeta = {};
 
     // Clear callbacks
     this.positionCallbacks = [];
     this.accountCallbacks = [];
+    this.ordersCallbacks = [];
+
+    // Initialize price map with default prices
+    this.mockPricesMap = this.buildDefaultPrices();
   }
 
   // Mock successful order placement
   public async mockPlaceOrder(params: OrderParams): Promise<OrderResult> {
     const orderId = `mock_order_${this.orderIdCounter++}`;
 
-    // Calculate mock values
+    // If this is a limit order, add to open orders and do not create a position yet
+    if (params.orderType === 'limit' && params.price) {
+      const openOrder: Order = {
+        orderId,
+        symbol: params.coin,
+        side: params.isBuy ? 'buy' : 'sell',
+        orderType: 'limit',
+        size: params.size,
+        originalSize: params.size,
+        price: params.price,
+        filledSize: '0',
+        remainingSize: params.size,
+        status: 'open',
+        timestamp: Date.now(),
+      };
+      this.mockOrders.push(openOrder);
+      // Track leverage metadata for later fill
+      this.orderMeta[orderId] = { leverage: params.leverage || 1 };
+      this.notifyOrdersCallbacks();
+      return { success: true, orderId };
+    }
+
+    // Calculate mock values for market orders
     const notionalValue =
       parseFloat(params.size) * (params.currentPrice || 50000);
     const marginUsed = notionalValue / (params.leverage || 1);
@@ -391,6 +421,29 @@ export class PerpsE2EMockService {
     });
   }
 
+  private notifyOrdersCallbacks(): void {
+    try {
+      const snapshot = this.getMockOrders();
+      this.ordersCallbacks.forEach((callback) => {
+        try {
+          callback([...snapshot]);
+        } catch {
+          // no-op
+        }
+      });
+    } catch {
+      // no-op
+    }
+  }
+
+  public registerOrderCallback(callback: (orders: Order[]) => void): void {
+    this.ordersCallbacks.push(callback);
+  }
+
+  public unregisterOrderCallback(callback: (orders: Order[]) => void): void {
+    this.ordersCallbacks = this.ordersCallbacks.filter((cb) => cb !== callback);
+  }
+
   // Getter methods
   public getMockAccountState(): AccountState {
     return { ...this.mockAccount };
@@ -447,6 +500,264 @@ export class PerpsE2EMockService {
   }
 
   public getMockPrices(): Record<string, PriceUpdate> {
+    return { ...this.mockPricesMap };
+  }
+
+  // Mock funding endpoint (reserved for upcoming tests)
+  public async mockGetFunding(): Promise<Funding[]> {
+    return [
+      {
+        symbol: 'BTC',
+        amountUsd: '1.50',
+        rate: '0.0125',
+        timestamp: Date.now(),
+      },
+    ];
+  }
+
+  private calculateMockLiquidationPrice(
+    entryPrice: number,
+    leverage: number,
+    isBuy: boolean,
+  ): number {
+    // Simplified liquidation price calculation for mocking
+    const maintenanceMarginRate = 0.05; // 5%
+    const liquidationBuffer =
+      entryPrice * (1 - 1 / leverage + maintenanceMarginRate);
+
+    return isBuy
+      ? entryPrice - liquidationBuffer
+      : entryPrice + liquidationBuffer;
+  }
+
+  /**
+   * Update live price for a symbol and recompute liquidation state where applicable.
+   * Triggers callbacks so UI updates without navigation.
+   */
+  public mockPushPrice(symbol: string, price: string): boolean {
+    if (!symbol || !price) {
+      return false;
+    }
+
+    const parsed = parseFloat(price);
+    if (Number.isNaN(parsed)) {
+      return false;
+    }
+
+    // Update the price feed (stateful)
+    const existing = this.mockPricesMap[symbol];
+    const updated: PriceUpdate = {
+      ...(existing || {
+        coin: symbol,
+        percentChange24h: '0',
+        bestBid: price,
+        bestAsk: price,
+        spread: '0',
+        funding: 0,
+        openInterest: 0,
+        volume24h: 0,
+        markPrice: price,
+        price,
+        timestamp: Date.now(),
+      }),
+      price,
+      markPrice: price,
+      timestamp: Date.now(),
+    } as PriceUpdate;
+
+    this.mockPricesMap[symbol] = updated;
+
+    // Adjust unrealized PnL roughly based on movement towards/away from entry
+    this.mockPositions = this.mockPositions.map((pos) => {
+      if (pos.coin !== symbol) return pos;
+      const entry = parseFloat(pos.entryPrice);
+      const size = parseFloat(pos.size);
+      const direction = size >= 0 ? 1 : -1;
+      const delta = (parsed - entry) * Math.abs(size) * direction;
+      return { ...pos, unrealizedPnl: delta.toFixed(2) };
+    });
+
+    // Evaluate open limit orders for potential fills (remove when triggered and open position)
+    const remainingOrders: Order[] = [];
+    for (const order of this.mockOrders) {
+      if (order.symbol !== symbol) {
+        remainingOrders.push(order);
+        continue;
+      }
+      if (order.orderType === 'limit') {
+        const limitPx = parseFloat(order.price);
+        const fill =
+          (order.side === 'buy' && parsed <= limitPx) ||
+          (order.side === 'sell' && parsed >= limitPx);
+        if (!fill) {
+          remainingOrders.push(order);
+        } else {
+          // Mark fill in history and drop from open orders
+          const mockFill: OrderFill = {
+            orderId: order.orderId,
+            symbol: order.symbol,
+            size: order.size,
+            price: order.price,
+            timestamp: Date.now(),
+            side: order.side,
+            fee: '0.00',
+            feeToken: 'USDC',
+            pnl: '0.00',
+            direction: order.side === 'buy' ? 'long' : 'short',
+          };
+          this.mockOrderFills.push(mockFill);
+
+          // Create a position at the limit price using stored leverage metadata
+          const leverage = this.orderMeta[order.orderId]?.leverage || 1;
+          const numericSize = Math.abs(parseFloat(order.size) || 0);
+          const signedSize = order.side === 'buy' ? numericSize : -numericSize;
+          const entry = parseFloat(order.price);
+          const notional = numericSize * entry;
+          const marginUsed = notional / leverage;
+
+          // Update account balances for margin usage
+          const newAvailableBalance =
+            parseFloat(this.mockAccount.availableBalance) - marginUsed;
+          const newMarginUsed =
+            parseFloat(this.mockAccount.marginUsed) + marginUsed;
+          this.mockAccount = {
+            ...this.mockAccount,
+            availableBalance: newAvailableBalance.toString(),
+            marginUsed: newMarginUsed.toString(),
+          };
+
+          // Add position
+          const newPosition: Position = {
+            coin: order.symbol,
+            entryPrice: entry.toFixed(2),
+            size: signedSize.toString(),
+            positionValue: notional.toFixed(2),
+            unrealizedPnl: '0',
+            marginUsed: marginUsed.toFixed(2),
+            leverage: { type: 'cross', value: leverage },
+            liquidationPrice: this.calculateMockLiquidationPrice(
+              entry,
+              leverage,
+              order.side === 'buy',
+            ).toFixed(2),
+            maxLeverage: 50,
+            returnOnEquity: '0',
+            cumulativeFunding: {
+              allTime: '0',
+              sinceChange: '0',
+              sinceOpen: '0',
+            },
+          };
+          this.mockPositions.push(newPosition);
+
+          // Cleanup order meta
+          delete this.orderMeta[order.orderId];
+        }
+      } else {
+        remainingOrders.push(order);
+      }
+    }
+    this.mockOrders = remainingOrders;
+    this.notifyOrdersCallbacks();
+
+    // Liquidation check pass for all positions of this symbol
+    this.applyLiquidationChecksForSymbol(symbol, updated);
+
+    // Notify subscribers about account/position changes
+    this.notifyPositionCallbacks();
+    this.notifyAccountCallbacks();
+
+    return true;
+  }
+
+  /**
+   * Force evaluate liquidation for a symbol using current position and price.
+   * If price crosses liquidation threshold, close the position.
+   */
+  public mockForceLiquidation(symbol: string): boolean {
+    if (!symbol) return false;
+    const current =
+      this.mockPricesMap[symbol] ||
+      ({
+        coin: symbol,
+        price: '0',
+        markPrice: '0',
+        timestamp: Date.now(),
+        percentChange24h: '0',
+        bestBid: '0',
+        bestAsk: '0',
+        spread: '0',
+        funding: 0,
+        openInterest: 0,
+        volume24h: 0,
+      } as PriceUpdate);
+
+    const didClose = this.applyLiquidationChecksForSymbol(symbol, current);
+    if (didClose) {
+      this.notifyPositionCallbacks();
+      this.notifyAccountCallbacks();
+    }
+    return didClose;
+  }
+
+  private applyLiquidationChecksForSymbol(
+    symbol: string,
+    price: PriceUpdate,
+  ): boolean {
+    const px = parseFloat(price.price);
+    let didAnyClose = false;
+
+    // Evaluate each position independently
+    const remaining: Position[] = [];
+    for (const pos of this.mockPositions) {
+      if (pos.coin !== symbol) {
+        remaining.push(pos);
+        continue;
+      }
+
+      const liq = parseFloat(pos.liquidationPrice || '0');
+      const isLong = parseFloat(pos.size) >= 0;
+      const breached = isLong ? px <= liq : px >= liq;
+
+      if (breached) {
+        // Realize PnL and close this position
+        const pnl = parseFloat(pos.unrealizedPnl || '0');
+        const newAvailableBalance =
+          parseFloat(this.mockAccount.availableBalance) +
+          parseFloat(pos.marginUsed) +
+          pnl;
+        const newMarginUsed =
+          parseFloat(this.mockAccount.marginUsed) - parseFloat(pos.marginUsed);
+        const newTotalBalance = parseFloat(this.mockAccount.totalBalance) + pnl;
+
+        this.mockAccount = {
+          ...this.mockAccount,
+          availableBalance: newAvailableBalance.toString(),
+          marginUsed: newMarginUsed.toString(),
+          totalBalance: newTotalBalance.toString(),
+        };
+
+        didAnyClose = true;
+      } else {
+        remaining.push(pos);
+      }
+    }
+
+    this.mockPositions = remaining;
+
+    // Recompute unrealized and totalValue after potential closures
+    if (didAnyClose) {
+      const recomputedUnrealized = this.computeTotalUnrealizedPnl();
+      this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
+      this.mockAccount.totalValue = (
+        parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
+      ).toFixed(2);
+    }
+
+    return didAnyClose;
+  }
+
+  private buildDefaultPrices(): Record<string, PriceUpdate> {
     return {
       BTC: {
         coin: 'BTC',
@@ -488,33 +799,6 @@ export class PerpsE2EMockService {
         volume24h: 300000,
       },
     };
-  }
-
-  // Mock funding endpoint (reserved for upcoming tests)
-  public async mockGetFunding(): Promise<Funding[]> {
-    return [
-      {
-        symbol: 'BTC',
-        amountUsd: '1.50',
-        rate: '0.0125',
-        timestamp: Date.now(),
-      },
-    ];
-  }
-
-  private calculateMockLiquidationPrice(
-    entryPrice: number,
-    leverage: number,
-    isBuy: boolean,
-  ): number {
-    // Simplified liquidation price calculation for mocking
-    const maintenanceMarginRate = 0.05; // 5%
-    const liquidationBuffer =
-      entryPrice * (1 - 1 / leverage + maintenanceMarginRate);
-
-    return isBuy
-      ? entryPrice - liquidationBuffer
-      : entryPrice + liquidationBuffer;
   }
 
   private computeTotalUnrealizedPnl(): number {
