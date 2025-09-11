@@ -83,6 +83,7 @@ export const Recipient = () => {
       pastedRecipient &&
       pastedRecipient === toAddressValidated &&
       !toAddressError &&
+      !toAddressWarning &&
       !loading
     ) {
       handleReview();
@@ -90,8 +91,9 @@ export const Recipient = () => {
   }, [
     handleReview,
     pastedRecipient,
-    toAddressValidated,
     toAddressError,
+    toAddressValidated,
+    toAddressWarning,
     loading,
   ]);
 
@@ -133,6 +135,7 @@ export const Recipient = () => {
         <Box twClassName="flex-1">
           <RecipientInput
             isRecipientSelectedFromList={isRecipientSelectedFromList}
+            setIsRecipientSelectedFromList={setIsRecipientSelectedFromList}
             setPastedRecipient={setPastedRecipient}
           />
           <ScrollView>

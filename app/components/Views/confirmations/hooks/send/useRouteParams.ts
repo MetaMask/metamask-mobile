@@ -1,3 +1,5 @@
+import { toHex } from 'viem';
+import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useEffect } from 'react';
 
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -17,16 +19,21 @@ export const useRouteParams = () => {
 
   useEffect(() => {
     if (paramsAsset) {
+      const paramChainId =
+        isEvmAddress(paramsAsset.address) && paramsAsset?.chainId
+          ? toHex(paramsAsset?.chainId)
+          : paramsAsset?.chainId?.toString().toLowerCase();
+
       let asset: AssetType | Nft | undefined = tokens.find(
         ({ address, chainId }) =>
           address === paramsAsset.address &&
-          chainId?.toLowerCase() === paramsAsset.chainId?.toLowerCase(),
+          chainId?.toLowerCase() === paramChainId,
       );
       if (!asset && nfts.length) {
         asset = nfts.find(
           ({ address, chainId }) =>
             address === paramsAsset.address &&
-            chainId?.toLowerCase() === paramsAsset.chainId?.toLowerCase(),
+            chainId?.toLowerCase() === paramChainId,
         );
       }
       updateAsset(asset ?? paramsAsset);

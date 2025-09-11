@@ -21,5 +21,9 @@ export const mockQuoteWithMetadata: QuoteResponse & QuoteMetadata = {
   },
   totalMaxNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
   totalNetworkFee: { amount: '0', usd: null, valueInCurrency: null },
-  minToTokenAmount: { amount: '0', usd: null, valueInCurrency: null },
+  minToTokenAmount: {
+    amount: '55.56221',
+    usd: null,
+    valueInCurrency: null,
+  },
 };
