@@ -208,7 +208,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             count: HYPERLIQUID_WITHDRAWAL_MINUTES,
           })
         : strings('time.minutes_format', {
-            count: HYPERLIQUID_WITHDRAWAL_MINUTES * 60,
+            count: HYPERLIQUID_WITHDRAWAL_MINUTES,
           });
 
     return supportedAssets.map((assetId) => ({
