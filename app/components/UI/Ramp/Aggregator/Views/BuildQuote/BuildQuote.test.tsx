@@ -26,6 +26,19 @@ import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { mockNetworkState } from '../../../../../../util/test/network';
+
+const mockSetActiveNetwork = jest.fn();
+const mockEngineContext = {
+  MultichainNetworkController: {
+    setActiveNetwork: mockSetActiveNetwork,
+  },
+};
+jest.mock('../../../../../../core/Engine', () => ({
+  get context() {
+    return mockEngineContext;
+  },
+}));
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -42,6 +55,22 @@ function render(Component: React.ComponentType) {
           backgroundState: {
             ...backgroundState,
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+            NetworkController: {
+              ...mockNetworkState(
+                {
+                  chainId: '0x1',
+                  id: 'mainnet',
+                  nickname: 'Ethereum Mainnet',
+                  ticker: 'ETH',
+                },
+                {
+                  chainId: '0x89',
+                  id: 'polygon',
+                  nickname: 'Polygon Mainnet',
+                  ticker: 'POL',
+                },
+              ),
+            },
           },
         },
       },
@@ -528,7 +557,7 @@ describe('BuildQuote View', () => {
       );
     });
 
-    it('calls setSelectedAsset when selecting a crypto from different chain', async () => {
+    it('switches network and sets asset when selecting crypto from different chain', async () => {
       const mockPolygonToken = {
         ...mockCryptoCurrenciesData[0],
         network: {
@@ -548,9 +577,42 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
 
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      fireEvent.press(getByRoleButton('Polygon Token'));
+      await act(async () => {
+        fireEvent.press(getByRoleButton('Polygon Token'));
+      });
 
+      expect(mockSetActiveNetwork).toHaveBeenCalled();
       expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockPolygonToken);
+    });
+
+    it('does not switch network when selecting crypto from same chain', async () => {
+      mockSetActiveNetwork.mockClear();
+
+      const mockEthereumToken = {
+        ...mockCryptoCurrenciesData[0],
+        network: {
+          chainId: '1',
+          active: true,
+          chainName: 'Ethereum',
+          shortName: 'ETH',
+        },
+        name: 'Ethereum Token',
+      };
+
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockEthereumToken],
+      };
+
+      render(BuildQuote);
+
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
+      await act(async () => {
+        fireEvent.press(getByRoleButton('Ethereum Token'));
+      });
+
+      expect(mockSetActiveNetwork).not.toHaveBeenCalled();
+      expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockEthereumToken);
     });
   });
 
