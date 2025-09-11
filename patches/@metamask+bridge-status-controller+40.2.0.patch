@@ -1,0 +1,26 @@
+diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
+index 2e719fb..2814055 100644
+--- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
++++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
+@@ -596,7 +596,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+                 // Submit EVM tx
+                 // For hardware wallets on Mobile, this is fixes an issue where the Ledger does not get prompted for the 2nd approval
+                 // Extension does not have this issue
+-                const requireApproval = __classPrivateFieldGet(this, _BridgeStatusController_clientId, "f") === types_1.BridgeClientId.MOBILE && isHardwareAccount;
++                const requireApproval = __classPrivateFieldGet(this, _BridgeStatusController_clientId, "f") === types_1.BridgeClientId.MOBILE && selectedAccount.metadata.keyring.type.includes('Ledger Hardware');
+                 // Handle smart transactions if enabled
+                 txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
+                     name: isBridgeTx
+diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.mjs b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.mjs
+index 91a40cf..7cbabab 100644
+--- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.mjs
++++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.mjs
+@@ -593,7 +593,7 @@ export class BridgeStatusController extends StaticIntervalPollingController() {
+                 // Submit EVM tx
+                 // For hardware wallets on Mobile, this is fixes an issue where the Ledger does not get prompted for the 2nd approval
+                 // Extension does not have this issue
+-                const requireApproval = __classPrivateFieldGet(this, _BridgeStatusController_clientId, "f") === BridgeClientId.MOBILE && isHardwareAccount;
++                const requireApproval = __classPrivateFieldGet(this, _BridgeStatusController_clientId, "f") === BridgeClientId.MOBILE && selectedAccount.metadata.keyring.type.includes('Ledger Hardware');
+                 // Handle smart transactions if enabled
+                 txMeta = await __classPrivateFieldGet(this, _BridgeStatusController_trace, "f").call(this, {
+                     name: isBridgeTx
