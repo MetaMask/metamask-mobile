@@ -138,7 +138,7 @@ test('Wallet Time To Interact Cold Start on Fresh Install', async ({
     AppwrightSelectors.isAndroid(device) ? 400 : 700,
   );
 });
-test.skip('Measure Warm Start after Importing a Wallet', async ({
+test('Measure Warm Start after Importing a Wallet', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -161,13 +161,11 @@ test.skip('Measure Warm Start after Importing a Wallet', async ({
   await AppwrightSelectors.scrollDown(device);
   await ExternalWebsitesScreen.tapDappConnectButton();
   console.log('Waiting for 10 seconds');
-  await new Promise((resolve) => setTimeout(resolve, 10000));
   await AccountApprovalModal.tapConnectButtonByText();
-  console.log('Waiting for 5 seconds');
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  await TabBarModal.tapWalletButton();
   console.log('Waiting for 30 seconds');
-  await AppwrightSelectors.backgroundApp(device, 30000);
+  await TabBarModal.tapWalletButton();
+  await AppwrightSelectors.backgroundApp(device, 31);
+  await AppwrightSelectors.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword('123456789');
   await LoginScreen.tapTitle();
@@ -187,7 +185,7 @@ test.skip('Measure Warm Start after Importing a Wallet', async ({
   await expect(timer1Duration).toBeLessThan(4000);
 });
 
-test.skip('Measure warm start launch time after Importing a Wallet', async ({
+test('Measure warm start launch time after Importing a Wallet', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -210,26 +208,20 @@ test.skip('Measure warm start launch time after Importing a Wallet', async ({
   await AppwrightSelectors.scrollDown(device);
   await ExternalWebsitesScreen.tapDappConnectButton();
   console.log('Waiting for 10 seconds');
-  await new Promise((resolve) => setTimeout(resolve, 10000));
   await AccountApprovalModal.tapConnectButtonByText();
-  console.log('Waiting for 5 seconds');
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  await TabBarModal.tapWalletButton();
   console.log('Waiting for 30 seconds');
-  await AppwrightSelectors.backgroundApp(device, 30000);
-  await LoginScreen.waitForScreenToDisplay();
-  await LoginScreen.typePassword('123456789');
-  await LoginScreen.tapTitle();
-  await LoginScreen.tapUnlockButton();
+  await TabBarModal.tapWalletButton();
   const timer1 = new TimerHelper(
-    'Time since the user clicks on unlock button, until the app unlocks',
+    'Time since the user open the app again and the login screen appears',
   );
+  await AppwrightSelectors.backgroundApp(device, 30);
   timer1.start();
-  await WalletMainScreen.isMainWalletViewVisible();
+  await AppwrightSelectors.activateApp(device);
+  await LoginScreen.waitForScreenToDisplay();
   timer1.stop();
   const timer1Duration = timer1.getDuration();
   console.log(
-    `The time it takes the wallet view to appear is: ${timer1Duration}`,
+    `The time it takes the login view to appear is: ${timer1Duration}`,
   );
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);

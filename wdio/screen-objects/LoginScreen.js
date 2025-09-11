@@ -35,7 +35,11 @@ class LoginScreen {
         LoginViewSelectors.PASSWORD_INPUT,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.PASSWORD_INPUT);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.PASSWORD_INPUT);
+      } else {
+        return AppwrightSelectors.getElementByNameiOS(this._device, "textfield");
+      }
     }
   }
 
