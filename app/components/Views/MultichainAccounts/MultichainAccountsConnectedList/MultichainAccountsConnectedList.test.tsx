@@ -33,16 +33,20 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const MOCK_ACCOUNT_GROUP_1 = createMockAccountGroup('group-1', 'Account 1', [
-  'account-1',
-]);
+const MOCK_ACCOUNT_GROUP_1 = createMockAccountGroup(
+  'keyring:test-group/group-1',
+  'Account 1',
+  ['account-1'],
+);
 
-const MOCK_ACCOUNT_GROUP_2 = createMockAccountGroup('group-2', 'Account 2', [
-  'account-2',
-]);
+const MOCK_ACCOUNT_GROUP_2 = createMockAccountGroup(
+  'keyring:test-group/group-2',
+  'Account 2',
+  ['account-2'],
+);
 
 const MOCK_ACCOUNT_GROUP_3 = createMockAccountGroup(
-  'group-3',
+  'keyring:test-group/group-3',
   'Multichain Account',
   ['account-3a', 'account-3b'],
 );
