@@ -152,15 +152,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version-file: '.nvmrc'
-      #     cache: 'yarn'
-      
-      # - name: Install dependencies
-      #   run: yarn setup
-      
       - name: Download APK Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -273,90 +264,6 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
           
-          echo "🎉 BrowserStack upload process completed!"
+          echo "BrowserStack upload process completed!"
           echo "With-SRP URL: $WITH_SRP_APP_URL"
           echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
-        env:
-          BROWSERSTACK_USERNAME: ${{ env.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-
-  # Job to collect and report results
-  collect-results:
-    name: Collect Build and Upload Results
-    runs-on: ubuntu-latest
-    needs: [build-android-dual, upload-to-browserstack]
-    if: always()
-    outputs:
-      with-srp-apk-uploaded: ${{ steps.results.outputs.with-srp-apk-uploaded }}
-      without-srp-apk-uploaded: ${{ steps.results.outputs.without-srp-apk-uploaded }}
-      with-srp-browserstack-url: ${{ steps.results.outputs.with-srp-browserstack-url }}
-      without-srp-browserstack-url: ${{ steps.results.outputs.without-srp-browserstack-url }}
-      with-srp-version: ${{ steps.results.outputs.with-srp-version }}
-      without-srp-version: ${{ steps.results.outputs.without-srp-version }}
-      overall-status: ${{ steps.results.outputs.overall-status }}
-    
-    steps:
-      - name: Collect Results
-        id: results
-        run: |
-          echo "📊 Collecting build and upload results..."
-          
-          # Get build results
-          BUILD_RESULT="${{ needs.build-android-dual.result }}"
-          UPLOAD_RESULT="${{ needs.upload-to-browserstack.result }}"
-          
-          echo "Build result: $BUILD_RESULT"
-          echo "Upload result: $UPLOAD_RESULT"
-          
-          # Get BrowserStack URLs from upload job
-          WITH_SRP_URL="${{ needs.upload-to-browserstack.outputs.with-srp-browserstack-url }}"
-          WITHOUT_SRP_URL="${{ needs.upload-to-browserstack.outputs.without-srp-browserstack-url }}"
-          
-          echo "With-SRP BrowserStack URL: $WITH_SRP_URL"
-          echo "Without-SRP BrowserStack URL: $WITHOUT_SRP_URL"
-          
-          # Determine overall status
-          if [ "$BUILD_RESULT" = "success" ] && [ "$UPLOAD_RESULT" = "success" ]; then
-            OVERALL_STATUS="✅ SUCCESS"
-            echo "Overall Status: SUCCESS - Both builds completed and uploaded to BrowserStack"
-          elif [ "$BUILD_RESULT" = "success" ] && [ "$UPLOAD_RESULT" = "failure" ]; then
-            OVERALL_STATUS="⚠️ PARTIAL SUCCESS"
-            echo "Overall Status: PARTIAL SUCCESS - Builds completed but BrowserStack upload failed"
-          elif [ "$BUILD_RESULT" = "failure" ]; then
-            OVERALL_STATUS="❌ FAILED"
-            echo "Overall Status: FAILED - Build process failed"
-          else
-            OVERALL_STATUS="❓ UNKNOWN"
-            echo "Overall Status: UNKNOWN - Unexpected state"
-          fi
-          
-          # Determine if APKs were uploaded based on URLs
-          if [ -n "$WITH_SRP_URL" ] && [ "$WITH_SRP_URL" != "null" ] && [ "$WITH_SRP_URL" != "" ]; then
-            WITH_SRP_UPLOADED="true"
-          else
-            WITH_SRP_UPLOADED="false"
-          fi
-          
-          if [ -n "$WITHOUT_SRP_URL" ] && [ "$WITHOUT_SRP_URL" != "null" ] && [ "$WITHOUT_SRP_URL" != "" ]; then
-            WITHOUT_SRP_UPLOADED="true"
-          else
-            WITHOUT_SRP_UPLOADED="false"
-          fi
-          
-          # Set outputs
-          {
-            echo "with-srp-apk-uploaded=$WITH_SRP_UPLOADED"
-            echo "without-srp-apk-uploaded=$WITHOUT_SRP_UPLOADED"
-            echo "with-srp-browserstack-url=$WITH_SRP_URL"
-            echo "without-srp-browserstack-url=$WITHOUT_SRP_URL"
-            echo "with-srp-version=Manual-Build"
-            echo "without-srp-version=Manual-Build"
-            echo "overall-status=$OVERALL_STATUS"
-          } >> "$GITHUB_OUTPUT"
-          
-          echo "📋 Final Results:"
-          echo "  With-SRP APK Uploaded: $WITH_SRP_UPLOADED"
-          echo "  Without-SRP APK Uploaded: $WITHOUT_SRP_UPLOADED"
-          echo "  With-SRP BrowserStack URL: $WITH_SRP_URL"
-          echo "  Without-SRP BrowserStack URL: $WITHOUT_SRP_URL"
-          echo "  Overall Status: $OVERALL_STATUS"

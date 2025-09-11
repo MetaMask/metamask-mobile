@@ -316,14 +316,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: BrowserStack Env Setup
-        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
-        with:
-          username: ${{ env.BROWSERSTACK_USERNAME }}
-          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-          project-name: ${{ github.repository }}
-      
+            
       - name: Download and Upload IPAs to BrowserStack
         id: browserstack-upload
         run: |
@@ -447,9 +440,3 @@ jobs:
           echo "BrowserStack upload process completed!"
           echo "With-SRP URL: $WITH_SRP_APP_URL"
           echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
-        env:
-          BROWSERSTACK_USERNAME: ${{ env.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
-          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
-
