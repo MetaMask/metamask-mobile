@@ -617,6 +617,25 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(screen.queryByText('20x')).toBeNull(); // Should not show 20x in quick select
       expect(screen.queryByText('40x')).toBeNull(); // Should not show 40x
     });
+
+    it('hides quick select buttons when maxLeverage is 3x or lower', () => {
+      // Arrange - maxLeverage: 3, should hide all preset buttons to avoid redundant UI
+      const props = { ...defaultProps, maxLeverage: 3, leverage: 2 };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - No quick select buttons should be visible
+      // Note: We look for buttons that would typically be in the quick select area
+      // The only "2x" visible should be in the main display and footer button
+      const allTexts = screen.getAllByText(/2x/);
+      // Should only find 2x in: 1) main display "2x" and 2) footer "Set 2x" button
+      expect(allTexts).toHaveLength(2);
+      
+      // Verify no other preset buttons are shown
+      expect(screen.queryByText('5x')).toBeNull();
+      expect(screen.queryByText('10x')).toBeNull();
+    });
   });
 
   describe('Leverage Risk Styling', () => {
