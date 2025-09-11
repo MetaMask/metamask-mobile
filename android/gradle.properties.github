@@ -53,4 +53,4 @@ hermesEnabled=true
 android.disableResourceValidation=true
 
 # Use legacy packaging to compress native libraries in the resulting APK.
-expo.useLegacyPackaging=false 
+expo.useLegacyPackaging=false

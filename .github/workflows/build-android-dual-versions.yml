@@ -85,7 +85,7 @@ jobs:
           echo "🏗 Building Android E2E APK (${{ matrix.build_type }})..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           # Use dedicated dual versions properties file for ARM architectures
-          cp android/gradle.properties.dual-versions android/gradle.properties
+          cp android/gradle.properties.github.dual-versions android/gradle.properties
           yarn build:android:main:e2e
         shell: bash
         env:
