@@ -599,6 +599,7 @@ class ResetPassword extends PureComponent {
         } else {
           this.handleSeedlessChangePasswordError();
         }
+        this.setState({ loading: false });
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
