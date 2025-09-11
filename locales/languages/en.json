@@ -65,7 +65,7 @@
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue."
     },
     "insufficient_pay_token_native": {
-      "message": "Insufficient {{symbol}} to cover fees. Select a token on a different network to continue."
+      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
