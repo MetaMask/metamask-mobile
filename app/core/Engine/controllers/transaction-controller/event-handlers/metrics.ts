@@ -56,12 +56,12 @@ const createTransactionEventHandler =
 
     for (const builder of METRICS_BUILDERS) {
       try {
-        const currentMetrics = builder(
+        const currentMetrics = builder({
           transactionMeta,
           allTransactions,
           getUIMetrics,
           getState,
-        );
+        });
 
         merge(metrics, currentMetrics);
       } catch (error) {

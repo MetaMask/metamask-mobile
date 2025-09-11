@@ -14,6 +14,7 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { BigNumber } from 'bignumber.js';
 import { useTokenAmount } from '../useTokenAmount';
+import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
@@ -21,6 +22,10 @@ export function useTransactionPayMetrics() {
   const { payToken } = useTransactionPayToken();
   const { amountPrecise } = useTokenAmount();
   const automaticPayToken = useRef<BridgeToken>();
+
+  const { count: availableTokenCount } = useAutomaticTransactionPayToken({
+    countOnly: true,
+  });
 
   const transactionId = transactionMeta?.id ?? '';
   const { type } = transactionMeta ?? {};
@@ -50,6 +55,8 @@ export function useTransactionPayMetrics() {
 
     properties.mm_pay_chain_presented =
       automaticPayToken.current?.chainId ?? null;
+
+    properties.mm_pay_payment_token_list_size = availableTokenCount;
   }
 
   if (payToken && type === TransactionType.perpsDeposit) {

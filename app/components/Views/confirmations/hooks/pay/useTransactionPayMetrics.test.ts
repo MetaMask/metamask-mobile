@@ -19,8 +19,10 @@ import {
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 
 jest.mock('./useTransactionPayToken');
+jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('../useTokenAmount');
 
 jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
@@ -59,6 +61,10 @@ describe('useTransactionPayMetrics', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
 
+  const useAutomaticTransactionPayTokenMock = jest.mocked(
+    useAutomaticTransactionPayToken,
+  );
+
   const selectTransactionBridgeQuotesByIdMock = jest.mocked(
     selectTransactionBridgeQuotesById,
   );
@@ -80,6 +86,10 @@ describe('useTransactionPayMetrics', () => {
     } as never);
 
     selectTransactionBridgeQuotesByIdMock.mockReturnValue([] as never[]);
+
+    useAutomaticTransactionPayTokenMock.mockReturnValue({
+      count: 5,
+    });
   });
 
   it('does not update metrics if no pay token selected', async () => {
@@ -213,6 +223,27 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_dust_usd: '0.5',
+        }),
+        sensitiveProperties: {},
+      },
+    });
+  });
+
+  it('includes token size property', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: PAY_TOKEN_MOCK,
+      setPayToken: noop,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    runHook();
+
+    await act(async () => noop());
+
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+      id: transactionIdMock,
+      params: {
+        properties: expect.objectContaining({
+          mm_pay_payment_token_list_size: 5,
         }),
         sensitiveProperties: {},
       },
