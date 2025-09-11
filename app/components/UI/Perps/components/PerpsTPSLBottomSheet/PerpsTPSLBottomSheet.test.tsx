@@ -179,6 +179,25 @@ jest.mock('../../utils/formatUtils', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
   }),
+  formatPerpsFiat: jest.fn((value) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
+  }),
+  PRICE_RANGES_POSITION_VIEW: [
+    {
+      condition: (v: number) => v >= 1,
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+      threshold: 1,
+    },
+    {
+      condition: (v: number) => v < 1,
+      minimumDecimals: 2,
+      maximumDecimals: 7,
+      significantDigits: 4,
+      threshold: 0.0000001,
+    },
+  ],
 }));
 
 // Mock strings

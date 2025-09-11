@@ -7,8 +7,7 @@ on:
     types: [checks_requested]
 
 env:
-  E2E_LABEL: 'Run Smoke E2E'
-  NO_E2E_LABEL: 'No E2E Smoke Needed'
+  E2E_LABEL: 'run-ios-e2e-smoke'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
   WORKFLOW_NAME: 'run-bitrise-e2e-check'
 

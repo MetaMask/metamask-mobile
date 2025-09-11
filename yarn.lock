@@ -5700,14 +5700,14 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^16.0.0":
-  version "16.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-16.0.0.tgz#b22e2cb0dbb62cb5012b375398bf14b71d399ad3"
-  integrity sha512-kdIlerqGxYRViH/dAX2Ka7KQmGWwZ0WhLCIHr3+1jIQqe6h4J8hq5/Kxlch3EJPQBNbbC+4FU5Ue8nqbIywTNQ==
+"@metamask/notification-services-controller@^18.1.0":
+  version "18.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-18.1.0.tgz#577dd00568696565157c025b83b9554c2d8396e2"
+  integrity sha512-T362ok+ZCqXwCchG0oKJVHOtpWFLqV8xeK6UfBwCVsy3Z8C48EyadV3NljpwF6KxyV9cEUQV4WTgXFGZEGgCDw==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/base-controller" "^8.3.0"
+    "@metamask/controller-utils" "^11.12.0"
     "@metamask/utils" "^11.4.2"
     bignumber.js "^9.1.2"
     firebase "^11.2.0"

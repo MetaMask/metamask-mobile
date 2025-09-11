@@ -18,6 +18,7 @@ import { useSendContext } from '../../../context/send-context/send-context';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
@@ -48,6 +49,7 @@ export const Recipient = () => {
     loading,
     resolvedAddress,
   } = useToAddressValidation();
+
   const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
@@ -83,6 +85,7 @@ export const Recipient = () => {
       pastedRecipient &&
       pastedRecipient === toAddressValidated &&
       !toAddressError &&
+      !toAddressWarning &&
       !loading
     ) {
       handleReview();
@@ -90,8 +93,9 @@ export const Recipient = () => {
   }, [
     handleReview,
     pastedRecipient,
-    toAddressValidated,
     toAddressError,
+    toAddressValidated,
+    toAddressWarning,
     loading,
   ]);
 
@@ -123,6 +127,13 @@ export const Recipient = () => {
     ],
   );
 
+  const resetStateOnInput = useCallback(() => {
+    setIsRecipientSelectedFromList(false);
+    setIsSubmittingTransaction(false);
+  }, [setIsRecipientSelectedFromList, setIsSubmittingTransaction]);
+
+  useRecipientPageReset(resetStateOnInput);
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -133,7 +144,7 @@ export const Recipient = () => {
         <Box twClassName="flex-1">
           <RecipientInput
             isRecipientSelectedFromList={isRecipientSelectedFromList}
-            setIsRecipientSelectedFromList={setIsRecipientSelectedFromList}
+            resetStateOnInput={resetStateOnInput}
             setPastedRecipient={setPastedRecipient}
           />
           <ScrollView>
