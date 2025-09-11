@@ -19,9 +19,7 @@ class ConfirmAddAssetView {
   }
 
   get confirmButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ImportTokenViewSelectorsText.CONFIRM_IMPORT_TOKEN,
-    );
+    return Matchers.getElementByID('bottomsheetfooter-button-subsequent');
   }
 
   get cancelModal(): DetoxElement {
@@ -45,6 +43,8 @@ class ConfirmAddAssetView {
   async tapOnConfirmButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm Add Asset Button',
+      waitForElementToDisappear: true,
+      timeout: 15000,
     });
   }
 
