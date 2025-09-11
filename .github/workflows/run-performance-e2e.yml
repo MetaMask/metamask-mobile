@@ -74,7 +74,7 @@ jobs:
   # Job to trigger Android Dual Versions (with-SRP and without-SRP)
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
-    uses: ./.github/workflows/build-android-dual-versions.yml
+    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     # Only run if BrowserStack URLs are not provided
     if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
     secrets: inherit
@@ -82,7 +82,7 @@ jobs:
   # Job to trigger iOS Dual Versions (with-SRP and without-SRP)
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
-    uses: ./.github/workflows/build-ios-dual-versions.yml
+    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml.yml
     # Only run if BrowserStack URLs are not provided
     if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
     secrets: inherit

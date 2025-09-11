@@ -7,24 +7,24 @@ name: Build Android Dual Versions and Upload to BrowserStack
 on:
   workflow_call:
     outputs:
-      with-srp-apk-uploaded:
-        description: 'Whether the with-SRP APK was successfully uploaded'
-        value: ${{ jobs.collect-results.outputs.with-srp-apk-uploaded }}
-      without-srp-apk-uploaded:
-        description: 'Whether the without-SRP APK was successfully uploaded'
-        value: ${{ jobs.collect-results.outputs.without-srp-apk-uploaded }}
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
-        value: ${{ jobs.collect-results.outputs.with-srp-browserstack-url }}
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url:
         description: 'BrowserStack URL for without-SRP version'
-        value: ${{ jobs.collect-results.outputs.without-srp-browserstack-url }}
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-browserstack-url }}
+      with-srp-app-id:
+        description: 'BrowserStack App ID for with-SRP version'
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-app-id }}
+      without-srp-app-id:
+        description: 'BrowserStack App ID for without-SRP version'
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-app-id }}
       with-srp-version:
         description: 'App version for with-SRP build'
-        value: ${{ jobs.collect-results.outputs.with-srp-version }}
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-version }}
       without-srp-version:
         description: 'App version for without-SRP build'
-        value: ${{ jobs.collect-results.outputs.without-srp-version }}
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -147,6 +147,8 @@ jobs:
       without-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-browserstack-url }}
       with-srp-app-id: ${{ steps.browserstack-upload.outputs.with-srp-app-id }}
       without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
+      with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
     
     steps:
       - name: Checkout code
@@ -228,12 +230,14 @@ jobs:
             {
               echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
               echo "with-srp-app-id=$WITH_SRP_APP_ID"
+              echo "with-srp-version=Manual-Input"
             } >> "$GITHUB_OUTPUT"
           else
             echo "❌ With-SRP APK not found"
             {
               echo "with-srp-browserstack-url="
               echo "with-srp-app-id="
+              echo "with-srp-version="
             } >> "$GITHUB_OUTPUT"
           fi
           
@@ -255,12 +259,14 @@ jobs:
             {
               echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
               echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
+              echo "without-srp-version=Manual-Input"
             } >> "$GITHUB_OUTPUT"
           else
             echo "❌ Without-SRP APK not found"
             {
               echo "without-srp-browserstack-url="
               echo "without-srp-app-id="
+              echo "without-srp-version="
             } >> "$GITHUB_OUTPUT"
           fi
           
