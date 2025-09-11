@@ -1,22 +1,31 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useRef,
+  useState,
+  useEffect,
+  useMemo,
+} from 'react';
 import {
-  StyleSheet,
   View,
-  TouchableOpacity,
   Image,
   TouchableWithoutFeedback,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  ImageSourcePropType,
+  Animated,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
-import StyledButton from '../StyledButton';
-import { useTheme } from '../../../util/theme';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import { useStyles } from '../../../component-library/hooks';
 import Text, {
   TextColor,
   TextVariant,
@@ -26,285 +35,411 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { whatsNewList } from './';
-import { Colors } from '../../../util/theme/models';
 import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/WhatsNewModal.selectors';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import createStyles from './WhatsNewModal.styles';
+import Device from '../../../util/device';
+import { SlideContent, SlideContentType } from './types';
 
-// NOTE: This modal is currently disabled.
-// Reasons for disabling:
-// 1. It was found to be disruptive to user experience.
-// 2. It became repetitive for frequent users.
-// 3. Its functionality now overlaps with:
-//    - New notification system for product announcements
-//    - Opt-in prompts for new features
-// See issue: https://github.com/MetaMask/MetaMask-planning/issues/2614
-// TODO: Consider removing or refactoring this component if it remains unused.
-
-const modalMargin = 24;
-const modalPadding = 24;
-const screenWidth = Device.getDeviceWidth();
-const screenHeight = Device.getDeviceHeight();
-const slideItemWidth = screenWidth - modalMargin * 2;
-const maxSlideItemHeight = screenHeight - 200;
-const slideImageWidth = slideItemWidth - modalPadding * 2;
-const imageAspectRatio = 128 / 264;
-const slideImageHeight = slideImageWidth * imageAspectRatio;
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    slideContent: {
-      maxHeight: maxSlideItemHeight,
-    },
-    slideItemContainer: {
-      flex: 1,
-      width: slideItemWidth,
-      paddingHorizontal: modalPadding,
-      paddingBottom: 16,
-    },
-    progessContainer: {
-      flexDirection: 'row',
-      alignSelf: 'center',
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    slideCircle: {
-      width: 8,
-      height: 8,
-      borderRadius: 8 / 2,
-      backgroundColor: colors.icon.default,
-      opacity: 0.4,
-      marginHorizontal: 8,
-    },
-    slideSolidCircle: {
-      opacity: 1,
-    },
-    button: {
-      marginTop: 8,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 20,
-      paddingHorizontal: modalPadding,
-    },
-    headerClose: {
-      flex: 1,
-      alignItems: 'flex-end',
-    },
-    slideImageContainer: {
-      flexDirection: 'row',
-      borderRadius: 10,
-      marginBottom: 24,
-    },
-    slideImage: {
-      flex: 1,
-      borderRadius: 10,
-      width: slideImageWidth,
-      height: slideImageHeight,
-    },
-    slideTitle: {
-      marginBottom: 12,
-    },
-    slideDescription: {
-      lineHeight: 20,
-      marginBottom: 24,
-    },
-    screen: { justifyContent: 'center', alignItems: 'center' },
-    modal: {
-      backgroundColor: colors.background.default,
-      borderRadius: 10,
-      marginHorizontal: modalMargin,
-    },
-    bodyContainer: {
-      paddingVertical: 32,
-    },
-    horizontalScrollView: { flexGrow: 0 },
-  });
+const CAROUSEL_INTERVAL_MS = 4000;
+const SLIDE_PADDING = 48;
 
 const WhatsNewModal = () => {
-  const modalRef = useRef<ReusableModalRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+  const imageCarouselRef = useRef<ScrollView>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { styles } = useStyles(createStyles, {});
+  const navigation = useNavigation();
+  const imageCarouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const imageProgressAnimations = useRef<Animated.Value[]>([]).current;
+
+  const initializeImageProgressAnimations = useCallback(
+    (imageCount: number) => {
+      imageProgressAnimations.length = 0;
+
+      for (let i = 0; i < imageCount; i++) {
+        imageProgressAnimations.push(new Animated.Value(i === 0 ? 1 : 0));
+      }
+    },
+    [imageProgressAnimations],
+  );
+
+  const animateImageProgressIndicators = useCallback(
+    (activeIndex: number) => {
+      imageProgressAnimations.forEach((animation, index) => {
+        Animated.timing(animation, {
+          toValue: index === activeIndex ? 1 : 0,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      });
+    },
+    [imageProgressAnimations],
+  );
+
+  const getCarouselImages = useCallback(() => {
+    const currentSlideData = whatsNewList.slides[currentSlide];
+    return currentSlideData?.find(
+      (slideElement) => slideElement.type === SlideContentType.CAROUSEL_IMAGES,
+    );
+  }, [currentSlide]);
+
+  const advanceToNextImage = useCallback(() => {
+    const carouselImages = getCarouselImages();
+    if (
+      !carouselImages ||
+      carouselImages.type !== SlideContentType.CAROUSEL_IMAGES
+    ) {
+      return;
+    }
+
+    setCurrentImageIndex((prevIndex) => {
+      const nextIndex = (prevIndex + 1) % carouselImages.images.length;
+      const carouselImageWidth = Device.getDeviceWidth() - SLIDE_PADDING;
+
+      imageCarouselRef.current?.scrollTo({
+        x: nextIndex * carouselImageWidth,
+        y: 0,
+        animated: true,
+      });
+
+      animateImageProgressIndicators(nextIndex);
+
+      return nextIndex;
+    });
+  }, [getCarouselImages, animateImageProgressIndicators]);
+
+  const startAutoAdvance = useCallback(() => {
+    if (imageCarouselIntervalRef.current) {
+      clearInterval(imageCarouselIntervalRef.current);
+    }
+
+    imageCarouselIntervalRef.current = setInterval(
+      advanceToNextImage,
+      CAROUSEL_INTERVAL_MS,
+    );
+  }, [advanceToNextImage]);
+
+  const clearAutoAdvance = useCallback(() => {
+    if (imageCarouselIntervalRef.current) {
+      clearInterval(imageCarouselIntervalRef.current);
+      imageCarouselIntervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const carouselImages = getCarouselImages();
+    if (
+      !carouselImages ||
+      carouselImages.type !== SlideContentType.CAROUSEL_IMAGES
+    ) {
+      return;
+    }
+
+    initializeImageProgressAnimations(carouselImages.images.length);
+    startAutoAdvance();
+    return clearAutoAdvance;
+  }, [
+    currentSlide,
+    getCarouselImages,
+    startAutoAdvance,
+    clearAutoAdvance,
+    initializeImageProgressAnimations,
+  ]);
 
   const recordSeenModal = async () => {
     const version = await StorageWrapper.getItem(CURRENT_APP_VERSION);
     await StorageWrapper.setItem(WHATS_NEW_APP_VERSION_SEEN, version as string);
   };
 
-  const dismissModal = (callback?: () => void) =>
-    modalRef.current?.dismissModal(callback);
-
-  const navigation = useNavigation();
-  const callButton = useCallback(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (onPress: any) => {
-      dismissModal(() => onPress({ navigation }));
+  const dismissModal = useCallback(
+    (callback?: () => void) => {
+      clearAutoAdvance();
+      if (sheetRef.current) {
+        sheetRef.current.onCloseBottomSheet(callback);
+      } else {
+        navigation.goBack();
+        callback?.();
+      }
     },
-    [navigation],
+    [navigation, clearAutoAdvance],
   );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderSlideElement = (elementInfo: any) => {
-    switch (elementInfo.type) {
-      case 'title':
-        return (
-          <Text
-            color={TextColor.Default}
-            variant={TextVariant.BodyLGMedium}
-            style={styles.slideTitle}
-          >
-            {elementInfo.title}
-          </Text>
-        );
-      case 'description':
-        return (
-          <Text
-            color={TextColor.Default}
-            variant={TextVariant.BodyMD}
-            style={styles.slideDescription}
-          >
-            {elementInfo.description}
-          </Text>
-        );
-      case 'image':
-        return (
-          <View style={styles.slideImageContainer}>
-            <Image
-              source={elementInfo.image}
-              style={styles.slideImage}
-              resizeMode={'stretch'}
-            />
-          </View>
-        );
-      case 'button':
-        return (
-          <View style={styles.button}>
-            <StyledButton
-              type={elementInfo.buttonType}
-              onPress={() => callButton(elementInfo.onPress)}
-            >
-              {elementInfo.buttonText}
-            </StyledButton>
-          </View>
-        );
-    }
-    return null;
-  };
+  const callButton = useCallback(
+    (onPress: (props: { navigation: typeof navigation }) => void) => {
+      dismissModal(() => onPress({ navigation }));
+    },
+    [navigation, dismissModal],
+  );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderSlide = (slideInfo: any, index: number) => {
-    const key = `slide-info-${index}`;
-    return (
-      <ScrollView key={key} style={styles.slideItemContainer}>
-        <TouchableWithoutFeedback>
-          <View>
-            {
-              // TODO: Replace "any" with type
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              slideInfo.map((elementInfo: any, elIndex: number) => {
+  const onImageCarouselScrollEnd = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const xOffset = e.nativeEvent.contentOffset.x;
+      const imageWidth = e.nativeEvent.layoutMeasurement.width;
+      const imageIndex = Math.round(xOffset / imageWidth);
+
+      if (currentImageIndex === imageIndex) {
+        return;
+      }
+
+      setCurrentImageIndex(imageIndex);
+      animateImageProgressIndicators(imageIndex);
+      startAutoAdvance();
+    },
+    [currentImageIndex, startAutoAdvance, animateImageProgressIndicators],
+  );
+
+  const selectImage = useCallback(
+    (index: number) => {
+      const imageWidth = Device.getDeviceWidth() - SLIDE_PADDING;
+      imageCarouselRef.current?.scrollTo({
+        x: index * imageWidth,
+        y: 0,
+        animated: true,
+      });
+      setCurrentImageIndex(index);
+      animateImageProgressIndicators(index);
+      startAutoAdvance();
+    },
+    [startAutoAdvance, animateImageProgressIndicators],
+  );
+
+  const renderSlideElement = useCallback(
+    (elementInfo: SlideContent) => {
+      switch (elementInfo.type) {
+        case SlideContentType.TITLE:
+          return (
+            <Text
+              color={TextColor.Default}
+              variant={TextVariant.BodyLGMedium}
+              style={styles.slideTitle}
+            >
+              {elementInfo.title}
+            </Text>
+          );
+        case SlideContentType.DESCRIPTION:
+          return (
+            <Text
+              color={TextColor.Default}
+              variant={TextVariant.BodyMD}
+              style={styles.slideDescription}
+            >
+              {elementInfo.description}
+            </Text>
+          );
+        case SlideContentType.DESCRIPTIONS:
+          return (
+            <View style={styles.descriptionsContainer}>
+              {elementInfo.descriptions.map((descriptionKey, index) => (
+                <View key={index} style={styles.descriptionItem}>
+                  <Icon
+                    name={IconName.Check}
+                    size={IconSize.Md}
+                    color={IconColor.Success}
+                    style={styles.featureCheckmark}
+                  />
+                  <Text
+                    color={TextColor.Default}
+                    variant={TextVariant.BodyMD}
+                    style={styles.featureText}
+                  >
+                    {descriptionKey}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          );
+        case SlideContentType.IMAGE:
+          return (
+            <View style={styles.slideImageContainer}>
+              <Image
+                source={(elementInfo as { image: ImageSourcePropType }).image}
+                style={styles.previewImage}
+                resizeMode={'contain'}
+              />
+            </View>
+          );
+        case SlideContentType.CAROUSEL_IMAGES:
+          return (
+            <View
+              style={[
+                styles.slideImageContainer,
+                elementInfo.images.length === 1 && styles.marginBottom,
+              ]}
+            >
+              <ScrollView
+                ref={imageCarouselRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScrollEndDrag={onImageCarouselScrollEnd}
+                onMomentumScrollEnd={onImageCarouselScrollEnd}
+                style={styles.imageCarousel}
+              >
+                {elementInfo.images.map(
+                  (
+                    imageInfo: { image: ImageSourcePropType; alt: string },
+                    index: number,
+                  ) => (
+                    <View key={index} style={styles.carouselImageContainer}>
+                      <Image
+                        source={imageInfo.image}
+                        style={styles.previewImage}
+                        resizeMode={'contain'}
+                      />
+                    </View>
+                  ),
+                )}
+              </ScrollView>
+              {elementInfo.images.length > 1 && (
+                <View style={styles.imageProgressContainer}>
+                  {elementInfo.images.map(
+                    (
+                      _: { image: ImageSourcePropType; alt: string },
+                      index: number,
+                    ) => (
+                      <TouchableWithoutFeedback
+                        key={index}
+                        onPress={() => selectImage(index)}
+                        hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+                      >
+                        <Animated.View
+                          style={[
+                            styles.imageProgressDot,
+                            {
+                              width:
+                                imageProgressAnimations[index]?.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [8, 24],
+                                }) || (currentImageIndex === index ? 24 : 8),
+                              backgroundColor:
+                                imageProgressAnimations[index]?.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [
+                                    styles.imageProgressDot.backgroundColor,
+                                    styles.imageProgressDotActive
+                                      .backgroundColor,
+                                  ],
+                                }) ||
+                                (currentImageIndex === index
+                                  ? styles.imageProgressDotActive
+                                      .backgroundColor
+                                  : styles.imageProgressDot.backgroundColor),
+                            },
+                          ]}
+                        />
+                      </TouchableWithoutFeedback>
+                    ),
+                  )}
+                </View>
+              )}
+            </View>
+          );
+        case SlideContentType.MORE_INFORMATION:
+          return (
+            <Text
+              color={TextColor.Default}
+              variant={TextVariant.BodyMD}
+              style={styles.moreInformation}
+            >
+              {elementInfo.moreInformation}
+            </Text>
+          );
+        case SlideContentType.BUTTON:
+          return (
+            <View style={styles.button}>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={elementInfo.buttonText}
+                onPress={() => callButton(elementInfo.onPress)}
+              />
+            </View>
+          );
+      }
+    },
+    [
+      styles,
+      selectImage,
+      currentImageIndex,
+      callButton,
+      onImageCarouselScrollEnd,
+      imageProgressAnimations,
+    ],
+  );
+
+  const renderSlide = useCallback(
+    (slideInfo: SlideContent[], index: number) => {
+      const key = `slide-info-${index}`;
+      return (
+        <View key={key} style={styles.slideItemContainer}>
+          <TouchableWithoutFeedback>
+            <View>
+              {slideInfo.map((elementInfo: SlideContent, elIndex: number) => {
                 const elKey = `${key}-${elIndex}`;
                 return (
                   <View key={elKey}>{renderSlideElement(elementInfo)}</View>
                 );
-              })
-            }
-          </View>
-        </TouchableWithoutFeedback>
-      </ScrollView>
-    );
-  };
-
-  const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const xOffset = e.nativeEvent.contentOffset.x;
-    const slideIndex = Math.ceil(xOffset / screenWidth);
-    if (currentSlide === slideIndex) {
-      return;
-    }
-    setCurrentSlide(slideIndex);
-  };
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <Text color={TextColor.Default} variant={TextVariant.HeadingMD}>
-        {strings('whats_new.title')}
-      </Text>
-      <View style={styles.headerClose}>
-        <TouchableOpacity
-          onPress={() => dismissModal()}
-          hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-          testID={WhatsNewModalSelectorsIDs.CLOSE_BUTTON}
-        >
-          <Icon
-            name={IconName.Close}
-            size={IconSize.Md}
-            color={IconColor.Default}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
+              })}
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      );
+    },
+    [styles.slideItemContainer, renderSlideElement],
   );
 
-  const renderProgressIndicators = () => (
-    <View style={styles.progessContainer}>
-      {whatsNewList.slides.map((_, index) => (
-        <TouchableWithoutFeedback
-          key={index}
-          onPress={() => {
-            scrollViewRef?.current?.scrollTo({
-              y: 0,
-              x: index * slideItemWidth,
-            });
-            setCurrentSlide(index);
-          }}
-          hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-        >
-          <View
-            style={[
-              styles.slideCircle,
-              currentSlide === index ? styles.slideSolidCircle : {},
-            ]}
-          />
-        </TouchableWithoutFeedback>
-      ))}
-    </View>
+  const onScrollEnd = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const xOffset = e.nativeEvent.contentOffset.x;
+      const slideItemWidth = e.nativeEvent.layoutMeasurement.width;
+      const slideIndex = Math.round(xOffset / slideItemWidth);
+      if (currentSlide === slideIndex) {
+        return;
+      }
+      setCurrentSlide(slideIndex);
+    },
+    [currentSlide],
+  );
+
+  const renderedSlides = useMemo(
+    () => whatsNewList.slides.map(renderSlide),
+    [renderSlide],
   );
 
   return (
-    <ReusableModal
-      ref={modalRef}
-      style={styles.screen}
-      onDismiss={recordSeenModal}
-    >
-      <View style={styles.modal} testID={WhatsNewModalSelectorsIDs.CONTAINER}>
-        <View style={styles.bodyContainer}>
-          {renderHeader()}
-          <View style={styles.slideContent}>
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.horizontalScrollView}
-              onScrollEndDrag={onScrollEnd}
-              onMomentumScrollEnd={onScrollEnd}
-              showsHorizontalScrollIndicator={false}
-              horizontal
-              pagingEnabled
-              scrollEnabled={whatsNewList.slides.length > 1}
-            >
-              {whatsNewList.slides.map(renderSlide)}
-            </ScrollView>
-            {whatsNewList.slides.length > 1 ? renderProgressIndicators() : null}
-          </View>
+    <BottomSheet ref={sheetRef} onClose={recordSeenModal}>
+      <View style={styles.headerContainer}>
+        <Text variant={TextVariant.HeadingMD} style={styles.header}>
+          {strings('whats_new.remove_gns_new_ui_update.title')}
+        </Text>
+      </View>
+      <View testID={WhatsNewModalSelectorsIDs.CONTAINER}>
+        <View style={styles.slideContent}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.horizontalScrollView}
+            onScrollEndDrag={onScrollEnd}
+            onMomentumScrollEnd={onScrollEnd}
+            showsHorizontalScrollIndicator={false}
+            horizontal
+            pagingEnabled
+            scrollEnabled={whatsNewList.slides.length > 1}
+          >
+            {renderedSlides}
+          </ScrollView>
         </View>
       </View>
-    </ReusableModal>
+    </BottomSheet>
   );
 };
 

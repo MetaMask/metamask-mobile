@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -296,6 +297,9 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
+            renderScrollComponent={
+              ScrollView as React.ComponentType<ScrollViewProps>
+            }
             {...props}
           />
         )}

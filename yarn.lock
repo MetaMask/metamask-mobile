@@ -4854,26 +4854,26 @@
     "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.12.1":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.12.1.tgz#e1417749f218248d04836bc1c71aa9cdcef8651f"
-  integrity sha512-4qKZpQ47LCbItwM/Uy47nGqjSv958n5oWyy3mH60EXzR2lEUh02CsGUKofCjIMpEdTC5SJZGxlCNSTOI7p6QBg==
+"@metamask/account-tree-controller@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.13.0.tgz#bdb45ba4e57669d951ab03238e9f8c1e1006595c"
+  integrity sha512-iF0L8LQXbZO1g+6deLhP1H8LSwMzUlzKlOii+1HxXhmEr41bIzcOBlzM0ynHWn5/nOLgEindm4Eadv9Vp9XQ+Q==
   dependencies:
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     lodash "^4.17.21"
 
-"@metamask/accounts-controller@^32.0.1":
-  version "32.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.2.tgz#2cb1cf84710813d27dba621deade3e698b44d532"
-  integrity sha512-zyn+tDfiyVRTMxn0rt/n0p+Uowaf3I3Rua1QDGXJMh4Vo+PN622g30AF/A8QwpMNmx61PX6V2rje1TSK/RUO0A==
+"@metamask/accounts-controller@^33.0.0":
+  version "33.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-33.0.0.tgz#0dbdc18672f2cbcdb48c71a34c9c6e4eecc3c3c9"
+  integrity sha512-KgM5x2TXd8rWHUo87TbJh1M1dvnd2yz1lOVDzee4fswRc8TDkRUJjTlBnYeYXWXupASgGoyNp2e5lxWpmMSzCA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/eth-snap-keyring" "^16.0.0"
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-internal-api" "^8.0.0"
+    "@metamask/base-controller" "^8.1.0"
+    "@metamask/eth-snap-keyring" "^16.1.0"
+    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-internal-api" "^8.1.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
@@ -5088,12 +5088,21 @@
     fast-deep-equal "^3.1.3"
     lodash "^4.17.21"
 
-"@metamask/design-system-react-native@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.npmjs.org/@metamask/design-system-react-native/-/design-system-react-native-0.3.0.tgz#cf2e7f4c20a73a02d9a9d64b51bfd3dbe7cf7d7c"
-  integrity sha512-A5AT1VmnznMrteNt/r2zUno3jfwKshVPyAkcL9JwJ9LslgEuCR/M42P9+0koQK0z5od9lb3Tw1s6ZIwLQlXglQ==
+"@metamask/design-system-react-native@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-system-react-native/-/design-system-react-native-0.4.0.tgz#38441ef7d321f507aa007a4bdcbc35a97045f260"
+  integrity sha512-w2CeiHoBuOHVPuskbl4siHfP96won/+mtw5R/TIP3tEvzIFg/nnMPvMGKTHK96L3lkOCXqXqGuy3qKy24Qg0xQ==
   dependencies:
+    "@metamask/design-system-shared" "^0.1.0"
+    fast-text-encoding "^1.0.6"
     react-native-jazzicon "^0.1.2"
+
+"@metamask/design-system-shared@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-system-shared/-/design-system-shared-0.1.0.tgz#9ebfcf784b0b86e3e183f3a5623e143ea9375de0"
+  integrity sha512-eCbzb5Vm7ZQCrPSi6NbasFtjSdUpkGshAnYq2nlZZRJwDdDNTKlJMWeA7RA5tOrV+vIsSDuYfvl+UcLp1fsOYw==
+  dependencies:
+    "@metamask/utils" "^11.7.0"
 
 "@metamask/design-system-twrnc-preset@^0.2.1":
   version "0.2.1"
@@ -5566,12 +5575,12 @@
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.6.0.tgz#8c724c06da97b6a7fbda76db247bb06262d439de"
-  integrity sha512-SIbkfTGBv9N/WdbFGvhGefKo9tRJzJn2qxGBjidBC5b5zHAIAOkV5M6oMnr4oEBcwfDcGaP8pH4x80fp4TCaDQ==
+"@metamask/multichain-account-service@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.7.0.tgz#ee4173dd9f2751ab1dabbea91748fb3915731d9c"
+  integrity sha512-vHjznP2cX5foqSp6nlBICkd9MQifYjWRgkzYvEnRXXiuE4PqpvbihLcbnJTdedU1/tF1qi/0eLWtrWfYBsFVPA==
   dependencies:
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/eth-snap-keyring" "^16.1.0"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/keyring-internal-api" "^8.1.0"
@@ -5580,6 +5589,7 @@
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
 
 "@metamask/multichain-api-client@^0.6.5":
   version "0.6.5"
@@ -5631,14 +5641,14 @@
     "@solana/addresses" "^2.0.0"
     lodash "^4.17.21"
 
-"@metamask/multichain-transactions-controller@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-4.0.1.tgz#029c2fd2dfd73c66eb5bf27cd90613f58eaa0e55"
-  integrity sha512-AyfoUHv2ZD6+BAg69bY6Pla3msKDOKxO0Fe3cexpQSNPqWI8yHaNJdqkpci1RghttXq9GiYRQNs6UQHGs6JKoA==
+"@metamask/multichain-transactions-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-transactions-controller/-/multichain-transactions-controller-5.0.0.tgz#e22d6e4cd75753079c237a6d4b13d12d42da0458"
+  integrity sha512-lXL+9besuuYoORbtPRPKFZw13/paJa/f4U0GgPfpUP6IBYLafkdVBMg0FJGvsZOE+fcegeBGGXi12iIAVBFlGA==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-internal-api" "^8.0.0"
+    "@metamask/base-controller" "^8.1.0"
+    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-internal-api" "^8.1.0"
     "@metamask/keyring-snap-client" "^7.0.0"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -5690,14 +5700,14 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^16.0.0":
-  version "16.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-16.0.0.tgz#b22e2cb0dbb62cb5012b375398bf14b71d399ad3"
-  integrity sha512-kdIlerqGxYRViH/dAX2Ka7KQmGWwZ0WhLCIHr3+1jIQqe6h4J8hq5/Kxlch3EJPQBNbbC+4FU5Ue8nqbIywTNQ==
+"@metamask/notification-services-controller@^18.1.0":
+  version "18.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-18.1.0.tgz#577dd00568696565157c025b83b9554c2d8396e2"
+  integrity sha512-T362ok+ZCqXwCchG0oKJVHOtpWFLqV8xeK6UfBwCVsy3Z8C48EyadV3NljpwF6KxyV9cEUQV4WTgXFGZEGgCDw==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/base-controller" "^8.3.0"
+    "@metamask/controller-utils" "^11.12.0"
     "@metamask/utils" "^11.4.2"
     bignumber.js "^9.1.2"
     firebase "^11.2.0"
@@ -5963,13 +5973,13 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@2.6.0":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-2.6.0.tgz#0e0145ece5d0963626cfe788fa574608e0cde64d"
-  integrity sha512-oD+ywbKiTnOszOZSHIEf32dfNVo1RvtBIdL71t6GvUlhExAIQXT69pbc89oVvmnGXuOypN3rYyBYYtCWf2RIBg==
+"@metamask/seedless-onboarding-controller@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-4.0.0.tgz#a433f06dbe0d72e77af3018d7d9352a55035ac22"
+  integrity sha512-coLkKhUQ3Eg5MwpHTm/UxPCFLmhPITziKt78I+Vx/0xCJghNsb59K9vJlWaVx8+boESISj5YD6K2KI2NTwNZeA==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.0"
-    "@metamask/base-controller" "^8.1.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/toprf-secure-backup" "^0.7.1"
     "@metamask/utils" "^11.4.2"
     "@noble/ciphers" "^1.3.0"
@@ -6281,18 +6291,19 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0", "@metamask/utils@^11.4.2":
-  version "11.4.2"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.4.2.tgz#8c83e1a962dbd1e451c4f607e8356dc2d189c24b"
-  integrity sha512-TygCcGmUbhmpxjYMm+mx68kRiJ80jYV54/Aa8gUFBv4cTX7ulX2XZKr8CJoJAw3K3FN5ZvCRmU0IzWZFaonwhA==
+"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0", "@metamask/utils@^11.4.2", "@metamask/utils@^11.7.0":
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.7.0.tgz#d6b7dad510eef5d19e756fa8d3e43c1a95cf1c5e"
+  integrity sha512-IamqpZF8Lr4WeXJ84fD+Sy+v1Zo05SYuMPHHBrZWpzVbnHAmXQpL4ckn9s5dfA+zylp3WGypaBPb6SBZdOhuNQ==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
     "@noble/hashes" "^1.3.1"
     "@scure/base" "^1.1.3"
     "@types/debug" "^4.1.7"
+    "@types/lodash" "^4.17.20"
     debug "^4.3.4"
-    lodash.memoize "^4.1.2"
+    lodash "^4.17.21"
     pony-cause "^2.1.10"
     semver "^7.5.4"
     uuid "^9.0.1"
@@ -12151,7 +12162,7 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash@*", "@types/lodash@^4.14.162", "@types/lodash@^4.14.167", "@types/lodash@^4.14.175", "@types/lodash@^4.14.184", "@types/lodash@^4.14.192":
+"@types/lodash@*", "@types/lodash@^4.14.162", "@types/lodash@^4.14.167", "@types/lodash@^4.14.175", "@types/lodash@^4.14.184", "@types/lodash@^4.14.192", "@types/lodash@^4.17.20":
   version "4.17.20"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.20.tgz#1ca77361d7363432d29f5e55950d9ec1e1c6ea93"
   integrity sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==
@@ -20459,7 +20470,7 @@ fast-stable-stringify@^1.0.0:
   resolved "https://registry.yarnpkg.com/fast-stable-stringify/-/fast-stable-stringify-1.0.0.tgz#5c5543462b22aeeefd36d05b34e51c78cb86d313"
   integrity sha512-wpYMUmFu5f00Sm0cj2pfivpmawLZ0NKdviQ4w9zJeR8JVtOpOxHmLaJuj0vxvGqMJQWyP/COUkF75/57OKyRag==
 
-fast-text-encoding@1.0.6:
+fast-text-encoding@1.0.6, fast-text-encoding@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/fast-text-encoding/-/fast-text-encoding-1.0.6.tgz#0aa25f7f638222e3396d72bf936afcf1d42d6867"
   integrity sha512-VhXlQgj9ioXCqGstD37E/HBeqEGV/qOD/kmbVG8h5xKBYvM1L3lR1Zn4555cQ8GkYbJa8aJSipLPndE1k6zK2w==
@@ -24524,11 +24535,6 @@ lodash.isplainobject@^4.0.6:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz#7c526a52d89b45c45cc690b88163be0497f550cb"
   integrity sha1-fFJqUtibRcRcxpC4gWO+BJf1UMs=
-
-lodash.memoize@^4.1.2:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
-  integrity sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==
 
 lodash.merge@^4.6.1, lodash.merge@^4.6.2:
   version "4.6.2"

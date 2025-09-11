@@ -79,7 +79,6 @@ const createStyles = (colors: Colors) =>
       marginBottom: 12,
     },
     bottomSection: {
-      paddingHorizontal: 24,
       paddingVertical: 24,
     },
     percentageButtonsContainer: {

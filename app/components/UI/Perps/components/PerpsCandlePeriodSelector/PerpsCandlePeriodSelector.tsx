@@ -1,18 +1,12 @@
 import React from 'react';
 import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  TextVariant,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod } from '../../constants/chartConfig';
 import { getPerpsCandlePeriodSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
+import { styleSheet } from './PerpsCandlePeriodSelector.styles';
 
 // Default candle periods with preset values
 const DEFAULT_CANDLE_PERIODS = [
@@ -35,16 +29,15 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
   onMorePress,
   testID,
 }) => {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
+
+  // Check if the selected period is in the "More" category (not in default periods)
+  const isMorePeriodSelected = !DEFAULT_CANDLE_PERIODS.some(
+    (period) => period.value.toLowerCase() === selectedPeriod.toLowerCase(),
+  );
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="w-full py-3 px-4 gap-1"
-      testID={testID}
-    >
+    <Box style={styles.container} testID={testID}>
       {/* Candle Period Buttons */}
       {DEFAULT_CANDLE_PERIODS.map((period) => {
         const isSelected =
@@ -53,14 +46,13 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
         return (
           <Pressable
             key={period.value}
-            style={({ pressed }) =>
-              tw.style(
-                'px-3 py-1.5 rounded-lg mx-0.5 items-center justify-center',
-                isSelected && 'bg-background-muted',
-                !isSelected && 'bg-background-default',
-                pressed && 'opacity-70',
-              )
-            }
+            style={({ pressed }) => [
+              styles.periodButton,
+              isSelected
+                ? styles.periodButtonSelected
+                : styles.periodButtonUnselected,
+              pressed && styles.periodButtonPressed,
+            ]}
             onPress={() => onPeriodChange?.(period.value)}
             testID={
               testID
@@ -83,18 +75,27 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
 
       {/* More Button */}
       <Pressable
-        style={({ pressed }) =>
-          tw.style(
-            'px-3 py-1.5 rounded-lg mx-0.5 items-center justify-center bg-background-default flex-row',
-            pressed && 'opacity-70',
-          )
-        }
+        style={({ pressed }) => [
+          styles.moreButton,
+          isMorePeriodSelected
+            ? styles.moreButtonSelected
+            : styles.moreButtonUnselected,
+          pressed && styles.moreButtonPressed,
+        ]}
         onPress={onMorePress}
         testID={
           testID ? getPerpsCandlePeriodSelector.moreButton(testID) : undefined
         }
       >
-        <Text variant={TextVariant.BodySm} twClassName="text-text-alternative mr-1">
+        <Text
+          variant={TextVariant.BodySm}
+          style={[
+            styles.moreText,
+            isMorePeriodSelected
+              ? styles.moreTextSelected
+              : styles.moreTextUnselected,
+          ]}
+        >
           {strings('perps.chart.candle_period_selector.show_more')}
         </Text>
         <Icon name={IconName.ArrowDown} size={IconSize.Xs}  color={IconColor.Alternative}  />

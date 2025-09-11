@@ -5,6 +5,7 @@ const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       alignItems: 'center',
+      paddingTop: 48,
       paddingHorizontal: 24,
     },
     label: {
@@ -15,7 +16,10 @@ const createStyles = (colors: Theme['colors']) =>
       lineHeight: 74,
     },
     amountValueActive: {
-      color: colors.primary.default,
+      color: colors.text.default,
+    },
+    amountValueError: {
+      color: colors.error.default,
     },
     cursor: {
       width: 2,

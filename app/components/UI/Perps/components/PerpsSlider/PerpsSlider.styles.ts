@@ -12,6 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
     sliderContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginHorizontal: 16,
     },
     trackContainer: {
       flex: 1,
@@ -35,7 +36,7 @@ const styleSheet = (params: { theme: Theme }) => {
     thumb: {
       width: 32,
       height: 32,
-      backgroundColor: colors.icon.alternative,
+      backgroundColor: colors.icon.defaultPressed,
       borderRadius: 16,
       position: 'absolute',
       top: -13,
@@ -56,7 +57,7 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
       top: 14,
       alignItems: 'center',
-      transform: [{ translateX: -20 }],
+      transform: [{ translateX: -15 }],
     },
     percentageWrapper0: {
       left: 0,
@@ -84,11 +85,10 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
       top: 2,
       transform: [{ translateX: -2.5 }],
-      zIndex: -1, // dots should be below the thumb
+      zIndex: -2,
     },
     percentageDot0: {
-      left: 0,
-      transform: [{ translateX: 2.5 }],
+      left: '2%',
     },
     percentageDot25: {
       left: '25%',
@@ -100,12 +100,12 @@ const styleSheet = (params: { theme: Theme }) => {
       left: '75%',
     },
     percentageDot100: {
-      right: 0,
-      left: 'auto',
+      left: '98%',
     },
     percentageText: {
+      marginTop: 8,
       color: colors.text.muted,
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: '500',
     },
     quickValuesRow: {
