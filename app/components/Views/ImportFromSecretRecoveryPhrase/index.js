@@ -44,17 +44,13 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  TRUE,
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -384,12 +380,6 @@ const ImportFromSecretRecoveryPhrase = ({
     updateNavBar();
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-        PASSCODE_DISABLED,
-      );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
       } else if (authData.availableBiometryType) {

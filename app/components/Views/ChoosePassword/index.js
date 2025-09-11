@@ -27,10 +27,7 @@ import {
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
