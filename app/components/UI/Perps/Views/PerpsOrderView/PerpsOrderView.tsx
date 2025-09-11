@@ -13,6 +13,7 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureException } from '@sentry/react-native';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -364,7 +365,28 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ),
         );
       },
-      onError: (error) => {
+      onError: (error: string) => {
+        // Capture error in Sentry for debugging
+        const errorToCapture = new Error(error);
+        captureException(errorToCapture, {
+          tags: {
+            component: 'PerpsOrderView',
+            action: 'orderCreation',
+            orderType: orderForm.type,
+            asset: orderForm.asset,
+            direction: orderForm.direction,
+          },
+          extra: {
+            orderForm: {
+              asset: orderForm.asset,
+              direction: orderForm.direction,
+              amount: orderForm.amount,
+              leverage: orderForm.leverage,
+              type: orderForm.type,
+            },
+          },
+        });
+
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].creationFailed(
             error,
