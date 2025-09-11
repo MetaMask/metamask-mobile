@@ -58,14 +58,14 @@ export function useTransactionPayMetrics() {
   }
 
   const nonGasQuote = quotes?.find(
-    (q) => q.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS,
+    (q) => q.request?.targetTokenAddress !== NATIVE_TOKEN_ADDRESS,
   );
 
   if (nonGasQuote) {
     properties.mm_pay_dust_usd = new BigNumber(
-      nonGasQuote.quote.minDestTokenAmount,
+      nonGasQuote.quote?.minDestTokenAmount,
     )
-      .minus(nonGasQuote.request.targetAmountMinimum)
+      .minus(nonGasQuote.request?.targetAmountMinimum)
       .shiftedBy(-6)
       .toString(10);
   }
