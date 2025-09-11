@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionControllerUnapprovedTransactionAddedEvent,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import {
   TransactionBridgeQuote,
   refreshQuote,
@@ -11,6 +14,7 @@ import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
   BridgeStatusControllerState,
+  BridgeStatusControllerStateChangeEvent,
 } from '@metamask/bridge-status-controller';
 import { store } from '../../../store';
 import { RootState } from '../../../reducers';
@@ -39,6 +43,9 @@ const QUOTE_2_MOCK = {
 
 const TRANSACTION_META_MOCK = {
   id: TRANSACTION_ID_MOCK,
+  txParams: {
+    from: '0xabc',
+  },
 } as TransactionMeta;
 
 const BRIDGE_TRANSACTION_META_MOCK = {
@@ -53,7 +60,8 @@ describe('Pay Publish Hook', () => {
   let hook: PayHook;
   let baseMessenger: Messenger<
     BridgeStatusControllerActions,
-    BridgeStatusControllerEvents
+    | BridgeStatusControllerEvents
+    | TransactionControllerUnapprovedTransactionAddedEvent
   >;
   let messengerMock: jest.Mocked<TransactionControllerInitMessenger>;
 
@@ -95,7 +103,8 @@ describe('Pay Publish Hook', () => {
 
     baseMessenger = new Messenger<
       BridgeStatusControllerActions,
-      BridgeStatusControllerEvents
+      | BridgeStatusControllerStateChangeEvent
+      | TransactionControllerUnapprovedTransactionAddedEvent
     >();
 
     baseMessenger.registerActionHandler(
@@ -106,7 +115,10 @@ describe('Pay Publish Hook', () => {
     messengerMock = baseMessenger.getRestricted({
       name: 'TransactionControllerInitMessenger',
       allowedActions: ['BridgeStatusController:submitTx'],
-      allowedEvents: ['BridgeStatusController:stateChange'],
+      allowedEvents: [
+        'BridgeStatusController:stateChange',
+        'TransactionController:unapprovedTransactionAdded',
+      ],
     }) as jest.Mocked<TransactionControllerInitMessenger>;
 
     hook = new PayHook({
