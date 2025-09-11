@@ -471,6 +471,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           },
         });
       }
+      Logger.error(seedlessError, 'Error in Unlock Screen');
       promptSeedlessRelogin();
       return;
     }
@@ -541,34 +542,26 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     if (isPasswordError) {
       handlePasswordError(loginErrorMessage);
+      // return and skip capture error to sentry
       return;
-    }
-
-    if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+    } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
       Alert.alert(
         strings('login.security_alert_title'),
         strings('login.security_alert_desc'),
       );
-      setLoading(false);
-      return;
-    }
-
-    if (
+    } else if (
       containsErrorMessage(loginError, VAULT_ERROR) ||
       containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
     ) {
       await handleVaultCorruption();
-      return;
-    }
-
-    if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
-      setLoading(false);
+    } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
       updateBiometryChoice(false);
-      return;
+    } else {
+      setError(loginErrorMessage);
     }
 
     setLoading(false);
-    setError(loginErrorMessage);
+    Logger.error(loginErr as Error, 'Failed to unlock');
   };
 
   const onLogin = async () => {
@@ -636,7 +629,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
       await handleLoginError(loginErr);
-      Logger.error(loginErr as Error, 'Failed to unlock');
     }
   };
 

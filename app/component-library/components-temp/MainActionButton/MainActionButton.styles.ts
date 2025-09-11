@@ -51,6 +51,7 @@ const styleSheet = (params: {
     label: {
       textAlign: 'center',
       marginTop: 2,
+      flexShrink: 0,
     },
   });
 };
