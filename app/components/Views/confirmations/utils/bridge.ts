@@ -16,8 +16,17 @@ import { BigNumber } from 'bignumber.js';
 const ERROR_MESSAGE_NO_QUOTES = 'No quotes found';
 const ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM = 'All quotes under minimum';
 
+export interface QuoteMetrics {
+  attempts: number;
+  buffer: number;
+  latency: number;
+}
+
 export type TransactionBridgeQuote = QuoteResponse &
-  QuoteMetadata & { request: BridgeQuoteRequest };
+  QuoteMetadata & {
+    metrics: QuoteMetrics;
+    request: BridgeQuoteRequest;
+  };
 
 const log = createProjectLogger('confirmation-bridge-utils');
 
@@ -42,6 +51,8 @@ export async function getBridgeQuotes(
 ): Promise<TransactionBridgeQuote[] | undefined> {
   log('Fetching bridge quotes', requests);
 
+  const startTime = Date.now();
+
   if (!requests?.length) {
     return [];
   }
@@ -59,7 +70,13 @@ export async function getBridgeQuotes(
       ),
     );
 
-    return result;
+    return result.map((quote) => ({
+      ...quote,
+      metrics: {
+        ...quote.metrics,
+        latency: Date.now() - startTime,
+      },
+    }));
   } catch (error) {
     log('Error fetching bridge quotes', error);
     return undefined;
@@ -68,7 +85,7 @@ export async function getBridgeQuotes(
 
 export async function refreshQuote(
   quote: TransactionBridgeQuote,
-): Promise<TransactionBridgeQuote> {
+): Promise<Omit<TransactionBridgeQuote, 'metrics'>> {
   const gasFeeEstimates = await getGasFeeEstimates(quote.request.sourceChainId);
   const newQuote = await getSingleBridgeQuote(quote.request, gasFeeEstimates);
 
@@ -132,7 +149,14 @@ async function getSufficientSingleBridgeQuote(
         quote: result,
       });
 
-      return result;
+      return {
+        ...result,
+        metrics: {
+          attempts: i + 1,
+          buffer: buffer + bufferStep * i,
+          latency: 0,
+        },
+      };
     } catch (error) {
       const errorMessage = (error as { message: string }).message;
 
@@ -167,7 +191,7 @@ async function getSufficientSingleBridgeQuote(
 async function getSingleBridgeQuote(
   request: BridgeQuoteRequest,
   gasFeeEstimates: GasFeeEstimates,
-): Promise<TransactionBridgeQuote> {
+): Promise<Omit<TransactionBridgeQuote, 'metrics'>> {
   const {
     from,
     slippage,
@@ -212,7 +236,7 @@ function getActiveQuote(
   quotes: QuoteResponse[],
   gasFeeEstimates: GasFeeEstimates,
   request: BridgeQuoteRequest,
-): TransactionBridgeQuote {
+): Omit<TransactionBridgeQuote, 'metrics'> {
   const fullState = store.getState();
 
   const state = {
@@ -259,7 +283,7 @@ async function getGasFeeEstimates(chainId: Hex) {
 function getBestQuote(
   quotes: (QuoteResponse & QuoteMetadata)[],
   request: BridgeQuoteRequest,
-): TransactionBridgeQuote {
+): Omit<TransactionBridgeQuote, 'metrics'> {
   const fastestQuotes = orderBy(
     quotes,
     (quote) => quote.estimatedProcessingTimeInSeconds,
