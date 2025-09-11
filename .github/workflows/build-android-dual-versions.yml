@@ -84,8 +84,8 @@ jobs:
           
           echo "🏗 Building Android E2E APK (${{ matrix.build_type }})..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          # we are building for all architectures in this workflow. 
-          # cp android/gradle.properties.github android/gradle.properties
+          # Use dedicated dual versions properties file for ARM architectures
+          cp android/gradle.properties.dual-versions android/gradle.properties
           yarn build:android:main:e2e
         shell: bash
         env:
@@ -107,8 +107,6 @@ jobs:
           DISABLE_NOTIFICATION_PROMPT: "true"
           MM_SECURITY_ALERTS_API_ENABLED: "true"
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
-          # Architecture for BrowserStack builds - use ARM architectures for this dual build workflow
-          REACT_NATIVE_ARCHITECTURES: "armeabi-v7a,arm64-v8a"
           # Conditionally set SRP and password based on build type
           ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.TEST_SRP_1 || '' }}
           PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
