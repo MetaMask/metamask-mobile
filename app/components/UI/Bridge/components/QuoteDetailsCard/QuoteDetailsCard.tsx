@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -32,17 +32,11 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
+import { useRewardsIconAnimation } from '../../hooks/useRewardsIconAnimation';
+import Rive, { Alignment, Fit } from 'rive-react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
-
-// These come from the Rive file, need to go into the Rive Editor to see them, or talk to designers
-enum RewardsIconTriggers {
-  Disable = 'Disable',
-  Start = 'Start',
-  Refresh = 'Refresh',
-}
 
 if (
   Platform.OS === 'android' &&
@@ -80,49 +74,13 @@ const QuoteDetailsCard = () => {
     isQuoteLoading,
   });
 
-  // Refs for Rive animation and tracking previous state
-  const riveRef = useRef<RiveRef>(null);
-  const previousPointsRef = useRef<number | null>(null);
-
-  // Handle Rive animation triggers based on points state changes
-  useEffect(() => {
-    if (!shouldShowRewardsRow || !riveRef.current) {
-      return;
-    }
-
-    const currentPoints = hasRewardsError ? 0 : estimatedPoints;
-    const previousPoints = previousPointsRef.current;
-
-    // Skip if no change in points value
-    if (!isRewardsLoading && currentPoints === previousPoints) {
-      // console.log('RIVE - no change in points value');
-      return;
-    }
-
-    try {
-      if ((shouldShowRewardsRow && isRewardsLoading) || hasRewardsError) {
-        // console.log('RIVE - triggering Disable state 1');
-        riveRef.current.fireState('default', RewardsIconTriggers.Disable);
-        return;
-      }
-
-      if (currentPoints && currentPoints > 0) {
-        // First time showing points - trigger Start
-        // console.log('RIVE - triggering Start state 1');
-        riveRef.current.fireState('default', RewardsIconTriggers.Start);
-      }
-    } catch (error) {
-      console.warn('Error triggering Rive animation:', error);
-    }
-
-    // Update previous points reference
-    previousPointsRef.current = currentPoints;
-  }, [
+  // Use custom hook for Rive animation logic
+  const { riveRef } = useRewardsIconAnimation({
+    isRewardsLoading,
     estimatedPoints,
     hasRewardsError,
-    isRewardsLoading,
     shouldShowRewardsRow,
-  ]);
+  });
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
