@@ -32,6 +32,9 @@ const EMPTY_WARNINGS: string[] = [];
 /**
  * Hook to handle order validation combining protocol-specific and UI-specific rules
  * Uses the existing validateOrder method from the provider
+ *
+ * Note: Errors are preserved during validation to prevent UI flashing.
+ * Errors are only cleared when validation confirms they're resolved.
  */
 export function usePerpsOrderValidation(
   params: UsePerpsOrderValidationParams,
@@ -61,6 +64,13 @@ export function usePerpsOrderValidation(
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const performValidation = useCallback(async () => {
+    // Set validation state to indicate we're validating
+    // but preserve existing errors to prevent flashing
+    setValidation((prev) => ({
+      ...prev,
+      isValidating: true,
+    }));
+
     // Perform immediate UI validation for critical errors
     const immediateErrors: string[] = [];
 
@@ -74,14 +84,6 @@ export function usePerpsOrderValidation(
         }),
       );
     }
-
-    // Update with immediate errors first (use stable reference if empty)
-    setValidation((prev) => ({
-      ...prev,
-      errors: immediateErrors.length > 0 ? immediateErrors : EMPTY_ERRORS,
-      isValid: immediateErrors.length === 0,
-      isValidating: true,
-    }));
 
     try {
       // Convert form state to OrderParams for protocol validation
@@ -154,12 +156,12 @@ export function usePerpsOrderValidation(
   useEffect(() => {
     // Skip validation if critical data is missing
     if (!positionSize || assetPrice === 0) {
-      setValidation({
-        errors: EMPTY_ERRORS,
-        warnings: EMPTY_WARNINGS,
-        isValid: false,
+      setValidation((prev) => ({
+        ...prev,
         isValidating: false,
-      });
+        // Keep existing errors but mark as invalid
+        isValid: false,
+      }));
       return;
     }
 

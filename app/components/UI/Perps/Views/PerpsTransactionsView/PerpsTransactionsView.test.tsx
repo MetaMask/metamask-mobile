@@ -196,6 +196,9 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
       });
       expect(mockUsePerpsFunding).toHaveBeenCalledWith({
+        params: {
+          startTime: expect.any(Number),
+        },
         skipInitialFetch: false,
       });
     });
@@ -224,6 +227,9 @@ describe('PerpsTransactionsView', () => {
       skipInitialFetch: true,
     });
     expect(mockUsePerpsFunding).toHaveBeenCalledWith({
+      params: {
+        startTime: expect.any(Number),
+      },
       skipInitialFetch: true,
     });
   });

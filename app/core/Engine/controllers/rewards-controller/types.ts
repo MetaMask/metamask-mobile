@@ -120,7 +120,170 @@ export interface EstimatePointsContextDto {
  * Type of point earning activity. Swap is for swaps and bridges. PERPS is for perps activities.
  * @example 'SWAP'
  */
-export type PointsEventEarnType = 'SWAP' | 'PERPS';
+export type PointsEventEarnType =
+  | 'SWAP'
+  | 'PERPS'
+  | 'REFERRAL'
+  | 'SIGN_UP_BONUS'
+  | 'LOYALTY_BONUS'
+  | 'ONE_TIME_BONUS';
+
+export interface GetPointsEventsDto {
+  seasonId: string;
+  subscriptionId: string;
+  cursor: string | null;
+}
+
+/**
+ * Paginated list of points events
+ */
+export interface PaginatedPointsEventsDto {
+  has_more: boolean;
+  cursor: string | null;
+  total_results: number;
+  results: PointsEventDto[];
+}
+
+/**
+ * Asset information for events
+ */
+export interface EventAssetDto {
+  /**
+   * Amount of the token as a string
+   * @example '1000000000000000000'
+   */
+  amount: string;
+
+  /**
+   * CAIP-19 asset type
+   * @example 'eip155:1/slip44:60'
+   */
+  type: string;
+
+  /**
+   * Decimals of the token
+   * @example 18
+   */
+  decimals: number;
+
+  /**
+   * Name of the token
+   * @example 'Ethereum'
+   */
+  name?: string;
+
+  /**
+   * Symbol of the token
+   * @example 'ETH'
+   */
+  symbol?: string;
+
+  /**
+   * Icon URL of the token
+   * @example 'https://example.com/icon.png'
+   */
+  iconUrl?: string;
+}
+
+/**
+ * Swap event payload
+ */
+export interface SwapEventPayload {
+  /**
+   * Source asset details
+   */
+  srcAsset: EventAssetDto;
+
+  /**
+   * Destination asset details
+   */
+  destAsset?: EventAssetDto;
+
+  /**
+   * Transaction hash
+   * @example '0x.......'
+   */
+  txHash?: string;
+}
+
+/**
+ * PERPS event payload
+ */
+export interface PerpsEventPayload {
+  /**
+   * Type of the PERPS event
+   * @example 'OPEN_POSITION'
+   */
+  type: 'OPEN_POSITION' | 'CLOSE_POSITION' | 'TAKE_PROFIT' | 'STOP_LOSS';
+
+  /**
+   * Direction of the position
+   * @example 'LONG'
+   */
+  direction?: 'LONG' | 'SHORT';
+
+  /**
+   * Asset information
+   */
+  asset: EventAssetDto;
+}
+
+/**
+ * Base points event interface
+ */
+interface BasePointsEventDto {
+  /**
+   * ID of the point earning activity
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  id: string;
+
+  /**
+   * Timestamp of the point earning activity
+   * @example '2021-01-01T00:00:00.000Z'
+   */
+  timestamp: Date;
+
+  /**
+   * Value of the point earning activity
+   * @example 100
+   */
+  value: number;
+
+  /**
+   * Bonus of the point earning activity
+   * @example {}
+   */
+  bonus: {
+    bips?: number | null;
+    bonuses?: string[] | null;
+  } | null;
+
+  /**
+   * Account address of the point earning activity
+   * @example '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+   */
+  accountAddress: string | null;
+}
+
+/**
+ * Points event with discriminated union for payloads
+ */
+export type PointsEventDto = BasePointsEventDto &
+  (
+    | {
+        type: 'SWAP';
+        payload: SwapEventPayload | null;
+      }
+    | {
+        type: 'PERPS';
+        payload: PerpsEventPayload | null;
+      }
+    | {
+        type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
+        payload: null;
+      }
+  );
 
 export interface EstimatePointsDto {
   /**
@@ -324,6 +487,14 @@ export interface RewardsControllerGetHasAccountOptedInAction {
 }
 
 /**
+ * Action for getting points events for a given season
+ */
+export interface RewardsControllerGetPointsEventsAction {
+  type: 'RewardsController:getPointsEvents';
+  handler: (params: GetPointsEventsDto) => Promise<PaginatedPointsEventsDto>;
+}
+
+/**
  * Action for estimating points for a given activity
  */
 export interface RewardsControllerEstimatePointsAction {
@@ -398,6 +569,7 @@ export interface RewardsControllerValidateReferralCodeAction {
 export type RewardsControllerActions =
   | ControllerGetStateAction<'RewardsController', RewardsControllerState>
   | RewardsControllerGetHasAccountOptedInAction
+  | RewardsControllerGetPointsEventsAction
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction
@@ -407,3 +579,5 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction;
+
+export const CURRENT_SEASON_ID = 'current';
