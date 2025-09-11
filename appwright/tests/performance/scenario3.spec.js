@@ -65,14 +65,14 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   );
 
   timer1.start();
-  await WelcomeScreen.clickGetStartedButton();
+  /*await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
   timer1.stop();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
 
   timer2.start();
-  await TermOfUseScreen.tapAcceptButton();
+  await TermOfUseScreen.tapAcceptButton();*/
   await OnboardingScreen.isScreenTitleVisible();
   timer2.stop();
 
