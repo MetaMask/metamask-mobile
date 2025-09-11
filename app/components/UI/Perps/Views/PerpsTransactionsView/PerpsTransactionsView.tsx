@@ -46,6 +46,7 @@ import {
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -76,7 +77,16 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     skipInitialFetch: !isConnected,
   });
 
+  // Memoize the funding params to prevent infinite re-renders
+  const fundingParams = useMemo(
+    () => ({
+      startTime: getUserFundingsListTimePeriod(),
+    }),
+    [], // Empty dependency array since we want this to be stable
+  );
+
   const { funding: fundingData, refresh: refreshFunding } = usePerpsFunding({
+    params: fundingParams,
     skipInitialFetch: !isConnected,
   });
 
