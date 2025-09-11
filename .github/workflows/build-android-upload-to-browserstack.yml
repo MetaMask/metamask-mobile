@@ -170,7 +170,7 @@ jobs:
       - name: Upload APKs to BrowserStack
         id: browserstack-upload
         run: |
-          echo "📱 Uploading APKs to BrowserStack..."
+          echo "Uploading APKs to BrowserStack..."
           
           # List artifacts directory structure for debugging
           echo "Artifacts directory structure:"
@@ -199,22 +199,22 @@ jobs:
           
           # Verify files exist and are readable
           if [ -n "$WITH_SRP_APK" ] && [ -f "$WITH_SRP_APK" ]; then
-            echo "✅ With-SRP APK file exists and is readable"
+            echo "With-SRP APK file exists and is readable"
             ls -la "$WITH_SRP_APK"
           else
-            echo "❌ With-SRP APK file not found or not readable"
+            echo "With-SRP APK file not found or not readable"
           fi
           
           if [ -n "$WITHOUT_SRP_APK" ] && [ -f "$WITHOUT_SRP_APK" ]; then
-            echo "✅ Without-SRP APK file exists and is readable"
+            echo "Without-SRP APK file exists and is readable"
             ls -la "$WITHOUT_SRP_APK"
           else
-            echo "❌ Without-SRP APK file not found or not readable"
+            echo "Without-SRP APK file not found or not readable"
           fi
           
           # Upload with-SRP APK
           if [ -f "$WITH_SRP_APK" ]; then
-            echo "📤 Uploading with-SRP APK to BrowserStack..."
+            echo "Uploading with-SRP APK to BrowserStack..."
             WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
               -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
               -F "file=@$WITH_SRP_APK" \
@@ -243,7 +243,7 @@ jobs:
           
           # Upload without-SRP APK
           if [ -f "$WITHOUT_SRP_APK" ]; then
-            echo "📤 Uploading without-SRP APK to BrowserStack..."
+            echo "Uploading without-SRP APK to BrowserStack..."
             WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
               -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
               -F "file=@$WITHOUT_SRP_APK" \
@@ -252,7 +252,7 @@ jobs:
             WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url')
             WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
             
-            echo "✅ Without-SRP APK uploaded successfully"
+            echo "Without-SRP APK uploaded successfully"
             echo "  App URL: $WITHOUT_SRP_APP_URL"
             echo "  App ID: $WITHOUT_SRP_APP_ID"
             
@@ -262,7 +262,7 @@ jobs:
               echo "without-srp-version=Manual-Input"
             } >> "$GITHUB_OUTPUT"
           else
-            echo "❌ Without-SRP APK not found"
+            echo "Without-SRP APK not found"
             {
               echo "without-srp-browserstack-url="
               echo "without-srp-app-id="
