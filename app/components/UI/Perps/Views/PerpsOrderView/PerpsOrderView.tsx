@@ -748,6 +748,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           isActive={isInputFocused}
           tokenAmount={positionSize}
           tokenSymbol={orderForm.asset}
+          hasError={!!orderValidation.errors.length}
         />
 
         {/* Amount Slider - Hide when keypad is active */}

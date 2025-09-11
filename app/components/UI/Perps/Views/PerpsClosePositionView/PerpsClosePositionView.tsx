@@ -573,6 +573,7 @@ const PerpsClosePositionView: React.FC = () => {
               ? closeAmountString
               : formatPositionSize(closeAmount)
           }
+          hasError={filteredErrors.length > 0}
           tokenSymbol={position.coin}
           showMaxAmount={false}
         />
