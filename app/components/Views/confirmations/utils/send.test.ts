@@ -1,7 +1,11 @@
+import BN from 'bnjs4';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+
+// eslint-disable-next-line import/no-namespace
+import * as ConfusablesUtils from '../../../../util/confusables';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
 // eslint-disable-next-line import/no-namespace
@@ -14,11 +18,14 @@ import {
   fromBNWithDecimals,
   fromHexWithDecimals,
   fromTokenMinUnits,
+  getConfusableCharacterInfo,
+  getFractionLength,
   getLayer1GasFeeForSend,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
   toBNWithDecimals,
+  toTokenMinimalUnit,
 } from './send';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -83,11 +90,12 @@ describe('prepareEVMTransaction', () => {
           name: 'MyToken',
           address: '0x123',
           chainId: '0x1',
+          decimals: 0,
         } as AssetType,
         { from: '0x123', to: '0x456', value: '100' },
       ),
     ).toStrictEqual({
-      data: '0xa9059cbb0000000000000000000000000000000000000000000000000000000000000456000000000000000000000000000000000000000000000000000000000003b27c',
+      data: '0xa9059cbb00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000064',
       from: '0x123',
       to: '0x123',
       value: '0x0',
@@ -285,10 +293,57 @@ describe('getLayer1GasFeeForSend', () => {
   });
 });
 
+describe('toTokenMinimalUnit', () => {
+  it('converts string value to token minimal units', () => {
+    expect(toTokenMinimalUnit('.1', 18)).toEqual(
+      new BN('100000000000000000', 10),
+    );
+    expect(toTokenMinimalUnit('1.75', 4)).toEqual(new BN('17500'));
+    expect(toTokenMinimalUnit('0', 0)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('0', 2)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('', 2)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('0.75', 6)).toEqual(new BN('750000'));
+    expect(toTokenMinimalUnit('0.750251', 2)).toEqual(new BN('75'));
+  });
+});
+
+describe('getFractionLength', () => {
+  it('return width of fractional part', () => {
+    expect(getFractionLength('.1')).toEqual(1);
+    expect(getFractionLength('0')).toEqual(0);
+    expect(getFractionLength('.0001')).toEqual(4);
+    expect(getFractionLength('0.075')).toEqual(3);
+  });
+});
+
 describe('convertCurrency', () => {
   it('apply conversion rate to passed value', () => {
     expect(convertCurrency('120.75', 0.5, 4, 2)).toEqual('60.37');
     expect(convertCurrency('120.75', 0.25, 4, 4)).toEqual('30.1875');
     expect(convertCurrency('0.01', 10, 4, 0)).toEqual('0');
+  });
+});
+
+describe('getConfusableCharacterInfo', () => {
+  it('returns empty object if there is no error', async () => {
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual(
+      {},
+    );
+  });
+
+  it('returns warning for confusables', async () => {
+    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual({
+      warning: "transaction.confusable_msg - 'ⅼ' is similar to 'l'",
+    });
+  });
+
+  it('returns error and warning for confusables if it has hasZeroWidthPoints', async () => {
+    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
+    jest.spyOn(ConfusablesUtils, 'hasZeroWidthPoints').mockReturnValue(true);
+    expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual({
+      error: 'transaction.invalid_address',
+      warning: 'send.invisible_character_error',
+    });
   });
 });

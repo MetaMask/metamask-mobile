@@ -204,6 +204,19 @@ const mockState = ({
             },
           },
         },
+        TokenListController: {
+          tokensChainsCache: {
+            '0x1': {
+              data: {
+                '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': {
+                  address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+                  symbol: 'stETH',
+                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+                },
+              },
+            },
+          },
+        },
         MultichainAssetsController: {
           accountsAssets: {
             '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
@@ -647,6 +660,31 @@ describe('selectAsset', () => {
       image:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
       aggregators: [],
+    });
+  });
+
+  it('returns asset with aggregators', () => {
+    const state = mockState();
+    const result = selectAsset(state, {
+      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      chainId: '0x1',
+    });
+
+    expect(result).toEqual({
+      chainId: '0x1',
+      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      symbol: 'stETH',
+      ticker: 'stETH',
+      name: 'Lido Staked Ether',
+      decimals: 18,
+      balance: '100',
+      balanceFiat: '$21.60',
+      isETH: false,
+      isNative: false,
+      logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+      image:
+        'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+      aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
     });
   });
 });
