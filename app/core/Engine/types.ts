@@ -174,7 +174,7 @@ import {
   CronjobController,
   MultichainRouterActions,
   WebSocketService,
-  WebSocketServiceActions as SnapsWebSocketServiceActions,
+  WebSocketServiceActions,
   WebSocketServiceEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
@@ -395,7 +395,7 @@ type GlobalActions =
   | NotificationServicesControllerMessengerActions
   | NotificationServicesPushControllerActions
   | CronjobControllerActions
-  | SnapsWebSocketServiceActions
+  | WebSocketServiceActions
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions

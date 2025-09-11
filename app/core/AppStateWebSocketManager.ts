@@ -18,7 +18,6 @@ export class AppStateWebSocketManager {
   private appStateSubscription: NativeEventSubscription | null = null;
   private webSocketService: WebSocketService | null = null;
   private accountActivityService: AccountActivityService | null = null;
-  private lastSubscribedAddress: string | null = null;
 
   /**
    * Initialize the manager with WebSocket and AccountActivity services
@@ -33,7 +32,6 @@ export class AppStateWebSocketManager {
     this.webSocketService = webSocketService;
     this.accountActivityService = accountActivityService || null;
     this.setupAppStateListener();
-    this.setupReconnectionHandler();
   }
 
   /**
@@ -43,18 +41,6 @@ export class AppStateWebSocketManager {
     this.appStateSubscription = AppState.addEventListener(
       'change',
       this.handleAppStateChange.bind(this),
-    );
-  }
-
-  /**
-   * Setup reconnection handler - AccountActivityService handles reconnection automatically
-   * This method is kept for future extensions but currently relies on AccountActivityService
-   */
-  private setupReconnectionHandler(): void {
-    // Note: AccountActivityService has built-in reconnection handling via messenger events
-    // It will automatically re-subscribe to the selected account when WebSocket reconnects
-    Logger.log(
-      'AppStateWebSocketManager: Reconnection handled by AccountActivityService',
     );
   }
 
@@ -72,25 +58,14 @@ export class AppStateWebSocketManager {
 
     try {
       if (nextAppState === 'background') {
-        // Store the current subscription before disconnecting for debugging
-        if (this.accountActivityService) {
-          this.lastSubscribedAddress =
-            this.accountActivityService.getCurrentSubscribedAccount();
-          Logger.log(
-            `Storing last subscribed address: ${this.lastSubscribedAddress}`,
-          );
-        }
-
         // Disconnect WebSocket when app goes to background to save resources
         await this.webSocketService.disconnect();
         Logger.log('WebSocket disconnected due to app entering background');
       } else if (nextAppState === 'active') {
         // Reconnect WebSocket when app becomes active
-        // Note: Re-subscription will be handled automatically by AccountActivityService
+        // AccountActivityService will automatically handle re-subscription
         await this.webSocketService.connect();
-        Logger.log(
-          'WebSocket reconnected due to app becoming active - AccountActivityService will handle re-subscription',
-        );
+        Logger.log('WebSocket reconnected due to app becoming active');
       }
     } catch (error) {
       Logger.error(
