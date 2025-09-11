@@ -14,7 +14,7 @@ interface PrivateKeyAccountDetailsProps {
 export const PrivateKeyAccountDetails = ({
   account,
 }: PrivateKeyAccountDetailsProps) => {
-  // Seedless onboarding login flow do not supported for remove private key accounts for now
+  // Seedless onboarding login flow does not support removing private key accounts for now
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
