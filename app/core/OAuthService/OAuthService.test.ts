@@ -79,6 +79,10 @@ const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
     }),
 }));
 
+let mockSeedlessOnboardingControllerState: { accessToken?: string } = {
+  accessToken: 'mock-access-token',
+};
+
 jest.mock('../Engine', () => ({
   context: {
     SeedlessOnboardingController: {
@@ -86,6 +90,9 @@ jest.mock('../Engine', () => ({
         nodeAuthTokens: [],
         isNewUser: false,
       })),
+      get state() {
+        return mockSeedlessOnboardingControllerState;
+      },
     },
   },
 }));
@@ -226,5 +233,146 @@ describe('OAuth login service', () => {
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
     expect(mockGetAuthTokens).toHaveBeenCalledTimes(0);
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
+  });
+
+  describe('updateMarketingOptInStatus', () => {
+    const originalFetch = global.fetch;
+    let mockFetch: jest.MockedFunction<typeof fetch>;
+
+    beforeEach(() => {
+      mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+      global.fetch = mockFetch;
+      mockSeedlessOnboardingControllerState = {
+        accessToken: 'mock-access-token',
+      };
+    });
+
+    afterEach(() => {
+      global.fetch = originalFetch;
+      jest.clearAllMocks();
+    });
+
+    it('should successfully opt-in to marketing', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({}),
+      } as Response);
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(true),
+      ).resolves.toBeUndefined();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://auth.example.com/api/v1/oauth/marketing_opt_in_status',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-access-token',
+          },
+          body: JSON.stringify({ opt_in_status: true }),
+        },
+      );
+    });
+
+    it('should successfully opt-out of marketing', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({}),
+      } as Response);
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(false),
+      ).resolves.toBeUndefined();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://auth.example.com/api/v1/oauth/marketing_opt_in_status',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-access-token',
+          },
+          body: JSON.stringify({ opt_in_status: false }),
+        },
+      );
+    });
+
+    it('should throw error when no access token is available', async () => {
+      mockSeedlessOnboardingControllerState = {};
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(true),
+      ).rejects.toThrow('No access token found. User must be authenticated.');
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when access token is undefined', async () => {
+      mockSeedlessOnboardingControllerState = { accessToken: undefined };
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(true),
+      ).rejects.toThrow('No access token found. User must be authenticated.');
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when API returns error status', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: async () => ({ message: 'Invalid request' }),
+      } as Response);
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(true),
+      ).rejects.toThrow(
+        'Failed to update marketing opt-in status: 400 - Invalid request',
+      );
+    });
+
+    it('should throw error when API returns error status without message', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: async () => ({}),
+      } as Response);
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(false),
+      ).rejects.toThrow(
+        'Failed to update marketing opt-in status: 500 - Internal Server Error',
+      );
+    });
+
+    it('should handle network errors', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(true),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle JSON parsing errors in error response', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        json: async () => {
+          throw new Error('Invalid JSON');
+        },
+      } as Response);
+
+      await expect(
+        OAuthLoginService.updateMarketingOptInStatus(true),
+      ).rejects.toThrow(
+        'Failed to update marketing opt-in status: 400 - Bad Request',
+      );
+    });
   });
 });

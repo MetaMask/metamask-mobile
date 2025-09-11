@@ -77,6 +77,7 @@ import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import ErrorBoundary from '../ErrorBoundary';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import {
   TraceName,
   endTrace,
@@ -495,6 +496,18 @@ class ChoosePassword extends PureComponent {
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
         this.props.setDataCollectionForMarketing(this.state.isSelected);
+
+        // Call marketing opt-in API
+        try {
+          await OAuthLoginService.updateMarketingOptInStatus(
+            this.state.isSelected,
+          );
+          Logger.log('Marketing opt-in status updated successfully');
+        } catch (error) {
+          Logger.log(error, {
+            message: 'Failed to update marketing opt-in status',
+          });
+        }
 
         this.props.navigation.reset({
           index: 0,

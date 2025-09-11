@@ -103,6 +103,15 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
 
 const mockSetDataCollectionForMarketing = jest.fn();
 
+// Mock OAuthLoginService
+const mockUpdateMarketingOptInStatus = jest.fn();
+jest.mock('../../../core/OAuthService/OAuthService', () => ({
+  __esModule: true,
+  default: {
+    updateMarketingOptInStatus: mockUpdateMarketingOptInStatus,
+  },
+}));
+
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -193,6 +202,7 @@ describe('ChoosePassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
+    mockUpdateMarketingOptInStatus.mockClear();
   });
 
   it('render matches snapshot', async () => {
@@ -889,6 +899,74 @@ describe('ChoosePassword', () => {
     });
 
     mockNewWalletAndKeychain.mockRestore();
+  });
+
+  describe('Marketing Opt-in API Integration', () => {
+    it('does not call updateMarketingOptInStatus for non-OAuth users', async () => {
+      // Arrange
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: false, // Non-OAuth user
+          },
+        },
+        navigation: mockNavigation,
+      };
+
+      // Act
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      // Assert
+      expect(mockUpdateMarketingOptInStatus).not.toHaveBeenCalled();
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        'AccountBackupStep1',
+        {
+          seedPhrase: expect.any(Array),
+        },
+      );
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
   });
 
   it('should navigate to support article when learn more link is pressed when oauth2Login is true', async () => {

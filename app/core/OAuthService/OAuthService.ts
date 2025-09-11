@@ -8,6 +8,7 @@ import {
   AuthResponse,
   OAuthUserInfo,
   OAuthLoginResultType,
+  MarketingOptInRequest,
 } from './OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import {
@@ -19,6 +20,9 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
+
+const AUTH_SERVER_MARKETING_OPT_IN_PATH =
+  '/api/v1/oauth/marketing_opt_in_status';
 
 export interface OAuthServiceConfig {
   authConnectionConfig: {
@@ -305,10 +309,48 @@ export class OAuthService {
     });
   };
 
-  getIsOAuthLoginAttempted = (): boolean => this.localState.isOAuthLoginAttempted;
+  getIsOAuthLoginAttempted = (): boolean =>
+    this.localState.isOAuthLoginAttempted;
 
   setOAuthLoginAttempted = (value: boolean) => {
     this.updateLocalState({ isOAuthLoginAttempted: value });
+  };
+
+  private getAccessToken = (): string | undefined => Engine.context.SeedlessOnboardingController.state?.accessToken;
+
+  updateMarketingOptInStatus = async (
+    marketingOptIn: boolean,
+  ): Promise<void> => {
+    const accessToken = this.getAccessToken();
+
+    if (!accessToken) {
+      throw new Error('No access token found. User must be authenticated.');
+    }
+
+    const requestBody: MarketingOptInRequest = {
+      opt_in_status: marketingOptIn,
+    };
+
+    const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        `Failed to update marketing opt-in status: ${response.status} - ${
+          errorData.message || response.statusText
+        }`,
+      );
+    }
   };
 }
 
