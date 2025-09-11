@@ -75,7 +75,11 @@ export const AmountKeyboard = ({
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
-      if (getFractionLength(amt) > ((asset as AssetType)?.decimals ?? 0)) {
+      const fractionSize = getFractionLength(amt);
+      if (
+        (fiatMode && fractionSize > 2) ||
+        fractionSize > ((asset as AssetType)?.decimals ?? 0)
+      ) {
         return;
       }
       updateAmount(amt);
