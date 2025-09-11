@@ -242,13 +242,13 @@ function TradeWalletActions() {
             >
               <Box
                 style={tw.style(
-                  'bg-default p-3 rounded-2xl mx-4',
+                  'bg-default p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
+                  `px-0`,
                 )}
               >
                 {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
                   <ActionListItem
-                    rounded
                     label={strings('asset_overview.swap')}
                     description={strings('asset_overview.swap_description')}
                     iconName={IconName.SwapVertical}
@@ -259,7 +259,6 @@ function TradeWalletActions() {
                 )}
                 {isPerpsEnabled && isEvmSelected && (
                   <ActionListItem
-                    rounded
                     label={strings('asset_overview.perps_button')}
                     description={strings('asset_overview.perps_description')}
                     iconName={IconName.Candlestick}
@@ -270,7 +269,6 @@ function TradeWalletActions() {
                 )}
                 {isEarnWalletActionEnabled && (
                   <ActionListItem
-                    rounded
                     label={strings('asset_overview.earn_button')}
                     description={strings('asset_overview.earn_description')}
                     iconName={IconName.Stake}
