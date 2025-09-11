@@ -13,6 +13,14 @@ import { merge } from 'lodash';
 import { RootState } from '../../../../../reducers';
 import { decGWEIToHexWEI } from '../../../../../util/conversions';
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 describe('HeroToken', () => {
   it('displays avatar, amount, and fiat values for a simple send transfer', async () => {
     const state: DeepPartial<RootState> = merge({}, transferConfirmationState, {

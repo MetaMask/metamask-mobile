@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { add0x, Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -9,15 +8,15 @@ import {
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useFeeCalculations } from './gas/useFeeCalculations';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
-import { selectTransactionState } from '../../../../reducers/transaction';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { useConfirmationContext } from '../context/confirmation-context';
+import { useMaxValueMode } from './useMaxValueMode';
 
 // This hook is used to refresh the max value of the transaction
 // when the user is in max amount mode only for the transaction type simpleSend
 // It subtracts the native fee from the balance and updates the value of the transaction
 export function useMaxValueRefresher() {
-  const { maxValueMode } = useSelector(selectTransactionState);
+  const { maxValueMode } = useMaxValueMode();
   const [valueJustUpdated, setValueJustUpdated] = useState(false);
   const { setIsTransactionValueUpdating } = useConfirmationContext();
   const transactionMetadata = useTransactionMetadataRequest();

@@ -430,4 +430,14 @@ describe('Edge cases', () => {
       expect(result.current.amountUnformatted).toBe('0.0001');
     });
   });
+
+  it('returns unformatted fiat amount', async () => {
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: transferConfirmationState,
+    });
+
+    await waitFor(() => {
+      expect(result.current.fiatUnformatted).toBe('0.359625');
+    });
+  });
 });

@@ -315,6 +315,38 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
+    it('on enter key press at the last input field with correct length, the new input field value is not created', async () => {
+      const { getByPlaceholderText, queryByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter a valid 12-word seed phrase
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      fireEvent.changeText(
+        input,
+        'frame midnight talk absent spy release check below volume industry advance neglect ',
+      );
+
+      await act(async () => {
+        fireEvent(input, 'onSubmitEditing', {
+          nativeEvent: { key: 'Enter' },
+          index: 11,
+        });
+      });
+
+      await waitFor(() => {
+        const secondInput = queryByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_12`,
+        );
+        expect(secondInput).not.toBeOnTheScreen();
+      });
+    });
+
     it('renders qr code button', async () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,

@@ -12,16 +12,16 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import {
   getNativeAssetForChainId,
   isSolanaChainId,
+  formatChainIdToCaip,
+  formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import { constants } from 'ethers';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 import usePrevious from '../../../../hooks/usePrevious';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
-///: END:ONLY_INCLUDE_IF
 
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   const nativeAsset = getNativeAssetForChainId(chainId);
@@ -63,12 +63,7 @@ export const useInitialSourceToken = (
     domainIsConnectedDapp,
     networkName: selectedEvmNetworkName,
   } = useNetworkInfo();
-  const {
-    onSetRpcTarget,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
-  } = useSwitchNetworks({
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId: selectedEvmChainId,
     selectedNetworkName: selectedEvmNetworkName,
@@ -101,14 +96,19 @@ export const useInitialSourceToken = (
   }
 
   // Change network if necessary
-  if (initialSourceToken?.chainId && initialSourceToken?.chainId !== chainId) {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (initialSourceToken?.chainId === SolScope.Mainnet) {
-      onNonEvmNetworkChange(initialSourceToken.chainId);
-      return;
-    }
-    ///: END:ONLY_INCLUDE_IF
+  if (initialSourceToken?.chainId) {
+    // Convert both chain IDs to CAIP format for accurate comparison
+    const sourceCaipChainId = formatChainIdToCaip(initialSourceToken.chainId);
+    const currentCaipChainId = formatChainIdToCaip(chainId);
 
-    onSetRpcTarget(evmNetworkConfigurations[initialSourceToken.chainId as Hex]);
+    if (sourceCaipChainId !== currentCaipChainId) {
+      if (sourceCaipChainId === SolScope.Mainnet) {
+        onNonEvmNetworkChange(SolScope.Mainnet);
+        return;
+      }
+
+      const hexChainId = formatChainIdToHex(sourceCaipChainId);
+      onSetRpcTarget(evmNetworkConfigurations[hexChainId]);
+    }
   }
 };

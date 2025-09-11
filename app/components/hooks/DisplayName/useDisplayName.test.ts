@@ -6,7 +6,7 @@ import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useNftNames } from './useNftName';
-import { useInternalAccountNames } from './useInternalAccountNames';
+import { useAccountNames } from './useAccountNames';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
@@ -33,8 +33,8 @@ jest.mock('./useNftName', () => ({
   useNftNames: jest.fn(),
 }));
 
-jest.mock('./useInternalAccountNames', () => ({
-  useInternalAccountNames: jest.fn(),
+jest.mock('./useAccountNames', () => ({
+  useAccountNames: jest.fn(),
 }));
 
 describe('useDisplayName', () => {
@@ -44,7 +44,7 @@ describe('useDisplayName', () => {
   );
   const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
   const mockUseNFTNames = jest.mocked(useNftNames);
-  const mockUseInternalAccountNames = jest.mocked(useInternalAccountNames);
+  const mockUseAccountNames = jest.mocked(useAccountNames);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -52,7 +52,7 @@ describe('useDisplayName', () => {
     mockUseFirstPartyContractNames.mockReturnValue([]);
     mockUseERC20Tokens.mockReturnValue([]);
     mockUseNFTNames.mockReturnValue([]);
-    mockUseInternalAccountNames.mockReturnValue([]);
+    mockUseAccountNames.mockReturnValue([]);
   });
 
   describe('unknown address', () => {
@@ -150,7 +150,7 @@ describe('useDisplayName', () => {
     });
 
     it('returns internal account name', () => {
-      mockUseInternalAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
+      mockUseAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
 
       const displayName = useDisplayName({
         type: NameType.EthereumAddress,

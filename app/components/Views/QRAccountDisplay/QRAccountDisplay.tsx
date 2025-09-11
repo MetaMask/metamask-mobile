@@ -1,19 +1,19 @@
 'use strict';
 import React, { useContext } from 'react';
-import Text, {
-  TextColor,
+import {
+  Box,
+  Text,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { SafeAreaView, ViewStyle } from 'react-native';
+  TextColor,
+  FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../component-library/hooks';
-import styleSheet from './QRAccountDisplay.styles';
 import ClipboardManager from '../../../core/ClipboardManager';
 import {
   ToastContext,
@@ -21,18 +21,16 @@ import {
 } from '../../../component-library/components/Toast';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { renderAccountName } from '../../../util/address';
+import { QRAccountDisplayProps } from './QRAccountDisplay.types';
 
 const ADDRESS_PREFIX_LENGTH = 6;
 const ADDRESS_SUFFIX_LENGTH = 5;
 
-const QRAccountDisplay = (props: {
-  accountAddress: string;
-  addressContainerStyle?: ViewStyle;
-}) => {
-  const { styles } = useStyles(styleSheet, {
-    addressContainerStyle: props.addressContainerStyle,
-  });
-  const addr = props.accountAddress;
+const QRAccountDisplay = (props: QRAccountDisplayProps) => {
+  const { accountAddress, label, labelProps, description, descriptionProps } =
+    props;
+  const tw = useTailwind();
+  const addr = accountAddress;
   const accounts = useSelector(selectInternalAccounts);
   const accountLabel = renderAccountName(addr, accounts);
   const { toastRef } = useContext(ToastContext);
@@ -60,33 +58,79 @@ const QRAccountDisplay = (props: {
 
   const handleCopyButton = async () => {
     showCopyNotificationToast();
-    await ClipboardManager.setString(props.accountAddress);
+    await ClipboardManager.setString(accountAddress);
+  };
+
+  const renderLabel = () => {
+    // If label is provided as a ReactNode, render it directly
+    if (label && typeof label !== 'string') {
+      return label;
+    }
+
+    // If label is provided as a string or fallback to accountLabel
+    const displayLabel = typeof label === 'string' ? label : accountLabel;
+
+    return (
+      <Text
+        variant={TextVariant.BodyLg}
+        fontWeight={FontWeight.Medium}
+        {...labelProps}
+      >
+        {displayLabel}
+      </Text>
+    );
+  };
+
+  const renderDescription = () => {
+    // If no description is provided, don't render anything
+    if (!description) {
+      return null;
+    }
+
+    // If description is provided as a ReactNode, render it directly
+    if (typeof description !== 'string') {
+      return description;
+    }
+
+    // If description is provided as a string, render it in Text component
+    return (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        style={tw.style('text-center')}
+        {...descriptionProps}
+      >
+        {description}
+      </Text>
+    );
   };
 
   return (
-    <SafeAreaView style={styles.wrapper}>
-      <Text variant={TextVariant.BodyLGMedium} style={styles.accountLabel}>
-        {accountLabel}
-      </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.addressContainer}>
-        {addressStart}
-        <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-          {addressMiddle}
+    <Box twClassName="bg-default items-center">
+      {renderLabel()}
+      {renderDescription()}
+      <Box twClassName="mt-8 items-center">
+        <Text
+          variant={TextVariant.BodyMd}
+          style={tw.style('w-[200px] text-center')}
+        >
+          {addressStart}
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {addressMiddle}
+          </Text>
+          {addressEnd}
         </Text>
-        {addressEnd}
-      </Text>
-      <Button
-        variant={ButtonVariants.Link}
-        startIconName={IconName.Copy}
-        size={ButtonSize.Lg}
-        testID="qr-account-display-copy-button"
-        label={strings('receive_request.copy_address')}
-        onPress={handleCopyButton}
-        style={styles.copyButton}
-      >
-        {strings('receive_request.copy_address')}
-      </Button>
-    </SafeAreaView>
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={ButtonSize.Lg}
+          testID="qr-account-display-copy-button"
+          onPress={handleCopyButton}
+          endIconName={IconName.Copy}
+        >
+          {strings('receive_request.copy_address')}
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

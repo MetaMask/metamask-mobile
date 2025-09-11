@@ -1,47 +1,70 @@
 import { ImageSourcePropType } from 'react-native';
+import { NavigationProp } from '@react-navigation/native';
+
+export const SlideContentType = {
+  IMAGE: 'image',
+  CAROUSEL_IMAGES: 'carousel_images',
+  TITLE: 'title',
+  DESCRIPTION: 'description',
+  DESCRIPTIONS: 'descriptions',
+  MORE_INFORMATION: 'more_information',
+  BUTTON: 'button',
+} as const;
 
 interface SlideImage {
-  type: 'image';
+  type: typeof SlideContentType.IMAGE;
   image: ImageSourcePropType;
 }
 
-interface SlideImages {
-  type: 'image';
+interface SlideCarouselImages {
+  type: typeof SlideContentType.CAROUSEL_IMAGES;
   images: {
-    light: ImageSourcePropType;
-    dark: ImageSourcePropType;
-  };
+    image: ImageSourcePropType;
+    alt: string;
+  }[];
 }
 
 interface SlideTitle {
-  type: 'title';
+  type: typeof SlideContentType.TITLE;
   title: string;
 }
 
 interface SlideDescription {
-  type: 'description';
+  type: typeof SlideContentType.DESCRIPTION;
   description: string;
+}
+
+interface SlideDescriptions {
+  type: typeof SlideContentType.DESCRIPTIONS;
+  descriptions: string[];
+}
+
+interface SlideMoreInformation {
+  type: typeof SlideContentType.MORE_INFORMATION;
+  moreInformation: string;
 }
 
 type SlideButtonType = 'normal' | 'blue';
 
 interface SlideButton {
-  type: 'button';
+  type: typeof SlideContentType.BUTTON;
   buttonType: SlideButtonType;
   buttonText: string;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onPress: (props: { navigation: any }) => void;
+  onPress: (props: {
+    navigation: NavigationProp<Record<string, object | undefined>>;
+  }) => void;
 }
 
-type SlideContentType =
+export type SlideContent =
   | SlideImage
-  | SlideImages
+  | SlideCarouselImages
   | SlideTitle
   | SlideDescription
+  | SlideDescriptions
+  | SlideMoreInformation
   | SlideButton;
 
-type WhatsNewSlides = SlideContentType[][];
+type WhatsNewSlides = SlideContent[][];
 
 type VersionString = `${number}.${number}.${number}` | `${number}.${number}`;
 

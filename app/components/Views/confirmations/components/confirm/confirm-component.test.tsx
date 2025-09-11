@@ -18,6 +18,14 @@ import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesig
 import { Confirm } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('../../../../../components/hooks/useEditNonce', () => ({
   useEditNonce: jest.fn().mockReturnValue({}),
 }));

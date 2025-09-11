@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`TokenListFooter does not render the deposit button when total account balance is greater than zero 1`] = `null`;
+
 exports[`TokenListFooter renders correctly 1`] = `
 <View
   style={
@@ -24,7 +26,7 @@ exports[`TokenListFooter renders correctly 1`] = `
       }
     }
   >
-    Ethereum is needed to continue
+    Fund your wallet to get started in web3
   </Text>
   <TouchableOpacity
     accessibilityRole="button"
@@ -60,7 +62,7 @@ exports[`TokenListFooter renders correctly 1`] = `
         }
       }
     >
-      Next
+      Add funds
     </Text>
   </TouchableOpacity>
 </View>

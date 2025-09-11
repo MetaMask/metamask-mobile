@@ -292,7 +292,6 @@ describe('AssetDetailsActions', () => {
     );
 
     const buttons = [
-      TokenOverviewSelectorsIDs.FUND_BUTTON,
       TokenOverviewSelectorsIDs.SWAP_BUTTON,
       TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
       TokenOverviewSelectorsIDs.SEND_BUTTON,

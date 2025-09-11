@@ -41,6 +41,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
   TraceOperation,
@@ -499,6 +500,33 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
+    // check for internet connection
+    try {
+      const netState = await NetInfo.fetch();
+      if (!netState.isConnected || netState.isInternetReachable === false) {
+        this.props.navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Network check failed:', error);
+    }
+
+    // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
 
     if (createWallet) {

@@ -24,7 +24,9 @@ const useDeleteWallet = () => {
       await depositResetProviderToken();
 
       await clearAllVaultBackups();
-      await Authentication.lockApp();
+      // lock the app but do not navigate to login screen as it should
+      // navigate to onboarding screen after deleting the wallet
+      await Authentication.lockApp({ navigateToLogin: false });
     } catch (error) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
       Logger.log(error, errorMsg);

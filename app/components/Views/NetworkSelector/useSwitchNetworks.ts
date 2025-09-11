@@ -141,6 +141,15 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = networkConfigurationId;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         trace({
@@ -154,9 +163,9 @@ export function useSwitchNetworks({
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
+        // Only update token network filter for global network switches
+        setTokenNetworkFilter(chainId);
       }
-
-      setTokenNetworkFilter(chainId);
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
@@ -203,6 +212,15 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = type;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =

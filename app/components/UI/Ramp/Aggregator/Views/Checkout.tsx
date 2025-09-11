@@ -40,8 +40,14 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 );
 
 const CheckoutWebView = () => {
-  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl, isBuy } =
-    useRampSDK();
+  const {
+    selectedAddress,
+    selectedChainId,
+    selectedAsset,
+    sdkError,
+    callbackBaseUrl,
+    isBuy,
+  } = useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
@@ -88,13 +94,20 @@ const CheckoutWebView = () => {
     }
     const customOrderIdData = createCustomOrderIdData(
       customOrderId,
-      selectedChainId,
+      selectedAsset?.network?.chainId || selectedChainId,
       selectedAddress,
       isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [customOrderId, dispatch, isBuy, selectedAddress, selectedChainId]);
+  }, [
+    customOrderId,
+    dispatch,
+    isBuy,
+    selectedAddress,
+    selectedChainId,
+    selectedAsset,
+  ]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
@@ -135,7 +148,6 @@ const CheckoutWebView = () => {
         const transformedOrder = {
           ...aggregatorOrderToFiatOrder(order),
           account: selectedAddress,
-          network: selectedChainId,
         };
 
         handleSuccessfulOrder(transformedOrder);

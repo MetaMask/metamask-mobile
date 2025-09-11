@@ -63,7 +63,7 @@ export function usePollingNetworks() {
       // Filtered all EVM networks
       return (enabledEvmNetworks || [])
         .map((network) => {
-          const networkConfig = networkConfigurationsPopularNetworks[network];
+          const networkConfig = networkConfigurations[network];
           return networkConfig;
         })
         .filter((c) => Boolean(c));
@@ -88,6 +88,7 @@ export function usePollingNetworks() {
     isPopularNetwork,
     networkConfigurationsPopularNetworks,
     selectedNetworkConfig,
+    networkConfigurations,
   ]);
 
   return networkConfigs;

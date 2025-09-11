@@ -4,7 +4,7 @@ import {
   selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
-import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
+import { getDefaultDestToken } from '../../utils/tokenUtils';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { getNativeSourceToken } from '../useInitialSourceToken';
@@ -34,7 +34,7 @@ export const useInitialDestToken = (
   }
 
   const destTokenTargetChainId = initialSourceToken?.chainId ?? selectedChainId;
-  let defaultDestToken = DefaultSwapDestTokens[destTokenTargetChainId];
+  let defaultDestToken = getDefaultDestToken(destTokenTargetChainId);
 
   // If the initial source token is the same as the default dest token, set the default dest token to the native token
   if (

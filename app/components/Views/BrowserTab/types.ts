@@ -95,10 +95,6 @@ export type BrowserTabProps = SharedTabProps & {
    */
   addToWhitelist: (url: string) => void;
   /**
-   * Current onboarding wizard step
-   */
-  wizardStep: number;
-  /**
    * the current version of the app
    */
   app_version?: string;

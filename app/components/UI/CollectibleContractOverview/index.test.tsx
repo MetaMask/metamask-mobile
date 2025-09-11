@@ -69,6 +69,13 @@ const initialState = {
           },
         },
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          sendRedesign: {
+            enabled: false,
+          },
+        },
+      },
     },
   },
 };

@@ -3,7 +3,7 @@ import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useNftNames } from './useNftName';
-import { useInternalAccountNames } from './useInternalAccountNames';
+import { useAccountNames } from './useAccountNames';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -95,7 +95,7 @@ export function useDisplayNames(
   const watchedNftNames = useWatchedNFTNames(requests);
   const erc20Tokens = useERC20Tokens(requests);
   const nftNames = useNftNames(requests);
-  const accountNames = useInternalAccountNames(requests);
+  const accountNames = useAccountNames(requests);
 
   return requests.map((_request, index) => {
     const watchedNftName = watchedNftNames[index];

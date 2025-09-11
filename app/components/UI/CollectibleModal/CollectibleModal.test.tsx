@@ -11,6 +11,7 @@ import {
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
 import { useSelector } from 'react-redux';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
 
@@ -68,6 +69,9 @@ describe('CollectibleModal', () => {
     (useSelector as jest.Mock).mockClear();
   });
   it('should render correctly', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSendRedesignFlags) return { enabled: false };
+    });
     const { toJSON } = renderWithProvider(<CollectibleModal />, {
       state: mockInitialState,
     });
@@ -80,6 +84,7 @@ describe('CollectibleModal', () => {
       if (selector === collectiblesSelector) return collectibles;
       if (selector === selectIsIpfsGatewayEnabled) return true;
       if (selector === selectDisplayNftMedia) return true;
+      if (selector === selectSendRedesignFlags) return { enabled: false };
     });
 
     const { findAllByText } = renderWithProvider(<CollectibleModal />, {

@@ -24,13 +24,12 @@ import {
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
 import type {
   PerpsOpenOrderCardProps,
   OpenOrderCardDerivedData,
 } from './PerpsOpenOrderCard.types';
 import BigNumber from 'bignumber.js';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 
 /**
  * PerpsOpenOrderCard Component
@@ -66,11 +65,20 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   rightAccessory,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(order.symbol);
 
   // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
-    const direction = order.side === 'buy' ? 'long' : 'short';
+    // For reduce-only orders (TP/SL), show them as closing positions
+    let direction: OpenOrderCardDerivedData['direction'];
+    if (order.reduceOnly || order.isTrigger) {
+      // This is a TP/SL order closing a position
+      // If side is 'sell', it's closing a long position
+      // If side is 'buy', it's closing a short position
+      direction = order.side === 'sell' ? 'Close Long' : 'Close Short';
+    } else {
+      // Regular order
+      direction = order.side === 'buy' ? 'long' : 'short';
+    }
 
     // Calculate size in USD
     const sizeInUSD = BigNumber(order.originalSize)
@@ -119,14 +127,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         {/* Icon Section - Conditionally shown (only in collapsed mode) */}
         {showIcon && !expanded && (
           <View style={styles.perpIcon}>
-            {assetUrl ? (
-              <RemoteImage
-                source={{ uri: assetUrl }}
-                style={styles.tokenIcon}
-              />
-            ) : (
-              <Icon name={IconName.Coin} size={IconSize.Lg} />
-            )}
+            <PerpsTokenLogo symbol={order.symbol} size={40} />
           </View>
         )}
 

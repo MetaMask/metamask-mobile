@@ -11,13 +11,13 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/Aggregator/routes/utils';
-import { selectTransactionState } from '../../../../../reducers/transaction';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
+import { useMaxValueMode } from '../useMaxValueMode';
 
 const HEX_ZERO = '0x0';
 
@@ -33,7 +33,7 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata?.chainId as Hex,
     transactionMetadata?.txParams?.from as string,
   );
-  const { maxValueMode } = useSelector(selectTransactionState);
+  const { maxValueMode } = useMaxValueMode();
   const { onReject } = useConfirmActions();
 
   return useMemo(() => {

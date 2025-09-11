@@ -7,6 +7,7 @@ import {
   enableAccounts,
   resetNotifications,
   toggleFeatureAnnouncements,
+  togglePerpsNotifications,
   fetchNotifications,
   markNotificationsAsRead,
   enablePushNotifications,
@@ -28,6 +29,7 @@ jest.mock('../../../core/Engine', () => ({
       enableAccounts: jest.fn(),
       createOnChainTriggers: jest.fn(),
       setFeatureAnnouncementsEnabled: jest.fn(),
+      setPerpsNotificationsEnabled: jest.fn(),
       fetchAndUpdateMetamaskNotifications: jest.fn(),
       markMetamaskNotificationsAsRead: jest.fn(),
       enablePushNotifications: jest.fn(),
@@ -141,5 +143,31 @@ describe('helpers - disablePushNotifications()', () => {
     expect(
       Engine.context.NotificationServicesController.disablePushNotifications,
     ).toHaveBeenCalled();
+  });
+});
+
+describe('helpers - togglePerpsNotifications()', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should enable perps notifications when passed true', async () => {
+    const NotificationServicesController =
+      Engine.context.NotificationServicesController;
+    await togglePerpsNotifications(true);
+    expect(
+      // @ts-expect-error - setPerpsNotificationsEnabled not yet implemented in @metamask/notification-services-controller
+      NotificationServicesController.setPerpsNotificationsEnabled,
+    ).toHaveBeenCalledWith(true);
+  });
+
+  it('should disable perps notifications when passed false', async () => {
+    const NotificationServicesController =
+      Engine.context.NotificationServicesController;
+    await togglePerpsNotifications(false);
+    expect(
+      // @ts-expect-error - setPerpsNotificationsEnabled not yet implemented in @metamask/notification-services-controller
+      NotificationServicesController.setPerpsNotificationsEnabled,
+    ).toHaveBeenCalledWith(false);
   });
 });

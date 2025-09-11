@@ -39,13 +39,11 @@ import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
@@ -123,7 +121,6 @@ const ImportFromSecretRecoveryPhrase = ({
   setLockTime,
   seedphraseBackedUp,
   saveOnboardingEvent,
-  setOnboardingWizardStep,
   route,
 }) => {
   const { colors, themeAppearance } = useTheme();
@@ -166,10 +163,13 @@ const ImportFromSecretRecoveryPhrase = ({
     onTransactionComplete: false,
   });
 
-  const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhrase.length),
-    [seedPhrase],
-  );
+  const isSRPContinueButtonDisabled = useMemo(() => {
+    const updatedSeedPhrase = [...seedPhrase];
+    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
+      (word) => word !== '',
+    ).length;
+    return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
+  }, [seedPhrase]);
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -215,20 +215,48 @@ const ImportFromSecretRecoveryPhrase = ({
           }
 
           // Build the new seed phrase array
-          const newSeedPhrase = [
+          const mergedSeedPhrase = [
             ...seedPhrase.slice(0, index),
             ...splitArray,
             ...seedPhrase.slice(index + 1),
           ];
 
-          // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace) {
-            newSeedPhrase.push('');
+          const normalizedWords = mergedSeedPhrase
+            .map((w) => w.trim())
+            .filter((w) => w !== '');
+          const maxAllowed = Math.max(...SRP_LENGTHS);
+          const hasReachedMax = normalizedWords.length >= maxAllowed;
+          const isCompleteAndValid =
+            SRP_LENGTHS.includes(normalizedWords.length) &&
+            isValidMnemonic(normalizedWords.join(' '));
+
+          // Prepare next state, retaining a single trailing empty input only when appropriate
+          let nextSeedPhraseState = normalizedWords;
+          if (
+            isEndWithSpace &&
+            index === seedPhrase.length - 1 &&
+            !isCompleteAndValid &&
+            !hasReachedMax
+          ) {
+            nextSeedPhraseState = [...normalizedWords, ''];
           }
 
-          setSeedPhrase(newSeedPhrase);
+          // Always update component state before handling keyboard/focus
+          setSeedPhrase(nextSeedPhraseState);
+
+          if (isCompleteAndValid || hasReachedMax) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
+          }
+
+          const targetIndex = Math.min(
+            nextSeedPhraseState.length - 1,
+            index + splitArray.length,
+          );
           setTimeout(() => {
-            setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
+            setNextSeedPhraseInputFocusedIndex(targetIndex);
           }, 0);
           return;
         }
@@ -616,10 +644,6 @@ const ImportFromSecretRecoveryPhrase = ({
           if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
             await handleRejectedOsBiometricPrompt(parsedSeed);
         }
-        // Get onboarding wizard state
-        const onboardingWizard = await StorageWrapper.getItem(
-          ONBOARDING_WIZARD,
-        );
         setLoading(false);
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -632,7 +656,6 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
           account_type: 'imported',
         });
-        !onboardingWizard && setOnboardingWizardStep(1);
 
         fetchAccountsWithActivity();
         const resetAction = CommonActions.reset({
@@ -868,10 +891,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             setNextSeedPhraseInputFocusedIndex(index);
                           }}
                           onChangeText={(text) => {
-                            // Don't process masked text input
-                            if (!isFirstInput && text.includes('•')) {
-                              return;
-                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index);
@@ -1194,10 +1213,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    */
   saveOnboardingEvent: PropTypes.func,
   /**
-   * Action to set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
@@ -1208,7 +1223,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),

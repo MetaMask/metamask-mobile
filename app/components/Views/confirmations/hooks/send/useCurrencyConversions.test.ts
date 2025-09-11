@@ -31,7 +31,7 @@ describe('getFiatValueFn', () => {
         amount: '10',
         decimals: 2,
       }),
-    ).toStrictEqual(38905.56);
+    ).toStrictEqual('38905.56');
   });
 
   it('return 0 if input is empty string', () => {
@@ -42,7 +42,7 @@ describe('getFiatValueFn', () => {
         amount: '',
         decimals: 2,
       }),
-    ).toStrictEqual(0);
+    ).toStrictEqual('0');
   });
 
   it('use conversionRate 1 if conversionRate is not passed', () => {
@@ -53,7 +53,7 @@ describe('getFiatValueFn', () => {
         amount: '10',
         decimals: 2,
       }),
-    ).toStrictEqual(38905.56);
+    ).toStrictEqual('38905.56');
   });
 });
 

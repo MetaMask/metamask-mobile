@@ -25,6 +25,7 @@ import { SnapUIIcon } from '../../Snaps/SnapUIIcon/SnapUIIcon';
 import { SnapUIButton } from '../../Snaps/SnapUIButton/SnapUIButton';
 import { SnapUIBanner } from '../../Snaps/SnapUIBanner/SnapUIBanner';
 import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
+import { SnapUIDropdown } from '../../Snaps/SnapUIDropdown/SnapUIDropdown';
 import { SnapUIAddress } from '../../Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../Snaps/SnapUIAvatar/SnapUIAvatar';
 import { SnapUISelector } from '../../Snaps/SnapUISelector/SnapUISelector';
@@ -36,6 +37,7 @@ import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
 import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
 import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
 import { SnapUIAccountSelector } from '../../Snaps/SnapUIAccountSelector/SnapUIAccountSelector';
+import { SnapUIRadioGroup } from '../../Snaps/SnapUIRadioGroup/SnapUIRadioGroup';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -60,6 +62,8 @@ export const safeComponentList = {
   ConfirmInfoRowValueDouble,
   SnapUIButton,
   SnapUICheckbox,
+  SnapUIDropdown,
+  SnapUIRadioGroup,
   SnapUIAvatar,
   SnapUIAddress,
   SnapUIBanner,

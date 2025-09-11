@@ -143,7 +143,7 @@ const AccountStatus = ({
             </Text>
             <Image
               source={AccountStatusImg}
-              resizeMethod={'auto'}
+              resizeMode="contain"
               style={styles.walletReadyImage}
             />
             <View style={styles.descriptionWrapper}>

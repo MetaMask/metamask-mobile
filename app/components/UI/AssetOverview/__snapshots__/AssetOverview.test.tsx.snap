@@ -377,6 +377,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -465,6 +466,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -484,6 +486,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -572,6 +575,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -591,6 +595,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -679,6 +684,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -698,6 +704,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -786,6 +793,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -805,6 +813,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -893,6 +902,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1546,6 +1556,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1634,6 +1645,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1653,6 +1665,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1741,6 +1754,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1760,6 +1774,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1848,6 +1863,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1867,6 +1883,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1955,6 +1972,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1974,6 +1992,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -2062,6 +2081,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2751,6 +2771,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -2839,6 +2860,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2858,6 +2880,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -2946,6 +2969,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2965,6 +2989,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -3053,6 +3078,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -3072,6 +3098,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -3160,6 +3187,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -3179,6 +3207,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -3267,6 +3296,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,

@@ -20,5 +20,6 @@ export const getNetworkEnablementControllerMessenger = (
       'NetworkController:networkAdded',
       'NetworkController:networkRemoved',
       'NetworkController:stateChange',
+      'TransactionController:transactionSubmitted',
     ],
   });

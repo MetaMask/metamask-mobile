@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -77,12 +77,26 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   const { styles, theme } = useStyles(styleSheet, { isFullScreenConfirmation });
 
+  useEffect(() => {
+    if (!isRedesignedEnabled) {
+      navigation.setOptions({
+        // Intentionally empty title to avoid flicker
+        ...getNavbar({ title: '', theme, onReject }),
+        headerShown: true,
+      });
+    }
+  }, [isRedesignedEnabled, theme, onReject, navigation]);
+
+  useEffect(() => {
+    if (isFullScreenConfirmation) {
+      // Keep this navigation option to prevent Android navigation flickering
+      navigation.setOptions({
+        headerShown: true,
+      });
+    }
+  }, [isFullScreenConfirmation, navigation]);
+
   if (!isRedesignedEnabled) {
-    navigation.setOptions({
-      // Intentionally empty title to avoid flicker
-      ...getNavbar({ title: '', theme, onReject }),
-      headerShown: true,
-    });
     return (
       <View style={styles.spinnerContainer}>
         <AnimatedSpinner size={SpinnerSize.MD} />
@@ -91,10 +105,6 @@ export const Confirm = ({ route }: ConfirmProps) => {
   }
 
   if (isFullScreenConfirmation) {
-    // Keep this navigation option to prevent Android navigation flickering
-    navigation.setOptions({
-      headerShown: true,
-    });
     return (
       <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
         <ConfirmWrapped styles={styles} route={route} />

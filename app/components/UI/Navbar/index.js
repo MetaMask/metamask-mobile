@@ -1718,7 +1718,12 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? 'Swap';
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        translate={false}
+        showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
+      />
     ),
     headerLeft: () => <View />,
     headerRight: () => (
@@ -1916,16 +1921,20 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
 
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
-    perpsTransactionsBackButton: {
-      marginTop: 0,
-    },
     perpsTransactionsTitle: {
       fontWeight: '700',
+      textAlign: 'center',
+      flex: 1,
+    },
+    rightSpacer: {
+      width: 48, // Same width as the back button to balance the header
     },
   });
-  const leftAction = () => navigation.pop();
+  // Go back to transaction history view
+  const leftAction = () => navigation.goBack();
 
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <NavbarTitle
         style={innerStyles.perpsTransactionsTitle}
@@ -1937,12 +1946,44 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       />
     ),
     headerLeft: () => (
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        style={[styles.backButton, innerStyles.perpsTransactionsBackButton]}
-      >
-        <Icon name={IconName.Arrow2Left} />
-      </TouchableOpacity>
+        size={ButtonIconSize.Lg}
+      />
+    ),
+    headerRight: () => <View style={innerStyles.rightSpacer} />,
+  };
+}
+
+export function getPerpsMarketDetailsNavbar(navigation, title) {
+  const innerStyles = StyleSheet.create({
+    perpsMarketDetailsTitle: {
+      fontWeight: '700',
+      textAlign: 'center',
+      flex: 1,
+    },
+  });
+  // Always navigate back to markets page for consistent navigation
+  const leftAction = () => navigation.navigate(Routes.PERPS.MARKETS);
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        style={innerStyles.perpsMarketDetailsTitle}
+        variant={TextVariant.HeadingMD}
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <ButtonIcon
+        iconName={IconName.Arrow2Left}
+        onPress={leftAction}
+        size={ButtonIconSize.Lg}
+      />
     ),
   };
 }
@@ -2028,7 +2069,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title = 'Buy', showBack = true, showCancel = true } = {},
+  { title, showBack = true, showCancel = true, showNetwork = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -2057,9 +2098,17 @@ export function getFiatOnRampAggNavbar(
 
   const navigationCancelText = strings('navigation.cancel');
 
+  const disableNetwork = !showNetwork;
+  const showSelectedNetwork = showNetwork;
+
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={showSelectedNetwork}
+        translate={false}
+      />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;

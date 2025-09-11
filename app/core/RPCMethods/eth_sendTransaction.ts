@@ -11,6 +11,8 @@ import {
 } from '@metamask/transaction-controller';
 import { rpcErrors } from '@metamask/rpc-errors';
 import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
+import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
+import { store } from '../../store';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -75,6 +77,7 @@ async function eth_sendTransaction({
   res,
   sendTransaction,
   validateAccountAndChainId,
+  analytics,
 }: {
   hostname: string;
   req: JsonRpcRequest<[TransactionParams & JsonRpcParams]> & {
@@ -84,6 +87,7 @@ async function eth_sendTransaction({
   res: PendingJsonRpcResponse<Json>;
   sendTransaction: TransactionController['addTransaction'];
   validateAccountAndChainId: (args: SendArgs) => Promise<void>;
+  analytics: { dapp_url?: string; request_source?: string };
 }) {
   if (
     !Array.isArray(req.params) &&
@@ -118,6 +122,16 @@ async function eth_sendTransaction({
   ppomUtil.validateRequest(req as PPOMRequest, {
     transactionMeta,
   });
+
+  const { id } = transactionMeta;
+  store.dispatch(
+    updateConfirmationMetric({
+      id,
+      params: {
+        properties: { ...analytics },
+      },
+    }),
+  );
 
   res.result = await result;
 }

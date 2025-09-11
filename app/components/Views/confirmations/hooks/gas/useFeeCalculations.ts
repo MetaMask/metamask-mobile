@@ -21,6 +21,7 @@ export const useFeeCalculations = (
   transactionMeta: TransactionMeta,
 ): {
   estimatedFeeFiat: string | null;
+  estimatedFeeFiatPrecise: string | null;
   estimatedFeeNative: string | null;
   preciseNativeFeeInHex: string | null;
   calculateGasEstimate: ({
@@ -38,6 +39,7 @@ export const useFeeCalculations = (
   }) => {
     currentCurrencyFee: string | null;
     nativeCurrencyFee: string | null;
+    preciseCurrentCurrencyFee: string | null;
     preciseNativeCurrencyFee: string | null;
     preciseNativeFeeInHex: string | null;
   };
@@ -151,6 +153,7 @@ export const useFeeCalculations = (
 
   return {
     estimatedFeeFiat: estimatedFees.currentCurrencyFee,
+    estimatedFeeFiatPrecise: estimatedFees.preciseCurrentCurrencyFee,
     estimatedFeeNative: estimatedFees.nativeCurrencyFee,
     preciseNativeFeeInHex: estimatedFees.preciseNativeFeeInHex,
     calculateGasEstimate: calculateGasEstimateCallback,

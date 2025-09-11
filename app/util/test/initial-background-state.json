@@ -379,17 +379,22 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "activeDepositTransactions": {},
+    "depositInProgress": false,
+    "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
     "isFirstTimeUser": {
       "testnet": true,
       "mainnet": true
-    }
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -400,7 +405,8 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {}
+    "domains": {},
+    "activeDappNetwork": null
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -592,5 +598,10 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "RewardsController": {
+    "lastAuthTime": 0,
+    "lastAuthenticatedAccount": null,
+    "subscription": null
   }
 }

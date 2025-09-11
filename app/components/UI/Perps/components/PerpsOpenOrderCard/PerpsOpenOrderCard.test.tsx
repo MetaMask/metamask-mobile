@@ -5,27 +5,17 @@ import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
 import type { Order } from '../../controllers/types';
 
-// Mock asset metadata hook
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: jest.fn().mockReturnValue({
-    assetUrl: 'https://example.com/eth.png',
-  }),
-}));
-
-// Mock RemoteImage
-jest.mock('../../../../Base/RemoteImage', () => ({
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
-  default: ({
-    _source,
-    style,
-    testID,
-  }: {
-    _source: unknown;
-    style: unknown;
-    testID?: string;
-  }) => {
+  default: ({ size, testID }: { size: number; testID?: string }) => {
     const { View } = jest.requireActual('react-native');
-    return <View testID={testID || 'remote-image'} style={style} />;
+    return (
+      <View
+        testID={testID || 'perps-token-logo'}
+        style={{ width: size, height: size }}
+      />
+    );
   },
 }));
 
@@ -69,13 +59,13 @@ describe('PerpsOpenOrderCard', () => {
       it('renders with icon when showIcon is true', () => {
         render(<PerpsOpenOrderCard order={mockOrder} showIcon />);
 
-        expect(screen.getByTestId('remote-image')).toBeOnTheScreen();
+        expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
       });
 
       it('renders without icon when showIcon is false', () => {
         render(<PerpsOpenOrderCard order={mockOrder} showIcon={false} />);
 
-        expect(screen.queryByTestId('remote-image')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
       });
 
       it('renders right accessory when provided', () => {
@@ -252,7 +242,7 @@ describe('PerpsOpenOrderCard', () => {
       render(<PerpsOpenOrderCard order={orderWithoutTP} expanded />);
 
       // Should find "not set" text in the component
-      expect(screen.getByText('Not Set')).toBeOnTheScreen();
+      expect(screen.getByText('Not set')).toBeOnTheScreen();
     });
 
     it('handles missing stop loss price', () => {
@@ -264,7 +254,7 @@ describe('PerpsOpenOrderCard', () => {
       render(<PerpsOpenOrderCard order={orderWithoutSL} expanded />);
 
       // Should find "not set" text in the component
-      expect(screen.getByText('Not Set')).toBeOnTheScreen();
+      expect(screen.getByText('Not set')).toBeOnTheScreen();
     });
 
     it('handles zero original size for fill percentage calculation', () => {
@@ -307,16 +297,11 @@ describe('PerpsOpenOrderCard', () => {
       expect(screen.getByText('Market Order')).toBeOnTheScreen();
     });
 
-    it('renders correctly without asset URL', () => {
-      const mockUsePerpsAssetMetadata = jest.requireMock(
-        '../../hooks/usePerpsAssetsMetadata',
-      ).usePerpsAssetMetadata;
-      mockUsePerpsAssetMetadata.mockReturnValueOnce({ assetUrl: null });
-
+    it('renders correctly with PerpsTokenLogo handling asset URLs internally', () => {
       render(<PerpsOpenOrderCard order={mockOrder} showIcon />);
 
-      // Should show fallback icon when no asset URL
-      expect(screen.queryByTestId('remote-image')).not.toBeOnTheScreen();
+      // Should show PerpsTokenLogo which handles asset URLs internally
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
     });
   });
 

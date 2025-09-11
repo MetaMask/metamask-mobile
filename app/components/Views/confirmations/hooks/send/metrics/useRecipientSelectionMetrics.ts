@@ -1,4 +1,3 @@
-import Clipboard from '@react-native-clipboard/clipboard';
 import { useCallback } from 'react';
 
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
@@ -11,22 +10,33 @@ import { useSendType } from '../useSendType';
 
 export const useRecipientSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { chainId, to } = useSendContext();
+  const { chainId } = useSendContext();
   const { isEvmSendType } = useSendType();
   const { accountType, recipientInputMethod, setRecipientInputMethod } =
     useSendMetricsContext();
 
+  const setRecipientInputMethodManual = useCallback(() => {
+    setRecipientInputMethod(RecipientInputMethod.Manual);
+  }, [setRecipientInputMethod]);
+
+  const setRecipientInputMethodPasted = useCallback(() => {
+    setRecipientInputMethod(RecipientInputMethod.Pasted);
+  }, [setRecipientInputMethod]);
+
+  const setRecipientInputMethodSelectAccount = useCallback(() => {
+    setRecipientInputMethod(RecipientInputMethod.SelectAccount);
+  }, [setRecipientInputMethod]);
+
+  const setRecipientInputMethodSelectContact = useCallback(() => {
+    setRecipientInputMethod(RecipientInputMethod.SelectContact);
+  }, [setRecipientInputMethod]);
+
   const captureRecipientSelected = useCallback(async () => {
-    let inputMethod = recipientInputMethod;
-    const clipboardText = await Clipboard.getString();
-    if (clipboardText === to) {
-      inputMethod = RecipientInputMethod.Pasted;
-    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_RECIPIENT_SELECTED)
         .addProperties({
           account_type: accountType,
-          input_method: inputMethod,
+          input_method: recipientInputMethod,
           chain_id: isEvmSendType ? chainId : undefined,
           chain_id_caip: isEvmSendType ? undefined : chainId,
         })
@@ -38,12 +48,14 @@ export const useRecipientSelectionMetrics = () => {
     createEventBuilder,
     isEvmSendType,
     recipientInputMethod,
-    to,
     trackEvent,
   ]);
 
   return {
     captureRecipientSelected,
-    setRecipientInputMethod,
+    setRecipientInputMethodManual,
+    setRecipientInputMethodPasted,
+    setRecipientInputMethodSelectAccount,
+    setRecipientInputMethodSelectContact,
   };
 };

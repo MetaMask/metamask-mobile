@@ -1,11 +1,46 @@
 import type { CandleData, CandleStick } from '../types';
 
+interface FundingCountdownParams {
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   * Default is 8 hours for HyperLiquid
+   */
+  fundingIntervalHours?: number;
+}
+
 /**
  * Calculate the time until the next funding period
- * HyperLiquid has 8-hour funding periods at 00:00, 08:00, and 16:00 UTC
+ * Supports market-specific funding times when provided
+ * Falls back to default HyperLiquid 8-hour periods at 00:00, 08:00, and 16:00 UTC
  */
-export const calculateFundingCountdown = (): string => {
+export const calculateFundingCountdown = (
+  params?: FundingCountdownParams,
+): string => {
   const now = new Date();
+  const nowMs = now.getTime();
+
+  // If we have a specific next funding time, use it
+  if (params?.nextFundingTime && params.nextFundingTime > nowMs) {
+    const msUntilFunding = params.nextFundingTime - nowMs;
+    const totalSeconds = Math.floor(msUntilFunding / 1000);
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    // Format as HH:MM:SS
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+  }
+
+  // Fall back to default calculation for HyperLiquid (8-hour periods)
   const utcHour = now.getUTCHours();
   const utcMinutes = now.getUTCMinutes();
   const utcSeconds = now.getUTCSeconds();

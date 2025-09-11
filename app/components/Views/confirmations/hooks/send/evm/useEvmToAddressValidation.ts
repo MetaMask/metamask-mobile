@@ -13,14 +13,15 @@ import {
   toChecksumAddress,
 } from '../../../../../../util/address';
 import { doENSLookup } from '../../../../../../util/ENSUtils';
-import {
-  collectConfusables,
-  getConfusablesExplanations,
-  hasZeroWidthPoints,
-} from '../../../../../../util/confusables';
+import { getConfusableCharacterInfo } from '../../../utils/send';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
+
+const LOWER_CASED_BURN_ADDRESSES = [
+  '0x0000000000000000000000000000000000000000',
+  '0x000000000000000000000000000000000000dead',
+];
 
 export const shouldSkipValidation = ({
   toAddress,
@@ -66,6 +67,12 @@ const validateHexAddress = async (
   error?: string;
   warning?: string;
 }> => {
+  if (LOWER_CASED_BURN_ADDRESSES.includes(toAddress?.toLowerCase())) {
+    return {
+      error: strings('transaction.invalid_address'),
+    };
+  }
+
   const checksummedAddress = toChecksumAddress(toAddress);
   if (chainId) {
     const { AssetsContractController, NetworkController } = Engine.context;
@@ -79,10 +86,8 @@ const validateHexAddress = async (
         networkClientId,
       );
       if (symbol) {
-        // todo: i18n to be implemented depending on the designs
         return {
-          warning:
-            'This address is a token contract address. If you send tokens to this address, you will lose them.',
+          warning: strings('send.token_contract_warning'),
         };
       }
     } catch (e) {
@@ -98,6 +103,7 @@ const validateENSAddress = async (
 ): Promise<{
   error?: string;
   warning?: string;
+  resolvedAddress?: Hex;
 }> => {
   const resolvedAddress = await doENSLookup(toAddress, chainId);
   // ENS could not be resolved
@@ -105,23 +111,7 @@ const validateENSAddress = async (
     return { error: strings('transaction.could_not_resolve_ens') };
   }
   // ENS resolved but has, confusing character in it
-  const confusableCollection = collectConfusables(toAddress);
-  if (confusableCollection.length) {
-    // todo: message may need to be improved depending on the designs
-    const message = `${strings(
-      'transaction.confusable_msg',
-    )} - ${getConfusablesExplanations(confusableCollection)}`;
-    const isError = confusableCollection.some(hasZeroWidthPoints);
-    if (isError) {
-      return {
-        error: message,
-      };
-    }
-    return {
-      warning: message,
-    };
-  }
-  return {};
+  return { ...getConfusableCharacterInfo(toAddress, strings), resolvedAddress };
 };
 
 export const validateToAddress = async ({
@@ -163,18 +153,17 @@ export const validateToAddress = async ({
 export const useEvmToAddressValidation = () => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { chainId } = useSendContext();
+  const { chainId, to } = useSendContext();
 
-  const validateEvmToAddress = useCallback(
-    async (addressInputToValidate: string) =>
-      await validateToAddress({
-        toAddress: addressInputToValidate as Hex,
-        chainId: chainId as Hex,
-        addressBook,
-        internalAccounts,
-      }),
-    [addressBook, chainId, internalAccounts],
-  );
+  const validateEvmToAddress = useCallback(async () => {
+    const result = await validateToAddress({
+      toAddress: to as Hex,
+      chainId: chainId as Hex,
+      addressBook,
+      internalAccounts,
+    });
+    return { ...result, toAddressValidated: to };
+  }, [addressBook, chainId, internalAccounts, to]);
 
   return { validateEvmToAddress };
 };

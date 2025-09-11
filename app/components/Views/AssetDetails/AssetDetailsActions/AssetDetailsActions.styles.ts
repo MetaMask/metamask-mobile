@@ -11,6 +11,7 @@ const styleSheet = () =>
     },
     buttonContainer: {
       flex: 1,
+      overflow: 'hidden',
     },
   });
 

@@ -65,6 +65,9 @@ const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      SeedlessOnboardingController: {
+        vault: undefined,
+      },
     },
   },
   user: {
@@ -107,5 +110,23 @@ describe('ProtectWalletMandatoryModal', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('SetPasswordFlow', undefined);
     expect(InteractionManager.runAfterInteractions).toHaveBeenCalled();
+  });
+
+  it('does not render when in seedless onboarding login flow', () => {
+    const { queryByText } = renderWithProvider(
+      <ProtectWalletMandatoryModal />,
+      {
+        state: {
+          ...initialState,
+          engine: {
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              SeedlessOnboardingController: { vault: 'encrypted-vault-data' },
+            },
+          },
+        },
+      },
+    );
+    expect(queryByText('Protect wallet')).toBeNull();
   });
 });

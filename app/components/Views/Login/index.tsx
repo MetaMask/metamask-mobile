@@ -26,9 +26,8 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -38,7 +37,6 @@ import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
   OPTIN_META_METRICS_UI_SEEN,
@@ -155,9 +153,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const dispatch = useDispatch();
-  const setOnboardingWizardStep = (step: number) =>
-    dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -295,13 +290,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const navigateToHome = async () => {
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    } else {
-      setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    }
+    navigation.replace(Routes.ONBOARDING.HOME_NAV);
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
@@ -772,6 +761,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               )}
             </View>
@@ -784,6 +775,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={handleUseOtherMethod}
                   testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   label={strings('login.other_methods')}
+                  loading={loading}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               </View>
             )}

@@ -1,7 +1,10 @@
 import React, { ReactNode, useCallback } from 'react';
 import { View } from 'react-native';
 
-import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
+import KeypadComponent, {
+  KeypadChangeData,
+  Keys,
+} from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './edit-amount-keyboard.styles';
 import Button, {
@@ -26,6 +29,7 @@ export interface EditAmountKeyboardProps {
   hideDoneButton?: boolean;
   showAdditionalKeyboard?: boolean;
   additionalRow?: ReactNode;
+  enableEmptyValueString?: boolean;
 }
 
 export function EditAmountKeyboard({
@@ -37,14 +41,20 @@ export function EditAmountKeyboard({
   hideDoneButton = false,
   showAdditionalKeyboard = true,
   additionalRow,
+  enableEmptyValueString = false,
 }: Readonly<EditAmountKeyboardProps>) {
   const { styles } = useStyles(styleSheet, {});
 
   const handleChange = useCallback(
     (data: KeypadChangeData) => {
-      onChange(data.value);
+      const { pressedKey, value } = data;
+      if (pressedKey === Keys.Back && value === '0' && enableEmptyValueString) {
+        onChange('');
+        return;
+      }
+      onChange(value);
     },
-    [onChange],
+    [enableEmptyValueString, onChange],
   );
 
   return (

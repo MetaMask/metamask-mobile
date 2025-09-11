@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image } from 'react-native';
+import { isCaipChainId, toCaipChainId } from '@metamask/utils';
 
 import createStyles from './OrderListItem.styles';
 import {
@@ -19,6 +20,11 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
 import ListItemColumnEnd from '../ListItemColumnEnd';
+import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const transactionIconReceived = require('images/transaction-icons/receive.png');
@@ -86,6 +92,10 @@ function OrderListItem({ order }: Props) {
     ? 'fiat_on_ramp_aggregator.purchased_currency'
     : 'fiat_on_ramp_aggregator.sold_currency';
 
+  const caipChainId = isCaipChainId(order.network)
+    ? order.network
+    : toCaipChainId('eip155', order.network);
+
   return (
     <ListItem
       topAccessory={
@@ -96,11 +106,22 @@ function OrderListItem({ order }: Props) {
       topAccessoryGap={10}
     >
       <ListItemColumn>
-        <Image
-          source={isPurchase ? transactionIconReceived : transactionIconSent}
-          style={styles.icon}
-          resizeMode="stretch"
-        />
+        <BadgeWrapper
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={getNetworkImageSource({
+                chainId: caipChainId,
+              })}
+            />
+          }
+        >
+          <Image
+            source={isPurchase ? transactionIconReceived : transactionIconSent}
+            style={styles.icon}
+            resizeMode="stretch"
+          />
+        </BadgeWrapper>
       </ListItemColumn>
 
       <ListItemColumn widthType={WidthType.Fill}>
