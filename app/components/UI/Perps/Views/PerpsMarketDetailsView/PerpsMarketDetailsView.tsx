@@ -336,6 +336,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBackPress}
+          onActivityPress={() =>
+            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+              screen: Routes.TRANSACTIONS_VIEW,
+              params: { redirectToPerpsTransactions: true },
+            })
+          }
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
       </View>

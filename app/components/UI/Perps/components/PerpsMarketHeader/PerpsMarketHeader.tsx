@@ -24,6 +24,7 @@ interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
   onBackPress?: () => void;
   onMorePress?: () => void;
+  onActivityPress?: () => void;
   testID?: string;
 }
 
@@ -31,6 +32,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   market,
   onBackPress,
   onMorePress,
+  onActivityPress,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -83,15 +85,25 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </View>
       </View>
 
-      {/* More Button */}
-      {onMorePress && (
-        <TouchableOpacity onPress={onMorePress} style={styles.moreButton}>
+      {/* Right Action Button */}
+      {onActivityPress ? (
+        <TouchableOpacity onPress={onActivityPress} style={styles.moreButton}>
           <Icon
-            name={IconName.MoreVertical}
+            name={IconName.Activity}
             size={IconSize.Lg}
             color={IconColor.Default}
           />
         </TouchableOpacity>
+      ) : (
+        onMorePress && (
+          <TouchableOpacity onPress={onMorePress} style={styles.moreButton}>
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Lg}
+              color={IconColor.Default}
+            />
+          </TouchableOpacity>
+        )
       )}
     </View>
   );
