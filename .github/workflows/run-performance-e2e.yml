@@ -653,7 +653,7 @@ jobs:
   gather-results:
     name: Gather All Test Results
     runs-on: ubuntu-latest
-    needs: [gather-performance-results, gather-onboarding-results]
+    needs: [android-imported-wallet-flows, ios-imported-wallet-flows, android-onboarding-flows, ios-onboarding-flows, gather-performance-results, gather-onboarding-results]
     if: always()  # Always run, even if previous jobs failed
     
     steps:
