@@ -379,7 +379,7 @@ const PerpsWithdrawView: React.FC = () => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-4"
+          twClassName="px-4"
         >
           <Box twClassName="w-10" />
           <Text variant={TextVariant.HeadingMD}>
@@ -569,14 +569,24 @@ const PerpsWithdrawView: React.FC = () => {
           />
         </Box>
 
-        {/* Error Message */}
-        {((isBelowMinimum && hasAmount) ||
-          (hasInsufficientBalance && hasAmount)) && (
-          <Box twClassName="px-4 mb-2">
+        {/* Spacer to push content to bottom */}
+        <Box twClassName="flex-1" />
+
+        {/* Bottom Section - Always at bottom */}
+        <Box twClassName="px-4 pb-6">
+          {/* Error Message - Always present, visibility controlled */}
+          <Box twClassName="mb-4">
             <Text
               variant={TextVariant.BodySM}
               color={TextColor.Error}
-              style={tw.style('text-center')}
+              style={tw.style(
+                'text-center',
+                // Control visibility - opacity 0 when no error
+                !(
+                  (isBelowMinimum && hasAmount) ||
+                  (hasInsufficientBalance && hasAmount)
+                ) && 'opacity-0',
+              )}
             >
               {hasInsufficientBalance
                 ? strings('perps.withdrawal.insufficient_funds')
@@ -585,18 +595,11 @@ const PerpsWithdrawView: React.FC = () => {
                   })}
             </Text>
           </Box>
-        )}
-
-        {/* Spacer to push content to bottom */}
-        <Box twClassName="flex-1" />
-
-        {/* Bottom Section - Always at bottom */}
-        <Box twClassName="px-4 pb-6">
           {/* Dynamic action row - either percentage buttons or withdrawal button */}
           <Box twClassName="mb-4">
             {showPercentageButtons && isInputFocused ? (
               /* Show percentage buttons */
-              <Box twClassName="flex-row justify-between gap-2">
+              <Box twClassName="flex-row justify-between gap-2 pt-1">
                 <Pressable
                   style={({ pressed }) =>
                     tw.style(
