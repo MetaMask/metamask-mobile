@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -32,7 +32,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import Rive, { Alignment, Fit } from 'rive-react-native';
+import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
@@ -72,6 +72,68 @@ const QuoteDetailsCard = () => {
     activeQuote,
     isQuoteLoading,
   });
+
+  // Refs for Rive animation and tracking previous state
+  const riveRef = useRef<RiveRef>(null);
+  const previousPointsRef = useRef<number | null>(null);
+  const hasInitializedRef = useRef(false);
+
+  // Handle Rive animation triggers based on points state changes
+  useEffect(() => {
+    if (isRewardsLoading || !shouldShowRewardsRow || !riveRef.current) {
+      return;
+    }
+
+    const currentPoints = hasRewardsError ? 0 : estimatedPoints;
+    const previousPoints = previousPointsRef.current;
+
+    // Skip if no change in points value
+    if (currentPoints === previousPoints) {
+      return;
+    }
+
+    try {
+      if (!hasInitializedRef.current && currentPoints && currentPoints > 0) {
+        // First time showing points - trigger Start
+        riveRef.current.fireState('default', 'Start');
+        hasInitializedRef.current = true;
+      } else if (
+        previousPoints &&
+        previousPoints > 0 &&
+        currentPoints &&
+        currentPoints > 0
+      ) {
+        // Points value changed but still have points - trigger Refresh
+        riveRef.current.fireState('default', 'Refresh');
+      } else if (
+        previousPoints &&
+        previousPoints > 0 &&
+        (!currentPoints || currentPoints === 0)
+      ) {
+        // Had points but now have none - trigger Disable
+        riveRef.current.fireState('default', 'Disable');
+        hasInitializedRef.current = false;
+      } else if (
+        (!previousPoints || previousPoints === 0) &&
+        currentPoints &&
+        currentPoints > 0
+      ) {
+        // Didn't have points but now have some - trigger Start
+        riveRef.current.fireState('default', 'Start');
+        hasInitializedRef.current = true;
+      }
+    } catch (error) {
+      console.warn('Error triggering Rive animation:', error);
+    }
+
+    // Update previous points reference
+    previousPointsRef.current = currentPoints;
+  }, [
+    estimatedPoints,
+    hasRewardsError,
+    isRewardsLoading,
+    shouldShowRewardsRow,
+  ]);
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -293,6 +355,7 @@ const QuoteDetailsCard = () => {
                   gap={2}
                 >
                   <Rive
+                    ref={riveRef}
                     source={RewardsIconAnimation}
                     fit={Fit.FitHeight}
                     alignment={Alignment.CenterRight}
