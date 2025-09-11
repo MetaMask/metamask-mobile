@@ -272,6 +272,12 @@ function getBestQuote(
     ),
   );
 
+  log('Finding best quote', {
+    allQuotes: quotes,
+    fastestQuotes,
+    quotesOverMinimumTarget,
+  });
+
   if (!quotesOverMinimumTarget.length) {
     throw new Error(ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM);
   }
