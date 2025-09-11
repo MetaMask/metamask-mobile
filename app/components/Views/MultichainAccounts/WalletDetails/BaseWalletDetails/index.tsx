@@ -73,6 +73,8 @@ export const BaseWalletDetails = ({
     selectMultichainAccountsState2Enabled,
   );
 
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
   const accountGroups = useMemo(
     () =>
@@ -198,7 +200,12 @@ export const BaseWalletDetails = ({
 
     return (
       <View style={accountBoxStyle}>
-        <AccountCell accountGroup={accountGroup} isSelected={false} hideMenu />
+        <AccountCell
+          accountGroup={accountGroup}
+          avatarAccountType={avatarAccountType}
+          isSelected={false}
+          hideMenu
+        />
       </View>
     );
   };
