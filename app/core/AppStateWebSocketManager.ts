@@ -3,10 +3,7 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import {
-  WebSocketService,
-  AccountActivityService,
-} from '@metamask/backend-platform';
+import { WebSocketService } from '@metamask/backend-platform';
 import Logger from '../util/Logger';
 
 /**
@@ -17,20 +14,14 @@ import Logger from '../util/Logger';
 export class AppStateWebSocketManager {
   private appStateSubscription: NativeEventSubscription | null = null;
   private webSocketService: WebSocketService | null = null;
-  private accountActivityService: AccountActivityService | null = null;
 
   /**
-   * Initialize the manager with WebSocket and AccountActivity services
+   * Initialize the manager with WebSocket service
    *
    * @param webSocketService - The WebSocket service to manage
-   * @param accountActivityService - The AccountActivity service for re-subscription
    */
-  constructor(
-    webSocketService: WebSocketService,
-    accountActivityService?: AccountActivityService,
-  ) {
+  constructor(webSocketService: WebSocketService) {
     this.webSocketService = webSocketService;
-    this.accountActivityService = accountActivityService || null;
     this.setupAppStateListener();
   }
 
@@ -63,7 +54,6 @@ export class AppStateWebSocketManager {
         Logger.log('WebSocket disconnected due to app entering background');
       } else if (nextAppState === 'active') {
         // Reconnect WebSocket when app becomes active
-        // AccountActivityService will automatically handle re-subscription
         await this.webSocketService.connect();
         Logger.log('WebSocket reconnected due to app becoming active');
       }

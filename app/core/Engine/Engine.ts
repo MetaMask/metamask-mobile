@@ -1376,7 +1376,6 @@ export class Engine {
     // Initialize AppStateWebSocketManager to handle reconnection and re-subscription
     this.appStateWebSocketManager = new AppStateWebSocketManager(
       backendWebSocketService,
-      accountActivityService,
     );
 
     this.context = {
