@@ -302,6 +302,7 @@ exports[`TabBar renders correctly 1`] = `
               "paddingLeft": 8,
               "paddingRight": 8,
               "paddingTop": 4,
+              "width": "100%",
             }
           }
           testID="tab-bar-item-Actions"
@@ -325,6 +326,7 @@ exports[`TabBar renders correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
