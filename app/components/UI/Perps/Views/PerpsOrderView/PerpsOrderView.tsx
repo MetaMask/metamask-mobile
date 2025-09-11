@@ -735,8 +735,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
-  // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
-  const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
+  const amountTimesLeverage = availableBalance * orderForm.leverage;
   const isAmountDisabled = amountTimesLeverage < 10;
 
   return (
