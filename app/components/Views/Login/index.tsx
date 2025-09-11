@@ -471,6 +471,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           },
         });
       }
+      Logger.error(seedlessError, 'Error in Unlock Screen');
       promptSeedlessRelogin();
       return;
     }

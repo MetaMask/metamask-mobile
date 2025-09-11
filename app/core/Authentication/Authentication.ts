@@ -675,9 +675,8 @@ class AuthenticationService {
       await KeyringController.setLocked();
     }
     // async check seedless password outdated skip cache when app lock
-    this.checkIsSeedlessPasswordOutdated(true).catch((err: Error) => {
-      Logger.log(err, 'Error in lockApp: checking seedless password outdated');
-    });
+    // the function swallowed the error
+    this.checkIsSeedlessPasswordOutdated(true);
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
@@ -806,7 +805,10 @@ class AuthenticationService {
             this.addMultichainAccounts([keyringMetadata]);
           }
         } else {
-          Logger.log(new Error('Unknown secret type'), secret.type);
+          Logger.error(
+            new Error('SeedlessOnboardingController: Unknown secret type'),
+            secret.type,
+          );
         }
       }
     }
@@ -1019,11 +1021,19 @@ class AuthenticationService {
                   await this.importSeedlessMnemonicToVault(mnemonic);
                 keyringMetadataList.push(keyringMetadata);
               } else {
-                Logger.log(new Error('Unknown secret type'), item.type);
+                Logger.error(
+                  new Error(
+                    'SeedlessOnboardingController : Unknown secret type',
+                  ),
+                  item.type,
+                );
               }
             } catch (error) {
               // catch error to prevent unable to login
-              Logger.log(error);
+              Logger.error(
+                error as Error,
+                'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+              );
             }
           }
         }
@@ -1115,6 +1125,11 @@ class AuthenticationService {
           throw seedlessSyncError;
         }
       } else {
+        // Case 3: Both keyring and seedless controller password verification failed.
+        Logger.error(
+          seedlessSyncError as Error,
+          'Error in syncPasswordAndUnlockWallet',
+        );
         throw seedlessSyncError;
       }
     }
@@ -1164,7 +1179,7 @@ class AuthenticationService {
         });
       return isSeedlessPasswordOutdated;
     } catch (error) {
-      Logger.log(error, 'Error in checkIsSeedlessPasswordOutdated');
+      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
       return false;
     }
   };
