@@ -12,15 +12,15 @@ import {
   ActivityIndicator,
   Linking,
   StyleSheet as RNStyleSheet,
-  TextStyle,
   View,
+  ScrollView,
 } from 'react-native';
-import ScrollableTabView, {
-  ChangeTabProperties,
-} from 'react-native-scrollable-tab-view';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import TabBar from '../../../component-library/components-temp/TabBar';
+import {
+  TabsList,
+  TabsListRef,
+} from '../../../component-library/components-temp/Tabs';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
   isPastPrivacyPolicyDate,
@@ -191,9 +191,7 @@ const createStyles = ({ colors }: Theme) =>
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabBar: {
-      marginBottom: 8,
-    },
+
     tabContainer: {
       paddingHorizontal: 16,
       flex: 1,
@@ -215,10 +213,6 @@ const createStyles = ({ colors }: Theme) =>
       marginBottom: 4,
       overflow: 'hidden', // Allow for smooth height animations
     },
-    tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
-    },
   });
 
 interface WalletProps {
@@ -232,7 +226,10 @@ interface WalletProps {
 }
 interface WalletTokensTabViewProps {
   navigation: WalletProps['navigation'];
-  onChangeTab: (value: ChangeTabProperties) => void;
+  onChangeTab: (changeTabProperties: {
+    i: number;
+    ref: React.ReactNode;
+  }) => void;
   defiEnabled: boolean;
   collectiblesEnabled: boolean;
   navigationParams?: {
@@ -257,30 +254,13 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     navigationParams,
   } = props;
   const route = useRoute<RouteProp<ParamListBase, string>>();
-  // Type augmentation needed as @types/react-native-scrollable-tab-view doesn't expose goToPage method
-  const scrollableTabViewRef = useRef<
-    ScrollableTabView & { goToPage: (pageNumber: number) => void }
-  >(null);
+  const tabsListRef = useRef<TabsListRef>(null);
 
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Track current tab index for Perps visibility
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
-
-  const renderTabBar = useCallback(
-    (tabBarProps: Record<string, unknown>) => (
-      <TabBar
-        style={styles.tabBar}
-        {...tabBarProps}
-        tabStyle={styles.tabStyle}
-        textStyle={{
-          ...(theme.typography.sBodySMBold as TextStyle),
-        }}
-      />
-    ),
-    [styles, theme],
-  );
 
   const tokensTabProps = useMemo(
     () => ({
@@ -320,7 +300,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Handle tab changes and track current index
   const handleTabChange = useCallback(
-    (changeTabProperties: ChangeTabProperties) => {
+    (changeTabProperties: { i: number; ref: React.ReactNode }) => {
       setCurrentTabIndex(changeTabProperties.i);
       onChangeTab(changeTabProperties);
     },
@@ -359,9 +339,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
         // Tokens is always at index 0, Perps is at index 1 when enabled
         const targetPerpsTabIndex = 1;
 
-        // Small delay ensures the ScrollableTabView is fully rendered before selection
+        // Small delay ensures the TabsList is fully rendered before selection
         const timer = setTimeout(() => {
-          scrollableTabViewRef.current?.goToPage(targetPerpsTabIndex);
+          tabsListRef.current?.goToTabIndex(targetPerpsTabIndex);
 
           // Clear the params to prevent re-selection on subsequent focuses
           // This is important for navigation state management
@@ -378,37 +358,58 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }, [route.params, isPerpsEnabled, navigationParams, navigation]),
   );
 
+  // Build tabs array dynamically based on enabled features
+  const tabsToRender = useMemo(() => {
+    const tabs = [<Tokens {...tokensTabProps} key={tokensTabProps.key} />];
+
+    if (isPerpsEnabled) {
+      tabs.push(
+        <PerpsTabView
+          {...perpsTabProps}
+          key={perpsTabProps.key}
+          isVisible={isPerpsTabVisible}
+          onVisibilityChange={(callback) => {
+            perpsVisibilityCallback.current = callback;
+          }}
+        />,
+      );
+    }
+
+    if (defiEnabled) {
+      tabs.push(
+        <DeFiPositionsList
+          {...defiPositionsTabProps}
+          key={defiPositionsTabProps.key}
+        />,
+      );
+    }
+
+    if (collectiblesEnabled) {
+      tabs.push(
+        <CollectibleContracts
+          {...collectibleContractsTabProps}
+          key={collectibleContractsTabProps.key}
+        />,
+      );
+    }
+
+    return tabs;
+  }, [
+    tokensTabProps,
+    isPerpsEnabled,
+    perpsTabProps,
+    isPerpsTabVisible,
+    defiEnabled,
+    defiPositionsTabProps,
+    collectiblesEnabled,
+    collectibleContractsTabProps,
+  ]);
+
   return (
     <View style={styles.tabContainer}>
-      <ScrollableTabView
-        ref={scrollableTabViewRef}
-        renderTabBar={renderTabBar}
-        onChangeTab={handleTabChange}
-      >
-        <Tokens {...tokensTabProps} key={tokensTabProps.key} />
-        {isPerpsEnabled && (
-          <PerpsTabView
-            {...perpsTabProps}
-            key={perpsTabProps.key}
-            isVisible={isPerpsTabVisible}
-            onVisibilityChange={(callback) => {
-              perpsVisibilityCallback.current = callback;
-            }}
-          />
-        )}
-        {defiEnabled && (
-          <DeFiPositionsList
-            {...defiPositionsTabProps}
-            key={defiPositionsTabProps.key}
-          />
-        )}
-        {collectiblesEnabled && (
-          <CollectibleContracts
-            {...collectibleContractsTabProps}
-            key={collectibleContractsTabProps.key}
-          />
-        )}
-      </ScrollableTabView>
+      <TabsList ref={tabsListRef} onChangeTab={handleTabChange}>
+        {tabsToRender}
+      </TabsList>
     </View>
   );
 });
@@ -1082,10 +1083,14 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-    async (obj: ChangeTabProperties) => {
-      if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
+    async (obj: { i: number; ref: React.ReactNode }) => {
+      const tabLabel =
+        React.isValidElement(obj.ref) && obj.ref.props
+          ? (obj.ref.props as { tabLabel?: string })?.tabLabel
+          : '';
+      if (tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
-      } else if (obj.ref.props.tabLabel === strings('wallet.defi')) {
+      } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
@@ -1159,7 +1164,7 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <View
+      <ScrollView
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
@@ -1213,7 +1218,7 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
-      </View>
+      </ScrollView>
     ),
     [
       styles.banner,
