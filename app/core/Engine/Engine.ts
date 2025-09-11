@@ -1493,12 +1493,11 @@ export class Engine {
             'NetworkController:stateChange',
             'KeyringController:accountRemoved',
             'AccountActivityService:balanceUpdated',
-            'AccountActivityService:websocketConnected',
-            'AccountActivityService:websocketDisconnected',
+            'AccountActivityService:statusChanged',
           ],
         }),
-        // TODO: This is long, can we decrease it?
-        interval: 180000,
+        // Updated to 30 seconds for better UX when WebSocket is down
+        interval: 30000,
         state: initialState.TokenBalancesController,
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
