@@ -82,7 +82,12 @@ import {
 import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
-import { formatPrice } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  formatPrice,
+  PRICE_RANGES_DETAILED_VIEW,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
@@ -661,17 +666,23 @@ const PerpsOrderViewContentBase: React.FC = () => {
       });
 
       // Execute order using the new hook
+      // Only include TP/SL if they have valid, non-empty values
       const orderParams: OrderParams = {
         coin: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize,
         orderType: orderForm.type,
-        takeProfitPrice: orderForm.takeProfitPrice,
-        stopLossPrice: orderForm.stopLossPrice,
         currentPrice: assetData.price,
         leverage: orderForm.leverage,
+        // Only add TP/SL/Limit if they are truthy and/or not empty strings
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
+          : {}),
+        ...(orderForm.takeProfitPrice && orderForm.takeProfitPrice !== ''
+          ? { takeProfitPrice: orderForm.takeProfitPrice }
+          : {}),
+        ...(orderForm.stopLossPrice && orderForm.stopLossPrice !== ''
+          ? { stopLossPrice: orderForm.stopLossPrice }
           : {}),
       };
 
@@ -745,6 +756,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
+  // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
+  const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
+  const isAmountDisabled = amountTimesLeverage < 10;
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -778,9 +793,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => setAmount(Math.floor(value).toString())}
               minimumValue={0}
-              maximumValue={availableBalance * orderForm.leverage}
+              maximumValue={amountTimesLeverage}
               step={1}
               showPercentageLabels
+              disabled={isAmountDisabled}
             />
           </View>
         )}
@@ -938,7 +954,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {parseFloat(orderForm.amount) > 0
-                ? formatPrice(liquidationPrice)
+                ? formatPerpsFiat(liquidationPrice, {
+                    ranges: PRICE_RANGES_DETAILED_VIEW,
+                  })
                 : '--'}
             </Text>
           </View>
@@ -962,7 +980,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {parseFloat(orderForm.amount) > 0
-                ? formatPrice(estimatedFees)
+                ? formatPerpsFiat(estimatedFees, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })
                 : '--'}
             </Text>
           </View>
@@ -1052,8 +1072,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
         isVisible={isTPSLVisible}
         onClose={() => setIsTPSLVisible(false)}
         onConfirm={(takeProfitPrice, stopLossPrice) => {
-          setTakeProfitPrice(takeProfitPrice);
-          setStopLossPrice(stopLossPrice);
+          // Use the same clearing approach as the "Off" button
+          // If values are undefined or empty, ensure they're cleared properly
+          const tpToSet = takeProfitPrice || undefined;
+          const slToSet = stopLossPrice || undefined;
+
+          setTakeProfitPrice(tpToSet);
+          setStopLossPrice(slToSet);
           setIsTPSLVisible(false);
         }}
         asset={orderForm.asset}
@@ -1063,6 +1088,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         marginRequired={marginRequired}
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
+        orderType={orderForm.type}
+        limitPrice={orderForm.limitPrice}
       />
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
@@ -1070,6 +1097,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
         onClose={() => setIsLeverageVisible(false)}
         onConfirm={(leverage, inputMethod) => {
           setLeverage(leverage);
+
+          // Check if current amount exceeds new maximum value and adjust if needed
+          const currentAmount = parseFloat(orderForm.amount || '0');
+          const newMaxAmount = availableBalance * leverage;
+          if (currentAmount > newMaxAmount) {
+            setAmount(Math.floor(newMaxAmount).toString());
+          }
+
           setIsLeverageVisible(false);
 
           // Track leverage change (consolidated here to avoid duplicate tracking)

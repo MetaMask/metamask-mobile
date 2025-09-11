@@ -1,5 +1,5 @@
 import BN from 'bnjs4';
-import { BNToHex, toHex } from '@metamask/controller-utils';
+import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -20,7 +20,7 @@ import {
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
@@ -137,6 +137,32 @@ export const submitEvmTransaction = async ({
     type: transactionType,
   });
 };
+
+export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
+  const decimalValue = parseInt(decimals?.toString(), 10);
+  const multiplier = new BN(10).pow(new BN(decimalValue));
+
+  const comps = tokenValue.split('.');
+
+  let whole = comps[0],
+    fraction = comps[1];
+  if (!whole) {
+    whole = '0';
+  }
+  if (!fraction) {
+    fraction = '';
+  }
+  if (fraction.length > decimalValue) {
+    fraction = fraction.slice(0, decimalValue);
+  } else {
+    fraction = fraction.padEnd(decimalValue, '0');
+  }
+
+  const wholeBN = new BN(whole);
+  const fractionBN = new BN(fraction);
+  const tokenMinimal = wholeBN.mul(multiplier).add(fractionBN);
+  return new BN(tokenMinimal.toString(10), 10);
+}
 
 export function formatToFixedDecimals(
   value: string,
@@ -286,4 +312,10 @@ export const getConfusableCharacterInfo = (
     };
   }
   return {};
+};
+
+export const getFractionLength = (value: string) => {
+  const result = value.replace(/^-/, '').split('.');
+  const fracPart = result[1] ?? '';
+  return fracPart.length;
 };
