@@ -1,6 +1,7 @@
 import Gestures from "../helpers/Gestures";
 import Selectors from "../helpers/Selectors";
 import AppwrightSelectors from "../helpers/AppwrightSelectors";
+import { expect as appwrightExpect } from 'appwright';
 import { LoginViewSelectors } from "../../e2e/selectors/wallet/LoginView.selectors";
 
 class LoginScreen {
@@ -13,7 +14,11 @@ class LoginScreen {
   }
 
   get loginScreen() {
-    return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.CONTAINER);
+    }
   }
 
   get resetWalletButton() {
@@ -25,9 +30,13 @@ class LoginScreen {
   get passwordInput() {
     // Always return the same selector for backward compatibility
     // The actual element resolution will be handled in async methods
+    if (!this._device) {
     return Selectors.getXpathElementByResourceId(
-      LoginViewSelectors.PASSWORD_INPUT,
-    );
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.PASSWORD_INPUT);
+    }
   }
 
   async getPasswordInputElement() {
@@ -49,11 +58,19 @@ class LoginScreen {
 
   get unlockButton() {
     // TODO: update the component to have a testID property and use that instead of text
-    return Selectors.getXpathElementByText("Unlock");
+    if (!this._device) {
+      return Selectors.getXpathElementByText("Unlock");
+    } else {
+      return AppwrightSelectors.getElementByText(this._device, "Unlock");
+    }
   }
 
   get title() {
-    return Selectors.getXpathElementByResourceId(LoginViewSelectors.TITLE_ID);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(LoginViewSelectors.TITLE_ID);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.TITLE_ID);
+    }
   }
 
   get rememberMeToggle() {
@@ -67,8 +84,13 @@ class LoginScreen {
   }
 
   async waitForScreenToDisplay() {
+    if (!this._device) {
     const element = await this.loginScreen;
     await element.waitForDisplayed({ interval: 100 });
+    } else {
+      const element = await this.loginScreen;
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async tapResetWalletButton() {
@@ -76,17 +98,35 @@ class LoginScreen {
   }
 
   async typePassword(password) {
-    await this.isLoginScreenVisible();
-    await Gestures.typeText(this.passwordInput, password);
+
+    if (!this._device) {
+      await this.isLoginScreenVisible();
+      await Gestures.typeText(this.passwordInput, password);
+    } else {
+      const element = await this.passwordInput;
+      await element.fill(password);
+    }
   }
 
   async tapUnlockButton() {
-    const element = await this.unlockButton;
-    await element.click();
+    if (!this._device) {
+      const element = await this.unlockButton;
+      await element.click();
+    } else {
+      const element = await this.unlockButton;
+      await element.tap();
+    }
+
   }
 
   async tapTitle() {
-    await Gestures.waitAndTap(this.title);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.title);
+    } else {
+      const element = await this.title;
+      await element.tap();
+    }
+
   }
 
   async tapRememberMeToggle() {

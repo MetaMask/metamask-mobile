@@ -1,3 +1,4 @@
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
@@ -16,8 +17,17 @@ import {
   UNISWAP_METAMASK_WALLET_BUTTON,
   UNISWAP_WALLET_PROFILE_ICON,
 } from '../testIDs/BrowserScreen/ExternalWebsites.testIds';
+import { expect as expectAppwright } from 'appwright';
 
 class ExternalWebsitesScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get homeFavoriteButton() {
     return Selectors.getXpathElementByText(HOME_FAVORITE_BUTTON);
   }
@@ -74,11 +84,19 @@ class ExternalWebsitesScreen {
   }
 
   get testDappConnectButton() {
-    return Selectors.getXpathElementByText('CONNECT');
+    if (!this._device) {
+      return Selectors.getXpathElementByText('CONNECT');
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'connectButton');
+    }
   }
 
   get testDappTitle() {
-    return Selectors.getXpathElementByText('E2E Test Dapp');
+    if (!this._device) {
+      return Selectors.getXpathElementByText('E2E Test Dapp');
+    } else {
+      return AppwrightSelectors.getElementByText(this._device, 'E2E Test Dapp');
+    }
   }
 
   get testDappTransferTokens() {
@@ -138,14 +156,25 @@ class ExternalWebsitesScreen {
   }
 
   async isTestDappDisplayed() {
-    await expect(await this.testDappTitle).toBeDisplayed();
+    if (!this._device) {
+      await expect(await this.testDappTitle).toBeDisplayed();
+    } else {
+      await expectAppwright(await this.testDappTitle).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async tapDappConnectButton() {
+    if (!this._device) {
     await Gestures.swipeUp(0.5);
     const element = await this.testDappConnectButton;
-    await element.waitForEnabled();
-    await Gestures.waitAndTap(this.testDappConnectButton);
+      await element.waitForEnabled();
+      await Gestures.waitAndTap(this.testDappConnectButton);
+    } else {
+      const element = await this.testDappConnectButton;
+      await AppwrightSelectors.scrollDown(this._device);
+      console.log('Tapping dapp connect button');
+      await element.tap();
+    }
   }
 
   async tapDappTransferTokens() {

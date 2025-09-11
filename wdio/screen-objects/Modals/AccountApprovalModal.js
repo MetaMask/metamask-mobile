@@ -1,8 +1,18 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as expectAppwright } from 'appwright';
 
 class AccountApprovalModal {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get modalContainer() {
     return Selectors.getXpathElementByResourceId(
       ConnectAccountBottomSheetSelectorsIDs.CONTAINER,
@@ -36,7 +46,14 @@ class AccountApprovalModal {
   }
 
   async tapConnectButtonByText() {
-    await Gestures.tapTextByXpath('Connect'); // needed for browser specific tests
+    if (!this._device) {
+      await Gestures.tapTextByXpath('Connect'); // needed for browser specific tests
+    } else {
+      console.log('Tapping connect button');
+      const element = await AppwrightSelectors.getElementByID(this._device, 'connect-button');
+      await expectAppwright(element).toBeVisible({ timeout: 10000 });
+      await element.tap();
+    }
   }
 
   async tapConfirmButtonByText() {
