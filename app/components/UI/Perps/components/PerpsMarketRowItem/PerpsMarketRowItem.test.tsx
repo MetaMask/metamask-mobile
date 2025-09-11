@@ -489,8 +489,8 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // With 2 decimal enforcement, very small prices show as $0.00
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      // With PRICE_RANGES_DETAILED_VIEW, small prices preserve 3 significant digits
+      expect(screen.getByText('$0.000123')).toBeOnTheScreen();
     });
 
     it('handles very large price values', () => {

@@ -10,7 +10,6 @@ import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 import AlertBanner from '../../../../components/alert-banner';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
-import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
 import { BridgeFeeRow } from '../../../../components/rows/bridge-fee-row';
@@ -55,7 +54,6 @@ export function PerpsDeposit() {
             </InfoSection>
             {isFullView && (
               <InfoSection>
-                <GasFeeFiatRow />
                 <BridgeFeeRow />
                 <BridgeTimeRow />
                 <TotalRow />

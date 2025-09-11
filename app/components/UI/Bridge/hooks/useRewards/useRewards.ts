@@ -31,6 +31,7 @@ interface UseRewardsResult {
   shouldShowRewardsRow: boolean;
   isLoading: boolean;
   estimatedPoints: number | null;
+  hasError: boolean;
 }
 
 /**
@@ -60,6 +61,7 @@ export const useRewards = ({
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
   const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   // Selectors
   const sourceToken = useSelector(selectSourceToken);
@@ -85,6 +87,7 @@ export const useRewards = ({
     }
 
     setIsLoading(true);
+    setHasError(false);
 
     try {
       // Check if rewards feature is enabled
@@ -172,6 +175,7 @@ export const useRewards = ({
     } catch (error) {
       Logger.error(error as Error, 'useRewards: Error estimating points');
       setEstimatedPoints(null);
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
@@ -197,5 +201,6 @@ export const useRewards = ({
     shouldShowRewardsRow,
     isLoading: isLoading || isQuoteLoading,
     estimatedPoints,
+    hasError,
   };
 };
