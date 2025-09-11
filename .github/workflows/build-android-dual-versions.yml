@@ -107,8 +107,7 @@ jobs:
           MM_SECURITY_ALERTS_API_ENABLED: "true"
           MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
           # Architecture for BrowserStack builds - use ARM architectures for this dual build workflow
-           ## once we are building for older devices (older than 2017) we should account for armeabi-v7a
-          REACT_NATIVE_ARCHITECTURES: "arm64-v8a"
+          REACT_NATIVE_ARCHITECTURES: "armeabi-v7a"
           # Conditionally set SRP and password based on build type
           ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.TEST_SRP_1 || '' }}
           PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
