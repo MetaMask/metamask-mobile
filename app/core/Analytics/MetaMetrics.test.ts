@@ -459,7 +459,7 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        2,
+        3,
         MIXPANEL_METAMETRICS_ID,
       );
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
@@ -479,10 +479,10 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        2,
+        3,
         MIXPANEL_METAMETRICS_ID,
       );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
       expect(StorageWrapper.setItem).not.toHaveBeenCalled();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
     });
@@ -500,7 +500,7 @@ describe('MetaMetrics', () => {
         METAMETRICS_ID,
         '',
       );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
       expect(await metaMetrics.getMetaMetricsId()).toEqual(metricsId);
     });
 
