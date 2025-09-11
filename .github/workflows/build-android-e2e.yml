@@ -70,6 +70,10 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
           NODE_OPTIONS: "--max-old-space-size=4096"
+          REACT_NATIVE_ARCHITECTURES: "x86_64"
+          # E2E memory optimizations - disable heavy features
+          DISABLE_SENTRY_SOURCE_MAPS: "true"
+          SKIP_BUNDLING_OPTIMIZATION: "true"
           MM_UNIFIED_SWAPS_ENABLED: "true"
           MM_BRIDGE_ENABLED: "true"
           BRIDGE_USE_DEV_APIS: "true"

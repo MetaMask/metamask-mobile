@@ -53,4 +53,14 @@ hermesEnabled=true
 android.disableResourceValidation=true
 
 # Use legacy packaging to compress native libraries in the resulting APK.
-expo.useLegacyPackaging=false 
+expo.useLegacyPackaging=false
+
+# E2E-specific memory optimizations
+# Disable PNG crunching for E2E builds to save memory
+android.enablePngCrunchInReleaseBuilds=false
+
+# Disable R8 full mode to reduce memory usage during compilation
+android.enableR8.fullMode=false
+
+# Reduce dex memory usage
+org.gradle.jvmargs.dex=-Xmx2g
