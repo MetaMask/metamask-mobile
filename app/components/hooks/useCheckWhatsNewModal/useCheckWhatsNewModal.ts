@@ -6,7 +6,10 @@ import { useSelector } from 'react-redux';
 import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
-import { isE2E } from '../../../util/test/utils';
+
+// Disable gesture wrapper in test environments to prevent test interference
+const isE2ETest = () => process.env.METAMASK_ENVIRONMENT === 'e2e';
+
 /**
  * Hook to check and show WhatsNewModal when appropriate
  *
@@ -24,8 +27,7 @@ const useCheckWhatsNewModal = () => {
 
   const checkAndShowWhatsNewModal = useCallback(async () => {
     try {
-      // Don't show What's New modal in E2E environment to prevent test interference
-      if (isE2E) {
+      if (isE2ETest()) {
         return;
       }
 
