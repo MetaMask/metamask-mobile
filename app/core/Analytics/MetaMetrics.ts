@@ -15,6 +15,7 @@ import {
   METAMETRICS_ID,
   METAMETRICS_DELETION_REGULATION_ID,
   METRICS_OPT_IN,
+  METRICS_OPT_IN_SOCIAL_LOGIN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
@@ -390,6 +391,28 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Update the social login analytics preference and
+   * store in StorageWrapper
+   *
+   * @param isSocialLoginEnabled - Boolean indicating if Social Login Metrics should be enabled or disabled
+   */
+  #storeMetricsOptInSocialLoginPreference = async (
+    isSocialLoginEnabled: boolean,
+  ) => {
+    try {
+      await StorageWrapper.setItem(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        isSocialLoginEnabled ? AGREED : DENIED,
+      );
+    } catch (error: unknown) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Error storing Social Login MetaMetrics enable state',
+      );
+    }
+  };
+
+  /**
    * Get the Segment API HTTP headers
    * @private
    */
@@ -610,7 +633,9 @@ class MetaMetrics implements IMetaMetrics {
    */
   enableSocialLogin = async (isSocialLoginEnabled = true): Promise<void> => {
     this.isSocialLoginEnabled = isSocialLoginEnabled;
-    await this.#storeMetricsOptInPreference(this.isSocialLoginEnabled);
+    await this.#storeMetricsOptInSocialLoginPreference(
+      this.isSocialLoginEnabled,
+    );
   };
 
   /**
