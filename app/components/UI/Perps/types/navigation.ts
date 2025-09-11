@@ -103,6 +103,11 @@ export interface PerpsNavigationParamList extends ParamListBase {
     transaction: PerpsTransaction;
   };
 
+  PerpsTutorial: {
+    isFromDeeplink?: boolean;
+    isFromGTMModal?: boolean;
+  };
+
   // Root perps view
   Perps: undefined;
 }

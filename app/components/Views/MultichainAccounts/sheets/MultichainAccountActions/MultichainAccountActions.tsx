@@ -29,6 +29,12 @@ import {
 } from './MultichainAccountActions.testIds';
 import { createAddressListNavigationDetails } from '../../AddressList/AddressList';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 
 export const createAccountGroupDetailsNavigationDetails =
   createNavigationDetails<{
@@ -88,6 +94,16 @@ const MultichainAccountActions = () => {
   }, [navigate, accountGroup]);
 
   const goToAddresses = useCallback(() => {
+    // Start the trace before navigating to the address list to include the
+    // navigation and render times in the trace.
+    trace({
+      name: TraceName.ShowAccountAddressList,
+      op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'account.actions',
+      },
+    });
+
     // Close the modal and navigate to address list
     goBack();
     navigate(
@@ -96,6 +112,9 @@ const MultichainAccountActions = () => {
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           accountGroup.metadata.name
         }`,
+        onLoad: () => {
+          endTrace({ name: TraceName.ShowAccountAddressList });
+        },
       }),
     );
   }, [accountGroup.id, accountGroup.metadata.name, navigate, goBack]);
@@ -108,7 +127,7 @@ const MultichainAccountActions = () => {
       <View style={styles.container}>
         <AccountAction
           actionTitle={strings('account_details.title')}
-          iconName={IconName.Add}
+          iconName={IconName.Details}
           onPress={goToAccountDetails}
           testID={MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS}
           style={styles.accountAction}

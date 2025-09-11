@@ -14,9 +14,10 @@ jest.mock('./connection');
 const mockConnectionRequest: ConnectionRequest = {
   sessionRequest: {
     id: 'test-conn-id',
-    dappPublicKey: 'dapp_pub_key',
-    walletPublicKey: 'wallet_pub_key',
+    publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
     channel: 'websocket-channel-id',
+    mode: 'trusted',
+    expiresAt: 1757410033264,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
   metadata: {
