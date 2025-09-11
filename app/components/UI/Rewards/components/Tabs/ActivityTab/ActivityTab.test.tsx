@@ -16,7 +16,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
 // Mock selector
-jest.mock('../../../../../selectors/rewards', () => ({
+jest.mock('../../../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
@@ -30,7 +30,7 @@ const mockSelectSubscriptionId =
 const mockSubscriptionId: string = 'sub-12345678';
 
 // Mock i18n strings
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const t: Record<string, string> = {
       'rewards.loading_activity': 'Loading activity',
@@ -42,12 +42,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 // Mock hooks used by ActivityTab
 const mockUseSeasonStatus = jest.fn();
-jest.mock('../../hooks/useSeasonStatus', () => ({
+jest.mock('../../../hooks/useSeasonStatus', () => ({
   useSeasonStatus: (...args: unknown[]) => mockUseSeasonStatus(...args),
 }));
 
 const mockUsePointsEvents = jest.fn();
-jest.mock('../../hooks/usePointsEvents', () => ({
+jest.mock('../../../hooks/usePointsEvents', () => ({
   usePointsEvents: (...args: unknown[]) => mockUsePointsEvents(...args),
 }));
 

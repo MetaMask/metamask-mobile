@@ -916,6 +916,7 @@ describe('RewardsController', () => {
         seasons: {},
         subscriptionReferralDetails: {},
         seasonStatuses: {},
+        activeBoosts: {},
       });
     });
   });
@@ -2694,9 +2695,10 @@ describe('RewardsController', () => {
 
     it('should fetch fresh active boosts when cache is stale', async () => {
       // Arrange
+      mockMessenger.call.mockClear();
       const seasonId = 'season-123';
       const subscriptionId = 'sub-456';
-      const staleTime = Date.now() - 400000; // 6+ minutes ago (beyond 5 minute threshold)
+      const staleTime = Date.now() - 4000000; // 66+ minutes ago (beyond 60 minute threshold)
       const compositeKey = `${seasonId}:${subscriptionId}`;
 
       const mockStaleBoosts = {
@@ -2757,6 +2759,9 @@ describe('RewardsController', () => {
           },
         },
       });
+
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
 
       const mockResponse = { boosts: mockFreshBoosts };
       mockMessenger.call.mockResolvedValue(mockResponse);
@@ -2917,6 +2922,7 @@ describe('RewardsController', () => {
 
     it('should handle different composite keys for different season/subscription combinations', async () => {
       // Arrange
+      mockMessenger.call.mockClear();
       const seasonId1 = 'season-A';
       const subscriptionId1 = 'sub-X';
       const seasonId2 = 'season-B';
@@ -2981,6 +2987,9 @@ describe('RewardsController', () => {
           },
         },
       });
+
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
 
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
       const mockResponse2 = { boosts: mockBoosts2 };
