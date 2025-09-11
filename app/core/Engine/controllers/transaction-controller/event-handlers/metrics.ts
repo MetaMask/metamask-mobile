@@ -44,8 +44,8 @@ const createTransactionEventHandler =
     };
 
     const allTransactions =
-      transactionEventHandlerRequest.getState().engine.backgroundState
-        .TransactionController.transactions;
+      transactionEventHandlerRequest.getState()?.engine?.backgroundState
+        ?.TransactionController?.transactions ?? [];
 
     const getUIMetrics = getConfirmationMetricProperties.bind(
       null,
