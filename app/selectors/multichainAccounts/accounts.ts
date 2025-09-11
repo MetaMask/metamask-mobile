@@ -350,10 +350,6 @@ export const selectIconSeedAddressByAccountGroupId = (
     },
   );
 
-// Backwards compatibility alias (can be removed once all usages are migrated)
-export const selectEvmAddressByAccountGroupId = (groupId: AccountGroupId) =>
-  selectIconSeedAddressByAccountGroupId(groupId);
-
 /**
  * Selector to get account groups by a list of addresses.
  * Returns groups that contain at least one account matching any of the provided addresses.
