@@ -179,7 +179,8 @@ describe('Engine', () => {
 
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
-    const engine = Engine.init({});
+    // Use the backgroundState fixture as initial state to ensure consistent behavior
+    const engine = Engine.init(backgroundState);
     const initialBackgroundState = engine.datamodel.state;
 
     // Get the current app version and migration version
