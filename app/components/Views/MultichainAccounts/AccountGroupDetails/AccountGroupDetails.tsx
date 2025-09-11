@@ -94,8 +94,8 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   /**
- * Seedless onboarding flow does not support removing private key accounts
- */
+   * Seedless onboarding flow does not support removing private key accounts
+   */
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
