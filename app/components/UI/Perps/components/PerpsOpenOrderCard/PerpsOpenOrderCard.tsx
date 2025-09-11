@@ -167,7 +167,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 </View>
               )}
           </View>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
             {formatTransactionDate(order.timestamp)}
           </Text>
         </View>
@@ -178,7 +181,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
               {formatPrice(derivedData.sizeInUSD)}
             </Text>
           </View>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
             {formatPositionSize(order.originalSize)} {order.symbol}
           </Text>
         </View>
@@ -280,7 +286,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
             disabled={disabled}
-            style={[styles.footerButton, styles.footerButtonExpanded]}
+            style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>

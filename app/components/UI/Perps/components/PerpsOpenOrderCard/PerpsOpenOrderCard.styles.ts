@@ -8,13 +8,13 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.alternative, // Darker contrasting background
+      backgroundColor: colors.background.muted,
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
     },
     collapsedContainer: {
-      backgroundColor: colors.background.alternative, // Same darker contrasting background as expanded
+      backgroundColor: colors.background.muted,
       borderRadius: 8,
       padding: 12,
       marginVertical: 4,
@@ -84,9 +84,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerButton: {
       flex: 1,
-    },
-    footerButtonExpanded: {
-      borderColor: colors.border.default,
     },
     fillBadge: {
       backgroundColor: colors.background.default,

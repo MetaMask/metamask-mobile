@@ -5,6 +5,7 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
     statisticsGrid: {
       gap: 12,
+      marginVertical: 6,
     },
     statisticsRow: {
       flexDirection: 'row',
@@ -13,7 +14,7 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     },
     statisticsItem: {
       flex: 1,
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.muted,
       padding: 16,
       borderRadius: 8,
     },
