@@ -39,12 +39,6 @@ class AccountListBottomSheet {
     );
   }
 
-  get createAccount(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
-    );
-  }
-
   get addEthereumAccountButton(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
@@ -63,12 +57,34 @@ class AccountListBottomSheet {
     );
   }
 
-  getAccountElementByAccountName(accountName: string): DetoxElement {
+  async createAccountLink(index: number): DetoxElement {
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+      index,
+    );
+  }
+
+  async getAccountElementByAccountName(
+    accountName: string,
+  ): Promise<DetoxElement> {
+    return Matchers.getElementByIDAndLabel(
+      CellComponentSelectorsIDs.BASE_TITLE,
+      accountName,
+    );
+  }
+
+  async getAccountElementByAccountNameV2(
+    accountName: string,
+  ): Promise<DetoxElement> {
     return Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName);
   }
 
   async getSelectElement(index: number): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, index);
+  }
+
+  async getAccountMenu(index: number): DetoxElement {
+    return Matchers.getElementByID(AccountCellIds.MENU, index);
   }
 
   async getMultiselectElement(index: number): Promise<DetoxElement> {
@@ -124,8 +140,15 @@ class AccountListBottomSheet {
     });
   }
 
-  async tapCreateEthereumAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.createAccount, {
+  async tapAddEthereumAccountButton(): Promise<void> {
+    await Gestures.waitAndTap(this.addEthereumAccountButton, {
+      elemDescription: 'Add Ethereum Account button',
+    });
+  }
+
+  async tapCreateAccount(index: number): Promise<void> {
+    const link = this.createAccountLink(index);
+    await Gestures.waitAndTap(link, {
       elemDescription: 'Create account link',
     });
   }
@@ -156,9 +179,22 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
-    const element = this.getAccountElementByAccountName(accountName);
+    const name = Matchers.getElementByText(accountName);
+
+    await Gestures.waitAndTap(name);
+  }
+
+  async tapAccountByNameV2(accountName: string): Promise<void> {
+    const element = this.getAccountElementByAccountNameV2(accountName);
     await Gestures.waitAndTap(element, {
-      elemDescription: `tap account with name: ${accountName}`,
+      elemDescription: `Tap on account with name: ${accountName}`,
+    });
+  }
+
+  async tapOnAccountMenu(index: number): Promise<void> {
+    const element = this.getAccountMenu(index);
+    await Gestures.waitAndTap(element, {
+      elemDescription: `Tap on account menu`,
     });
   }
 
