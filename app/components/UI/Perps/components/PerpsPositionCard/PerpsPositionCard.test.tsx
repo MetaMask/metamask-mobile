@@ -759,4 +759,105 @@ describe('PerpsPositionCard', () => {
       expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
     });
   });
+
+  describe('Cumulative Funding Display', () => {
+    it('shows white color and minus sign when cumulative funding is zero', () => {
+      const positionWithZeroFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '0.00',
+          sinceOpen: '0.00',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithZeroFunding} />);
+
+      // Should show minus sign for zero funding (since 0 >= 0)
+      expect(screen.getByText('-$0.00')).toBeOnTheScreen();
+
+      // Should not show plus sign for zero
+      expect(screen.queryByText('+$0.00')).not.toBeOnTheScreen();
+    });
+
+    it('shows red color and minus sign for positive cumulative funding (loss)', () => {
+      const positionWithPositiveFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '5.25',
+          sinceOpen: '5.25',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithPositiveFunding} />);
+
+      // Should show minus sign for positive funding (loss) - includes dollar sign
+      expect(screen.getByText('-$5.25')).toBeOnTheScreen();
+    });
+
+    it('shows green color and plus sign for negative cumulative funding (gain)', () => {
+      const positionWithNegativeFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '-3.75',
+          sinceOpen: '-3.75',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithNegativeFunding} />);
+
+      // Should show plus sign for negative funding (gain) - includes dollar sign
+      expect(screen.getByText('+$3.75')).toBeOnTheScreen();
+    });
+
+    it('handles very small cumulative funding values', () => {
+      const positionWithSmallFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '0.01',
+          sinceOpen: '0.01',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithSmallFunding} />);
+
+      // Should show minus sign for small positive value - includes dollar sign
+      expect(screen.getByText('-$0.01')).toBeOnTheScreen();
+    });
+
+    it('handles very small negative cumulative funding values', () => {
+      const positionWithSmallNegativeFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '-0.01',
+          sinceOpen: '-0.01',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithSmallNegativeFunding} />);
+
+      // Should show plus sign for small negative value - includes dollar sign
+      expect(screen.getByText('+$0.01')).toBeOnTheScreen();
+    });
+
+    it('formats cumulative funding with correct decimal places', () => {
+      const positionWithPreciseFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '12.345678',
+          sinceOpen: '12.345678',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithPreciseFunding} />);
+
+      // Should format to 2 decimal places - includes dollar sign
+      expect(screen.getByText('-$12.35')).toBeOnTheScreen();
+    });
+  });
 });

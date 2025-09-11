@@ -1,7 +1,10 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsPositionCardSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -12,6 +15,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -31,6 +39,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheet
 import styleSheet from './PerpsPositionCard.styles';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
+import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -38,6 +47,7 @@ interface PerpsPositionCardProps {
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
   onPositionUpdate?: () => Promise<void>;
+  onTooltipPress?: (contentKey: PerpsTooltipContentKey) => void;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -46,6 +56,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   showIcon = false, // Default to not showing icon
   rightAccessory,
   onPositionUpdate,
+  onTooltipPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -274,20 +285,42 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
               </View>
               <View style={styles.bodyItem}>
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.position.card.funding_cost')}
-                </Text>
+                <View style={styles.fundingCostLabelFlex}>
+                  <Text
+                    variant={TextVariant.BodyXS}
+                    color={TextColor.Alternative}
+                    style={styles.fundingCostLabelRightMargin}
+                  >
+                    {strings('perps.position.card.funding_cost')}
+                  </Text>
+                  {onTooltipPress && (
+                    <TouchableOpacity
+                      onPress={() => onTooltipPress('funding_rate')}
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Muted}
+                        testID={
+                          PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON
+                        }
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
                 <Text
                   variant={TextVariant.BodySM}
                   color={
-                    parseFloat(position.cumulativeFunding.sinceOpen) >= 0
-                      ? TextColor.Success
-                      : TextColor.Error
+                    parseFloat(position.cumulativeFunding.sinceOpen) === 0
+                      ? TextColor.Default
+                      : parseFloat(position.cumulativeFunding.sinceOpen) > 0
+                      ? TextColor.Error
+                      : TextColor.Success
                   }
                 >
+                  {parseFloat(position.cumulativeFunding.sinceOpen) >= 0
+                    ? '-'
+                    : '+'}
                   {formatPrice(
                     Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
                     {
