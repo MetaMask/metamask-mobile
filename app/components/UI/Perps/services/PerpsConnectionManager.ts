@@ -9,7 +9,9 @@ import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import BackgroundTimer from 'react-native-background-timer';
 import Device from '../../../../util/device';
-import { wait } from '../../../../core/SDKConnect/utils/wait.util';
+// Simple wait utility to avoid complex SDK dependency chain
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Singleton manager for Perps connection state

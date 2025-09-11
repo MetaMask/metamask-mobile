@@ -6,6 +6,7 @@ export const PERPS_CONSTANTS = {
   WEBSOCKET_TIMEOUT: 5000, // 5 seconds
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
   BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
+  CONNECTION_TIMEOUT_MS: 10_000, // 10 seconds timeout for connection and position loading states
 
   // Connection timing constants
   CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
