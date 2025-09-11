@@ -33,6 +33,7 @@ import {
   selectHideUnlinkedAccountsBanner,
 } from '../../../../selectors/rewards';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
+import { OverviewTab } from '../components/Overview/OverviewTab';
 import { ActivityTab } from '../components/ActivityTab/ActivityTab';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
@@ -50,17 +51,6 @@ interface TabWrapperProps {
   tabLabel: string;
   isDisabled?: boolean;
 }
-
-const OverviewTab: React.FC<TabWrapperProps> = () => (
-  <Box
-    twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
-    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
-  >
-    <Text variant={TextVariant.BodyMd}>
-      {strings('rewards.not_implemented')}
-    </Text>
-  </Box>
-);
 
 const LevelsTab: React.FC<TabWrapperProps> = () => (
   <Box
@@ -302,6 +292,7 @@ const RewardsDashboard: React.FC = () => {
               key="overview"
               tabLabel={strings('rewards.tab_overview_title')}
             />
+            <OverviewTab key="overview" />
             <LevelsTab
               key="levels"
               tabLabel={strings('rewards.tab_levels_title')}
