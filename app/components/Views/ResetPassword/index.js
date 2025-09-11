@@ -469,27 +469,6 @@ class ResetPassword extends PureComponent {
     this.setState(() => ({ isSelected: !isSelected }));
   };
 
-  handleSeedlessPasswordOutdated = () => {
-    // show seedless password outdated modal and force user to lock app
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('login.seedless_password_outdated_modal_title'),
-        description: strings('login.seedless_password_outdated_modal_content'),
-        primaryButtonLabel: strings(
-          'login.seedless_password_outdated_modal_confirm',
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          await Authentication.lockApp({ locked: true });
-        },
-        closeOnPrimaryButtonPress: true,
-      },
-    });
-  };
-
   handleSeedlessChangePasswordError = () => {
     // show seedless password outdated modal and force user to lock app
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -509,6 +488,30 @@ class ResetPassword extends PureComponent {
         isInteractable: true,
         onPrimaryButtonPress: async () => {
           this.props.navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
+        },
+        closeOnPrimaryButtonPress: true,
+      },
+    });
+  };
+
+  handleSeedlessPasswordOutdated = () => {
+    // show seedless password outdated modal and force user to lock app
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('login.seedless_password_outdated_modal_title'),
+        description: strings('login.seedless_password_outdated_modal_content'),
+        primaryButtonLabel: strings(
+          'login.seedless_password_outdated_modal_confirm',
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        isInteractable: false,
+        onPrimaryButtonPress: async () => {
+          await Authentication.lockApp({ locked: true }).catch((error) => {
+            Logger.error(error);
+            this.handleSeedlessChangePasswordError();
+          });
         },
         closeOnPrimaryButtonPress: true,
       },
