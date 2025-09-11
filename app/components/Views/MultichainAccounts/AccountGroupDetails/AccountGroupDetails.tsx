@@ -93,7 +93,9 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const wallet = selectWallet?.(walletId);
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
-  // Seedless onboarding login flow do not supported for remove private key accounts for now
+  /**
+ * Seedless onboarding flow does not support removing private key accounts
+ */
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
