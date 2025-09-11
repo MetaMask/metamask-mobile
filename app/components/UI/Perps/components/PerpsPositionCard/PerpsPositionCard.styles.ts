@@ -89,6 +89,14 @@ const styleSheet = (params: { theme: Theme }) => {
     footerButton: {
       flex: 1,
     },
+    fundingCostLabelRightMargin: {
+      marginRight: 4,
+    },
+    fundingCostLabelFlex: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
   });
 };
 
