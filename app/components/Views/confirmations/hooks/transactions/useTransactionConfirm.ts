@@ -86,7 +86,9 @@ export function useTransactionConfirm() {
       { txMeta: updatedMetadata },
     );
 
-    if (isFullScreenConfirmation && type !== TransactionType.perpsDeposit) {
+    if (type === TransactionType.perpsDeposit) {
+      navigation.navigate(Routes.WALLET_VIEW);
+    } else if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
