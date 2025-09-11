@@ -82,10 +82,10 @@ describe('handleUniversalLinks', () => {
     >;
   // Default mock implementation that resolves with true
   mockHandleDeepLinkModalDisplay.mockImplementation((callbackParams) => {
-    if ('onContinue' in callbackParams) {
-      callbackParams.onContinue();
-    } else {
+    if (callbackParams.linkType === 'invalid') {
       callbackParams.onBack();
+    } else {
+      callbackParams.onContinue();
     }
   });
 
