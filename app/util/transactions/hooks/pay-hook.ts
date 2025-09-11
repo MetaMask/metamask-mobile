@@ -3,7 +3,7 @@ import {
   PublishHookResult,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { StatusTypes } from '@metamask/bridge-controller';
 import {
   BridgeHistoryItem,
@@ -57,7 +57,10 @@ export class PayHook {
     transactionMeta: TransactionMeta,
     _signedTx: string,
   ): Promise<PublishHookResult> {
-    const { id: transactionId } = transactionMeta;
+    const {
+      id: transactionId,
+      txParams: { from },
+    } = transactionMeta;
     const state = store.getState();
 
     const quotes =
@@ -86,7 +89,12 @@ export class PayHook {
       log('Submitting bridge', index, quote);
 
       const finalQuote = index > 0 ? await refreshQuote(quote) : quote;
-      await this.#submitBridgeTransaction(transactionId, finalQuote);
+
+      await this.#submitBridgeTransaction(
+        transactionId,
+        from as Hex,
+        finalQuote,
+      );
 
       index += 1;
     }
@@ -96,6 +104,7 @@ export class PayHook {
 
   async #submitBridgeTransaction(
     transactionId: string,
+    from: Hex,
     originalQuote: TransactionBridgeQuote,
   ): Promise<void> {
     const quote = cloneDeep(originalQuote);
@@ -106,20 +115,29 @@ export class PayHook {
       sourceChainId,
     );
 
+    const bridgeTransactionIdCollector = this.#collectTransactionIds(
+      sourceChainId,
+      from,
+
+      (id) =>
+        updateRequiredTransactionIds({
+          transactionId,
+          requiredTransactionIds: [id],
+          append: true,
+        }),
+    );
+
     const result = await this.#messenger.call(
       'BridgeStatusController:submitTx',
       quote,
       isSmartTransaction,
     );
 
+    bridgeTransactionIdCollector.end();
+
     log('Bridge transaction submitted', result);
 
     const { id: bridgeTransactionId } = result;
-
-    updateRequiredTransactionIds({
-      transactionId,
-      requiredTransactionIds: [bridgeTransactionId],
-    });
 
     log('Waiting for bridge completion', bridgeTransactionId);
 
@@ -165,5 +183,36 @@ export class PayHook {
         (state) => state.txHistory[transactionId],
       );
     });
+  }
+
+  #collectTransactionIds(
+    chainId: Hex,
+    from: Hex,
+    onTransaction: (transactionId: string) => void,
+  ): { end: () => void } {
+    const listener = (tx: TransactionMeta) => {
+      if (
+        tx.chainId !== chainId ||
+        tx.txParams.from.toLowerCase() !== from.toLowerCase()
+      ) {
+        return;
+      }
+
+      onTransaction(tx.id);
+    };
+
+    this.#messenger.subscribe(
+      'TransactionController:unapprovedTransactionAdded',
+      listener,
+    );
+
+    const end = () => {
+      this.#messenger.unsubscribe(
+        'TransactionController:unapprovedTransactionAdded',
+        listener,
+      );
+    };
+
+    return { end };
   }
 }

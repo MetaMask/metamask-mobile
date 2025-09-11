@@ -364,6 +364,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               position={position}
               expanded
               showIcon
+              onTooltipPress={handleTooltipPress}
             />
           </View>
         );
