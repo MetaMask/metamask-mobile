@@ -16,9 +16,9 @@ export interface TransactionEventHandlerRequest {
   smartTransactionsController: SmartTransactionsController;
 }
 
-export type TransactionMetricsBuilder = (
-  transactionMeta: TransactionMeta,
-  allTransactions: TransactionMeta[],
-  getUIMetrics: (transactionId: string) => TransactionMetrics,
-  getState: () => RootState,
-) => TransactionMetrics;
+export type TransactionMetricsBuilder = (request: {
+  transactionMeta: TransactionMeta;
+  allTransactions: TransactionMeta[];
+  getUIMetrics: (transactionId: string) => TransactionMetrics;
+  getState: () => RootState;
+}) => TransactionMetrics;

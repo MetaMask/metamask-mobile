@@ -10,12 +10,12 @@ const COPY_METRICS = [
   'mm_pay_transaction_step_total',
 ] as const;
 
-export const getMetaMaskPayProperties: TransactionMetricsBuilder = (
+export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   transactionMeta,
   allTransactions,
   getUIMetrics,
   getState,
-) => {
+}) => {
   const properties: JsonMap = {};
   const sensitiveProperties: JsonMap = {};
   const { batchId, id: transactionId, type } = transactionMeta;
@@ -48,7 +48,7 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = (
         allTransactions.filter(
           (tx) => tx.batchId === parentTransaction.batchId,
         ),
-        (t) => t.txParams.nonce,
+        (t) => parseInt(t.txParams.nonce ?? '0x0', 16),
         'asc',
       ).map((t) => t.id)
     : undefined;
