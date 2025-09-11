@@ -5682,12 +5682,12 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.4.0.tgz#9b4127e1fc48bf142c9fbdd989370121a9579387"
-  integrity sha512-veBlrLTwQlgF0fAKOyC5T+UAMSkmwkFGR8oQ2YTRriLRCPc6rCPM/zN5Azbm5xAoVIROJdiQy6FL8+8ce//VEw==
+"@metamask/network-enablement-controller@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.6.0.tgz#f4b5b3d834e721a077b2920719ca3948f0599e29"
+  integrity sha512-U1zEdyCnxQcOkQ6D2G3kYpc9XxkNvpdBxaK9i8AB0YIIkjy0WlsTHtQbW9VLdi5rEeu6dvFjYjhxoukXLwjnGw==
   dependencies:
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/utils" "^11.4.2"
     reselect "^5.1.1"
