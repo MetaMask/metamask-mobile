@@ -80,7 +80,7 @@ describe('useMetrics', () => {
         "createDataDeletionTask": [MockFunction],
         "createEventBuilder": [MockFunction],
         "enable": [MockFunction],
-        "enableSocialLogin": undefined,
+        "enableSocialLogin": [MockFunction],
         "getDeleteRegulationCreationDate": [MockFunction],
         "getDeleteRegulationId": [MockFunction],
         "getMetaMetricsId": [MockFunction],
