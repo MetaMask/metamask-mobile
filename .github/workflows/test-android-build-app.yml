@@ -31,7 +31,7 @@ jobs:
       # Install Android SDK, Node.js, and other Android development dependencies
       - name: Installing Android Environment Setup
         # uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config-retries
         with:
           platform: android
           setup-simulator: false
