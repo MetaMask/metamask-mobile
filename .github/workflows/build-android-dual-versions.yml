@@ -1,6 +1,6 @@
-# Dual Android Build Workflow - Builds two versions and uploads to BrowserStack
-# Version 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet)
-# Version 2: Without these environment variables (fresh wallet)
+# This workflow creates two non E2E Android Builds and uploads to BrowserStack
+# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet)
+# Build 2: Without these environment variables (fresh wallet)
 
 name: Build Android Dual Versions and Upload to BrowserStack
 
@@ -137,26 +137,6 @@ jobs:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           retention-days: 7
           if-no-files-found: error
-
-      - name: Upload Android AAB - ${{ matrix.build_type }}
-        id: upload-aab
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-prod-release-${{ matrix.build_type }}.aab
-          path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true
-
-      - name: Upload Android Source Map - ${{ matrix.build_type }}
-        id: upload-sourcemap
-        uses: actions/upload-artifact@v4
-        with:
-          name: index.android.bundle.map-${{ matrix.build_type }}
-          path: sourcemaps/android/index.android.bundle.map
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true
 
   # Job to upload APKs to BrowserStack and get URLs
   upload-to-browserstack:

@@ -1,6 +1,6 @@
-# Dual iOS Build Workflow - Triggers Bitrise workflows and uploads to BrowserStack
-# Version 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) using build_ios_main_prod
-# Version 2: Without these environment variables (fresh wallet) using build_ios_qa_prod
+# This workflow creates two non E2E iOS Builds and uploads to BrowserStack
+# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) using build_ios_main_prod
+# Build 2: Without these environment variables (fresh wallet) using build_ios_qa_prod
 
 name: Build iOS Dual Versions and Upload to BrowserStack
 
