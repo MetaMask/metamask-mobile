@@ -6,13 +6,13 @@ export interface TransitionToEmptyParams {
   currentCardOpacity: Animated.Value;
   currentCardScale: Animated.Value;
   currentCardTranslateY: Animated.Value;
-  
+
   // Empty state animations (enter)
   emptyStateOpacity: Animated.Value;
   emptyStateScale: Animated.Value;
   emptyStateTranslateY: Animated.Value;
   nextCardBgOpacity: Animated.Value;
-  
+
   // Callbacks
   onComplete: () => void;
 }
@@ -26,8 +26,8 @@ export const TransitionToEmpty = ({
   emptyStateTranslateY,
   nextCardBgOpacity,
   onComplete,
-}: TransitionToEmptyParams) => {
-  return Animated.parallel([
+}: TransitionToEmptyParams) =>
+  Animated.parallel([
     // Current card exit animation (same as normal transition)
     Animated.timing(currentCardOpacity, {
       toValue: 0,
@@ -44,7 +44,7 @@ export const TransitionToEmpty = ({
       duration: ANIMATION_TIMINGS.CARD_EXIT_DURATION,
       useNativeDriver: true,
     }),
-    
+
     // Empty state enter animation (same as next card transition)
     Animated.sequence([
       Animated.delay(ANIMATION_TIMINGS.CARD_ENTER_DELAY), // Same overlap timing as normal cards
@@ -72,4 +72,3 @@ export const TransitionToEmpty = ({
       ]),
     ]),
   ]).start(onComplete);
-};

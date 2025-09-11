@@ -26,8 +26,8 @@ export const useTransitionToEmpty = (
   animations?: TransitionToEmptyAnimations,
 ) => {
   const executeTransition = useCallback(
-    (onEmptyStateComplete: () => void): Promise<void> => {
-      return new Promise((resolve) => {
+    (onEmptyStateComplete: () => void): Promise<void> =>
+      new Promise((resolve) => {
         if (!animations) {
           // Fallback - just wait and complete
           setTimeout(() => {
@@ -45,14 +45,14 @@ export const useTransitionToEmpty = (
             duration: ANIMATION_TIMINGS.EMPTY_STATE_FADE_DURATION,
             useNativeDriver: true,
           }),
-          
+
           // Height collapse (starts immediately, longest duration for content shifting)
           Animated.timing(animations.carouselHeight, {
             toValue: 0,
             duration: ANIMATION_TIMINGS.EMPTY_STATE_HEIGHT_DURATION,
             useNativeDriver: false, // Height needs layout thread
           }),
-          
+
           // Visual fold (starts after delay, bottom-to-top)
           Animated.sequence([
             Animated.delay(ANIMATION_TIMINGS.EMPTY_STATE_FOLD_DELAY),
@@ -62,7 +62,7 @@ export const useTransitionToEmpty = (
               useNativeDriver: true,
             }),
           ]),
-          
+
           // Overall carousel fade
           Animated.timing(animations.carouselOpacity, {
             toValue: 0,
@@ -73,8 +73,7 @@ export const useTransitionToEmpty = (
           onEmptyStateComplete();
           resolve();
         });
-      });
-    },
+      }),
     [animations],
   );
 
