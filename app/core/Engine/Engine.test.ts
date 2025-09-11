@@ -11,6 +11,10 @@ import {
 import { mockNetworkState } from '../../util/test/network';
 import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
+import {
+  NetworkEnablementControllerMessenger,
+  NetworkEnablementControllerState,
+} from '@metamask/network-enablement-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -64,6 +68,48 @@ jest.mock('@metamask/assets-controllers', () => {
   return {
     ...actualControllers,
     RatesController: MockRatesController,
+  };
+});
+
+jest.mock('@metamask/network-enablement-controller', () => {
+  const actualController = jest.requireActual(
+    '@metamask/network-enablement-controller',
+  );
+
+  class MockNetworkEnablementController extends actualController.NetworkEnablementController {
+    constructor(options: {
+      messenger: NetworkEnablementControllerMessenger;
+      state?: Partial<NetworkEnablementControllerState>;
+    }) {
+      super(options);
+      // The init method is overwritten to prevent it from modifying our state
+      this.init = jest.fn();
+
+      this.update((state: NetworkEnablementControllerState) => {
+        state.enabledNetworkMap = {
+          bip122: {
+            'bip122:000000000019d6689c085ae165831e93': true,
+            'bip122:000000000933ea01ad0ee984209779ba': false,
+            'bip122:00000008819873e925422c1ff0f99f7c': false,
+          },
+          eip155: {
+            '0x1': true,
+            '0x2105': true,
+            '0xe708': true,
+          },
+          solana: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+            'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': false,
+            'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': false,
+          },
+        };
+      });
+    }
+  }
+
+  return {
+    ...actualController,
+    NetworkEnablementController: MockNetworkEnablementController,
   };
 });
 
@@ -179,7 +225,6 @@ describe('Engine', () => {
 
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
-    // Use the backgroundState fixture as initial state to ensure consistent behavior
     const engine = Engine.init(backgroundState);
     const initialBackgroundState = engine.datamodel.state;
 
