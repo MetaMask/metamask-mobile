@@ -6,28 +6,19 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import {
-  Pressable,
-  Linking,
-  Image as RNImage,
-  Dimensions,
-  Animated,
-  Easing,
-  LayoutAnimation,
-} from 'react-native';
+import { Linking, Dimensions, Animated } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
 import { dismissBanner } from '../../../reducers/banners';
+import { StackCard } from './StackCard';
+import { StackCardEmpty } from './StackCardEmpty';
+import { useTransitionToNextCard, useTransitionToEmpty } from './animations';
 import {
   Box,
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -83,11 +74,7 @@ function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
   return placed.filter(Boolean) as CarouselSlide[];
 }
 
-const CarouselComponent: FC<CarouselProps> = ({
-  style,
-  dummyData,
-  onEmptyState,
-}) => {
+const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
@@ -97,8 +84,6 @@ const CarouselComponent: FC<CarouselProps> = ({
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showEmptyState, setShowEmptyState] = useState(false);
-  const [emptyStateVisible, setEmptyStateVisible] = useState(false);
 
   // Current card animations (exit)
   const currentCardOpacity = useRef(new Animated.Value(1)).current;
@@ -107,23 +92,39 @@ const CarouselComponent: FC<CarouselProps> = ({
 
   // Next card animations (enter)
   const nextCardOpacity = useRef(new Animated.Value(0)).current;
-  const nextCardScale = useRef(new Animated.Value(0.95)).current; // Starts slightly smaller
+  const nextCardScale = useRef(new Animated.Value(0.96)).current; // Starts slightly smaller
   const nextCardTranslateY = useRef(new Animated.Value(8)).current; // Starts slightly lower
   const nextCardBgOpacity = useRef(new Animated.Value(1)).current; // Background pressed state
 
-  // Empty state animations
-  const emptyStateOpacity = useRef(new Animated.Value(0)).current;
-  const emptyStateScale = useRef(new Animated.Value(0.95)).current; // Same as next cards
-  const emptyStateTranslateY = useRef(new Animated.Value(20)).current; // Starts below, fades up
-
-  // Carousel container animations
-  const carouselHeight = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
+  // Carousel-level animations for empty state dismissal
   const carouselOpacity = useRef(new Animated.Value(1)).current;
+  const carouselHeight = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
+  const carouselScaleY = useRef(new Animated.Value(1)).current;
 
   const isAnimating = useRef(false);
+
+  // Animation hooks
+  const transitionToNextCard = useTransitionToNextCard({
+    currentCardOpacity,
+    currentCardScale,
+    currentCardTranslateY,
+    nextCardOpacity,
+    nextCardScale,
+    nextCardTranslateY,
+    nextCardBgOpacity,
+  });
+
+  const transitionToEmpty = useTransitionToEmpty({
+    carouselOpacity,
+    emptyCardOpacity: currentCardOpacity, // Empty card uses current card opacity when active
+    carouselHeight,
+    carouselScaleY,
+  });
+
   const isContentfulCarouselEnabled = useSelector(
     selectContentfulCarouselEnabledFlag,
   );
+
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
   const dispatch = useDispatch();
@@ -199,17 +200,9 @@ const CarouselComponent: FC<CarouselProps> = ({
   );
 
   const slidesConfig = useMemo(() => {
-    // If dummy data is provided, use it instead of Contentful data
-    if (dummyData && dummyData.length > 0) {
-      return dummyData.map((s: CarouselSlide): CarouselSlide => {
-        const withNav = applyLocalNavigation(s);
-        if (withNav.variableName === 'fund' && isZeroBalance) {
-          return { ...withNav, undismissable: withNav.undismissable || true };
-        }
-        return withNav;
-      });
-    }
+    let slides: CarouselSlide[] = [];
 
+    // Get base slides
     const patch = (s: CarouselSlide): CarouselSlide => {
       const withNav = applyLocalNavigation(s);
       if (withNav.variableName === 'fund' && isZeroBalance) {
@@ -220,9 +213,26 @@ const CarouselComponent: FC<CarouselProps> = ({
 
     const priority = priorityContentfulSlides.map(patch);
     const regular = orderByCardPlacement(regularContentfulSlides.map(patch));
-    return [...priority, ...regular];
+    slides = [...priority, ...regular];
+
+    // Always add empty card as the last card
+    if (slides.length > 0) {
+      const emptyCard: CarouselSlide = {
+        id: `empty-card-${Date.now()}`,
+        title: '',
+        description: '',
+        navigation: {
+          type: 'url',
+          href: '#',
+        },
+        variableName: 'empty',
+        undismissable: true,
+      };
+      slides.push(emptyCard);
+    }
+
+    return slides;
   }, [
-    dummyData,
     applyLocalNavigation,
     isZeroBalance,
     priorityContentfulSlides,
@@ -262,7 +272,6 @@ const CarouselComponent: FC<CarouselProps> = ({
   const currentSlide = visibleSlides[safeActiveSlideIndex];
   const nextSlide = visibleSlides[safeActiveSlideIndex + 1]; // Next card in stack
   const hasNextSlide = !!nextSlide;
-  const isLastCard = !hasNextSlide && !!currentSlide; // Last card with empty state as "next"
 
   // Reset index if it's out of bounds
   useEffect(() => {
@@ -271,13 +280,8 @@ const CarouselComponent: FC<CarouselProps> = ({
     }
   }, [activeSlideIndex, visibleSlides.length]);
 
-  // Reset card animations when slides change (but not during transitions or empty state display)
+  // Reset card animations when slides change (but not during transitions)
   useEffect(() => {
-    // Skip entire useEffect during empty state display
-    if (showEmptyState) {
-      return;
-    }
-
     if (!isAnimating.current && !isTransitioning) {
       // Use requestAnimationFrame to prevent flash during re-render
       requestAnimationFrame(() => {
@@ -286,47 +290,18 @@ const CarouselComponent: FC<CarouselProps> = ({
         currentCardScale.setValue(1);
         currentCardTranslateY.setValue(0);
 
-        // Reset next card to background state (including empty state for last card)
-        if (hasNextSlide || isLastCard) {
-          // Always start next card invisible, then animate in
-          nextCardOpacity.setValue(0); // Start invisible
-          nextCardScale.setValue(0.95); // Slightly smaller
+        // Reset next card to background state
+        if (hasNextSlide) {
+          // For initial setup only - transition completion handles new next cards
+          nextCardOpacity.setValue(0.7); // Dimmed background state
+          nextCardScale.setValue(0.96); // Slightly smaller
           nextCardTranslateY.setValue(8); // Slightly lower
           nextCardBgOpacity.setValue(1); // Pressed background state
-
-          // Animate next card into background state
-          Animated.timing(nextCardOpacity, {
-            toValue: 0.7, // Fade to dimmed background state
-            duration: 200,
-            useNativeDriver: true,
-          }).start();
-
-          // For empty state specifically
-          if (isLastCard) {
-            emptyStateOpacity.setValue(0); // Start invisible
-            emptyStateScale.setValue(0.95); // Same scale as next cards
-            emptyStateTranslateY.setValue(8); // Slightly lower position
-            // Ensure pressed background is visible for empty state too
-            nextCardBgOpacity.setValue(1);
-
-            // Animate empty state into background state
-            Animated.timing(emptyStateOpacity, {
-              toValue: 0.7, // Fade to dimmed background state
-              duration: 200,
-              useNativeDriver: true,
-            }).start();
-          }
         } else {
           nextCardOpacity.setValue(0);
-          nextCardScale.setValue(0.95);
+          nextCardScale.setValue(0.96);
           nextCardTranslateY.setValue(8);
           nextCardBgOpacity.setValue(0);
-          // Never reset empty state when it's being displayed
-          if (!showEmptyState) {
-            emptyStateOpacity.setValue(0);
-            emptyStateScale.setValue(0.95);
-            emptyStateTranslateY.setValue(20);
-          }
         }
       });
     }
@@ -334,7 +309,6 @@ const CarouselComponent: FC<CarouselProps> = ({
     safeActiveSlideIndex,
     visibleSlides.length,
     hasNextSlide,
-    isLastCard,
     isTransitioning,
     currentCardOpacity,
     currentCardScale,
@@ -403,313 +377,115 @@ const CarouselComponent: FC<CarouselProps> = ({
     ],
   );
 
-  const handleClose = useCallback(
-    (slideId: string) => {
-      // Prevent multiple rapid clicks during animation
-      if (isAnimating.current) {
-        return;
-      }
+  const handleTransitionToNextCard = useCallback(
+    async (slideId: string) => {
+      if (isAnimating.current) return;
 
       isAnimating.current = true;
       setIsTransitioning(true);
 
-      if (hasNextSlide || isLastCard) {
-        // Overlapping card transition animation
-        Animated.parallel([
-          // Current card exit animation (fade + move up + scale up slightly)
-          Animated.timing(currentCardOpacity, {
-            toValue: 0,
-            duration: 250,
-            useNativeDriver: true,
-          }),
-          Animated.timing(currentCardScale, {
-            toValue: 1.015, // Slight scale up as it exits
-            duration: 250,
-            useNativeDriver: true,
-          }),
-          Animated.timing(currentCardTranslateY, {
-            toValue: -8, // Move up slightly
-            duration: 250,
-            useNativeDriver: true,
-          }),
+      try {
+        await transitionToNextCard.executeTransition('nextCard');
 
-          // Next card/empty state enter animation - starts with 50ms delay
-          Animated.sequence([
-            Animated.delay(50), // Slight overlap for natural feel
-            Animated.parallel([
-              // For normal next card
-              ...(hasNextSlide
-                ? [
-                    Animated.timing(nextCardOpacity, {
-                      toValue: 1,
-                      duration: 200,
-                      useNativeDriver: true,
-                    }),
-                    Animated.timing(nextCardScale, {
-                      toValue: 1, // Scale to full size
-                      duration: 200,
-                      useNativeDriver: true,
-                    }),
-                    Animated.timing(nextCardTranslateY, {
-                      toValue: 0, // Move to final position
-                      duration: 200,
-                      useNativeDriver: true,
-                    }),
-                  ]
-                : []),
+        // After animation, dismiss banner and reset
+        dispatch(dismissBanner(slideId));
 
-              // For empty state (when it's the last card)
-              ...(isLastCard
-                ? [
-                    Animated.timing(emptyStateOpacity, {
-                      toValue: 1, // From dimmed to full brightness
-                      duration: 200,
-                      useNativeDriver: true,
-                    }),
-                    Animated.timing(emptyStateScale, {
-                      toValue: 1, // Scale to full size (same as next cards)
-                      duration: 200,
-                      useNativeDriver: true,
-                    }),
-                    Animated.timing(emptyStateTranslateY, {
-                      toValue: 0, // Move to final position
-                      duration: 200,
-                      useNativeDriver: true,
-                    }),
-                  ]
-                : []),
-
-              // Background fade (applies to both next card and empty state)
-              Animated.timing(nextCardBgOpacity, {
-                toValue: 0, // Fade out pressed background
-                duration: 200,
-                useNativeDriver: true,
-              }),
-            ]),
-          ]),
-        ]).start(() => {
-          // After animation, dismiss banner
-          dispatch(dismissBanner(slideId));
-
-          if (isLastCard) {
-            // For empty state, trigger separate component and hide main carousel
-            console.log('🟡 Triggering empty state component');
-            onEmptyState?.();
-            setIsCarouselVisible(false);
-            setIsTransitioning(false);
-            isAnimating.current = false;
-          } else {
-            // For normal card transition
-            requestAnimationFrame(() => {
-              // Reset current card animations
-              currentCardOpacity.setValue(1);
-              currentCardScale.setValue(1);
-              currentCardTranslateY.setValue(0);
-
-              // Next card fade-in is handled by useEffect
-
-              setIsTransitioning(false);
-              isAnimating.current = false;
-            });
+        // Set up new next card if there will be one
+        requestAnimationFrame(() => {
+          if (safeActiveSlideIndex < visibleSlides.length - 2) {
+            nextCardOpacity.setValue(0.7);
+            nextCardScale.setValue(0.96);
+            nextCardTranslateY.setValue(8);
+            nextCardBgOpacity.setValue(1);
           }
+
+          currentCardOpacity.setValue(1);
+          currentCardScale.setValue(1);
+          currentCardTranslateY.setValue(0);
+
+          setIsTransitioning(false);
+          isAnimating.current = false;
         });
-      } else {
-        // This should never happen now since we treat empty state as "next card"
-        setIsCarouselVisible(false);
+      } catch (error) {
+        console.error('Transition to next card failed:', error);
+        setIsTransitioning(false);
         isAnimating.current = false;
       }
     },
     [
+      transitionToNextCard,
       dispatch,
-      hasNextSlide,
-      isLastCard,
+      safeActiveSlideIndex,
+      visibleSlides.length,
       currentCardOpacity,
       currentCardScale,
       currentCardTranslateY,
+      nextCardBgOpacity,
       nextCardOpacity,
       nextCardScale,
       nextCardTranslateY,
-      nextCardBgOpacity,
-      emptyStateOpacity,
-      emptyStateScale,
-      emptyStateTranslateY,
-      carouselOpacity,
     ],
   );
 
-  const renderEmptyStateCard = useCallback(
-    () => (
-      <Animated.View
-        style={[
-          tw.style('absolute'),
-          {
-            opacity: emptyStateOpacity,
-            transform: [
-              { scale: emptyStateScale },
-              { translateY: emptyStateTranslateY },
-            ],
-          },
-        ]}
-      >
-        <Box
-          style={tw.style(
-            'rounded-xl relative overflow-hidden border border-muted bg-default',
-            {
-              height: BANNER_HEIGHT,
-              width: BANNER_WIDTH,
-            },
-          )}
-        >
-          {/* Animated pressed background overlay */}
-          <Animated.View
-            style={[
-              tw.style('absolute bg-default-pressed rounded-xl'),
-              {
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0, // Inset by 1px to show border
-                opacity: nextCardBgOpacity,
-              },
-            ]}
-          />
-          <Box twClassName="w-full h-full flex justify-center items-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              testID="carousel-empty-state"
-            >
-              You're all caught up
-            </Text>
-          </Box>
-        </Box>
-      </Animated.View>
-    ),
-    [
-      tw,
-      emptyStateOpacity,
-      emptyStateScale,
-      emptyStateTranslateY,
-      nextCardBgOpacity,
-    ],
-  );
+  const handleTransitionToEmpty = useCallback(async () => {
+    if (isAnimating.current) return;
+
+    isAnimating.current = true;
+
+    try {
+      // Trigger empty state component (fold-up and remove carousel)
+      await transitionToEmpty.executeTransition(() => {
+        onEmptyState?.();
+        setIsCarouselVisible(false);
+      });
+
+      isAnimating.current = false;
+    } catch (error) {
+      console.error('Transition to empty failed:', error);
+      isAnimating.current = false;
+    }
+  }, [transitionToEmpty, onEmptyState]);
 
   const renderCard = useCallback(
-    (slide: CarouselSlide, isCurrentCard: boolean) => (
-      <Animated.View
-        key={slide.id}
-        style={[
-          tw.style('absolute'),
-          {
-            opacity: isCurrentCard ? currentCardOpacity : nextCardOpacity,
-            transform: [
-              {
-                scale: isCurrentCard ? currentCardScale : nextCardScale,
-              },
-              {
-                translateY: isCurrentCard
-                  ? currentCardTranslateY
-                  : nextCardTranslateY,
-              },
-            ],
-          },
-        ]}
-      >
-        <Box
-          style={tw.style(
-            'rounded-xl relative overflow-hidden border border-muted',
-            {
-              height: BANNER_HEIGHT,
-              width: BANNER_WIDTH,
-            },
-          )}
-        >
-          <Pressable
-            testID={`carousel-slide-${slide.id}`}
-            style={({ pressed }) =>
-              tw.style(
-                'bg-default rounded-xl px-4',
-                {
-                  height: BANNER_HEIGHT,
-                  width: BANNER_WIDTH,
-                },
-                pressed && 'bg-default-pressed',
-              )
+    (slide: CarouselSlide, isCurrentCard: boolean) => {
+      const isEmptyCard = slide.variableName === 'empty';
+
+      if (isEmptyCard) {
+        return (
+          <StackCardEmpty
+            emptyStateOpacity={
+              isCurrentCard ? currentCardOpacity : nextCardOpacity
             }
-            onPress={() => handleSlideClick(slide.id, slide.navigation)}
-          >
-            {/* Animated pressed background overlay for next card */}
-            {!isCurrentCard && (
-              <Animated.View
-                style={[
-                  tw.style('absolute bg-default-pressed rounded-xl'),
-                  {
-                    top: 1,
-                    left: 1,
-                    right: 1,
-                    bottom: 1, // Inset by 1px to show border
-                    opacity: nextCardBgOpacity,
-                  },
-                ]}
-              />
-            )}
-            <Box twClassName="w-full h-full flex-row gap-4 items-center">
-              <Box
-                style={tw.style(
-                  'overflow-hidden justify-center items-center self-center rounded-xl bg-muted',
-                  {
-                    width: 72,
-                    height: 72,
-                  },
-                )}
-              >
-                <RNImage
-                  source={
-                    slide.image ? { uri: slide.image } : { uri: undefined }
-                  }
-                  style={tw.style({ width: 72, height: 72 })}
-                  resizeMode="contain"
-                />
-              </Box>
-              <Box twClassName="flex-1 h-[72px] justify-start">
-                <Box twClassName="flex-row items-center justify-between">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    testID={`carousel-slide-${slide.id}-title`}
-                    numberOfLines={1}
-                  >
-                    {slide.title}
-                  </Text>
-                  <ButtonIcon
-                    iconName={IconName.Close}
-                    size={ButtonIconSize.Sm}
-                    onPress={() => handleClose(slide.id)}
-                    testID={`carousel-slide-${slide.id}-close-button`}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  />
-                </Box>
-                <Box twClassName="pt-1">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={2}
-                  >
-                    {slide.description}
-                  </Text>
-                </Box>
-              </Box>
-            </Box>
-          </Pressable>
-        </Box>
-      </Animated.View>
-    ),
+            emptyStateScale={isCurrentCard ? currentCardScale : nextCardScale}
+            emptyStateTranslateY={
+              isCurrentCard ? currentCardTranslateY : nextCardTranslateY
+            }
+            nextCardBgOpacity={nextCardBgOpacity}
+            onTransitionToEmpty={
+              isCurrentCard ? () => handleTransitionToEmpty() : undefined
+            }
+          />
+        );
+      }
+
+      return (
+        <StackCard
+          slide={slide}
+          isCurrentCard={isCurrentCard}
+          currentCardOpacity={currentCardOpacity}
+          currentCardScale={currentCardScale}
+          currentCardTranslateY={currentCardTranslateY}
+          nextCardOpacity={nextCardOpacity}
+          nextCardScale={nextCardScale}
+          nextCardTranslateY={nextCardTranslateY}
+          nextCardBgOpacity={nextCardBgOpacity}
+          onSlideClick={handleSlideClick}
+          onTransitionToNextCard={() => handleTransitionToNextCard(slide.id)}
+          onTransitionToEmpty={() => handleTransitionToEmpty()}
+        />
+      );
+    },
     [
-      tw,
-      handleSlideClick,
-      handleClose,
       currentCardOpacity,
       currentCardScale,
       currentCardTranslateY,
@@ -717,6 +493,9 @@ const CarouselComponent: FC<CarouselProps> = ({
       nextCardScale,
       nextCardTranslateY,
       nextCardBgOpacity,
+      handleSlideClick,
+      handleTransitionToNextCard,
+      handleTransitionToEmpty,
     ],
   );
 
@@ -750,7 +529,7 @@ const CarouselComponent: FC<CarouselProps> = ({
 
   if (
     !isCarouselVisible ||
-    (visibleSlides.length === 0 && !isAnimating.current && !showEmptyState)
+    (visibleSlides.length === 0 && !isAnimating.current)
   ) {
     return null;
   }
@@ -760,121 +539,76 @@ const CarouselComponent: FC<CarouselProps> = ({
       style={[
         tw.style('mx-4'),
         {
-          opacity: carouselOpacity, // Carousel fade for final exit
-        },
-        style,
-      ]}
-    >
-      <Box style={{ height: BANNER_HEIGHT + 6 }}>
-        <Box
-          style={{ height: BANNER_HEIGHT, position: 'relative' }}
-          testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
-        >
-          {/* Render next card first (behind current card) */}
-          {nextSlide && renderCard(nextSlide, false)}
-
-          {/* Render empty state card behind last card when it's the last card */}
-          {isLastCard && renderEmptyStateCard()}
-
-          {/* Render current card on top */}
-          {currentSlide && renderCard(currentSlide, true)}
-        </Box>
-      </Box>
-    </Animated.View>
-  );
-};
-
-// Separate empty state component with its own lifecycle
-const EmptyStateComponent: FC<{ style?: any }> = ({ style }) => {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isCollapsing, setIsCollapsing] = useState(false);
-  const opacity = useRef(new Animated.Value(1)).current;
-  const height = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
-  const scaleY = useRef(new Animated.Value(1)).current;
-  const tw = useTailwind();
-
-  useEffect(() => {
-    // Wait 1 second, then fold up
-    const timer = setTimeout(() => {
-      console.log('🟢 Starting empty state fold-up after 1s');
-      setIsCollapsing(true);
-
-      Animated.parallel([
-        // Content fade out (starts immediately, 200ms)
-        Animated.timing(opacity, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-
-        // Height collapse (starts immediately, 300ms total)
-        Animated.timing(height, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: false, // Height needs layout thread
-        }),
-
-        // Visual carousel fold (starts after 50ms delay, 200ms duration)
-        Animated.sequence([
-          Animated.delay(50),
-          Animated.timing(scaleY, {
-            toValue: 0,
-            duration: 200, // Completes at 250ms total
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start(() => {
-        console.log('🟢 Empty state fold-up completed');
-        setIsVisible(false);
-      });
-    }, 1000); // Reduced to 1 second
-
-    return () => clearTimeout(timer);
-  }, [opacity, height, scaleY]);
-
-  if (!isVisible) {
-    return null;
-  }
-
-  return (
-    <Animated.View
-      style={[
-        tw.style('mx-4'),
-        {
-          height, // Layout-affecting height for content shifting
-          overflow: isCollapsing ? 'hidden' : 'visible',
+          height: carouselHeight, // Layout animation (non-native)
         },
         style,
       ]}
     >
       <Animated.View
         style={{
-          opacity,
-          transform: [{ scaleY }],
+          opacity: carouselOpacity,
+          transform: [{ scaleY: carouselScaleY }], // Native animations
         }}
       >
         <Box style={{ height: BANNER_HEIGHT + 6 }}>
-          <Box style={{ height: BANNER_HEIGHT, position: 'relative' }}>
-            <Box
-              style={tw.style(
-                'rounded-xl relative overflow-hidden border border-muted bg-default',
-                {
-                  height: BANNER_HEIGHT,
-                  width: BANNER_WIDTH,
-                },
-              )}
-            >
-              <Box twClassName="w-full h-full flex justify-center items-center">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                  testID="carousel-empty-state"
-                >
-                  You're all caught up
-                </Text>
-              </Box>
-            </Box>
+          <Box
+            style={tw.style('relative', { height: BANNER_HEIGHT })}
+            testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
+          >
+            {/* Layer 1: Render future next card first (Card 3 - deepest layer) */}
+            {isTransitioning && (
+              <>
+                {/* Regular future next card */}
+                {visibleSlides[safeActiveSlideIndex + 2] && (
+                  <Box
+                    key={`future-${visibleSlides[safeActiveSlideIndex + 2].id}`}
+                    style={tw.style('absolute', {
+                      opacity: 0.7,
+                      transform: [{ scale: 0.96 }, { translateY: 8 }],
+                      zIndex: 1, // Ensure it's behind other cards
+                    })}
+                  >
+                    <Box
+                      style={tw.style(
+                        'rounded-xl relative overflow-hidden border border-muted bg-default',
+                        {
+                          height: BANNER_HEIGHT,
+                          width: BANNER_WIDTH,
+                        },
+                      )}
+                    >
+                      {/* Pressed background overlay */}
+                      <Box
+                        style={tw.style(
+                          'absolute bg-default-pressed rounded-xl',
+                          {
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                          },
+                        )}
+                      />
+                      {/* Simplified content - just show it's there */}
+                      <Box twClassName="w-full h-full flex justify-center items-center">
+                        <Text
+                          variant={TextVariant.BodyXs}
+                          color={TextColor.TextAlternative}
+                        >
+                          Next card
+                        </Text>
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
+              </>
+            )}
+
+            {/* Layer 2: Render next card (Card 2 - middle layer) */}
+            {nextSlide && renderCard(nextSlide, false)}
+
+            {/* Layer 3: Render current card on top (Card 1 - top layer) */}
+            {currentSlide && renderCard(currentSlide, true)}
           </Box>
         </Box>
       </Animated.View>
@@ -882,23 +616,6 @@ const EmptyStateComponent: FC<{ style?: any }> = ({ style }) => {
   );
 };
 
-const CarouselWithEmptyState: FC<CarouselProps> = (props) => {
-  const [showEmptyState, setShowEmptyState] = useState(false);
-
-  // Pass down the empty state trigger
-  const carouselProps = {
-    ...props,
-    onEmptyState: () => setShowEmptyState(true),
-  };
-
-  return (
-    <>
-      {!showEmptyState && <CarouselComponent {...carouselProps} />}
-      {showEmptyState && <EmptyStateComponent style={props.style} />}
-    </>
-  );
-};
-
 // Split memo component so we still see a Component name when profiling
-export const Carousel = React.memo(CarouselWithEmptyState);
+export const Carousel = React.memo(CarouselComponent);
 export default Carousel;

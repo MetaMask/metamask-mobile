@@ -1582,6 +1582,9 @@
     "banner": {
       "title": "Basic functionality is off",
       "link": "Turn on basic functionality"
+    },
+    "carousel": {
+      "empty_state": "You're all caught up!"
     }
   },
   "asset_details": {
