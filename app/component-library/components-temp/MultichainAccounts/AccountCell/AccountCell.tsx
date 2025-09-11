@@ -80,17 +80,13 @@ const AccountCell = ({
       testID={AccountCellIds.CONTAINER}
     >
       <View style={styles.avatarWrapper}>
-        {evmAddress ? (
-          <AvatarAccount
-            accountAddress={evmAddress}
-            type={avatarAccountType}
-            size={AvatarSize.Md}
-            style={styles.avatar}
-            testID={AccountCellIds.AVATAR}
-          />
-        ) : (
-          <View style={styles.avatar} testID={AccountCellIds.AVATAR}></View>
-        )}
+        <AvatarAccount
+          accountAddress={evmAddress}
+          type={avatarAccountType}
+          size={AvatarSize.Md}
+          style={styles.avatar}
+          testID={AccountCellIds.AVATAR}
+        />
       </View>
       <View style={styles.accountName}>
         <Text
