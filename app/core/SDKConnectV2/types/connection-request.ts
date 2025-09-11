@@ -43,12 +43,13 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
   if (
     !sessionReq.id ||
     typeof sessionReq.id !== 'string' ||
-    !sessionReq.dappPublicKey ||
-    typeof sessionReq.dappPublicKey !== 'string' ||
-    !sessionReq.walletPublicKey ||
-    typeof sessionReq.walletPublicKey !== 'string' ||
+    !sessionReq.publicKeyB64 ||
+    typeof sessionReq.publicKeyB64 !== 'string' ||
     !sessionReq.channel ||
-    typeof sessionReq.channel !== 'string'
+    typeof sessionReq.channel !== 'string' ||
+    !sessionReq.mode ||
+    typeof sessionReq.mode !== 'string' ||
+    typeof sessionReq.expiresAt !== 'number'
   ) {
     return false;
   }

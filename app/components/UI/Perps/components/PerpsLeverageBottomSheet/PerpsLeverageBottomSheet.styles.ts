@@ -63,9 +63,15 @@ export const createStyles = (colors: Theme['colors']) =>
       marginRight: 8,
       flexShrink: 0,
     },
+    warningTextContainer: {
+      flex: 1,
+      minWidth: 0,
+    },
     warningText: {
       flex: 1,
       flexWrap: 'wrap',
+      flexShrink: 1,
+      minWidth: 0,
     },
     warningTextSafe: {
       color: LEVERAGE_COLORS.SAFE, // Green - matches gradient start
