@@ -236,7 +236,7 @@
     "@metamask/error-reporting-service": "^2.0.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
-    "@metamask/eth-json-rpc-middleware": "^17.0.1",
+    "@metamask/eth-json-rpc-middleware": "^18.0.0",
     "@metamask/eth-ledger-bridge-keyring": "11.1.0",
     "@metamask/eth-query": "^4.0.0",
     "@metamask/eth-sig-util": "^8.0.0",
