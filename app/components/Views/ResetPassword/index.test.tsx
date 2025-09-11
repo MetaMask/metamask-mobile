@@ -76,6 +76,7 @@ jest.mock('../../../core/Authentication', () => ({
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     ),
   checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
+  lockApp: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../core/NavigationService', () => ({
@@ -842,6 +843,9 @@ describe('ResetPassword', () => {
       NavigationService.navigation =
         mockNavigation as unknown as NavigationContainerRef;
 
+      const spyLockApp = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValue(undefined);
       const component = await renderConfirmPasswordView();
 
       const currentPasswordInput = component.getByTestId(
@@ -900,6 +904,14 @@ describe('ResetPassword', () => {
           }),
         }),
       );
+
+      const ErrorSheetCall = mockNavigation.navigate.mock.calls[1];
+      const onErrorSheetPrimaryButtonPress =
+        ErrorSheetCall[1].params.onPrimaryButtonPress;
+      await act(async () => {
+        await onErrorSheetPrimaryButtonPress();
+      });
+      expect(spyLockApp).toHaveBeenCalled();
     });
 
     it('handle error for SeedlessOnboarding Controller Invalid Token', async () => {
@@ -979,6 +991,16 @@ describe('ResetPassword', () => {
             ),
           }),
         }),
+      );
+
+      const ErrorSheetCall = mockNavigation.navigate.mock.calls[1];
+      const onErrorSheetPrimaryButtonPress =
+        ErrorSheetCall[1].params.onPrimaryButtonPress;
+      await act(async () => {
+        await onErrorSheetPrimaryButtonPress();
+      });
+      expect(mockNavigation.replace).toHaveBeenCalledWith(
+        Routes.SETTINGS.SECURITY_SETTINGS,
       );
     });
   });

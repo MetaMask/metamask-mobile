@@ -484,7 +484,9 @@ class ResetPassword extends PureComponent {
         isInteractable: false,
         onPrimaryButtonPress: async () => {
           await Authentication.lockApp({ locked: true }).finally(() => {
-            this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+            this.props.navigation.reset({
+              routes: [{ name: Routes.ONBOARDING.LOGIN }],
+            });
           });
         },
         closeOnPrimaryButtonPress: true,
