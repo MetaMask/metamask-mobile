@@ -659,9 +659,6 @@ export class PerpsE2EMockService {
     }
     this.mockOrders = remainingOrders;
     this.notifyOrdersCallbacks();
-    // Notify about new positions/balances if any were created
-    this.notifyPositionCallbacks();
-    this.notifyAccountCallbacks();
 
     // Liquidation check pass for all positions of this symbol
     this.applyLiquidationChecksForSymbol(symbol, updated);

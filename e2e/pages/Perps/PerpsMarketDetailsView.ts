@@ -4,6 +4,7 @@ import {
   PerpsCandlestickChartSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
+  PerpsPositionCardSelectorsIDs,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -220,7 +221,7 @@ class PerpsMarketDetailsView {
       PerpsOpenOrderCardSelectorsIDs.CARD,
     ) as DetoxElement;
 
-    // Try a few extra scroll attempts; continue even if not visible
+    // Try a few extra scroll attempts; then assert to avoid masking regressions
     for (let i = 0; i < 3; i++) {
       const visible = await Utilities.isElementVisible(openOrderCard, 2000);
       if (visible) {
@@ -233,8 +234,10 @@ class PerpsMarketDetailsView {
       });
     }
 
-    // Passive final wait (do not throw); proceed regardless
-    await Utilities.isElementVisible(openOrderCard, 5000);
+    await Assertions.expectElementToBeVisible(openOrderCard, {
+      description: 'Open limit order card is visible on Orders tab',
+      timeout: 5000,
+    });
   }
 
   async expectNoOpenOrderVisible() {
@@ -243,6 +246,30 @@ class PerpsMarketDetailsView {
     ) as DetoxElement;
     await Assertions.expectElementToNotBeVisible(openOrderCard, {
       description: 'Open limit order card is not visible',
+    });
+  }
+
+  // Ensure Close Position button is visible by performing best-effort scrolls, then assert
+  async expectClosePositionButtonVisible() {
+    const closeBtn = Matchers.getElementByID(
+      PerpsPositionCardSelectorsIDs.CLOSE_BUTTON,
+    ) as DetoxElement;
+
+    for (let i = 0; i < 3; i++) {
+      const visible = await Utilities.isElementVisible(closeBtn, 2000);
+      if (visible) {
+        break;
+      }
+      await Gestures.swipe(this.scrollView, 'up', {
+        speed: 'fast',
+        percentage: 0.7,
+        elemDescription: 'Scroll to reveal Close position button',
+      });
+    }
+
+    await Assertions.expectElementToBeVisible(closeBtn, {
+      description: 'Close position button visible on market details',
+      timeout: 5000,
     });
   }
 }

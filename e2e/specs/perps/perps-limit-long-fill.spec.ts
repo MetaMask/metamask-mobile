@@ -2,7 +2,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { RegressionTrade } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import { PERPS_ARBITRUM_MOCKS } from '../../controller-mocking/mock-responses/perps/perps-arbitrum-mocks';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { PerpsHelpers } from './helpers/perps-helpers';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';

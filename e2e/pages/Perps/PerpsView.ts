@@ -185,9 +185,12 @@ class PerpsView {
       }
       await this.scrollDownOnPerpsTab(1);
     }
-    // Final passive attempt; continue without throwing
+    // Final assert to avoid masking regressions
     const finalEl = this.getPositionItem(symbol, leverageX, direction, index);
-    await Utilities.isElementVisible(finalEl, 1500);
+    await Assertions.expectElementToBeVisible(finalEl, {
+      description: `Perps tab position should be visible: ${symbol} ${leverageX}x ${direction} at index ${index}`,
+      timeout: 5000,
+    });
   }
 
   async tapEditTpslButton() {
