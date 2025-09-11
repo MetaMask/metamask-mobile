@@ -158,7 +158,7 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('Size')).toBeOnTheScreen();
   });
 
-  it('should only display P&L when action is Closed', () => {
+  it('should only display P&L when action is Closed or Flipped', () => {
     // Given a closed position with P&L
     const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
       state: mockInitialState,
@@ -167,6 +167,33 @@ describe('PerpsPositionTransactionView', () => {
     // Then P&L should be displayed for closed position
     expect(getByText('Net P&L')).toBeOnTheScreen();
     expect(getByText('+$150.75')).toBeOnTheScreen();
+  });
+
+  it('should display P&L when action is Flipped', () => {
+    // Given a flipped position with P&L
+    const flippedTransaction = {
+      ...mockTransaction,
+      category: 'position_close' as const,
+      fill: {
+        ...mockTransaction.fill,
+        action: 'Flipped',
+        pnl: '225.50',
+        amount: '+$225.50',
+        amountNumber: 225.5,
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: flippedTransaction },
+    });
+
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
+      state: mockInitialState,
+    });
+
+    // Then P&L should be displayed for flipped position
+    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(getByText('+$225.50')).toBeOnTheScreen();
   });
 
   it('should not display P&L for non-closed positions', () => {
@@ -247,6 +274,32 @@ describe('PerpsPositionTransactionView', () => {
     // Then P&L should be displayed with error color (negative)
     expect(getByText('Net P&L')).toBeOnTheScreen();
     expect(getByText('-$75.25')).toBeOnTheScreen();
+  });
+
+  it('should apply correct color for negative P&L on flipped positions', () => {
+    // Given a flipped position with negative P&L
+    const negativePnLFlippedTransaction = {
+      ...mockTransaction,
+      fill: {
+        ...mockTransaction.fill,
+        action: 'Flipped',
+        pnl: '-125.75',
+        amount: '-$125.75',
+        amountNumber: -125.75,
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: negativePnLFlippedTransaction },
+    });
+
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
+      state: mockInitialState,
+    });
+
+    // Then P&L should be displayed with error color (negative) for flipped position
+    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(getByText('-$125.75')).toBeOnTheScreen();
   });
 
   it('should handle zero P&L correctly', () => {
