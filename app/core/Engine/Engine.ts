@@ -1727,7 +1727,7 @@ export class Engine {
         }
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
-        this.controllerMessenger.call(
+        return this.controllerMessenger.call(
           'SnapController:setClientActive',
           state === 'active',
         );
