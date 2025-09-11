@@ -24,8 +24,10 @@ import {
   AccountsControllerGetSelectedMultichainAccountAction,
   AccountsControllerSelectedAccountChangeEvent,
 } from '@metamask/accounts-controller';
-import { RewardsDataServiceGetPointsEventsAction } from '../../controllers/rewards-controller/services/rewards-data-service';
-import { RewardsDataServiceGetActivePointsBoostsAction } from '../../controllers/rewards-controller/services/rewards-data-service';
+import {
+  RewardsDataServiceGetPointsEventsAction,
+  RewardsDataServiceGetActivePointsBoostsAction,
+} from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
 

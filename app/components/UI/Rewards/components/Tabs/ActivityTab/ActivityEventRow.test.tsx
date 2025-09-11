@@ -6,7 +6,7 @@ import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 
 // Mock the utility functions
-jest.mock('../../utils/formatUtils', () => ({
+jest.mock('../../../utils/formatUtils', () => ({
   getEventDetails: jest.fn(),
   formatRewardsDate: jest.fn(),
 }));

@@ -16,7 +16,7 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCurrentSeasonId: jest.fn(),
+  selectSeasonId: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -53,7 +53,7 @@ describe('useSeasonStatus', () => {
     mockUseSelector.mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        return 'test-season-id'; // selectCurrentSeasonId
+        return 'test-season-id'; // selectSeasonId
       }
       if (callCount === 2) {
         return 'test-subscription-id'; // selectRewardsSubscriptionId
@@ -64,7 +64,7 @@ describe('useSeasonStatus', () => {
 
   it('should return void', () => {
     const { result } = renderHook(() => useSeasonStatus());
-    expect(result.current).toBeNull();
+    expect(result.current).toBeUndefined();
   });
 
   it('should skip fetch when subscriptionId is missing', () => {
@@ -72,7 +72,7 @@ describe('useSeasonStatus', () => {
     mockUseSelector.mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        return 'test-season-id'; // selectCurrentSeasonId
+        return 'test-season-id'; // selectSeasonId
       }
       if (callCount === 2) {
         return null; // selectRewardsSubscriptionId - missing
@@ -149,7 +149,7 @@ describe('useSeasonStatus', () => {
     mockUseSelector.mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
-        return null; // selectCurrentSeasonId - null
+        return null; // selectSeasonId - null
       }
       if (callCount === 2) {
         return 'test-subscription-id'; // selectRewardsSubscriptionId
