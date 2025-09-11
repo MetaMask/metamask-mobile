@@ -69,9 +69,10 @@ export const getNativeValueFn = ({
     return '0';
   }
 
+  const rate = (conversionRate ?? 1) * (exchangeRate ?? 1);
   return convertCurrency(
     amount ?? '0',
-    1 / ((conversionRate ?? 1) * (exchangeRate ?? 1)),
+    rate === 0 ? 0 : 1 / rate,
     2,
     decimals,
   ).toString();
@@ -110,17 +111,18 @@ export const useCurrencyConversions = () => {
   );
 
   const conversionRate = useMemo(() => {
-    if (!asset?.address) {
+    const assetAddress = asset?.address ?? (asset as AssetType)?.assetId;
+    if (!assetAddress) {
       return 0;
     }
     if ((asset as AssetType)?.fiat?.conversionRate) {
       return (asset as AssetType)?.fiat?.conversionRate ?? 0;
     }
-    if (isEvmAddress(asset?.address)) {
+    if (isEvmAddress(assetAddress)) {
       return conversionRateEvm ?? 0;
     }
     return parseFloat(
-      multichainAssetsRates[asset?.address as CaipAssetType]?.rate ?? 0,
+      multichainAssetsRates[assetAddress as CaipAssetType]?.rate ?? 0,
     );
   }, [asset, conversionRateEvm, multichainAssetsRates]);
 
