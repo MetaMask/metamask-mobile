@@ -3,6 +3,7 @@ import { usePerpsDepositMinimumAlert } from '../../../hooks/alerts/usePerpsDepos
 import { Alert } from '../../../types/alerts';
 import { useInsufficientPayTokenBalanceAlert } from '../../../hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { ARBITRUM_USDC_ADDRESS } from './usePerpsDepositInit';
+import { usePerpsHardwareAccountAlert } from '../../../hooks/alerts/usePerpsHardwareAccountAlert';
 
 export function usePerpsDepositAlerts({
   pendingTokenAmount,
@@ -19,8 +20,18 @@ export function usePerpsDepositAlerts({
     },
   });
 
+  const perpsHardwareAccountAlert = usePerpsHardwareAccountAlert();
+
   return useMemo(
-    () => [...perpsDepositMinimumAlert, ...insufficientTokenFundsAlert],
-    [perpsDepositMinimumAlert, insufficientTokenFundsAlert],
+    () => [
+      ...perpsHardwareAccountAlert,
+      ...perpsDepositMinimumAlert,
+      ...insufficientTokenFundsAlert,
+    ],
+    [
+      insufficientTokenFundsAlert,
+      perpsDepositMinimumAlert,
+      perpsHardwareAccountAlert,
+    ],
   );
 }

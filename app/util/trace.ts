@@ -41,7 +41,6 @@ export enum TraceName {
   SwitchBuiltInNetwork = 'Switch to Built in Network',
   SwitchCustomNetwork = 'Switch to Custom Network',
   VaultCreation = 'Login Vault Creation',
-  AccountList = 'Account List',
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
   CreateHdAccount = 'Create HD Account',
@@ -97,6 +96,8 @@ export enum TraceName {
   OnboardingOAuthProviderLoginError = 'Onboarding - OAuth Provider Login Error',
   OnboardingOAuthBYOAServerGetAuthTokensError = 'Onboarding - OAuth BYOA Server Get Auth Tokens Error',
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
+  OnboardingSRPAccountCreationTime = 'Onboarding SRP Account Creation Time',
+  OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
   Card = 'Card',
@@ -118,6 +119,12 @@ export enum TraceName {
   EarnTokenList = 'Earn Token List',
   EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
   EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
+  // Accounts
+  CreateMultichainAccount = 'Create Multichain Account',
+  DiscoverAccounts = 'Discover Accounts',
+  ShowAccountAddressList = 'Show Account Address List',
+  ShowAccountList = 'Show Account List',
+  ShowAccountPrivateKeyList = 'Show Account Private Key List',
   // Perps
   PerpsOpenPosition = 'Perps Open Position',
   PerpsClosePosition = 'Perps Close Position',
@@ -161,6 +168,10 @@ export enum TraceOperation {
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  // Accounts
+  AccountCreate = 'account.create',
+  AccountDiscover = 'account.discover',
+  AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',
   PerpsMarketData = 'perps.market_data',

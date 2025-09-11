@@ -11,11 +11,11 @@ class QuoteView {
   }
 
   get confirmBridge(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_BRIDGE);
+    return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
   get confirmSwap(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_SWAP);
+    return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
   get sourceTokenArea(): DetoxElement {

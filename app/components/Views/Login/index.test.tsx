@@ -176,6 +176,18 @@ jest.mock('../../hooks/useMetrics', () => ({
   },
 }));
 
+// Mock useNetInfo
+jest.mock('@react-native-community/netinfo', () => ({
+  useNetInfo: jest.fn(() => ({
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'wifi',
+    details: {
+      isConnectionExpensive: false,
+    },
+  })),
+}));
+
 const mockUseMetrics = jest.mocked(useMetrics);
 
 const mockBackHandlerAddEventListener = jest.fn();

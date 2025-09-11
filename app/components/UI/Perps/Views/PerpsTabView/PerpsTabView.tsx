@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,6 +47,10 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 
 interface PerpsTabViewProps {}
 
@@ -54,6 +58,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
@@ -161,10 +166,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
+  const coordinatedPress = useCoordinatedPress();
+
+  const memoizedPressHandler = useCallback(() => {
+    coordinatedPress(handleNewTrade);
+  }, [coordinatedPress, handleNewTrade]);
+
   const renderStartTradeCTA = () => (
-    <TouchableOpacity
+    <TouchablePerpsComponent
       style={styles.startTradeCTA}
-      onPress={handleNewTrade}
+      onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
       <View style={styles.startTradeContent}>
@@ -179,7 +190,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchableOpacity>
+    </TouchablePerpsComponent>
   );
 
   const renderOrdersSection = () => {

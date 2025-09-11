@@ -24,6 +24,7 @@ import {
   AccountsControllerGetSelectedMultichainAccountAction,
   AccountsControllerSelectedAccountChangeEvent,
 } from '@metamask/accounts-controller';
+import { RewardsDataServiceGetPointsEventsAction } from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
 
@@ -32,6 +33,7 @@ type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
+  | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
@@ -52,7 +54,7 @@ export type RewardsControllerMessenger = RestrictedMessenger<
   RewardsControllerActions | AllowedActions,
   RewardsControllerEvents | AllowedEvents,
   AllowedActions['type'],
-  AllowedEvents['type']
+  AllowedEvents['type'] // ← This was wrong!
 >;
 
 export function getRewardsControllerMessenger(
@@ -67,6 +69,7 @@ export function getRewardsControllerMessenger(
       'AccountsController:getSelectedMultichainAccount',
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
+      'RewardsDataService:getPointsEvents',
       'RewardsDataService:estimatePoints',
       'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
