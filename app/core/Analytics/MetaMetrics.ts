@@ -201,6 +201,19 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Retrieve the social login analytics preference from the preference
+   * @private
+   * @returns Promise containing the social login enabled state
+   */
+  #isSocialLoginEnabled = async (): Promise<boolean> => {
+    const enabledPref = await StorageWrapper.getItem(
+      METRICS_OPT_IN_SOCIAL_LOGIN,
+    );
+    this.isSocialLoginEnabled = AGREED === enabledPref;
+    return this.isSocialLoginEnabled;
+  };
+
+  /**
    * Retrieve the analytics recording status from the preference
    * @private
    */
@@ -585,6 +598,7 @@ class MetaMetrics implements IMetaMetrics {
     if (this.#isConfigured) return true;
     try {
       this.enabled = await this.#isMetaMetricsEnabled();
+      this.isSocialLoginEnabled = await this.#isSocialLoginEnabled();
       // get the user unique id when initializing
       this.metametricsId = await this.#getMetaMetricsId();
       this.deleteRegulationId = await this.#getDeleteRegulationIdFromPrefs();
