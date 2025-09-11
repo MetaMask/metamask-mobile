@@ -538,24 +538,7 @@ class ResetPassword extends PureComponent {
         return;
       }
 
-      try {
-        await this.recreateVault();
-      } catch (error) {
-        Logger.error(error);
-        const errorMessage = error.message;
-        if (errorMessage.includes('SeedlessOnboardingController')) {
-          if (
-            errorMessage ===
-            SeedlessOnboardingControllerErrorMessage.OutdatedPassword
-          ) {
-            this.handleSeedlessPasswordOutdated();
-          } else {
-            this.handleSeedlessChangePasswordError();
-          }
-          return;
-        }
-        throw error;
-      }
+      await this.recreateVault();
 
       // Set biometrics for new password
       await Authentication.resetPassword();
@@ -602,8 +585,18 @@ class ResetPassword extends PureComponent {
         );
         this.setState({ loading: false });
       } else if (error.message.includes('SeedlessOnboardingController')) {
+        // handle Seedless Change Password error
         // prompt sheet
-        Logger.log(error);
+        Logger.error(error);
+        const errorMessage = error.message;
+        if (
+          errorMessage ===
+          SeedlessOnboardingControllerErrorMessage.OutdatedPassword
+        ) {
+          this.handleSeedlessPasswordOutdated();
+        } else {
+          this.handleSeedlessChangePasswordError();
+        }
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
