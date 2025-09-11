@@ -7,7 +7,6 @@ import { ToastVariants } from '../../../../component-library/components/Toast/To
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
-import { strings } from '../../../../../locales/i18n';
 
 // Mock dependencies
 jest.mock('react', () => ({
@@ -49,61 +48,6 @@ jest.mock('../utils/perpsErrorHandler', () => ({
   }) => error || fallbackMessage,
 }));
 
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    const mockStrings: Record<string, string> = {
-      'perps.deposit.success_toast': 'Deposit Successful',
-      'perps.deposit.success_message': `${params?.amount} deposited`,
-      'perps.deposit.in_progress': 'Deposit in Progress',
-      'perps.deposit.funds_available_momentarily':
-        'Funds will be available momentarily',
-      'perps.deposit.estimated_processing_time': `Processing time: ${params?.time}`,
-      'perps.deposit.error_toast': 'Deposit Failed',
-      'perps.deposit.error_generic': 'Something went wrong',
-      'perps.withdrawal.processing_title': 'Withdrawal Processing',
-      'perps.withdrawal.eta_will_be_shared_shortly':
-        'ETA will be shared shortly',
-      'perps.withdrawal.success_toast': 'Withdrawal Successful',
-      'perps.withdrawal.arrival_time': `${params?.amount} ${params?.symbol} withdrawn`,
-      'perps.withdrawal.error': 'Withdrawal Failed',
-      'perps.withdrawal.error_generic': 'Unable to process withdrawal',
-      'perps.order.order_submitted': 'Order Submitted',
-      'perps.order.order_placement_subtitle': `${params?.direction} ${params?.amount} ${params?.assetSymbol}`,
-      'perps.order.order_filled': 'Order Filled',
-      'perps.order.order_placed': 'Order Placed',
-      'perps.order.order_failed': 'Order Failed',
-      'perps.order.your_funds_have_been_returned_to_you':
-        'Your funds have been returned',
-      'perps.order.cancelling_order': 'Cancelling Order',
-      'perps.order.cancelling_order_subtitle': `Cancelling ${params?.direction} ${params?.amount} ${params?.assetSymbol}`,
-      'perps.order.order_cancelled': 'Order Cancelled',
-      'perps.order.funds_are_available_to_trade':
-        'Funds are available to trade',
-      'perps.order.failed_to_cancel_order': 'Failed to Cancel Order',
-      'perps.close_position.limit_close_order_cancelled':
-        'Limit close order cancelled',
-      'perps.order.close_order_still_active': 'Close order is still active',
-      'perps.close_position.closing_position': 'Closing Position',
-      'perps.close_position.your_funds_will_be_available_momentarily':
-        'Your funds will be available momentarily',
-      'perps.close_position.closing_position_subtitle': `Closing ${params?.direction} ${params?.amount} ${params?.assetSymbol}`,
-      'perps.close_position.position_closed': 'Position Closed',
-      'perps.close_position.funds_are_available_to_trade':
-        'Funds are available to trade',
-      'perps.close_position.partially_closing_position':
-        'Partially Closing Position',
-      'perps.close_position.position_close_order_placed':
-        'Position Close Order Placed',
-      'perps.close_position.partial_close_submitted': 'Partial Close Submitted',
-      'perps.order.validation.failed': 'Validation Failed',
-      'perps.order.error.invalid_asset': 'Invalid Asset',
-      'perps.order.error.asset_not_tradable': `${params?.asset} is not tradable`,
-      'perps.order.error.go_back': 'Go Back',
-    };
-    return mockStrings[key] || key;
-  }),
-}));
-
 describe('usePerpsToasts', () => {
   let mockShowToast: jest.Mock;
   let mockCloseToast: jest.Mock;
@@ -111,6 +55,8 @@ describe('usePerpsToasts', () => {
   let mockToastRef: {
     current: { showToast: jest.Mock; closeToast: jest.Mock };
   };
+
+  const mockTransactionId = 'c9a6ab70-8e70-11f0-8de9-353809172f0a';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -168,9 +114,9 @@ describe('usePerpsToasts', () => {
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
-          { label: 'Deposit Successful', isBold: true },
+          { label: 'Your Perps account was funded', isBold: true },
           { label: '\n', isBold: false },
-          { label: '100 USDC deposited', isBold: false },
+          { label: '$100.00 available to trade', isBold: false },
         ]);
       });
 
@@ -179,6 +125,7 @@ describe('usePerpsToasts', () => {
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
             60,
+            mockTransactionId,
           );
 
         expect(config).toMatchObject({
@@ -186,10 +133,6 @@ describe('usePerpsToasts', () => {
           iconName: IconName.Loading,
           hapticsType: NotificationFeedbackType.Warning,
         });
-        expect(strings).toHaveBeenCalledWith(
-          'perps.deposit.estimated_processing_time',
-          { time: expect.any(String) },
-        );
       });
 
       it('returns in progress configuration without processing time', () => {
@@ -197,6 +140,7 @@ describe('usePerpsToasts', () => {
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
             undefined,
+            mockTransactionId,
           );
 
         expect(config.labelOptions).toContainEqual({
@@ -226,7 +170,7 @@ describe('usePerpsToasts', () => {
             .withdrawalInProgress;
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Withdrawal Processing',
+          label: 'Withdrawal initiated',
           isBold: true,
         });
       });
@@ -240,7 +184,7 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: '100 USDC withdrawn',
+          label: '100 USDC will arrive within 5 minutes',
           isBold: false,
         });
       });
@@ -264,7 +208,7 @@ describe('usePerpsToasts', () => {
           result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalFailed();
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Unable to process withdrawal',
+          label: 'An error occurred during withdrawal',
           isBold: false,
         });
       });
@@ -296,10 +240,10 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config).toMatchObject({
-          iconName: IconName.Check,
+          iconName: IconName.CheckBold,
         });
         expect(config.labelOptions).toContainEqual({
-          label: 'Order Filled',
+          label: 'Order filled',
           isBold: true,
         });
       });
@@ -329,7 +273,7 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Cancelling Order',
+          label: 'Cancelling order',
           isBold: true,
         });
       });
@@ -360,7 +304,7 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
         expect(failedConfig.labelOptions).toContainEqual({
-          label: 'Close order is still active',
+          label: 'Close order still active',
           isBold: false,
         });
       });
@@ -377,11 +321,11 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Closing Position',
+          label: 'Closing position',
           isBold: true,
         });
         expect(config.labelOptions).toContainEqual({
-          label: 'Closing long 1.5 ETH',
+          label: 'long 1.5 ETH',
           isBold: false,
         });
       });
@@ -393,7 +337,7 @@ describe('usePerpsToasts', () => {
             .marketClose.full.closeFullPositionSuccess;
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Position Closed',
+          label: 'Position closed',
           isBold: true,
         });
       });
@@ -414,11 +358,11 @@ describe('usePerpsToasts', () => {
           );
 
         expect(marketConfig.labelOptions).toContainEqual({
-          label: 'Partially Closing Position',
+          label: 'Partially closing position',
           isBold: true,
         });
         expect(limitConfig.labelOptions).toContainEqual({
-          label: 'Partial Close Submitted',
+          label: 'Partial close submitted',
           isBold: true,
         });
       });
@@ -433,7 +377,7 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toEqual([
-          { label: 'Validation Failed', isBold: true },
+          { label: 'Order validation failed', isBold: true },
           { label: '\n', isBold: false },
           { label: 'Insufficient balance', isBold: false },
         ]);
@@ -449,7 +393,7 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: 'DOGE is not tradable',
+          label: 'DOGE is not a tradable asset',
           isBold: false,
         });
         expect(config.closeButtonOptions).toMatchObject({
@@ -502,6 +446,7 @@ describe('usePerpsToasts', () => {
       const inProgressToast =
         result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
           30,
+          mockTransactionId,
         );
       const errorToast =
         result.current.PerpsToastOptions.accountManagement.deposit.error;

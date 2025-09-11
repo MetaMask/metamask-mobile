@@ -343,6 +343,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Default}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   +{percentage}%
                 </Text>
@@ -447,6 +448,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Default}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   -{percentage}%
                 </Text>
