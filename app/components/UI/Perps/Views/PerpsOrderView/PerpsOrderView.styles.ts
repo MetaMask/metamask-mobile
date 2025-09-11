@@ -86,12 +86,14 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'space-between',
       paddingBottom: 12,
       gap: 8,
+      paddingHorizontal: 16,
     },
     percentageButton: {
       flex: 1,
       minWidth: 0,
     },
     keypad: {
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
   });
