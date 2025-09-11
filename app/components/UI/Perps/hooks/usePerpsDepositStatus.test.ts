@@ -2,9 +2,10 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { usePerpsDepositStatus } from './usePerpsDepositStatus';
 import { usePerpsTrading } from './usePerpsTrading';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
+import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
+import { TransactionStatus } from '@metamask/transaction-controller';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -33,7 +34,11 @@ jest.mock('./usePerpsToasts', () => ({
   })),
 }));
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('./stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: null,
+  })),
+}));
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -51,14 +56,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../utils/formatUtils', () => ({
-  formatPerpsFiat: jest.fn((value) => `$${value}`),
-}));
-
-jest.mock('../selectors/perpsController', () => ({
-  selectPerpsAccountState: jest.fn(() => null),
-}));
-
 import usePerpsToasts, { PerpsToastOptionsConfig } from './usePerpsToasts';
 
 describe('usePerpsDepositStatus', () => {
@@ -71,7 +68,9 @@ describe('usePerpsDepositStatus', () => {
   const mockUsePerpsToasts = usePerpsToasts as jest.MockedFunction<
     typeof usePerpsToasts
   >;
-  const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
+  const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.MockedFunction<
+    typeof usePerpsLiveAccount
+  >;
 
   let mockShowToast: jest.Mock;
   let mockPerpsToastOptions: PerpsToastOptionsConfig;
@@ -79,9 +78,6 @@ describe('usePerpsDepositStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-
-    // Setup DevLogger mock
-    mockDevLogger.log = jest.fn();
 
     // Setup usePerpsToasts mock
     mockShowToast = jest.fn();
@@ -98,6 +94,12 @@ describe('usePerpsDepositStatus', () => {
     mockUsePerpsToasts.mockReturnValue({
       showToast: mockShowToast,
       PerpsToastOptions: mockPerpsToastOptions as PerpsToastOptionsConfig,
+    });
+
+    // Default mock for usePerpsLiveAccount
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: null,
+      isInitialLoading: false,
     });
 
     // Default Redux state - no deposit in progress
@@ -159,51 +161,56 @@ describe('usePerpsDepositStatus', () => {
       expect(result.current.depositInProgress).toBe(true);
     });
 
-    it('should handle successful deposit result', () => {
-      const mockClearDepositResult = jest.fn();
+    it('should handle successful deposit via balance increase', () => {
+      // Setup initial live account with balance
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '100',
+          totalBalance: '150',
+          marginUsed: '50',
+          unrealizedPnl: '5',
+          returnOnEquity: '3.33',
+          totalValue: '155',
+        },
+        isInitialLoading: false,
+      });
 
-      mockUsePerpsTrading.mockReturnValue({
-        clearDepositResult: mockClearDepositResult,
-      } as unknown as ReturnType<typeof usePerpsTrading>);
-
-      // Start with no result
       const { rerender } = renderHook(() => usePerpsDepositStatus());
 
-      // Update to show successful deposit
-      mockUseSelector.mockImplementation(
-        (selector: (state: RootState) => unknown) => {
-          const mockState = {
-            engine: {
-              backgroundState: {
-                PerpsController: {
-                  depositInProgress: false,
-                  lastDepositResult: {
-                    success: true,
-                    txHash: '0xtransaction123',
-                  },
-                  lastDepositTransactionId: null,
-                  perpsAccountState: null,
-                },
-              },
-            },
-            confirmationMetrics: {
-              transactionBridgeQuotesById: {},
-            },
-          } as unknown as RootState;
-          return selector(mockState);
-        },
-      );
+      // Get the transaction status update handler
+      const transactionHandler = (
+        Engine.controllerMessenger.subscribe as jest.Mock
+      ).mock.calls[0][1];
 
+      // Simulate deposit transaction approval
+      transactionHandler({
+        transactionMeta: {
+          id: 'test-tx-123',
+          type: 'perpsDeposit',
+          status: TransactionStatus.approved,
+        },
+      });
+
+      // Update live account balance to simulate successful deposit
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '200',
+          totalBalance: '250',
+          marginUsed: '50',
+          unrealizedPnl: '5',
+          returnOnEquity: '2',
+          totalValue: '255',
+        },
+        isInitialLoading: false,
+      });
+
+      // Re-render to trigger balance increase detection
       rerender();
 
-      // Fast forward timers to process the result
-      jest.advanceTimersByTime(500);
-
-      // Toast should NOT be shown for successful deposits (only shown via TransactionController events)
-      expect(mockShowToast).not.toHaveBeenCalled();
-
-      // But clearDepositResult should be called after timeout
-      expect(mockClearDepositResult).toHaveBeenCalled();
+      // Success toast should be shown when balance increases
+      expect(mockShowToast).toHaveBeenCalledWith(
+        mockPerpsToastOptions.accountManagement.deposit.success('200'),
+      );
     });
 
     it('should handle failed deposit result', () => {
@@ -276,57 +283,12 @@ describe('usePerpsDepositStatus', () => {
       expect(result.current.depositInProgress).toBe(false);
     });
 
-    it('should clear stale deposit results on mount', () => {
-      const mockClearDepositResult = jest.fn();
-
-      mockUsePerpsTrading.mockReturnValue({
-        clearDepositResult: mockClearDepositResult,
-      } as unknown as ReturnType<typeof usePerpsTrading>);
-
-      // Start with a stale result from previous session
-      mockUseSelector.mockImplementation(
-        (selector: (state: RootState) => unknown) => {
-          const mockState = {
-            engine: {
-              backgroundState: {
-                PerpsController: {
-                  depositInProgress: false,
-                  lastDepositResult: {
-                    success: true,
-                    txHash: '0xstale',
-                  },
-                  lastDepositTransactionId: null,
-                  perpsAccountState: null,
-                },
-              },
-            },
-            confirmationMetrics: {
-              transactionBridgeQuotesById: {},
-            },
-          } as unknown as RootState;
-          return selector(mockState);
-        },
-      );
-
-      renderHook(() => usePerpsDepositStatus());
-
-      // Should clear stale result on mount
-      expect(mockClearDepositResult).toHaveBeenCalled();
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDepositStatus: Clearing stale deposit result on mount',
-      );
-    });
-
     it('should subscribe to transaction controller events', () => {
       renderHook(() => usePerpsDepositStatus());
 
-      // Should subscribe to transaction status updated and confirmed events
+      // Should subscribe to transaction status updated event
       expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
         'TransactionController:transactionStatusUpdated',
-        expect.any(Function),
-      );
-      expect(Engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
-        'TransactionController:transactionConfirmed',
         expect.any(Function),
       );
     });
@@ -336,13 +298,9 @@ describe('usePerpsDepositStatus', () => {
 
       unmount();
 
-      // Should unsubscribe from both events
+      // Should unsubscribe from the event
       expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
         'TransactionController:transactionStatusUpdated',
-        expect.any(Function),
-      );
-      expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
-        'TransactionController:transactionConfirmed',
         expect.any(Function),
       );
     });
