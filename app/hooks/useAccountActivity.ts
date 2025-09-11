@@ -108,17 +108,17 @@ export const useAccountActivity = () => {
     const messenger = engine.controllerMessenger;
 
     // Subscribe to AccountActivityService events
-    const unsubscribeTransaction = messenger.subscribe(
+    messenger.subscribe(
       'AccountActivityService:transactionUpdated',
       handleTransactionUpdate,
     );
 
-    const unsubscribeBalance = messenger.subscribe(
+    messenger.subscribe(
       'AccountActivityService:balanceUpdated',
       handleBalanceUpdate,
     );
 
-    const unsubscribeError = messenger.subscribe(
+    messenger.subscribe(
       'AccountActivityService:subscriptionError',
       handleSubscriptionError,
     );
@@ -134,9 +134,18 @@ export const useAccountActivity = () => {
     // Cleanup subscriptions
     return () => {
       try {
-        unsubscribeTransaction();
-        unsubscribeBalance();
-        unsubscribeError();
+        messenger.unsubscribe(
+          'AccountActivityService:transactionUpdated',
+          handleTransactionUpdate,
+        );
+        messenger.unsubscribe(
+          'AccountActivityService:balanceUpdated',
+          handleBalanceUpdate,
+        );
+        messenger.unsubscribe(
+          'AccountActivityService:subscriptionError',
+          handleSubscriptionError,
+        );
       } catch (error) {
         console.error(
           'Error cleaning up useAccountActivity subscriptions:',
