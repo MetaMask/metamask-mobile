@@ -61,15 +61,13 @@ export const createStyles = (theme: Theme) => {
     },
     detailItem: {
       marginBottom: 8,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       overflow: 'hidden',
     },
     detailsSection: {
       paddingHorizontal: 16,
       paddingVertical: 16,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
     },
     detailRow: {
       flexDirection: 'row',
@@ -83,8 +81,10 @@ export const createStyles = (theme: Theme) => {
       gap: 4,
     },
     totalRow: {
-      marginTop: 8,
-      paddingTop: 8,
+      marginTop: 12,
+      paddingTop: 20,
+      borderTopColor: colors.border.muted,
+      borderTopWidth: 1,
     },
     validationSection: {
       paddingHorizontal: 16,
@@ -112,12 +112,38 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       paddingVertical: 16,
       gap: 12,
+    },
+    footerWithSummary: {
+      paddingTop: 0,
+    },
+    summaryContainer: {
+      paddingTop: 16,
+      paddingBottom: 16,
+      gap: 4,
+    },
+    paddingHorizontal: {
+      paddingHorizontal: 16,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingVertical: 4,
+    },
+    summaryLabel: {
+      flex: 1,
+    },
+    summaryValue: {
+      flexShrink: 0,
+      alignItems: 'flex-end',
+    },
+    summaryTotalRow: {
+      marginTop: 4,
+      paddingTop: 16,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
     },
     bottomSection: {
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
       paddingTop: 16,
     },
     percentageButtonsContainer: {
@@ -144,6 +170,28 @@ export const createStyles = (theme: Theme) => {
     },
     marketButtonIcon: {
       marginLeft: 2,
+    },
+    detailListItem: {
+      borderRadius: 12,
+    },
+    detailLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    infoIcon: {
+      marginLeft: 0,
+      padding: 10, // Increases touch target from 20x20 to 40x40 for better accessibility
+      marginRight: -6, // Compensate for padding to keep visual alignment
+      marginTop: -10, // Keep icon at same vertical position
+      marginBottom: -10, // Keep icon at same vertical position
+    },
+    merginAmountContainer: {
+      alignItems: 'flex-end',
+    },
+    inclusiveFeeRow: {
+      flexDirection: 'row',
+      gap: 4,
     },
   });
 };
