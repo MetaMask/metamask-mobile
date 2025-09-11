@@ -14,7 +14,7 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
-  IconColor,
+  IconColor as MMDSIconColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { StackCardProps } from './StackCard.types';
@@ -149,7 +149,7 @@ export const StackCard: React.FC<StackCardProps> = ({
                   <ButtonIcon
                     iconName={IconName.Close}
                     size={ButtonIconSize.Md}
-                    iconColor={IconColor.Alternative}
+                    iconProps={{ color: MMDSIconColor.IconDefault }}
                     onPress={() => onTransitionToNextCard?.()}
                     testID={`carousel-slide-${slide.id}-close-button`}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

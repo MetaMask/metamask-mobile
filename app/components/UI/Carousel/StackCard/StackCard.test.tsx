@@ -33,6 +33,11 @@ jest.mock('@metamask/design-system-react-native', () => ({
   IconName: {
     Close: 'close',
   },
+  IconColor: {
+    Alternative: 'Alternative',
+    IconDefault: 'IconDefault',
+    Default: 'Default',
+  },
 }));
 
 describe('StackCard', () => {

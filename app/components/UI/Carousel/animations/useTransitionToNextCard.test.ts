@@ -2,26 +2,35 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Animated } from 'react-native';
 import { useTransitionToNextCard } from './useTransitionToNextCard';
 
-// Mock Animated
-jest.mock('react-native', () => ({
-  Animated: {
-    Value: jest.fn(() => ({
-      setValue: jest.fn(),
-      addListener: jest.fn(),
-      removeAllListeners: jest.fn(),
-    })),
-    timing: jest.fn(() => ({
-      start: jest.fn((callback) => callback && callback()),
-    })),
-    parallel: jest.fn(() => ({
-      start: jest.fn((callback) => callback && callback()),
-    })),
-    sequence: jest.fn(() => ({
-      start: jest.fn((callback) => callback && callback()),
-    })),
-    delay: jest.fn(),
-  },
-}));
+// Mock Animated and Easing
+jest.mock('react-native', () => {
+  const MockEasing = {
+    out: jest.fn((fn) => fn),
+    cubic: jest.fn(),
+    bezier: jest.fn(() => jest.fn()),
+  };
+
+  return {
+    Animated: {
+      Value: jest.fn(() => ({
+        setValue: jest.fn(),
+        addListener: jest.fn(),
+        removeAllListeners: jest.fn(),
+      })),
+      timing: jest.fn(() => ({
+        start: jest.fn((callback) => callback?.()),
+      })),
+      parallel: jest.fn(() => ({
+        start: jest.fn((callback) => callback?.()),
+      })),
+      sequence: jest.fn(() => ({
+        start: jest.fn((callback) => callback?.()),
+      })),
+      delay: jest.fn(),
+    },
+    Easing: MockEasing,
+  };
+});
 
 jest.mock('./animationTimings', () => ({
   ANIMATION_TIMINGS: {
