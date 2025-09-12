@@ -549,7 +549,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Shows add funds message and button
       expect(getByText('Add funds to start trading perps')).toBeTruthy();
-      expect(getByText('Add Funds')).toBeTruthy();
+      expect(getByText('Add funds')).toBeTruthy();
 
       // When balance is zero, the Add Funds button should be present
       // and the long/short buttons should not be present
@@ -1211,7 +1211,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View');
+      const tradingViewLink = getByText('Trading View.');
       fireEvent.press(tradingViewLink);
 
       // Verify Linking.openURL was called with correct URL
@@ -1241,7 +1241,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Find and press the Trading View link
-      const tradingViewLink = getByText('Trading View');
+      const tradingViewLink = getByText('Trading View.');
       fireEvent.press(tradingViewLink);
 
       // Wait for the error to be logged

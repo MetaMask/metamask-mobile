@@ -191,10 +191,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </Text>
             </View>
             <View style={styles.headerRow}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
-              >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>
@@ -232,12 +229,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <View style={styles.bodyRow}>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.entry_price')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {formatPerpsFiat(position.entryPrice, {
                     ranges: PRICE_RANGES_POSITION_VIEW,
                   })}
@@ -245,12 +242,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.liquidationPrice
                     ? formatPerpsFiat(position.liquidationPrice, {
                         ranges: PRICE_RANGES_POSITION_VIEW,
@@ -260,12 +257,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.margin')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {formatPerpsFiat(position.marginUsed, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })}
@@ -276,12 +273,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <View style={[styles.bodyRow, styles.bodyRowLast]}>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.take_profit')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.takeProfitPrice
                     ? formatPerpsFiat(position.takeProfitPrice, {
                         ranges: PRICE_RANGES_POSITION_VIEW,
@@ -291,12 +288,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.stop_loss')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.stopLossPrice
                     ? formatPerpsFiat(position.stopLossPrice, {
                         ranges: PRICE_RANGES_POSITION_VIEW,
@@ -307,7 +304,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               <View style={styles.bodyItem}>
                 <View style={styles.fundingCostLabelFlex}>
                   <Text
-                    variant={TextVariant.BodyXS}
+                    variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
                     style={styles.fundingCostLabelRightMargin}
                   >
