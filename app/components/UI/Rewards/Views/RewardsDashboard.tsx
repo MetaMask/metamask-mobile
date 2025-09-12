@@ -30,7 +30,7 @@ import {
 } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { RewardsTab } from '../../../../reducers/rewards/types';
-
+import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import {
   selectRewardsActiveAccountHasOptedIn,
@@ -54,8 +54,9 @@ import RewardsActivity from '../components/Tabs/RewardsActivity';
 import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+import { useUnlockedRewards } from '../hooks/useUnlockedRewards';
 
-// Tab wrapper components for TabsList
+const tabMap: RewardsTab[] = ['overview', 'levels', 'activity'];
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -63,6 +64,7 @@ const RewardsDashboard: React.FC = () => {
   const theme = useTheme();
   const { colors } = theme;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const activeTab = useSelector(selectActiveTab);
   const dispatch = useDispatch();
   const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const hideUnlinkedAccountsBanner = useSelector(
@@ -87,9 +89,9 @@ const RewardsDashboard: React.FC = () => {
     enabled: !hideUnlinkedAccountsBanner,
   });
 
-  const activeTab = useSelector(selectActiveTab);
   // Sync rewards controller state with UI store
   useSeasonStatus();
+  useUnlockedRewards();
 
   // Set navigation title
   useEffect(() => {

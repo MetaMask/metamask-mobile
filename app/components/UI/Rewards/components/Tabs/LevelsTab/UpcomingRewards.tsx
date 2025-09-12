@@ -22,6 +22,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
 import { formatNumber, getIconName } from '../../../utils/formatUtils';
+import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
@@ -31,12 +32,20 @@ interface TierAccordionProps {
 
 interface RewardItemProps {
   reward: SeasonRewardDto;
+  isLast?: boolean;
 }
 
-const RewardItem: React.FC<RewardItemProps> = ({ reward }) => {
+export const RewardItem: React.FC<RewardItemProps> = ({
+  reward,
+  isLast = false,
+}) => {
   const { brandColors } = useTheme();
   return (
-    <Box twClassName="flex-row items-center py-3 px-4 gap-4 border-b border-muted">
+    <Box
+      twClassName={`flex-row items-center py-3 px-4 gap-4 ${
+        !isLast ? 'border-b border-muted' : ''
+      }`}
+    >
       {/* Reward Icon */}
       <Box
         twClassName={`h-12 w-12 rounded-full bg-[${brandColors.grey700}] items-center justify-center`}
@@ -111,7 +120,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         twClassName={`flex-row items-center bg-[${brandColors.grey700}] py-2 px-4`}
       >
         {/* Tier Image */}
-        <Box twClassName="mr-4">
+        <Box twClassName="mr-4" testID={REWARDS_VIEW_SELECTORS.TIER_IMAGE}>
           {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
@@ -133,10 +142,17 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 
         {/* Tier Info */}
         <Box twClassName="flex-1">
-          <Text variant={TextVariant.BodyMd} twClassName="text-text-default">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-text-default"
+            testID={REWARDS_VIEW_SELECTORS.TIER_NAME}
+          >
             {tier.levelNumber} • {tier.name}
           </Text>
-          <Box twClassName="flex-row items-center gap-1">
+          <Box
+            twClassName="flex-row items-center gap-1"
+            testID={REWARDS_VIEW_SELECTORS.TIER_POINTS_NEEDED}
+          >
             <Icon
               name={IconName.Lock}
               size={IconSize.Sm}
@@ -178,9 +194,16 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         <Animated.View
           style={[tw.style('overflow-hidden'), { height: animatedHeight }]}
         >
-          <Box twClassName="bg-background-muted">
-            {rewards.map((reward: SeasonRewardDto) => (
-              <RewardItem key={reward.id} reward={reward} />
+          <Box
+            twClassName="bg-background-muted"
+            testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
+          >
+            {rewards.map((reward: SeasonRewardDto, index: number) => (
+              <RewardItem
+                key={reward.id}
+                reward={reward}
+                isLast={index === rewards.length - 1}
+              />
             ))}
           </Box>
         </Animated.View>
@@ -192,7 +215,6 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 const UpcomingRewards: React.FC = () => {
   const seasonTiers = useSelector(selectSeasonTiers) as SeasonTierDto[];
   const currentTier = useSelector(selectCurrentTier);
-
   // Filter tiers to show only those above current tier
   const upcomingTiers = useMemo(() => {
     if (!currentTier) {

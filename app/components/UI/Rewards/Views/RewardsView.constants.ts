@@ -14,5 +14,9 @@ export const REWARDS_VIEW_SELECTORS = {
   ACTIVE_BOOST_CARD_TIME_REMAINING:
     'rewards-view-active-boost-card-time-remaining',
   ACTIVE_BOOST_CARD_ICON: 'rewards-view-active-boost-card-icon',
+  TIER_IMAGE: 'rewards-view-tier-image',
+  TIER_NAME: 'rewards-view-tier-name',
+  TIER_POINTS_NEEDED: 'rewards-view-tier-points-needed',
+  TIER_REWARDS: 'rewards-view-tier-rewards',
   NOT_OPTED_IN_OVERLAY: 'rewards-view-not-opted-in-overlay',
 } as const;

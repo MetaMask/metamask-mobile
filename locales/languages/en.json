@@ -5839,8 +5839,9 @@
     "active_boosts_title": "Active Boosts",
     "season_1": "Season 1",
     "upcoming_rewards_title": "Upcoming Rewards",
-    "points_needed": "{{points}} points"
-
+    "points_needed": "{{points}} points",
+    "unlocked_rewards_title": "Unlocked Rewards",
+    "unlocked_rewards_empty": "No rewards yet. \nEarn points and level up."
   },
   "time": {
     "minutes_format": "{{count}} minute",

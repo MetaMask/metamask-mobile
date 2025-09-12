@@ -396,6 +396,17 @@ export interface PointsBoostDto {
   backgroundColor: string;
 }
 
+export interface RewardDto {
+  id: string;
+  seasonRewardId: string;
+  claimStatus: RewardClaimStatus;
+}
+
+export enum RewardClaimStatus {
+  UNCLAIMED = 'UNCLAIMED',
+  CLAIMED = 'CLAIMED',
+}
+
 export interface ThemeImage {
   lightModeUrl: string;
   darkModeUrl: string;
@@ -481,6 +492,16 @@ export type ActiveBoostsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type UnlockedRewardsState = {
+  rewards: {
+    id: string;
+    seasonRewardId: string;
+    claimStatus: RewardClaimStatus;
+  }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
@@ -502,6 +523,7 @@ export type RewardsControllerState = {
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
+  unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
 };
 
 /**
@@ -697,6 +719,11 @@ export interface RewardsControllerGetActivePointsBoostsAction {
   ) => Promise<PointsBoostDto[]>;
 }
 
+export interface RewardsControllerGetUnlockedRewardsAction {
+  type: 'RewardsController:getUnlockedRewards';
+  handler: (seasonId: string, subscriptionId: string) => Promise<RewardDto[]>;
+}
+
 /**
  * Actions that can be performed by the RewardsController
  */
@@ -718,7 +745,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
   | RewardsControllerValidateReferralCodeAction
-  | RewardsControllerGetActivePointsBoostsAction;
+  | RewardsControllerGetActivePointsBoostsAction
+  | RewardsControllerGetUnlockedRewardsAction;
 
 export const CURRENT_SEASON_ID = 'current';
 
