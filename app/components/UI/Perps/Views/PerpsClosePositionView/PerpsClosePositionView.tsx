@@ -409,7 +409,9 @@ const PerpsClosePositionView: React.FC = () => {
             })}
           </Text>
           <View style={styles.inclusiveFeeRow}>
-            <Text variant={TextVariant.BodySM}>includes</Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              {strings('perps.close_position.includes_pnl')}
+            </Text>
             <Text
               variant={TextVariant.BodySM}
               color={
