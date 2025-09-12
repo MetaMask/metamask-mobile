@@ -92,17 +92,18 @@ function extractDeviceInfo(filePath) {
   const deviceMatch = pathParts.find(part => part.includes('-test-results-'));
   
   if (deviceMatch) {
-    const parts = deviceMatch.split('-');
-    if (parts.length >= 4) {
-      const deviceInfo = parts.slice(4).join('-');
-      const deviceParts = deviceInfo.split('-');
-      if (deviceParts.length >= 2) {
-        const osVersion = deviceParts[deviceParts.length - 1];
-        const deviceName = deviceParts.slice(0, -1).join(' ');
-        return `${deviceName}+${osVersion}`;
-      } else {
-        return deviceInfo;
-      }
+    // Extract the part after "-test-results-"
+    const testResultsIndex = deviceMatch.indexOf('-test-results-');
+    const deviceInfo = deviceMatch.substring(testResultsIndex + '-test-results-'.length);
+    
+    // Split by '-' and reconstruct device name and OS version
+    const deviceParts = deviceInfo.split('-');
+    if (deviceParts.length >= 2) {
+      const osVersion = deviceParts[deviceParts.length - 1];
+      const deviceName = deviceParts.slice(0, -1).join(' ');
+      return `${deviceName}+${osVersion}`;
+    } else {
+      return deviceInfo;
     }
   }
   
