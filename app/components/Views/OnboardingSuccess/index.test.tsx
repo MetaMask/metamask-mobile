@@ -33,7 +33,7 @@ jest.mock('../../../core/Engine/Engine', () => ({
       detectTokens: jest.fn().mockResolvedValue(undefined),
     },
     TokenBalancesController: {
-      updateBalancesByChainId: jest.fn().mockResolvedValue(undefined),
+      updateBalances: jest.fn().mockResolvedValue(undefined),
     },
     TokenListController: {
       fetchTokenList: jest.fn().mockResolvedValue(undefined),
@@ -326,7 +326,7 @@ describe('OnboardingSuccess', () => {
         authConnection: capitalize(AuthConnection.Apple) || '',
       }),
     );
-    expect(description).toBeDefined();
+    expect(description).toBeOnTheScreen();
   });
 
   it('renders social login description when authConnection is Google', () => {
