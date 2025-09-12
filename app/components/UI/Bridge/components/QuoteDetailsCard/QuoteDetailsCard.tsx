@@ -120,7 +120,7 @@ const QuoteDetailsCard = () => {
   let formattedEstimatedPoints = '';
   if (hasRewardsError) {
     formattedEstimatedPoints = strings('bridge.unable_to_load');
-  } else if (estimatedPoints || estimatedPoints === 0) {
+  } else if (estimatedPoints !== null) {
     formattedEstimatedPoints = intlNumberFormatter.format(estimatedPoints);
   }
 
