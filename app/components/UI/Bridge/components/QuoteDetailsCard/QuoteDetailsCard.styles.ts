@@ -46,6 +46,7 @@ const createStyles = ({ colors }: Theme) =>
     riveIcon: {
       width: 16,
       height: 16,
+      marginTop: 0.5,
     },
   });
 

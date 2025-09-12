@@ -302,6 +302,7 @@ const QuoteDetailsCard = () => {
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Center}
                   gap={1}
                 >
                   <Rive
