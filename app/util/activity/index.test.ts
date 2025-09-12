@@ -6,6 +6,7 @@ import {
   isFromOrToSelectedAddress,
   isFromCurrentChain,
   sortTransactions,
+  filterByAddress,
   filterByAddressAndNetwork,
 } from '.';
 import { Token } from '../../components/UI/Swaps/utils/token-list-utils';
@@ -453,6 +454,119 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       allTransactions,
     );
 
+    expect(result).toEqual(false);
+  });
+});
+
+describe('Activity utils :: filterByAddress', () => {
+  it('returns true for non-transfer when address matches and status not unapproved', () => {
+    const transaction = {
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddress(transaction, [], TEST_ADDRESS_ONE);
+    expect(result).toEqual(true);
+  });
+
+  it('returns true for transfer when token list contains contract address', () => {
+    const transaction = {
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+
+    const result = filterByAddress(transaction, tokens, TEST_ADDRESS_ONE);
+    expect(result).toEqual(true);
+  });
+
+  it('returns false when address does not match selected address', () => {
+    const transaction = {
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddress(transaction, [], TEST_ADDRESS_THREE);
+    expect(result).toEqual(false);
+  });
+
+  it('returns false for transfer when token is not in list', () => {
+    const transaction = {
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddress(transaction, tokens, TEST_ADDRESS_ONE);
+    expect(result).toEqual(false);
+  });
+
+  it('returns false when status is TX_UNAPPROVED', () => {
+    const transaction = {
+      status: TX_UNAPPROVED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddress(transaction, [], TEST_ADDRESS_ONE);
+    expect(result).toEqual(false);
+  });
+
+  it('returns false when transaction is required by another transaction', () => {
+    const transaction = {
+      id: '123',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '456',
+        requiredTransactionIds: ['123'],
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      allTransactions,
+    );
     expect(result).toEqual(false);
   });
 });
