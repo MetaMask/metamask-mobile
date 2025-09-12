@@ -51,6 +51,126 @@ export const createTradingViewChartTemplate = (
         window.visibleCandleCount = 45; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
         
+        // Smart timestamp formatter using TradingView's native tickMarkType with fallback
+        window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
+            const date = new Date(time * 1000);
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            if (isCrosshair) {
+                // Crosshair labels: always show full date and time for precision
+                return date.toLocaleString('en-US', { 
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: userTimezone
+                });
+            } else {
+                // Debug logging to see what tickMarkType we're getting
+                console.log('📊 TradingView: tickMarkType =', tickMarkType, 'for time =', time);
+                
+                // Use TradingView's native tickMarkType if available
+                if (tickMarkType) {
+                    switch (tickMarkType) {
+                        case 'Year':
+                            return date.getFullYear().toString();
+                        case 'Month':
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                        case 'DayOfMonth':
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                        case 'Hour':
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                        case 'Minute':
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                        case 'Second':
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                    }
+                }
+                
+                // Fallback: Use our own logic based on visible range
+                if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
+                    const visibleRange = window.chart.timeScale().getVisibleRange();
+                    if (visibleRange) {
+                        const startDate = new Date(visibleRange.from * 1000);
+                        const endDate = new Date(visibleRange.to * 1000);
+                        
+                        // Calculate the time span in hours
+                        const timeSpanHours = (visibleRange.to - visibleRange.from) / 3600;
+                        
+                        console.log('📊 TradingView: Fallback logic - timeSpanHours =', timeSpanHours, 'from', startDate.toISOString(), 'to', endDate.toISOString());
+                        
+                        if (timeSpanHours <= 24) {
+                            // Less than 24 hours: show time only
+                            console.log('📊 TradingView: Using time format (≤24h)');
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                        } else if (timeSpanHours <= 24 * 7) {
+                            // Less than a week: show date only
+                            console.log('📊 TradingView: Using date format (≤1 week)');
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                        } else if (timeSpanHours <= 24 * 30) {
+                            // Less than a month: show date only
+                            console.log('📊 TradingView: Using date format (≤1 month)');
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                        } else {
+                            // More than a month: show month only
+                            console.log('📊 TradingView: Using month format (>1 month)');
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                        }
+                    }
+                }
+                
+                // Final fallback: show date and time
+                return date.toLocaleString('en-US', { 
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: userTimezone
+                });
+            }
+        };
+        
         // Zoom limits - consistent with chart configuration
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
@@ -164,15 +284,7 @@ export const createTradingViewChartTemplate = (
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
-                            const date = new Date(time * 1000);
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                            });
+                            return window.formatTimestamp(time, null, true);
                         }
                     },
                     grid: {
@@ -210,17 +322,9 @@ export const createTradingViewChartTemplate = (
                         lockVisibleTimeRangeOnResize: false, // Don't lock on resize
                         rightBarStaysOnScroll: false, // Don't auto-follow latest data during scroll
                         uniformDistribution: false, // Allow natural time distribution
-                        // Format time with date in user's local timezone
-                        tickMarkFormatter: (time) => {
-                            const date = new Date(time * 1000);
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use user's local timezone
-                            });
+                        // Format time with smart conditional formatting using TradingView's native tickMarkType
+                        tickMarkFormatter: (time, tickMarkType) => {
+                            return window.formatTimestamp(time, tickMarkType, false);
                         },
                     },
                     rightPriceScale: {
