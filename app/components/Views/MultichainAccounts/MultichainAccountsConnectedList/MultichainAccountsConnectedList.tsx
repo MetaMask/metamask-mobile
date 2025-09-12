@@ -39,6 +39,7 @@ const MultichainAccountsConnectedList = ({
     ({ item }: { item: AccountGroupObject }) => (
       <AccountListCell
         accountGroup={item}
+        isSelected={false} // no need to show checks here.
         onSelectAccount={() => {
           // No op here because it is handled by edit accounts.
         }}
