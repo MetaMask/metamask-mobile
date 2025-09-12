@@ -82,9 +82,9 @@ describe('AppStateEventListener', () => {
     };
     (processAttribution as jest.Mock).mockReturnValue(mockAttribution);
 
-    appStateManager.setCurrentDeeplink(
-      'metamask://connect?attributionId=test123',
-    );
+    appStateManager.setCurrentDeeplink({
+      uri: 'metamask://connect?attributionId=test123',
+    });
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 

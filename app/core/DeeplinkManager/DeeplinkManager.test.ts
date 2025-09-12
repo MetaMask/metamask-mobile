@@ -15,6 +15,7 @@ import { handlePerpsUrl, handlePerpsAssetUrl } from './Handlers/handlePerpsUrl';
 import Routes from '../../constants/navigation/Routes';
 import FCMService from '../../util/notifications/services/FCMService';
 import { handleDeeplink } from './Handlers/handleDeeplink';
+import AppConstants from '../AppConstants';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
@@ -235,6 +236,7 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
         ).toHaveBeenCalled();
         expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
           uri: testDeeplink,
+          overrideOrigin: AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
         });
       });
     });
@@ -277,6 +279,7 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       ).toHaveBeenCalledWith(expect.any(Function));
       expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
         uri: testDeeplink,
+        overrideOrigin: AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
       });
     });
 

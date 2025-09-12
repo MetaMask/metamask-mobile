@@ -1,14 +1,17 @@
 import { checkForDeeplink } from '../../../actions/user';
 import Logger from '../../../util/Logger';
-import { AppStateEventProcessor } from '../../AppStateEventListener';
+import {
+  AppStateEventProcessor,
+  DeepLinkWithProps,
+} from '../../AppStateEventListener';
 import ReduxService from '../../redux';
 
-export function handleDeeplink(opts: { uri?: string }) {
+export function handleDeeplink(opts: DeepLinkWithProps) {
   const { dispatch } = ReduxService.store;
   const { uri } = opts;
   try {
     if (uri && typeof uri === 'string') {
-      AppStateEventProcessor.setCurrentDeeplink(uri);
+      AppStateEventProcessor.setCurrentDeeplink(opts);
       dispatch(checkForDeeplink());
     }
   } catch (e) {
