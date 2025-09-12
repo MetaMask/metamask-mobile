@@ -26,13 +26,15 @@ export const useTokenAsset = () => {
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
   const tokens = useSelector(selectAccountTokensAcrossChains);
 
-  if (!chainId || !transactionType) {
+  if (!chainId) {
     return { displayName: strings('token.unknown') };
   }
 
-  const tokenAddress = TypesForNativeToken.includes(transactionType)
-    ? nativeTokenAddress
-    : safeToChecksumAddress(txParams?.to)?.toLowerCase();
+  const tokenAddress =
+    transactionType && TypesForNativeToken.includes(transactionType)
+      ? nativeTokenAddress
+      : safeToChecksumAddress(txParams?.to)?.toLowerCase();
+
   const asset = tokens[chainId]?.find(
     ({ address }) => address.toLowerCase() === tokenAddress,
   ) as TokenI;
