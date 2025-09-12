@@ -26,6 +26,7 @@ export enum ACTIONS {
   BUY_CRYPTO = 'buy-crypto',
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
+  DEPOSIT = 'deposit',
   HOME = 'home',
   SWAP = 'swap',
   EMPTY = '',

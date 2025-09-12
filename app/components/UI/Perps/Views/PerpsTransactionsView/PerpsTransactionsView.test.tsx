@@ -119,6 +119,7 @@ describe('PerpsTransactionsView', () => {
       connect: jest.fn(),
       disconnect: jest.fn(),
       resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
     });
 
     mockUsePerpsTrading.mockReturnValue({
@@ -213,6 +214,7 @@ describe('PerpsTransactionsView', () => {
       connect: jest.fn(),
       disconnect: jest.fn(),
       resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -578,6 +580,7 @@ describe('PerpsTransactionsView', () => {
       connect: jest.fn(),
       disconnect: jest.fn(),
       resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {

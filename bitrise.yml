@@ -2445,6 +2445,15 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/generated/sourcemaps/react/$OUTPUT_PATH
+            - is_compress: true
+            - zip_name: Android_Sourcemaps_$OUTPUT_PATH
+          title: Deploy Android Sourcemaps
       - script@1:
           title: Prepare Android build outputs for caching
           run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
