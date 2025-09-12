@@ -428,13 +428,14 @@ const PerpsClosePositionView: React.FC = () => {
           <TouchableOpacity
             onPress={() => handleTooltipPress('closing_fees')}
             style={styles.labelWithTooltip}
+            testID={PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON}
           >
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.close_position.fees')}
             </Text>
             <Icon
               name={IconName.Info}
-              size={IconSize.Xs}
+              size={IconSize.Sm}
               color={IconColor.Muted}
             />
           </TouchableOpacity>
@@ -448,15 +449,29 @@ const PerpsClosePositionView: React.FC = () => {
 
       <View style={[styles.summaryRow, styles.summaryTotalRow]}>
         <View style={styles.summaryLabel}>
-          <Text variant={TextVariant.BodyMD}>
-            {strings('perps.close_position.you_receive')}
-          </Text>
+          <TouchableOpacity
+            onPress={() => handleTooltipPress('close_position_you_receive')}
+            style={styles.labelWithTooltip}
+            testID={
+              PerpsClosePositionViewSelectorsIDs.YOU_RECEIVE_TOOLTIP_BUTTON
+            }
+          >
+            <Text variant={TextVariant.BodyMD}>
+              {strings('perps.close_position.you_receive')}
+            </Text>
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.Muted}
+            />
+          </TouchableOpacity>
         </View>
         <View style={styles.summaryValue}>
-          <Text variant={TextVariant.BodyMD}>
-            {formatPrice(Math.max(0, receiveAmount), {
-              maximumDecimals: 2,
-            })}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={receiveAmount > 0 ? TextColor.Success : TextColor.Default}
+          >
+            {formatPrice(receiveAmount, { maximumDecimals: 2 })}
           </Text>
         </View>
       </View>

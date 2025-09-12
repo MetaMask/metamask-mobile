@@ -64,10 +64,6 @@ jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple
 jest.mock('../../components/PerpsAmountDisplay');
 
-jest.mock('../../components/PerpsOrderTypeBottomSheet', () => ({
-  __esModule: true,
-  default: 'PerpsOrderTypeBottomSheet',
-}));
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () => ({
   __esModule: true,
   default: 'PerpsLimitPriceBottomSheet',
@@ -1372,46 +1368,6 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Should track initial screen view (useEffect runs on mount)
       expect(track).toHaveBeenCalled();
-    });
-  });
-
-  describe('Limit Order Auto-Open Logic', () => {
-    it('auto-opens limit price sheet when switching to limit without price', () => {
-      // Arrange
-      const TestComponent = () => {
-        const [orderType, setOrderType] = React.useState<'market' | 'limit'>(
-          'market',
-        );
-        const [limitPrice] = React.useState('');
-        const [isLimitPriceVisible, setIsLimitPriceVisible] =
-          React.useState(false);
-
-        // Simulate the useEffect logic from the component
-        React.useEffect(() => {
-          if (orderType === 'limit' && !limitPrice) {
-            setIsLimitPriceVisible(true);
-          }
-        }, [orderType, limitPrice]);
-
-        return (
-          <View>
-            <TouchableOpacity onPress={() => setOrderType('limit')}>
-              <Text>Switch to Limit</Text>
-            </TouchableOpacity>
-            <Text testID="limit-sheet-visible">
-              {isLimitPriceVisible.toString()}
-            </Text>
-          </View>
-        );
-      };
-
-      // Act
-      const { getByTestId, getByText } = render(<TestComponent />);
-      const switchButton = getByText('Switch to Limit');
-      fireEvent.press(switchButton);
-
-      // Assert - Should auto-open limit price sheet
-      expect(getByTestId('limit-sheet-visible').props.children).toBe('true');
     });
   });
 
