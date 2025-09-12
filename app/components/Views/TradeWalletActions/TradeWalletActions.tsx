@@ -19,7 +19,10 @@ import { Box } from '../../UI/Box/Box';
 
 import { IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { strings } from '../../../../locales/i18n';
@@ -71,6 +74,7 @@ function TradeWalletActions() {
   const postCallback = useRef<() => void>();
   const [visible, setIsVisible] = useState(true);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { height: screenHeight } = useSafeAreaFrame();
   const insets = useSafeAreaInsets();
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
@@ -284,7 +288,7 @@ function TradeWalletActions() {
       )}
       <View
         style={tw.style('pointer-events-none', {
-          height: windowHeight - buttonLayout.y,
+          height: screenHeight - buttonLayout.y - insetsTop,
         })}
       />
     </View>
