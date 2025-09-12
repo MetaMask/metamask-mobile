@@ -36,10 +36,12 @@ export class ConnectionRegistry {
   }
 
   /**
-   * One-time initialization to resume all persisted sessions on app cold start.
+   * One-time initialization to resume all persisted connections on app cold start.
    */
   private async initialize(): Promise<void> {
-    console.log('[SDKConnectV2] Initializing and resuming persisted connections...');
+    console.log(
+      '[SDKConnectV2] Initializing and resuming persisted connections...',
+    );
 
     const persisted = await this.store.list();
 
@@ -54,7 +56,7 @@ export class ConnectionRegistry {
         this.connections.set(conn.id, conn);
       } catch (error) {
         console.error(
-          `[SDKConnectV2] Failed to resume session ${c.id}, removing.`,
+          `[SDKConnectV2] Failed to resume connection ${c.id}.`,
           error,
         );
       }
@@ -102,7 +104,7 @@ export class ConnectionRegistry {
   }
 
   /**
-   * Disconnects a session, cleans up all associated data
+   * Disconnects a connection, cleans up all associated data
    * and revokes permissions.
    * @param id The ID of the connection to terminate.
    */
@@ -195,7 +197,7 @@ export class ConnectionRegistry {
         .reconnect()
         .catch((err: Error) =>
           console.error(
-            `[SDKConnectV2] Failed to reconnect session ${conn.id}`,
+            `[SDKConnectV2] Failed to reconnect connection ${conn.id}`,
             err,
           ),
         );
