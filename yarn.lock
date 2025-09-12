@@ -5760,14 +5760,14 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.6.0.tgz#f4b5b3d834e721a077b2920719ca3948f0599e29"
-  integrity sha512-U1zEdyCnxQcOkQ6D2G3kYpc9XxkNvpdBxaK9i8AB0YIIkjy0WlsTHtQbW9VLdi5rEeu6dvFjYjhxoukXLwjnGw==
+"@metamask/network-enablement-controller@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-1.0.0.tgz#4b66356962d524656b9ba42436f931b1bfb0862b"
+  integrity sha512-U10zDFSexcpHwHt/Jwut62kZv3mjJ2i22vNop+irfZLC2NErhk1RTmoQg8zilREvnPL4v4DpLi7wwHLbKCYEvA==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
-    "@metamask/utils" "^11.4.2"
+    "@metamask/utils" "^11.8.0"
     reselect "^5.1.1"
 
 "@metamask/nonce-tracker@^6.0.0":
@@ -6373,6 +6373,23 @@
   version "11.7.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.7.0.tgz#d6b7dad510eef5d19e756fa8d3e43c1a95cf1c5e"
   integrity sha512-IamqpZF8Lr4WeXJ84fD+Sy+v1Zo05SYuMPHHBrZWpzVbnHAmXQpL4ckn9s5dfA+zylp3WGypaBPb6SBZdOhuNQ==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.3"
+    "@types/debug" "^4.1.7"
+    "@types/lodash" "^4.17.20"
+    debug "^4.3.4"
+    lodash "^4.17.21"
+    pony-cause "^2.1.10"
+    semver "^7.5.4"
+    uuid "^9.0.1"
+
+"@metamask/utils@^11.8.0":
+  version "11.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.8.0.tgz#0d1f1b4097fa3645258cb397a9256e2c54b5c164"
+  integrity sha512-EJqiuvVBAjV1vd1kBhmVmRtGfadrBfY3ImcAMjl+8MSSByTB3VNwvlIBLQdp+TwdAomUdenJCx2BvOSQykm8Hg==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"

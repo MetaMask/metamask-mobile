@@ -10,7 +10,6 @@ import {
 } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
-import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -69,7 +68,6 @@ export const useNetworkEnablement = () => {
   const enableAllPopularNetworks = useMemo(
     () => () => {
       networkEnablementController.enableAllPopularNetworks();
-      networkEnablementController.enableNetwork(SolScope.Mainnet);
     },
     [networkEnablementController],
   );
