@@ -810,29 +810,51 @@ jobs:
                 
                 // Try to determine platform from path
                 console.log(`🔍 Analyzing path for platform detection: ${filePath}`);
-                if (filePath.includes('android-imported-wallet-test-results') || filePath.includes('android-onboarding-flow-test-results')) {
+                console.log(`🔍 Path parts:`, pathParts);
+                
+                // Look for platform indicators in the full path
+                if (filePath.includes('android-imported-wallet-test-results') || 
+                    filePath.includes('android-onboarding-flow-test-results') ||
+                    pathParts.some(part => part.includes('android-imported-wallet-test-results')) ||
+                    pathParts.some(part => part.includes('android-onboarding-flow-test-results'))) {
                   platform = 'android';
                   platformKey = 'Android';
                   metadata.platforms.android++;
                   console.log(`✅ Detected Android platform`);
-                } else if (filePath.includes('ios-imported-wallet-test-results') || filePath.includes('ios-onboarding-flow-test-results')) {
+                } else if (filePath.includes('ios-imported-wallet-test-results') || 
+                          filePath.includes('ios-onboarding-flow-test-results') ||
+                          pathParts.some(part => part.includes('ios-imported-wallet-test-results')) ||
+                          pathParts.some(part => part.includes('ios-onboarding-flow-test-results'))) {
                   platform = 'ios';
                   platformKey = 'iOS';
                   metadata.platforms.ios++;
                   console.log(`✅ Detected iOS platform`);
                 } else {
                   console.log(`⚠️ Could not determine platform from path`);
+                  console.log(`🔍 Full path: ${filePath}`);
+                  console.log(`🔍 Path parts:`, pathParts);
                 }
                 
                 // Extract device info from path (e.g., android-imported-wallet-test-results-Samsung Galaxy S21-11 or android-onboarding-flow-test-results-Samsung Galaxy S21-11)
                 console.log(`🔍 Analyzing path parts for device detection:`, pathParts);
-                const deviceMatch = pathParts.find(part => part.includes('-imported-wallet-test-results-') || part.includes('-onboarding-flow-test-results-'));
+                const deviceMatch = pathParts.find(part => 
+                  part.includes('-imported-wallet-test-results-') || 
+                  part.includes('-onboarding-flow-test-results-')
+                );
+                
                 if (deviceMatch) {
                   console.log(`✅ Found device match: ${deviceMatch}`);
                   const parts = deviceMatch.split('-');
                   console.log(`📝 Device parts:`, parts);
-                  if (parts.length >= 5) {
-                    deviceInfo = parts.slice(4).join('-');
+                  
+                  // Handle both imported-wallet and onboarding patterns
+                  let deviceInfoStart = 4; // Default for imported-wallet (android-imported-wallet-test-results-)
+                  if (deviceMatch.includes('-onboarding-flow-test-results-')) {
+                    deviceInfoStart = 4; // Same for onboarding (android-onboarding-flow-test-results-)
+                  }
+                  
+                  if (parts.length >= deviceInfoStart + 1) {
+                    deviceInfo = parts.slice(deviceInfoStart).join('-');
                     console.log(`📱 Extracted device info: ${deviceInfo}`);
                     // Create device key in format "DeviceName+OSVersion"
                     const deviceParts = deviceInfo.split('-');
@@ -848,6 +870,8 @@ jobs:
                   }
                 } else {
                   console.log(`⚠️ No device match found in path parts`);
+                  console.log(`🔍 Looking for patterns: -imported-wallet-test-results- or -onboarding-flow-test-results-`);
+                  console.log(`🔍 Available parts:`, pathParts);
                   // Fallback: try to extract from full path or use device info from report data
                   if (Array.isArray(reportData) && reportData.length > 0 && reportData[0].device) {
                     const device = reportData[0].device;
