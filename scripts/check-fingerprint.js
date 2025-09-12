@@ -15,7 +15,7 @@
  */
 
 const fs = require("fs");
-const { createFingerprint } = require("expo-fingerprint");
+const { createFingerprint } = require("@expo/fingerprint");
 
 async function main() {
   try {
