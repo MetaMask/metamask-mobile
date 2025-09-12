@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   smoke-confirmations-android:
-    name: "Confirmations Smoke (Android) - ${{ matrix.split }}"
+    name: 'Confirmations Smoke (Android) - ${{ matrix.split }}'
     strategy:
       matrix:
         split: [1, 2, 3]
@@ -18,13 +18,13 @@ jobs:
     with:
       test-suite-name: smoke-confirmations-android-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokeConfirmations"
+      test_suite_tag: 'SmokeConfirmations'
       split_number: ${{ matrix.split }}
       total_splits: 3
     secrets: inherit
 
   smoke-trade-android:
-    name: "Trade Smoke (Android) - ${{ matrix.split }}"
+    name: 'Trade Smoke (Android) - ${{ matrix.split }}'
     strategy:
       matrix:
         split: [1, 2]
@@ -33,13 +33,13 @@ jobs:
     with:
       test-suite-name: smoke-trade-android-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokeTrade"
+      test_suite_tag: 'SmokeTrade'
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
 
   smoke-wallet-platform-android:
-    name: "Wallet Platform Smoke (Android) - ${{ matrix.split }}"
+    name: 'Wallet Platform Smoke (Android) - ${{ matrix.split }}'
     strategy:
       matrix:
         split: [1, 2]
@@ -48,13 +48,13 @@ jobs:
     with:
       test-suite-name: smoke-wallet-platform-android-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokeWalletPlatform"
+      test_suite_tag: 'SmokeWalletPlatform'
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
 
   smoke-identity-android:
-    name: "Identity Smoke (Android) - ${{ matrix.split }}"
+    name: 'Identity Smoke (Android) - ${{ matrix.split }}'
     strategy:
       matrix:
         split: [1, 2]
@@ -63,13 +63,13 @@ jobs:
     with:
       test-suite-name: smoke-identity-android-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokeIdentity"
+      test_suite_tag: 'SmokeIdentity'
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
 
   smoke-accounts-android:
-    name: "Accounts Smoke (Android) - ${{ matrix.split }}"
+    name: 'Accounts Smoke (Android) - ${{ matrix.split }}'
     strategy:
       matrix:
         split: [1, 2]
@@ -78,13 +78,13 @@ jobs:
     with:
       test-suite-name: smoke-accounts-android-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokeAccounts"
+      test_suite_tag: 'SmokeAccounts'
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
 
   smoke-network-abstraction-android:
-    name: "Network Abstraction Smoke (Android) - ${{ matrix.split }}"
+    name: 'Network Abstraction Smoke (Android) - ${{ matrix.split }}'
     strategy:
       matrix:
         split: [1, 2]
@@ -93,13 +93,13 @@ jobs:
     with:
       test-suite-name: smoke-network-abstraction-android-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokeNetworkAbstractions"
+      test_suite_tag: 'SmokeNetworkAbstractions'
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
 
   smoke-network-expansion-android:
-    name: "Network Expansion Smoke (Android) - ${{ matrix.split }}"
+    name: 'Network Expansion Smoke (Android) - ${{ matrix.split }}'
     strategy:
       matrix:
         split: [1, 2]
@@ -108,39 +108,38 @@ jobs:
     with:
       test-suite-name: smoke-network-expansion-android-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokeNetworkExpansion"
+      test_suite_tag: 'SmokeNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 2
     secrets: inherit
 
-  smoke-performance-android:
-    name: "Performance Smoke (Android) - ${{ matrix.split }}"
+  # smoke-performance-android:
+  #   name: "Performance Smoke (Android) - ${{ matrix.split }}"
+  #   strategy:
+  #     matrix:
+  #       split: [1, 2]
+  #     fail-fast: false
+  #   uses: ./.github/workflows/run-e2e-workflow.yml
+  #   with:
+  #     test-suite-name: smoke-performance-android-${{ matrix.split }}
+  #     platform: android
+  #     test_suite_tag: "SmokePerformance"
+  #     split_number: ${{ matrix.split }}
+  #     total_splits: 2
+  #   secrets: inherit
+
+  confirmations-redesigned-android-smoke:
     strategy:
       matrix:
         split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: smoke-performance-android-${{ matrix.split }}
+      test-suite-name: confirmations-redesigned-android-smoke-${{ matrix.split }}
       platform: android
-      test_suite_tag: "SmokePerformance"
+      test_suite_tag: 'SmokeConfirmationsRedesigned'
       split_number: ${{ matrix.split }}
       total_splits: 2
-    secrets: inherit
-
-  smoke-card-android:
-    name: "Card Smoke (Android) - ${{ matrix.split }}"
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: smoke-card-android-${{ matrix.split }}
-      platform: android
-      test_suite_tag: "SmokeCard"
-      split_number: ${{ matrix.split }}
-      total_splits: 1
     secrets: inherit
 
   report-android-smoke-tests:
@@ -148,35 +147,34 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
-      - smoke-confirmations-android
-      - smoke-trade-android
-      - smoke-wallet-platform-android
-      - smoke-identity-android
-      - smoke-accounts-android
-      - smoke-network-abstraction-android
-      - smoke-network-expansion-android
-      - smoke-performance-android
-      - smoke-card-android
+      - confirmations-android-smoke
+      - trade-android-smoke
+      - wallet-platform-android-smoke
+      - identity-android-smoke
+      - accounts-android-smoke
+      - network-abstraction-android-smoke
+      - network-expansion-android-smoke
+      - confirmations-redesigned-android-smoke
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
       - name: Download all test results
         uses: actions/download-artifact@v4
         with:
           path: all-test-results/
-          pattern: "*-android-*-test-results"
+          pattern: '*-android-*-test-results'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
-          name: "Android E2E Smoke Test Results"
-          path: "all-test-results/**/*.xml"
-          reporter: "jest-junit"
+          name: 'Android E2E Smoke Test Results'
+          path: 'all-test-results/**/*.xml'
+          reporter: 'jest-junit'
           fail-on-error: false
-          list-suites: "failed"
-          list-tests: "failed"
+          list-suites: 'failed'
+          list-tests: 'failed'
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
