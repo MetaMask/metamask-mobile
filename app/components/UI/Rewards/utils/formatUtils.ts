@@ -195,3 +195,9 @@ export const formatNumber = (value: number | null): string => {
     return String(value);
   }
 };
+
+// Get icon name with fallback to Star if invalid
+export const getIconName = (iconName: string): IconName =>
+  Object.values(IconName).includes(iconName as IconName)
+    ? (iconName as IconName)
+    : IconName.Star;

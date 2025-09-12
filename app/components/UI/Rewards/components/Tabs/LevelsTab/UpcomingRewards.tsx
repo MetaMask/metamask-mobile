@@ -11,14 +11,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
-import { selectSeasonTiers } from '../../../../../../reducers/rewards/selectors';
+import {
+  selectSeasonTiers,
+  selectCurrentTier,
+} from '../../../../../../reducers/rewards/selectors';
 import {
   SeasonTierDto,
   SeasonRewardDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
-import { formatNumber } from '../../../utils/formatUtils';
+import { formatNumber, getIconName } from '../../../utils/formatUtils';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
@@ -39,7 +42,7 @@ const RewardItem: React.FC<RewardItemProps> = ({ reward }) => {
         twClassName={`h-12 w-12 rounded-full bg-[${brandColors.grey700}] items-center justify-center`}
       >
         <Icon
-          name={reward.iconName as IconName}
+          name={getIconName(reward.iconName)}
           size={IconSize.Lg}
           twClassName="text-icon-alternative"
         />
@@ -188,14 +191,25 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 
 const UpcomingRewards: React.FC = () => {
   const seasonTiers = useSelector(selectSeasonTiers) as SeasonTierDto[];
+  const currentTier = useSelector(selectCurrentTier);
 
-  // Initialize with all tiers expanded by default
-  const [expandedTiers, setExpandedTiers] = React.useState<Set<string>>(() => {
-    const tiersWithRewards = seasonTiers.filter(
-      (tier) => tier.rewards && tier.rewards.length > 0,
+  // Filter tiers to show only those above current tier
+  const upcomingTiers = useMemo(() => {
+    if (!currentTier) {
+      return seasonTiers.filter(
+        (tier) => tier.rewards && tier.rewards.length > 0,
+      );
+    }
+
+    return seasonTiers.filter(
+      (tier) => tier.pointsNeeded > currentTier.pointsNeeded,
     );
-    return new Set(tiersWithRewards.map((tier) => tier.id));
-  });
+  }, [seasonTiers, currentTier]);
+
+  // Initialize with all upcoming tiers expanded by default
+  const [expandedTiers, setExpandedTiers] = React.useState<Set<string>>(
+    () => new Set(upcomingTiers.map((tier) => tier.id)),
+  );
 
   const handleTierToggle = (tierId: string) => {
     setExpandedTiers((prev) => {
@@ -209,7 +223,7 @@ const UpcomingRewards: React.FC = () => {
     });
   };
 
-  if (!seasonTiers.length) {
+  if (!upcomingTiers.length) {
     return null;
   }
 
@@ -224,7 +238,7 @@ const UpcomingRewards: React.FC = () => {
 
       {/* Tier Accordions */}
       <Box twClassName="rounded-xl overflow-hidden">
-        {seasonTiers.map((tier) => (
+        {upcomingTiers.map((tier) => (
           <TierAccordion
             key={tier.id}
             tier={tier}
