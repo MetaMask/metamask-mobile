@@ -582,37 +582,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         return; // Ignore input that would exceed 9 digits
       }
       setAmount(value || '0');
-
-      // Track position size entry with proper event properties
-      const eventProps = {
-        [PerpsEventProperties.TIMESTAMP]: Date.now(),
-        [PerpsEventProperties.ASSET]: orderForm.asset,
-        [PerpsEventProperties.DIRECTION]:
-          orderForm.direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-        [PerpsEventProperties.ORDER_SIZE]: parseFloat(value) || 0,
-        [PerpsEventProperties.MARGIN_USED]: marginRequired,
-        [PerpsEventProperties.ORDER_TYPE]:
-          orderForm.type === 'market'
-            ? PerpsEventValues.ORDER_TYPE.MARKET
-            : PerpsEventValues.ORDER_TYPE.LIMIT,
-        [PerpsEventProperties.INPUT_METHOD]:
-          PerpsEventValues.INPUT_METHOD.KEYBOARD,
-      };
-
-      track(MetaMetricsEvents.PERPS_ORDER_SIZE_CHANGED, eventProps);
     },
-    [
-      setAmount,
-      track,
-      orderForm.asset,
-      orderForm.direction,
-      orderForm.leverage,
-      orderForm.type,
-      marginRequired,
-    ],
+    [setAmount],
   );
 
   const handlePercentagePress = (percentage: number) => {
