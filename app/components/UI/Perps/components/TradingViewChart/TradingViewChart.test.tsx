@@ -20,7 +20,19 @@ jest.mock('../../../../../component-library/hooks', () => ({
         background: { default: '#FFFFFF' },
         border: { muted: '#E5E5E5' },
         text: { muted: '#6B7280' },
-        error: { muted: '#FEF2F2' },
+        error: {
+          muted: '#FEF2F2',
+          default: '#EF4444',
+          alternative: '#DC2626',
+        },
+        success: {
+          muted: '#F0FDF4',
+          default: '#22C55E',
+          alternative: '#16A34A',
+        },
+        icon: {
+          alternative: '#6B7280',
+        },
       },
     },
   }),
