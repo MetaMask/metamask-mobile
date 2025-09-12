@@ -12,7 +12,6 @@ import { ConfirmationUIType } from '../../../../../../e2e/selectors/Confirmation
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
-import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
@@ -29,6 +28,7 @@ import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PerpsDepositSkeleton } from '../../external/perps-temp/components/deposit-skeleton';
 
 const ConfirmWrapped = ({
   styles,
@@ -115,11 +115,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   // Show spinner if there is no approvalRequest
   if (!approvalRequest) {
-    return (
-      <View style={styles.spinnerContainer} testID="spinner">
-        <AnimatedSpinner size={SpinnerSize.MD} />
-      </View>
-    );
+    return <Loader />;
   }
 
   // Show confirmation in a flat container if the confirmation is full screen
@@ -144,3 +140,18 @@ export const Confirm = ({ route }: ConfirmProps) => {
     </BottomSheet>
   );
 };
+
+function Loader() {
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+
+  return (
+    <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        <PerpsDepositSkeleton />
+      </ScrollView>
+    </View>
+  );
+}

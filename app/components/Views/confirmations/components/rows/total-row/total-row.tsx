@@ -11,6 +11,7 @@ import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
 import { View } from 'react-native';
+import { SkeletonRow } from '../skeleton-row';
 
 export function TotalRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
@@ -19,6 +20,10 @@ export function TotalRow() {
   const isQuotesLoading = useSelector((state: RootState) =>
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
   );
+
+  if (isQuotesLoading) {
+    return <SkeletonRow />;
+  }
 
   return (
     <View testID="total-row">

@@ -20,6 +20,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { BigNumber } from 'bignumber.js';
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
+import { SkeletonRow } from '../skeleton-row';
 
 export function BridgeFeeRow() {
   const { id: transactionId, type } = useTransactionMetadataOrThrow();
@@ -38,6 +39,15 @@ export function BridgeFeeRow() {
 
   if (!show) {
     return null;
+  }
+
+  if (isQuotesLoading) {
+    return (
+      <>
+        <SkeletonRow />
+        <SkeletonRow />
+      </>
+    );
   }
 
   return (

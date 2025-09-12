@@ -11,6 +11,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { PERPS_CURRENCY } from '../../constants/perps';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import Keypad from '../../../../Base/Keypad/components';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -112,3 +114,31 @@ export const DepositKeyboard = memo(
     );
   },
 );
+
+export function DepositKeyboardSkeleton() {
+  return (
+    <Keypad>
+      <DepositKeyboardSkeletonRow count={4} />
+      <DepositKeyboardSkeletonRow />
+      <DepositKeyboardSkeletonRow />
+      <DepositKeyboardSkeletonRow />
+      <DepositKeyboardSkeletonRow />
+    </Keypad>
+  );
+}
+
+function DepositKeyboardSkeletonRow({ count = 3 }) {
+  return (
+    <Keypad.Row>
+      {[...Array(count)].map((_, index) => (
+        <Skeleton
+          key={index}
+          height={40}
+          width={'100%'}
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{ borderRadius: 10, flex: 1 }}
+        />
+      ))}
+    </Keypad.Row>
+  );
+}
