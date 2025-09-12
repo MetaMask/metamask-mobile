@@ -41,17 +41,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Fingerprint build check
-        id: build-decision
-        uses: ./.github/actions/fingerprint-build-check
-        with:
-          platform: android
-          build_action: ${{ inputs.build_action }}
-          apk_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          pr_number: ${{ github.event.pull_request.number }}
-
       - name: Setup Android Build Environment
-        if: ${{ steps.build-decision.outputs.build_method != 'skip' }}
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
         with:
           platform: android
@@ -60,7 +50,6 @@ jobs:
           target: qa
 
       - name: Cache Gradle dependencies
-        if: ${{ steps.build-decision.outputs.build_method != 'skip' }}
         uses: actions/cache@v4
         with:
           path: |
@@ -72,10 +61,18 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Setup project dependencies
-        if: ${{ steps.build-decision.outputs.build_method != 'skip' }}
         run: |
           echo "🚀 Setting up project..."
           yarn setup:github-ci --no-build-ios
+
+      - name: Fingerprint build check
+        id: build-decision
+        uses: ./.github/actions/fingerprint-build-check
+        with:
+          platform: android
+          build_action: ${{ inputs.build_action }}
+          apk_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          pr_number: ${{ github.event.pull_request.number }}
       - name: Build Android E2E APKs
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
         run: |
