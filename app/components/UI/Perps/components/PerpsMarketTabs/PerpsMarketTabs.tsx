@@ -64,6 +64,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
 
+    // Always show statistics tab
+    dynamicTabs.push({
+      id: 'statistics',
+      label: strings('perps.market.statistics'),
+    });
+
     // Only show position tab if there's a position
     if (position) {
       dynamicTabs.push({
@@ -79,12 +85,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         label: strings('perps.market.orders'),
       });
     }
-
-    // Always show statistics tab
-    dynamicTabs.push({
-      id: 'statistics',
-      label: strings('perps.market.statistics'),
-    });
 
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
@@ -338,7 +338,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             testID={getTabTestId(tab.id)}
           >
             <Text
-              variant={TextVariant.BodyMDBold}
+              variant={TextVariant.BodyMD}
               color={isActive ? TextColor.Default : TextColor.Muted}
             >
               {tab.label}
