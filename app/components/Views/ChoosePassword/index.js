@@ -408,7 +408,12 @@ class ChoosePassword extends PureComponent {
   onPressCreate = async () => {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch;
+    let canSubmit;
+    if (this.getOauth2LoginSuccess()) {
+      canSubmit = passwordsMatch;
+    } else {
+      canSubmit = passwordsMatch && isSelected;
+    }
     if (loading) return;
     if (!canSubmit) {
       if (
@@ -718,7 +723,13 @@ class ChoosePassword extends PureComponent {
     const { isSelected, password, passwordStrength, confirmPassword, loading } =
       this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
+    let canSubmit;
+    if (this.getOauth2LoginSuccess()) {
+      canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
+    } else {
+      canSubmit =
+        passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+    }
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
     const colors = this.context.colors || mockTheme.colors;
