@@ -67,6 +67,26 @@ function extractPlatformAndScenario(filePath) {
     platformKey = 'iOS';
     scenario = 'combined';
     scenarioKey = 'Combined';
+  } else if (filePath.includes('android-imported-wallet-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'imported-wallet';
+    scenarioKey = 'ImportedWallet';
+  } else if (filePath.includes('ios-imported-wallet-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'imported-wallet';
+    scenarioKey = 'ImportedWallet';
+  } else if (filePath.includes('android-onboarding-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
+  } else if (filePath.includes('ios-onboarding-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
   }
   
   return { platform, platformKey, scenario, scenarioKey };
@@ -79,12 +99,30 @@ function extractPlatformAndScenario(filePath) {
  */
 function extractDeviceInfo(filePath) {
   const pathParts = filePath.split('/');
-  const deviceMatch = pathParts.find(part => part.includes('-combined-test-results-'));
   
-  if (deviceMatch) {
-    // Extract the part after "-combined-test-results-"
-    const testResultsIndex = deviceMatch.indexOf('-combined-test-results-');
-    const deviceInfo = deviceMatch.substring(testResultsIndex + '-combined-test-results-'.length);
+  // Look for various test result patterns
+  const patterns = [
+    '-combined-test-results-',
+    '-imported-wallet-test-results-',
+    '-onboarding-test-results-',
+    '-test-results-'
+  ];
+  
+  let deviceMatch = null;
+  let pattern = null;
+  
+  for (const p of patterns) {
+    deviceMatch = pathParts.find(part => part.includes(p));
+    if (deviceMatch) {
+      pattern = p;
+      break;
+    }
+  }
+  
+  if (deviceMatch && pattern) {
+    // Extract the part after the pattern
+    const testResultsIndex = deviceMatch.indexOf(pattern);
+    const deviceInfo = deviceMatch.substring(testResultsIndex + pattern.length);
     
     // Split by '-' and reconstruct device name and OS version
     const deviceParts = deviceInfo.split('-');
@@ -111,13 +149,13 @@ function determineScenarioFromTest(testReport) {
   // Check for onboarding-specific keywords
   if (testName.includes('onboarding') || 
       testName.includes('create') || 
-      testName.includes('wallet') ||
+      testName.includes('new wallet') ||
       testName.includes('seed') ||
       testName.includes('phrase')) {
     return 'Onboarding';
   }
   
-  // Default to ImportedWallet for other tests
+  // Default to ImportedWallet for other tests (import, swap, send, asset view, etc.)
   return 'ImportedWallet';
 }
 
@@ -130,13 +168,19 @@ function processTestReport(testReport) {
   const cleanedReport = {
     testName: testReport.testName,
     steps: testReport.steps || [],
-    totalTime: testReport.total,
-    videoURL: testReport.videoURL || null
+    total: testReport.total || testReport.totalTime || 0,
+    device: testReport.device || { name: 'Unknown', osVersion: 'Unknown' },
+    videoURL: testReport.videoURL || null,
+    sessionId: testReport.sessionId || null
   };
   
   if (testReport.testFailed) {
     cleanedReport.testFailed = true;
     cleanedReport.failureReason = testReport.failureReason;
+  }
+  
+  if (testReport.note) {
+    cleanedReport.note = testReport.note;
   }
   
   return cleanedReport;
@@ -240,23 +284,32 @@ function createSummary(groupedResults) {
     commit: process.env.GITHUB_SHA || 'unknown'
   };
   
-  // Count tests by scenario and platform
-  Object.keys(groupedResults).forEach(scenario => {
-    const scenarioKey = scenario === 'ImportedWallet' ? 'importedWallet' : 'onboarding';
-    
-    Object.keys(groupedResults[scenario]).forEach(platform => {
-      Object.keys(groupedResults[scenario][platform]).forEach(device => {
-        const testsCount = groupedResults[scenario][platform][device].length;
-        summary.scenarios[scenarioKey].totalTests += testsCount;
-        
-        if (platform === 'Android') {
-          summary.scenarios[scenarioKey].platforms.android += testsCount;
-        } else if (platform === 'iOS') {
-          summary.scenarios[scenarioKey].platforms.ios += testsCount;
-        }
-        
-        summary.devices.push({ scenario, platform, device, testCount: testsCount });
-      });
+  // Count tests by platform and device
+  Object.keys(groupedResults).forEach(platform => {
+    Object.keys(groupedResults[platform]).forEach(device => {
+      const testsCount = groupedResults[platform][device].length;
+      
+      // Count by scenario for summary
+      const deviceTests = groupedResults[platform][device];
+      const importedWalletTests = deviceTests.filter(test => 
+        determineScenarioFromTest(test) === 'ImportedWallet'
+      ).length;
+      const onboardingTests = deviceTests.filter(test => 
+        determineScenarioFromTest(test) === 'Onboarding'
+      ).length;
+      
+      summary.scenarios.importedWallet.totalTests += importedWalletTests;
+      summary.scenarios.onboarding.totalTests += onboardingTests;
+      
+      if (platform === 'Android') {
+        summary.scenarios.importedWallet.platforms.android += importedWalletTests;
+        summary.scenarios.onboarding.platforms.android += onboardingTests;
+      } else if (platform === 'iOS') {
+        summary.scenarios.importedWallet.platforms.ios += importedWalletTests;
+        summary.scenarios.onboarding.platforms.ios += onboardingTests;
+      }
+      
+      summary.devices.push({ platform, device, testCount: testsCount });
     });
   });
   
@@ -284,10 +337,10 @@ function aggregateReports() {
       return;
     }
     
-    // Create the grouped structure
+    // Create the grouped structure - organized by platform then device
     const groupedResults = {
-      ImportedWallet: { Android: {}, iOS: {} },
-      Onboarding: { Android: {}, iOS: {} }
+      Android: {},
+      iOS: {}
     };
     
     // Process each JSON file
@@ -298,34 +351,27 @@ function aggregateReports() {
         const reportData = JSON.parse(content);
         console.log(`✅ Successfully parsed JSON data from ${filePath}`);
         
-        // Extract platform info from path (scenario will be determined from test content)
+        // Extract platform info from path
         const { platformKey } = extractPlatformAndScenario(filePath);
         const deviceKey = extractDeviceInfo(filePath);
         
-        // Initialize structure for both scenarios
-        ['ImportedWallet', 'Onboarding'].forEach(scenarioKey => {
-          if (!groupedResults[scenarioKey]) {
-            groupedResults[scenarioKey] = {};
-          }
-          if (!groupedResults[scenarioKey][platformKey]) {
-            groupedResults[scenarioKey][platformKey] = {};
-          }
-          if (!groupedResults[scenarioKey][platformKey][deviceKey]) {
-            groupedResults[scenarioKey][platformKey][deviceKey] = [];
-          }
-        });
+        // Initialize structure if it doesn't exist
+        if (!groupedResults[platformKey]) {
+          groupedResults[platformKey] = {};
+        }
+        if (!groupedResults[platformKey][deviceKey]) {
+          groupedResults[platformKey][deviceKey] = [];
+        }
         
-        // Process the report data and determine scenario from test content
+        // Process the report data
         if (Array.isArray(reportData)) {
           reportData.forEach(testReport => {
             const cleanedReport = processTestReport(testReport);
-            const scenarioKey = determineScenarioFromTest(cleanedReport);
-            groupedResults[scenarioKey][platformKey][deviceKey].push(cleanedReport);
+            groupedResults[platformKey][deviceKey].push(cleanedReport);
           });
         } else {
           const cleanedReport = processTestReport(reportData);
-          const scenarioKey = determineScenarioFromTest(cleanedReport);
-          groupedResults[scenarioKey][platformKey][deviceKey].push(cleanedReport);
+          groupedResults[platformKey][deviceKey].push(cleanedReport);
         }
       } catch (error) {
         console.error(`❌ Error processing ${filePath}: ${error.message}`);
