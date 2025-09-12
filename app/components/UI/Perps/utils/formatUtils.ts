@@ -736,6 +736,26 @@ export const formatTransactionDate = (timestamp: number): string => {
 };
 
 /**
+ * Formats a timestamp for order cards with time
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Formatted date string with time (e.g., "July 24, 2025 at 2:30 PM")
+ * @example formatOrderCardDate(1642492800000) => "Jan 18"
+ */
+export const formatOrderCardDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const dateStr = getIntlDateTimeFormatter('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+  const timeStr = getIntlDateTimeFormatter('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+  return `${dateStr} at ${timeStr}`;
+};
+
+/**
  * Formats a timestamp for transaction section headers
  * @param timestamp - Unix timestamp in milliseconds
  * @returns Formatted date section string ("Today", "Yesterday", or "Month Day")

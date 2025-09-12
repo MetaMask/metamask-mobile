@@ -122,7 +122,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   }));
 
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }, { scale: thumbScale.value }],
+    transform: [{ translateX: translateX.value }],
   }));
 
   // JS callback wrapper
@@ -172,7 +172,6 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     .enabled(!disabled)
     .onBegin(() => {
       isPressed.value = true;
-      thumbScale.value = 1.1; // Subtle scale effect, instant
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
     })
     .onUpdate((event) => {

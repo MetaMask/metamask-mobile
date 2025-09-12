@@ -167,6 +167,12 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
+  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
+    const depositCashPath = url.replace(
+      `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`,
+      '',
+    );
+    instance._handleDepositCash(depositCashPath);
   }
 }
 
