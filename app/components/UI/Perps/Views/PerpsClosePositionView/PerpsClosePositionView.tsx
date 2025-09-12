@@ -37,7 +37,6 @@ import {
   usePerpsOrderFees,
   usePerpsClosePositionValidation,
   usePerpsClosePosition,
-  usePerpsMarketData,
   usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -98,14 +97,10 @@ const PerpsClosePositionView: React.FC = () => {
   const [isUserInputActive, setIsUserInputActive] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-  const [displayMode, setDisplayMode] = useState<'usd' | 'token'>('usd');
 
   // State for close amount
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
-  const [closeAmount, setCloseAmount] = useState(position.size);
-  const [closeAmountString, setCloseAmountString] = useState(position.size); // Raw string for token input
-  const [closeAmountUSD, setCloseAmountUSD] = useState(0);
-  const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input
+  const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input (user input only)
 
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
@@ -119,12 +114,29 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
-  // Get market data for decimal precision
-  const { marketData } = usePerpsMarketData(position.coin);
-
   // Determine position direction
   const isLong = parseFloat(position.size) > 0;
   const absSize = Math.abs(parseFloat(position.size));
+
+  // Calculate display values directly from closePercentage for immediate updates
+  const { closeAmount, calculatedUSDString } = useMemo(() => {
+    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
+      percentage: closePercentage,
+      positionSize: absSize,
+      currentPrice,
+    });
+
+    return {
+      closeAmount: tokenAmount.toString(),
+      calculatedUSDString: usdValue.toFixed(2),
+    };
+  }, [closePercentage, absSize, currentPrice]);
+
+  // Use calculated USD string when not in input mode, user input when typing
+  const displayUSDString =
+    isInputFocused || isUserInputActive
+      ? closeAmountUSDString
+      : calculatedUSDString;
 
   // Calculate position value and effective margin
   const positionValue = absSize * currentPrice;
@@ -192,8 +204,7 @@ const PerpsClosePositionView: React.FC = () => {
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
     const initialUSDAmount = absSize * currentPrice;
-    setCloseAmountUSD(initialUSDAmount);
-    setCloseAmountUSDString(initialUSDAmount.toString());
+    setCloseAmountUSDString(initialUSDAmount.toFixed(2));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally excluding currentPrice to prevent updates on price changes
   }, [absSize]);
 
@@ -203,50 +214,6 @@ const PerpsClosePositionView: React.FC = () => {
       setIsLimitPriceVisible(true);
     }
   }, [orderType, limitPrice]);
-
-  // Update close amount when percentage changes (but not during active input)
-  useEffect(() => {
-    // Skip automatic updates when user is actively typing or when input is focused
-    if (isInputFocused || isUserInputActive) {
-      return;
-    }
-
-    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
-      percentage: closePercentage,
-      positionSize: absSize,
-      currentPrice,
-    });
-
-    setCloseAmount(tokenAmount.toString());
-    setCloseAmountString(tokenAmount.toString()); // Update token display string for slider
-    setCloseAmountUSD(usdValue);
-    setCloseAmountUSDString(usdValue.toString());
-  }, [
-    closePercentage,
-    absSize,
-    currentPrice,
-    isInputFocused,
-    isUserInputActive,
-  ]);
-
-  // Track position close value changes (separate effect for performance)
-  useEffect(() => {
-    if (closePercentage !== 100 && !isInputFocused) {
-      const trackingValue = (closePercentage / 100) * absSize * currentPrice;
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED, {
-        [PerpsEventProperties.ASSET]: position.coin,
-        [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-        [PerpsEventProperties.CLOSE_VALUE]: trackingValue,
-      });
-    }
-  }, [
-    closePercentage,
-    absSize,
-    currentPrice,
-    position.coin,
-    track,
-    isInputFocused,
-  ]);
 
   const handleConfirm = async () => {
     // Track position close initiated
@@ -293,8 +260,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
-      const previousValue =
-        displayMode === 'usd' ? closeAmountUSDString : closeAmountString;
+      const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
       let adjustedValue = value;
@@ -327,105 +293,59 @@ const PerpsClosePositionView: React.FC = () => {
         return; // Ignore input that would exceed 9 digits
       }
 
-      if (displayMode === 'usd') {
-        // USD decimal input logic - preserve raw string for display
-        // Use adjustedValue instead of original value
-        const numericValue = parseFloat(adjustedValue) || 0;
-        const clampedValue = validateCloseAmountLimits({
-          amount: numericValue,
-          maxAmount: positionValue,
-        });
+      // USD decimal input logic - preserve raw string for display
+      // Use adjustedValue instead of original value
+      const numericValue = parseFloat(adjustedValue) || 0;
+      const clampedValue = validateCloseAmountLimits({
+        amount: numericValue,
+        maxAmount: positionValue,
+      });
 
-        // For USD mode, preserve user input exactly as typed for proper delete operations
-        // Only limit decimal places if there are digits after the decimal point
-        let formattedUSDString = adjustedValue;
-        if (adjustedValue.includes('.')) {
-          const parts = adjustedValue.split('.');
-          const integerPart = parts[0] || '';
-          const decimalPart = parts[1] || '';
+      // For USD mode, preserve user input exactly as typed for proper delete operations
+      // Only limit decimal places if there are digits after the decimal point
+      let formattedUSDString = adjustedValue;
+      if (adjustedValue.includes('.')) {
+        const parts = adjustedValue.split('.');
+        const integerPart = parts[0] || '';
+        const decimalPart = parts[1] || '';
 
-          // If there's a decimal part, limit it to 2 digits
-          if (decimalPart.length > 0) {
-            formattedUSDString = integerPart + '.' + decimalPart.slice(0, 2);
-          } else {
-            // Keep the decimal point if user just typed it (like "2.")
-            formattedUSDString = integerPart + '.';
-          }
+        // If there's a decimal part, limit it to 2 digits
+        if (decimalPart.length > 0) {
+          formattedUSDString = integerPart + '.' + decimalPart.slice(0, 2);
+        } else {
+          // Keep the decimal point if user just typed it (like "2.")
+          formattedUSDString = integerPart + '.';
         }
-
-        // Update all states in batch to prevent race conditions
-        setCloseAmountUSDString(formattedUSDString);
-        setCloseAmountUSD(clampedValue);
-
-        // Calculate percentage and token amount
-        const newPercentage =
-          positionValue > 0 ? (clampedValue / positionValue) * 100 : 0;
-        const newAmount = (newPercentage / 100) * absSize;
-
-        // Update percentage and token amount after USD values are set
-        setCloseAmount(newAmount.toString());
-        setClosePercentage(newPercentage);
-      } else {
-        // Token decimal input logic - preserve raw string for display
-        // Use adjustedValue for consistency
-        const numericValue = parseFloat(adjustedValue) || 0;
-        const clampedTokenAmount = validateCloseAmountLimits({
-          amount: numericValue,
-          maxAmount: absSize,
-        });
-
-        // Preserve raw input string for display (to keep decimal points)
-        // Only show clamped value if it actually exceeds the limit
-        let displayString = adjustedValue;
-        if (numericValue > absSize) {
-          displayString = clampedTokenAmount.toString();
-        }
-
-        // Update states in batch
-        setCloseAmountString(displayString); // Raw string for display
-        setCloseAmount(clampedTokenAmount.toString()); // Clamped value for calculations
-        setCloseAmountUSD(clampedTokenAmount * currentPrice);
-
-        // Calculate percentage after token values are set
-        const newPercentage =
-          absSize > 0 ? (clampedTokenAmount / absSize) * 100 : 0;
-        setClosePercentage(newPercentage);
       }
+
+      // Update all states in batch to prevent race conditions
+      setCloseAmountUSDString(formattedUSDString);
+
+      // Calculate percentage and token amount
+      const newPercentage =
+        positionValue > 0 ? (clampedValue / positionValue) * 100 : 0;
+
+      // Update percentage (amount and token values are calculated automatically)
+      setClosePercentage(newPercentage);
     },
-    [
-      displayMode,
-      positionValue,
-      absSize,
-      currentPrice,
-      isInputFocused,
-      isUserInputActive,
-      closeAmountString,
-      closeAmountUSDString,
-    ],
+    [positionValue, isInputFocused, isUserInputActive, closeAmountUSDString],
   );
 
   const handlePercentagePress = (percentage: number) => {
     const newPercentage = percentage * 100;
     setClosePercentage(newPercentage);
 
-    // Immediately update values even when keypad is active
-    const newAmount = (newPercentage / 100) * absSize;
-    setCloseAmount(newAmount.toString());
-    setCloseAmountString(newAmount.toString()); // Update token display string
-    const newUSDAmount = newAmount * currentPrice;
-    setCloseAmountUSD(newUSDAmount);
-    setCloseAmountUSDString(newUSDAmount.toString());
+    // Update USD input to match calculated value for keypad display consistency
+    const newUSDAmount = (newPercentage / 100) * absSize * currentPrice;
+    setCloseAmountUSDString(newUSDAmount.toFixed(2));
   };
 
   const handleMaxPress = () => {
     setClosePercentage(100);
 
-    // Immediately update values even when keypad is active
-    setCloseAmount(absSize.toString());
-    setCloseAmountString(absSize.toString()); // Update token display string
+    // Update USD input to match calculated value for keypad display consistency
     const newUSDAmount = absSize * currentPrice;
-    setCloseAmountUSD(newUSDAmount);
-    setCloseAmountUSDString(newUSDAmount.toString());
+    setCloseAmountUSDString(newUSDAmount.toFixed(2));
   };
 
   const handleDonePress = () => {
@@ -489,7 +409,9 @@ const PerpsClosePositionView: React.FC = () => {
             })}
           </Text>
           <View style={styles.inclusiveFeeRow}>
-            <Text variant={TextVariant.BodySM}>includes</Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              {strings('perps.close_position.includes_pnl')}
+            </Text>
             <Text
               variant={TextVariant.BodySM}
               color={
@@ -569,16 +491,11 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           label={strings('perps.close_position.select_amount')}
-          amount={displayMode === 'usd' ? closeAmountUSDString : closeAmount}
+          amount={displayUSDString}
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          showTokenAmount={displayMode === 'token'}
-          tokenAmount={
-            displayMode === 'token' && closeAmountString
-              ? closeAmountString
-              : formatPositionSize(closeAmount)
-          }
+          tokenAmount={formatPositionSize(closeAmount)}
           hasError={filteredErrors.length > 0}
           tokenSymbol={position.coin}
           showMaxAmount={false}
@@ -586,26 +503,9 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() =>
-              setDisplayMode(displayMode === 'usd' ? 'token' : 'usd')
-            }
-            testID={PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON}
-          >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {displayMode === 'usd'
-                ? `${closeAmountString || formatPositionSize(closeAmount)} ${
-                    position.coin
-                  }`
-                : formatPrice(closeAmountUSD, { maximumDecimals: 2 })}
-            </Text>
-            <Icon
-              name={IconName.SwapVertical}
-              size={IconSize.Xs}
-              color={IconColor.Alternative}
-            />
-          </TouchableOpacity>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {`${formatPositionSize(closeAmount)} ${position.coin}`}
+          </Text>
         </View>
 
         {/* Slider - Hidden when keypad/input is focused */}
@@ -727,12 +627,10 @@ const PerpsClosePositionView: React.FC = () => {
           </View>
 
           <Keypad
-            value={
-              displayMode === 'usd' ? closeAmountUSDString : closeAmountString
-            }
+            value={closeAmountUSDString}
             onChange={handleKeypadChange}
-            currency={displayMode === 'usd' ? 'USD' : 'native'}
-            decimals={displayMode === 'usd' ? 2 : marketData?.szDecimals ?? 18}
+            currency={'USD'}
+            decimals={2}
             style={styles.keypad}
           />
         </View>

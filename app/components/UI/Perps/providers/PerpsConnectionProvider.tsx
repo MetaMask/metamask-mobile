@@ -22,6 +22,7 @@ interface PerpsConnectionContextValue {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   resetError: () => void;
+  reconnectWithNewContext: () => Promise<void>;
 }
 
 const PerpsConnectionContext =
@@ -58,6 +59,7 @@ export const PerpsConnectionProvider: React.FC<
         isConnecting: false,
         isInitialized: true,
         isDisconnecting: false,
+        isInGracePeriod: false,
         error: null,
       });
       return;
@@ -71,6 +73,8 @@ export const PerpsConnectionProvider: React.FC<
           prevState.isConnected !== state.isConnected ||
           prevState.isConnecting !== state.isConnecting ||
           prevState.isInitialized !== state.isInitialized ||
+          prevState.isDisconnecting !== state.isDisconnecting ||
+          prevState.isInGracePeriod !== state.isInGracePeriod ||
           prevState.error !== state.error
         ) {
           return state;
@@ -105,6 +109,8 @@ export const PerpsConnectionProvider: React.FC<
         prevState.isConnected !== state.isConnected ||
         prevState.isConnecting !== state.isConnecting ||
         prevState.isInitialized !== state.isInitialized ||
+        prevState.isDisconnecting !== state.isDisconnecting ||
+        prevState.isInGracePeriod !== state.isInGracePeriod ||
         prevState.error !== state.error
       ) {
         return state;
@@ -129,6 +135,8 @@ export const PerpsConnectionProvider: React.FC<
         prevState.isConnected !== state.isConnected ||
         prevState.isConnecting !== state.isConnecting ||
         prevState.isInitialized !== state.isInitialized ||
+        prevState.isDisconnecting !== state.isDisconnecting ||
+        prevState.isInGracePeriod !== state.isInGracePeriod ||
         prevState.error !== state.error
       ) {
         return state;
@@ -143,6 +151,21 @@ export const PerpsConnectionProvider: React.FC<
     // Update state to reflect error cleared
     const state = PerpsConnectionManager.getConnectionState();
     setConnectionState(state);
+  }, []);
+
+  // Reconnect with new context for stuck connections
+  const reconnectWithNewContext = useCallback(async () => {
+    try {
+      // Use the existing reconnectWithNewContext method from the singleton
+      await PerpsConnectionManager.reconnectWithNewContext();
+      // Update state to reflect changes
+      const state = PerpsConnectionManager.getConnectionState();
+      setConnectionState(state);
+    } catch (err) {
+      // Error is handled by connection manager, just update state
+      const state = PerpsConnectionManager.getConnectionState();
+      setConnectionState(state);
+    }
   }, []);
 
   // Use the connection lifecycle hook to manage visibility and app state
@@ -184,6 +207,7 @@ export const PerpsConnectionProvider: React.FC<
       connect,
       disconnect,
       resetError,
+      reconnectWithNewContext,
     }),
     [
       connectionState.isConnected,
@@ -193,6 +217,7 @@ export const PerpsConnectionProvider: React.FC<
       connect,
       disconnect,
       resetError,
+      reconnectWithNewContext,
     ],
   );
 

@@ -6,10 +6,9 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  formatPercentage,
-  formatPnl,
   formatPerpsFiat,
   PRICE_RANGES_DETAILED_VIEW,
+  formatPercentage,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
 
@@ -62,9 +61,6 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const isPositiveChange = displayChange >= 0;
   const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
 
-  // Calculate fiat change amount (exactly as original)
-  const changeAmount = (displayChange / 100) * displayPrice;
-
   return (
     <View style={styles.container}>
       <Text
@@ -79,7 +75,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
         color={changeColor}
         testID={testIDChange}
       >
-        {formatPnl(changeAmount)} ({formatPercentage(displayChange.toString())})
+        {formatPercentage(displayChange.toString())}
       </Text>
     </View>
   );

@@ -254,10 +254,10 @@ describe('BaseWalletDetails', () => {
     ).mockReturnValue({
       accountTree: {
         wallets: {
-          [mockWallet.id]: {
+          [`keyring:${mockWallet.id}`]: {
             groups: {
-              group1: mockAccountGroup1,
-              group2: mockAccountGroup2,
+              [mockAccountGroup1.id]: mockAccountGroup1,
+              [mockAccountGroup2.id]: mockAccountGroup2,
             },
           },
         },
