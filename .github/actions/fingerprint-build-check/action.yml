@@ -1,0 +1,97 @@
+name: 'Fingerprint Build Check'
+description: 'Check fingerprint and decide between full build, repack, or skip (Android only for now)'
+inputs:
+  platform:
+    description: 'Platform to check (currently android only)'
+    required: true
+  build_action:
+    description: 'Build action from needs workflow (full, check_fingerprint, skip)'
+    required: true
+    default: 'full'
+  apk_path:
+    description: 'Path to the APK/APP file to check for reuse'
+    required: false
+    default: ''
+  pr_number:
+    description: 'Pull request number for caching'
+    required: false
+    default: ''
+
+outputs:
+  build_method:
+    description: 'Determined build method: full, repack, or skip'
+    value: ${{ steps.decide.outputs.build_method }}
+  can_repack:
+    description: 'Whether repackaging is possible'
+    value: ${{ steps.decide.outputs.can_repack }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Restore fingerprint cache
+      uses: actions/cache@v4
+      with:
+        path: .app-native-fingerprint
+        key: fingerprint-${{ inputs.platform }}-${{ inputs.pr_number || 'main' }}-${{ github.sha }}
+        restore-keys: |
+          fingerprint-${{ inputs.platform }}-${{ inputs.pr_number || 'main' }}-
+
+    - name: Restore previous build artifacts
+      if: ${{ inputs.build_action == 'check_fingerprint' && inputs.apk_path != '' }}
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.apk_path }}
+        key: ${{ inputs.platform }}-artifacts-${{ inputs.pr_number || 'main' }}-${{ hashFiles('.app-native-fingerprint') }}
+        restore-keys: |
+          ${{ inputs.platform }}-artifacts-${{ inputs.pr_number || 'main' }}-
+
+    - name: Check fingerprint and decide build method
+      id: decide
+      shell: bash
+      run: |
+        echo "🔍 Fingerprint Build Check for ${{ inputs.platform }}"
+        echo "Input build action: ${{ inputs.build_action }}"
+        
+        if [[ "${{ inputs.build_action }}" == "skip" ]]; then
+          echo "⏭️ Build action is skip"
+          echo "build_method=skip" >> "$GITHUB_OUTPUT"
+          echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        
+        if [[ "${{ inputs.build_action }}" == "full" ]]; then
+          echo "🏗️ Build action is full - native code likely changed"
+          echo "build_method=full" >> "$GITHUB_OUTPUT"
+          echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        
+        if [[ "${{ inputs.build_action }}" == "check_fingerprint" ]]; then
+          echo "🔍 Checking fingerprint for potential reuse..."
+          
+          # Check if fingerprint matches
+          if yarn fingerprint:check; then
+            echo "✅ Fingerprint matches! Checking for existing artifacts..."
+            
+            # Check if we have cached artifacts
+            if [[ "${{ inputs.apk_path }}" != "" && -f "${{ inputs.apk_path }}" ]]; then
+              echo "📦 Found existing artifacts - can repack"
+              echo "build_method=repack" >> "$GITHUB_OUTPUT"
+              echo "can_repack=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "🔍 No existing artifacts found - need full build"
+              echo "build_method=full" >> "$GITHUB_OUTPUT"
+              echo "can_repack=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "🔄 Fingerprint differs - need full build"
+            echo "build_method=full" >> "$GITHUB_OUTPUT"
+            echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "❓ Unknown build action: ${{ inputs.build_action }}"
+          echo "build_method=full" >> "$GITHUB_OUTPUT"
+          echo "can_repack=false" >> "$GITHUB_OUTPUT"
+        fi
+        
+        echo "Decision: $(cat $GITHUB_OUTPUT | grep build_method | cut -d= -f2)"

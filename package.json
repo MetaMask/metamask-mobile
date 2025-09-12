@@ -47,6 +47,8 @@
     "build:android:main:test": "./scripts/build.sh android main test",
     "build:android:main:e2e": "./scripts/build.sh android main e2e",
     "build:android:flask:prod": "./scripts/build.sh android flask production",
+    "fingerprint:generate": "expo-fingerprint prebuild > .app-native-fingerprint",
+    "fingerprint:check": "node scripts/check-fingerprint.js",
     "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:flask:test": "./scripts/build.sh android flask test",
     "build:android:flask:e2e": "./scripts/build.sh android flask e2e",
@@ -498,7 +500,9 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
+    "@expo/repack-app": "^1.0.0",
     "@babel/preset-env": "^7.25.3",
+    "expo-fingerprint": "^1.0.0",
     "@babel/register": "^7.24.6",
     "@babel/runtime": "^7.25.0",
     "@cucumber/message-streams": "^4.0.1",

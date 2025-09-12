@@ -1,0 +1,35 @@
+name: 'Save Build Fingerprint'
+description: 'Save fingerprint and cache build artifacts after successful build (Android only for now)'
+inputs:
+  platform:
+    description: 'Platform (currently android only)'
+    required: true
+  artifacts_path:
+    description: 'Path to artifacts to cache'
+    required: true
+  pr_number:
+    description: 'Pull request number for caching'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate and save fingerprint
+      shell: bash
+      run: |
+        echo "💾 Generating fingerprint for ${{ inputs.platform }}..."
+        yarn fingerprint:generate
+        echo "✅ Fingerprint saved to .app-native-fingerprint"
+
+    - name: Cache build artifacts for future reuse
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.artifacts_path }}
+        key: ${{ inputs.platform }}-artifacts-${{ inputs.pr_number || 'main' }}-${{ hashFiles('.app-native-fingerprint') }}
+
+    - name: Save fingerprint cache
+      uses: actions/cache@v4
+      with:
+        path: .app-native-fingerprint
+        key: fingerprint-${{ inputs.platform }}-${{ inputs.pr_number || 'main' }}-${{ github.sha }}

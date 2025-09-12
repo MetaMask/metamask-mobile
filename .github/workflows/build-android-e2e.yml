@@ -5,6 +5,12 @@ name: Build Android E2E APKs
 
 on:
   workflow_call:
+    inputs:
+      build_action:
+        description: 'Build action: full, repack, or check_fingerprint'
+        required: false
+        type: string
+        default: 'full'
     outputs:
       apk-uploaded:
         description: 'Whether the APK was successfully uploaded'
@@ -15,6 +21,9 @@ on:
       sourcemap-uploaded:
         description: 'Whether the sourcemap was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
+      build-method:
+        description: 'The build method used: full, repack, or skipped'
+        value: ${{ jobs.build-android-apks.outputs.build-method }}
 
 jobs:
   build-android-apks:
@@ -26,6 +35,7 @@ jobs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+      build-method: ${{ steps.build-decision.outputs.build_method }}
     
     steps:
       - name: Checkout repo
@@ -59,8 +69,23 @@ jobs:
           command: |
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
+            - name: Fingerprint build check
+        id: build-decision
+        uses: ./.github/actions/fingerprint-build-check
+        with:
+          platform: android
+          build_action: ${{ inputs.build_action }}
+          apk_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          pr_number: ${{ github.event.pull_request.number }}
+
+      - name: Clean Native Build Directory (expo prebuild)
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        run: |
+          echo "Cleaning native build directory..."
+          yarn expo prebuild --clean --platform android
 
       - name: Build Android E2E APKs
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -103,6 +128,39 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      - name: Update JS and Assets (expo export)
+        if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        run: |
+          echo "🔧 Updating JS and assets with expo export..."
+          yarn setup:github-ci --no-build-ios --no-build-android
+          yarn expo export --platform android
+          echo "✅ JS and assets exported!"
+
+      - name: Repackage App Binary using @expo/repack-app
+        if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        run: |
+          echo "📦 Repackaging Android APK with updated JavaScript bundle..."
+          
+          # Repackage the APK with the exported bundle
+          echo "📱 Repackaging APK..."
+          npx @expo/repack-app \
+            --input android/app/build/outputs/apk/prod/release/app-prod-release.apk \
+            --output android/app/build/outputs/apk/prod/release/app-prod-release.apk \
+            --bundle dist/_expo/static/js/android/index.js
+          
+          echo "✅ Repackaging complete!"
+
+      - name: Save fingerprint and cache artifacts
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        uses: ./.github/actions/save-build-fingerprint
+        with:
+          platform: android
+          artifacts_path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+            sourcemaps/android/index.android.bundle.map
+          pr_number: ${{ github.event.pull_request.number }}
 
       - name: Upload Android APK
         id: upload-apk
