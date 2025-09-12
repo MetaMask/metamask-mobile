@@ -303,10 +303,12 @@ export const createTradingViewChartTemplate = (
                             },
                             mouseWheel: false, // Disable mouse wheel zoom (mobile app)
                             pinch: true, // Enable pinch zoom on mobile
+                            pressedMouseMove: false, // Enable drag scroll for direct touch control
+                            horzTouchDrag: false, // Enable horizontal touch drag
                         },
                         handleScroll: {
                             mouseWheel: false, // Disable mouse wheel scroll (mobile app)
-                            pressedMouseMove: false, // Enable drag scroll for direct touch control
+                            pressedMouseMove: true, // Enable drag scroll for direct touch control
                             horzTouchDrag: true, // Enable horizontal touch drag
                             vertTouchDrag: false, // Disable vertical touch drag
                             // Optimize for direct press-and-drag responsiveness

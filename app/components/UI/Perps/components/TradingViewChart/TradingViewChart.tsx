@@ -395,7 +395,7 @@ const TradingViewChart = React.forwardRef<
             />
           )}
           {Platform.OS === 'android' ? (
-            <GestureDetector gesture={Gesture.Native()}>
+            <GestureDetector gesture={Gesture.Pinch()}>
               {webViewElement}
             </GestureDetector>
           ) : (
