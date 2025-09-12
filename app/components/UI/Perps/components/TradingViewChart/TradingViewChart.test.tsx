@@ -1235,7 +1235,6 @@ describe('TradingViewChart', () => {
         CandlePeriod.ONE_DAY,
         CandlePeriod.THREE_DAYS,
         CandlePeriod.ONE_WEEK,
-        CandlePeriod.ONE_MONTH,
       ];
 
       periods.forEach((_, index) => {
@@ -2029,10 +2028,6 @@ describe('TradingViewChart', () => {
         { duration: TimeDuration.ONE_DAY, period: CandlePeriod.THREE_MINUTES },
         { duration: TimeDuration.ONE_WEEK, period: CandlePeriod.FIVE_MINUTES },
         {
-          duration: TimeDuration.ONE_MONTH,
-          period: CandlePeriod.FIFTEEN_MINUTES,
-        },
-        {
           duration: TimeDuration.YEAR_TO_DATE,
           period: CandlePeriod.THIRTY_MINUTES,
         },
@@ -2040,11 +2035,9 @@ describe('TradingViewChart', () => {
         { duration: 'unknown' as TimeDuration, period: CandlePeriod.TWO_HOURS },
         { duration: TimeDuration.ONE_DAY, period: CandlePeriod.FOUR_HOURS },
         { duration: TimeDuration.ONE_WEEK, period: CandlePeriod.EIGHT_HOURS },
-        { duration: TimeDuration.ONE_MONTH, period: CandlePeriod.TWELVE_HOURS },
         { duration: TimeDuration.YEAR_TO_DATE, period: CandlePeriod.ONE_DAY },
         { duration: TimeDuration.MAX, period: CandlePeriod.THREE_DAYS },
-        { duration: TimeDuration.ONE_MONTH, period: CandlePeriod.ONE_WEEK },
-        { duration: TimeDuration.YEAR_TO_DATE, period: CandlePeriod.ONE_MONTH },
+        { duration: TimeDuration.YEAR_TO_DATE, period: CandlePeriod.ONE_WEEK },
         { duration: TimeDuration.ONE_DAY, period: 'unknown' as CandlePeriod },
       ];
 

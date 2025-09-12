@@ -516,8 +516,8 @@ class WalletView {
   }
 
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletFundButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_FUND_BUTTON);
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
   }
 
   get walletSwapButton(): DetoxElement {
@@ -538,9 +538,9 @@ class WalletView {
     );
   }
 
-  async tapWalletFundButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletFundButton, {
-      elemDescription: 'Wallet Fund Button',
+  async tapWalletBuyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBuyButton, {
+      elemDescription: 'Wallet Buy Button',
     });
   }
 
