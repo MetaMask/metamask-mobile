@@ -49,6 +49,7 @@ const initialRootState: RootState = {
     connections: {},
     approvedHosts: {},
     dappConnections: {},
+    v2Connections: {},
   },
   experimentalSettings: undefined,
   rpcEvents: undefined,

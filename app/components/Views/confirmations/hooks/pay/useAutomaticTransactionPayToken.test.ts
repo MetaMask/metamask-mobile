@@ -12,11 +12,13 @@ import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { isHardwareAccount } from '../../../../../util/address';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 jest.mock('./useTransactionRequiredFiat');
 jest.mock('./useTransactionRequiredTokens');
+jest.mock('../../../../../util/address');
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
@@ -51,6 +53,7 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
   const selectEnabledSourceChainsMock = jest.mocked(selectEnabledSourceChains);
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   const useTransactionRequiredFiatMock = jest.mocked(
     useTransactionRequiredFiat,
@@ -83,6 +86,8 @@ describe('useAutomaticTransactionPayToken', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       totalFiat: TOTAL_FIAT_MOCK,
     } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    isHardwareAccountMock.mockReturnValue(false);
   });
 
   it('selects target token if sufficient balance', () => {
@@ -324,5 +329,88 @@ describe('useAutomaticTransactionPayToken', () => {
       address: TOKEN_ADDRESS_3_MOCK,
       chainId: CHAIN_ID_2_MOCK,
     });
+  });
+
+  it('always selects target token if hardware wallet', () => {
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK - 1,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK - 2,
+      },
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 10,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 20,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 1,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: 1,
+      },
+    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+
+    isHardwareAccountMock.mockReturnValue(true);
+
+    runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
+  });
+
+  it('returns number of tokens with sufficient balance', () => {
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK - 1,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK - 2,
+      },
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 10,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 20,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 1,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: 1,
+      },
+    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+
+    const { result } = runHook();
+
+    expect(result.current.count).toBe(2);
   });
 });

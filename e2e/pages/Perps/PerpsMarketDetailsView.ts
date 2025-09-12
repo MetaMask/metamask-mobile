@@ -2,10 +2,14 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsCandlestickChartSelectorsIDs,
+  PerpsMarketTabsSelectorsIDs,
+  PerpsOpenOrderCardSelectorsIDs,
+  PerpsPositionCardSelectorsIDs,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
+import Assertions from '../../framework/Assertions';
 
 class PerpsMarketDetailsView {
   // Container elements
@@ -160,6 +164,8 @@ class PerpsMarketDetailsView {
   }
 
   async tapLongButton() {
+    // Ensure button is enabled before tapping to avoid flaky interactions
+    await Utilities.waitForElementToBeEnabled(this.longButton as DetoxElement);
     await Gestures.waitAndTap(this.longButton);
   }
 
@@ -200,6 +206,70 @@ class PerpsMarketDetailsView {
       speed: 'fast',
       percentage: 0.7,
       elemDescription: 'Perps market details scroll down',
+    });
+  }
+
+  // Verify that Orders tab has at least one open order card
+  async expectOpenOrderVisible() {
+    const ordersTab = Matchers.getElementByID(
+      PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
+    );
+    await Gestures.waitAndTap(ordersTab, {
+      elemDescription: 'Open Orders tab',
+    });
+    const openOrderCard = Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CARD,
+    ) as DetoxElement;
+
+    // Try a few extra scroll attempts; then assert to avoid masking regressions
+    for (let i = 0; i < 3; i++) {
+      const visible = await Utilities.isElementVisible(openOrderCard, 2000);
+      if (visible) {
+        break;
+      }
+      await Gestures.swipe(this.scrollView, 'up', {
+        speed: 'fast',
+        percentage: 0.6,
+        elemDescription: 'Scroll market details to reveal order card',
+      });
+    }
+
+    await Assertions.expectElementToBeVisible(openOrderCard, {
+      description: 'Open limit order card is visible on Orders tab',
+      timeout: 5000,
+    });
+  }
+
+  async expectNoOpenOrderVisible() {
+    const openOrderCard = Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CARD,
+    ) as DetoxElement;
+    await Assertions.expectElementToNotBeVisible(openOrderCard, {
+      description: 'Open limit order card is not visible',
+    });
+  }
+
+  // Ensure Close Position button is visible by performing best-effort scrolls, then assert
+  async expectClosePositionButtonVisible() {
+    const closeBtn = Matchers.getElementByID(
+      PerpsPositionCardSelectorsIDs.CLOSE_BUTTON,
+    ) as DetoxElement;
+
+    for (let i = 0; i < 3; i++) {
+      const visible = await Utilities.isElementVisible(closeBtn, 2000);
+      if (visible) {
+        break;
+      }
+      await Gestures.swipe(this.scrollView, 'up', {
+        speed: 'fast',
+        percentage: 0.7,
+        elemDescription: 'Scroll to reveal Close position button',
+      });
+    }
+
+    await Assertions.expectElementToBeVisible(closeBtn, {
+      description: 'Close position button visible on market details',
+      timeout: 5000,
     });
   }
 }

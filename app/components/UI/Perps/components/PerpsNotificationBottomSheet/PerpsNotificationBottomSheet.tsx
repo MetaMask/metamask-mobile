@@ -14,9 +14,9 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../hooks/useStyles';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { usePerpsNotificationToggle } from '../../../../../util/notifications/hooks/useSwitchNotifications';
 import { strings } from '../../../../../../locales/i18n';
 import createStyles from './PerpsNotificationBottomSheet.styles';
+import { useEnableNotifications } from '../../../../../util/notifications/hooks/useNotifications';
 
 interface PerpsNotificationBottomSheetProps {
   isVisible: boolean;
@@ -29,7 +29,10 @@ const PerpsNotificationBottomSheet: React.FC<
 > = ({ isVisible, onClose, testID }) => {
   const { styles } = useStyles(createStyles, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { switchPerpsNotifications } = usePerpsNotificationToggle();
+
+  const { enableNotifications, loading } = useEnableNotifications({
+    nudgeEnablePush: true,
+  });
 
   const handleTurnOnNotifications = useCallback(async () => {
     DevLogger.log(
@@ -37,7 +40,7 @@ const PerpsNotificationBottomSheet: React.FC<
     );
 
     try {
-      await switchPerpsNotifications(true);
+      await enableNotifications();
       DevLogger.log(
         'PerpsNotificationBottomSheet: Successfully enabled perps notifications',
       );
@@ -48,7 +51,7 @@ const PerpsNotificationBottomSheet: React.FC<
         error,
       );
     }
-  }, [switchPerpsNotifications]);
+  }, [enableNotifications]);
 
   if (!isVisible) return null;
 
@@ -81,6 +84,7 @@ const PerpsNotificationBottomSheet: React.FC<
           onPress={handleTurnOnNotifications}
           testID={`${testID}-turn-on-button`}
           style={styles.turnOnButton}
+          loading={loading}
         />
       </View>
     </BottomSheet>

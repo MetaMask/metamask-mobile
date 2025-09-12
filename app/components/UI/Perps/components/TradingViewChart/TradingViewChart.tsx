@@ -30,6 +30,7 @@ export type { TimeDuration } from '../../constants/chartConfig';
 
 export interface TradingViewChartRef {
   resetToDefault: () => void;
+  zoomToLatestCandle: (candleCount?: number) => void;
 }
 
 interface TradingViewChartProps {
@@ -135,6 +136,20 @@ const TradingViewChart = React.forwardRef<
         webViewRef.current.postMessage(JSON.stringify(message));
       }
     }, [isChartReady]);
+
+    // Zoom to latest candle when period changes
+    const zoomToLatestCandle = useCallback(
+      (candleCount?: number) => {
+        if (webViewRef.current && isChartReady) {
+          const message = {
+            type: 'ZOOM_TO_LATEST_CANDLE',
+            candleCount: candleCount || visibleCandleCount,
+          };
+          webViewRef.current.postMessage(JSON.stringify(message));
+        }
+      },
+      [isChartReady, visibleCandleCount],
+    );
 
     // Handle messages from WebView
     const handleWebViewMessage = useCallback(
@@ -287,8 +302,9 @@ const TradingViewChart = React.forwardRef<
       ref,
       () => ({
         resetToDefault,
+        zoomToLatestCandle,
       }),
-      [resetToDefault],
+      [resetToDefault, zoomToLatestCandle],
     );
 
     // Handle WebView errors
@@ -329,7 +345,12 @@ const TradingViewChart = React.forwardRef<
             <Skeleton
               height={height}
               width="100%"
-              style={{ position: 'absolute', zIndex: 10 }} // eslint-disable-line react-native/no-inline-styles
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                position: 'absolute',
+                zIndex: 10,
+                backgroundColor: theme.colors.background.default,
+              }} // eslint-disable-line react-native/no-inline-styles
               testID={`${
                 testID || TradingViewChartSelectorsIDs.CONTAINER
               }-skeleton`}
