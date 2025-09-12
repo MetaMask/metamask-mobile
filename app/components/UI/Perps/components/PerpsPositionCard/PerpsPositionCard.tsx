@@ -170,10 +170,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </Text>
             </View>
             <View style={styles.headerRow}>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-              >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>

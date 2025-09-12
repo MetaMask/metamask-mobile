@@ -199,10 +199,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                   ? strings('perps.order.trigger_price')
                   : strings('perps.order.limit_price')}
               </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
-              >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPerpsFiat(order.price, {
                   ranges: PRICE_RANGES_DETAILED_VIEW,
                 })}
@@ -218,10 +215,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                   >
                     {strings('perps.order.take_profit')}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
-                  >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {order.takeProfitPrice
                       ? formatPerpsFiat(order.takeProfitPrice, {
                           ranges: PRICE_RANGES_DETAILED_VIEW,
@@ -236,10 +230,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                   >
                     {strings('perps.order.stop_loss')}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
-                  >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {order.stopLossPrice
                       ? formatPerpsFiat(order.stopLossPrice, {
                           ranges: PRICE_RANGES_DETAILED_VIEW,

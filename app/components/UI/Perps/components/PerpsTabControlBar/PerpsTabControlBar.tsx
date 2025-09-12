@@ -195,10 +195,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           </View>
           <View style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={pnlColor}
-              >
+              <Text variant={TextVariant.BodyMD} color={pnlColor}>
                 {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
               </Text>
             </Animated.View>

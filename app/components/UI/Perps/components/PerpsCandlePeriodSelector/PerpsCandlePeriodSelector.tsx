@@ -5,7 +5,11 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod } from '../../constants/chartConfig';
 import { getPerpsCandlePeriodSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { styleSheet } from './PerpsCandlePeriodSelector.styles';
 
 // Default candle periods with preset values
@@ -65,7 +69,9 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
           >
             <Text
               variant={TextVariant.BodySm}
-              twClassName={isSelected ? 'text-text-default' : 'text-text-alternative'}
+              twClassName={
+                isSelected ? 'text-text-default' : 'text-text-alternative'
+              }
             >
               {period.label}
             </Text>
@@ -98,7 +104,11 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
         >
           {strings('perps.chart.candle_period_selector.show_more')}
         </Text>
-        <Icon name={IconName.ArrowDown} size={IconSize.Xs}  color={IconColor.Alternative}  />
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Xs}
+          color={IconColor.Alternative}
+        />
       </Pressable>
     </Box>
   );

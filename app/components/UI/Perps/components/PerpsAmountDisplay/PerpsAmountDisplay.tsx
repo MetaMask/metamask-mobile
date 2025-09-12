@@ -8,7 +8,6 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -40,7 +39,6 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const tw = useTailwind();
 
   useEffect(() => {
     if (isActive) {
@@ -85,7 +83,11 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
           color={hasError ? TextColor.Error : TextColor.Default}
           variant={TextVariant.BodyMDBold}
-          style={Platform.OS === 'android' ? styles.amountValueTokenAndroid : styles.amountValueToken}
+          style={
+            Platform.OS === 'android'
+              ? styles.amountValueTokenAndroid
+              : styles.amountValueToken
+          }
         >
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`

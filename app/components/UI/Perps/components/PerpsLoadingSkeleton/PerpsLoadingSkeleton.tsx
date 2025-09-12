@@ -45,7 +45,11 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
       />
 
       {/* Main Text */}
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative} twClassName="text-default mb-2">
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="text-default mb-2"
+      >
         {strings('perps.connection.connecting_to_perps')}
       </Text>
     </Box>

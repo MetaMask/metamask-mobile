@@ -345,7 +345,12 @@ const TradingViewChart = React.forwardRef<
             <Skeleton
               height={height}
               width="100%"
-              style={{ position: 'absolute', zIndex: 10, backgroundColor: theme.colors.background.default }} // eslint-disable-line react-native/no-inline-styles
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                position: 'absolute',
+                zIndex: 10,
+                backgroundColor: theme.colors.background.default,
+              }} // eslint-disable-line react-native/no-inline-styles
               testID={`${
                 testID || TradingViewChartSelectorsIDs.CONTAINER
               }-skeleton`}

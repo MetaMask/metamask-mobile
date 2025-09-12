@@ -45,7 +45,7 @@ export const createStyles = (colors: Theme['colors']) =>
       padding: 12,
       borderRadius: 8,
       marginBottom: 24,
-      marginHorizontal: 12
+      marginHorizontal: 12,
     },
     warningContainerSafe: {
       backgroundColor: LEVERAGE_BACKGROUND_COLORS.SAFE, // Green background
