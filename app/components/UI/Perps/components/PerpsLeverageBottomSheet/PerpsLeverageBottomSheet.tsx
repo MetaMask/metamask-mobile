@@ -479,6 +479,15 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     );
     const baseOptions = [2, 5, 10, 20, 40];
     const filtered = baseOptions.filter((option) => option <= maxLeverage);
+    
+    // Hide preset buttons when max leverage is 3x or lower to avoid redundant UI
+    // When max leverage is 3x, only 2x would be available as a preset, creating
+    // a confusing experience with 2x shown at the top, as a button, and in footer
+    if (maxLeverage <= 3) {
+      DevLogger.log(`Hiding leverage presets for maxLeverage: ${maxLeverage} (≤3x)`);
+      return [];
+    }
+    
     DevLogger.log(`Available leverage options: ${filtered.join(', ')}`);
     return filtered;
   }, [maxLeverage]);
@@ -718,35 +727,37 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           </View>
         </View>
 
-        {/* Quick select buttons */}
-        <View style={styles.quickSelectButtons}>
-          {quickSelectValues.map((value) => (
-            <TouchableOpacity
-              key={value}
-              style={[
-                styles.quickSelectButton,
-                tempLeverage === value && styles.quickSelectButtonActive,
-              ]}
-              onPress={() => {
-                setIsDragging(false); // Ensure we're not in dragging state
-                setTempLeverage(value);
-                setInputMethod('preset');
-                // Add haptic feedback for quick select buttons
-                impactAsync(ImpactFeedbackStyle.Light);
-              }}
-            >
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  tempLeverage === value ? TextColor.Primary : TextColor.Default
-                }
-                style={styles.quickSelectText}
+        {/* Quick select buttons - only show when preset options are available */}
+        {quickSelectValues.length > 0 && (
+          <View style={styles.quickSelectButtons}>
+            {quickSelectValues.map((value) => (
+              <TouchableOpacity
+                key={value}
+                style={[
+                  styles.quickSelectButton,
+                  tempLeverage === value && styles.quickSelectButtonActive,
+                ]}
+                onPress={() => {
+                  setIsDragging(false); // Ensure we're not in dragging state
+                  setTempLeverage(value);
+                  setInputMethod('preset');
+                  // Add haptic feedback for quick select buttons
+                  impactAsync(ImpactFeedbackStyle.Light);
+                }}
               >
-                {value}x
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={
+                    tempLeverage === value ? TextColor.Primary : TextColor.Default
+                  }
+                  style={styles.quickSelectText}
+                >
+                  {value}x
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
 
       <BottomSheetFooter buttonPropsArray={footerButtonProps} />
