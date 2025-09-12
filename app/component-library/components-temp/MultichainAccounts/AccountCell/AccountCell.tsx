@@ -82,7 +82,6 @@ const AccountCell = ({
       testID={AccountCellIds.CONTAINER}
     >
       {startAccessory}
-      <View style={styles.avatar} testID={AccountCellIds.AVATAR}></View>
       <View style={styles.avatarWrapper}>
         <AvatarAccount
           accountAddress={evmAddress}
