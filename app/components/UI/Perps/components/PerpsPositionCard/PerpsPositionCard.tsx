@@ -142,6 +142,27 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     setIsTPSLVisible(true);
   };
 
+  // Funding cost (cumulative since open) formatting logic
+  const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
+  const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
+  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+  // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
+  const fundingColor = isNearZeroFunding
+    ? TextColor.Default
+    : fundingSinceOpen === 0
+    ? TextColor.Default
+    : fundingSinceOpen > 0
+    ? TextColor.Error
+    : TextColor.Success;
+  const fundingDisplay = isNearZeroFunding
+    ? '$0.00'
+    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
+        Math.abs(fundingSinceOpen),
+        {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        },
+      )}`;
+
   return (
     <>
       <TouchableOpacity
@@ -304,25 +325,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={
-                    parseFloat(position.cumulativeFunding.sinceOpen) === 0
-                      ? TextColor.Default
-                      : parseFloat(position.cumulativeFunding.sinceOpen) > 0
-                      ? TextColor.Error
-                      : TextColor.Success
-                  }
-                >
-                  {parseFloat(position.cumulativeFunding.sinceOpen) >= 0
-                    ? '-'
-                    : '+'}
-                  {formatPerpsFiat(
-                    Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
-                    {
-                      ranges: PRICE_RANGES_MINIMAL_VIEW,
-                    },
-                  )}
+                <Text variant={TextVariant.BodySM} color={fundingColor}>
+                  {fundingDisplay}
                 </Text>
               </View>
             </View>

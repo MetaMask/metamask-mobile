@@ -1108,7 +1108,7 @@
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
-      "position_close_order_placed": "Position close order placed",
+      "position_close_order_placed": "Placed order to close position",
       "partially_closing_position": "Partially closing position",
       "partial_close_submitted": "Partial close submitted",
       "position_partially_closed": "Position partially closed",
@@ -1443,7 +1443,7 @@
       },
       "go_long_or_short": {
         "title": "Go long or short on a token",
-        "description": "Pick a token to long or short, then set your margin.",
+        "description": "Pick a token to long or short, then set your order size.",
         "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
       },
       "choose_leverage": {
@@ -1460,6 +1460,7 @@
       },
       "ready_to_trade": {
         "title": "Ready to trade?",
+        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
         "description": "Fund your perps account with any token and make your first trade in seconds."
       },
       "got_it": "Got it"

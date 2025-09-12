@@ -1,9 +1,11 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = () =>
+const styleSheet = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
     statisticsGrid: {
       gap: 12,
+      marginVertical: 6,
     },
     statisticsRow: {
       flexDirection: 'row',
@@ -12,7 +14,8 @@ const styleSheet = () =>
     },
     statisticsItem: {
       flex: 1,
-      padding: 4,
+      backgroundColor: theme.colors.background.muted,
+      padding: 16,
       borderRadius: 8,
     },
     statisticsLabelContainer: {

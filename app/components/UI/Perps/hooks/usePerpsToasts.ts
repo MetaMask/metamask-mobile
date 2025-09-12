@@ -548,7 +548,7 @@ const usePerpsToasts = (): {
                 amount: string,
                 assetSymbol: string,
               ) => ({
-                ...perpsBaseToastOptions.success,
+                ...perpsBaseToastOptions.inProgress,
                 labelOptions: getPerpsToastLabels(
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {

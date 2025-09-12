@@ -77,7 +77,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           <LivePriceHeader
             symbol={market.symbol}
             fallbackPrice={market.price || '0'}
-            fallbackChange={market.change24hPercent || '0'}
             testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
             testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
             throttleMs={1000}

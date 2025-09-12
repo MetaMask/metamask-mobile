@@ -271,7 +271,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
             disabled={disabled}
-            style={[styles.footerButton]}
+            style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>
