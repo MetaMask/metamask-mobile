@@ -194,8 +194,10 @@ const initialState = {
         },
       },
       NetworkEnablementController: {
-        enabledNetworks: {
-          '0x1': true,
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+          },
         },
       },
     },
