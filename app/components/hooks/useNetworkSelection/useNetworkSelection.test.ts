@@ -1,6 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex, parseCaipChainId , isCaipChainId } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  parseCaipChainId,
+  isCaipChainId,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
