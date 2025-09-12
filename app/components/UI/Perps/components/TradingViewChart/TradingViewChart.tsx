@@ -342,9 +342,7 @@ const TradingViewChart = React.forwardRef<
           const { nativeEvent } = syntheticEvent;
           console.error('TradingViewChart: HTTP Error:', nativeEvent);
         }}
-        testID={`${
-          testID || TradingViewChartSelectorsIDs.CONTAINER
-        }-webview`}
+        testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
         {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}
         {...platformSpecificProps}
       />
