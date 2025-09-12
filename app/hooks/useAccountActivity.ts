@@ -161,40 +161,5 @@ export const useAccountActivity = () => {
     getServices,
   ]);
 
-  // Control functions
-  const connect = useCallback(async () => {
-    const services = getServices();
-    if (!services) return;
-
-    try {
-      await services.backendWebSocketService.connect();
-    } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
-    }
-  }, [getServices]);
-
-  const disconnect = useCallback(async () => {
-    const services = getServices();
-    if (!services) return;
-
-    try {
-      await services.backendWebSocketService.disconnect();
-    } catch (error) {
-      console.error('Failed to disconnect WebSocket:', error);
-    }
-  }, [getServices]);
-
-  const clearError = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      subscriptionError: null,
-    }));
-  }, []);
-
-  return {
-    ...state,
-    connect,
-    disconnect,
-    clearError,
-  };
+  return state;
 };
