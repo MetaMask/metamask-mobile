@@ -15,7 +15,7 @@
  */
 
 const fs = require("fs");
-const { createFingerprint } = require("@expo/fingerprint");
+const { createFingerprintAsync } = require("@expo/fingerprint");
 
 async function main() {
   try {
@@ -33,7 +33,7 @@ async function main() {
 
     // Generate the current fingerprint
     console.log("Generating current fingerprint...");
-    const currentFingerprint = (await createFingerprint({ mode: "prebuild" })).hash;
+    const currentFingerprint = (await createFingerprintAsync({ mode: "prebuild" })).hash;
     console.log(`Current fingerprint: ${currentFingerprint}`);
 
     if (savedFingerprint === currentFingerprint) {
