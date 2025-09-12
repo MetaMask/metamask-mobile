@@ -41,7 +41,7 @@ import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../../Swaps/components/TokenIcon';
-import TokenSelectModal from '../../components/TokenSelectModal';
+
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import FiatSelectModal from '../../components/modals/FiatSelectModal';
@@ -60,6 +60,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectTicker } from '../../../../../../selectors/networkController';
@@ -84,7 +85,7 @@ import Text, {
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
-import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
@@ -114,12 +115,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
-  const [
-    isTokenSelectorModalVisible,
-    toggleTokenSelectorModal,
-    ,
-    hideTokenSelectorModal,
-  ] = useModalHandler(false);
+
   const [
     isFiatSelectorModalVisible,
     toggleFiatSelectorModal,
@@ -146,7 +142,6 @@ const BuildQuote = () => {
     selectedRegion,
     setSelectedRegion,
     selectedAsset,
-    setSelectedAsset,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedAddress,
@@ -512,16 +507,12 @@ const BuildQuote = () => {
 
   const handleAssetSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    toggleTokenSelectorModal();
-  }, [toggleTokenSelectorModal]);
-
-  const handleAssetPress = useCallback(
-    (newAsset: CryptoCurrency) => {
-      setSelectedAsset(newAsset);
-      hideTokenSelectorModal();
-    },
-    [hideTokenSelectorModal, setSelectedAsset],
-  );
+    navigation.navigate(
+      ...createTokenSelectModalNavigationDetails({
+        tokens: cryptoCurrencies ?? [],
+      }),
+    );
+  }, [navigation, cryptoCurrencies]);
 
   /**
    * * FiatCurrency handlers
@@ -1059,21 +1050,7 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
-      <TokenSelectModal
-        isVisible={isTokenSelectorModalVisible}
-        dismiss={toggleTokenSelectorModal as () => void}
-        title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
-        description={strings(
-          'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
-          {
-            network:
-              selectedNetworkName ||
-              strings('fiat_on_ramp_aggregator.this_network'),
-          },
-        )}
-        tokens={cryptoCurrencies ?? []}
-        onItemPress={handleAssetPress}
-      />
+
       <FiatSelectModal
         isVisible={isFiatSelectorModalVisible}
         dismiss={toggleFiatSelectorModal as () => void}
