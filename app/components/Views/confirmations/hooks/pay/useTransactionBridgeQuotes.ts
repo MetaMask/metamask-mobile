@@ -19,6 +19,7 @@ import {
   isQuoteExpired,
 } from '../../../../UI/Bridge/utils/quoteUtils';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
+import { useTransactionPayMetrics } from './useTransactionPayMetrics';
 
 const EXCLUDED_ALERTS = [
   AlertKeys.NoPayTokenQuotes,
@@ -41,6 +42,8 @@ export function useTransactionBridgeQuotes() {
   const interval = useRef<NodeJS.Timer>();
   const isExpired = useRef(false);
   const [refreshIndex, setRefreshIndex] = useState(0);
+
+  useTransactionPayMetrics();
 
   useEffect(() => {
     if (interval.current) {

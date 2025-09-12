@@ -18,9 +18,15 @@ const createStyles = (colors: Theme['colors']) =>
     },
     amountValueToken: {
       fontSize: 54,
-      fontWeight: '600',
-      color: colors.text.default,
+      fontWeight: '800',
       letterSpacing: -0.5,
+      lineHeight: 74,
+    },
+    amountValueTokenAndroid: {
+      fontSize: 54,
+      fontWeight: '500',
+      letterSpacing: -0.5,
+      lineHeight: 74,
     },
     amountValueActive: {
       color: colors.text.default,

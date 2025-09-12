@@ -3,8 +3,17 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import AccountCell from './AccountCell';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
-import { createMockAccountGroup } from '../test-utils';
+import {
+  createMockAccountGroup,
+  createMockInternalAccountsFromGroups,
+  createMockState,
+  createMockWallet,
+} from '../test-utils';
 import { AvatarAccountType } from '../../../components/Avatars/Avatar';
+import { Maskicon } from '@metamask/design-system-react-native';
+import JazzIcon from 'react-native-jazzicon';
+import { Image as RNImage } from 'react-native';
+import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -45,17 +54,24 @@ const renderAccountCell = (
     accountGroup?: AccountGroupObject;
     isSelected?: boolean;
     hideMenu?: boolean;
+    avatarAccountType?: AvatarAccountType;
   } = {},
 ) => {
   const defaultProps = {
     accountGroup: mockAccountGroup,
+    avatarAccountType: AvatarAccountType.Maskicon,
     isSelected: false,
     hideMenu: false,
     ...props,
   };
 
+  const groups = [defaultProps.accountGroup];
+  const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+  const internalAccounts = createMockInternalAccountsFromGroups(groups);
+  const baseState = createMockState([wallet], internalAccounts);
   return renderWithProvider(<AccountCell {...defaultProps} />, {
     state: {
+      ...baseState,
       settings: {
         avatarAccountType: AvatarAccountType.Maskicon,
       },
@@ -113,5 +129,29 @@ describe('AccountCell', () => {
         },
       },
     );
+  });
+
+  it('renders Maskicon AvatarAccount when avatarAccountType is Maskicon', () => {
+    const { getByTestId } = renderAccountCell({
+      avatarAccountType: AvatarAccountType.Maskicon,
+    });
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(Maskicon)).not.toThrow();
+  });
+
+  it('renders JazzIcon AvatarAccount when avatarAccountType is JazzIcon', () => {
+    const { getByTestId } = renderAccountCell({
+      avatarAccountType: AvatarAccountType.JazzIcon,
+    });
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(JazzIcon)).not.toThrow();
+  });
+
+  it('renders Blockies AvatarAccount when avatarAccountType is Blockies', () => {
+    const { getByTestId } = renderAccountCell({
+      avatarAccountType: AvatarAccountType.Blockies,
+    });
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(RNImage)).not.toThrow();
   });
 });
