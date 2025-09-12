@@ -5129,12 +5129,13 @@
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
-"@metamask/eip-5792-middleware@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eip-5792-middleware/-/eip-5792-middleware-1.0.0.tgz#6df7cb47999661585e592e7758b80c4652f4cd7a"
-  integrity sha512-NL98QBjE9CEVpfQskdoqBYhZmz3pIyujjTt4Pyp2Vlxz7PYzm1qrkSj0MrENaXkOMy0IClj8ZxoIJpMJuoAcRQ==
+"@metamask/eip-5792-middleware@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eip-5792-middleware/-/eip-5792-middleware-1.1.0.tgz#3dc25e31711f0045766da9d473ae9306de75d2df"
+  integrity sha512-zgI9uLSwi+U2x2fkIFMViI/RFJQFGp2B38YoWSgIQ1L7kshy0p0eNYrkOXnNX5Y+oDfbZLTSJeeAYBQ+suSNcA==
   dependencies:
     "@metamask/eth-json-rpc-middleware" "^17.0.1"
+    "@metamask/superstruct" "^3.1.0"
     "@metamask/transaction-controller" "^60.2.0"
     "@metamask/utils" "^11.4.2"
     uuid "^8.3.2"
@@ -5224,6 +5225,24 @@
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.1.0"
+    "@types/bn.js" "^5.1.5"
+    bn.js "^5.2.1"
+    klona "^2.0.6"
+    pify "^5.0.0"
+    safe-stable-stringify "^2.4.3"
+
+"@metamask/eth-json-rpc-middleware@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-18.0.0.tgz#7a6fdf83dd7400d7e9dd45bfd145a5e5b2c0109e"
+  integrity sha512-5Cje8BW8IEshkJYV/I6QPazv9xMVJWGFYjD48K70oYty2qEKGCHpUbbuinEyLmFFqi4YzpvK5PfRBMmf93hTYQ==
+  dependencies:
+    "@metamask/eth-block-tracker" "^12.0.0"
+    "@metamask/eth-json-rpc-provider" "^4.1.7"
+    "@metamask/eth-sig-util" "^8.1.2"
+    "@metamask/json-rpc-engine" "^10.0.2"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.7.0"
     "@types/bn.js" "^5.1.5"
     bn.js "^5.2.1"
     klona "^2.0.6"
