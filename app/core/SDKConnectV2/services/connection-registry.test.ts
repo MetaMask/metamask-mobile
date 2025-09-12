@@ -1,4 +1,4 @@
-import { AppState } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 import { ConnectionRegistry } from './connection-registry';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
 import { ConnectionStore } from '../store/connection-store';
@@ -42,6 +42,7 @@ const validDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
 )}`;
 
 // Factory functions for creating mock objects
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockConnection = (id: string, overrides: any = {}) => ({
   id,
   metadata: {
@@ -57,6 +58,7 @@ const createMockConnection = (id: string, overrides: any = {}) => ({
   ...overrides,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createPersistedConnection = (id: string, overrides: any = {}) => ({
   id,
   metadata: {
@@ -101,7 +103,6 @@ describe('ConnectionRegistry', () => {
     } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
-
   });
 
   describe('handleConnectDeeplink', () => {
@@ -365,7 +366,7 @@ describe('ConnectionRegistry', () => {
   describe('setupAppStateListener', () => {
     it('should handle app state transitions correctly', async () => {
       // Given: capture the app state handler
-      let appStateHandler: Function;
+      let appStateHandler: ((state: AppStateStatus) => void) | undefined;
       const mockAddEventListener = AppState.addEventListener as jest.Mock;
       mockAddEventListener.mockClear();
       mockAddEventListener.mockImplementation((event, handler) => {
@@ -396,6 +397,9 @@ describe('ConnectionRegistry', () => {
         mockHostApp,
         mockStore,
       );
+      if (!appStateHandler) {
+        throw new Error('AppState handler was not set');
+      }
 
       // Wait for initialization
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -404,23 +408,24 @@ describe('ConnectionRegistry', () => {
       mockConnection1.client.reconnect.mockClear();
       mockConnection2.client.reconnect.mockClear();
 
+
       // Test 1: First 'active' event (cold start) should NOT trigger reconnect
-      appStateHandler!('active');
+      appStateHandler('active');
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockConnection1.client.reconnect).not.toHaveBeenCalled();
       expect(mockConnection2.client.reconnect).not.toHaveBeenCalled();
 
       // Test 2: Other app states should NOT trigger reconnect
-      appStateHandler!('background');
-      appStateHandler!('inactive');
+      appStateHandler('background');
+      appStateHandler('inactive');
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockConnection1.client.reconnect).not.toHaveBeenCalled();
       expect(mockConnection2.client.reconnect).not.toHaveBeenCalled();
 
       // Test 3: Second 'active' event (foreground) SHOULD trigger reconnect
-      appStateHandler!('active');
+      appStateHandler('active');
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockConnection1.client.reconnect).toHaveBeenCalledTimes(1);
@@ -460,6 +465,7 @@ describe('ConnectionRegistry', () => {
       mockConnection2.client.reconnect.mockClear();
 
       // When: calling reconnectAll
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (registry as any).reconnectAll();
 
       // Then: all connections should be reconnected
@@ -506,6 +512,7 @@ describe('ConnectionRegistry', () => {
       mockConnection3.client.reconnect.mockClear();
 
       // When: calling reconnectAll (should not throw)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const reconnectPromise = (registry as any).reconnectAll();
       await expect(reconnectPromise).resolves.not.toThrow();
 
