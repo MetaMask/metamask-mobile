@@ -117,20 +117,31 @@ const PerpsClosePositionView: React.FC = () => {
   // Determine position direction
   const isLong = parseFloat(position.size) > 0;
   const absSize = Math.abs(parseFloat(position.size));
+  // Calculate effective price for calculations
+  // For limit orders, use limit price when available; otherwise use current market price
+  const effectivePrice = useMemo(() => {
+    if (orderType === 'limit' && limitPrice) {
+      const parsed = parseFloat(limitPrice);
+      if (!isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    return currentPrice;
+  }, [orderType, limitPrice, currentPrice]);
 
   // Calculate display values directly from closePercentage for immediate updates
   const { closeAmount, calculatedUSDString } = useMemo(() => {
     const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
       percentage: closePercentage,
       positionSize: absSize,
-      currentPrice,
+      currentPrice: effectivePrice,
     });
 
     return {
       closeAmount: tokenAmount.toString(),
       calculatedUSDString: usdValue.toFixed(2),
     };
-  }, [closePercentage, absSize, currentPrice]);
+  }, [closePercentage, absSize, effectivePrice]);
 
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =
@@ -139,11 +150,28 @@ const PerpsClosePositionView: React.FC = () => {
       : calculatedUSDString;
 
   // Calculate position value and effective margin
-  const positionValue = absSize * currentPrice;
-  // Use the actual margin from the position instead of recalculating
-  const effectiveMargin = parseFloat(position.marginUsed);
+  // For limit orders, use limit price for display calculations
+  const positionValue = absSize * effectivePrice;
 
-  // Use unrealized PnL from position
+  // Calculate P&L based on effective price (limit price for limit orders)
+  const entryPrice = parseFloat(position.entryPrice);
+  const effectivePnL = useMemo(() => {
+    // Calculate P&L based on the effective price (limit price for limit orders)
+    // For long positions: (effectivePrice - entryPrice) * absSize
+    // For short positions: (entryPrice - effectivePrice) * absSize
+    const priceDiff = isLong
+      ? effectivePrice - entryPrice
+      : entryPrice - effectivePrice;
+    return priceDiff * absSize;
+  }, [effectivePrice, entryPrice, absSize, isLong]);
+
+  // Use the actual initial margin from the position
+  const initialMargin = parseFloat(position.marginUsed);
+
+  // Calculate effective margin (initial margin + P&L at effective price)
+  const effectiveMargin = initialMargin + effectivePnL;
+
+  // Use unrealized PnL from position for current market price (for reference/tracking)
   const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
@@ -154,7 +182,7 @@ const PerpsClosePositionView: React.FC = () => {
     isMaker: false, // Closing positions are typically taker orders
   });
 
-  // Calculate what user will receive (margin - fees, P&L is settled separately)
+  // Calculate what user will receive (initial margin + P&L at effective price - fees)
   const receiveAmount =
     (closePercentage / 100) * effectiveMargin - feeResults.totalFee;
 
@@ -174,7 +202,7 @@ const PerpsClosePositionView: React.FC = () => {
     closeAmount: closeAmount.toString(),
     orderType,
     limitPrice,
-    currentPrice,
+    currentPrice: effectivePrice,
     positionSize: absSize,
     positionValue,
     minimumOrderAmount,
@@ -203,9 +231,9 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
-    const initialUSDAmount = absSize * currentPrice;
+    const initialUSDAmount = absSize * effectivePrice;
     setCloseAmountUSDString(initialUSDAmount.toFixed(2));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally excluding currentPrice to prevent updates on price changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally excluding effectivePrice to prevent updates on price changes
   }, [absSize]);
 
   // Auto-open limit price bottom sheet when switching to limit order
@@ -225,7 +253,7 @@ const PerpsClosePositionView: React.FC = () => {
       [PerpsEventProperties.ORDER_TYPE]: orderType,
       [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
       [PerpsEventProperties.CLOSE_VALUE]: closingValue,
-      [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
+      [PerpsEventProperties.PNL_DOLLAR]: effectivePnL * (closePercentage / 100),
       [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
     });
 
@@ -336,7 +364,7 @@ const PerpsClosePositionView: React.FC = () => {
     setClosePercentage(newPercentage);
 
     // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = (newPercentage / 100) * absSize * currentPrice;
+    const newUSDAmount = (newPercentage / 100) * absSize * effectivePrice;
     setCloseAmountUSDString(newUSDAmount.toFixed(2));
   };
 
@@ -344,7 +372,7 @@ const PerpsClosePositionView: React.FC = () => {
     setClosePercentage(100);
 
     // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = absSize * currentPrice;
+    const newUSDAmount = absSize * effectivePrice;
     setCloseAmountUSDString(newUSDAmount.toFixed(2));
   };
 
@@ -366,13 +394,13 @@ const PerpsClosePositionView: React.FC = () => {
   }, []);
 
   const realizedPnl = useMemo(() => {
-    const price = Math.abs(pnl * (closePercentage / 100));
+    const price = Math.abs(effectivePnL * (closePercentage / 100));
     const formattedPrice = formatPrice(price, {
       maximumDecimals: 2,
     });
 
-    return { formattedPrice, price, isNegative: pnl < 0 };
-  }, [pnl, closePercentage]);
+    return { formattedPrice, price, isNegative: effectivePnL < 0 };
+  }, [effectivePnL, closePercentage]);
 
   // Hide provider-level limit price required error on this UI
   // Only display the minimum amount error (e.g. minimum $10) and suppress others
