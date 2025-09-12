@@ -438,7 +438,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 false,
               ]
             }
-            testID="token-fund-button"
+            testID="token-buy-button"
           >
             <View
               style={
@@ -452,7 +452,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Money"
+                name="AttachMoney"
                 style={
                   {
                     "height": 20,
@@ -477,7 +477,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   }
                 }
               >
-                Fund
+                Buy
               </Text>
             </View>
           </View>
@@ -1603,7 +1603,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 false,
               ]
             }
-            testID="token-fund-button"
+            testID="token-buy-button"
           >
             <View
               style={
@@ -1617,7 +1617,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Money"
+                name="AttachMoney"
                 style={
                   {
                     "height": 20,
@@ -1642,7 +1642,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   }
                 }
               >
-                Fund
+                Buy
               </Text>
             </View>
           </View>
@@ -2804,7 +2804,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 false,
               ]
             }
-            testID="token-fund-button"
+            testID="token-buy-button"
           >
             <View
               style={
@@ -2818,7 +2818,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Money"
+                name="AttachMoney"
                 style={
                   {
                     "height": 20,
@@ -2843,7 +2843,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   }
                 }
               >
-                Fund
+                Buy
               </Text>
             </View>
           </View>

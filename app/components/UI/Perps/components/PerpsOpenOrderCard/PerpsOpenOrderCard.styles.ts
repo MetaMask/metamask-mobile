@@ -8,13 +8,13 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.alternative, // Darker contrasting background
+      backgroundColor: colors.background.section, // Darker contrasting background
       borderRadius: 12,
       padding: 16,
-      marginVertical: 6,
+      marginVertical: 8,
     },
     collapsedContainer: {
-      backgroundColor: colors.background.alternative, // Same darker contrasting background as expanded
+      backgroundColor: colors.background.section, // Same darker contrasting background as expanded
       borderRadius: 8,
       padding: 12,
       marginVertical: 4,
@@ -63,7 +63,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingVertical: 16,
-      marginBottom: 16,
+      marginBottom: 4,
     },
     bodyRow: {
       flexDirection: 'row',
@@ -84,9 +84,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerButton: {
       flex: 1,
-    },
-    footerButtonExpanded: {
-      borderColor: colors.border.default,
     },
     fillBadge: {
       backgroundColor: colors.background.default,

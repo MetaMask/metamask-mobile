@@ -89,9 +89,7 @@ export const createStyles = (colors: Theme['colors']) =>
       color: colors.error.default, // Red - matches gradient end
     },
     priceInfoContainer: {
-      backgroundColor: colors.background.section,
       borderRadius: 8,
-      padding: 16,
       marginBottom: 32,
       marginHorizontal: 12,
     },
@@ -122,7 +120,6 @@ export const createStyles = (colors: Theme['colors']) =>
       justifyContent: 'space-between',
       marginTop: 24,
       marginBottom: 16,
-      marginHorizontal: 12,
     },
     quickSelectButton: {
       flex: 1,
@@ -135,8 +132,8 @@ export const createStyles = (colors: Theme['colors']) =>
       borderColor: colors.border.muted,
     },
     quickSelectButtonActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
+      backgroundColor: colors.icon.default,
+      borderColor: colors.icon.default,
     },
     quickSelectText: {
       fontWeight: '500',
@@ -145,44 +142,37 @@ export const createStyles = (colors: Theme['colors']) =>
       paddingVertical: 8,
     },
     leverageTrack: {
-      height: 6,
+      height: 8,
       backgroundColor: colors.border.muted,
-      borderRadius: 3,
+      borderRadius: 20,
       position: 'relative',
     },
     leverageThumb: {
       width: 32,
       height: 32,
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.icon.alternative,
       borderRadius: 16,
       position: 'absolute',
       top: -13,
       left: -16,
-      shadowColor: colors.shadow.default,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
       elevation: 4,
-      borderWidth: 3,
-      borderColor: colors.border.default,
+      borderWidth: 4,
+      borderColor: colors.icon.default,
     },
     leverageGradient: {
       flex: 1,
       borderRadius: 3,
     },
     progressContainer: {
-      height: 6,
-      borderRadius: 3,
+      height: 8,
+      borderRadius: 20,
       overflow: 'hidden',
       position: 'absolute',
       left: 0,
       top: 0,
     },
     gradientStyle: {
-      height: 6,
+      height: 8,
       borderRadius: 3,
     },
     emptyPriceInfo: {
@@ -195,6 +185,6 @@ export const createStyles = (colors: Theme['colors']) =>
       height: 4,
       backgroundColor: colors.border.muted,
       borderRadius: 2,
-      top: 1,
+      top: 2,
     },
   });

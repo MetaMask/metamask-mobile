@@ -150,11 +150,11 @@ export const createStyles = (theme: Theme) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
-      marginBottom: 16,
+      marginBottom: 12,
+      gap: 8,
     },
     percentageButton: {
       flex: 1,
-      marginHorizontal: 4,
     },
     keypad: {
       paddingHorizontal: 16,

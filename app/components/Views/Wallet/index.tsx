@@ -115,6 +115,7 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   selectUseTokenDetection,
@@ -521,7 +522,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayFundButton = true;
+  const displayBuyButton = true;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -822,6 +823,11 @@ const Wallet = ({
    * Show multi rpc modal if there are networks duplicated and if never showed before
    */
   useCheckMultiRpcModal();
+
+  /**
+   * Show multichain accounts intro modal if state 2 is enabled and never showed before
+   */
+  useMultichainAccountsIntroModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -1192,7 +1198,7 @@ const Wallet = ({
           )}
           <View style={styles.assetsActionsContainer}>
             <AssetDetailsActions
-              displayFundButton={displayFundButton}
+              displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
               displayBridgeButton={displayBridgeButton}
               swapsIsLive={swapsIsLive}
@@ -1200,7 +1206,7 @@ const Wallet = ({
               goToSwaps={goToSwaps}
               onReceive={onReceive}
               onSend={onSend}
-              fundButtonActionID={WalletViewSelectorsIDs.WALLET_FUND_BUTTON}
+              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
               swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
               bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
               sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
@@ -1209,7 +1215,9 @@ const Wallet = ({
               }
             />
           </View>
+
           {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
@@ -1233,7 +1241,7 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      displayFundButton,
+      displayBuyButton,
       displaySwapsButton,
       displayBridgeButton,
       swapsIsLive,
