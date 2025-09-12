@@ -49,7 +49,8 @@ export default class AppwrightSelectors {
   }
 
   static async activateApp(device) {
-    return await device.webDriverClient.activateApp(this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask.qa');
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask.qa'; 
+    return await device.webDriverClient.activateApp(packageId);
   }
 
   static async hideKeyboard(device) {

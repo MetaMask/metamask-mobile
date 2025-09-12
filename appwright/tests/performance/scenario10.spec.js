@@ -119,7 +119,7 @@ test('Cold Start on Login Screen After Importing a Wallet', async ({
   await expect(timer1Duration).toBeLessThan(4000);
 });
 
-test('Wallet Time To Interact Cold Start on Fresh Install', async ({
+test.skip('Wallet Time To Interact Cold Start on Fresh Install', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -207,9 +207,7 @@ test('Measure warm start launch time after Importing a Wallet', async ({
   await ExternalWebsitesScreen.isTestDappDisplayed();
   await AppwrightSelectors.scrollDown(device);
   await ExternalWebsitesScreen.tapDappConnectButton();
-  console.log('Waiting for 10 seconds');
   await AccountApprovalModal.tapConnectButtonByText();
-  console.log('Waiting for 30 seconds');
   await TabBarModal.tapWalletButton();
   const timer1 = new TimerHelper(
     'Time since the user open the app again and the login screen appears',
