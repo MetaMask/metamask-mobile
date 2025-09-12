@@ -140,6 +140,8 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
+import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
@@ -531,6 +533,16 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO}
+      component={MultichainAccountsIntroModal}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
+      component={LearnMoreBottomSheet}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
