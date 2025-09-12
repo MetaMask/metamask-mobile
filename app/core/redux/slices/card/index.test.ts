@@ -11,6 +11,8 @@ import cardReducer, {
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
   initialState,
+  setHasViewedCardButton,
+  selectHasViewedCardButton,
 } from '.';
 import {
   CardTokenAllowance,
@@ -67,6 +69,7 @@ const CARD_STATE_MOCK: CardSliceState = {
     [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
   },
   isLoaded: true,
+  hasViewedCardButton: true,
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
@@ -74,6 +77,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   priorityTokensByAddress: {},
   lastFetchedByAddress: {},
   isLoaded: false,
+  hasViewedCardButton: false,
 };
 
 // Mock account object that matches the expected structure
@@ -111,6 +115,22 @@ describe('Card Selectors', () => {
       } as unknown as RootState;
 
       expect(selectCardholderAccounts(mockRootState)).toEqual([]);
+    });
+  });
+
+  describe('selectHasViewedCardButton', () => {
+    it('returns false by default from initial state', () => {
+      const mockRootState = { card: initialState } as unknown as RootState;
+      expect(selectHasViewedCardButton(mockRootState)).toBe(false);
+    });
+
+    it('returns true when hasViewedCardButton is true', () => {
+      const stateWithFlag: CardSliceState = {
+        ...initialState,
+        hasViewedCardButton: true,
+      };
+      const mockRootState = { card: stateWithFlag } as unknown as RootState;
+      expect(selectHasViewedCardButton(mockRootState)).toBe(true);
     });
   });
 
@@ -250,11 +270,32 @@ describe('Card Reducer', () => {
           '0x123': new Date(),
         },
         isLoaded: true,
+        hasViewedCardButton: true,
       };
 
       const state = cardReducer(currentState, resetCardState());
 
       expect(state).toEqual(initialState);
+    });
+
+    describe('setHasViewedCardButton', () => {
+      it('should set hasViewedCardButton to true', () => {
+        const state = cardReducer(initialState, setHasViewedCardButton(true));
+        expect(state.hasViewedCardButton).toBe(true);
+        // ensure other parts of state untouched
+        expect(state.cardholderAccounts).toEqual(
+          initialState.cardholderAccounts,
+        );
+      });
+
+      it('should set hasViewedCardButton to false when previously true', () => {
+        const current: CardSliceState = {
+          ...initialState,
+          hasViewedCardButton: true,
+        };
+        const state = cardReducer(current, setHasViewedCardButton(false));
+        expect(state.hasViewedCardButton).toBe(false);
+      });
     });
   });
 });

@@ -90,6 +90,8 @@ const Routes = {
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
     DEEP_LINK_MODAL: 'DeepLinkModal',
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
+    MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
+    MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_ERROR_MODAL: 'RewardsErrorModal',
   },
   ONBOARDING: {

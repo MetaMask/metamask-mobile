@@ -16,8 +16,17 @@ import { BigNumber } from 'bignumber.js';
 const ERROR_MESSAGE_NO_QUOTES = 'No quotes found';
 const ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM = 'All quotes under minimum';
 
+export interface QuoteMetrics {
+  attempts: number;
+  buffer: number;
+  latency: number;
+}
+
 export type TransactionBridgeQuote = QuoteResponse &
-  QuoteMetadata & { request: BridgeQuoteRequest };
+  QuoteMetadata & {
+    metrics?: QuoteMetrics;
+    request: BridgeQuoteRequest;
+  };
 
 const log = createProjectLogger('confirmation-bridge-utils');
 
@@ -42,6 +51,8 @@ export async function getBridgeQuotes(
 ): Promise<TransactionBridgeQuote[] | undefined> {
   log('Fetching bridge quotes', requests);
 
+  const startTime = Date.now();
+
   if (!requests?.length) {
     return [];
   }
@@ -59,7 +70,13 @@ export async function getBridgeQuotes(
       ),
     );
 
-    return result;
+    return result.map((quote) => ({
+      ...quote,
+      metrics: {
+        ...(quote.metrics as QuoteMetrics),
+        latency: Date.now() - startTime,
+      },
+    }));
   } catch (error) {
     log('Error fetching bridge quotes', error);
     return undefined;
@@ -132,7 +149,14 @@ async function getSufficientSingleBridgeQuote(
         quote: result,
       });
 
-      return result;
+      return {
+        ...result,
+        metrics: {
+          attempts: i + 1,
+          buffer: buffer + bufferStep * i,
+          latency: 0,
+        },
+      };
     } catch (error) {
       const errorMessage = (error as { message: string }).message;
 
@@ -185,7 +209,7 @@ async function getSingleBridgeQuote(
     destTokenAddress: toChecksumAddress(targetTokenAddress),
     destWalletAddress: from,
     gasIncluded: false,
-    gasless7702: false,
+    gasIncluded7702: false,
     insufficientBal: false,
     slippage: slippage * 100,
     srcChainId: sourceChainId,

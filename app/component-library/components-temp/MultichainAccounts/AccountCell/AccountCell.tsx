@@ -18,9 +18,15 @@ import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balanc
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import AvatarAccount, {
+  AvatarAccountType,
+} from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
+import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
+  avatarAccountType: AvatarAccountType;
   isSelected: boolean;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
@@ -28,6 +34,7 @@ interface AccountCellProps {
 
 const AccountCell = ({
   accountGroup,
+  avatarAccountType,
   isSelected,
   hideMenu = false,
   startAccessory,
@@ -50,6 +57,12 @@ const AccountCell = ({
   const totalBalance = groupBalance?.totalBalanceInUserCurrency;
   const userCurrency = groupBalance?.userCurrency;
 
+  const selectEvmAddress = useMemo(
+    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
+    [accountGroup.id],
+  );
+  const evmAddress = useSelector(selectEvmAddress);
+
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {
       return undefined;
@@ -70,6 +83,15 @@ const AccountCell = ({
     >
       {startAccessory}
       <View style={styles.avatar} testID={AccountCellIds.AVATAR}></View>
+      <View style={styles.avatarWrapper}>
+        <AvatarAccount
+          accountAddress={evmAddress}
+          type={avatarAccountType}
+          size={AvatarSize.Md}
+          style={styles.avatar}
+          testID={AccountCellIds.AVATAR}
+        />
+      </View>
       <View style={styles.accountName}>
         <Text
           variant={TextVariant.BodyMDBold}

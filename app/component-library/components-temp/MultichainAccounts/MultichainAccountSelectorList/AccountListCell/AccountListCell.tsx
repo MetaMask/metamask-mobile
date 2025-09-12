@@ -10,6 +10,7 @@ import Checkbox from '../../../../components/Checkbox';
 const AccountListCell = memo(
   ({
     accountGroup,
+    avatarAccountType,
     isSelected,
     onSelectAccount,
     showCheckbox = false,
@@ -33,6 +34,7 @@ const AccountListCell = memo(
             ) : undefined
           }
           accountGroup={accountGroup}
+          avatarAccountType={avatarAccountType}
           isSelected={isSelected}
         />
       </TouchableOpacity>
