@@ -922,6 +922,11 @@ class ChoosePassword extends PureComponent {
                       />
                     }
                     isDisabled={password === ''}
+                    style={
+                      this.checkError()
+                        ? { borderColor: colors.error.default }
+                        : {}
+                    }
                   />
                   {this.checkError() && (
                     <Text variant={TextVariant.BodySM} color={TextColor.Error}>
