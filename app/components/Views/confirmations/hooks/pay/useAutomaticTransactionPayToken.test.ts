@@ -374,4 +374,43 @@ describe('useAutomaticTransactionPayToken', () => {
       chainId: CHAIN_ID_1_MOCK,
     });
   });
+
+  it('returns number of tokens with sufficient balance', () => {
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK - 1,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK - 2,
+      },
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 10,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 20,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 1,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: 1,
+      },
+    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+
+    const { result } = runHook();
+
+    expect(result.current.count).toBe(2);
+  });
 });
