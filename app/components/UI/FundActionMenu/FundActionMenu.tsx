@@ -26,7 +26,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import Routes from '../../../constants/navigation/Routes';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 
 // Types
 import type {
@@ -115,7 +115,7 @@ const FundActionMenu = () => {
             ramp_type: 'DEPOSIT',
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => navigate(Routes.DEPOSIT.ID),
+          navigationAction: () => navigate(...createDepositNavigationDetails()),
         },
         {
           type: 'buy',

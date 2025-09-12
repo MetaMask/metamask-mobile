@@ -6,7 +6,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  formatPercentage,
   formatPnl,
   formatPerpsFiat,
   PRICE_RANGES_DETAILED_VIEW,
@@ -79,7 +78,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
         color={changeColor}
         testID={testIDChange}
       >
-        {formatPnl(changeAmount)} ({formatPercentage(displayChange.toString())})
+        {formatPnl(changeAmount)}
       </Text>
     </View>
   );

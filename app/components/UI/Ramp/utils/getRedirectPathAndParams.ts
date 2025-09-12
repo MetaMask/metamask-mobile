@@ -1,10 +1,10 @@
 const dummyProtocol = 'dummy:';
 
-export default function getRedirectPathsAndParams(rampPath: string) {
+export default function getRedirectPathsAndParams(path: string) {
   let pathnames: string[] = [];
   let params;
   try {
-    const urlObject = new URL(`${dummyProtocol}${rampPath}`);
+    const urlObject = new URL(`${dummyProtocol}${path}`);
     pathnames = `${urlObject.hostname}${urlObject.pathname}`
       .split('/')
       .filter(Boolean);
