@@ -57,9 +57,9 @@ import {
 } from '../../hooks';
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 import TradingViewChart, {
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
@@ -75,6 +75,7 @@ import ButtonSemantic, {
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  initialTab?: PerpsTabId;
   isNavigationFromOrderSuccess?: boolean;
 }
 
@@ -82,7 +83,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, isNavigationFromOrderSuccess } = route.params || {};
+  const { market, initialTab, isNavigationFromOrderSuccess } =
+    route.params || {};
   const { track } = usePerpsEventTracking();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -192,8 +194,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
+
+      // Zoom to latest candle when period changes
+      chartRef.current?.zoomToLatestCandle(visibleCandleCount);
     },
-    [market, track],
+    [market, track, visibleCandleCount],
   );
 
   const handleMorePress = useCallback(() => {
@@ -330,6 +335,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBackPress}
+          onActivityPress={() =>
+            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+              screen: Routes.TRANSACTIONS_VIEW,
+              params: { redirectToPerpsTransactions: true },
+            })
+          }
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
       </View>
@@ -388,6 +399,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
+              initialTab={initialTab}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
             />
@@ -406,7 +418,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 color={TextColor.Alternative}
                 onPress={handleTradingViewPress}
               >
-                Trading View
+                Trading View.
               </Text>
             </Text>
           </View>
@@ -485,14 +497,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}
-      {isNotificationsEnabled &&
-        PERPS_NOTIFICATIONS_FEATURE_ENABLED &&
-        isNavigationFromOrderSuccess && (
-          <PerpsNotificationTooltip
-            orderSuccess={isNavigationFromOrderSuccess}
-            testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
-          />
-        )}
+      {isNotificationsEnabled && isNavigationFromOrderSuccess && (
+        <PerpsNotificationTooltip
+          orderSuccess={isNavigationFromOrderSuccess}
+          testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
+        />
+      )}
     </SafeAreaView>
   );
 };

@@ -4,11 +4,57 @@ import type { OrderResult, Position } from '../controllers/types';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
+
 // Mock dependencies
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
+}));
+
+// Create stable mock references for usePerpsToasts
+const mockShowToast = jest.fn();
+const mockPerpsToastOptions = {
+  positionManagement: {
+    closePosition: {
+      marketClose: {
+        full: {
+          closeFullPositionInProgress: jest.fn(),
+          closeFullPositionSuccess: {},
+        },
+        partial: {
+          closePartialPositionInProgress: jest.fn(),
+        },
+      },
+      limitClose: {
+        full: {
+          fullPositionCloseSubmitted: jest.fn(),
+        },
+        partial: {
+          partialPositionCloseSubmitted: jest.fn(),
+        },
+      },
+    },
+  },
+};
+
+jest.mock('./usePerpsToasts', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    PerpsToastOptions: mockPerpsToastOptions,
+  }),
 }));
 
 describe('usePerpsClosePosition', () => {
@@ -36,6 +82,12 @@ describe('usePerpsClosePosition', () => {
     (usePerpsTrading as jest.Mock).mockReturnValue({
       closePosition: mockClosePosition,
     });
+    // Reset toast mocks
+    mockShowToast.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionInProgress.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionInProgress.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.limitClose.full.fullPositionCloseSubmitted.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.limitClose.partial.partialPositionCloseSubmitted.mockClear();
   });
 
   describe('handleClosePosition', () => {
@@ -66,6 +118,13 @@ describe('usePerpsClosePosition', () => {
       expect(onSuccess).toHaveBeenCalledWith(successResult);
       expect(result.current.isClosing).toBe(false);
       expect(result.current.error).toBeNull();
+
+      // Verify toast was shown
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(
+        mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
+          .closeFullPositionInProgress,
+      ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
     });
 
     it('should successfully close a partial position with limit order', async () => {
@@ -110,7 +169,7 @@ describe('usePerpsClosePosition', () => {
     it('should handle close position failure', async () => {
       const failureResult: OrderResult = {
         success: false,
-        error: 'Insufficient balance',
+        error: 'perps.close_position.error_unknown',
       };
       mockClosePosition.mockResolvedValue(failureResult);
 
@@ -120,18 +179,18 @@ describe('usePerpsClosePosition', () => {
       await act(async () => {
         await expect(
           result.current.handleClosePosition(mockPosition),
-        ).rejects.toThrow('Insufficient balance');
+        ).rejects.toThrow('perps.close_position.error_unknown');
       });
 
       expect(onError).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Insufficient balance',
+          message: 'perps.close_position.error_unknown',
         }),
       );
       expect(result.current.isClosing).toBe(false);
       expect(result.current.error).toEqual(
         expect.objectContaining({
-          message: 'Insufficient balance',
+          message: 'perps.close_position.error_unknown',
         }),
       );
     });

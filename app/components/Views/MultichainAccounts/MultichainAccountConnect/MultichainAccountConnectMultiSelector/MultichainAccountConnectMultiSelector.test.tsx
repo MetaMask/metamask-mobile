@@ -14,11 +14,24 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../../e2e/sel
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import { RootState } from '../../../../../reducers';
 
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    }),
+  };
+});
+
 const mockOnSubmit = jest.fn();
 const mockOnBack = jest.fn();
 const mockOnUserAction = jest.fn();
 
-// Mock constants
 const MOCK_GROUP_ID_1 =
   'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0' as AccountGroupId;
 const MOCK_GROUP_ID_2 =
@@ -127,6 +140,8 @@ const defaultProps = {
 describe('MultichainAccountConnectMultiSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
+    mockGoBack.mockClear();
   });
 
   describe('Component Rendering', () => {
@@ -341,6 +356,24 @@ describe('MultichainAccountConnectMultiSelector', () => {
       fireEvent.press(disconnectButton);
 
       expect(mockOnSubmit).toHaveBeenCalledWith([]);
+    });
+
+    it('navigates to browser home when disconnect button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnectMultiSelector
+          {...defaultProps}
+          defaultSelectedAccountGroupIds={[]}
+          showDisconnectAllButton
+        />,
+        { state: createMockState() },
+      );
+
+      const disconnectButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.DISCONNECT,
+      );
+      fireEvent.press(disconnectButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome');
     });
   });
 

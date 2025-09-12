@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -48,11 +49,17 @@ import {
   usePerpsMarketData,
   usePerpsNetwork,
   usePerpsOrderExecution,
+  usePerpsOrderForm,
   usePerpsOrderValidation,
   usePerpsPrices,
   usePerpsTrading,
+  usePerpsToasts,
 } from '../../hooks';
-import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
+import {
+  PerpsStreamManager,
+  PerpsStreamProvider,
+} from '../../providers/PerpsStreamManager';
+import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import PerpsOrderView from './PerpsOrderView';
 
 // Mock dependencies
@@ -60,6 +67,15 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
 }));
+
+// Mock the context
+jest.mock('../../contexts/PerpsOrderContext', () => {
+  const actual = jest.requireActual('../../contexts/PerpsOrderContext');
+  return {
+    ...actual,
+    usePerpsOrderContext: jest.fn(),
+  };
+});
 
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
@@ -95,13 +111,23 @@ jest.mock('../../hooks', () => ({
       amount: '11',
       leverage: 3,
       direction: 'long',
-      orderType: 'market',
+      type: 'market',
       limitPrice: undefined,
       takeProfitPrice: undefined,
       stopLossPrice: undefined,
     },
-    updateOrderForm: jest.fn(),
-    resetOrderForm: jest.fn(),
+    setAmount: jest.fn(),
+    setLeverage: jest.fn(),
+    setTakeProfitPrice: jest.fn(),
+    setStopLossPrice: jest.fn(),
+    setLimitPrice: jest.fn(),
+    setOrderType: jest.fn(),
+    handlePercentageAmount: jest.fn(),
+    handleMaxAmount: jest.fn(),
+    calculations: {
+      marginRequired: 11,
+      positionSize: 0.0037,
+    },
   })),
   usePerpsOrderValidation: jest.fn(() => ({
     isValid: true,
@@ -155,6 +181,36 @@ jest.mock('../../hooks', () => ({
     measure: jest.fn(),
     measureAsync: jest.fn(),
   })),
+  usePerpsToasts: jest.fn(() => ({
+    showToast: jest.fn(),
+    PerpsToastOptions: {
+      formValidation: {
+        orderForm: {
+          limitPriceRequired: {},
+          validationError: jest.fn(),
+        },
+      },
+      orderManagement: {
+        market: {
+          submitted: jest.fn(),
+          confirmed: jest.fn(),
+          creationFailed: jest.fn(),
+        },
+        limit: {
+          submitted: jest.fn(),
+          confirmed: jest.fn(),
+          creationFailed: jest.fn(),
+        },
+      },
+      dataFetching: {
+        market: {
+          error: {
+            marketDataUnavailable: jest.fn(),
+          },
+        },
+      },
+    },
+  })),
 }));
 
 // Mock Redux selectors
@@ -170,12 +226,15 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-// Mock DevLogger
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: {
-    log: jest.fn(),
-  },
-}));
+// Mock DevLogger (module appears to use default export with .log())
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
+  const log = jest.fn();
+  return {
+    __esModule: true,
+    default: { log },
+    DevLogger: { log }, // provide named export fallback if implementation changes
+  };
+});
 
 // Mock trace utilities
 jest.mock('../../../../../util/trace', () => ({
@@ -388,9 +447,64 @@ const defaultMockHooks = {
   ],
 };
 
+// Mock stream manager for tests
+const createMockStreamManager = () => {
+  // Using Map to track subscribers for potential cleanup
+  const subscribers = new Map<string, (data: unknown) => void>();
+
+  return {
+    prices: {
+      subscribeToSymbols: ({
+        symbols,
+        callback,
+      }: {
+        symbols: string[];
+        callback: (data: unknown) => void;
+      }) => {
+        const id = Math.random().toString();
+        subscribers.set(id, callback);
+        // Immediately provide mock price data
+        const mockPrices: Record<string, unknown> = {};
+        symbols.forEach((symbol: string) => {
+          mockPrices[symbol] = {
+            price: '3000',
+            percentChange24h: '2.5',
+          };
+        });
+        callback(mockPrices);
+        return () => {
+          subscribers.delete(id);
+        };
+      },
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    fills: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+    },
+    marketData: {
+      subscribe: jest.fn(() => jest.fn()),
+      getMarkets: jest.fn(),
+    },
+  };
+};
+
 // Wrapper component for tests
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <PerpsStreamProvider>{children}</PerpsStreamProvider>
+  <PerpsStreamProvider
+    testStreamManager={
+      createMockStreamManager() as unknown as PerpsStreamManager
+    }
+  >
+    {children}
+  </PerpsStreamProvider>
 );
 
 describe('PerpsOrderView', () => {
@@ -435,6 +549,34 @@ describe('PerpsOrderView', () => {
       liquidationPrice: '2850.00',
       isCalculating: false,
       error: null,
+    });
+
+    // Mock the context with default values
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      orderForm: {
+        asset: 'ETH',
+        amount: '11',
+        leverage: 3,
+        direction: 'long',
+        type: 'market',
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+        balancePercent: 10,
+      },
+      setAmount: jest.fn(),
+      setLeverage: jest.fn(),
+      setTakeProfitPrice: jest.fn(),
+      setStopLossPrice: jest.fn(),
+      setLimitPrice: jest.fn(),
+      setOrderType: jest.fn(),
+      handlePercentageAmount: jest.fn(),
+      handleMaxAmount: jest.fn(),
+      handleMinAmount: jest.fn(),
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
+      },
     });
   });
 
@@ -500,6 +642,34 @@ describe('PerpsOrderView', () => {
         asset: 'ETH',
         direction: 'long',
         leverage: 10,
+      },
+    });
+
+    // Override the context mock to show the correct leverage
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      orderForm: {
+        asset: 'ETH',
+        amount: '11',
+        leverage: 10,
+        direction: 'long',
+        type: 'market',
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+        balancePercent: 10,
+      },
+      setAmount: jest.fn(),
+      setLeverage: jest.fn(),
+      setTakeProfitPrice: jest.fn(),
+      setStopLossPrice: jest.fn(),
+      setLimitPrice: jest.fn(),
+      setOrderType: jest.fn(),
+      handlePercentageAmount: jest.fn(),
+      handleMaxAmount: jest.fn(),
+      handleMinAmount: jest.fn(),
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
       },
     });
 
@@ -678,6 +848,34 @@ describe('PerpsOrderView', () => {
       },
     });
 
+    // Override the default mock for this specific test
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      orderForm: {
+        asset: 'BTC',
+        amount: '11',
+        leverage: 3,
+        direction: 'short',
+        type: 'market',
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+        balancePercent: 10,
+      },
+      setAmount: jest.fn(),
+      setLeverage: jest.fn(),
+      setTakeProfitPrice: jest.fn(),
+      setStopLossPrice: jest.fn(),
+      setLimitPrice: jest.fn(),
+      setOrderType: jest.fn(),
+      handlePercentageAmount: jest.fn(),
+      handleMaxAmount: jest.fn(),
+      handleMinAmount: jest.fn(),
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
+      },
+    });
+
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Find all elements with 'Short BTC' text (header and button)
@@ -691,6 +889,34 @@ describe('PerpsOrderView', () => {
       params: {
         asset: 'SOL',
         leverage: 10,
+      },
+    });
+
+    // Override the context mock to show the correct leverage
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      orderForm: {
+        asset: 'SOL',
+        amount: '11',
+        leverage: 10,
+        direction: 'long',
+        type: 'market',
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+        balancePercent: 10,
+      },
+      setAmount: jest.fn(),
+      setLeverage: jest.fn(),
+      setTakeProfitPrice: jest.fn(),
+      setStopLossPrice: jest.fn(),
+      setLimitPrice: jest.fn(),
+      setOrderType: jest.fn(),
+      handlePercentageAmount: jest.fn(),
+      handleMaxAmount: jest.fn(),
+      handleMinAmount: jest.fn(),
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
       },
     });
 
@@ -967,6 +1193,222 @@ describe('PerpsOrderView', () => {
       );
       expect(placeOrderButton).toBeDefined();
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeFalsy();
+    });
+  });
+
+  describe('TP/SL limit price validation', () => {
+    it('shows toast and prevents TP/SL bottom sheet from opening on limit order without limit price', async () => {
+      // Clear all mocks to ensure clean state
+      jest.clearAllMocks();
+
+      // Create a mock showToast function that we can spy on
+      const mockShowToast = jest.fn();
+      const mockLimitPriceRequiredToast =
+        'mock-limit-price-required-toast-object';
+
+      // Mock the context to provide order form data
+      (usePerpsOrderContext as jest.Mock).mockImplementation(() => ({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 3,
+          direction: 'long',
+          type: 'limit', // This is a limit order
+          limitPrice: undefined, // But no limit price is set
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '33.33',
+          positionSize: '0.0333',
+        },
+      }));
+
+      // Mock usePerpsOrderForm to match the context
+      (usePerpsOrderForm as jest.Mock).mockImplementation(() => ({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 3,
+          direction: 'long',
+          type: 'limit',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '33.33',
+          positionSize: '0.0333',
+        },
+      }));
+
+      // Mock the usePerpsToasts hook
+      (usePerpsToasts as jest.Mock).mockImplementation(() => ({
+        showToast: mockShowToast,
+        PerpsToastOptions: {
+          formValidation: {
+            orderForm: {
+              limitPriceRequired: mockLimitPriceRequiredToast,
+              validationError: jest.fn(),
+            },
+          },
+          orderManagement: {
+            market: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+            limit: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+          },
+          dataFetching: {
+            market: {
+              error: {
+                marketDataUnavailable: jest.fn(),
+              },
+            },
+          },
+        },
+      }));
+
+      // Set up route params
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for the TP/SL button to be rendered
+      const tpSlButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON,
+      );
+
+      // Press the TP/SL button
+      fireEvent.press(tpSlButton);
+
+      // Give the event handler time to execute
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Verify that showToast was called with the correct argument
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(mockLimitPriceRequiredToast);
+
+      // Verify that the TP/SL bottom sheet was NOT opened
+      expect(screen.queryByTestId('tpsl-bottom-sheet')).toBeNull();
+    });
+
+    it('opens TP/SL bottom sheet on limit order with limit price', async () => {
+      // Set up route params
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      // Override the context mock for a limit order WITH price
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 3,
+          direction: 'long',
+          type: 'limit',
+          limitPrice: '3100', // Has a limit price
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '33.33',
+          positionSize: '0.0333',
+        },
+      });
+
+      // Also update the order form mock to match
+      (usePerpsOrderForm as jest.Mock).mockImplementation(() => ({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 3,
+          direction: 'long',
+          type: 'limit',
+          limitPrice: '3100',
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '33.33',
+          positionSize: '0.0333',
+        },
+      }));
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for component to be ready
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON),
+        ).toBeDefined();
+      });
+
+      // Find and press the TP/SL button
+      const tpSlButton = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON,
+      );
+      fireEvent.press(tpSlButton);
+
+      // Verify that TP/SL bottom sheet IS shown
+      await waitFor(() => {
+        expect(screen.getByTestId('tpsl-bottom-sheet')).toBeDefined();
+      });
     });
   });
 });
