@@ -33,7 +33,7 @@ async function main() {
 
     // Generate the current fingerprint
     console.log("Generating current fingerprint...");
-    const currentFingerprint = (await createFingerprintAsync({ mode: "prebuild" })).hash;
+    const currentFingerprint = (await createFingerprintAsync(process.cwd(), { mode: "prebuild" })).hash;
     console.log(`Current fingerprint: ${currentFingerprint}`);
 
     if (savedFingerprint === currentFingerprint) {
