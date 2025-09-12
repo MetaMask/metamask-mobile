@@ -12,6 +12,8 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetricsEventBuilder } from '../../../../../../core/Analytics/MetricsEventBuilder';
+import OAuthService from '../../../../../../core/OAuthService/OAuthService';
+import Logger from '../../../../../../util/Logger';
 
 const { InteractionManager, Alert, Linking } =
   jest.requireActual('react-native');
@@ -40,6 +42,16 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
+// Mock OAuthService
+jest.mock('../../../../../../core/OAuthService/OAuthService', () => ({
+  updateMarketingOptInStatus: jest.fn(),
+}));
+
+// Mock Logger
+jest.mock('../../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 const mockAutoSignIn = jest.fn();
 jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
   useAutoSignIn: () => ({
@@ -55,6 +67,11 @@ const mockMetrics = {
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+
+const mockUpdateMarketingOptInStatus =
+  OAuthService.updateMarketingOptInStatus as jest.MockedFunction<
+    typeof OAuthService.updateMarketingOptInStatus
+  >;
 
 jest.mock(
   '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
@@ -93,6 +110,7 @@ const initialStateMarketingFalse = {
 describe('MetaMetricsAndDataCollectionSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUpdateMarketingOptInStatus.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -471,6 +489,89 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             },
           );
         });
+      });
+    });
+  });
+
+  describe('Marketing API Integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockUpdateMarketingOptInStatus.mockClear();
+    });
+
+    it('should call updateMarketingOptInStatus API when marketing switch is turned on', async () => {
+      mockMetrics.isEnabled.mockReturnValue(false);
+      mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingFalse },
+      );
+
+      const marketingSwitch = await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      expect(marketingSwitch).toBeTruthy();
+      expect(marketingSwitch.props.value).toBe(false);
+
+      fireEvent(marketingSwitch, 'valueChange', true);
+
+      await waitFor(() => {
+        expect(marketingSwitch.props.value).toBe(true);
+        expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it('should call updateMarketingOptInStatus API when marketing switch is turned off', async () => {
+      mockMetrics.isEnabled.mockReturnValue(true);
+      mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingTrue },
+      );
+
+      const marketingSwitch = await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      expect(marketingSwitch).toBeTruthy();
+      expect(marketingSwitch.props.value).toBe(true);
+
+      fireEvent(marketingSwitch, 'valueChange', false);
+
+      await waitFor(() => {
+        expect(marketingSwitch.props.value).toBe(false);
+        expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+      });
+    });
+
+    it('should handle API error when updateMarketingOptInStatus fails', async () => {
+      mockMetrics.isEnabled.mockReturnValue(false);
+      mockUpdateMarketingOptInStatus.mockRejectedValue(new Error('API Error'));
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingFalse },
+      );
+
+      const marketingSwitch = await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      expect(marketingSwitch).toBeTruthy();
+      expect(marketingSwitch.props.value).toBe(false);
+
+      fireEvent(marketingSwitch, 'valueChange', true);
+
+      await waitFor(() => {
+        expect(marketingSwitch.props.value).toBe(true);
+        expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(Logger.error).toHaveBeenCalledWith(expect.any(Error));
       });
     });
   });
