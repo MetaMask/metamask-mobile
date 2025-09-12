@@ -3983,7 +3983,7 @@
     "select_a_quote": "Select a Quote",
     "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
-    "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
+    "select_a_cryptocurrency_description": "Select from the list of tokens available.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
     "search_by_currency": "Search for a currency",
     "update_payment_method": "Update payment method",

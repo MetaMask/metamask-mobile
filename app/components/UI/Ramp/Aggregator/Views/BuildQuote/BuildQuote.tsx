@@ -1112,11 +1112,6 @@ const BuildQuote = () => {
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         description={strings(
           'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
-          {
-            network:
-              selectedNetworkName ||
-              strings('fiat_on_ramp_aggregator.this_network'),
-          },
         )}
         tokens={cryptoCurrencies ?? []}
         onItemPress={handleAssetPress}
