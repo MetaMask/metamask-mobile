@@ -16,3 +16,4 @@ export enum CONFIRMATION_EVENT_LOCATIONS {
   STAKING_CLAIM = 'staking_claim',
   TRANSFER = 'transfer',
 }
+// test
