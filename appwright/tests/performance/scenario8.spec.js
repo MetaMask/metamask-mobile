@@ -18,8 +18,9 @@ import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal
 import TokenOverviewScreen from '../../../wdio/screen-objects/TokenOverviewScreen.js';
 import CommonScreen from '../../../wdio/screen-objects/CommonScreen.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
+import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import { login, dismissSystemDialogs } from '../../utils/Flows.js';
 
 test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -43,7 +44,18 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   CommonScreen.device = device;
   WalletActionModal.device = device;
   NetworksScreen.device = device;
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
+
+  LoginScreen.device = device;
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
+  AddAccountModal.device = device;
+
+  TokenOverviewScreen.device = device;
+  CommonScreen.device = device;
+  WalletActionModal.device = device;
+
+  await login(device, 'login');
+
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 

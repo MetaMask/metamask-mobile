@@ -39,12 +39,23 @@ export default class AppwrightSelectors {
     return device.webDriverClient.capabilities.platformName === 'iOS' || device.webDriverClient.capabilities.platformName === 'ios';
   }
 
+
   static isAndroid(device) {
     return device.webDriverClient.capabilities.platformName === 'android' || device.webDriverClient.capabilities.platformName === 'Android';
   }
 
   static async hideKeyboard(device) {
     if (AppwrightSelectors.isAndroid(device)) await device.webDriverClient.hideKeyboard(); // only needed for Android
+  }
+
+
+  static async dismissAlert(device) {
+    // Simple wrapper that uses appropriate timeout for platform
+    const isIOS = AppwrightSelectors.isIOS(device);
+    const timeout = isIOS ? 8000 : 2000; // 8 seconds for iOS, 2 for Android
+    await device.waitForTimeout(timeout);
+    return await device.webDriverClient.dismissAlert();
+
   }
 
   static async scrollIntoView(device, element) {
