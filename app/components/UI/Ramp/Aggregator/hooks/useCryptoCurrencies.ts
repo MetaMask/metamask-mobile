@@ -1,7 +1,12 @@
 import { useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { isCaipChainId } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { toHex } from '@metamask/controller-utils';
 
 export default function useCryptoCurrencies() {
   const {
@@ -14,6 +19,10 @@ export default function useCryptoCurrencies() {
     intent,
     setIntent,
   } = useRampSDK();
+
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const [
     {
@@ -35,9 +44,15 @@ export default function useCryptoCurrencies() {
       !errorCryptoCurrencies &&
       sdkCryptoCurrencies
     ) {
-      const filteredTokens = sdkCryptoCurrencies.filter(
-        (token) => token.network?.chainId === selectedChainId,
-      );
+      const filteredTokens = sdkCryptoCurrencies.filter((token) => {
+        if (!token.network?.chainId) return false;
+
+        const tokenCaipChainId = isCaipChainId(token.network.chainId)
+          ? token.network.chainId
+          : toEvmCaipChainId(toHex(token.network.chainId));
+
+        return networksByCaipChainId[tokenCaipChainId] !== undefined;
+      });
       return filteredTokens;
     }
     return null;
@@ -45,7 +60,7 @@ export default function useCryptoCurrencies() {
     errorCryptoCurrencies,
     isFetchingCryptoCurrencies,
     sdkCryptoCurrencies,
-    selectedChainId,
+    networksByCaipChainId,
   ]);
 
   /**
@@ -69,15 +84,25 @@ export default function useCryptoCurrencies() {
 
       if (
         !selectedAsset ||
-        `${selectedAsset.network?.chainId}` !== selectedChainId ||
         !cryptoCurrencies.find(
-          (token) => token.address === selectedAsset.address,
+          (token) =>
+            token.address === selectedAsset.address &&
+            token.network?.chainId === selectedAsset.network?.chainId,
         )
       ) {
-        const nativeAsset = cryptoCurrencies.find(
+        const nativeAssetForCurrentChain = cryptoCurrencies.find(
+          (a) =>
+            a.address === NATIVE_ADDRESS &&
+            a.network?.chainId === selectedChainId,
+        );
+        const fallbackNativeAsset = cryptoCurrencies.find(
           (a) => a.address === NATIVE_ADDRESS,
         );
-        setSelectedAsset(nativeAsset || cryptoCurrencies?.[0]);
+        setSelectedAsset(
+          nativeAssetForCurrentChain ||
+            fallbackNativeAsset ||
+            cryptoCurrencies?.[0],
+        );
       }
     }
   }, [

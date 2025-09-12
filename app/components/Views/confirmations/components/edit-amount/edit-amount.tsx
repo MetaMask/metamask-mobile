@@ -20,6 +20,11 @@ import Text, {
 
 const MAX_LENGTH = 28;
 
+const ON_CHANGE_ALERTS = [
+  AlertKeys.PerpsDepositMinimum,
+  AlertKeys.InsufficientPayTokenBalance,
+];
+
 export interface EditAmountProps {
   alerts?: Alert[];
   autoKeyboard?: boolean;
@@ -58,8 +63,9 @@ export function EditAmount({
   const currentAlert = alerts?.[0];
 
   const hasAlert =
-    Boolean(alerts?.length) &&
-    (inputChanged || currentAlert?.key === AlertKeys.PerpsHardwareAccount);
+    Boolean(currentAlert) &&
+    (!ON_CHANGE_ALERTS.includes(currentAlert?.key as AlertKeys) ||
+      inputChanged);
 
   const alertKeyboard = hasAlert
     ? currentAlert?.title ?? (currentAlert?.message as string)
