@@ -124,13 +124,7 @@ export class ConnectionRegistry {
    * Format: metamask://connect/mwp?p=<encoded_connection_request>
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
-    let parsed: URL;
-
-    try {
-      parsed = new URL(url);
-    } catch (error) {
-      throw new Error('[SDKConnectV2] Invalid URL format.');
-    }
+    const parsed = new URL(url);
 
     const payload = parsed.searchParams.get('p');
     if (!payload) {
@@ -142,11 +136,7 @@ export class ConnectionRegistry {
     }
 
     let connreq: unknown;
-    try {
-      connreq = JSON.parse(payload);
-    } catch (error) {
-      throw new Error('[SDKConnectV2] Invalid JSON in payload.');
-    }
+    connreq = JSON.parse(payload);
 
     if (!isConnectionRequest(connreq)) {
       throw new Error('[SDKConnectV2] Invalid connection request structure.');
