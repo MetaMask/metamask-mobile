@@ -1,0 +1,34 @@
+# Ignore scripts directory - changes here don't affect native builds
+scripts/**/*
+
+# Ignore CI/CD and workflow files
+.github/**/*
+
+# Ignore documentation and markdown files
+*.md
+docs/**/*
+
+# Ignore test files that don't affect native builds
+**/*.test.js
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.js
+**/*.spec.ts
+**/*.spec.tsx
+
+# Ignore e2e test files
+e2e/**/*
+wdio/**/*
+
+# Ignore linting and formatting configs
+.eslintrc*
+.prettierrc*
+.eslintignore
+.prettierignore
+
+# Ignore temporary fingerprint files
+.app-native-fingerprint
+
+# Ignore yarn/npm lock files for stability
+yarn.lock
+package-lock.json
