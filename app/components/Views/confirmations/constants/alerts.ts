@@ -8,5 +8,6 @@ export enum AlertKeys {
   NoPayTokenQuotes = 'no_pay_token_quotes',
   PendingTransaction = 'pending_transaction',
   PerpsDepositMinimum = 'perps_deposit_minimum',
+  PerpsHardwareAccount = 'perps_hardware_account',
   SignedOrSubmitted = 'signed_or_submitted',
 }
