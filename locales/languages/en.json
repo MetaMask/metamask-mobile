@@ -39,7 +39,12 @@
       "buy_action": "Buy %{nativeCurrency}"
     },
     "signed_or_submitted": {
+      "title": "Transaction in progress",
       "message": "A previous transaction is still being signed or submitted."
+    },
+    "signed_or_submitted_perps_deposit": {
+      "title": "Deposit in progress",
+      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -56,8 +61,12 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds"
     },
+    "insufficient_pay_token_balance_fees": {
+      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+      "title": "Insufficient funds"
+    },
     "insufficient_pay_token_native": {
-      "message": "Insufficient native funds on payment token chain. Select different token."
+      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
