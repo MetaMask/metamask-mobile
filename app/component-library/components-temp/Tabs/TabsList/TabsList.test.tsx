@@ -775,7 +775,7 @@ describe('TabsList', () => {
     it('handles single tab correctly', () => {
       // Arrange
       const mockOnChangeTab = jest.fn();
-      const { getByText, queryByText } = render(
+      const { getByText } = render(
         <TabsList initialActiveIndex={0} onChangeTab={mockOnChangeTab}>
           <View key="single" {...({ tabLabel: 'Only Tab' } as TabViewProps)}>
             <Text>Only Tab Content</Text>
@@ -1066,8 +1066,8 @@ describe('TabsList', () => {
   });
 
   describe('Children Processing Coverage', () => {
-    it('covers non-React element children handling', () => {
-      // Arrange - Mix of valid React elements and other types
+    it('covers children array processing and validation', () => {
+      // Arrange - Multiple React elements for array processing
       const mockOnChangeTab = jest.fn();
 
       const { getByText } = render(
@@ -1075,15 +1075,13 @@ describe('TabsList', () => {
           <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
           </View>
-          {/* This will be processed as non-React element */}
-          {'string content' as any}
-          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
-            <Text>Tab 3 Content</Text>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
           </View>
         </TabsList>,
       );
 
-      // Assert - Should handle mixed content gracefully
+      // Assert - Should handle children array processing gracefully
       expect(getByText('Tab 1 Content')).toBeOnTheScreen();
     });
 

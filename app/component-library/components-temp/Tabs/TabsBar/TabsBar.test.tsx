@@ -517,7 +517,7 @@ describe('TabsBar', () => {
       // Arrange
       const singleTab = [{ key: 'single', label: 'Single Tab', content: null }];
       const mockOnTabPress = jest.fn();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <TabsBar
           tabs={singleTab}
           activeIndex={0}
@@ -562,7 +562,7 @@ describe('TabsBar', () => {
         },
       ];
       const mockOnTabPress = jest.fn();
-      const { getByTestId, getByText } = render(
+      const { getByTestId } = render(
         <TabsBar
           tabs={singleDisabledTab}
           activeIndex={0}
@@ -710,7 +710,7 @@ describe('TabsBar', () => {
     });
 
     it('handles extreme scroll scenarios', () => {
-      const manyTabs = Array.from({ length: 20 }, (_, i) => ({
+      const extremeTabsList = Array.from({ length: 20 }, (_, i) => ({
         key: `tab${i}`,
         label: `Very Long Tab Label ${i + 1}`,
         content: null,
@@ -719,7 +719,7 @@ describe('TabsBar', () => {
       const mockOnTabPress = jest.fn();
       const { getByTestId } = render(
         <TabsBar
-          tabs={manyTabs}
+          tabs={extremeTabsList}
           activeIndex={15}
           onTabPress={mockOnTabPress}
           testID="tabs-bar"
@@ -733,7 +733,7 @@ describe('TabsBar', () => {
         fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(200));
 
         // Simulate all tab layouts
-        manyTabs.forEach((_, index) => {
+        extremeTabsList.forEach((_, index) => {
           const tab = getByTestId(`tabs-bar-tab-${index}`);
           fireEvent(tab, 'onLayout', {
             nativeEvent: {
