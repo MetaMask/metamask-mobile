@@ -255,26 +255,55 @@ function createFallbackReport(outputPath, error) {
 function createSummary(groupedResults) {
   let totalTests = 0;
   const devices = [];
+  const platformDevices = {};
+  const testsByPlatform = {};
   
-  Object.keys(groupedResults).forEach(scenario => {
-    Object.keys(groupedResults[scenario]).forEach(platform => {
-      Object.keys(groupedResults[scenario][platform]).forEach(device => {
-        devices.push(`${scenario}-${platform}-${device}`);
-        totalTests += groupedResults[scenario][platform][device].length;
+  // Process the structure: platform -> device -> tests
+  Object.keys(groupedResults).forEach(platform => {
+    const platformKey = platform.charAt(0).toUpperCase() + platform.slice(1); // Android, iOS
+    platformDevices[platformKey] = [];
+    testsByPlatform[platform.toLowerCase()] = 0;
+    
+    Object.keys(groupedResults[platform]).forEach(device => {
+      const deviceTests = groupedResults[platform][device];
+      // Extract OS version from device name (assumes format like "Google Pixel 8 Pro 14.0")
+      const deviceParts = device.split(' ');
+      const osVersion = deviceParts[deviceParts.length - 1];
+      const deviceName = deviceParts.slice(0, -1).join(' ');
+      const deviceKey = `${deviceName}+${osVersion}`;
+      
+      devices.push({
+        platform: platformKey,
+        device: deviceKey,
+        testCount: deviceTests.length
       });
+      
+      platformDevices[platformKey].push(deviceKey);
+      testsByPlatform[platform.toLowerCase()] += deviceTests.length;
+      totalTests += deviceTests.length;
     });
   });
   
   const summary = {
     totalTests,
-    scenarios: {
-      importedWallet: { totalTests: 0, platforms: { android: 0, ios: 0 } },
-      onboarding: { totalTests: 0, platforms: { android: 0, ios: 0 } }
+    platforms: {
+      android: platformDevices.Android ? platformDevices.Android.length : 0,
+      ios: platformDevices.iOS ? platformDevices.iOS.length : 0
     },
-    devices: [],
+    testsByPlatform,
+    devices,
+    platformDevices,
     metadata: {
       generatedAt: new Date().toISOString(),
       totalReports: totalTests,
+      platforms: {
+        android: platformDevices.Android ? platformDevices.Android.length : 0,
+        ios: platformDevices.iOS ? platformDevices.iOS.length : 0
+      },
+      jobResults: {
+        android: "success", // This would need to be determined from actual test results
+        ios: "success"
+      },
       branch: process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
       workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
@@ -283,35 +312,6 @@ function createSummary(groupedResults) {
     branch: process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown'
   };
-  
-  // Count tests by platform and device
-  Object.keys(groupedResults).forEach(platform => {
-    Object.keys(groupedResults[platform]).forEach(device => {
-      const testsCount = groupedResults[platform][device].length;
-      
-      // Count by scenario for summary
-      const deviceTests = groupedResults[platform][device];
-      const importedWalletTests = deviceTests.filter(test => 
-        determineScenarioFromTest(test) === 'ImportedWallet'
-      ).length;
-      const onboardingTests = deviceTests.filter(test => 
-        determineScenarioFromTest(test) === 'Onboarding'
-      ).length;
-      
-      summary.scenarios.importedWallet.totalTests += importedWalletTests;
-      summary.scenarios.onboarding.totalTests += onboardingTests;
-      
-      if (platform === 'Android') {
-        summary.scenarios.importedWallet.platforms.android += importedWalletTests;
-        summary.scenarios.onboarding.platforms.android += onboardingTests;
-      } else if (platform === 'iOS') {
-        summary.scenarios.importedWallet.platforms.ios += importedWalletTests;
-        summary.scenarios.onboarding.platforms.ios += onboardingTests;
-      }
-      
-      summary.devices.push({ platform, device, testCount: testsCount });
-    });
-  });
   
   return summary;
 }
@@ -378,15 +378,45 @@ function aggregateReports() {
       }
     });
     
-    // Write the combined report
-    fs.writeFileSync(outputPath, JSON.stringify(groupedResults, null, 2));
+    // Transform groupedResults to match expected format
+    const transformedResults = {};
+    Object.keys(groupedResults).forEach(platform => {
+      const platformKey = platform.charAt(0).toUpperCase() + platform.slice(1); // Android, iOS
+      transformedResults[platformKey] = {};
+      
+      Object.keys(groupedResults[platform]).forEach(device => {
+        const deviceTests = groupedResults[platform][device];
+        // Extract OS version from device name (assumes format like "Google Pixel 8 Pro 14.0")
+        const deviceParts = device.split(' ');
+        const osVersion = deviceParts[deviceParts.length - 1];
+        const deviceName = deviceParts.slice(0, -1).join(' ');
+        const deviceKey = `${deviceName}+${osVersion}`;
+        
+        // Transform test data to match expected format
+        transformedResults[platformKey][deviceKey] = deviceTests.map(test => ({
+          testName: test.testName,
+          steps: test.steps || [],
+          totalTime: test.total || 0,
+          videoURL: test.videoURL || '',
+          testFailed: test.status === 'failed' || test.testFailed || false,
+          failureReason: test.failureReason || (test.status === 'failed' ? 'failed' : '')
+        }));
+      });
+    });
+    
+    // Write the aggregated report (main format)
+    fs.writeFileSync(outputPath, JSON.stringify(transformedResults, null, 2));
+    
+    // Write performance-results.json (same format)
+    fs.writeFileSync('appwright/aggregated-reports/performance-results.json', JSON.stringify(transformedResults, null, 2));
     
     // Create summary
     const summary = createSummary(groupedResults);
     fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
     
-    console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
+    console.log(`✅ Aggregated report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
     console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
+    console.log('📋 Performance results saved to: appwright/aggregated-reports/performance-results.json');
     
   } catch (error) {
     createFallbackReport('appwright/aggregated-reports/combined-performance-report.json', error);
@@ -394,7 +424,7 @@ function aggregateReports() {
 }
 
 // Export functions for testing
-export { determineScenarioFromTest, extractDeviceInfo, extractPlatformAndScenario, aggregateReports, findJsonFiles, processTestReport };
+export { determineScenarioFromTest, extractDeviceInfo, extractPlatformAndScenario, aggregateReports, findJsonFiles, processTestReport, createSummary };
 
 // Run the aggregation if this script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
