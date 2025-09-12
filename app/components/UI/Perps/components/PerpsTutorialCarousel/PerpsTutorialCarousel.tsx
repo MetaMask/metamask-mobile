@@ -382,6 +382,11 @@ const PerpsTutorialCarousel: React.FC = () => {
       {/* Footer */}
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
+          {isLastScreen && (
+            <Text variant={TextVariant.BodySM} style={styles.fundsInfoText}>
+              {strings('perps.tutorial.ready_to_trade.fund_text_helper')}
+            </Text>
+          )}
           <Button
             variant={ButtonVariants.Primary}
             label={buttonLabel}

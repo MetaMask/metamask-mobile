@@ -70,7 +70,7 @@ export const createStyles = (colors: Theme['colors']) =>
       marginBottom: 16,
     },
     footerContainer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 10,
       paddingBottom: 24,
     },
   });
