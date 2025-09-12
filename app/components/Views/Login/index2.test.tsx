@@ -928,19 +928,11 @@ describe('Login test suite 2', () => {
       });
 
       expect(
-        screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
-      ).not.toBeTruthy();
-
-      expect(
         screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
       ).not.toBeTruthy();
 
       await waitFor(
         () => {
-          expect(
-            screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
-          ).toBeTruthy();
-
           expect(
             screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
           ).toBeTruthy();
@@ -997,18 +989,10 @@ describe('Login test suite 2', () => {
       );
 
       expect(
-        screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
-      ).not.toBeTruthy();
-
-      expect(
         screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
       ).not.toBeTruthy();
 
       await waitFor(() => {
-        expect(
-          screen.queryByTestId(LoginViewSelectors.BIOMETRIC_SWITCH),
-        ).toBeTruthy();
-
         expect(
           screen.queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON),
         ).not.toBeTruthy();

@@ -387,7 +387,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={takeProfitPrice}
-                onChangeText={handleTakeProfitPriceChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleTakeProfitPriceChange(text);
+                }}
                 placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
@@ -411,7 +415,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={formattedTakeProfitPercentage}
-                onChangeText={handleTakeProfitPercentageChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleTakeProfitPercentageChange(text);
+                }}
                 placeholder={strings('perps.tpsl.profit_roe_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
@@ -496,7 +504,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={stopLossPrice}
-                onChangeText={handleStopLossPriceChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleStopLossPriceChange(text);
+                }}
                 placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
@@ -520,7 +532,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={formattedStopLossPercentage}
-                onChangeText={handleStopLossPercentageChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleStopLossPercentageChange(text);
+                }}
                 placeholder={strings('perps.tpsl.loss_roe_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"

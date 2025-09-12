@@ -6,7 +6,7 @@
  * controller methods without modifying production code.
  */
 
-import { PerpsE2EMockService } from '../mock-responses/perps-e2e-mocks';
+import { PerpsE2EMockService } from '../mock-responses/perps/perps-e2e-mocks';
 import type {
   OrderParams,
   OrderResult,
@@ -16,6 +16,7 @@ import type {
   OrderFill,
   PriceUpdate,
   ClosePositionParams,
+  LiquidationPriceParams,
 } from '../../../app/components/UI/Perps/controllers/types';
 import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
 
@@ -55,6 +56,17 @@ export class E2EControllerOverrides {
     );
 
     return result;
+  }
+
+  // Mock liquidation price calculation: return entry price (0% distance scenario)
+  async calculateLiquidationPrice(
+    params: LiquidationPriceParams,
+  ): Promise<string> {
+    const entry = Number(params.entryPrice);
+    if (Number.isFinite(entry)) {
+      return entry.toFixed(2);
+    }
+    return '0.00';
   }
 
   // Mock account state with Redux update
@@ -200,6 +212,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     'getAccountState',
     'getPositions',
     'closePosition',
+    'calculateLiquidationPrice',
     'subscribeToAccount',
     'subscribeToPositions',
     'subscribeToOrders',
@@ -208,19 +221,16 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   ];
 
   methodsToOverride.forEach((method) => {
-    if (
-      (controller as unknown as Record<string, unknown>)[method] &&
-      (overrides as unknown as Record<string, unknown>)[method]
-    ) {
-      // Store original for potential restoration
-      (controller as unknown as Record<string, unknown>)[
-        `_original_${method}`
-      ] = (controller as unknown as Record<string, unknown>)[method];
-      // Apply mock override
-      (controller as unknown as Record<string, unknown>)[method] = (
-        (overrides as unknown as Record<string, unknown>)[method] as (
-          ...args: unknown[]
-        ) => unknown
+    const controllerRecord = controller as unknown as Record<string, unknown>;
+    const overridesRecord = overrides as unknown as Record<string, unknown>;
+    if (overridesRecord[method]) {
+      // Store original if it exists
+      if (controllerRecord[method]) {
+        controllerRecord[`_original_${method}`] = controllerRecord[method];
+      }
+      // Apply mock override (also adds method if it didn't exist)
+      controllerRecord[method] = (
+        overridesRecord[method] as (...args: unknown[]) => unknown
       ).bind(overrides);
       console.log(`Mocked ${method} method`);
     }
@@ -333,8 +343,11 @@ export function createE2EMockStreamManager(): unknown {
     },
     orders: {
       subscribe: (params: { callback: (data: Order[]) => void }) => {
+        // Register for live updates
+        mockService.registerOrderCallback(params.callback);
+        // Send initial snapshot
         setTimeout(() => params.callback(mockService.getMockOrders()), 0);
-        return () => undefined;
+        return () => mockService.unregisterOrderCallback(params.callback);
       },
     },
     positions: {
