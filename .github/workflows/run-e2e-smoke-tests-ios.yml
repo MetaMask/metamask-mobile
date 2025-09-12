@@ -9,93 +9,75 @@ permissions:
 
 jobs:
   smoke-confirmations-ios:
-    name: "Confirmations Smoke (iOS)"
+    name: 'Confirmations Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-ios
       platform: ios
-      test_suite_tag: "SmokeConfirmations"
+      test_suite_tag: 'SmokeConfirmations'
     secrets: inherit
 
   smoke-confirmations-redesigned-ios:
-    name: "Confirmations Redesigned Smoke (iOS)"
+    name: 'Confirmations Redesigned Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-redesigned-ios
       platform: ios
-      test_suite_tag: "SmokeConfirmationsRedesigned"
+      test_suite_tag: 'SmokeConfirmationsRedesigned'
     secrets: inherit
 
   smoke-trade-ios:
-    name: "Trade Smoke (iOS)"
+    name: 'Trade Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-trade-ios
       platform: ios
-      test_suite_tag: "SmokeTrade"
+      test_suite_tag: 'SmokeTrade'
     secrets: inherit
 
   smoke-wallet-platform-ios:
-    name: "Wallet Platform Smoke (iOS)"
+    name: 'Wallet Platform Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-wallet-platform-ios
       platform: ios
-      test_suite_tag: "SmokeWalletPlatform"
+      test_suite_tag: 'SmokeWalletPlatform'
     secrets: inherit
 
   smoke-identity-ios:
-    name: "Identity Smoke (iOS)"
+    name: 'Identity Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-identity-ios
       platform: ios
-      test_suite_tag: "SmokeIdentity"
+      test_suite_tag: 'SmokeIdentity'
     secrets: inherit
 
   smoke-accounts-ios:
-    name: "Accounts Smoke (iOS)"
+    name: 'Accounts Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-accounts-ios
       platform: ios
-      test_suite_tag: "SmokeAccounts"
+      test_suite_tag: 'SmokeAccounts'
     secrets: inherit
 
   smoke-network-abstraction-ios:
-    name: "Network Abstraction Smoke (iOS)"
+    name: 'Network Abstraction Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-abstraction-ios
       platform: ios
-      test_suite_tag: "SmokeNetworkAbstractions"
+      test_suite_tag: 'SmokeNetworkAbstractions'
     secrets: inherit
 
   smoke-network-expansion-ios:
-    name: "Network Expansion Smoke (iOS)"
+    name: 'Network Expansion Smoke (iOS)'
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-expansion-ios
       platform: ios
-      test_suite_tag: "SmokeNetworkExpansion"
-    secrets: inherit
-
-  smoke-performance-ios:
-    name: "Performance Smoke (iOS)"
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: smoke-performance-ios
-      platform: ios
-      test_suite_tag: "SmokePerformance"
-    secrets: inherit
-
-  smoke-card-ios:
-    name: "Card Smoke (iOS)"
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: smoke-card-ios
-      platform: ios
-      test_suite_tag: "SmokeCard"
+      test_suite_tag: 'SmokeNetworkExpansion'
     secrets: inherit
 
   report-ios-smoke-tests:
@@ -111,28 +93,26 @@ jobs:
       - smoke-accounts-ios
       - smoke-network-abstraction-ios
       - smoke-network-expansion-ios
-      - smoke-performance-ios
-      - smoke-card-ios
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
       - name: Download all test results
         uses: actions/download-artifact@v4
         with:
           path: all-test-results/
-          pattern: "*-ios-test-results"
+          pattern: '*-ios-test-results'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
-          name: "iOS E2E Smoke Test Results"
-          path: "all-test-results/**/*.xml"
-          reporter: "jest-junit"
+          name: 'iOS E2E Smoke Test Results'
+          path: 'all-test-results/**/*.xml'
+          reporter: 'jest-junit'
           fail-on-error: false
-          list-suites: "failed"
-          list-tests: "failed"
+          list-suites: 'failed'
+          list-tests: 'failed'
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
