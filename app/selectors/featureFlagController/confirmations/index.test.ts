@@ -1,6 +1,15 @@
+import { cloneDeep } from 'lodash';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
+  SendRedesignFlags,
+  selectSendRedesignFlags,
+  selectMetaMaskPayFlags,
+  BUFFER_STEP_DEFAULT,
+  BUFFER_INITIAL_DEFAULT,
+  ATTEMPTS_MAX_DEFAULT,
+  SLIPPAGE_DEFAULT,
+  BUFFER_SUBSEQUENT_DEFAULT,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -18,6 +27,7 @@ beforeEach(() => {
   process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_DEPLOYMENT = undefined;
   process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION = undefined;
   process.env.FEATURE_FLAG_REDESIGNED_TRANSFER = undefined;
+  process.env.MM_SEND_REDESIGN_ENABLED = undefined;
 });
 
 afterEach(() => {
@@ -167,5 +177,199 @@ describe('Confirmation Redesign Feature Flags', () => {
       selectConfirmationRedesignFlags(killSwitchState),
       expectedKillSwitchValues,
     );
+  });
+});
+
+describe('Send Redesign Feature Flags', () => {
+  const sendRedesignFlagsDefaultValues: SendRedesignFlags = {
+    enabled: true,
+  };
+
+  const mockedSendRedesignFlags: SendRedesignFlags = {
+    enabled: false,
+  };
+
+  const mockedStateWithSendFlags = {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            sendRedesign: mockedSendRedesignFlags,
+          },
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  };
+
+  const testSendFlagValues = (result: unknown, expected: SendRedesignFlags) => {
+    const { enabled } = result as SendRedesignFlags;
+    const { enabled: expectedEnabled } = expected;
+
+    expect(enabled).toEqual(expectedEnabled);
+  };
+
+  it('returns default values (enabled: true) when empty feature flag state', () => {
+    testSendFlagValues(
+      selectSendRedesignFlags(mockedEmptyFlagsState),
+      sendRedesignFlagsDefaultValues,
+    );
+  });
+
+  it('returns default values (enabled: true) when undefined RemoteFeatureFlagController state', () => {
+    testSendFlagValues(
+      selectSendRedesignFlags(mockedUndefinedFlagsState),
+      sendRedesignFlagsDefaultValues,
+    );
+  });
+
+  it('returns remote flag values when sendRedesign flags are set', () => {
+    testSendFlagValues(
+      selectSendRedesignFlags(mockedStateWithSendFlags),
+      mockedSendRedesignFlags,
+    );
+  });
+
+  it('handles kill switch behavior - remote false overrides default true', () => {
+    const killSwitchState = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              sendRedesign: {
+                enabled: false,
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    const expectedKillSwitchValues: SendRedesignFlags = {
+      enabled: false,
+    };
+
+    testSendFlagValues(
+      selectSendRedesignFlags(killSwitchState),
+      expectedKillSwitchValues,
+    );
+  });
+
+  it('returns default when sendRedesign object exists but enabled property is undefined', () => {
+    const stateWithUndefinedEnabled = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              sendRedesign: {},
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    testSendFlagValues(
+      selectSendRedesignFlags(stateWithUndefinedEnabled),
+      sendRedesignFlagsDefaultValues,
+    );
+  });
+});
+
+describe('MetaMask Pay Feature Flags', () => {
+  it('returns default buffer step if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferStep).toEqual(
+      BUFFER_STEP_DEFAULT,
+    );
+  });
+
+  it('returns default buffer initial if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferInitial).toEqual(
+      BUFFER_INITIAL_DEFAULT,
+    );
+  });
+
+  it('returns default buffer subsequent if not in feature flags', () => {
+    expect(
+      selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferSubsequent,
+    ).toEqual(BUFFER_SUBSEQUENT_DEFAULT);
+  });
+
+  it('returns default attempts max if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).attemptsMax).toEqual(
+      ATTEMPTS_MAX_DEFAULT,
+    );
+  });
+
+  it('returns default slippage if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).slippage).toEqual(
+      SLIPPAGE_DEFAULT,
+    );
+  });
+
+  it('returns buffer step from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          bufferStep: 1.234,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).bufferStep).toEqual(1.234);
+  });
+
+  it('returns initial buffer from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          bufferInitial: 2.345,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).bufferInitial).toEqual(2.345);
+  });
+
+  it('returns subsequent buffer from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          bufferSubsequent: 5.678,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).bufferSubsequent).toEqual(5.678);
+  });
+
+  it('returns max attempts from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          attemptsMax: 3,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).attemptsMax).toEqual(3);
+  });
+
+  it('returns slippage from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          slippage: 0.123,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).slippage).toEqual(0.123);
   });
 });

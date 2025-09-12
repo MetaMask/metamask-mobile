@@ -13,7 +13,12 @@ import {
 } from './FixtureUtils';
 import Utilities from '../../utils/Utilities';
 import TestHelpers from '../../helpers';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import {
+  startMockServer,
+  stopMockServer,
+  validateLiveRequests,
+} from '../../api-mocking/mock-server';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -28,12 +33,7 @@ import {
   GanacheNodeOptions,
   TestSpecificMock,
 } from '../types';
-import {
-  TestDapps,
-  DappVariants,
-  defaultGanacheOptions,
-  DEFAULT_MOCKSERVER_PORT,
-} from '../Constants';
+import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
@@ -41,6 +41,7 @@ import { mockNotificationServices } from '../../specs/notifications/utils/mocks'
 import { type Mockttp } from 'mockttp';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -321,59 +322,35 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
 };
 
 export const createMockAPIServer = async (
-  mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
-) => {
-  // Handle mock server
-  let mockServer: Mockttp | undefined;
-  let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
+): Promise<{
+  mockServer: Mockttp;
+  mockServerPort: number;
+}> => {
+  const mockServerPort = getMockServerPort();
+  const mockServer = await startMockServer(
+    DEFAULT_MOCKS,
+    mockServerPort,
+    testSpecificMock, // Applied First, so any test-specific mocks take precedence
+  );
 
-  // Both
-  if (mockServerInstance && testSpecificMock) {
-    throw new Error(
-      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
-    );
-  }
-
-  // mockServerInstance only
-  if (mockServerInstance && !testSpecificMock) {
-    mockServer = mockServerInstance;
-    mockServerPort = mockServer.port;
+  if (testSpecificMock) {
     logger.debug(
-      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+      `Mock server started with testSpecificMock (priority) + defaults fallback on port ${mockServerPort}`,
     );
-
-    const endpoints = await mockServer.getMockedEndpoints();
-
-    logger.debug(`Mocked endpoints: ${endpoints.length}`);
-  }
-
-  // testSpecificMock only
-  if (!mockServerInstance && testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
-
-  // neither
-  if (!mockServerInstance && !testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer({}, mockServerPort);
-
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
-
-  if (!mockServer) {
-    throw new Error('Test setup failure, no mock server setup');
+  } else {
+    logger.debug(`Mock server started with defaults on port ${mockServerPort}`);
   }
 
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
+
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
+
+  const endpoints = await mockServer.getMockedEndpoints();
+  logger.debug(`Mocked endpoints: ${endpoints.length}`);
 
   return {
     mockServer,
@@ -409,7 +386,6 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
-    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
@@ -420,7 +396,6 @@ export async function withFixtures(
   await TestHelpers.reverseServerPort();
 
   const { mockServer, mockServerPort } = await createMockAPIServer(
-    mockServerInstance,
     testSpecificMock,
   );
 
@@ -505,6 +480,12 @@ export async function withFixtures(
     }
 
     await stopFixtureServer(fixtureServer);
+
+    // Force reload React Native to stop any lingering timers
+    await device.reloadReactNative();
+
+    // Validate live requests
+    validateLiveRequests(mockServer);
   }
 }
 

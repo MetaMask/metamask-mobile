@@ -9,9 +9,7 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-jest.mock('../../util/permissions', () => ({
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
-}));
+import { addTransaction } from '../../util/transaction-controller';
 
 jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
@@ -56,6 +54,7 @@ function setupBackgroundBridge(url, isMMSDK = false) {
     PermissionController,
     SelectedNetworkController,
     NetworkController,
+    TransactionController,
   } = Engine.context;
 
   const mockAddress = '0x0';
@@ -97,6 +96,17 @@ function setupBackgroundBridge(url, isMMSDK = false) {
   });
   SelectedNetworkController.getProviderAndBlockTracker.mockReturnValue({
     provider: {},
+  });
+
+  // Setup transaction controller mocks
+  TransactionController.addTransaction.mockResolvedValue({
+    bind: jest.fn(),
+  });
+  TransactionController.addTransactionBatch.mockResolvedValue({
+    bind: jest.fn(),
+  });
+  TransactionController.isAtomicBatchSupported.mockResolvedValue({
+    bind: jest.fn(),
   });
 
   // Mock getPermittedAccounts to return the address
@@ -157,7 +167,7 @@ describe('BackgroundBridge', () => {
       await bridge.onStateUpdate();
       await mmBridge.onStateUpdate();
       // Verify the spy was called with the correct URL
-      expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).hostname);
+      expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).origin);
       expect(mmGetProviderSpy).toHaveBeenCalledWith(mmBridge.channelId);
     });
 

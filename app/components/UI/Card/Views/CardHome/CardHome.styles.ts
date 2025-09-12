@@ -10,6 +10,9 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.background.default,
       gap: 8,
     },
+    skeletonRounded: {
+      borderRadius: 12,
+    },
     errorDescription: {
       textAlign: 'center',
       paddingHorizontal: 46,
@@ -44,7 +47,6 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       marginHorizontal: 16,
       paddingVertical: 16,
-      position: 'relative',
     },
     balanceTextContainer: {
       alignItems: 'center',

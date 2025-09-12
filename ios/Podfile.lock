@@ -14,7 +14,7 @@ PODS:
   - EXJSONUtils (0.14.0)
   - EXManifests (0.15.8):
     - ExpoModulesCore
-  - Expo (52.0.27):
+  - Expo (52.0.47):
     - ExpoModulesCore
   - expo-dev-client (5.0.20):
     - EXManifests
@@ -233,11 +233,19 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (13.0.4):
     - ExpoModulesCore
+  - ExpoHaptics (14.0.1):
+    - ExpoModulesCore
+  - ExpoImage (2.0.7):
+    - ExpoModulesCore
+    - libavif/libdav1d
+    - SDWebImage (~> 5.19.1)
+    - SDWebImageAVIFCoder (~> 0.11.0)
+    - SDWebImageSVGCoder (~> 1.7.0)
   - ExpoKeepAwake (14.0.3):
     - ExpoModulesCore
   - ExpoLinking (7.0.5):
     - ExpoModulesCore
-  - ExpoModulesCore (2.1.4):
+  - ExpoModulesCore (2.2.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -260,6 +268,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoSensors (14.0.2):
+    - ExpoModulesCore
   - ExpoWebBrowser (14.0.2):
     - ExpoModulesCore
   - EXUpdatesInterface (1.0.0):
@@ -350,6 +360,11 @@ PODS:
   - hermes-engine (0.76.9):
     - hermes-engine/Pre-built (= 0.76.9)
   - hermes-engine/Pre-built (0.76.9)
+  - libavif/core (0.11.1)
+  - libavif/libdav1d (0.11.1):
+    - libavif/core
+    - libdav1d (>= 0.6.0)
+  - libdav1d (1.2.0)
   - lottie-ios (4.4.1)
   - lottie-react-native (6.7.2):
     - DoubleConversion
@@ -1850,6 +1865,27 @@ PODS:
     - Yoga
   - react-native-randombytes (3.6.1):
     - React-Core
+  - react-native-release-profiler (0.4.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-render-html (6.3.4):
     - React-Core
   - react-native-safe-area-context (5.4.0):
@@ -2028,7 +2064,7 @@ PODS:
     - Yoga
   - react-native-view-shot (3.8.0):
     - React-Core
-  - react-native-webview-mm (14.4.0):
+  - react-native-webview-mm (14.5.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2738,6 +2774,14 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - SDWebImage (5.19.7):
+    - SDWebImage/Core (= 5.19.7)
+  - SDWebImage/Core (5.19.7)
+  - SDWebImageAVIFCoder (0.11.0):
+    - libavif/core (>= 0.11.0)
+    - SDWebImage (~> 5.10)
+  - SDWebImageSVGCoder (1.7.0):
+    - SDWebImage/Core (~> 5.6)
   - segment-analytics-react-native (2.20.3):
     - React-Core
     - sovran-react-native
@@ -2774,9 +2818,12 @@ DEPENDENCIES:
   - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoHaptics (from `../node_modules/expo-haptics/ios`)
+  - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoSensors (from `../node_modules/expo-sensors/ios`)
   - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - EXUpdatesInterface (from `../node_modules/expo-updates-interface/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -2843,6 +2890,7 @@ DEPENDENCIES:
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
+  - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
@@ -2924,6 +2972,8 @@ SPEC REPOS:
     - GoogleUtilities
     - GZIP
     - GzipSwift
+    - libavif
+    - libdav1d
     - lottie-ios
     - MultiplatformBleAdapter
     - nanopb
@@ -2931,6 +2981,9 @@ SPEC REPOS:
     - PromisesObjC
     - React-Codegen
     - RiveRuntime
+    - SDWebImage
+    - SDWebImageAVIFCoder
+    - SDWebImageSVGCoder
     - Sentry
     - SocketRocket
 
@@ -2969,12 +3022,18 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
+  ExpoHaptics:
+    :path: "../node_modules/expo-haptics/ios"
+  ExpoImage:
+    :path: "../node_modules/expo-image/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoLinking:
     :path: "../node_modules/expo-linking/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoSensors:
+    :path: "../node_modules/expo-sensors/ios"
   ExpoWebBrowser:
     :path: "../node_modules/expo-web-browser/ios"
   EXUpdatesInterface:
@@ -3096,6 +3155,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-quick-crypto"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
+  react-native-release-profiler:
+    :path: "../node_modules/react-native-release-profiler"
   react-native-render-html:
     :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
@@ -3237,7 +3298,7 @@ SPEC CHECKSUMS:
   EXConstants: fcfc75800824ac2d5c592b5bc74130bad17b146b
   EXJSONUtils: 01fc7492b66c234e395dcffdd5f53439c5c29c93
   EXManifests: a19d50504b8826546a4782770317bc83fffec87d
-  Expo: 296cbea8d4469eb60d61f09dbd4925f86d2b85da
+  Expo: 1687edb10c76b0c0f135306d6ae245379f50ed54
   expo-dev-client: db44302cdbe0ec55b0ef1849c9a23a76dec6dbac
   expo-dev-launcher: 792cd1c83fbec4a1a66fe91a0c283368dbad851c
   expo-dev-menu: dd3197d2b0107ee036ffd85f95e75a950ab52ada
@@ -3247,9 +3308,12 @@ SPEC CHECKSUMS:
   ExpoCrypto: e97e864c8d7b9ce4a000bca45dddb93544a1b2b4
   ExpoFileSystem: 42d363d3b96f9afab980dcef60d5657a4443c655
   ExpoFont: f354e926f8feae5e831ec8087f36652b44a0b188
+  ExpoHaptics: 8d199b2f33245ea85289ff6c954c7ee7c00a5b5d
+  ExpoImage: d840b256050f4428d2942bc2b6e9251f9e0d7021
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
   ExpoLinking: 8d12bee174ba0cdf31239706578e29e74a417402
-  ExpoModulesCore: b532f3a052fe4e417dbe93e4b6fc29d749016a91
+  ExpoModulesCore: c25d77625038b1968ea1afefc719862c0d8dd993
+  ExpoSensors: 02a52ddab1e3a8a1438258c3d87d1ee5f721743a
   ExpoWebBrowser: a212e6b480d8857d3e441fba51e0c968333803b3
   EXUpdatesInterface: 7c977640bdd8b85833c19e3959ba46145c5719db
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
@@ -3268,6 +3332,8 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
+  libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
+  libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
   lottie-react-native: 7f3fc3f396b1d6c7b1454b77596bd2ad3151871e
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
@@ -3326,12 +3392,13 @@ SPEC CHECKSUMS:
   react-native-quick-base64: 17dc4b8daee50e680d5f57cc3ee6773b6ee0110a
   react-native-quick-crypto: 7a9ba486072f5081c908d487d520aba218409f76
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
+  react-native-release-profiler: fdca7c73a6e6a03fa2a343f5088fce4787e8d4ee
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: c68127652d8b9a26a28ac9597167a3ad90bcd713
   react-native-slider: e4b7f9d0616032ec2909ba073731eabcde242256
   react-native-video: 3bb92b90b2774144fac7d43d52d11b936e8a14ec
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
-  react-native-webview-mm: 0fbb0f4722fb1937065e9e1a84282584e632c8f6
+  react-native-webview-mm: b9630326cca01837e1176dc3fb2310258fe49877
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: cebca2e5320a3d66e123cade23bd90a167ffce5e
   React-perflogger: 72e653eb3aba9122f9e57cf012d22d2486f33358
@@ -3386,6 +3453,9 @@ SPEC CHECKSUMS:
   RNShare: d03cdc71e750246a48b81dcd62bd792bf57a758e
   RNSVG: 3a1cce2e940268a7d3554e3cf2bbd2195871f4fe
   RNVectorIcons: 3bf5f38dcb1aaf587c4101e9f3fcad5c8f5a88b2
+  SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
+  SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
+  SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   segment-analytics-react-native: 6f98edf18246782ee7428c5380c6519a3d2acf5e
   Sentry: 1ca8405451040482877dcd344dfa3ef80b646631
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748

@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { ImageSourcePropType } from 'react-native';
 
 // eslint-disable-next-line import/no-namespace
 import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
@@ -23,7 +22,7 @@ jest.mock('../../context/send-context', () => ({
   }),
 }));
 
-jest.mock('../UI/token/token', () => {
+jest.mock('../UI/token', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
 
   return {
@@ -44,165 +43,199 @@ jest.mock('../UI/token/token', () => {
   };
 });
 
-jest.mock('@shopify/flash-list', () => {
-  const { View } = jest.requireActual('react-native');
+const mockTokens: AssetType[] = [
+  {
+    address: '0x1234567890123456789012345678901234567890',
+    aggregators: [],
+    balance: '1.5',
+    balanceFiat: '$3000.00',
+    chainId: '0x1',
+    decimals: 18,
+    image: 'https://example.com/eth.png',
+    isETH: true,
+    isNative: true,
+    logo: 'https://example.com/eth.png',
+    name: 'Ethereum',
+    symbol: 'ETH',
+    ticker: 'ETH',
+  },
+  {
+    address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+    aggregators: [],
+    balance: '1000.0',
+    balanceFiat: '$1000.00',
+    chainId: '0x1',
+    decimals: 6,
+    image: 'https://example.com/usdc.png',
+    isETH: false,
+    isNative: false,
+    logo: 'https://example.com/usdc.png',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    ticker: 'USDC',
+  },
+];
 
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    FlashList: ({ data, renderItem, keyExtractor }: any) => {
-      const items = data.map((item: AssetType, index: number) => (
-        <View key={keyExtractor(item)} testID={`flashlist-item-${index}`}>
-          {renderItem({ item })}
-        </View>
-      ));
-      return <View testID="flashlist">{items}</View>;
-    },
-  };
-});
+const manyTokens: AssetType[] = Array.from({ length: 25 }, (_, i) => ({
+  address: `0x${i.toString().padStart(40, '0')}`,
+  aggregators: [],
+  balance: '1.0',
+  balanceFiat: '$1.00',
+  chainId: '0x1',
+  decimals: 18,
+  image: `https://example.com/token${i}.png`,
+  isETH: false,
+  isNative: false,
+  logo: `https://example.com/token${i}.png`,
+  name: `Token ${i}`,
+  symbol: `TKN${i}`,
+  ticker: `TKN${i}`,
+}));
 
 describe('TokenList', () => {
-  const mockTokens: AssetType[] = [
-    {
-      address: '0x1234567890123456789012345678901234567890',
-      aggregators: [],
-      balance: '1.5',
-      balanceFiat: '$3000.00',
-      chainId: '0x1',
-      decimals: 18,
-      image: 'https://example.com/eth.png',
-      isETH: true,
-      isNative: true,
-      logo: 'https://example.com/eth.png',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      ticker: 'ETH',
-    },
-    {
-      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      aggregators: [],
-      balance: '1000.0',
-      balanceFiat: '$1000.00',
-      chainId: '0x1',
-      decimals: 6,
-      image: 'https://example.com/usdc.png',
-      isETH: false,
-      isNative: false,
-      logo: 'https://example.com/usdc.png',
-      name: 'USD Coin',
-      symbol: 'USDC',
-      ticker: 'USDC',
-    },
-  ];
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the component with tokens', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+  describe('token rendering', () => {
+    it('renders tokens when provided', () => {
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-    expect(getByTestId('flashlist')).toBeOnTheScreen();
-  });
-
-  it('renders correct number of tokens', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    expect(getByTestId('flashlist-item-0')).toBeOnTheScreen();
-    expect(getByTestId('flashlist-item-1')).toBeOnTheScreen();
-  });
-
-  it('renders Token components with correct props', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    expect(getByTestId('token-ETH')).toBeOnTheScreen();
-    expect(getByTestId('token-USDC')).toBeOnTheScreen();
-  });
-
-  it('calls updateAsset and gotToSendScreen when token is pressed', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-ETH'));
-
-    expect(mockUpdateAsset).toHaveBeenCalledWith({
-      ...mockTokens[0],
+      expect(getByTestId('token-ETH')).toBeOnTheScreen();
+      expect(getByTestId('token-USDC')).toBeOnTheScreen();
     });
 
-    expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
-  });
+    it('renders empty list when no tokens provided', () => {
+      const { queryByTestId } = render(<TokenList tokens={[]} />);
 
-  it('calls required metrics function when token is pressed', () => {
-    const mockCaptureAssetSelected = jest.fn();
-    jest
-      .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
-      .mockReturnValue({
-        captureAssetSelected: mockCaptureAssetSelected,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-ETH'));
-
-    expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[0], '0');
-  });
-
-  it('calls updateAsset and gotToSendScreen when second token is pressed', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-USDC'));
-
-    expect(mockUpdateAsset).toHaveBeenCalledWith({
-      ...mockTokens[1],
+      expect(queryByTestId('token-ETH')).toBeNull();
+      expect(queryByTestId('token-USDC')).toBeNull();
     });
 
-    expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+    it('renders single token correctly', () => {
+      const singleToken = [mockTokens[0]];
+      const { getByTestId } = render(<TokenList tokens={singleToken} />);
+
+      expect(getByTestId('token-ETH')).toBeOnTheScreen();
+    });
   });
 
-  it('generates correct key for each token', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+  describe('token selection', () => {
+    it('calls updateAsset and navigates to amount screen when token is pressed', () => {
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-    expect(getByTestId('flashlist-item-0')).toBeOnTheScreen();
-    expect(getByTestId('flashlist-item-1')).toBeOnTheScreen();
+      fireEvent.press(getByTestId('token-ETH'));
+
+      expect(mockUpdateAsset).toHaveBeenCalledWith(mockTokens[0]);
+      expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+    });
+
+    it('handles second token press correctly', () => {
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+
+      fireEvent.press(getByTestId('token-USDC'));
+
+      expect(mockUpdateAsset).toHaveBeenCalledWith(mockTokens[1]);
+      expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+    });
+
+    it('calls captureAssetSelected with correct asset and position', () => {
+      const mockCaptureAssetSelected = jest.fn();
+      jest
+        .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+        .mockReturnValue({
+          captureAssetSelected: mockCaptureAssetSelected,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+
+      fireEvent.press(getByTestId('token-ETH'));
+
+      expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[0], '0');
+    });
+
+    it('calls captureAssetSelected with correct position for second token', () => {
+      const mockCaptureAssetSelected = jest.fn();
+      jest
+        .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+        .mockReturnValue({
+          captureAssetSelected: mockCaptureAssetSelected,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+
+      fireEvent.press(getByTestId('token-USDC'));
+
+      expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[1], '1');
+    });
   });
 
-  it('renders empty list when no tokens provided', () => {
-    const { getByTestId } = render(<TokenList tokens={[]} />);
+  describe('pagination functionality', () => {
+    it('shows only first 20 tokens initially', () => {
+      const { queryByTestId } = render(<TokenList tokens={manyTokens} />);
 
-    expect(getByTestId('flashlist')).toBeOnTheScreen();
-  });
+      expect(queryByTestId('token-TKN0')).toBeOnTheScreen();
+      expect(queryByTestId('token-TKN19')).toBeOnTheScreen();
+      expect(queryByTestId('token-TKN20')).toBeNull();
+      expect(queryByTestId('token-TKN24')).toBeNull();
+    });
 
-  it('renders with single token', () => {
-    const singleToken = [mockTokens[0]];
-    const { getByTestId } = render(<TokenList tokens={singleToken} />);
+    it('shows "Show more tokens" button when there are more than 20 tokens', () => {
+      const { getByText } = render(<TokenList tokens={manyTokens} />);
 
-    expect(getByTestId('flashlist-item-0')).toBeOnTheScreen();
-    expect(getByTestId('token-ETH')).toBeOnTheScreen();
-  });
+      expect(getByText('Show more tokens')).toBeOnTheScreen();
+    });
 
-  it('handles token press with complete asset data', () => {
-    const completeToken: AssetType = {
-      ...mockTokens[0],
-      networkBadgeSource:
-        'https://example.com/badge.png' as ImageSourcePropType,
-      tokenId: '123',
-    };
+    it('does not show "Show more tokens" button when 20 or fewer tokens', () => {
+      const { queryByText } = render(<TokenList tokens={mockTokens} />);
 
-    const { getByTestId } = render(<TokenList tokens={[completeToken]} />);
+      expect(queryByText('Show more tokens')).toBeNull();
+    });
 
-    fireEvent.press(getByTestId('token-ETH'));
+    it('shows more tokens when "Show more tokens" is pressed', () => {
+      const { getByText, queryByTestId } = render(
+        <TokenList tokens={manyTokens} />,
+      );
 
-    expect(mockUpdateAsset).toHaveBeenCalledWith(completeToken);
-  });
+      expect(queryByTestId('token-TKN20')).toBeNull();
 
-  it('maintains callback references between renders', () => {
-    const { rerender } = render(<TokenList tokens={mockTokens} />);
+      fireEvent.press(getByText('Show more tokens'));
 
-    rerender(<TokenList tokens={mockTokens} />);
+      expect(queryByTestId('token-TKN20')).toBeOnTheScreen();
+      expect(queryByTestId('token-TKN24')).toBeOnTheScreen();
+    });
 
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-    fireEvent.press(getByTestId('token-ETH'));
+    it('hides "Show more tokens" button when all tokens are visible', () => {
+      const { getByText, queryByText } = render(
+        <TokenList tokens={manyTokens} />,
+      );
 
-    expect(mockUpdateAsset).toHaveBeenCalled();
-    expect(mockGotToSendScreen).toHaveBeenCalled();
+      fireEvent.press(getByText('Show more tokens'));
+
+      expect(queryByText('Show more tokens')).toBeNull();
+    });
+
+    it('shows correct number of tokens after multiple "Show more" presses', () => {
+      const largeTokenList = Array.from({ length: 50 }, (_, i) => ({
+        ...mockTokens[0],
+        address: `0x${i.toString().padStart(40, '0')}`,
+        symbol: `TKN${i}`,
+      }));
+
+      const { getByText, queryByTestId } = render(
+        <TokenList tokens={largeTokenList} />,
+      );
+
+      fireEvent.press(getByText('Show more tokens'));
+
+      expect(queryByTestId('token-TKN39')).toBeOnTheScreen();
+      expect(queryByTestId('token-TKN40')).toBeNull();
+
+      fireEvent.press(getByText('Show more tokens'));
+
+      expect(queryByTestId('token-TKN49')).toBeOnTheScreen();
+    });
   });
 });

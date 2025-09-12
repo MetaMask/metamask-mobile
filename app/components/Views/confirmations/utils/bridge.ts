@@ -1,5 +1,6 @@
 import {
-  BridgeControllerState,
+  FeatureId,
+  GenericQuoteRequest,
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
@@ -7,20 +8,40 @@ import { Hex, createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { GasFeeEstimates, GasFeeState } from '@metamask/gas-fee-controller';
+import { orderBy } from 'lodash';
+import { toChecksumAddress } from '../../../../util/address';
+import { BigNumber } from 'bignumber.js';
 
-export type TransactionBridgeQuote = QuoteResponse & QuoteMetadata;
+const ERROR_MESSAGE_NO_QUOTES = 'No quotes found';
+const ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM = 'All quotes under minimum';
 
-const QUOTE_TIMEOUT = 1000 * 10; // 10 Seconds
+export interface QuoteMetrics {
+  attempts: number;
+  buffer: number;
+  latency: number;
+}
+
+export type TransactionBridgeQuote = QuoteResponse &
+  QuoteMetadata & {
+    metrics?: QuoteMetrics;
+    request: BridgeQuoteRequest;
+  };
 
 const log = createProjectLogger('confirmation-bridge-utils');
 
 export interface BridgeQuoteRequest {
+  attemptsMax: number;
+  bufferInitial: number;
+  bufferStep: number;
+  bufferSubsequent: number;
   from: Hex;
+  slippage: number;
+  sourceBalanceRaw: string;
   sourceChainId: Hex;
   sourceTokenAddress: Hex;
   sourceTokenAmount: string;
+  targetAmountMinimum: string;
   targetChainId: Hex;
   targetTokenAddress: Hex;
 }
@@ -30,42 +51,150 @@ export async function getBridgeQuotes(
 ): Promise<TransactionBridgeQuote[] | undefined> {
   log('Fetching bridge quotes', requests);
 
+  const startTime = Date.now();
+
   if (!requests?.length) {
     return [];
   }
 
   try {
-    const allQuotes: TransactionBridgeQuote[] = [];
-
     const gasFeeEstimates = await getGasFeeEstimates(requests[0].sourceChainId);
 
     log('Fetched gas fee estimates', gasFeeEstimates);
 
-    for (const request of requests) {
-      const quote = await getSingleBridgeQuotes(request, gasFeeEstimates);
+    const finalRequests = getFinalRequests(requests);
 
-      if (!quote) {
-        return undefined;
-      }
+    const result = await Promise.all(
+      finalRequests.map((request, index) =>
+        getSufficientSingleBridgeQuote(request, gasFeeEstimates, index),
+      ),
+    );
 
-      allQuotes.push(quote);
-    }
-
-    log('Fetched bridge quotes', allQuotes);
-
-    return allQuotes;
+    return result.map((quote) => ({
+      ...quote,
+      metrics: {
+        ...(quote.metrics as QuoteMetrics),
+        latency: Date.now() - startTime,
+      },
+    }));
   } catch (error) {
     log('Error fetching bridge quotes', error);
     return undefined;
   }
 }
 
-async function getSingleBridgeQuotes(
+export async function refreshQuote(
+  quote: TransactionBridgeQuote,
+): Promise<TransactionBridgeQuote> {
+  const gasFeeEstimates = await getGasFeeEstimates(quote.request.sourceChainId);
+  const newQuote = await getSingleBridgeQuote(quote.request, gasFeeEstimates);
+
+  log('Refreshed bridge quote', { old: quote, new: newQuote });
+
+  return newQuote;
+}
+
+async function getSufficientSingleBridgeQuote(
   request: BridgeQuoteRequest,
   gasFeeEstimates: GasFeeEstimates,
-): Promise<TransactionBridgeQuote | undefined> {
+  index: number,
+): Promise<TransactionBridgeQuote> {
+  const {
+    attemptsMax,
+    bufferInitial,
+    bufferStep,
+    bufferSubsequent,
+    sourceBalanceRaw,
+    sourceTokenAmount,
+    targetTokenAddress,
+  } = request;
+
+  const sourceAmountValue = new BigNumber(sourceTokenAmount);
+  const buffer = index === 0 ? bufferInitial : bufferSubsequent;
+  const originalSourceAmount = sourceAmountValue.div(1 + buffer);
+
+  let currentSourceAmount = sourceTokenAmount;
+
+  for (let i = 0; i < attemptsMax; i++) {
+    const currentRequest = {
+      ...request,
+      sourceTokenAmount: currentSourceAmount,
+    };
+
+    try {
+      log('Bridge quotes attempt', {
+        attempt: i + 1,
+        attemptsMax,
+        bufferInitial,
+        bufferStep,
+        currentSourceAmount,
+        target: targetTokenAddress,
+      });
+
+      const result = await getSingleBridgeQuote(
+        currentRequest,
+        gasFeeEstimates,
+      );
+
+      const dust = new BigNumber(result.quote.minDestTokenAmount)
+        .minus(request.targetAmountMinimum)
+        .toString(10);
+
+      log('Found valid quote', {
+        attempt: i + 1,
+        target: targetTokenAddress,
+        targetAmount: result.quote.minDestTokenAmount,
+        goalAmount: request.targetAmountMinimum,
+        dust,
+        quote: result,
+      });
+
+      return {
+        ...result,
+        metrics: {
+          attempts: i + 1,
+          buffer: buffer + bufferStep * i,
+          latency: 0,
+        },
+      };
+    } catch (error) {
+      const errorMessage = (error as { message: string }).message;
+
+      if (errorMessage !== ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM) {
+        throw error;
+      }
+    }
+
+    if (
+      new BigNumber(currentSourceAmount).isGreaterThanOrEqualTo(
+        sourceBalanceRaw,
+      )
+    ) {
+      log('Reached balance limit', targetTokenAddress);
+      break;
+    }
+
+    const newSourceAmount = originalSourceAmount.multipliedBy(
+      1 + buffer + bufferStep * (i + 1),
+    );
+
+    currentSourceAmount = newSourceAmount.isLessThan(sourceBalanceRaw)
+      ? newSourceAmount.toFixed(0)
+      : sourceBalanceRaw;
+  }
+
+  log('All attempts failed', request.targetTokenAddress);
+
+  throw new Error(ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM);
+}
+
+async function getSingleBridgeQuote(
+  request: BridgeQuoteRequest,
+  gasFeeEstimates: GasFeeEstimates,
+): Promise<TransactionBridgeQuote> {
   const {
     from,
+    slippage,
     sourceChainId,
     sourceTokenAddress,
     sourceTokenAmount,
@@ -75,84 +204,39 @@ async function getSingleBridgeQuotes(
 
   const { BridgeController } = Engine.context;
 
-  BridgeController.resetState();
+  const quoteRequest: GenericQuoteRequest = {
+    destChainId: targetChainId,
+    destTokenAddress: toChecksumAddress(targetTokenAddress),
+    destWalletAddress: from,
+    gasIncluded: false,
+    gasIncluded7702: false,
+    insufficientBal: false,
+    slippage: slippage * 100,
+    srcChainId: sourceChainId,
+    srcTokenAddress: toChecksumAddress(sourceTokenAddress),
+    srcTokenAmount: sourceTokenAmount,
+    walletAddress: from,
+  };
 
-  const activeQuotePromise = waitForQuoteOrTimeout(
-    targetTokenAddress,
-    gasFeeEstimates,
+  const quotes = await BridgeController.fetchQuotes(
+    quoteRequest,
+    undefined,
+    FeatureId.PERPS,
   );
 
-  await BridgeController.updateBridgeQuoteRequestParams(
-    {
-      walletAddress: from,
-      srcChainId: sourceChainId,
-      srcTokenAddress: sourceTokenAddress,
-      srcTokenAmount: sourceTokenAmount,
-      destChainId: targetChainId,
-      destTokenAddress: targetTokenAddress,
-      insufficientBal: true,
-      destWalletAddress: from,
-    },
-    {
-      stx_enabled: isSmartTransactionsEnabled(sourceChainId),
-      token_symbol_source: '',
-      token_symbol_destination: '',
-      security_warnings: [],
-    },
-  );
+  if (!quotes.length) {
+    throw new Error(ERROR_MESSAGE_NO_QUOTES);
+  }
 
-  log('Waiting for quote', request);
-
-  const activeQuote = await activeQuotePromise;
-
-  BridgeController.resetState();
-
-  return activeQuote;
-}
-
-function waitForQuoteOrTimeout(
-  targetTokenAddress: Hex,
-  gasFeeEstimates: GasFeeEstimates,
-): Promise<TransactionBridgeQuote | undefined> {
-  return new Promise<TransactionBridgeQuote>((resolve, reject) => {
-    const handler = Engine.controllerMessenger.subscribeOnceIf(
-      'BridgeController:stateChange',
-      (controllerState) => {
-        resolve(
-          getActiveQuote(
-            controllerState,
-            gasFeeEstimates,
-          ) as TransactionBridgeQuote,
-        );
-      },
-      (controllerState) => {
-        const activeQuote = getActiveQuote(controllerState);
-
-        const isMatch =
-          activeQuote?.quote.destAsset.address.toLowerCase() ===
-          targetTokenAddress.toLowerCase();
-
-        return isMatch;
-      },
-    );
-
-    setTimeout(() => {
-      Engine.controllerMessenger.tryUnsubscribe(
-        'BridgeController:stateChange',
-        handler,
-      );
-
-      log('Bridge quote request timed out');
-
-      reject(new Error('Bridge quote request timed out'));
-    }, QUOTE_TIMEOUT);
-  });
+  return getActiveQuote(quoteRequest, quotes, gasFeeEstimates, request);
 }
 
 function getActiveQuote(
-  controllerState: BridgeControllerState,
-  gasFeeEstimates?: GasFeeEstimates,
-): TransactionBridgeQuote | undefined {
+  quoteRequest: GenericQuoteRequest,
+  quotes: QuoteResponse[],
+  gasFeeEstimates: GasFeeEstimates,
+  request: BridgeQuoteRequest,
+): TransactionBridgeQuote {
   const fullState = store.getState();
 
   const state = {
@@ -161,7 +245,11 @@ function getActiveQuote(
       ...fullState?.engine,
       backgroundState: {
         ...fullState?.engine?.backgroundState,
-        BridgeController: controllerState,
+        BridgeController: {
+          ...fullState?.engine?.backgroundState?.BridgeController,
+          quoteRequest,
+          quotes,
+        },
         ...(gasFeeEstimates
           ? {
               GasFeeController: {
@@ -174,7 +262,9 @@ function getActiveQuote(
     },
   };
 
-  return selectBridgeQuotes(state).recommendedQuote ?? undefined;
+  const allQuotes = selectBridgeQuotes(state).sortedQuotes;
+
+  return getBestQuote(allQuotes, request);
 }
 
 async function getGasFeeEstimates(chainId: Hex) {
@@ -190,7 +280,70 @@ async function getGasFeeEstimates(chainId: Hex) {
   return state.gasFeeEstimates as GasFeeEstimates;
 }
 
-function isSmartTransactionsEnabled(chainId: Hex): boolean {
-  const state = store.getState();
-  return selectShouldUseSmartTransaction(state, chainId);
+function getBestQuote(
+  quotes: (QuoteResponse & QuoteMetadata)[],
+  request: BridgeQuoteRequest,
+): TransactionBridgeQuote {
+  const fastestQuotes = orderBy(
+    quotes,
+    (quote) => quote.estimatedProcessingTimeInSeconds,
+    'asc',
+  ).slice(0, 3);
+
+  const quotesOverMinimumTarget = fastestQuotes.filter((quote) =>
+    new BigNumber(quote.quote.minDestTokenAmount).isGreaterThanOrEqualTo(
+      request.targetAmountMinimum,
+    ),
+  );
+
+  log('Finding best quote', {
+    allQuotes: quotes,
+    fastestQuotes,
+    quotesOverMinimumTarget,
+  });
+
+  if (!quotesOverMinimumTarget.length) {
+    throw new Error(ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM);
+  }
+
+  const match = orderBy(
+    quotesOverMinimumTarget,
+    (quote) => BigNumber(quote.cost?.valueInCurrency ?? 0).toNumber(),
+    'asc',
+  )[0];
+
+  return {
+    ...match,
+    request,
+  };
+}
+
+function getFinalRequests(
+  requests: BridgeQuoteRequest[],
+): BridgeQuoteRequest[] {
+  return requests.map((request, index) => {
+    const isFirstRequest = index === 0;
+    const attemptsMax = isFirstRequest ? request.attemptsMax : 1;
+
+    const sourceBalanceRaw = requests
+      .reduce((acc, value, j) => {
+        const isSameSource =
+          value.sourceTokenAddress.toLowerCase() ===
+            request.sourceTokenAddress.toLowerCase() &&
+          value.sourceChainId === request.sourceChainId;
+
+        if (isFirstRequest && j > index && isSameSource) {
+          return acc.minus(value.sourceTokenAmount);
+        }
+
+        return acc;
+      }, new BigNumber(request.sourceBalanceRaw))
+      .toFixed(0);
+
+    return {
+      ...request,
+      attemptsMax,
+      sourceBalanceRaw,
+    };
+  });
 }

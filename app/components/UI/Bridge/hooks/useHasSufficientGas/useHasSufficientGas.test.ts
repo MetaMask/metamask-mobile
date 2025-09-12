@@ -24,7 +24,7 @@ describe('useHasSufficientGas', () => {
           srcChainId: '0x1',
         },
         gasFee: {
-          amount: '0.001',
+          effective: { amount: '0.001' },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -47,7 +47,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.001', // 0.001 ETH
+              effective: { amount: '0.001' }, // 0.001 ETH
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -73,7 +73,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.01', // 0.01 ETH
+              effective: { amount: '0.01' }, // 0.01 ETH
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -91,6 +91,33 @@ describe('useHasSufficientGas', () => {
         expect(result.current).toBe(false);
       });
 
+      it('should handle scientific notation in effective gas fee', () => {
+        const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] =
+          {
+            quote: {
+              gasIncluded: false,
+              srcChainId: '0x1',
+            },
+            gasFee: {
+              effective: { amount: '9.200359292e-8' }, // Scientific notation
+            },
+          } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+
+        // User has 0.001 ETH (more than enough for the tiny gas fee)
+        mockUseLatestBalance.mockReturnValue({
+          displayBalance: '0.001',
+          atomicBalance: BigNumber.from('1000000000000000'), // 0.001 ETH in wei
+        });
+
+        const { result } = renderHookWithProvider(
+          () => useHasSufficientGas({ quote: mockQuote }),
+          { state: {} },
+        );
+
+        // Should return true since 0.001 ETH > 0.00000009200359292 ETH
+        expect(result.current).toBe(true);
+      });
+
       it('should return null when gas token balance is not available', () => {
         const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] =
           {
@@ -99,7 +126,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.001',
+              effective: { amount: '0.001' },
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -121,7 +148,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: undefined,
+              effective: undefined,
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -146,7 +173,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.001',
+              effective: { amount: '0.001' },
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -173,7 +200,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {
-              amount: '0.001', // 0.001 SOL
+              effective: { amount: '0.001' }, // 0.001 SOL
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -199,7 +226,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {
-              amount: '0.01', // 0.01 SOL
+              effective: { amount: '0.01' }, // 0.01 SOL
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 

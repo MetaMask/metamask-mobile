@@ -27,10 +27,7 @@ import {
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
@@ -53,9 +50,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -245,9 +239,7 @@ class ChoosePassword extends PureComponent {
     password: '',
     confirmPassword: '',
     secureTextEntry: true,
-    biometryType: null,
     biometryChoice: false,
-    rememberMe: false,
     loading: false,
     error: null,
     errorToThrow: null,
@@ -305,12 +297,6 @@ class ChoosePassword extends PureComponent {
     );
   };
 
-  termsOfUse = async () => {
-    if (this.props.navigation) {
-      await navigateTermsOfUse(this.props.navigation.navigate);
-    }
-  };
-
   async componentDidMount() {
     const { route } = this.props;
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -348,7 +334,6 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -440,20 +425,35 @@ class ChoosePassword extends PureComponent {
     }
 
     const provider = this.props.route.params?.provider;
+    const accountType = provider ? `metamask_${provider}` : 'metamask';
+
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: provider ? `metamask_${provider}` : 'metamask',
+      account_type: accountType,
     });
 
     try {
       this.setState({ loading: true });
       const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
+      // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
-        this.state.biometryChoice,
-        this.state.rememberMe,
+        true,
+        true,
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
+
+      const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
+      trace({
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+        tags: {
+          is_social_login: Boolean(provider),
+          account_type: accountType,
+          biometrics_enabled: Boolean(this.state.biometryType),
+        },
+      });
 
       Logger.log('previous_screen', previous_screen);
       if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
@@ -476,7 +476,6 @@ class ChoosePassword extends PureComponent {
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-      this.setState({ loading: false });
 
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
@@ -515,13 +514,14 @@ class ChoosePassword extends PureComponent {
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
-        account_type: provider ? `metamask_${provider}` : 'metamask',
+        account_type: accountType,
       });
+      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (error) {
       try {
         await this.recreateVault('');
@@ -673,26 +673,6 @@ class ChoosePassword extends PureComponent {
   jumpToConfirmPassword = () => {
     const { current } = this.confirmPasswordInput;
     current && current.focus();
-  };
-
-  updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    this.setState({ biometryChoice });
-  };
-
-  renderSwitch = () => {
-    const { biometryType, biometryChoice } = this.state;
-    const handleUpdateRememberMe = (rememberMe) => {
-      this.setState({ rememberMe });
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={this.updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
   };
 
   onPasswordChange = (val) => {
@@ -987,7 +967,6 @@ class ChoosePassword extends PureComponent {
                 </View>
 
                 <View style={styles.ctaWrapper}>
-                  {this.renderSwitch()}
                   <Button
                     variant={ButtonVariants.Primary}
                     onPress={this.onPressCreate}

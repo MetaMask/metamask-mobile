@@ -531,6 +531,35 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                             }
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -591,7 +620,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,
@@ -1304,6 +1333,35 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                             }
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -1364,7 +1422,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,
@@ -2021,6 +2079,35 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                             }
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -2081,7 +2168,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,
@@ -2794,6 +2881,35 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                             }
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -2854,7 +2970,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,
@@ -3567,6 +3683,35 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                             }
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -3627,7 +3772,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,
@@ -4603,6 +4748,35 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                             }
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -4663,7 +4837,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,

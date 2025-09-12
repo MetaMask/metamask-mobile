@@ -1,15 +1,21 @@
 import {
   BridgeController,
   BridgeControllerEvents,
-  BridgeControllerState,
+  FeatureId,
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../../core/Engine';
 import { ExtendedControllerMessenger } from '../../../../core/ExtendedControllerMessenger';
-import { BridgeQuoteRequest, getBridgeQuotes } from './bridge';
+import {
+  BridgeQuoteRequest,
+  TransactionBridgeQuote,
+  getBridgeQuotes,
+  refreshQuote,
+} from './bridge';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { GasFeeController } from '@metamask/gas-fee-controller';
+import { cloneDeep } from 'lodash';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
@@ -18,10 +24,17 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.useFakeTimers();
 
 const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
+  attemptsMax: 1,
+  bufferInitial: 1,
+  bufferStep: 1,
+  bufferSubsequent: 2,
   from: '0x123',
+  slippage: 0.005,
+  sourceBalanceRaw: '10000000000000000000',
   sourceChainId: '0x1',
   sourceTokenAddress: '0xabc',
   sourceTokenAmount: '1000000000000000000',
+  targetAmountMinimum: '123',
   targetChainId: '0x2',
   targetTokenAddress: '0xdef',
 };
@@ -33,6 +46,7 @@ const QUOTE_REQUEST_2_MOCK: BridgeQuoteRequest = {
 
 const QUOTE_1_MOCK = {
   quote: {
+    minDestTokenAmount: '124',
     destAsset: {
       address: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
     },
@@ -41,6 +55,7 @@ const QUOTE_1_MOCK = {
 
 const QUOTE_2_MOCK = {
   quote: {
+    minDestTokenAmount: '124',
     destAsset: {
       address: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
     },
@@ -63,8 +78,7 @@ describe('Confirmations Bridge Utils', () => {
     messengerMock = new ExtendedControllerMessenger();
 
     bridgeControllerMock = {
-      resetState: jest.fn(),
-      updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue({}),
+      fetchQuotes: jest.fn(),
     } as unknown as jest.Mocked<BridgeController>;
 
     gasFeeControllerMock = {
@@ -78,34 +92,13 @@ describe('Confirmations Bridge Utils', () => {
     selectBridgeQuotesMock.mockImplementation(
       (state) =>
         ({
-          recommendedQuote:
-            state.engine.backgroundState.BridgeController.quotes[0],
+          sortedQuotes: state.engine.backgroundState.BridgeController.quotes,
         } as never),
     );
 
-    bridgeControllerMock.updateBridgeQuoteRequestParams
-      .mockImplementationOnce(() => {
-        messengerMock.publish(
-          'BridgeController:stateChange',
-          {
-            quotes: [QUOTE_1_MOCK],
-          } as BridgeControllerState,
-          [],
-        );
-
-        return Promise.resolve();
-      })
-      .mockImplementationOnce(() => {
-        messengerMock.publish(
-          'BridgeController:stateChange',
-          {
-            quotes: [QUOTE_2_MOCK],
-          } as BridgeControllerState,
-          [],
-        );
-
-        return Promise.resolve();
-      });
+    bridgeControllerMock.fetchQuotes
+      .mockResolvedValueOnce([QUOTE_1_MOCK])
+      .mockResolvedValueOnce([QUOTE_2_MOCK]);
 
     gasFeeControllerMock.fetchGasFeeEstimates.mockResolvedValue({
       gasFeeEstimates: {
@@ -136,73 +129,34 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await quotesPromise;
 
-      expect(quotes).toStrictEqual([QUOTE_1_MOCK, QUOTE_2_MOCK]);
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTE_1_MOCK),
+        expect.objectContaining(QUOTE_2_MOCK),
+      ]);
     });
 
-    it('returns undefined if quotes not found after timeout', async () => {
-      bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
-
+    it('returns metrics', async () => {
       const quotesPromise = getBridgeQuotes([
         QUOTE_REQUEST_1_MOCK,
         QUOTE_REQUEST_2_MOCK,
       ]);
-
-      await jest.runAllTimersAsync();
 
       const quotes = await quotesPromise;
 
-      expect(quotes).toBeUndefined();
+      expect(quotes).toStrictEqual([
+        expect.objectContaining({
+          metrics: { attempts: 1, buffer: 1, latency: 0 },
+        }),
+        expect.objectContaining({
+          metrics: { attempts: 1, buffer: 2, latency: 0 },
+        }),
+      ]);
     });
 
-    it('returns undefined if quotes do not match request', async () => {
-      bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
-      bridgeControllerMock.updateBridgeQuoteRequestParams
-        .mockImplementationOnce(() => {
-          messengerMock.publish(
-            'BridgeController:stateChange',
-            {
-              quotes: [QUOTE_2_MOCK],
-            } as BridgeControllerState,
-            [],
-          );
+    it('requests quotes', async () => {
+      await getBridgeQuotes([QUOTE_REQUEST_1_MOCK, QUOTE_REQUEST_2_MOCK]);
 
-          return Promise.resolve();
-        })
-        .mockImplementationOnce(() => {
-          messengerMock.publish(
-            'BridgeController:stateChange',
-            {
-              quotes: [QUOTE_1_MOCK],
-            } as BridgeControllerState,
-            [],
-          );
-
-          return Promise.resolve();
-        });
-
-      const quotesPromise = getBridgeQuotes([
-        QUOTE_REQUEST_1_MOCK,
-        QUOTE_REQUEST_2_MOCK,
-      ]);
-
-      await jest.runAllTimersAsync();
-
-      const quotes = await quotesPromise;
-
-      expect(quotes).toBeUndefined();
-    });
-
-    it('updates bridge request parameters', async () => {
-      const quotesPromise = getBridgeQuotes([
-        QUOTE_REQUEST_1_MOCK,
-        QUOTE_REQUEST_2_MOCK,
-      ]);
-
-      await quotesPromise;
-
-      expect(
-        bridgeControllerMock.updateBridgeQuoteRequestParams,
-      ).toHaveBeenCalledWith(
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           walletAddress: QUOTE_REQUEST_1_MOCK.from,
           srcChainId: QUOTE_REQUEST_1_MOCK.sourceChainId,
@@ -210,13 +164,14 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_1_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_1_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
+          slippage: 0.5,
+          insufficientBal: false,
         }),
-        expect.any(Object),
+        undefined,
+        FeatureId.PERPS,
       );
 
-      expect(
-        bridgeControllerMock.updateBridgeQuoteRequestParams,
-      ).toHaveBeenCalledWith(
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           walletAddress: QUOTE_REQUEST_2_MOCK.from,
           srcChainId: QUOTE_REQUEST_2_MOCK.sourceChainId,
@@ -224,36 +179,533 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_2_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_2_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
+          slippage: 0.5,
+          insufficientBal: false,
         }),
-        expect.any(Object),
+        undefined,
+        FeatureId.PERPS,
+      );
+    });
+
+    it('returns undefined if no quotes', async () => {
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue([]);
+
+      const quotes = await getBridgeQuotes([
+        QUOTE_REQUEST_1_MOCK,
+        QUOTE_REQUEST_2_MOCK,
+      ]);
+
+      expect(quotes).toBeUndefined();
+    });
+
+    it('selects cheapest quote of 3 fastest quotes', async () => {
+      const QUOTES = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 10,
+          cost: { valueInCurrency: '1.5' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 20,
+          cost: { valueInCurrency: '1' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 30,
+          cost: { valueInCurrency: '2' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 50,
+          cost: { valueInCurrency: '0.9' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue(QUOTES);
+
+      const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(quotes).toStrictEqual([expect.objectContaining(QUOTES[2])]);
+    });
+
+    it('ignores quote if token amount if less than minimum', async () => {
+      const QUOTES = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 10,
+          cost: { valueInCurrency: '1.5' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 20,
+          cost: { valueInCurrency: '1' },
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 30,
+          cost: { valueInCurrency: '2' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 50,
+          cost: { valueInCurrency: '0.9' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue(QUOTES);
+
+      const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(quotes).toStrictEqual([expect.objectContaining(QUOTES[1])]);
+    });
+
+    it('returns undefined if all fastest quotes have token amount less than minimum', async () => {
+      const QUOTES = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 10,
+          cost: { valueInCurrency: '1.5' },
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 20,
+          cost: { valueInCurrency: '1' },
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 30,
+          cost: { valueInCurrency: '2' },
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 50,
+          cost: { valueInCurrency: '0.9' },
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue(QUOTES);
+
+      const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(quotes).toBeUndefined();
+    });
+
+    it('increases source amount until target amount minimum reached', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '124',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        { ...QUOTE_REQUEST_1_MOCK, attemptsMax: 2 },
+      ]);
+
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTES_ATTEMPT_2[0]),
+      ]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        undefined,
+        expect.any(String),
+      );
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1500000000000000000',
+        }),
+        undefined,
+        expect.any(String),
+      );
+    });
+
+    it('returns undefined if target amount minimum not reached after max attempts', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '120',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '121',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_3 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_3);
+
+      const quotes = await getBridgeQuotes([
+        { ...QUOTE_REQUEST_1_MOCK, attemptsMax: 3 },
+      ]);
+
+      expect(quotes).toBeUndefined();
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(3);
+    });
+
+    it('returns undefined if target amount minimum not reached and at balance limit', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '120',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '121',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          attemptsMax: 3,
+          sourceBalanceRaw: '1500000000000000000',
+        },
+      ]);
+
+      expect(quotes).toBeUndefined();
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+    });
+
+    it('uses balance as source token amount if next amount greater than balance', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '120',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '123',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          attemptsMax: 3,
+          sourceBalanceRaw: '1400000000000000000',
+        },
+      ]);
+
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTES_ATTEMPT_2[0]),
+      ]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        undefined,
+        expect.any(String),
+      );
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1400000000000000000',
+        }),
+        undefined,
+        expect.any(String),
+      );
+    });
+
+    it('does not increase source amount if not first request', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '123',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          attemptsMax: 3,
+        },
+        {
+          ...QUOTE_REQUEST_2_MOCK,
+          attemptsMax: 3,
+        },
+      ]);
+
+      expect(quotes).toBeUndefined();
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        undefined,
+        expect.any(String),
+      );
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        undefined,
+        expect.any(String),
+      );
+    });
+
+    it('limits increased source amount to balance minus source amount of subsequent requests', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          quote: {
+            minDestTokenAmount: '122',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '123',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_3 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          quote: {
+            minDestTokenAmount: '123',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_3);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          attemptsMax: 3,
+          sourceBalanceRaw: '2400000000000000000',
+        },
+        {
+          ...QUOTE_REQUEST_2_MOCK,
+          attemptsMax: 3,
+        },
+      ]);
+
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTES_ATTEMPT_2[0]),
+        expect.objectContaining(QUOTES_ATTEMPT_3[0]),
+      ]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(3);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+          destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
+        }),
+        undefined,
+        expect.any(String),
+      );
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+          destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
+        }),
+        undefined,
+        expect.any(String),
+      );
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          srcTokenAmount: '1400000000000000000',
+          destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
+        }),
+        undefined,
+        expect.any(String),
       );
     });
   });
 
-  it('sets smart transactions enabled in request parameters', async () => {
-    selectShouldUseSmartTransactionMock.mockReset();
-    selectShouldUseSmartTransactionMock
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(false);
+  describe('refreshQuote', () => {
+    it('returns new quote', async () => {
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue([QUOTE_2_MOCK]);
 
-    await getBridgeQuotes([QUOTE_REQUEST_1_MOCK, QUOTE_REQUEST_2_MOCK]);
+      const result = await refreshQuote({
+        ...QUOTE_1_MOCK,
+        request: QUOTE_REQUEST_1_MOCK,
+      } as TransactionBridgeQuote);
 
-    expect(
-      bridgeControllerMock.updateBridgeQuoteRequestParams,
-    ).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.objectContaining({
-        stx_enabled: true,
-      }),
-    );
+      expect(result).toStrictEqual(expect.objectContaining(QUOTE_2_MOCK));
+    });
 
-    expect(
-      bridgeControllerMock.updateBridgeQuoteRequestParams,
-    ).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.objectContaining({
-        stx_enabled: false,
-      }),
-    );
+    it('requests new quote', async () => {
+      await refreshQuote({
+        ...QUOTE_1_MOCK,
+        request: QUOTE_REQUEST_1_MOCK,
+      } as TransactionBridgeQuote);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws if new quote under minimum', async () => {
+      const quote = cloneDeep(QUOTE_1_MOCK);
+      quote.quote.minDestTokenAmount = '122';
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue([quote]);
+
+      await expect(
+        refreshQuote({
+          ...QUOTE_1_MOCK,
+          request: QUOTE_REQUEST_1_MOCK,
+        } as TransactionBridgeQuote),
+      ).rejects.toThrow('All quotes under minimum');
+    });
   });
 });

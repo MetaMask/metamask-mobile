@@ -6,13 +6,25 @@ import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp } from '../../../viewHelper';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import {
+  buildPermissions,
+  getTestDappLocalUrl,
+} from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
-import { MockApiEndpoint } from '../../../framework/types';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -23,15 +35,12 @@ const typedSignRequestBody = {
     ],
     '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
   ],
-  origin: 'localhost',
+  origin: getTestDappLocalUrl(),
 };
 
 describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
   const runTest = async (
-    testSpecificMock: {
-      GET?: MockApiEndpoint[];
-      POST?: MockApiEndpoint[];
-    },
+    testSpecificMock: (mockServer: Mockttp) => Promise<void>,
     alertAssertion: () => Promise<void>,
   ) => {
     await withFixtures(
@@ -48,13 +57,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           )
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-            ...(testSpecificMock.GET ?? []),
-          ],
-          POST: [...(testSpecificMock.POST ?? [])],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -71,13 +74,28 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
   describe('Security Alert API', () => {
     it('should sign typed message', async () => {
-      const testSpecificMock = {
-        POST: [
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
+
+        await setupMockPostRequest(
+          mockServer,
+          securityAlertsUrl('0xaa36a7'),
+          typedSignRequestBody,
+          SECURITY_ALERTS_BENIGN_RESPONSE,
           {
-            ...mockEvents.POST.securityAlertApiValidate,
-            requestBody: typedSignRequestBody,
+            statusCode: 201,
+            ignoreFields: [
+              'id',
+              'jsonrpc',
+              'toNative',
+              'networkClientId',
+              'traceContext',
+            ],
           },
-        ],
+        );
       };
 
       await runTest(testSpecificMock, async () => {
@@ -88,18 +106,24 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
     });
 
     it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
-      const testSpecificMock = {
-        POST: [
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
+
+        await setupMockPostRequest(
+          mockServer,
+          'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+          typedSignRequestBody,
           {
-            ...mockEvents.POST.securityAlertApiValidate,
-            requestBody: typedSignRequestBody,
-            response: {
-              block: 20733277,
-              result_type: 'Malicious',
-              reason: 'malicious_domain',
-              description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
-              features: [],
-            },
+            block: 20733277,
+            result_type: 'Malicious',
+            reason: 'malicious_domain',
+            description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
+            features: [],
+          },
+          {
             ignoreFields: [
               'id',
               'jsonrpc',
@@ -108,7 +132,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
               'traceContext',
             ],
           },
-        ],
+        );
       };
 
       await runTest(testSpecificMock, async () => {
@@ -133,28 +157,40 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
     });
 
     it('should show security alert for error when validating request fails', async () => {
-      const testSpecificMock = {
-        GET: [
-          {
-            urlEndpoint:
-              'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
-            responseCode: 500,
-            response: {
-              message: 'Internal Server Error',
-            },
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
+
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: 'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
+          response: {
+            message: 'Internal Server Error',
           },
-        ],
-        POST: [
+          responseCode: 500,
+        });
+
+        await setupMockPostRequest(
+          mockServer,
+          'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+          typedSignRequestBody,
           {
-            ...mockEvents.POST.securityAlertApiValidate,
-            requestBody: typedSignRequestBody,
-            response: {
-              error: 'Internal Server Error',
-              message: 'An unexpected error occurred on the server.',
-            },
-            responseCode: 500,
+            error: 'Internal Server Error',
+            message: 'An unexpected error occurred on the server.',
           },
-        ],
+          {
+            statusCode: 500,
+            ignoreFields: [
+              'id',
+              'jsonrpc',
+              'toNative',
+              'networkClientId',
+              'traceContext',
+            ],
+          },
+        );
       };
 
       await runTest(testSpecificMock, async () => {
@@ -170,6 +206,13 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
   describe('Inline Alert', () => {
     it('should show mismatch field alert, click the alert, acknowledge and confirm the signature', async () => {
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
+      };
+
       await withFixtures(
         {
           dapps: [
@@ -182,11 +225,12 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0xaa36a7']),
             )
+            .withPreferencesController({
+              securityAlertsEnabled: true,
+            })
             .build(),
           restartDevice: true,
-          testSpecificMock: {
-            GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
-          },
+          testSpecificMock,
         },
         async () => {
           await loginToApp();

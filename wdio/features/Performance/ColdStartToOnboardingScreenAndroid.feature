@@ -6,5 +6,5 @@ Feature: Measure Fresh Install Cold Start
 
     Scenario: Wallet Time To Interact Cold Start on Fresh Install
         Given the app is launched
-        When the Welcome screen is displayed
+        Then Wallet setup screen is displayed
         Then the app start time should not exceed "500" milliseconds

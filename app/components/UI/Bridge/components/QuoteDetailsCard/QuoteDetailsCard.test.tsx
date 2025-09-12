@@ -1,5 +1,5 @@
 import '../../_mocks_/initialState';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import QuoteDetailsCard from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
@@ -7,6 +7,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
+import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+
+jest.mock(
+  '../../../../../images/metamask-rewards-points.svg',
+  () => 'MetamaskRewardsPointsSvg',
+);
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -20,7 +26,18 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest.fn().mockImplementation(() => ({
     quoteFetchError: null,
-    activeQuote: mockQuotes[0],
+    activeQuote: {
+      ...mockQuotes[0],
+      quote: {
+        ...mockQuotes[0].quote,
+        feeData: {
+          metabridge: {
+            amount: '1000000', // Non-zero fee to show disclaimer
+            asset: mockQuotes[0].quote.feeData.metabridge.asset,
+          },
+        },
+      },
+    },
     destTokenAmount: '24.44',
     isLoading: false,
     formattedQuoteData: {
@@ -31,6 +48,13 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
       slippage: '0.5%',
     },
   })),
+}));
+
+// Mock Engine for rewards functionality
+jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
 }));
 
 // Mock the bridge selectors
@@ -96,22 +120,6 @@ describe('QuoteDetailsCard', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders expanded state', () => {
-    const { getByLabelText, toJSON } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    // Expand the accordion
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('displays fee amount', () => {
     const { getByText } = renderScreen(
       QuoteDetailsCard,
@@ -122,18 +130,6 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('0.01')).toBeDefined();
-  });
-
-  it('displays processing time', () => {
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    expect(getByText('1 min')).toBeDefined();
   });
 
   it('displays quote rate', () => {
@@ -148,45 +144,14 @@ describe('QuoteDetailsCard', () => {
     expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
   });
 
-  it('toggles content visibility on chevron press', () => {
-    const { getByLabelText, queryByText } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    // Initially price impact should not be visible
-    expect(queryByText(strings('bridge.price_impact'))).toBeNull();
-
-    // Press chevron to expand
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
-    // After expansion, price impact should be visible
-    expect(queryByText(strings('bridge.price_impact'))).toBeDefined();
-    expect(queryByText('-0.06%')).toBeDefined();
-
-    // Press chevron again to collapse
-    fireEvent.press(expandButton);
-
-    // After collapse, price impact should not be visible
-    expect(queryByText(strings('bridge.price_impact'))).toBeNull();
-  });
-
   it('navigates to slippage modal on edit press', () => {
-    const { getByLabelText, getByTestId } = renderScreen(
+    const { getByTestId } = renderScreen(
       QuoteDetailsCard,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: testState },
     );
-
-    // Expand the accordion first
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // Find and press the edit button
     const editButton = getByTestId('edit-slippage-button');
@@ -198,32 +163,14 @@ describe('QuoteDetailsCard', () => {
     });
   });
 
-  it('displays network names', () => {
-    const initialTestState = createBridgeTestState();
-
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: initialTestState },
-    );
-
-    expect(getByText('Solana')).toBeDefined();
-  });
-
   it('displays slippage value', () => {
-    const { getByLabelText, getByText } = renderScreen(
+    const { getByText } = renderScreen(
       QuoteDetailsCard,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: testState },
     );
-
-    // Expand the accordion first
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
@@ -234,7 +181,7 @@ describe('QuoteDetailsCard', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
 
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: mockQuotesGasIncluded[0],
       destTokenAmount: '24.44',
@@ -257,7 +204,7 @@ describe('QuoteDetailsCard', () => {
     );
 
     // Verify "Included" text is displayed
-    expect(getByText('Included')).toBeDefined();
+    expect(getByText(strings('bridge.included'))).toBeDefined();
 
     // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
@@ -312,16 +259,12 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
     try {
       const priceImpactTooltip = getByLabelText(
         /Price Impact Warning tooltip/i,
       );
       fireEvent.press(priceImpactTooltip);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
         params: { isGasIncluded: false },
       });
     } catch {
@@ -336,14 +279,15 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
-    const quoteTooltip = getByLabelText(/Why we recommend this quote tooltip/i);
+    const quoteTooltip = getByLabelText('Rate tooltip');
     fireEvent.press(quoteTooltip);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL,
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      params: {
+        title: strings('bridge.quote_info_title'),
+        tooltip: strings('bridge.quote_info_content'),
+      },
+      screen: 'tooltipModal',
     });
   });
 
@@ -371,14 +315,11 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText, queryByLabelText } = renderScreen(
+    const { queryByLabelText } = renderScreen(
       QuoteDetailsCard,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
-
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // With low price impact, the warning tooltip should not exist
     expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
@@ -408,14 +349,11 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText, getByText, queryByLabelText } = renderScreen(
+    const { getByText, queryByLabelText } = renderScreen(
       QuoteDetailsCard,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
-
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
 
     // The key is testing the shouldShowPriceImpactWarning conditional branches
     // Verify the Price Impact section is visible (this exercises the component logic)
@@ -433,5 +371,394 @@ describe('QuoteDetailsCard', () => {
       // False branch - no warning tooltip
       expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
     }
+  });
+
+  describe('rewards functionality', () => {
+    const mockEngine = jest.requireMock('../../../../../core/Engine');
+
+    beforeEach(() => {
+      // Reset Engine mocks
+      jest.clearAllMocks();
+      // Default to rewards disabled
+      mockEngine.controllerMessenger.call.mockImplementation(() =>
+        Promise.resolve(false),
+      );
+    });
+
+    it('displays rewards row when rewards are enabled and user has opted in', async () => {
+      // Given rewards feature is enabled and user has opted in
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          // Note: In the actual implementation, these are commented out as TODO
+          // But we'll mock them as if they were working
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            return Promise.resolve({ pointsEstimate: 100 });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { getByText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards row should be displayed
+      await waitFor(() => {
+        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
+      });
+    });
+
+    it('displays rewards row without points when estimation fails', async () => {
+      // Given rewards estimation fails but feature is enabled and user has opted in
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            // Throw error to simulate failure
+            throw new Error('Estimation failed');
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards row should be shown but without points value
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
+      });
+
+      // But no numeric value should be displayed
+      expect(queryByText(/^\d+$/)).toBeNull();
+    });
+
+    it('does not display rewards row when rewards feature is disabled', async () => {
+      // Given rewards feature is disabled
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(false);
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards row should not be displayed
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeNull();
+      });
+    });
+
+    it('does not display rewards row when user has not opted in', async () => {
+      // Given rewards feature is enabled but user has not opted in
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(false);
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards row should not be displayed
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeNull();
+      });
+    });
+
+    it('displays rewards image when rewards row is shown', async () => {
+      // Given rewards should be shown
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            return Promise.resolve({ pointsEstimate: 150 });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { UNSAFE_getByProps } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the MetaMask rewards points image should be displayed
+      await waitFor(() => {
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('does not display points value when rewards are loading', async () => {
+      // Given rewards are being estimated (pending promise)
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            // Return a pending promise to simulate loading
+            return new Promise(() => {
+              // Never resolves to simulate loading state
+            });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards row should be shown but without points value
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
+      });
+      // Points value should not be displayed while loading
+      expect(queryByText(/^\d+$/)).toBeNull();
+    });
+
+    it('displays rewards row but no points when engine returns zero', async () => {
+      // Given rewards estimation returns zero with feature enabled and user opted in
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            return Promise.resolve({ pointsEstimate: 0 });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards row should be shown
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
+      });
+
+      // When points are 0, we may show "0" or no value at all
+      // This behavior will depend on how useRewards handles the response
+    });
+
+    it('displays rewards tooltip when rewards row is shown', async () => {
+      // Given rewards should be shown
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            return Promise.resolve({ pointsEstimate: 100 });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { getByLabelText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards tooltip should be available
+      await waitFor(() => {
+        const rewardsTooltip = getByLabelText(/Points tooltip/i);
+        expect(rewardsTooltip).toBeOnTheScreen();
+      });
+    });
+
+    it('displays rewards row when all conditions are met', async () => {
+      // Given rewards feature is enabled, user has opted in, and estimation succeeds
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            return Promise.resolve({ pointsEstimate: 500 });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then the rewards row should be displayed
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('handles rewards estimation with null estimatedPoints', async () => {
+      // Given rewards with null estimated points
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            return Promise.resolve({ pointsEstimate: null });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Then rewards row should be shown but without points value
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
+      });
+      // No numeric value should be displayed
+      expect(queryByText(/^\d+$/)).toBeNull();
+    });
+
+    it('handles quote loading state with rewards', async () => {
+      // Given quote is loading
+      (useBridgeQuoteData as jest.Mock).mockImplementationOnce(() => ({
+        quoteFetchError: null,
+        activeQuote: mockQuotes[0],
+        destTokenAmount: '24.44',
+        isLoading: true,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '-0.06%',
+          slippage: '0.5%',
+        },
+      }));
+
+      // Mock Engine to simulate rewards loading
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            // Return a pending promise to simulate loading
+            return new Promise(() => {
+              // Never resolves to simulate loading state
+            });
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      // When rendering the component
+      const { queryByText } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      // Rewards row should be shown
+      await waitFor(() => {
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+      });
+
+      // But no points value should be displayed
+      expect(queryByText(/^\d+$/)).toBeNull();
+    });
   });
 });

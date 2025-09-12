@@ -1,6 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
+import { AddressSelectorSelectors } from '../../selectors/wallet/AddressSelector.selectors';
 
 class BuildQuoteView {
   get amountToBuyLabel(): DetoxElement {
@@ -77,6 +78,12 @@ class BuildQuoteView {
     return Matchers.getElementByLabel('MAX');
   }
 
+  get accountPickerDropdown(): DetoxElement {
+    return Matchers.getElementByID(
+      AddressSelectorSelectors.ACCOUNT_PICKER_DROPDOWN,
+    );
+  }
+
   async tapCancelButton(): Promise<void> {
     await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel Button in Build Quote View',
@@ -86,6 +93,18 @@ class BuildQuoteView {
   async tapAccountPicker(): Promise<void> {
     await Gestures.waitAndTap(this.accountPicker, {
       elemDescription: 'Account Picker in Build Quote View',
+    });
+  }
+
+  async tapSelectAddressDropdown(): Promise<void> {
+    await Gestures.waitAndTap(this.accountPickerDropdown, {
+      elemDescription: 'Account dropdown in address selector',
+    });
+  }
+
+  async dismissAccountSelector(): Promise<void> {
+    await Gestures.swipe(this.accountPickerDropdown, 'down', {
+      speed: 'fast',
     });
   }
 
@@ -144,11 +163,31 @@ class BuildQuoteView {
     });
   }
 
-  async tapPaymentMethodDropdown(paymentMethod: string): Promise<void> {
+  async tapPaymentMethodDropdown(
+    paymentMethod: string | RegExp,
+  ): Promise<void> {
     const paymentMethodOption = Matchers.getElementByText(paymentMethod);
     await Gestures.waitAndTap(paymentMethodOption, {
       elemDescription: `Payment Method Dropdown (${paymentMethod}) in Build Quote View`,
     });
+  }
+
+  async getPaymentMethodDropdownText(
+    regex: string | RegExp,
+  ): Promise<string | undefined> {
+    try {
+      const elem = await Matchers.getElementByText(regex);
+      const attributes = await (
+        elem as unknown as IndexableNativeElement
+      ).getAttributes();
+      return (
+        (attributes as { text?: string; label?: string }).text ??
+        (attributes as { text?: string; label?: string }).label
+      );
+    } catch (error) {
+      // Purposefully returning undefined to use in an assertion
+      return undefined;
+    }
   }
 
   async tapRegionSelector() {

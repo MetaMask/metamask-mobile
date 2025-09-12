@@ -4,7 +4,7 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
-import { RefreshControl, SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -20,21 +20,20 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBottomSheet';
 import type { Position } from '../../controllers/types';
 import {
   usePerpsAccount,
-  usePerpsPositions,
+  usePerpsLivePositions,
   usePerpsTPSLUpdate,
-  usePerpsClosePosition,
 } from '../../hooks';
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PerpsPositionsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsPositionsView: React.FC = () => {
-  const { styles, theme } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
   const cachedAccountState = usePerpsAccount();
@@ -43,26 +42,18 @@ const PerpsPositionsView: React.FC = () => {
     null,
   );
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
 
-  const { positions, isLoading, isRefreshing, error, loadPositions } =
-    usePerpsPositions({
-      loadOnMount: true,
-      refreshOnFocus: true,
-    });
+  // Get real-time positions via WebSocket
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000, // Update every second
+  });
+
+  const error = null;
 
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
-      // Refresh positions to show updated data
-      loadPositions({ isRefresh: true });
-    },
-  });
-
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Refresh positions to show updated data
-      loadPositions({ isRefresh: true });
-      setIsClosePositionVisible(false);
+      // Positions update automatically via WebSocket
+      setIsTPSLVisible(false);
       setSelectedPosition(null);
     },
   });
@@ -86,22 +77,8 @@ const PerpsPositionsView: React.FC = () => {
     navigation.goBack();
   };
 
-  const handleRefresh = () => {
-    loadPositions({ isRefresh: true });
-  };
-
-  const handleEditTPSL = (position: Position) => {
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
-  };
-
-  const handleClosePositionClick = (position: Position) => {
-    setSelectedPosition(position);
-    setIsClosePositionVisible(true);
-  };
-
   const renderContent = () => {
-    if (isLoading) {
+    if (isInitialLoading) {
       return (
         <View style={styles.loadingContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
@@ -138,7 +115,10 @@ const PerpsPositionsView: React.FC = () => {
     }
 
     return (
-      <View style={styles.positionsSection}>
+      <View
+        style={styles.positionsSection}
+        testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION}
+      >
         <View style={styles.sectionHeader}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.open_positions')}
@@ -147,22 +127,30 @@ const PerpsPositionsView: React.FC = () => {
             {positionCountText}
           </Text>
         </View>
-        {positions.map((position, index) => (
-          <PerpsPositionCard
-            key={`${position.coin}-${index}`}
-            position={position}
-            onEdit={handleEditTPSL}
-            onClose={handleClosePositionClick}
-          />
-        ))}
+        {positions.map((position, index) => {
+          const sizeValue = parseFloat(position.size);
+          const directionSegment = Number.isFinite(sizeValue)
+            ? sizeValue > 0
+              ? 'long'
+              : sizeValue < 0
+              ? 'short'
+              : 'unknown'
+            : 'unknown';
+          return (
+            <View
+              key={`${position.coin}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+            >
+              <PerpsPositionCard position={position} />
+            </View>
+          );
+        })}
       </View>
     );
   };
 
-  const { top } = useSafeAreaInsets();
-
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: top }]}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -177,16 +165,7 @@ const PerpsPositionsView: React.FC = () => {
         <View style={styles.headerPlaceholder} />
       </View>
 
-      <ScrollView
-        style={styles.container}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.colors.primary.default}
-          />
-        }
-      >
+      <ScrollView style={styles.container}>
         {/* Account Summary */}
         <View style={styles.accountSummary}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -234,7 +213,6 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
         </View>
-
         {renderContent()}
       </ScrollView>
 
@@ -260,27 +238,6 @@ const PerpsPositionsView: React.FC = () => {
           initialTakeProfitPrice={selectedPosition.takeProfitPrice}
           initialStopLossPrice={selectedPosition.stopLossPrice}
           isUpdating={isUpdating}
-        />
-      )}
-
-      {/* Close Position Bottom Sheet */}
-      {isClosePositionVisible && selectedPosition && (
-        <PerpsClosePositionBottomSheet
-          isVisible
-          onClose={() => {
-            setIsClosePositionVisible(false);
-            setSelectedPosition(null);
-          }}
-          onConfirm={async (size, orderType, limitPrice) => {
-            await handleClosePosition(
-              selectedPosition,
-              size,
-              orderType,
-              limitPrice,
-            );
-          }}
-          position={selectedPosition}
-          isClosing={isClosing}
         />
       )}
     </SafeAreaView>

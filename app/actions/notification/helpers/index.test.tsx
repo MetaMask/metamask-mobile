@@ -28,6 +28,7 @@ jest.mock('../../../core/Engine', () => ({
       enableAccounts: jest.fn(),
       createOnChainTriggers: jest.fn(),
       setFeatureAnnouncementsEnabled: jest.fn(),
+      setPerpsNotificationsEnabled: jest.fn(),
       fetchAndUpdateMetamaskNotifications: jest.fn(),
       markMetamaskNotificationsAsRead: jest.fn(),
       enablePushNotifications: jest.fn(),

@@ -5,6 +5,7 @@ import Device from '../../../util/device';
 import AppConstants from '../../AppConstants';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../SDKConnect/SDKConnect';
+import SDKConnectV2 from '../../SDKConnectV2';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
@@ -13,6 +14,7 @@ import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/SDKConnect/SDKConnect');
+jest.mock('../../../core/SDKConnectV2');
 jest.mock('../../../core/WalletConnect/WalletConnectV2');
 jest.mock('../../../core/NativeModules', () => ({
   Minimizer: {
@@ -24,6 +26,7 @@ describe('handleMetaMaskProtocol', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
+  const mockHandleDepositCash = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
@@ -42,6 +45,7 @@ describe('handleMetaMaskProtocol', () => {
     parse: mockParse,
     _handleBuyCrypto: mockHandleBuyCrypto,
     _handleSellCrypto: mockHandleSellCrypto,
+    _handleDepositCash: mockHandleDepositCash,
     _handleBrowserUrl: mockHandleBrowserUrl,
   } as unknown as DeeplinkManager;
 
@@ -108,6 +112,30 @@ describe('handleMetaMaskProtocol', () => {
     });
 
     expect(handled).toHaveBeenCalled();
+  });
+
+  describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp', () => {
+    const spyHandleConnectDeeplink = jest.spyOn(
+      SDKConnectV2,
+      'handleConnectDeeplink',
+    );
+    beforeEach(() => {
+      url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`;
+      spyHandleConnectDeeplink.mockImplementation(jest.fn());
+    });
+
+    it('should call SDKConnectV2.handleConnectDeeplink', () => {
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(spyHandleConnectDeeplink).toHaveBeenCalledWith(url);
+    });
   });
 
   describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}', () => {
@@ -392,6 +420,25 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(mockHandleSellCrypto).toHaveBeenCalled();
+    });
+  });
+
+  describe('when url start with ${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}', () => {
+    beforeEach(() => {
+      url = `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`;
+    });
+
+    it('should call _handleDepositCash', () => {
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleDepositCash).toHaveBeenCalled();
     });
   });
 });

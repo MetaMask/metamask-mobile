@@ -38,8 +38,6 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       isHomepage: () => false,
       // Show autocomplete
       fromHomepage: { current: false },
-      // Wizard
-      wizardScrollAdjusted: { current: false },
       tabId: '',
       isWalletConnect: false,
       analytics: {

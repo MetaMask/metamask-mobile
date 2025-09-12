@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -7,15 +7,16 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import ToastModal from '../../pages/wallet/ToastModal';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(Regression('Transaction'), () => {
+describe(RegressionAssets('Transaction'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -28,33 +29,29 @@ describe(Regression('Transaction'), () => {
     const TOKEN_NAME = enContent.unit.eth;
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+          );
         },
       },
       async () => {
         await loginToApp();
-        await WalletView.tapTokenNetworkFilter();
-        await WalletView.tapTokenNetworkFilterAll();
-        // Wait for network filter to apply and layout to stabilize
-        await TestHelpers.delay(2000);
-
         // Scroll to top first to ensure consistent starting position
         await WalletView.scrollToTopOfTokensList();
-        await TestHelpers.delay(1000);
 
         // Then scroll to Ethereum with extra stability
         await WalletView.scrollToToken(ETHEREUM_NAME);
-        await TestHelpers.delay(1500); // Extra time for scroll to complete
-
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
-        // if (device.getPlatform() === 'ios') {
-        //   await NetworkEducationModal.tapNetworkName(ETHEREUM_NAME);
-        // }
-        await NetworkEducationModal.tapGotItButton();
 
         await SendView.inputAddress(RECIPIENT);
         await SendView.tapNextButton();

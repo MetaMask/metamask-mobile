@@ -573,7 +573,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           "display": "flex",
                                           "flex": 1,
                                           "flexDirection": "row",
-                                          "height": 66,
+                                          "height": 40,
                                           "opacity": 1,
                                           "paddingHorizontal": 0,
                                         }
@@ -582,9 +582,15 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     >
                                       <View
                                         style={
-                                          {
-                                            "backgroundColor": "inherit",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "inherit",
+                                              "height": 38,
+                                            },
+                                            {
+                                              "flex": 1,
+                                            },
+                                          ]
                                         }
                                       >
                                         <TextInput
@@ -612,7 +618,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderWidth": 1,
                                               "color": "#686e7d",
                                               "display": "flex",
-                                              "flex": 1,
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -737,7 +742,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
-                                onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={

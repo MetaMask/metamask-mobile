@@ -6,6 +6,9 @@ const createStyles = () =>
     container: {
       flex: 1,
     },
+    scrollContentContainer: {
+      paddingBottom: 100,
+    },
     addNetworkButtonContainer: {
       paddingHorizontal: 16,
       paddingVertical: 12,

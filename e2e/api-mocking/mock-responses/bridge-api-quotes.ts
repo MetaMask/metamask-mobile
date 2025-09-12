@@ -1,3 +1,5 @@
+import { QuoteMetadata } from '@metamask/bridge-controller';
+
 export const DummyQuotesNoApproval = {
   OP_0_005_ETH_TO_ARB: [
     {
@@ -31,6 +33,7 @@ export const DummyQuotesNoApproval = {
         },
         destChainId: 42161,
         destTokenAmount: '4919685744761819',
+        minDestTokenAmount: '4673701458423728',
         destAsset: {
           address: '0x0000000000000000000000000000000000000000',
           assetId: 'eip155:42161/slip44:60',
@@ -190,6 +193,7 @@ export const DummyQuotesNoApproval = {
         },
         destChainId: 42161,
         destTokenAmount: '4955000000000000',
+        minDestTokenAmount: '4707250000000000',
         destAsset: {
           address: '0x0000000000000000000000000000000000000000',
           assetId: 'eip155:42161/slip44:60',
@@ -349,6 +353,7 @@ export const DummyQuotesNoApproval = {
         },
         destChainId: 42161,
         destTokenAmount: '4784161275442939',
+        minDestTokenAmount: '4544953211671192',
         destAsset: {
           address: '0x0000000000000000000000000000000000000000',
           assetId: 'eip155:42161/slip44:60',
@@ -536,6 +541,7 @@ export const DummyQuotesWithApproval = {
         },
         destChainId: 42161,
         destTokenAmount: '9796666',
+        minDestTokenAmount: '9306833',
         destAsset: {
           address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
           assetId:
@@ -796,6 +802,7 @@ export const DummyQuotesWithApproval = {
         },
         destChainId: 42161,
         destTokenAmount: '9812500',
+        minDestTokenAmount: '9321875',
         destAsset: {
           address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
           assetId:
@@ -1005,16 +1012,28 @@ export const DummyQuotesWithApproval = {
   ],
 };
 
-export const DummyQuoteMetadata = {
+export const DummyQuoteMetadata: QuoteMetadata = {
   sentAmount: {
     amount: '0.005',
     valueInCurrency: '9.8128810694176015',
     usd: '9.8128810694176015',
   },
   gasFee: {
-    amount: '0.000330764431277595',
-    valueInCurrency: '0.64914834989246961915',
-    usd: '0.64914834989246961915',
+    effective: {
+      amount: '0.000330764431277595',
+      valueInCurrency: '0.64914834989246961915',
+      usd: '0.64914834989246961915',
+    },
+    total: {
+      amount: '0.000330764431277595',
+      valueInCurrency: '0.64914834989246961915',
+      usd: '0.64914834989246961915',
+    },
+    max: {
+      amount: '0.000330764431277595',
+      valueInCurrency: '0.64914834989246961915',
+      usd: '0.64914834989246961915',
+    },
   },
   totalNetworkFee: {
     amount: '0.000330764431277595',
@@ -1027,6 +1046,11 @@ export const DummyQuoteMetadata = {
     usd: '1.32929810202455167545',
   },
   toTokenAmount: {
+    amount: '0.004946243543883951',
+    valueInCurrency: '9.7076142722238981036723208247346',
+    usd: '9.7076142722238981036723208247346',
+  },
+  minToTokenAmount: {
     amount: '0.004946243543883951',
     valueInCurrency: '9.7076142722238981036723208247346',
     usd: '9.7076142722238981036723208247346',

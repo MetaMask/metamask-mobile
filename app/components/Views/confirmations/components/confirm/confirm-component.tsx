@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -25,6 +25,7 @@ import { getNavbar } from '../UI/navbar/navbar';
 import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const ConfirmWrapped = ({
   styles,
@@ -43,13 +44,17 @@ const ConfirmWrapped = ({
             <LedgerContextProvider>
               <Title />
               <ScrollView
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 style={styles.scrollView}
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <AlertBanner />
+                    <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -77,12 +82,26 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
   const { styles, theme } = useStyles(styleSheet, { isFullScreenConfirmation });
 
+  useEffect(() => {
+    if (!isRedesignedEnabled) {
+      navigation.setOptions({
+        // Intentionally empty title to avoid flicker
+        ...getNavbar({ title: '', theme, onReject }),
+        headerShown: true,
+      });
+    }
+  }, [isRedesignedEnabled, theme, onReject, navigation]);
+
+  useEffect(() => {
+    if (isFullScreenConfirmation) {
+      // Keep this navigation option to prevent Android navigation flickering
+      navigation.setOptions({
+        headerShown: true,
+      });
+    }
+  }, [onReject, isFullScreenConfirmation, navigation]);
+
   if (!isRedesignedEnabled) {
-    navigation.setOptions({
-      // Intentionally empty title to avoid flicker
-      ...getNavbar({ title: '', theme, onReject }),
-      headerShown: true,
-    });
     return (
       <View style={styles.spinnerContainer}>
         <AnimatedSpinner size={SpinnerSize.MD} />
@@ -91,10 +110,6 @@ export const Confirm = ({ route }: ConfirmProps) => {
   }
 
   if (isFullScreenConfirmation) {
-    // Keep this navigation option to prevent Android navigation flickering
-    navigation.setOptions({
-      headerShown: true,
-    });
     return (
       <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
         <ConfirmWrapped styles={styles} route={route} />

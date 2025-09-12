@@ -108,10 +108,14 @@ export const mockedEngine = {
         }),
       },
     },
+    TransactionController: {
+      addTransaction: jest.fn(),
+      addTransactionBatch: jest.fn(),
+      isAtomicBatchSupported: jest.fn(),
+    },
   },
   hasFunds: jest.fn(),
   resetState: jest.fn(),
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
 };
 
 export default mockedEngine;

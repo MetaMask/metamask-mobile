@@ -1,37 +1,43 @@
+import { useCallback } from 'react';
+
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
+import { useNonEvmToAddressValidation } from './non-evm/useNonEvmToAddressValidation';
 import { useSendType } from './useSendType';
-import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
 
-// todo: to address validation assumees `to` is the input from the user
-// depending on implementation we may need to have 2 fields for recipient `toInput` and `toResolved`
 export const useToAddressValidation = () => {
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType } = useSendType();
   const { validateEvmToAddress } = useEvmToAddressValidation();
-  const { validateSolanaToAddress } = useSolanaToAddressValidation();
+  const { validateNonEvmToAddress } = useNonEvmToAddressValidation();
 
-  const { value } = useAsyncResult<{
-    error?: string;
-    warning?: string;
-  }>(async () => {
+  const validateToAddress = useCallback(async () => {
     if (isEvmSendType) {
       return await validateEvmToAddress();
     }
-    if (isSolanaSendType) {
-      return validateSolanaToAddress();
-    }
-    return {};
-  }, [
-    isEvmSendType,
-    isSolanaSendType,
-    validateEvmToAddress,
-    validateSolanaToAddress,
-  ]);
+    return validateNonEvmToAddress();
+  }, [isEvmSendType, validateEvmToAddress, validateNonEvmToAddress]);
 
-  const { error: toAddressError, warning: toAddressWarning } = value ?? {};
+  const { value, pending } = useAsyncResult<{
+    toAddressValidated?: string;
+    error?: string;
+    warning?: string;
+    loading?: boolean;
+    resolvedAddress?: string;
+  }>(async () => validateToAddress(), [validateToAddress]);
+
+  const {
+    toAddressValidated,
+    error: toAddressError,
+    warning: toAddressWarning,
+    loading = false,
+    resolvedAddress,
+  } = value ?? {};
 
   return {
+    loading: loading || pending,
+    resolvedAddress,
     toAddressError,
+    toAddressValidated,
     toAddressWarning,
   };
 };

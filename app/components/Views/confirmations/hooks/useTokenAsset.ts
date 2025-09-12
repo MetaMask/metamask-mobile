@@ -1,16 +1,20 @@
-import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
-import { TokenI } from '../../../UI/Tokens/types';
-import { RootState } from '../../../../reducers';
-import { makeSelectAssetByAddressAndChainId } from '../../../../selectors/multichain';
+import { selectAccountTokensAcrossChains } from '../../../../selectors/multichain';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { TokenI } from '../../../UI/Tokens/types';
 import { getNativeTokenAddress } from '../utils/asset';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
-const selectEvmAsset = makeSelectAssetByAddressAndChainId();
+const TypesForNativeToken = [
+  TransactionType.simpleSend,
+  TransactionType.stakingClaim,
+  TransactionType.stakingDeposit,
+  TransactionType.stakingUnstake,
+];
 
 export const useTokenAsset = () => {
   const {
@@ -18,42 +22,25 @@ export const useTokenAsset = () => {
     type: transactionType,
     txParams,
   } = useTransactionMetadataRequest() ?? {};
+
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
+  const tokens = useSelector(selectAccountTokensAcrossChains);
+
+  if (!chainId) {
+    return { displayName: strings('token.unknown') };
+  }
+
   const tokenAddress =
-    safeToChecksumAddress(txParams?.to)?.toLowerCase() || nativeTokenAddress;
+    transactionType && TypesForNativeToken.includes(transactionType)
+      ? nativeTokenAddress
+      : safeToChecksumAddress(txParams?.to)?.toLowerCase();
 
-  const evmAsset = useSelector((state: RootState) =>
-    selectEvmAsset(state, {
-      address: tokenAddress,
-      chainId: chainId as Hex,
-    }),
-  );
+  const asset = tokens[chainId]?.find(
+    ({ address }) => address.toLowerCase() === tokenAddress,
+  ) as TokenI;
 
-  const nativeEvmAsset = useSelector((state: RootState) =>
-    selectEvmAsset(state, {
-      address: nativeTokenAddress,
-      chainId: chainId as Hex,
-    }),
-  );
-
-  let asset = {} as TokenI;
-
-  switch (transactionType) {
-    case TransactionType.simpleSend:
-    case TransactionType.stakingClaim:
-    case TransactionType.stakingDeposit:
-    case TransactionType.stakingUnstake: {
-      // Native
-      asset = nativeEvmAsset ?? ({} as TokenI);
-      break;
-    }
-    case TransactionType.contractInteraction:
-    case TransactionType.tokenMethodTransfer:
-    default: {
-      // ERC20
-      asset = evmAsset ?? ({} as TokenI);
-      break;
-    }
+  if (!asset) {
+    return { asset: {}, displayName: strings('token.unknown') };
   }
 
   const { name, symbol, ticker } = asset;

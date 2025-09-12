@@ -261,7 +261,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -343,7 +343,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                           avatarProps={
                             {
                               "accountAddress": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
-                              "type": "JazzIcon",
+                              "type": "Maskicon",
                               "variant": "Account",
                             }
                           }
@@ -384,134 +384,12 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "overflow": "hidden",
-                                    },
-                                    {
-                                      "backgroundColor": "#FC4800",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "width": 32,
-                                    },
-                                    {
-                                      "borderRadius": 8,
-                                    },
-                                  ]
-                                }
-                              >
-                                <RNSVGSvgView
-                                  bbHeight={32}
-                                  bbWidth={32}
-                                  focusable={false}
-                                  height={32}
-                                  style={
-                                    [
-                                      {
-                                        "backgroundColor": "transparent",
-                                        "borderWidth": 0,
-                                      },
-                                      {
-                                        "flex": 0,
-                                        "height": 32,
-                                        "width": 32,
-                                      },
-                                    ]
+                                  {
+                                    "height": 32,
+                                    "width": 32,
                                   }
-                                  width={32}
-                                >
-                                  <RNSVGGroup
-                                    fill={
-                                      {
-                                        "payload": 4278190080,
-                                        "type": 0,
-                                      }
-                                    }
-                                  >
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278291575,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.41310442982454204,
-                                          -0.910683660806177,
-                                          0.910683660806177,
-                                          -0.41310442982454204,
-                                          8.80960563430791,
-                                          40.3361680482215,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278410587,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          0.903335292863301,
-                                          -0.42893513340314526,
-                                          0.42893513340314526,
-                                          0.903335292863301,
-                                          -18.594021578605165,
-                                          6.725269324133852,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4294382337,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.6921431738704069,
-                                          -0.7217602280983622,
-                                          0.7217602280983622,
-                                          -0.6921431738704069,
-                                          -12.339279260280694,
-                                          30.41598471866334,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                  </RNSVGGroup>
-                                </RNSVGSvgView>
-                              </View>
+                                }
+                              />
                             </View>
                             <View
                               style={
@@ -643,6 +521,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -795,134 +674,12 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                               >
                                 <View
                                   style={
-                                    [
-                                      {
-                                        "overflow": "hidden",
-                                      },
-                                      {
-                                        "backgroundColor": "#FC4800",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "width": 16,
-                                      },
-                                      {
-                                        "borderRadius": 4,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <RNSVGSvgView
-                                    bbHeight={16}
-                                    bbWidth={16}
-                                    focusable={false}
-                                    height={16}
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "transparent",
-                                          "borderWidth": 0,
-                                        },
-                                        {
-                                          "flex": 0,
-                                          "height": 16,
-                                          "width": 16,
-                                        },
-                                      ]
+                                    {
+                                      "height": 16,
+                                      "width": 16,
                                     }
-                                    width={16}
-                                  >
-                                    <RNSVGGroup
-                                      fill={
-                                        {
-                                          "payload": 4278190080,
-                                          "type": 0,
-                                        }
-                                      }
-                                    >
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278291575,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.41310442982454204,
-                                            -0.910683660806177,
-                                            0.910683660806177,
-                                            -0.41310442982454204,
-                                            4.404802817153955,
-                                            20.16808402411075,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278410587,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            0.903335292863301,
-                                            -0.42893513340314526,
-                                            0.42893513340314526,
-                                            0.903335292863301,
-                                            -9.297010789302583,
-                                            3.362634662066926,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4294382337,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.6921431738704069,
-                                            -0.7217602280983622,
-                                            0.7217602280983622,
-                                            -0.6921431738704069,
-                                            -6.169639630140347,
-                                            15.20799235933167,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                    </RNSVGGroup>
-                                  </RNSVGSvgView>
-                                </View>
+                                  }
+                                />
                               </View>
                             </View>
                           </View>
@@ -1573,7 +1330,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1655,7 +1412,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                           avatarProps={
                             {
                               "accountAddress": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
-                              "type": "JazzIcon",
+                              "type": "Maskicon",
                               "variant": "Account",
                             }
                           }
@@ -1696,134 +1453,12 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "overflow": "hidden",
-                                    },
-                                    {
-                                      "backgroundColor": "#FC4800",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "width": 32,
-                                    },
-                                    {
-                                      "borderRadius": 8,
-                                    },
-                                  ]
-                                }
-                              >
-                                <RNSVGSvgView
-                                  bbHeight={32}
-                                  bbWidth={32}
-                                  focusable={false}
-                                  height={32}
-                                  style={
-                                    [
-                                      {
-                                        "backgroundColor": "transparent",
-                                        "borderWidth": 0,
-                                      },
-                                      {
-                                        "flex": 0,
-                                        "height": 32,
-                                        "width": 32,
-                                      },
-                                    ]
+                                  {
+                                    "height": 32,
+                                    "width": 32,
                                   }
-                                  width={32}
-                                >
-                                  <RNSVGGroup
-                                    fill={
-                                      {
-                                        "payload": 4278190080,
-                                        "type": 0,
-                                      }
-                                    }
-                                  >
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278291575,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.41310442982454204,
-                                          -0.910683660806177,
-                                          0.910683660806177,
-                                          -0.41310442982454204,
-                                          8.80960563430791,
-                                          40.3361680482215,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278410587,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          0.903335292863301,
-                                          -0.42893513340314526,
-                                          0.42893513340314526,
-                                          0.903335292863301,
-                                          -18.594021578605165,
-                                          6.725269324133852,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4294382337,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.6921431738704069,
-                                          -0.7217602280983622,
-                                          0.7217602280983622,
-                                          -0.6921431738704069,
-                                          -12.339279260280694,
-                                          30.41598471866334,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                  </RNSVGGroup>
-                                </RNSVGSvgView>
-                              </View>
+                                }
+                              />
                             </View>
                             <View
                               style={
@@ -1955,6 +1590,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -2107,134 +1743,12 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                               >
                                 <View
                                   style={
-                                    [
-                                      {
-                                        "overflow": "hidden",
-                                      },
-                                      {
-                                        "backgroundColor": "#FC4800",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "width": 16,
-                                      },
-                                      {
-                                        "borderRadius": 4,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <RNSVGSvgView
-                                    bbHeight={16}
-                                    bbWidth={16}
-                                    focusable={false}
-                                    height={16}
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "transparent",
-                                          "borderWidth": 0,
-                                        },
-                                        {
-                                          "flex": 0,
-                                          "height": 16,
-                                          "width": 16,
-                                        },
-                                      ]
+                                    {
+                                      "height": 16,
+                                      "width": 16,
                                     }
-                                    width={16}
-                                  >
-                                    <RNSVGGroup
-                                      fill={
-                                        {
-                                          "payload": 4278190080,
-                                          "type": 0,
-                                        }
-                                      }
-                                    >
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278291575,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.41310442982454204,
-                                            -0.910683660806177,
-                                            0.910683660806177,
-                                            -0.41310442982454204,
-                                            4.404802817153955,
-                                            20.16808402411075,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278410587,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            0.903335292863301,
-                                            -0.42893513340314526,
-                                            0.42893513340314526,
-                                            0.903335292863301,
-                                            -9.297010789302583,
-                                            3.362634662066926,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4294382337,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.6921431738704069,
-                                            -0.7217602280983622,
-                                            0.7217602280983622,
-                                            -0.6921431738704069,
-                                            -6.169639630140347,
-                                            15.20799235933167,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                    </RNSVGGroup>
-                                  </RNSVGSvgView>
-                                </View>
+                                  }
+                                />
                               </View>
                             </View>
                           </View>
@@ -2885,7 +2399,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -2967,7 +2481,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                           avatarProps={
                             {
                               "accountAddress": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
-                              "type": "JazzIcon",
+                              "type": "Maskicon",
                               "variant": "Account",
                             }
                           }
@@ -3008,134 +2522,12 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "overflow": "hidden",
-                                    },
-                                    {
-                                      "backgroundColor": "#FC4800",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "width": 32,
-                                    },
-                                    {
-                                      "borderRadius": 8,
-                                    },
-                                  ]
-                                }
-                              >
-                                <RNSVGSvgView
-                                  bbHeight={32}
-                                  bbWidth={32}
-                                  focusable={false}
-                                  height={32}
-                                  style={
-                                    [
-                                      {
-                                        "backgroundColor": "transparent",
-                                        "borderWidth": 0,
-                                      },
-                                      {
-                                        "flex": 0,
-                                        "height": 32,
-                                        "width": 32,
-                                      },
-                                    ]
+                                  {
+                                    "height": 32,
+                                    "width": 32,
                                   }
-                                  width={32}
-                                >
-                                  <RNSVGGroup
-                                    fill={
-                                      {
-                                        "payload": 4278190080,
-                                        "type": 0,
-                                      }
-                                    }
-                                  >
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278291575,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.41310442982454204,
-                                          -0.910683660806177,
-                                          0.910683660806177,
-                                          -0.41310442982454204,
-                                          8.80960563430791,
-                                          40.3361680482215,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278410587,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          0.903335292863301,
-                                          -0.42893513340314526,
-                                          0.42893513340314526,
-                                          0.903335292863301,
-                                          -18.594021578605165,
-                                          6.725269324133852,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4294382337,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.6921431738704069,
-                                          -0.7217602280983622,
-                                          0.7217602280983622,
-                                          -0.6921431738704069,
-                                          -12.339279260280694,
-                                          30.41598471866334,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                  </RNSVGGroup>
-                                </RNSVGSvgView>
-                              </View>
+                                }
+                              />
                             </View>
                             <View
                               style={
@@ -3267,6 +2659,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -3419,134 +2812,12 @@ exports[`AccountConnect renders correctly with request including chains and acco
                               >
                                 <View
                                   style={
-                                    [
-                                      {
-                                        "overflow": "hidden",
-                                      },
-                                      {
-                                        "backgroundColor": "#FC4800",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "width": 16,
-                                      },
-                                      {
-                                        "borderRadius": 4,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <RNSVGSvgView
-                                    bbHeight={16}
-                                    bbWidth={16}
-                                    focusable={false}
-                                    height={16}
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "transparent",
-                                          "borderWidth": 0,
-                                        },
-                                        {
-                                          "flex": 0,
-                                          "height": 16,
-                                          "width": 16,
-                                        },
-                                      ]
+                                    {
+                                      "height": 16,
+                                      "width": 16,
                                     }
-                                    width={16}
-                                  >
-                                    <RNSVGGroup
-                                      fill={
-                                        {
-                                          "payload": 4278190080,
-                                          "type": 0,
-                                        }
-                                      }
-                                    >
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278291575,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.41310442982454204,
-                                            -0.910683660806177,
-                                            0.910683660806177,
-                                            -0.41310442982454204,
-                                            4.404802817153955,
-                                            20.16808402411075,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278410587,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            0.903335292863301,
-                                            -0.42893513340314526,
-                                            0.42893513340314526,
-                                            0.903335292863301,
-                                            -9.297010789302583,
-                                            3.362634662066926,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4294382337,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.6921431738704069,
-                                            -0.7217602280983622,
-                                            0.7217602280983622,
-                                            -0.6921431738704069,
-                                            -6.169639630140347,
-                                            15.20799235933167,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                    </RNSVGGroup>
-                                  </RNSVGSvgView>
-                                </View>
+                                  }
+                                />
                               </View>
                             </View>
                           </View>
@@ -4197,7 +3468,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -4279,7 +3550,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                           avatarProps={
                             {
                               "accountAddress": "0xc4966c0d659d99699bfd7eb54d8fafee40e4a756",
-                              "type": "JazzIcon",
+                              "type": "Maskicon",
                               "variant": "Account",
                             }
                           }
@@ -4320,134 +3591,12 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             >
                               <View
                                 style={
-                                  [
-                                    {
-                                      "overflow": "hidden",
-                                    },
-                                    {
-                                      "backgroundColor": "#FC4800",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "width": 32,
-                                    },
-                                    {
-                                      "borderRadius": 8,
-                                    },
-                                  ]
-                                }
-                              >
-                                <RNSVGSvgView
-                                  bbHeight={32}
-                                  bbWidth={32}
-                                  focusable={false}
-                                  height={32}
-                                  style={
-                                    [
-                                      {
-                                        "backgroundColor": "transparent",
-                                        "borderWidth": 0,
-                                      },
-                                      {
-                                        "flex": 0,
-                                        "height": 32,
-                                        "width": 32,
-                                      },
-                                    ]
+                                  {
+                                    "height": 32,
+                                    "width": 32,
                                   }
-                                  width={32}
-                                >
-                                  <RNSVGGroup
-                                    fill={
-                                      {
-                                        "payload": 4278190080,
-                                        "type": 0,
-                                      }
-                                    }
-                                  >
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278291575,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.41310442982454204,
-                                          -0.910683660806177,
-                                          0.910683660806177,
-                                          -0.41310442982454204,
-                                          8.80960563430791,
-                                          40.3361680482215,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4278410587,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          0.903335292863301,
-                                          -0.42893513340314526,
-                                          0.42893513340314526,
-                                          0.903335292863301,
-                                          -18.594021578605165,
-                                          6.725269324133852,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                    <RNSVGRect
-                                      fill={
-                                        {
-                                          "payload": 4294382337,
-                                          "type": 0,
-                                        }
-                                      }
-                                      height={32}
-                                      matrix={
-                                        [
-                                          -0.6921431738704069,
-                                          -0.7217602280983622,
-                                          0.7217602280983622,
-                                          -0.6921431738704069,
-                                          -12.339279260280694,
-                                          30.41598471866334,
-                                        ]
-                                      }
-                                      propList={
-                                        [
-                                          "fill",
-                                        ]
-                                      }
-                                      width={32}
-                                      x={0}
-                                      y={0}
-                                    />
-                                  </RNSVGGroup>
-                                </RNSVGSvgView>
-                              </View>
+                                }
+                              />
                             </View>
                             <View
                               style={
@@ -4579,6 +3728,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -4731,134 +3881,12 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                               >
                                 <View
                                   style={
-                                    [
-                                      {
-                                        "overflow": "hidden",
-                                      },
-                                      {
-                                        "backgroundColor": "#FC4800",
-                                        "borderRadius": 8,
-                                        "height": 16,
-                                        "width": 16,
-                                      },
-                                      {
-                                        "borderRadius": 4,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <RNSVGSvgView
-                                    bbHeight={16}
-                                    bbWidth={16}
-                                    focusable={false}
-                                    height={16}
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "transparent",
-                                          "borderWidth": 0,
-                                        },
-                                        {
-                                          "flex": 0,
-                                          "height": 16,
-                                          "width": 16,
-                                        },
-                                      ]
+                                    {
+                                      "height": 16,
+                                      "width": 16,
                                     }
-                                    width={16}
-                                  >
-                                    <RNSVGGroup
-                                      fill={
-                                        {
-                                          "payload": 4278190080,
-                                          "type": 0,
-                                        }
-                                      }
-                                    >
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278291575,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.41310442982454204,
-                                            -0.910683660806177,
-                                            0.910683660806177,
-                                            -0.41310442982454204,
-                                            4.404802817153955,
-                                            20.16808402411075,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4278410587,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            0.903335292863301,
-                                            -0.42893513340314526,
-                                            0.42893513340314526,
-                                            0.903335292863301,
-                                            -9.297010789302583,
-                                            3.362634662066926,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                      <RNSVGRect
-                                        fill={
-                                          {
-                                            "payload": 4294382337,
-                                            "type": 0,
-                                          }
-                                        }
-                                        height={16}
-                                        matrix={
-                                          [
-                                            -0.6921431738704069,
-                                            -0.7217602280983622,
-                                            0.7217602280983622,
-                                            -0.6921431738704069,
-                                            -6.169639630140347,
-                                            15.20799235933167,
-                                          ]
-                                        }
-                                        propList={
-                                          [
-                                            "fill",
-                                          ]
-                                        }
-                                        width={16}
-                                        x={0}
-                                        y={0}
-                                      />
-                                    </RNSVGGroup>
-                                  </RNSVGSvgView>
-                                </View>
+                                  }
+                                />
                               </View>
                             </View>
                           </View>

@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
@@ -8,20 +11,36 @@ import { useSelector } from 'react-redux';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
-const blockableStatuses = [
-  TransactionStatus.signed,
-  TransactionStatus.approved,
-];
+const BLOCK_STATUS = [TransactionStatus.signed, TransactionStatus.approved];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
   const transactionMetadata = useTransactionMetadataRequest();
 
-  return useMemo(() => {
-    const showAlert = transactions
-      .filter((transaction) => transaction.id !== transactionMetadata?.id)
-      .some((transaction) => blockableStatuses.includes(transaction.status));
+  const {
+    chainId,
+    id: transactionId,
+    txParams,
+    type,
+  } = transactionMetadata || {};
 
+  const { from } = txParams ?? {};
+
+  const existingTransaction = transactions.find(
+    (transaction) =>
+      BLOCK_STATUS.includes(transaction.status) &&
+      transaction.id !== transactionId &&
+      transaction.chainId === chainId &&
+      transaction.txParams.from.toLowerCase() === from?.toLowerCase(),
+  );
+
+  const isPerpsDeposit =
+    type === TransactionType.perpsDeposit &&
+    existingTransaction?.type === TransactionType.perpsDeposit;
+
+  const showAlert = Boolean(existingTransaction);
+
+  return useMemo(() => {
     if (!showAlert) {
       return [];
     }
@@ -30,9 +49,14 @@ export const useSignedOrSubmittedAlert = () => {
       {
         isBlocking: true,
         key: AlertKeys.SignedOrSubmitted,
-        message: strings('alert_system.signed_or_submitted.message'),
+        message: isPerpsDeposit
+          ? strings('alert_system.signed_or_submitted_perps_deposit.message')
+          : strings('alert_system.signed_or_submitted.message'),
+        title: isPerpsDeposit
+          ? strings('alert_system.signed_or_submitted_perps_deposit.title')
+          : strings('alert_system.signed_or_submitted.title'),
         severity: Severity.Danger,
       },
     ];
-  }, [transactions, transactionMetadata]);
+  }, [isPerpsDeposit, showAlert]);
 };

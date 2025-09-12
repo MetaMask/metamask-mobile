@@ -13,13 +13,17 @@ const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';
 
 // Stub the accounts selector so that selectSelectedInternalAccountFormattedAddress returns TEST_ADDRESS_ONE
-jest.mock('./accountsController', () => ({
-  selectSelectedInternalAccountFormattedAddress: jest.fn(
-    () => TEST_ADDRESS_ONE,
-  ),
-  selectSelectedInternalAccountAddress: jest.fn(() => TEST_ADDRESS_ONE),
-  selectHasCreatedSolanaMainnetAccount: jest.fn(() => false),
-}));
+jest.mock('./accountsController', () => {
+  const actual = jest.requireActual('./accountsController');
+  return {
+    ...actual,
+    selectSelectedInternalAccountFormattedAddress: jest.fn(
+      () => TEST_ADDRESS_ONE,
+    ),
+    selectSelectedInternalAccountAddress: jest.fn(() => TEST_ADDRESS_ONE),
+    selectHasCreatedSolanaMainnetAccount: jest.fn(() => false),
+  };
+});
 
 jest.mock('./tokensController', () => ({
   selectTokensControllerState: jest.fn(),
@@ -60,6 +64,10 @@ const getDefaultState = () => {
             expectedDeadline: 45,
             maxDeadline: 160,
             mobileReturnTxHashAsap: false,
+            mobileActive: true,
+            extensionActive: true,
+            mobileActiveIOS: true,
+            mobileActiveAndroid: true,
           },
         },
       },

@@ -1,6 +1,4 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { createDeepEqualSelector } from '../util';
-import { selectAccountTreeControllerState } from './accountTreeController';
 import {
   AccountTreeControllerState,
   AccountWalletObject,
@@ -11,8 +9,22 @@ import {
   selectOne,
 } from '@metamask/account-api';
 import { CaipChainId } from '@metamask/utils';
-import { selectInternalAccountsById } from '../accountsController';
 import { AccountId } from '@metamask/accounts-controller';
+import { EthAccountType, EthScope } from '@metamask/keyring-api';
+
+import { RootState } from '../../reducers';
+import { createDeepEqualSelector } from '../util';
+import {
+  selectAccountTreeControllerState,
+  selectAccountGroupWithInternalAccounts,
+} from './accountTreeController';
+import { selectInternalAccountsById } from '../accountsController';
+import {
+  type EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../networkController';
+import { TEST_NETWORK_IDS } from '../../constants/network';
+import type { AccountGroupWithInternalAccounts } from './accounts.type';
 
 /**
  * Extracts the wallet ID from an account group ID.
@@ -116,6 +128,33 @@ const findInternalAccountByScope = (
 };
 
 /**
+ * Helper function to filter out testnets from a list of scopes.
+ *
+ * Given a list of scopes and the available network configurations, this function filters out all testnet scopes
+ * for both EVM and non-EVM networks.
+ *
+ * @param scopes - The list of scopes to filter.
+ * @param networksData - The network configurations data containing information about each scope.
+ * @returns A new list of scopes excluding testnets.
+ */
+const filterTestnets = (
+  scopes: CaipChainId[],
+  networksData: Record<
+    CaipChainId,
+    EvmAndMultichainNetworkConfigurationsWithCaipChainId
+  >,
+): CaipChainId[] =>
+  scopes.filter((scope) => {
+    const network = networksData[scope];
+    // TODO: Improve network data types on core module
+    return (
+      network &&
+      // @ts-expect-error - The typing here is not consistent because of NetworkConfiguration and MultichainNetworkConfiguration types
+      (!network.isTestnet || !TEST_NETWORK_IDS.includes(network.chainId))
+    );
+  });
+
+/**
  * Selector to get an internal account by scope from the currently selected account group.
  *
  * This selector finds an account that matches the given scope within the currently
@@ -188,3 +227,160 @@ export const selectInternalAccountByAccountGroupAndScope =
           scope,
         ),
   );
+
+/**
+ * Selector to get internal accounts by group ID.
+ * This selector retrieves all internal accounts associated with a specific account group ID.
+ *
+ * @param state - The Redux root state
+ * @param groupId - The ID of the account group to retrieve internal accounts for
+ * @returns Array of internal accounts for the specified group ID
+ */
+export const selectInternalAccountsByGroupId = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectInternalAccountsById],
+  (accountTree, internalAccounts) =>
+    (groupId: AccountGroupId): InternalAccount[] => {
+      const [walletId] = groupId.split('/') as [AccountWalletId];
+      const wallet = accountTree?.accountTree?.wallets[walletId];
+      if (!wallet) {
+        return [];
+      }
+
+      const group = wallet.groups[groupId];
+      if (!group || group.accounts.length === 0) {
+        return [];
+      }
+
+      return group.accounts
+        .map((accountId) => internalAccounts[accountId])
+        .filter((account): account is InternalAccount => account !== undefined);
+    },
+);
+
+/**
+ * Selector to get a list of internal accounts spread by scopes for a specific group ID.
+ *
+ * @param state - The Redux root state
+ * @param groupId - The ID of the account group to retrieve internal accounts for
+ * @returns Array of objects containing account, scope, and network name for each internal account in the specified group
+ */
+export const selectInternalAccountListSpreadByScopesByGroupId =
+  createDeepEqualSelector(
+    [selectInternalAccountsByGroupId, selectNetworkConfigurationsByCaipChainId],
+    (internalAccounts, networkConfigurations) => {
+      // Pre-compute Ethereum network IDs once and filter out non-EVM networks and testnets
+      const ethereumNetworkIds = Object.values(networkConfigurations)
+        .filter(
+          ({ caipChainId, chainId }) =>
+            caipChainId.startsWith('eip155:') &&
+            // @ts-expect-error - the chain id should be hex for NetworkConfiguration
+            !TEST_NETWORK_IDS.includes(chainId),
+        )
+        .map(({ caipChainId }) => caipChainId);
+
+      // The complexity should be O(len_accounts * len_scopes), the performance for Ethereum EOA
+      // accounts will depend on the number of networks available in the NetworkController.
+      // And for Ethereum SCA and non-EVM accounts, it will depend on the length of scopes property.
+      return (groupId: AccountGroupId) => {
+        const accounts = internalAccounts(groupId);
+
+        return accounts.flatMap((account) => {
+          // Determine scopes based on account type
+          const scopes =
+            account.type === EthAccountType.Eoa
+              ? ethereumNetworkIds
+              : account.scopes || [];
+          // Filter out testnets from scopes and map each scope to an account-scope object
+          return filterTestnets(
+            scopes as CaipChainId[],
+            networkConfigurations,
+          ).map((scope: CaipChainId) => ({
+            account,
+            scope,
+            networkName:
+              networkConfigurations[scope]?.name || 'Unknown Network',
+          }));
+        });
+      };
+    },
+  );
+
+/**
+ * Selector factory to get an icon seed address for an account group.
+ * Priority:
+ * 1) First EVM account address (any scope starting with 'eip155:')
+ * 2) If no EVM account, fallback to the first internal account address in the group
+ * 3) Otherwise throw an error
+ *
+ */
+export const selectIconSeedAddressByAccountGroupId = (
+  groupId: AccountGroupId,
+) =>
+  createDeepEqualSelector(
+    [
+      selectAccountTreeControllerState,
+      selectInternalAccountsById,
+      selectInternalAccountsByGroupId,
+    ],
+    (
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+      internalAccountsByGroupId,
+    ): string => {
+      // Prefer an EVM account address if present
+      const evmAccount = findInternalAccountByScope(
+        accountTreeState,
+        internalAccountsMap,
+        groupId,
+        EthScope.Mainnet,
+      );
+      if (evmAccount?.address) {
+        return evmAccount.address;
+      }
+
+      // Fallback to the first available internal account in the group
+      const accountsInGroup = internalAccountsByGroupId(groupId);
+      if (accountsInGroup.length > 0) {
+        return accountsInGroup[0].address;
+      }
+
+      throw new Error(
+        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${groupId}`,
+      );
+    },
+  );
+
+/**
+ * Selector to get account groups by a list of addresses.
+ * Returns groups that contain at least one account matching any of the provided addresses.
+ *
+ * @param _state - Redux state.
+ * @param addresses - An array of addresses to filter account groups by.
+ * @returns An array of AccountGroupWithInternalAccounts that contain at least one matching account.
+ */
+export const selectAccountGroupsByAddress = createDeepEqualSelector(
+  [
+    selectAccountGroupWithInternalAccounts,
+    (_state: RootState, addresses: string[]) =>
+      new Set(addresses.map((address) => address.toLowerCase())),
+  ],
+  (
+    accountGroupWithInternalAccounts,
+    addressesSet: Set<string>,
+  ): AccountGroupWithInternalAccounts[] => {
+    const matchingGroups = new Set<AccountGroupWithInternalAccounts>();
+
+    accountGroupWithInternalAccounts.forEach((group) => {
+      const containsMatchingAccount = group.accounts.some((account) =>
+        addressesSet.has(account.address.toLowerCase()),
+      );
+
+      if (containsMatchingAccount) {
+        matchingGroups.add(group);
+      }
+    });
+
+    // Convert the Set of AccountGroupWithInternalAccounts to an Array
+    return [...matchingGroups];
+  },
+);

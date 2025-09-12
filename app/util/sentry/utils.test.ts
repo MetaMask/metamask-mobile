@@ -20,6 +20,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { getTraceTags } from './tags';
+import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
@@ -432,7 +433,7 @@ describe('captureSentryFeedback', () => {
         lockTime: 30000,
         primaryCurrency: 'ETH',
         searchEngine: 'Google',
-        useBlockieIcon: true,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       alert: {
         autodismiss: null,
@@ -479,9 +480,6 @@ describe('captureSentryFeedback', () => {
         protectWalletModalVisible: false,
         seedphraseBackedUp: true,
         userLoggedIn: true,
-      },
-      wizard: {
-        step: 1,
       },
       onboarding: {
         events: [],
@@ -601,7 +599,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -642,7 +639,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -679,7 +675,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 

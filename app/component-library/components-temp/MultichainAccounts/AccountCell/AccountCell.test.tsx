@@ -1,36 +1,79 @@
 import React from 'react';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { AccountGroupType } from '@metamask/account-api';
-import { AccountCell } from './AccountCell';
+import AccountCell from './AccountCell';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { fireEvent } from '@testing-library/react-native';
+import {
+  createMockAccountGroup,
+  createMockInternalAccountsFromGroups,
+  createMockState,
+  createMockWallet,
+} from '../test-utils';
+import { AvatarAccountType } from '../../../components/Avatars/Avatar';
+import { Maskicon } from '@metamask/design-system-react-native';
+import JazzIcon from 'react-native-jazzicon';
+import { Image as RNImage } from 'react-native';
+import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
-const mockAccountGroup: AccountGroupObject = {
-  type: AccountGroupType.SingleAccount,
-  id: 'keyring:test-group/ethereum' as const,
-  accounts: ['account-1'],
-  metadata: {
-    name: 'Test Account Group',
-    pinned: false,
-    hidden: false,
-  },
+// Configurable mock balance for selector
+const mockBalance: { value: number; currency: string } = {
+  value: 0,
+  currency: 'usd',
 };
+
+// Mock balance selector to avoid deep store dependencies
+jest.mock('../../../../selectors/assets/balances', () => {
+  const actual = jest.requireActual('../../../../selectors/assets/balances');
+  return {
+    ...actual,
+    selectBalanceByAccountGroup: (groupId: string) => () => ({
+      walletId: groupId.split('/')[0],
+      groupId,
+      totalBalanceInUserCurrency: mockBalance.value,
+      userCurrency: mockBalance.currency,
+    }),
+  };
+});
+
+// Mock navigation
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+const mockAccountGroup = createMockAccountGroup(
+  'keyring:test-group/ethereum',
+  'Test Account Group',
+  ['account-1'],
+);
 
 const renderAccountCell = (
   props: {
     accountGroup?: AccountGroupObject;
     isSelected?: boolean;
+    hideMenu?: boolean;
+    avatarAccountType?: AvatarAccountType;
   } = {},
 ) => {
   const defaultProps = {
     accountGroup: mockAccountGroup,
+    avatarAccountType: AvatarAccountType.Maskicon,
     isSelected: false,
+    hideMenu: false,
     ...props,
   };
 
+  const groups = [defaultProps.accountGroup];
+  const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+  const internalAccounts = createMockInternalAccountsFromGroups(groups);
+  const baseState = createMockState([wallet], internalAccounts);
   return renderWithProvider(<AccountCell {...defaultProps} />, {
     state: {
+      ...baseState,
       settings: {
-        useBlockieIcon: false,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
     },
   });
@@ -39,6 +82,8 @@ const renderAccountCell = (
 describe('AccountCell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBalance.value = 0;
+    mockBalance.currency = 'usd';
   });
 
   it('displays account name', () => {
@@ -51,14 +96,62 @@ describe('AccountCell', () => {
     expect(getByText('Test Account Group')).toBeTruthy();
   });
 
-  it('displays placeholder balance', () => {
+  it.each([
+    { currency: 'usd', value: 1234.56, expected: '$1,234.56' },
+    { currency: 'eur', value: 987.65, expected: '€987.65' },
+  ])('displays correct formatted balances', ({ currency, value, expected }) => {
+    mockBalance.value = value;
+    mockBalance.currency = currency;
     const { getByText } = renderAccountCell();
-    expect(getByText('$1234567890.00')).toBeTruthy();
+    expect(getByText(expected)).toBeTruthy();
   });
 
-  it('renders menu button', () => {
-    const { getByText } = renderAccountCell();
-    expect(getByText('Test Account Group')).toBeTruthy();
-    expect(getByText('$1234567890.00')).toBeTruthy();
+  it('renders menu button by default', () => {
+    const { getByTestId } = renderAccountCell();
+    expect(getByTestId('multichain-account-cell-menu')).toBeTruthy();
+  });
+
+  it('hides menu button when hideMenu is true', () => {
+    const { queryByTestId } = renderAccountCell({ hideMenu: true });
+    expect(queryByTestId('multichain-account-cell-menu')).toBeNull();
+  });
+
+  it('navigates to account actions when menu button is pressed', () => {
+    const { getByTestId } = renderAccountCell();
+    const menuButton = getByTestId('multichain-account-cell-menu');
+    fireEvent.press(menuButton);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'MultichainAccountActions',
+        params: {
+          accountGroup: mockAccountGroup,
+        },
+      },
+    );
+  });
+
+  it('renders Maskicon AvatarAccount when avatarAccountType is Maskicon', () => {
+    const { getByTestId } = renderAccountCell({
+      avatarAccountType: AvatarAccountType.Maskicon,
+    });
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(Maskicon)).not.toThrow();
+  });
+
+  it('renders JazzIcon AvatarAccount when avatarAccountType is JazzIcon', () => {
+    const { getByTestId } = renderAccountCell({
+      avatarAccountType: AvatarAccountType.JazzIcon,
+    });
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(JazzIcon)).not.toThrow();
+  });
+
+  it('renders Blockies AvatarAccount when avatarAccountType is Blockies', () => {
+    const { getByTestId } = renderAccountCell({
+      avatarAccountType: AvatarAccountType.Blockies,
+    });
+    const avatarContainer = getByTestId(AccountCellIds.AVATAR);
+    expect(() => avatarContainer.findByType(RNImage)).not.toThrow();
   });
 });

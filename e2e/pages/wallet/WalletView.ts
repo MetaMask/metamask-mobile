@@ -66,6 +66,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
   }
 
+  get navbarCardButtonBadge(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON_BADGE);
+  }
+
   get nftTab(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -108,6 +112,10 @@ class WalletView {
 
   get tokenNetworkFilter(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get sortButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
   }
 
   get sortBy(): DetoxElement {
@@ -184,6 +192,7 @@ class WalletView {
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
       elemDescription: 'Top Account Icon',
+      checkStability: true,
     });
   }
 
@@ -229,6 +238,15 @@ class WalletView {
     await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
       speed: 'fast',
       percentage: 0.7,
+    });
+  }
+
+  async pullToRefreshTokensList(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+      speed: 'slow',
+      percentage: 0.8,
+      elemDescription: 'pull to refresh tokens list',
     });
   }
 
@@ -325,7 +343,7 @@ class WalletView {
   }
 
   async tapSortBy(): Promise<void> {
-    await Gestures.waitAndTap(this.sortBy, {
+    await Gestures.waitAndTap(this.sortButton, {
       elemDescription: 'Sort By',
     });
   }
@@ -397,7 +415,9 @@ class WalletView {
    * @returns {Promise<void>} Resolves when the tap action is complete.
    */
   async tapCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlide(id));
+    await Gestures.tap(this.getCarouselSlide(id), {
+      elemDescription: `tap carousel slide ${id}`,
+    });
   }
 
   get defiTab(): DetoxElement {
@@ -546,6 +566,26 @@ class WalletView {
     await Gestures.waitAndTap(this.walletReceiveButton, {
       elemDescription: 'Wallet Receive Button',
     });
+  }
+
+  get perpsTab(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  }
+
+  async tapOnPerpsTab(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsTab, {
+      elemDescription: 'Perps Tab Button',
+    });
+  }
+
+  async verifyTokenNetworkFilterText(expectedText: string): Promise<void> {
+    await Assertions.expectElementToHaveLabel(
+      this.tokenNetworkFilter,
+      expectedText,
+      {
+        description: `token network filter should display "${expectedText}"`,
+      },
+    );
   }
 }
 

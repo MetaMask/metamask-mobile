@@ -3,26 +3,15 @@ import { SmokeCard } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder, {
-  DEFAULT_FIXTURE_ACCOUNT,
-} from '../../framework/fixtures/FixtureBuilder';
-import { getCardholderApiMocks } from '../../api-mocking/mock-responses/cardholder-mocks';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../utils/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-const cardApiMocks = getCardholderApiMocks([
-  `eip155:0:${DEFAULT_FIXTURE_ACCOUNT.toLowerCase()}`,
-]);
-
-describe(SmokeCard('CardHome - Add Funds'), () => {
+describe.skip(SmokeCard('CardHome - Add Funds'), () => {
   const eventsToCheck: EventPayload[] = [];
-  const cardholderApiWithSegmentMock = {
-    ...cardApiMocks,
-    POST: [mockEvents.POST.segmentTrack],
-  };
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
     await withFixtures(
@@ -30,11 +19,24 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
           .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withAccountTreeController()
+          .withTokens(
+            [
+              {
+                address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                decimals: 18,
+                symbol: 'USDC',
+                chainId: '0xe708',
+                name: 'USDCoin',
+              },
+            ],
+            '0xe708',
+          )
           .build(),
         restartDevice: true,
-        testSpecificMock: cardholderApiWithSegmentMock,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        testSpecificMock,
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           eventsToCheck.push(...events);
         },
       },

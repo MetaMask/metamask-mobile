@@ -50,14 +50,18 @@ import { ProviderConfig } from '../../selectors/networkController';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getCaip25PermissionFromLegacyPermissions,
+  requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
-import {
-  getCaip25PermissionFromLegacyPermissions,
-  rejectOriginPendingApprovals,
-  requestPermittedChainsPermissionIncremental,
-} from '../../util/permissions';
+import { rejectOriginPendingApprovals } from '../../util/permissions';
 import { toHex } from '@metamask/controller-utils';
+
+jest.mock('@metamask/chain-agnostic-permission', () => ({
+  ...jest.requireActual('@metamask/chain-agnostic-permission'),
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
+  requestPermittedChainsPermissionIncremental: jest.fn(),
+}));
 
 jest.mock('../../util/metrics', () => ({
   trackDappViewedEvent: jest.fn(),
@@ -65,8 +69,6 @@ jest.mock('../../util/metrics', () => ({
 
 jest.mock('../../util/permissions', () => ({
   __esModule: true,
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
-  requestPermittedChainsPermissionIncremental: jest.fn(),
   rejectOriginPendingApprovals: jest.fn(),
 }));
 
@@ -95,6 +97,8 @@ jest.mock('../Engine', () => ({
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
       revokePermissions: jest.fn(),
+      grantPermissionsIncremental: jest.fn(),
+      requestPermissionsIncremental: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
@@ -182,8 +186,6 @@ function getMinimalOptions() {
     // Show autocomplete
     fromHomepage: { current: false },
     toggleUrlModal: jest.fn(),
-    // Wizard
-    wizardScrollAdjusted: { current: false },
     // For the browser
     tabId: '' as const,
     // For WalletConnect
@@ -1804,6 +1806,10 @@ describe('getRpcMethodMiddlewareHooks', () => {
       ).toHaveBeenCalledWith({
         ...options,
         origin: testOrigin,
+        hooks: {
+          grantPermissionsIncremental: expect.any(Function),
+          requestPermissionsIncremental: expect.any(Function),
+        },
       });
     });
   });

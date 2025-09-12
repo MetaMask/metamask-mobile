@@ -5,7 +5,6 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
@@ -18,6 +17,19 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
 import SoftAssert from '../../../utils/SoftAssert';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
+import Gestures from '../../../framework/Gestures';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  SECURITY_ALERTS_REQUEST_BODY,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -36,14 +48,46 @@ const expectedEventNames = [
 ];
 
 describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
-  const testSpecificMock = {
-    POST: [SEND_ETH_SIMULATION_MOCK, mockEvents.POST.segmentTrack],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
-  };
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupMockPostRequest(
+      mockServer,
+      securityAlertsUrl('0x539'),
+      SECURITY_ALERTS_REQUEST_BODY,
+      SECURITY_ALERTS_BENIGN_RESPONSE,
+      {
+        statusCode: 201,
+      },
+    );
 
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+
+    const {
+      urlEndpoint: simulationEndpoint,
+      requestBody,
+      response: simulationResponse,
+      ignoreFields,
+    } = SEND_ETH_SIMULATION_MOCK;
+
+    await setupMockPostRequest(
+      mockServer,
+      simulationEndpoint,
+      requestBody,
+      simulationResponse,
+      {
+        statusCode: 200,
+        ignoreFields,
+      },
+    );
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    );
+  };
   let eventsToCheck: EventPayload[];
 
   beforeAll(async () => {
@@ -60,6 +104,9 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withMetaMetricsOptIn()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
@@ -92,6 +139,12 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
           RowComponents.SimulationDetails,
         );
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
+
+        // Scroll to Advanced Details section on Android
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+        }
+
         await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,
         );

@@ -218,3 +218,20 @@ export const selectTransformedTokens = createSelector(
     return flatList;
   },
 );
+
+export const selectSingleTokenByAddressAndChainId = createSelector(
+  selectAllTokens,
+  selectSelectedInternalAccountAddress,
+  (_state: RootState, tokenAddress: Hex) => tokenAddress,
+  (_state: RootState, _tokenAddress: Hex, chainId: Hex) => chainId,
+  (allTokens, selectedAddress, tokenAddress, chainId) => {
+    if (!selectedAddress) return undefined;
+
+    const tokensForAddressAndChain =
+      allTokens[chainId]?.[selectedAddress] ?? [];
+
+    return tokensForAddressAndChain.find(
+      (token) => token.address.toLowerCase() === tokenAddress.toLowerCase(),
+    );
+  },
+);

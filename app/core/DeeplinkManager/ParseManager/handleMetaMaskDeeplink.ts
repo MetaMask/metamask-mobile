@@ -10,6 +10,8 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
+import SDKConnectV2 from '../../SDKConnectV2';
+
 export function handleMetaMaskDeeplink({
   instance,
   handled,
@@ -26,6 +28,7 @@ export function handleMetaMaskDeeplink({
   url: string;
 }) {
   handled();
+
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
     DevLogger.log(
       `DeeplinkManager:: metamask launched via android sdk deeplink`,
@@ -35,6 +38,15 @@ export function handleMetaMaskDeeplink({
       .catch((err) => {
         Logger.error(err, 'DeepLinkManager failed to connect');
       });
+    return;
+  }
+
+  if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`)) {
+    DevLogger.log(
+      `DeeplinkManager:: Mobile Wallet Protocol deeplink detected. Routing to SDKConnectV2.`,
+      url,
+    );
+    SDKConnectV2.handleConnectDeeplink(url);
     return;
   }
 
@@ -155,6 +167,12 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
+  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`)) {
+    const depositCashPath = url.replace(
+      `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`,
+      '',
+    );
+    instance._handleDepositCash(depositCashPath);
   }
 }
 

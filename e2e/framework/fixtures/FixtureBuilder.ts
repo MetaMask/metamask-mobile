@@ -1,5 +1,8 @@
 import {
   getGanachePort,
+  getSecondTestDappLocalUrl,
+  getTestDappLocalUrl,
+  getMockServerPort,
   getTestDappLocalUrlByDappCounter,
 } from './FixtureUtils';
 import { merge } from 'lodash';
@@ -21,6 +24,12 @@ import {
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
+import {
+  MOCK_ENTROPY_SOURCE,
+  MOCK_ENTROPY_SOURCE_2,
+  MOCK_ENTROPY_SOURCE_3,
+} from '../../../app/util/test/keyringControllerTestUtils';
+import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -39,7 +48,18 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
-const DAPP_URL = 'localhost';
+// AccountTreeController Wallet and Group IDs - reused across fixtures
+export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
+export const ENTROPY_WALLET_2_ID = `entropy:${MOCK_ENTROPY_SOURCE_2}`;
+export const ENTROPY_WALLET_3_ID = `entropy:${MOCK_ENTROPY_SOURCE_3}`;
+export const QR_HARDWARE_WALLET_ID = 'keyring:QR Hardware Wallet Device';
+export const SIMPLE_KEYRING_WALLET_ID = 'keyring:Simple Key Pair';
+
+// Snap Wallet IDs - using real Snap IDs from the codebase
+export const SIMPLE_KEYRING_SNAP_ID =
+  'snap:npm:@metamask/snap-simple-keyring-snap';
+export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
+export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -93,6 +113,34 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Defines a Perps profile for E2E mocks.
+   * The value is stored in the PerpsController state so that the mocks can read it.
+   * @param profile Profile, e.g.: 'no-funds', 'default'.
+   * @returns {FixtureBuilder}
+   */
+  withPerpsProfile(profile: string) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      // Field only for E2E; read by the mocks mixin
+      mockProfile: profile,
+    });
+    return this;
+  }
+
+  /**
+   * Forces the Perps first-time flag in the initial state.
+   * @param firstTime true to show tutorial; false to mark as seen.
+   */
+  withPerpsFirstTimeUser(firstTime: boolean) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      isFirstTimeUser: {
+        testnet: firstTime,
+        mainnet: firstTime,
+      },
+    });
+    return this;
+  }
+
   withSolanaFeatureSheetDisplayed() {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};
@@ -100,7 +148,6 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
-      '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
@@ -501,6 +548,13 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
+            PerpsController: {
+              isFirstTimeUser: {
+                testnet: false,
+                mainnet: false,
+              },
+            },
+            NetworkEnablementController: {},
           },
         },
         privacy: {
@@ -513,7 +567,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://google.com',
+              url: `http://localhost:${getMockServerPort()}/health-check`,
               id: 1692550481062,
             },
           ],
@@ -531,7 +585,7 @@ class FixtureBuilder {
           searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
-          useBlockieIcon: true,
+          avatarAccountType: 'Maskicon', // Must match the enum in AvatarAccountType form app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types.ts
           hideZeroBalanceTokens: false,
           basicFunctionalityEnabled: true,
         },
@@ -558,9 +612,6 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
           existingUser: true,
-        },
-        wizard: {
-          step: 0,
         },
         onboarding: {
           events: [],
@@ -733,7 +784,6 @@ class FixtureBuilder {
       asyncState: {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:OptinMetaMetricsUISeen': 'true',
-        '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
         '@MetaMask:solanaFeatureModalShownV2': 'true',
@@ -806,7 +856,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = DAPP_URL,
+    dappUrl = getTestDappLocalUrl(),
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -880,7 +930,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
+        getSecondTestDappLocalUrl(),
       );
     }
     this.withPermissionController(
@@ -1796,6 +1846,271 @@ class FixtureBuilder {
    */
   withSeedphraseBackedUpDisabled() {
     this.fixture.state.user.seedphraseBackedUp = false;
+    return this;
+  }
+
+  /**
+   * Merges provided data into the background state of the AccountTreeController.
+   * If no data is provided, sets up a comprehensive default state following @metamask/account-tree-controller specs
+   * with pre-defined grouping rules. Uses existing entropy sources (MOCK_ENTROPY_SOURCE),
+   * real keyring types (KeyringTypes.hd, .qr, .simple), and actual Snap IDs from the codebase.
+   * If custom wallets are provided, they completely replace the defaults.
+   * @param {object} data - Data to merge into the AccountTreeController's state. Optional.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withAccountTreeController(data: Record<string, unknown> = {}) {
+    // Define a comprehensive default state following @metamask/account-tree-controller specs
+    // Leverages existing keyring types, entropy sources (MOCK_ENTROPY_SOURCE*), and real Snap IDs from the codebase
+    const defaultAccountTreeState = {
+      accountTree: {
+        wallets: {
+          // Entropy-based Multichain Wallet (Primary SRP)
+          [ENTROPY_WALLET_1_ID]: {
+            id: ENTROPY_WALLET_1_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 1',
+              entropySource: MOCK_ENTROPY_SOURCE,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_1_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_1_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Account 1 - EVM address
+                  'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Account 1 - Solana address
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+              [`${ENTROPY_WALLET_1_ID}/account-2`]: {
+                id: `${ENTROPY_WALLET_1_ID}/account-2`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '5e8c6f1a-c372-5bed-9237-1f03c3d4e5b2', // Account 2 - EVM address
+                  'b2c3d4e5-f6g7-8901-bcde-f23456789012', // Account 2 - Solana address
+                ],
+                metadata: {
+                  name: 'Account 2',
+                },
+              },
+            },
+          },
+          // Secondary Entropy Wallet (Secondary SRP)
+          [ENTROPY_WALLET_2_ID]: {
+            id: ENTROPY_WALLET_2_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 2',
+              entropySource: MOCK_ENTROPY_SOURCE_2,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_2_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_2_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'f47ac10b-58cc-4372-a567-0e02b2c3d479', // Secondary wallet Account 1
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+            },
+          },
+          // Third Entropy-based Multichain Wallet (HD Keyring)
+          [ENTROPY_WALLET_3_ID]: {
+            id: ENTROPY_WALLET_3_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 3',
+              entropySource: MOCK_ENTROPY_SOURCE_3,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_3_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_3_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '6f9d7e2b-d483-6cfe-a348-2g14d4e5f6c3', // HD Account 1
+                  '7a0e8c3c-e594-7dg0-b459-3h25e5f6d7d4', // HD Account 2
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+            },
+          },
+          // QR Hardware Wallet (KeyringTypes.qr)
+          [QR_HARDWARE_WALLET_ID]: {
+            id: QR_HARDWARE_WALLET_ID,
+            type: 'Keyring',
+            metadata: {
+              name: 'QR Hardware Device',
+              keyringType: 'QR Hardware Wallet Device', // KeyringTypes.qr
+            },
+            groups: {
+              [`${QR_HARDWARE_WALLET_ID}/ethereum`]: {
+                id: `${QR_HARDWARE_WALLET_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'b374ca01-3934-e498-e5ba-d3409147f34e', // Hardware Account
+                ],
+                metadata: {
+                  name: 'Hardware Accounts',
+                },
+              },
+            },
+          },
+          // Simple Key Pair (KeyringTypes.simple)
+          [SIMPLE_KEYRING_WALLET_ID]: {
+            id: SIMPLE_KEYRING_WALLET_ID,
+            type: 'Keyring',
+            metadata: {
+              name: 'Imported Accounts',
+              keyringType: 'Simple Key Pair', // KeyringTypes.simple
+            },
+            groups: {
+              [`${SIMPLE_KEYRING_WALLET_ID}/ethereum`]: {
+                id: `${SIMPLE_KEYRING_WALLET_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '43e1c289-177e-cfbe-6ef3-4b5fb2b66ebc', // Imported Account
+                ],
+                metadata: {
+                  name: 'Private Key Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Simple Keyring Snap
+          [SIMPLE_KEYRING_SNAP_ID]: {
+            id: SIMPLE_KEYRING_SNAP_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Simple Keyring Snap',
+              snapId: 'npm:@metamask/snap-simple-keyring-snap',
+            },
+            groups: {
+              [`${SIMPLE_KEYRING_SNAP_ID}/ethereum`]: {
+                id: `${SIMPLE_KEYRING_SNAP_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'e697fe4b-399h-899i-fgh0-h567890124de', // Snap Account 1
+                ],
+                metadata: {
+                  name: 'Snap Ethereum Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Bitcoin Wallet Snap
+          [GENERIC_SNAP_WALLET_1_ID]: {
+            id: GENERIC_SNAP_WALLET_1_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Bitcoin Wallet Snap',
+              snapId: 'npm:@metamask/bitcoin-wallet-snap',
+            },
+            groups: {
+              [`${GENERIC_SNAP_WALLET_1_ID}/bitcoin`]: {
+                id: `${GENERIC_SNAP_WALLET_1_ID}/bitcoin`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'f798gf5c-4a0i-9a0j-ghi1-i678901235ef', // Bitcoin Account 1
+                ],
+                metadata: {
+                  name: 'Bitcoin Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Solana Wallet Snap
+          [GENERIC_SNAP_WALLET_2_ID]: {
+            id: GENERIC_SNAP_WALLET_2_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Solana Wallet Snap',
+              snapId: 'npm:@metamask/solana-wallet-snap',
+            },
+            groups: {
+              [`${GENERIC_SNAP_WALLET_2_ID}/solana`]: {
+                id: `${GENERIC_SNAP_WALLET_2_ID}/solana`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'g899hg6d-5b1j-0b1k-hij2-j789012346fg', // Solana Account 1
+                ],
+                metadata: {
+                  name: 'Solana Accounts',
+                },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: `${ENTROPY_WALLET_1_ID}/account-1`,
+      },
+    };
+
+    // Check if user provided their own wallets - if so, use those instead of defaults
+    const providedAccountTree = data.accountTree as {
+      wallets?: Record<string, unknown>;
+    };
+    const hasCustomWallets = providedAccountTree?.wallets;
+
+    let stateToMerge;
+    if (hasCustomWallets) {
+      // User provided custom wallets, so skip defaults and use their data directly
+      stateToMerge = data;
+    } else {
+      // No custom wallets provided, merge with comprehensive defaults
+      stateToMerge = merge({}, defaultAccountTreeState, data);
+    }
+
+    merge(
+      this.fixture.state.engine.backgroundState.AccountTreeController,
+      stateToMerge,
+    );
+
+    // Also update KeyringController to ensure compatibility with legacy UI
+    // This creates the accounts that the legacy account selection UI expects when multichain accounts are disabled
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'], // Imported account
+        },
+      ],
+      vault:
+        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+    });
+    return this;
+  }
+
+  withNetworkEnabledMap(
+    data: NetworkEnablementControllerState['enabledNetworkMap'],
+  ) {
+    const stateToMerge: NetworkEnablementControllerState = {
+      enabledNetworkMap: data,
+    };
+
+    merge(
+      this.fixture.state.engine.backgroundState.NetworkEnablementController,
+      stateToMerge,
+    );
+
+    return this;
+  }
+
+  withCleanBannerState() {
+    merge(this.fixture.state, {
+      banners: {
+        dismissedBanners: [],
+      },
+    });
+
     return this;
   }
 
