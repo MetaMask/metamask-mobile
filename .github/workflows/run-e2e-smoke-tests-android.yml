@@ -113,21 +113,6 @@ jobs:
       total_splits: 2
     secrets: inherit
 
-  # smoke-performance-android:
-  #   name: "Performance Smoke (Android) - ${{ matrix.split }}"
-  #   strategy:
-  #     matrix:
-  #       split: [1, 2]
-  #     fail-fast: false
-  #   uses: ./.github/workflows/run-e2e-workflow.yml
-  #   with:
-  #     test-suite-name: smoke-performance-android-${{ matrix.split }}
-  #     platform: android
-  #     test_suite_tag: "SmokePerformance"
-  #     split_number: ${{ matrix.split }}
-  #     total_splits: 2
-  #   secrets: inherit
-
   confirmations-redesigned-android-smoke:
     strategy:
       matrix:
