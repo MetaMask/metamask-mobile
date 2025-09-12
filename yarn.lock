@@ -5129,12 +5129,13 @@
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
-"@metamask/eip-5792-middleware@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eip-5792-middleware/-/eip-5792-middleware-1.0.0.tgz#6df7cb47999661585e592e7758b80c4652f4cd7a"
-  integrity sha512-NL98QBjE9CEVpfQskdoqBYhZmz3pIyujjTt4Pyp2Vlxz7PYzm1qrkSj0MrENaXkOMy0IClj8ZxoIJpMJuoAcRQ==
+"@metamask/eip-5792-middleware@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eip-5792-middleware/-/eip-5792-middleware-1.1.0.tgz#3dc25e31711f0045766da9d473ae9306de75d2df"
+  integrity sha512-zgI9uLSwi+U2x2fkIFMViI/RFJQFGp2B38YoWSgIQ1L7kshy0p0eNYrkOXnNX5Y+oDfbZLTSJeeAYBQ+suSNcA==
   dependencies:
     "@metamask/eth-json-rpc-middleware" "^17.0.1"
+    "@metamask/superstruct" "^3.1.0"
     "@metamask/transaction-controller" "^60.2.0"
     "@metamask/utils" "^11.4.2"
     uuid "^8.3.2"
@@ -5224,6 +5225,24 @@
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.1.0"
+    "@types/bn.js" "^5.1.5"
+    bn.js "^5.2.1"
+    klona "^2.0.6"
+    pify "^5.0.0"
+    safe-stable-stringify "^2.4.3"
+
+"@metamask/eth-json-rpc-middleware@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-18.0.0.tgz#7a6fdf83dd7400d7e9dd45bfd145a5e5b2c0109e"
+  integrity sha512-5Cje8BW8IEshkJYV/I6QPazv9xMVJWGFYjD48K70oYty2qEKGCHpUbbuinEyLmFFqi4YzpvK5PfRBMmf93hTYQ==
+  dependencies:
+    "@metamask/eth-block-tracker" "^12.0.0"
+    "@metamask/eth-json-rpc-provider" "^4.1.7"
+    "@metamask/eth-sig-util" "^8.1.2"
+    "@metamask/json-rpc-engine" "^10.0.2"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.7.0"
     "@types/bn.js" "^5.1.5"
     bn.js "^5.2.1"
     klona "^2.0.6"
@@ -6221,10 +6240,10 @@
     react-dom "^18.3.1"
     vite-plugin-node-polyfills "^0.22.0"
 
-"@metamask/test-dapp@^9.3.0":
-  version "9.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.4.0.tgz#c6aea4b9e97625e95967d3511ebd95af9f8ad1c9"
-  integrity sha512-XDpXOiMOvnypXSUPk7s1bK5v7ZWqQztkQTl5MmwgALL5fJ488ByK6AETO3rv15UH4OyrIZPxcCXKh1Renk1m9Q==
+"@metamask/test-dapp@9.5.0":
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.5.0.tgz#2eb34d1fcf41b7e433b1e31bb847ed568ceea908"
+  integrity sha512-OxmZpTew6jZsxKUu8v4lYRKD/mwIOEAufzcB54TnPKElN2RyXMrES+yuV3BiOvDL5bD04O9cprbVQ2rUl6DKDw==
 
 "@metamask/token-search-discovery-controller@^3.1.0":
   version "3.1.0"
@@ -6250,10 +6269,10 @@
     "@toruslabs/http-helpers" "^8.1.1"
     bn.js "^5.2.1"
 
-"@metamask/transaction-controller@^60.2.0":
-  version "60.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-60.2.0.tgz#ba2ebb76b082019c738678a3777585d8949029c5"
-  integrity sha512-Oee4LE2tu/yRO55ecER8zZxBh1BpXcKIbNX59l8zQ2de9HxT9rYjs4zM0YEDvuu00LC4MfJ+mDg+QU1xISHFSA==
+"@metamask/transaction-controller@^60.2.0", "@metamask/transaction-controller@^60.3.0":
+  version "60.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-60.3.0.tgz#acb1f8bfae954e484c494bd631cb93db1e4dc067"
+  integrity sha512-dFgK72ckx98PkmxWQx+j3ODCB06uY0lj4hZxtW1Hx3szW0mmDb+tuqdY0Z+vbv8vyf0S1ZSFDD5CDxz7CMM69A==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
@@ -6262,7 +6281,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@ethersproject/wallet" "^5.7.0"
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"

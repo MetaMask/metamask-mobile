@@ -388,7 +388,7 @@ const usePerpsToasts = (): {
             amount: string,
             assetSymbol: string,
           ) => ({
-            ...perpsBaseToastOptions.success,
+            ...perpsBaseToastOptions.inProgress,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_submitted'),
               strings('perps.order.order_placement_subtitle', {

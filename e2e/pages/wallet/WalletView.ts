@@ -66,6 +66,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
   }
 
+  get navbarCardButtonBadge(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON_BADGE);
+  }
+
   get nftTab(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -188,6 +192,7 @@ class WalletView {
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
       elemDescription: 'Top Account Icon',
+      checkStability: true,
     });
   }
 
@@ -410,7 +415,9 @@ class WalletView {
    * @returns {Promise<void>} Resolves when the tap action is complete.
    */
   async tapCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlide(id));
+    await Gestures.tap(this.getCarouselSlide(id), {
+      elemDescription: `tap carousel slide ${id}`,
+    });
   }
 
   get defiTab(): DetoxElement {

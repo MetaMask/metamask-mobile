@@ -25,6 +25,7 @@ export const userInitialState: UserState = {
   appServicesReady: false,
   existingUser: false,
   isConnectionRemoved: false,
+  multichainAccountsIntroModalSeen: false,
 };
 
 /**
@@ -126,6 +127,11 @@ const userReducer = (
       return {
         ...state,
         isConnectionRemoved: action.payload.isConnectionRemoved,
+      };
+    case UserActionType.SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN:
+      return {
+        ...state,
+        multichainAccountsIntroModalSeen: action.payload.seen,
       };
     default:
       return state;

@@ -3,7 +3,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Assertions from '../../framework/Assertions';
+import { Assertions } from '../../framework';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
@@ -63,6 +63,7 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
+      await BuildQuoteView.tapSelectAddressDropdown();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3', {
         description:
@@ -80,6 +81,7 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
       await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
+      await BuildQuoteView.tapSelectAddressDropdown();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3', {
         description:
@@ -97,7 +99,9 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
+      await BuildQuoteView.tapSelectAddressDropdown();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
+      await BuildQuoteView.dismissAccountSelector();
       await Assertions.expectTextDisplayed('Account 3');
       await BuildQuoteView.tapCancelButton();
       await TabBarComponent.tapWallet();

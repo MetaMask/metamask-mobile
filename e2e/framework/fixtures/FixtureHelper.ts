@@ -480,6 +480,10 @@ export async function withFixtures(
     }
 
     await stopFixtureServer(fixtureServer);
+
+    // Force reload React Native to stop any lingering timers
+    await device.reloadReactNative();
+
     // Validate live requests
     validateLiveRequests(mockServer);
   }

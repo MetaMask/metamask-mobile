@@ -9,6 +9,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_TOKEN_DETECTION_LINK_BUTTON: 'wallet-token-detection-link-button',
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   CARD_BUTTON: 'card-button',
+  CARD_BUTTON_BADGE: 'card-button-badge',
   STAKE_BUTTON: 'stake-button',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
