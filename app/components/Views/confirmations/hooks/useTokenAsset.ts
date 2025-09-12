@@ -9,6 +9,13 @@ import { TokenI } from '../../../UI/Tokens/types';
 import { getNativeTokenAddress } from '../utils/asset';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
+const TypesForNativeToken = [
+  TransactionType.simpleSend,
+  TransactionType.stakingClaim,
+  TransactionType.stakingDeposit,
+  TransactionType.stakingUnstake,
+];
+
 export const useTokenAsset = () => {
   const {
     chainId,
@@ -18,15 +25,14 @@ export const useTokenAsset = () => {
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
   const tokens = useSelector(selectAccountTokensAcrossChains);
-  const tokenAddress =
-    transactionType === TransactionType.simpleSend
-      ? nativeTokenAddress
-      : safeToChecksumAddress(txParams?.to)?.toLowerCase();
 
-  if (!chainId) {
+  if (!chainId || !transactionType) {
     return { displayName: strings('token.unknown') };
   }
 
+  const tokenAddress = TypesForNativeToken.includes(transactionType)
+    ? nativeTokenAddress
+    : safeToChecksumAddress(txParams?.to)?.toLowerCase();
   const asset = tokens[chainId]?.find(
     ({ address }) => address.toLowerCase() === tokenAddress,
   ) as TokenI;
