@@ -56,6 +56,13 @@ class AccountListBottomSheet {
     );
   }
 
+  createAccountLink(index: number): DetoxElement {
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+      index,
+    );
+  }
+
   async getAccountElementByAccountName(
     accountName: string,
   ): Promise<DetoxElement> {
@@ -63,6 +70,10 @@ class AccountListBottomSheet {
       CellComponentSelectorsIDs.BASE_TITLE,
       accountName,
     );
+  }
+
+  getAccountElementByAccountNameV2(accountName: string): DetoxElement {
+    return Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName);
   }
 
   async getSelectElement(index: number): DetoxElement {
@@ -129,6 +140,13 @@ class AccountListBottomSheet {
     });
   }
 
+  async tapCreateAccount(index: number): Promise<void> {
+    const link = this.createAccountLink(index);
+    await Gestures.waitAndTap(link, {
+      elemDescription: 'Create account link',
+    });
+  }
+
   async longPressImportedAccount(): Promise<void> {
     await Gestures.longPress(this.getSelectElement(1), {
       elemDescription: 'Imported account',
@@ -158,6 +176,13 @@ class AccountListBottomSheet {
     const name = Matchers.getElementByText(accountName);
 
     await Gestures.waitAndTap(name);
+  }
+
+  async tapAccountByNameV2(accountName: string): Promise<void> {
+    const element = this.getAccountElementByAccountNameV2(accountName);
+    await Gestures.waitAndTap(element, {
+      elemDescription: `Tap on account with name: ${accountName}`,
+    });
   }
 
   async scrollToAccount(index: number): Promise<void> {
