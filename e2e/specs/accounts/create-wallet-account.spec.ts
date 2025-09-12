@@ -11,7 +11,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
   const LAST = 2;
 
-  it('should be able to add new accounts ', async () => {
+  it('should be able to add a new account and verify it is working', async () => {
     await withMultichainAccountDetailsV2Enabled(async () => {
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,
