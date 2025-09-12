@@ -662,4 +662,33 @@ describe('handleUniversalLinks', () => {
       expect(handled).toHaveBeenCalled();
     });
   });
+
+  describe('interstitial whitelist', () => {
+    it('does not show interstitial modal for WC action', async () => {
+      const wcUri = 'wc:abc123@2?relay-protocol=irn&symKey=xyz';
+      const encodedWcUri = encodeURIComponent(wcUri);
+      const wcUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=${encodedWcUri}`;
+      const wcUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: wcUrl,
+        pathname: `/${ACTIONS.WC}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: wcUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: wcUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handled).toHaveBeenCalled();
+      expect(mockParse).toHaveBeenCalledWith(wcUri, {
+        origin: 'test-source',
+      });
+    });
+  });
 });

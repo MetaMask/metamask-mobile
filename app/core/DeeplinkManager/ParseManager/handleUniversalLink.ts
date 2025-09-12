@@ -36,6 +36,11 @@ enum SUPPORTED_ACTIONS {
   WC = ACTIONS.WC,
 }
 
+/**
+ * Actions that should not show the deep link modal
+ */
+const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
+
 async function handleUniversalLink({
   instance,
   handled,
@@ -118,18 +123,21 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
-  const shouldProceed = await new Promise<boolean>((resolve) => {
-    const [, actionName] = validatedUrl.pathname.split('/');
-    const sanitizedAction = actionName?.replace(/-/g, ' ');
-    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
+  const shouldProceed =
+    WHITELISTED_ACTIONS.includes(action) ||
+    (await new Promise<boolean>((resolve) => {
+      const [, actionName] = validatedUrl.pathname.split('/');
+      const sanitizedAction = actionName?.replace(/-/g, ' ');
+      const pageTitle: string =
+        capitalize(sanitizedAction?.toLowerCase()) || '';
 
-    handleDeepLinkModalDisplay({
-      linkType: linkType(),
-      pageTitle,
-      onContinue: () => resolve(true),
-      onBack: () => resolve(false),
-    });
-  });
+      handleDeepLinkModalDisplay({
+        linkType: linkType(),
+        pageTitle,
+        onContinue: () => resolve(true),
+        onBack: () => resolve(false),
+      });
+    }));
 
   // Universal links
   handled();
@@ -137,6 +145,7 @@ async function handleUniversalLink({
   if (!shouldProceed) {
     return false;
   }
+
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   if (
     action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
