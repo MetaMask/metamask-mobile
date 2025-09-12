@@ -5509,7 +5509,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
           <View
             style={
               {
-                "alignItems": "center",
+                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
@@ -5535,6 +5535,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 0,
                   "flexDirection": "row",
+                  "marginRight": 16,
                   "padding": 16,
                 }
               }
@@ -6709,7 +6710,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
           <View
             style={
               {
-                "alignItems": "center",
+                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
@@ -6735,6 +6736,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   "borderRadius": 4,
                   "borderWidth": 0,
                   "flexDirection": "row",
+                  "marginRight": 16,
                   "padding": 16,
                 }
               }
