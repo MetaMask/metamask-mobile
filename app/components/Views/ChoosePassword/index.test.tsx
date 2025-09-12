@@ -1285,6 +1285,131 @@ describe('ChoosePassword', () => {
         name: TraceName.OnboardingPasswordSetupError,
       });
     });
+
+    describe('Conditional canSubmit logic - User Experience', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should allow OAuth users to submit without marketing opt-in checkbox', async () => {
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: true,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const passwordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
+        const confirmPasswordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
+        const submitButton = component.getByTestId(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        );
+
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Test1234');
+        });
+
+        await act(async () => {
+          fireEvent.changeText(confirmPasswordInput, 'Test1234');
+        });
+
+        expect(submitButton.props.disabled).toBe(false);
+      });
+
+      it('should require marketing opt-in checkbox for non-OAuth users', async () => {
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+              oauthLoginSuccess: false,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const passwordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
+        const confirmPasswordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
+        const submitButton = component.getByTestId(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        );
+
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Test1234');
+        });
+
+        await act(async () => {
+          fireEvent.changeText(confirmPasswordInput, 'Test1234');
+        });
+
+        expect(submitButton.props.disabled).toBe(true);
+      });
+
+      it('should handle edge case where oauthLoginSuccess is undefined', async () => {
+        const props: ChoosePasswordProps = {
+          ...defaultProps,
+          route: {
+            ...defaultProps.route,
+            params: {
+              ...defaultProps.route.params,
+              [PREVIOUS_SCREEN]: ONBOARDING,
+            },
+          },
+        };
+
+        const component = renderWithProviders(<ChoosePassword {...props} />);
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const passwordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
+        const confirmPasswordInput = component.getByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
+        const submitButton = component.getByTestId(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        );
+
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'Test1234');
+        });
+
+        await act(async () => {
+          fireEvent.changeText(confirmPasswordInput, 'Test1234');
+        });
+
+        expect(submitButton.props.disabled).toBe(true);
+      });
+    });
   });
 
   describe('Marketing API Integration', () => {
