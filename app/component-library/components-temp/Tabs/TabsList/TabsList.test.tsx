@@ -891,5 +891,36 @@ describe('TabsList', () => {
       // Single tab should not enable scrolling
       // The underline animation should still work for the single tab
     });
+
+    it('supports both single child and array of children (TypeScript compatibility)', () => {
+      // Arrange & Act - This test verifies TypeScript accepts both patterns
+      const SingleChildComponent = () => (
+        <TabsList initialActiveIndex={0}>
+          <View key="single" {...({ tabLabel: 'Single' } as TabViewProps)}>
+            <Text>Single Content</Text>
+          </View>
+        </TabsList>
+      );
+
+      const MultipleChildrenComponent = () => (
+        <TabsList initialActiveIndex={0}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
+        </TabsList>
+      );
+
+      // Assert - Both should render without TypeScript errors
+      const { getByText: getSingleText, unmount: unmountSingle } = render(<SingleChildComponent />);
+      expect(getSingleText('Single Content')).toBeOnTheScreen();
+      
+      unmountSingle();
+      
+      const { getByText: getMultipleText } = render(<MultipleChildrenComponent />);
+      expect(getMultipleText('Tab 1 Content')).toBeOnTheScreen();
+    });
   });
 });
