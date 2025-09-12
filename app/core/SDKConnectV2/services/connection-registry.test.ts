@@ -408,7 +408,6 @@ describe('ConnectionRegistry', () => {
       mockConnection1.client.reconnect.mockClear();
       mockConnection2.client.reconnect.mockClear();
 
-
       // Test 1: First 'active' event (cold start) should NOT trigger reconnect
       appStateHandler('active');
       await new Promise((resolve) => setTimeout(resolve, 0));
