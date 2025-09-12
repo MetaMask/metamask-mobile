@@ -22,16 +22,6 @@ export const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
-  1: 'Welcome',
-  2: 'Accounts',
-  3: 'Account Name',
-  4: 'Notifications',
-  5: 'Main Navigation',
-  6: 'Browser',
-  7: 'Search',
-};
-
 /**
  * Analytics Tracking Events
  */
@@ -454,7 +444,7 @@ enum EVENT_NAME {
   IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
-  //Notifications
+  // Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
@@ -465,6 +455,10 @@ enum EVENT_NAME {
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
   NOTIFICATION_STORAGE_KEY_DELETED = 'Notification Storage Key Deleted',
+
+  // Push Notifications
+  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
+  PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
@@ -570,10 +564,6 @@ enum EVENT_NAME {
   PERPS_POSITION_CLOSE_EXECUTED = 'Perp Position Close Executed',
   PERPS_POSITION_CLOSE_PARTIALLY_FILLED = 'Perp Position Close Partially filled',
   PERPS_POSITION_CLOSE_FAILED = 'Perp Position Close Failed',
-
-  // Push Notifications Flow
-  PERPS_PUSH_NOTIFICATION_RECEIVED = 'Perp Push Notification Received',
-  PERPS_PUSH_NOTIFICATION_CLICKED = 'Perp Push Notification Clicked',
 
   // Risk Management Flow
   PERPS_STOP_LOSS_SET = 'Stop Loss Set',
@@ -1135,6 +1125,13 @@ const events = {
   NOTIFICATION_STORAGE_KEY_DELETED: generateOpt(
     EVENT_NAME.NOTIFICATION_STORAGE_KEY_DELETED,
   ),
+
+  // Push Notifications Flow
+  PUSH_NOTIFICATION_RECEIVED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
+  ),
+  PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
@@ -1454,14 +1451,6 @@ const events = {
     EVENT_NAME.PERPS_POSITION_CLOSE_FAILED,
   ),
 
-  // Push Notifications Flow (2 events)
-  PERPS_PUSH_NOTIFICATION_RECEIVED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_RECEIVED,
-  ),
-  PERPS_PUSH_NOTIFICATION_CLICKED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_CLICKED,
-  ),
-
   // Risk Management Flow (5 events)
   PERPS_STOP_LOSS_SET: generateOpt(EVENT_NAME.PERPS_STOP_LOSS_SET),
   PERPS_TAKE_PROFIT_SET: generateOpt(EVENT_NAME.PERPS_TAKE_PROFIT_SET),
@@ -1511,6 +1500,7 @@ enum DESCRIPTION {
   NAVIGATION_TAPS_GET_HELP = 'Get Help',
   NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
   NAVIGATION_TAPS_SETTINGS = 'Settings',
+  NAVIGATION_TAPS_REWARDS = 'Rewards',
   NAVIGATION_TAPS_LOGOUT = 'Logout',
   // Dapp
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
@@ -1617,6 +1607,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.NAVIGATION_DRAWER,
     ACTIONS.NAVIGATION_DRAWER,
     DESCRIPTION.NAVIGATION_TAPS_SETTINGS,
+  ),
+  NAVIGATION_TAPS_REWARDS: generateOpt(
+    EVENT_NAME.NAVIGATION_DRAWER,
+    ACTIONS.NAVIGATION_DRAWER,
+    DESCRIPTION.NAVIGATION_TAPS_REWARDS,
   ),
   NAVIGATION_TAPS_LOGOUT: generateOpt(
     EVENT_NAME.NAVIGATION_DRAWER,
@@ -1903,4 +1898,4 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };
+export { MetaMetricsEvents, EVENT_NAME };

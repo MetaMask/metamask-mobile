@@ -12,6 +12,22 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+// Mock i18n
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => key),
+}));
+
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
@@ -22,11 +38,40 @@ jest.mock('../../utils/pnlCalculations', () => ({
   calculatePnLPercentageFromUnrealized: jest.fn().mockReturnValue(5.0),
 }));
 
-// Mock asset metadata hook
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: jest.fn().mockReturnValue({
-    assetUrl: 'https://example.com/eth.png',
-  }),
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: ({ size, testID }: { size: number; testID?: string }) => {
+    const { View } = jest.requireActual('react-native');
+    return (
+      <View
+        testID={testID || 'perps-token-logo'}
+        style={{ width: size, height: size }}
+      />
+    );
+  },
+}));
+
+// Mock stream provider
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    subscribeToPrices: jest.fn(() => jest.fn()),
+    subscribeToPositions: jest.fn(() => jest.fn()),
+    subscribeToAccount: jest.fn(() => jest.fn()),
+    subscribeToOrders: jest.fn(() => jest.fn()),
+    subscribeToFills: jest.fn(() => jest.fn()),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    isConnected: false,
+  })),
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLivePositions: jest.fn(() => ({})),
 }));
 
 // Mock the new hooks from ../../hooks
@@ -81,24 +126,25 @@ jest.mock('../PerpsTPSLBottomSheet', () => ({
   },
 }));
 
-// Mock PerpsClosePositionBottomSheet
-jest.mock('../PerpsClosePositionBottomSheet', () => ({
+// Mock PerpsBottomSheetTooltip
+jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
   default: ({
     isVisible,
     onClose,
   }: {
     isVisible: boolean;
-    onClose: () => void;
+    onClose?: () => void;
   }) => {
     if (!isVisible) return null;
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
-      <View testID="perps-close-position-bottomsheet">
-        <TouchableOpacity onPress={onClose}>
-          <Text>Close Position Sheet</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        testID="perps-position-card-geo-block-tooltip"
+        onPress={onClose}
+      >
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
     );
   },
 }));
@@ -148,26 +194,48 @@ describe('PerpsPositionCard', () => {
       '../../utils/pnlCalculations',
     );
     calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   describe('Component Rendering', () => {
     it('renders position card with all sections', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      // Act - Render expanded to show all sections
+      render(<PerpsPositionCard position={mockPosition} expanded />);
 
       // Assert - Header section
       expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
       expect(screen.getByText('2.50 ETH')).toBeOnTheScreen();
       expect(screen.getByText('$5,000.00')).toBeOnTheScreen();
 
-      // Assert - Body section
-      expect(screen.getByText('Entry Price')).toBeOnTheScreen();
+      // Assert - Body section - using string keys since strings() mock returns keys
+      expect(
+        screen.getByText('perps.position.card.entry_price'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('$2,000.00')).toBeOnTheScreen();
-      expect(screen.getByText('Market Price')).toBeOnTheScreen();
-      expect(screen.getByText('Liquidity Price')).toBeOnTheScreen();
-      expect(screen.getByText('Take Profit')).toBeOnTheScreen();
-      expect(screen.getByText('Stop Loss')).toBeOnTheScreen();
-      expect(screen.getByText('Margin')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.funding_cost'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.liquidation_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.take_profit'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.stop_loss'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('perps.position.card.margin')).toBeOnTheScreen();
       expect(screen.getByText('$500.00')).toBeOnTheScreen();
 
       // Assert - Footer section
@@ -198,22 +266,22 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Assert
-      expect(screen.getByText(/\+\$250\.00.*\+5\.00%/)).toBeOnTheScreen();
+      // Assert - ROE is 12.5 * 100 = 1250%
+      expect(screen.getByText(/\+\$250\.00.*\+1250\.0%/)).toBeOnTheScreen();
     });
 
     it('handles missing PnL percentage data', () => {
-      // Arrange
-      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
-        '../../utils/pnlCalculations',
-      );
-      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(undefined);
+      // Arrange - Set returnOnEquity to empty string to test fallback
+      const positionWithoutROE = {
+        ...mockPosition,
+        returnOnEquity: '', // Use empty string instead of undefined
+      };
 
       // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      render(<PerpsPositionCard position={positionWithoutROE} />);
 
-      // Assert
-      expect(screen.getByText(/\+\$250\.00.*0\.00%/)).toBeOnTheScreen();
+      // Assert - Should show 0% when ROE is missing
+      expect(screen.getByText(/\+\$250\.00.*\+0\.0%/)).toBeOnTheScreen();
     });
 
     it('handles missing liquidation price', () => {
@@ -229,6 +297,38 @@ describe('PerpsPositionCard', () => {
       // Assert
       expect(screen.getByText('N/A')).toBeOnTheScreen();
     });
+
+    it('renders with icon when showIcon is true and not expanded', () => {
+      // Act - Render collapsed with showIcon
+      render(
+        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
+      );
+
+      // Assert - PerpsTokenLogo should be rendered
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
+    });
+
+    it('does not render icon when showIcon is false', () => {
+      // Act - Render collapsed without showIcon
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          expanded={false}
+          showIcon={false}
+        />,
+      );
+
+      // Assert - PerpsTokenLogo should not be rendered
+      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
+    });
+
+    it('does not render icon when expanded even if showIcon is true', () => {
+      // Act - Render expanded with showIcon (should not show icon)
+      render(<PerpsPositionCard position={mockPosition} expanded showIcon />);
+
+      // Assert - PerpsTokenLogo should not be rendered in expanded mode
+      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
+    });
   });
 
   describe('User Interactions', () => {
@@ -242,12 +342,25 @@ describe('PerpsPositionCard', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: expect.any(Object),
+          initialTab: 'position',
         },
       });
     });
 
-    it('opens close position bottom sheet when close button is pressed', () => {
-      // Arrange & Act
+    it('opens close position bottom sheet when close button is pressed and user is eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
+      // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
       // Verify bottom sheet is not visible initially
@@ -265,8 +378,20 @@ describe('PerpsPositionCard', () => {
       ).toBeDefined();
     });
 
-    it('opens TP/SL bottom sheet when edit button is pressed', () => {
-      // Arrange & Act
+    it('opens TP/SL bottom sheet when edit button is pressed and user is eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
+      // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
       // Verify bottom sheet is not visible initially
@@ -380,6 +505,7 @@ describe('PerpsPositionCard', () => {
       const positionWithZeroPnl = {
         ...mockPosition,
         unrealizedPnl: '0.00',
+        returnOnEquity: '0',
       };
       const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
         '../../utils/pnlCalculations',
@@ -389,8 +515,8 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithZeroPnl} />);
 
-      // Assert
-      expect(screen.getByText(/\$0\.00.*\+0\.00%/)).toBeOnTheScreen();
+      // Assert - ROE is shown as 0.0% (not 0.00%)
+      expect(screen.getByText(/\$0\.00.*\+0\.0%/)).toBeOnTheScreen();
     });
 
     it('handles position with empty liquidation price', () => {
@@ -408,17 +534,17 @@ describe('PerpsPositionCard', () => {
     });
 
     it('renders all body items in correct order', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      // Act - Render with expanded=true to show body items
+      render(<PerpsPositionCard position={mockPosition} expanded />);
 
       // Assert - Check that all 6 body items are present
       const bodyLabels = [
-        'Entry Price',
-        'Market Price',
-        'Liquidity Price',
-        'Take Profit',
-        'Stop Loss',
-        'Margin',
+        'perps.position.card.entry_price',
+        'perps.position.card.funding_cost',
+        'perps.position.card.liquidation_price',
+        'perps.position.card.take_profit',
+        'perps.position.card.stop_loss',
+        'perps.position.card.margin',
       ];
 
       bodyLabels.forEach((label) => {
@@ -428,91 +554,8 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('Hook Integration', () => {
-    it('calls loadPositions when usePerpsTPSLUpdate onSuccess is triggered', async () => {
-      // Arrange
-      const mockLoadPositions = jest.fn().mockResolvedValue(undefined);
-      const mockOnPositionUpdate = jest.fn().mockResolvedValue(undefined);
-      const mockHandleUpdateTPSL = jest.fn().mockResolvedValue(undefined);
-
-      const { usePerpsPositions, usePerpsTPSLUpdate } =
-        jest.requireMock('../../hooks');
-
-      usePerpsPositions.mockReturnValue({
-        loadPositions: mockLoadPositions,
-      });
-
-      // Mock implementation to capture and immediately call the onSuccess callback
-      usePerpsTPSLUpdate.mockImplementation(
-        ({ onSuccess }: { onSuccess: () => void }) => {
-          // Simulate the onSuccess callback being called
-          setTimeout(() => {
-            onSuccess();
-          }, 0);
-          return {
-            handleUpdateTPSL: mockHandleUpdateTPSL,
-            isUpdating: false,
-          };
-        },
-      );
-
-      // Act
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          onPositionUpdate={mockOnPositionUpdate}
-        />,
-      );
-
-      // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      // Assert
-      expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
-      expect(mockOnPositionUpdate).toHaveBeenCalled();
-    });
-
-    it('calls loadPositions when usePerpsClosePosition onSuccess is triggered', async () => {
-      // Arrange
-      const mockLoadPositions = jest.fn().mockResolvedValue(undefined);
-      const mockOnPositionUpdate = jest.fn().mockResolvedValue(undefined);
-      const mockHandleClosePosition = jest.fn().mockResolvedValue(undefined);
-
-      const { usePerpsPositions, usePerpsClosePosition } =
-        jest.requireMock('../../hooks');
-
-      usePerpsPositions.mockReturnValue({
-        loadPositions: mockLoadPositions,
-      });
-
-      // Mock implementation to capture and immediately call the onSuccess callback
-      usePerpsClosePosition.mockImplementation(
-        ({ onSuccess }: { onSuccess: () => void }) => {
-          // Simulate the onSuccess callback being called
-          setTimeout(() => {
-            onSuccess();
-          }, 0);
-          return {
-            handleClosePosition: mockHandleClosePosition,
-            isClosing: false,
-          };
-        },
-      );
-
-      // Act
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          onPositionUpdate={mockOnPositionUpdate}
-        />,
-      );
-
-      // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      // Assert
-      expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
-      expect(mockOnPositionUpdate).toHaveBeenCalled();
-    });
+    // Tests removed - loadPositions no longer exists with WebSocket streaming
+    // Positions update automatically via WebSocket subscriptions
 
     it('returns early from handleCardPress when isLoading is true', () => {
       // Arrange
@@ -599,37 +642,222 @@ describe('PerpsPositionCard', () => {
       expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
     });
 
-    it('renders PerpsClosePositionBottomSheet when isClosePositionVisible is true', () => {
+    it('navigates to close position screen when close button is pressed', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Open the close position bottom sheet
+      // Press the close button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Assert
-      expect(
-        screen.getByTestId('perps-close-position-bottomsheet'),
-      ).toBeOnTheScreen();
+      // Assert - should navigate to close position screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.CLOSE_POSITION,
+        { position: mockPosition },
+      );
     });
 
-    it('handles PerpsClosePositionBottomSheet onClose callback', () => {
+    it('does not show close button when card is collapsed', () => {
+      // Act
+      render(
+        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
+      );
+
+      // Assert - close button should not be visible in collapsed view
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows geo block modal when edit TP/SL button is pressed and user is not eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Open the close position bottom sheet
+      // Press edit button
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - TP/SL bottom sheet should not be shown
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+    });
+
+    it('shows geo block modal when close position button is pressed and user is not eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press close button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Close the bottom sheet
-      fireEvent.press(screen.getByText('Close Position Sheet'));
-
-      // Assert - bottom sheet should be closed (not visible)
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - Close position bottom sheet should not be shown
       expect(
         screen.queryByTestId('perps-close-position-bottomsheet'),
       ).toBeNull();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press edit button to show geo block modal
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Verify modal is shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      // Press the geo block tooltip to close it
+      fireEvent.press(
+        screen.getByTestId('perps-position-card-geo-block-tooltip'),
+      );
+
+      // Assert - Geo block tooltip should be closed
+      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Cumulative Funding Display', () => {
+    it('shows white color and minus sign when cumulative funding is zero', () => {
+      const positionWithZeroFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '0.00',
+          sinceOpen: '0.00',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithZeroFunding} />);
+
+      // Should show minus sign for zero funding (since 0 >= 0)
+      expect(screen.getByText('-$0.00')).toBeOnTheScreen();
+
+      // Should not show plus sign for zero
+      expect(screen.queryByText('+$0.00')).not.toBeOnTheScreen();
+    });
+
+    it('shows red color and minus sign for positive cumulative funding (loss)', () => {
+      const positionWithPositiveFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '5.25',
+          sinceOpen: '5.25',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithPositiveFunding} />);
+
+      // Should show minus sign for positive funding (loss) - includes dollar sign
+      expect(screen.getByText('-$5.25')).toBeOnTheScreen();
+    });
+
+    it('shows green color and plus sign for negative cumulative funding (gain)', () => {
+      const positionWithNegativeFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '-3.75',
+          sinceOpen: '-3.75',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithNegativeFunding} />);
+
+      // Should show plus sign for negative funding (gain) - includes dollar sign
+      expect(screen.getByText('+$3.75')).toBeOnTheScreen();
+    });
+
+    it('handles very small cumulative funding values', () => {
+      const positionWithSmallFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '0.01',
+          sinceOpen: '0.01',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithSmallFunding} />);
+
+      // Should show minus sign for small positive value - includes dollar sign
+      expect(screen.getByText('-$0.01')).toBeOnTheScreen();
+    });
+
+    it('handles very small negative cumulative funding values', () => {
+      const positionWithSmallNegativeFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '-0.01',
+          sinceOpen: '-0.01',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithSmallNegativeFunding} />);
+
+      // Should show plus sign for small negative value - includes dollar sign
+      expect(screen.getByText('+$0.01')).toBeOnTheScreen();
+    });
+
+    it('formats cumulative funding with correct decimal places', () => {
+      const positionWithPreciseFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '12.345678',
+          sinceOpen: '12.345678',
+          sinceChange: '0.00',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithPreciseFunding} />);
+
+      // Should format to 2 decimal places - includes dollar sign
+      expect(screen.getByText('-$12.35')).toBeOnTheScreen();
     });
   });
 });

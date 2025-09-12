@@ -1,20 +1,19 @@
 /* eslint-disable import/no-namespace */
-import React from 'react';
 import {
+  fireEvent,
   render,
   screen,
-  fireEvent,
   waitFor,
-  act,
 } from '@testing-library/react-native';
+import React from 'react';
 import { Animated } from 'react-native';
-import PerpsTabControlBar from './PerpsTabControlBar';
-import * as PerpsHooks from '../../hooks';
 import * as ComponentLibraryHooks from '../../../../../component-library/hooks';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { Position } from '../../controllers';
+import * as PerpsHooks from '../../hooks';
+import PerpsTabControlBar from './PerpsTabControlBar';
 
 // Mock dependencies
+jest.mock('../../providers/PerpsStreamManager');
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     styles: {
@@ -33,14 +32,48 @@ jest.mock('../../hooks', () => ({
   useBalanceComparison: jest.fn(),
 }));
 
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '10000.00',
+      availableBalance: '1000.50',
+      marginUsed: '9000.00',
+      unrealizedPnl: '100.50',
+      returnOnEquity: '0.15',
+    },
+    isInitialLoading: false,
+  })),
+}));
+
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn(
     (balance: string) => `$${parseFloat(balance || '0').toFixed(2)}`,
   ),
+  formatPnl: jest.fn((value) => {
+    const num = parseFloat(value);
+    return num >= 0
+      ? `+$${Math.abs(num).toFixed(2)}`
+      : `-$${Math.abs(num).toFixed(2)}`;
+  }),
+  formatPercentage: jest.fn((value) => `${parseFloat(value).toFixed(2)}%`),
 }));
 
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const translations: Record<string, string> = {
+      'perps.available_balance': 'Available Balance',
+      'perps.position.account.unrealized_pnl': 'Unrealized P&L',
+    };
+    return translations[key] || key;
+  }),
 }));
 
 // Mock Animated.Value and animation methods
@@ -77,7 +110,10 @@ jest.mock('react-native', () => {
 describe('PerpsTabControlBar', () => {
   // Helper function to get TouchableOpacity
   const getTouchableOpacity = () => {
-    const balanceText = screen.getByText('Perp account balance');
+    const balanceText = screen.queryByText('Available Balance');
+    if (!balanceText) {
+      throw new Error('Available Balance text not found');
+    }
     const touchableOpacity = balanceText.parent?.parent;
     if (!touchableOpacity) {
       throw new Error('TouchableOpacity not found');
@@ -86,8 +122,7 @@ describe('PerpsTabControlBar', () => {
   };
 
   // Mock implementations
-  const mockGetAccountState = jest.fn();
-  const mockSubscribeToPositions = jest.fn();
+  // Note: getAccountState is no longer used - component uses live subscriptions
   const mockStartPulseAnimation = jest.fn();
   const mockStopAnimation = jest.fn();
   const mockCompareAndUpdateBalance = jest.fn();
@@ -123,13 +158,11 @@ describe('PerpsTabControlBar', () => {
         closePosition: jest.fn(),
         getMarkets: jest.fn(),
         getPositions: jest.fn(),
-        getAccountState: mockGetAccountState,
+        // getAccountState is no longer used - using live subscriptions
         subscribeToPrices: jest.fn(),
-        subscribeToPositions: mockSubscribeToPositions,
         subscribeToOrderFills: jest.fn(),
-        deposit: jest.fn(),
-        getDepositRoutes: jest.fn(),
-        resetDepositState: jest.fn(),
+        depositWithConfirmation: jest.fn(),
+        clearDepositResult: jest.fn(),
       });
 
     jest
@@ -149,10 +182,7 @@ describe('PerpsTabControlBar', () => {
       });
 
     // Default successful responses
-    mockGetAccountState.mockResolvedValue(defaultAccountState);
-    mockSubscribeToPositions.mockReturnValue(() => {
-      /* empty unsubscribe function */
-    });
+    // Default mock for usePerpsLiveAccount is set in the mock module above
 
     mockCompareAndUpdateBalance.mockReturnValue('increase');
   });
@@ -162,33 +192,114 @@ describe('PerpsTabControlBar', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders correctly with all elements', async () => {
-      render(<PerpsTabControlBar />);
+    it('renders correctly with all elements when no positions or orders', async () => {
+      // Mock usePerpsLiveAccount to return account with balance
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
 
-      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial balance
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
+
+      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
+      expect(screen.getByText('$800.25')).toBeOnTheScreen();
+
+      // PnL pill should not be rendered when no positions or orders
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
 
       // Find TouchableOpacity by its content
-      const touchableOpacity = screen.getByText('Perp account balance').parent
-        ?.parent;
+      const touchableOpacity =
+        screen.getByText('Available Balance').parent?.parent;
       expect(touchableOpacity).toBeTruthy();
     });
 
+    it('renders both balance and PnL pills when has positions', async () => {
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
+
+      render(<PerpsTabControlBar hasPositions hasOrders={false} />);
+
+      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      expect(screen.getByText('$800.25')).toBeOnTheScreen();
+      expect(screen.getByText('+$50.75 (0.00%)')).toBeOnTheScreen(); // Formatted PnL
+    });
+
+    it('renders only balance pill when has orders only', async () => {
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
+
+      render(<PerpsTabControlBar hasPositions={false} hasOrders />);
+
+      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
+    });
+
+    it('hides balance pill when balance is zero and no positions/orders', async () => {
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: { ...defaultAccountState, availableBalance: '0.00' },
+          isInitialLoading: false,
+        });
+
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
+
+      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
+    });
+
+    it('shows balance pill when balance is zero but has positions', async () => {
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: { ...defaultAccountState, availableBalance: '0.00' },
+          isInitialLoading: false,
+        });
+
+      render(<PerpsTabControlBar hasPositions hasOrders={false} />);
+
+      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+    });
+
     it('displays formatted balance when data is loaded', async () => {
-      render(<PerpsTabControlBar />);
+      // Mock usePerpsLiveAccount to return account data
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
 
-      // Wait for the initial data load
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalled();
-      });
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('$800.25')).toBeOnTheScreen();
-      });
+      // Should display the available balance from account state
+      expect(screen.getByText('$800.25')).toBeOnTheScreen();
     });
 
     it('renders without onManageBalancePress prop', async () => {
-      expect(() => render(<PerpsTabControlBar />)).not.toThrow();
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
+
+      expect(() =>
+        render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />),
+      ).not.toThrow();
 
       // TouchableOpacity should be present
       const touchableOpacity = getTouchableOpacity();
@@ -196,7 +307,14 @@ describe('PerpsTabControlBar', () => {
     });
 
     it('applies animated styles to balance text', async () => {
-      render(<PerpsTabControlBar />);
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
+
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       // Verify that the useColorPulseAnimation hook is called
       expect(PerpsHooks.useColorPulseAnimation).toHaveBeenCalled();
@@ -204,98 +322,140 @@ describe('PerpsTabControlBar', () => {
   });
 
   describe('Balance Loading and Updates', () => {
-    it('calls getAccountState on initial load', async () => {
-      render(<PerpsTabControlBar />);
+    it('subscribes to live account data on mount', async () => {
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
 
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalled();
-      });
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
+
+      // Verify hook was called to subscribe to live data
+      expect(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      ).toHaveBeenCalledWith({ throttleMs: 1000 });
     });
 
     it('triggers pulse animation on balance change', async () => {
-      render(<PerpsTabControlBar />);
+      // Start with an initial balance
+      const mockUsePerpsLiveAccount = jest.mocked(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      );
 
+      // First render with initial balance - this sets the previousBalanceRef
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '900.00' },
+        isInitialLoading: false,
+      });
+
+      const { rerender } = render(
+        <PerpsTabControlBar hasPositions={false} hasOrders={false} />,
+      );
+
+      // Clear previous mock calls
+      mockCompareAndUpdateBalance.mockClear();
+      mockStartPulseAnimation.mockClear();
+
+      // Now change the balance - this should trigger animation
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        isInitialLoading: false,
+      });
+
+      rerender(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
+
+      // Wait for useEffect to run
       await waitFor(() => {
+        // Animation should trigger on the balance change
         expect(mockCompareAndUpdateBalance).toHaveBeenCalledWith('1000.50');
         expect(mockStartPulseAnimation).toHaveBeenCalledWith('increase');
       });
     });
 
     it('handles balance comparison for decrease', async () => {
+      const mockUsePerpsLiveAccount = jest.mocked(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      );
+
+      // First render with higher balance - sets previousBalanceRef
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '1200.00' },
+        isInitialLoading: false,
+      });
+
+      const { rerender } = render(
+        <PerpsTabControlBar hasPositions={false} hasOrders={false} />,
+      );
+
+      // Clear previous mock calls and set decrease return
+      mockCompareAndUpdateBalance.mockClear();
+      mockStartPulseAnimation.mockClear();
       mockCompareAndUpdateBalance.mockReturnValue('decrease');
 
-      render(<PerpsTabControlBar />);
+      // Now render with lower balance
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '800.00' },
+        isInitialLoading: false,
+      });
+
+      rerender(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       await waitFor(() => {
         expect(mockStartPulseAnimation).toHaveBeenCalledWith('decrease');
       });
     });
 
-    it('handles balance comparison for same value', async () => {
-      mockCompareAndUpdateBalance.mockReturnValue('same');
+    it('does not trigger animation for same balance', () => {
+      const mockUsePerpsLiveAccount = jest.mocked(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      );
 
-      render(<PerpsTabControlBar />);
-
-      await waitFor(() => {
-        expect(mockStartPulseAnimation).toHaveBeenCalledWith('same');
+      // Render with initial balance
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        isInitialLoading: false,
       });
+
+      const { rerender } = render(
+        <PerpsTabControlBar hasPositions={false} hasOrders={false} />,
+      );
+
+      // Clear mock calls
+      mockStartPulseAnimation.mockClear();
+      mockCompareAndUpdateBalance.mockClear();
+
+      // Render again with same balance
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        isInitialLoading: false,
+      });
+
+      rerender(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
+
+      // Should not call animation functions for same balance
+      expect(mockStartPulseAnimation).not.toHaveBeenCalled();
     });
   });
 
-  describe('WebSocket Subscription and Polling', () => {
-    it('subscribes to position updates on mount', async () => {
-      render(<PerpsTabControlBar />);
-
-      expect(mockSubscribeToPositions).toHaveBeenCalledWith({
-        callback: expect.any(Function),
-      });
-    });
-
-    it('refreshes balance when position updates are received', async () => {
-      let positionCallback: ((positions: Position[]) => void) | null = null;
-      mockSubscribeToPositions.mockImplementation(({ callback }) => {
-        positionCallback = callback;
-        return () => {
-          /* empty unsubscribe function */
-        };
-      });
-
-      render(<PerpsTabControlBar />);
-
-      await waitFor(() => {
-        expect(mockSubscribeToPositions).toHaveBeenCalled();
-      });
-
-      // Simulate position update
-      await act(async () => {
-        positionCallback?.([
-          { id: '1', symbol: 'BTC' },
-        ] as unknown as Position[]);
-      });
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(2); // Initial + position update
-      });
-    });
-
-    it('only calls getAccountState once without position updates', async () => {
-      render(<PerpsTabControlBar />);
-
-      // Fast forward time to ensure no polling occurs
-      act(() => {
-        jest.advanceTimersByTime(60000);
-      });
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(1); // Initial load only
-      });
-    });
-  });
+  // WebSocket subscription tests removed - usePerpsLivePositions handles subscriptions internally
 
   describe('Press Handler', () => {
     it('calls onManageBalancePress when pressed', async () => {
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
+
       render(
-        <PerpsTabControlBar onManageBalancePress={mockOnManageBalancePress} />,
+        <PerpsTabControlBar
+          onManageBalancePress={mockOnManageBalancePress}
+          hasPositions={false}
+          hasOrders={false}
+        />,
       );
 
       const touchableOpacity = getTouchableOpacity();
@@ -305,7 +465,14 @@ describe('PerpsTabControlBar', () => {
     });
 
     it('does not throw when pressed without onManageBalancePress', async () => {
-      render(<PerpsTabControlBar />);
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
+
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       const touchableOpacity = getTouchableOpacity();
       expect(() => fireEvent.press(touchableOpacity)).not.toThrow();
@@ -313,19 +480,17 @@ describe('PerpsTabControlBar', () => {
   });
 
   describe('Error Handling', () => {
-    it('handles getAccountState errors gracefully', async () => {
-      const error = new Error('Network error');
-      mockGetAccountState.mockRejectedValue(error);
+    it('handles null account data gracefully', async () => {
+      // Mock hook to return null account
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({ account: null, isInitialLoading: false });
 
-      render(<PerpsTabControlBar />);
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalled();
-      });
-
-      // Should still render without crashing
-      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Should show default value
+      // With null account and no positions/orders, balance pill should be hidden
+      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
     it('handles animation errors gracefully', async () => {
@@ -333,11 +498,26 @@ describe('PerpsTabControlBar', () => {
         throw new Error('Animation error');
       });
 
-      render(<PerpsTabControlBar />);
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalled();
+      // First render with null, then with account data
+      const mockUsePerpsLiveAccount = jest.mocked(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      );
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: null,
+        isInitialLoading: true,
       });
+
+      const { rerender } = render(
+        <PerpsTabControlBar hasPositions={false} hasOrders={false} />,
+      );
+
+      // Update with account data
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '800.25' },
+        isInitialLoading: false,
+      });
+
+      rerender(<PerpsTabControlBar hasPositions hasOrders={false} />);
 
       // Should still update the balance even if animation fails
       await waitFor(() => {
@@ -345,42 +525,61 @@ describe('PerpsTabControlBar', () => {
       });
     });
 
-    it('logs error messages with proper formatting', async () => {
-      const error = new Error('Test error');
-      mockGetAccountState.mockRejectedValue(error);
+    it('logs animation errors properly', async () => {
+      mockStartPulseAnimation.mockImplementation(() => {
+        throw new Error('Animation error');
+      });
 
-      render(<PerpsTabControlBar />);
+      // Simulate balance change
+      const mockUsePerpsLiveAccount = jest.mocked(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      );
+
+      // First render to set previousBalanceRef
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '500.00' },
+        isInitialLoading: false,
+      });
+
+      const { rerender } = render(
+        <PerpsTabControlBar hasPositions={false} hasOrders={false} />,
+      );
+
+      // Clear DevLogger mock
+      (DevLogger.log as jest.Mock).mockClear();
+
+      // Change balance to trigger animation
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '600.00' },
+        isInitialLoading: false,
+      });
+
+      rerender(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       await waitFor(() => {
         expect(DevLogger.log).toHaveBeenCalledWith(
-          'PerpsTabControlBar: Error getting account balance:',
-          'Failed to get account balance: Test error',
+          'PerpsTabControlBar: Balance animation error:',
+          expect.any(Error),
         );
       });
     });
 
-    it('handles unknown errors', async () => {
-      mockGetAccountState.mockRejectedValue('String error');
+    it('handles loading state gracefully', async () => {
+      // Mock loading state
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({ account: null, isInitialLoading: true });
 
-      render(<PerpsTabControlBar />);
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      // Should still render without crashing
-      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      // During loading with no positions/orders, balance pill should be hidden
+      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
   });
 
   describe('Cleanup and Memory Management', () => {
-    it('cleans up subscription on unmount', async () => {
-      const mockUnsubscribe = jest.fn();
-      mockSubscribeToPositions.mockReturnValue(mockUnsubscribe);
-
-      const { unmount } = render(<PerpsTabControlBar />);
-
-      unmount();
-
-      expect(mockUnsubscribe).toHaveBeenCalled();
-    });
+    // Subscription cleanup test removed - handled by usePerpsLivePositions internally
 
     it('stops animation on unmount', async () => {
       const { unmount } = render(<PerpsTabControlBar />);
@@ -390,98 +589,76 @@ describe('PerpsTabControlBar', () => {
       expect(mockStopAnimation).toHaveBeenCalled();
     });
 
-    it('handles cleanup when subscription returns null', async () => {
-      mockSubscribeToPositions.mockReturnValue(null);
-
-      const { unmount } = render(<PerpsTabControlBar />);
-
-      expect(() => unmount()).not.toThrow();
-    });
+    // Null subscription test removed - no longer applicable
   });
 
   describe('Edge Cases', () => {
     it('handles empty balance gracefully', async () => {
-      mockGetAccountState.mockResolvedValue({
-        ...defaultAccountState,
-        totalBalance: '',
-      });
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: {
+            ...defaultAccountState,
+            availableBalance: '',
+          },
+          isInitialLoading: false,
+        });
 
-      render(<PerpsTabControlBar />);
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('$0.00')).toBeOnTheScreen();
-      });
+      // With empty balance and no positions/orders, pills should be hidden
+      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
     it('handles null balance gracefully', async () => {
-      mockGetAccountState.mockResolvedValue({
-        ...defaultAccountState,
-        totalBalance: null as unknown as string,
-      });
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: {
+            ...defaultAccountState,
+            availableBalance: null as unknown as string,
+          },
+          isInitialLoading: false,
+        });
 
-      render(<PerpsTabControlBar />);
+      render(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('$0.00')).toBeOnTheScreen();
-      });
+      // With null balance and no positions/orders, pills should be hidden
+      expect(screen.queryByText('Available Balance')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Unrealized P&L')).not.toBeOnTheScreen();
     });
 
-    it('handles multiple rapid balance updates via position changes', async () => {
-      let positionCallback: ((positions: Position[]) => void) | undefined;
-      mockSubscribeToPositions.mockImplementation(({ callback }) => {
-        positionCallback = callback;
-        return jest.fn();
-      });
-
-      render(<PerpsTabControlBar />);
-
-      // Simulate multiple rapid position updates with different values
-      await act(async () => {
-        positionCallback?.([
-          {
-            coin: 'BTC',
-            size: '1.0',
-            entryPrice: '50000',
-            unrealizedPnl: '100',
-          },
-        ] as unknown as Position[]);
-        positionCallback?.([
-          {
-            coin: 'ETH',
-            size: '2.0',
-            entryPrice: '3000',
-            unrealizedPnl: '200',
-          },
-        ] as unknown as Position[]);
-        positionCallback?.([
-          { coin: 'SOL', size: '3.0', entryPrice: '100', unrealizedPnl: '300' },
-        ] as unknown as Position[]);
-      });
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(4); // Initial + 3 position updates
-      });
-    });
+    // Test removed - position updates handled by usePerpsLivePositions internally
   });
 
   describe('Integration', () => {
     it('integrates all hooks correctly', async () => {
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue({
+          account: defaultAccountState,
+          isInitialLoading: false,
+        });
+
       render(
-        <PerpsTabControlBar onManageBalancePress={mockOnManageBalancePress} />,
+        <PerpsTabControlBar
+          onManageBalancePress={mockOnManageBalancePress}
+          hasPositions={false}
+          hasOrders={false}
+        />,
       );
 
       // Verify all hooks are called
-      expect(PerpsHooks.usePerpsTrading).toHaveBeenCalled();
+      // Note: usePerpsTrading is no longer used - using usePerpsLiveAccount instead
       expect(PerpsHooks.useColorPulseAnimation).toHaveBeenCalled();
       expect(PerpsHooks.useBalanceComparison).toHaveBeenCalled();
       expect(ComponentLibraryHooks.useStyles).toHaveBeenCalled();
 
-      // Verify integration flow
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalled();
-        expect(mockCompareAndUpdateBalance).toHaveBeenCalled();
-        expect(mockStartPulseAnimation).toHaveBeenCalled();
-      });
+      // Verify live account hook was called
+      expect(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      ).toHaveBeenCalled();
 
       // Test press interaction
       const touchableOpacity = getTouchableOpacity();
@@ -490,7 +667,32 @@ describe('PerpsTabControlBar', () => {
     });
 
     it('passes correct parameters between hooks', async () => {
-      render(<PerpsTabControlBar />);
+      // Mock initial state with a starting balance
+      const mockUsePerpsLiveAccount = jest.mocked(
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
+      );
+
+      // First render with initial balance - sets previousBalanceRef
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '900.00' },
+        isInitialLoading: false,
+      });
+
+      const { rerender } = render(
+        <PerpsTabControlBar hasPositions={false} hasOrders={false} />,
+      );
+
+      // Clear mocks
+      mockCompareAndUpdateBalance.mockClear();
+      mockStartPulseAnimation.mockClear();
+
+      // Now mock with changed balance
+      mockUsePerpsLiveAccount.mockReturnValueOnce({
+        account: { ...defaultAccountState, availableBalance: '1000.50' },
+        isInitialLoading: false,
+      });
+
+      rerender(<PerpsTabControlBar hasPositions={false} hasOrders={false} />);
 
       await waitFor(() => {
         expect(mockCompareAndUpdateBalance).toHaveBeenCalledWith('1000.50');

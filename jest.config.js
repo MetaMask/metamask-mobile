@@ -8,7 +8,7 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.PORTFOLIO_VIEW = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
-process.env.MM_CONFIRMATION_INTENTS = 'true';
+process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR = 'true';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -25,18 +25,13 @@ const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
-  testPathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/app/.*/__snapshots__/.*',
-    '<rootDir>/.*\\.snap$',
-  ],
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@deeeed/hyperliquid-node20|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
-    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
+    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: ['enzyme-to-json/serializer'],
@@ -68,6 +63,8 @@ const config = {
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
+    '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
+    '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
   },
   // Disable jest cache
   cache: false,

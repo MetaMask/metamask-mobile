@@ -1,5 +1,4 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import { toHex } from '@metamask/controller-utils';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/Aggregator/types';
 import { DepositRegion } from '../../components/UI/Ramp/Deposit/constants';
@@ -17,8 +16,7 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
-import { getDecimalChainId, isTestNet } from '../../util/networks';
-import networkChainIdEquals from '../../components/UI/Ramp/utils/networkChainIdEquals';
+import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
 
@@ -201,14 +199,10 @@ export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
 export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
-  chainIdSelector,
-  (orders, selectedAddress, chainId) =>
+  (orders, selectedAddress) =>
     orders.filter(
       (order) =>
-        !order.excludeFromPurchases &&
-        order.account === selectedAddress &&
-        (networkChainIdEquals(order.network, chainId) ||
-          isTestNet(toHex(chainId))),
+        !order.excludeFromPurchases && order.account === selectedAddress,
     ),
 );
 
@@ -219,18 +213,12 @@ export const getAllDepositOrders = createSelector(ordersSelector, (orders) =>
 export const getPendingOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
-  chainIdSelector,
-  (orders, selectedAddress, chainId) =>
+  (orders, selectedAddress) =>
     orders.filter(
       (order) =>
         order.account === selectedAddress &&
-        networkChainIdEquals(order.network, chainId) &&
         order.state === FIAT_ORDER_STATES.PENDING,
     ),
-);
-
-export const getForceUpdateOrders = createSelector(ordersSelector, (orders) =>
-  orders.filter((order) => order.forceUpdate),
 );
 
 const customOrdersSelector: (
@@ -241,12 +229,9 @@ const customOrdersSelector: (
 export const getCustomOrderIds = createSelector(
   customOrdersSelector,
   selectedAddressSelector,
-  chainIdSelector,
-  (customOrderIds, selectedAddress, chainId) =>
+  (customOrderIds, selectedAddress) =>
     customOrderIds.filter(
-      (customOrderId) =>
-        customOrderId.account === selectedAddress &&
-        customOrderId.chainId === chainId,
+      (customOrderId) => customOrderId.account === selectedAddress,
     ),
 );
 

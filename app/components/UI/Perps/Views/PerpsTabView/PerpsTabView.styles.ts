@@ -6,6 +6,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
+    tradeInfoContainer: {
+      paddingBottom: 12,
+    },
     firstTimeIcon: {
       width: 48,
       height: 48,
@@ -19,9 +22,10 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
     },
-    section: {
-      marginBottom: 24,
+    contentContainer: {
+      flexGrow: 1,
     },
+    section: {},
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -29,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
     },
     sectionTitle: {
-      paddingTop: 8,
+      paddingTop: 16,
     },
     emptyContainer: {
       padding: 24,
@@ -43,12 +47,6 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 24,
       alignItems: 'center',
     },
-    bottomSheetContent: {
-      padding: 24,
-    },
-    actionButton: {
-      marginBottom: 12,
-    },
     firstTimeContainer: {
       flex: 1,
       padding: 24,
@@ -56,6 +54,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     firstTimeContent: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -69,7 +68,56 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     startTradingButton: {
       marginTop: 16,
-      width: '100%',
+    },
+    // Order card styles to match position cards
+    positionCard: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginVertical: 2,
+    },
+    positionCardContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    positionLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    assetIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 12,
+    },
+    positionInfo: {
+      flex: 1,
+    },
+    positionRight: {
+      alignItems: 'flex-end',
+    },
+    startTradeCTA: {
+      paddingVertical: 12,
+      marginVertical: 2,
+      borderRadius: 8,
+    },
+    startTradeContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    startTradeIconContainer: {
+      width: 40,
+      height: 40,
+      borderWidth: 0,
+      borderRadius: 20,
+      backgroundColor: colors.background.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    startTradeText: {
+      marginLeft: 12,
+      flex: 1,
     },
   });
 };

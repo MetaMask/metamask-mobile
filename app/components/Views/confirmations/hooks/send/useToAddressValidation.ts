@@ -1,38 +1,43 @@
+import { useCallback } from 'react';
+
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
+import { useNonEvmToAddressValidation } from './non-evm/useNonEvmToAddressValidation';
 import { useSendType } from './useSendType';
-import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
 
-// todo: to address validation assumees `to` is the input from the user
-// depending on implementation we may need to have 2 fields for recipient `toInput` and `toResolved`
-export const useToAddressValidation = (addressInputToValidate: string) => {
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+export const useToAddressValidation = () => {
+  const { isEvmSendType } = useSendType();
   const { validateEvmToAddress } = useEvmToAddressValidation();
-  const { validateSolanaToAddress } = useSolanaToAddressValidation();
+  const { validateNonEvmToAddress } = useNonEvmToAddressValidation();
 
-  const { value } = useAsyncResult<{
+  const validateToAddress = useCallback(async () => {
+    if (isEvmSendType) {
+      return await validateEvmToAddress();
+    }
+    return validateNonEvmToAddress();
+  }, [isEvmSendType, validateEvmToAddress, validateNonEvmToAddress]);
+
+  const { value, pending } = useAsyncResult<{
+    toAddressValidated?: string;
     error?: string;
     warning?: string;
-  }>(async () => {
-    if (isEvmSendType) {
-      return await validateEvmToAddress(addressInputToValidate);
-    }
-    if (isSolanaSendType) {
-      return validateSolanaToAddress(addressInputToValidate);
-    }
-    return {};
-  }, [
-    isEvmSendType,
-    isSolanaSendType,
-    validateEvmToAddress,
-    validateSolanaToAddress,
-    addressInputToValidate,
-  ]);
+    loading?: boolean;
+    resolvedAddress?: string;
+  }>(async () => validateToAddress(), [validateToAddress]);
 
-  const { error: toAddressError, warning: toAddressWarning } = value ?? {};
+  const {
+    toAddressValidated,
+    error: toAddressError,
+    warning: toAddressWarning,
+    loading = false,
+    resolvedAddress,
+  } = value ?? {};
 
   return {
+    loading: loading || pending,
+    resolvedAddress,
     toAddressError,
+    toAddressValidated,
     toAddressWarning,
   };
 };

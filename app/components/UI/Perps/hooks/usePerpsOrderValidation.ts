@@ -3,15 +3,11 @@ import { strings } from '../../../../../locales/i18n';
 import type { OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types';
 import { usePerpsTrading } from './usePerpsTrading';
-import {
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CHAIN_ID,
-} from '../constants/hyperLiquidConfig';
+import { useStableArray } from './useStableArray';
 import {
   VALIDATION_THRESHOLDS,
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
-import type { PerpsToken } from '../components/PerpsTokenSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsOrderValidationParams {
@@ -20,7 +16,6 @@ interface UsePerpsOrderValidationParams {
   assetPrice: number;
   availableBalance: number;
   marginRequired: string;
-  selectedPaymentToken?: PerpsToken | null;
 }
 
 interface ValidationResult {
@@ -30,9 +25,16 @@ interface ValidationResult {
   isValidating: boolean;
 }
 
+// Stable empty array references to prevent unnecessary re-renders
+const EMPTY_ERRORS: string[] = [];
+const EMPTY_WARNINGS: string[] = [];
+
 /**
  * Hook to handle order validation combining protocol-specific and UI-specific rules
  * Uses the existing validateOrder method from the provider
+ *
+ * Note: Errors are preserved during validation to prevent UI flashing.
+ * Errors are only cleared when validation confirms they're resolved.
  */
 export function usePerpsOrderValidation(
   params: UsePerpsOrderValidationParams,
@@ -43,22 +45,32 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
-    selectedPaymentToken,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
 
   const [validation, setValidation] = useState<ValidationResult>({
-    errors: [],
-    warnings: [],
+    errors: EMPTY_ERRORS,
+    warnings: EMPTY_WARNINGS,
     isValid: false,
     isValidating: false, // Start with false to prevent initial flickering
   });
+
+  // Use stable array references to prevent unnecessary re-renders
+  const stableErrors = useStableArray(validation.errors);
+  const stableWarnings = useStableArray(validation.warnings);
 
   // Use ref to track debounce timer
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const performValidation = useCallback(async () => {
+    // Set validation state to indicate we're validating
+    // but preserve existing errors to prevent flashing
+    setValidation((prev) => ({
+      ...prev,
+      isValidating: true,
+    }));
+
     // Perform immediate UI validation for critical errors
     const immediateErrors: string[] = [];
 
@@ -72,26 +84,6 @@ export function usePerpsOrderValidation(
         }),
       );
     }
-
-    // Payment token validation (immediate)
-    const tokenChainId = selectedPaymentToken?.chainId;
-    if (
-      tokenChainId &&
-      tokenChainId !== HYPERLIQUID_MAINNET_CHAIN_ID &&
-      tokenChainId !== HYPERLIQUID_TESTNET_CHAIN_ID
-    ) {
-      immediateErrors.push(
-        strings('perps.order.validation.only_hyperliquid_usdc'),
-      );
-    }
-
-    // Update with immediate errors first
-    setValidation((prev) => ({
-      ...prev,
-      errors: immediateErrors,
-      isValid: immediateErrors.length === 0,
-      isValidating: true,
-    }));
 
     try {
       // Convert form state to OrderParams for protocol validation
@@ -134,8 +126,8 @@ export function usePerpsOrderValidation(
       }
 
       setValidation({
-        errors,
-        warnings,
+        errors: errors.length > 0 ? errors : EMPTY_ERRORS,
+        warnings: warnings.length > 0 ? warnings : EMPTY_WARNINGS,
         isValid: errors.length === 0,
         isValidating: false,
       });
@@ -143,7 +135,7 @@ export function usePerpsOrderValidation(
       DevLogger.log('usePerpsOrderValidation: Error during validation', error);
       setValidation({
         errors: [strings('perps.order.validation.error')],
-        warnings: [],
+        warnings: EMPTY_WARNINGS,
         isValid: false,
         isValidating: false,
       });
@@ -158,19 +150,18 @@ export function usePerpsOrderValidation(
     assetPrice,
     availableBalance,
     marginRequired,
-    selectedPaymentToken?.chainId,
     validateOrder,
   ]);
 
   useEffect(() => {
     // Skip validation if critical data is missing
     if (!positionSize || assetPrice === 0) {
-      setValidation({
-        errors: [],
-        warnings: [],
-        isValid: false,
+      setValidation((prev) => ({
+        ...prev,
         isValidating: false,
-      });
+        // Keep existing errors but mark as invalid
+        isValid: false,
+      }));
       return;
     }
 
@@ -193,5 +184,11 @@ export function usePerpsOrderValidation(
     };
   }, [performValidation, positionSize, assetPrice]);
 
-  return validation;
+  // Return validation with stable array references
+  return {
+    errors: stableErrors,
+    warnings: stableWarnings,
+    isValid: validation.isValid,
+    isValidating: validation.isValidating,
+  };
 }

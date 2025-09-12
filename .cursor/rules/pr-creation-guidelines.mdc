@@ -1,3 +1,8 @@
+---
+description: Pull Request (PR) Creation Guidelines. Use these rules when creating pull requests
+alwaysApply: false
+---
+
 # MetaMask Mobile Pull Request (PR) Creation Guidelines
 
 These rules apply whenever creating PRs in the MetaMask Mobile repository or suggesting PR creation steps to others. Follow them to ensure consistent quality and smooth reviews.
@@ -85,27 +90,59 @@ CHANGELOG entry: null
 - **Always assign the PR to yourself (the author)** immediately after creation.
 - This ensures proper ownership tracking and notifications.
 
+### Automatic Team Label Detection
+
+When creating PRs, automatically detect and apply the correct team label based on:
+
+1. **Author's GitHub team membership** - Check which MetaMask teams the author belongs to
+2. **Available team labels in the repository** - Match against existing `team-*` labels
+3. **Context awareness** - Consider files changed when author belongs to multiple teams
+
+#### Generic Team Label Detection Process
+
+```bash
+# Step 1: Get author's MetaMask teams
+USER_TEAMS=$(gh api user/teams --paginate | jq -r '.[] | select(.organization.login == "MetaMask") | .slug')
+
+# Step 2: Get available team labels in the repository
+REPO_TEAM_LABELS=$(gh label list --search "team-" --limit 100 | cut -f1)
+
+# Step 3: Try to find a matching team label
+# Common mappings to check:
+# - Exact match: team-{github-team} (e.g., mobile-platform → team-mobile-platform)
+# - Without suffix: design-system-engineers → team-design-system
+# - With wallet prefix: wallet-ux → team-wallet-ux
+
+# If no clear match is found, DO NOT add a team label
+# It's better to have no team label than an incorrect one
+```
+
 ### Required Labels
 
 Apply labels to enable automation and proper routing. Some labels can block merging.
 
-- **Team labels** (for internal devs): `team-mobile-ux`, `team-mobile-platform`, etc.
-- **QA labels**:
-  - `needs-qa` (blocks merging until QA passes)
-  - `No QA Needed`
-  - `Run E2E Smoke`
-  - `No E2E Smoke Needed`
-  - `Spot check on release build`
+- **Team labels** (OPTIONAL - only add if there's a clear match):
+  - Auto-detect based on author's GitHub team membership when possible
+  - Follow the pattern `team-*`
+  - Only add if you can confidently match the GitHub team to a label
+  - If unsure, leave it out - no team label is better than a wrong one
+  - Check for deprecated labels in the label description
+  - To see all available team labels: `gh label list --search "team-" --limit 100`
 - **Blocking labels** (cannot merge while applied): `needs-qa`, `issues-found`, `blocked`, `DO-NOT-MERGE`
 - Add any relevant area/scope labels used by the repo (e.g., platform-specific or feature-specific labels).
 
 ### Label and Assignment DO / DON'T
 
 - ✅ DO: Assign the PR to yourself as the author
+- ✅ DO: Try to auto-detect team label based on GitHub team membership
+- ✅ DO: Leave team label empty if no clear match exists
+- ✅ DO: Verify team labels aren't deprecated (check label descriptions)
 - ✅ DO: Add a QA label for every PR
-- ✅ DO: Add the correct team label for routing
 - ✅ DO: Remove blocking labels when conditions are resolved
 - ❌ DON'T: Leave PR unassigned
+- ❌ DON'T: Force a team label if there's no clear match - it's optional
+- ❌ DON'T: Use deprecated team labels (check label descriptions for deprecation notices)
+- ❌ DON'T: Guess team labels - only use ones you're confident about
 - ❌ DON'T: Merge while `needs-qa` or `DO-NOT-MERGE` is present
 
 ## 4. Branch Naming Conventions
@@ -153,12 +190,34 @@ Use descriptive branch names prefixed by the commit type.
 
 ## Examples for MetaMask Mobile Context
 
+### Example with Auto-Detected Team Label
+
 - Title: `feat: add NFT gallery to collectibles tab`
 - Branch: `feat/add-nft-gallery`
 - Assignee: The PR author (yourself)
-- Labels: `team-mobile-ux`, `needs-qa`, `Run E2E Smoke`
+- Team label: `team-design-system` (IF clear match found) or none (if no match)
+- Required Labels: `needs-qa` or `No QA Needed`, plus E2E label
 - Changelog: `Added NFT gallery to Collectibles tab.`
 - Manual testing (Gherkin): see example above
+
+### GitHub CLI Command Example
+
+```bash
+# Create PR with auto team detection
+gh pr create \
+  --title "feat: add NFT gallery to collectibles tab" \
+  --assignee @me \
+  --draft
+
+# Try to detect team label (optional)
+USER_TEAMS=$(gh api user/teams --paginate | jq -r '.[] | select(.organization.login == "MetaMask") | .slug')
+
+# Only add team label if there's a confident match
+# Examples of clear matches:
+# - mobile-platform → team-mobile-platform ✓
+# - wallet-ux → team-wallet-ux ✓
+# If no clear match, skip the team label
+```
 
 ## Enforcement
 

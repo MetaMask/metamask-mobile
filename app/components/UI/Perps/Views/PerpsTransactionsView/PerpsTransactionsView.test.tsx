@@ -134,10 +134,8 @@ describe('PerpsTransactionsView', () => {
       subscribeToPrices: jest.fn(),
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
-      deposit: jest.fn(),
       depositWithConfirmation: jest.fn(),
-      getDepositRoutes: jest.fn(),
-      resetDepositState: jest.fn(),
+      clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
@@ -198,6 +196,9 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
       });
       expect(mockUsePerpsFunding).toHaveBeenCalledWith({
+        params: {
+          startTime: expect.any(Number),
+        },
         skipInitialFetch: false,
       });
     });
@@ -226,6 +227,9 @@ describe('PerpsTransactionsView', () => {
       skipInitialFetch: true,
     });
     expect(mockUsePerpsFunding).toHaveBeenCalledWith({
+      params: {
+        startTime: expect.any(Number),
+      },
       skipInitialFetch: true,
     });
   });

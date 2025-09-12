@@ -16,14 +16,12 @@ on:
         description: 'Whether the sourcemap was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
-
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    env:
+      GRADLE_USER_HOME: /home/runner/_work/.gradle
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
@@ -45,8 +43,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
+            /home/runner/_work/.gradle/caches
+            /home/runner/_work/.gradle/wrapper
             android/.gradle
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
@@ -79,6 +77,8 @@ jobs:
           SEEDLESS_ONBOARDING_ENABLED: "true"
           MM_NOTIFICATIONS_UI_ENABLED: "true"
           MM_SECURITY_ALERTS_API_ENABLED: "true"
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          BLOCKAID_FILE_CDN: "static.cx.metamask.io/api/v1/confirmations/ppom"
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -95,6 +95,7 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
 
       - name: Upload Android APK
         id: upload-apk

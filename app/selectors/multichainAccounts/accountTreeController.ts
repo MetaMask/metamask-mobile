@@ -4,13 +4,20 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccountId,
 } from '../../selectors/accountsController';
-import { AccountWalletId } from '@metamask/account-api';
+import {
+  AccountGroupId,
+  AccountWalletId,
+  AccountWalletType,
+} from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
 import {
   AccountWalletObject,
   AccountGroupObject,
   AccountTreeControllerState,
 } from '@metamask/account-tree-controller';
+import { CaipChainId } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AccountGroupWithInternalAccounts } from './accounts.type';
 
 // Stable empty references to prevent unnecessary re-renders
 const EMPTY_ARR: readonly never[] = Object.freeze([]);
@@ -154,6 +161,30 @@ export const selectAccountGroups = createSelector(
 );
 
 /**
+ * Get account groups filtered to only multichain accounts
+ * Multichain accounts have IDs that start with AccountWalletType.Entropy
+ */
+export const selectMultichainAccountGroups = createSelector(
+  [selectAccountGroups],
+  (accountGroups: readonly AccountGroupObject[]) =>
+    accountGroups.filter((group) =>
+      group.id.startsWith(AccountWalletType.Entropy),
+    ),
+);
+
+/**
+ * Get account groups filtered to only non-multichain accounts
+ * Non-multichain accounts have IDs that do not start with AccountWalletType.Entropy
+ */
+export const selectSingleAccountGroups = createSelector(
+  [selectAccountGroups],
+  (accountGroups: readonly AccountGroupObject[]) =>
+    accountGroups.filter(
+      (group) => !group.id.startsWith(AccountWalletType.Entropy),
+    ),
+);
+
+/**
  * Get account groups organized by wallet sections
  * Returns wallet sections containing account groups instead of account IDs
  */
@@ -208,6 +239,59 @@ export const selectSelectedAccountGroup = createSelector(
 );
 
 /**
+ * Selector to get an account group by its ID from the account tree controller state.
+ *
+ * @param state - The Redux state
+ * @param accountId - The account group ID to look up
+ * @returns The account group object if found, undefined otherwise
+ */
+export const selectAccountGroupById = createSelector(
+  selectAccountTreeControllerState,
+  (_, accountId: AccountGroupId) => accountId,
+  (
+    accountTree: AccountTreeControllerState | undefined,
+    accountId: AccountGroupId,
+  ) => {
+    if (!accountTree?.accountTree?.wallets) {
+      return undefined;
+    }
+
+    const { wallets } = accountTree.accountTree;
+    const [walletId] = accountId.split('/');
+    const wallet = wallets[walletId as AccountWalletId];
+
+    return wallet?.groups[accountId as AccountGroupId];
+  },
+);
+
+/**
+ * Get an internal account from a group by its CAIP chain ID.
+ *
+ * @param group - The group object to search in.
+ * @param caipChainId - The CAIP chain ID to search for.
+ * @param internalAccounts - The internal accounts object.
+ * @returns The internal account object, or null if not found.
+ */
+export const selectInternalAccountFromAccountGroup = (
+  group: AccountGroupObject | null,
+  caipChainId: CaipChainId,
+  internalAccounts: Record<AccountId, InternalAccount>,
+) => {
+  if (!group) {
+    return null;
+  }
+
+  for (const account of group.accounts) {
+    const internalAccount = internalAccounts[account];
+    if (internalAccount?.scopes.includes(caipChainId)) {
+      return internalAccount;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Selector to get the currently selected account group from the AccountTreeController state.
  * This selector retrieves the selected account group ID from the account tree state.
  *
@@ -218,4 +302,33 @@ export const selectSelectedAccountGroupId = createSelector(
   [selectAccountTreeControllerState],
   (accountTreeState: AccountTreeControllerState) =>
     accountTreeState?.accountTree?.selectedAccountGroup || null,
+);
+
+/**
+ * Selects account groups with their internal accounts fully populated.
+ * This selector transforms `accountGroup.accounts` by replacing account IDs
+ * with the corresponding internal account objects from the `internalAccounts` array.
+ *
+ * @param accountGroups - An array of all account group objects.
+ * @param internalAccounts - An array containing internal accounts to match against account IDs.
+ * @returns An array of account group objects, where account IDs in the `accounts` field
+ * are replaced with their corresponding internal account objects.
+ */
+export const selectAccountGroupWithInternalAccounts = createSelector(
+  [selectAccountGroups, selectInternalAccounts],
+  (
+    accountGroups: readonly AccountGroupObject[],
+    internalAccounts: readonly InternalAccount[],
+  ): readonly AccountGroupWithInternalAccounts[] =>
+    accountGroups.map((accountGroup) => ({
+      ...accountGroup,
+      accounts: accountGroup.accounts
+        .map((accountId: string) => {
+          const internalAccount = internalAccounts.find(
+            (account) => account.id === accountId,
+          );
+          return internalAccount;
+        })
+        .filter((account): account is InternalAccount => account !== undefined),
+    })),
 );

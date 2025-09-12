@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -21,16 +21,20 @@ import {
   formatPrice,
   formatPositionSize,
   formatTransactionDate,
+  PRICE_RANGES_DETAILED_VIEW,
+  formatPerpsFiat,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
 import type {
   PerpsOpenOrderCardProps,
   OpenOrderCardDerivedData,
 } from './PerpsOpenOrderCard.types';
 import BigNumber from 'bignumber.js';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import { useSelector } from 'react-redux';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 
 /**
  * PerpsOpenOrderCard Component
@@ -66,11 +70,24 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   rightAccessory,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(order.symbol);
+
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+  const isEligible = useSelector(selectPerpsEligibility);
 
   // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
-    const direction = order.side === 'buy' ? 'long' : 'short';
+    // For reduce-only orders (TP/SL), show them as closing positions
+    let direction: OpenOrderCardDerivedData['direction'];
+    if (order.reduceOnly || order.isTrigger) {
+      // This is a TP/SL order closing a position
+      // If side is 'sell', it's closing a long position
+      // If side is 'buy', it's closing a short position
+      direction = order.side === 'sell' ? 'Close Long' : 'Close Short';
+    } else {
+      // Regular order
+      direction = order.side === 'buy' ? 'long' : 'short';
+    }
 
     // Calculate size in USD
     const sizeInUSD = BigNumber(order.originalSize)
@@ -97,15 +114,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   }
 
   const handleCancelPress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
       orderId: order.orderId,
     });
-    if (onCancel) {
-      onCancel(order);
-    } else {
-      // Future: Navigate to order cancellation flow
-      DevLogger.log('PerpsOpenOrderCard: No onCancel handler provided');
-    }
+
+    onCancel?.(order);
   };
 
   return (
@@ -119,14 +137,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         {/* Icon Section - Conditionally shown (only in collapsed mode) */}
         {showIcon && !expanded && (
           <View style={styles.perpIcon}>
-            {assetUrl ? (
-              <RemoteImage
-                source={{ uri: assetUrl }}
-                style={styles.tokenIcon}
-              />
-            ) : (
-              <Icon name={IconName.Coin} size={IconSize.Lg} />
-            )}
+            <PerpsTokenLogo symbol={order.symbol} size={40} />
           </View>
         )}
 
@@ -192,7 +203,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 variant={TextVariant.BodySMMedium}
                 color={TextColor.Default}
               >
-                {formatPrice(order.price)}
+                {formatPerpsFiat(order.price, {
+                  ranges: PRICE_RANGES_DETAILED_VIEW,
+                })}
               </Text>
             </View>
             {/* Only show TP/SL for non-trigger orders */}
@@ -210,7 +223,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                     color={TextColor.Default}
                   >
                     {order.takeProfitPrice
-                      ? formatPrice(order.takeProfitPrice)
+                      ? formatPerpsFiat(order.takeProfitPrice, {
+                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                        })
                       : strings('perps.position.card.not_set')}
                   </Text>
                 </View>
@@ -226,7 +241,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                     color={TextColor.Default}
                   >
                     {order.stopLossPrice
-                      ? formatPrice(order.stopLossPrice)
+                      ? formatPerpsFiat(order.stopLossPrice, {
+                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                        })
                       : strings('perps.position.card.not_set')}
                   </Text>
                 </View>
@@ -267,6 +284,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>
+      )}
+
+      {isEligibilityModalVisible && (
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={() => setIsEligibilityModalVisible(false)}
+            contentKey={'geo_block'}
+          />
+        </Modal>
       )}
     </TouchableOpacity>
   );

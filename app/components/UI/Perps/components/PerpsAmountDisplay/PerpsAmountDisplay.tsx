@@ -1,30 +1,40 @@
 import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Animated, Text as RNText } from 'react-native';
+import { Animated, Text as RNText, TouchableOpacity, View } from 'react-native';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { formatPrice } from '../../utils/formatUtils';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {
   amount: string;
-  maxAmount: number;
   showWarning?: boolean;
   warningMessage?: string;
   onPress?: () => void;
   isActive?: boolean;
+  label?: string;
+  showTokenAmount?: boolean;
+  tokenAmount?: string;
+  tokenSymbol?: string;
+  showMaxAmount?: boolean;
+  hasError?: boolean;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   amount,
-  maxAmount,
   showWarning = false,
   warningMessage = 'No funds available. Please deposit first.',
   onPress,
   isActive = false,
+  label,
+  showTokenAmount = false,
+  tokenAmount,
+  tokenSymbol,
+  showMaxAmount = true,
+  hasError = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -58,11 +68,31 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       style={styles.container}
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
+      {label && (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.label}
+        >
+          {label}
+        </Text>
+      )}
       <View style={styles.amountRow}>
         <RNText
-          style={[styles.amountValue, isActive && styles.amountValueActive]}
+          testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+          style={[
+            showTokenAmount && tokenAmount && tokenSymbol
+              ? styles.amountValueToken
+              : styles.amountValue,
+            isActive && styles.amountValueActive,
+            hasError && styles.amountValueError,
+          ]}
         >
-          {amount ? formatPrice(amount, { minimumDecimals: 0 }) : '$0'}
+          {showTokenAmount && tokenAmount && tokenSymbol
+            ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
+            : amount
+            ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
+            : '$0'}
         </RNText>
         {isActive && (
           <Animated.View
@@ -76,13 +106,17 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           />
         )}
       </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.maxAmount}
-      >
-        {formatPrice(maxAmount)} max
-      </Text>
+      {/* Display token amount equivalent for current input */}
+      {showMaxAmount && tokenAmount && tokenSymbol && (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.maxAmount}
+          testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}
+        >
+          {formatPositionSize(tokenAmount)} {tokenSymbol}
+        </Text>
+      )}
       {showWarning && (
         <Text
           variant={TextVariant.BodySM}

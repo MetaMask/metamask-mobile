@@ -12,7 +12,7 @@ export interface UsePerpsPricesOptions {
   /** Whether to include order book data (bid/ask) */
   includeOrderBook?: boolean;
   /** Debounce delay in milliseconds (default: 50ms) */
-  debounceMs?: number;
+  throttleMs?: number;
   /** Whether to include market data (funding, OI, volume) */
   includeMarketData?: boolean;
 }
@@ -29,7 +29,7 @@ export function usePerpsPrices(
 ): Record<string, PriceUpdate> {
   const {
     includeOrderBook = false,
-    debounceMs,
+    throttleMs,
     includeMarketData = false,
   } = options;
 
@@ -67,7 +67,7 @@ export function usePerpsPrices(
 
   // Use provided debounce or fall back to default
   const debounceDelay =
-    debounceMs ?? PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS;
+    throttleMs ?? PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS;
 
   // Track if we've received the first update for each symbol
   // This only resets when symbols change, not debounce settings

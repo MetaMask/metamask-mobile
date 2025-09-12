@@ -49,6 +49,16 @@
     "batched_unused_approvals": {
       "title": "不要な権限",
       "message": "このトランザクションには必要ないにもかかわらず、自分のトークンを引き出す権限を他の人に与えています。"
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
+    },
+    "no_pay_token_quotes": {
+      "title": "We couldn't find any quotes.",
+      "message": "Change the amount or select a different token for payment."
     }
   },
   "blockaid_banner": {
@@ -150,7 +160,7 @@
     "or": "または",
     "import_existing_wallet": "既存のウォレットをインポート",
     "bottom_sheet_title": "続行するにはオプションを選択してください",
-    "continue_with_srp": "シークレットリカバリーフレーズで続行",
+    "continue_with_srp": "Use Secret Recovery Phrase",
     "import_srp": "シークレットリカバリーフレーズを使用してインポートする",
     "sign_in_with_google": "Googleでサインイン",
     "sign_in_with_apple": "Appleでサインイン",
@@ -176,6 +186,8 @@
     "import_title": "ウォレットの準備ができました！",
     "import_description": "シークレットリカバリーフレーズを紛失した場合、ウォレットを利用できなくなります。",
     "import_description2": "ご自身の資金にアクセスできなくなることを防ぐため、このフレーズは安全に保管しましょう。",
+    "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
+    "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
     "done": "完了",
     "create_hint": "パスワードのヒントの作成",
     "hint_title": "パスワードのヒント",
@@ -410,7 +422,7 @@
     "confirm_password_placeholder": "パスワードを再入力してください",
     "confirm_btn": "保存",
     "warning_password_change_title": "よろしいですか？",
-    "warning_password_change_description": "ここでパスワードを変更すると、ご利用中の他のデバイス上のMetaMaskはロックされます。新しいパスワードで再度ログインが必要になります。",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "確定",
     "warning_password_cancel_button": "キャンセル",
     "changing_password": "パスワードを変更中...",
@@ -461,6 +473,12 @@
     "wallet": "ウォレット",
     "transfer": "送金"
   },
+  "bottom_nav": {
+    "home": "Home",
+    "browser": "Browser",
+    "activity": "Activity",
+    "settings": "Settings"
+  },
   "drawer": {
     "send_button": "送信",
     "receive_button": "資金を追加",
@@ -488,16 +506,40 @@
     "public_address": "パブリックアドレス"
   },
   "send": {
+    "available": "available",
+    "invalid_value": "Invalid value",
+    "insufficient_funds": "Insufficient funds",
+    "continue": "Continue",
+    "unit": "unit",
+    "units": "units",
+    "next": "Next",
     "title": "送信",
     "deeplink_failure": "問題が発生しました。もう一度お試しください",
     "warn_network_change": "ネットワークが次に変更されました:",
     "send_to": "送信先",
     "amount": "金額",
     "confirm": "確認",
+    "paste": "Paste",
+    "no_assets_available": "No assets available to send",
+    "clear": "Clear",
+    "to": "To",
+    "enter_address_to_send_to": "Enter address to send to",
+    "accounts": "Accounts",
+    "contacts": "Contacts",
+    "no_contacts_found": "No contacts found",
+    "review": "Review",
+    "all_networks": "All",
+    "no_tokens_match_filters": "No tokens match your filters",
+    "clear_filters": "Clear filters",
+    "no_tokens_available": "No tokens available",
     "sign": "署名",
     "network_not_found_title": "ネットワークが見つかりません",
     "network_not_found_description": "ウォレットにチェーンID {{chain_id}} のネットワークが見つかりません。はじめにネットワークを追加してください。",
-    "network_missing_id": "チェーンIDがありません。"
+    "network_missing_id": "チェーンIDがありません。",
+    "search_tokens_and_nfts": "Search tokens and NFTs",
+    "tokens": "Tokens",
+    "nfts": "NFTs",
+    "show_more_nfts": "Show more NFTs"
   },
   "deposit": {
     "title": "入金",
@@ -512,8 +554,18 @@
     },
     "token_modal": {
       "select_a_token": "トークンを選択",
+      "select_token": "Select token",
       "search_by_name_or_address": "トークンを名前またはアドレスで検索",
       "no_tokens_found": "「{{searchString}}」に一致するトークンがありません"
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -628,11 +680,11 @@
       "title": "基本情報を入力してください",
       "continue": "続行",
       "subtitle": "次に、お客様の基本情報が必要です。",
-      "first_name": "名",
-      "last_name": "姓",
-      "phone_number": "電話番号",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone_number": "Phone number",
       "date_of_birth": "生年月日",
-      "social_security_number": "社会保障番号",
+      "social_security_number": "Social security number (SSN)",
       "enter_phone_number": "電話番号を入力してください",
       "select_region": "地域を選択してください",
       "first_name_required": "名は必須項目です",
@@ -643,7 +695,8 @@
       "mobile_number_invalid": "有効な電話番号を入力してください",
       "dob_required": "生年月日は必須項目です",
       "dob_invalid": "有効な生年月日を入力してください",
-      "ssn_required": "社会保障番号は必須項目です"
+      "ssn_required": "社会保障番号は必須項目です",
+      "unexpected_error": "An unexpected error occurred. Please try again."
     },
     "enter_address": {
       "navbar_title": "本人確認を行う",
@@ -719,11 +772,11 @@
     },
     "bank_details": {
       "navbar_title": "{{paymentMethod}}による銀行送金",
-      "button": "銀行送金完了",
+      "button": "Confirm transfer",
       "button_cancel": "注文をキャンセル",
       "main_title": "注文を完了する",
       "main_content_1": "以下の情報を使用して、ご利用の銀行から送金してください。",
-      "main_content_2": "送金後にこの画面に戻り「銀行送金済み」をクリックして確定してください。",
+      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
       "show_bank_info": "銀行情報を表示",
       "hide_bank_info": "銀行情報を非表示",
       "transfer_amount": "送金額",
@@ -735,6 +788,7 @@
       "bic": "BIC",
       "account_type": "口座種別",
       "bank_name": "銀行名",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "銀行の住所",
       "info_banner_text": "口座名義が「{{accountHolderName}}」であることをご確認ください。これにより、銀行の送金処理がスムーズになります。",
       "error_message": "銀行送金を確定できませんでした。もう一度お試しください。",
@@ -760,8 +814,10 @@
     }
   },
   "perps": {
-    "title": "パーペチュアル取引",
-    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
+    "title": "Perps",
+    "perps_trading": "Perps Trading",
+    "perp_account_balance": "Perp account balance",
+    "manage_balance": "Manage Balance",
     "total_balance": "合計残高",
     "available_balance": "利用可能残高",
     "margin_used": "利用中証拠金",
@@ -769,13 +825,12 @@
     "withdraw": "出金",
     "refresh_balance": "Refresh Balance",
     "add_funds": "資金を追加",
-    "perpetuals": "パーペチュアル",
     "your_positions": "Your positions",
     "loading_positions": "ポジションを読み込み中...",
     "refreshing_positions": "Refreshing positions...",
+    "no_open_orders": "No open orders",
     "deposit": {
       "title": "Amount to deposit",
-      "pay_with": "支払方法:",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "資金不足",
       "enter_amount": "金額を入力してください",
@@ -839,7 +894,13 @@
         "completed": "完了",
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
-      }
+      },
+      "success_toast": "Deposit Complete",
+      "success_message": "Your balance will update in a few moments",
+      "error_toast": "Deposit Failed",
+      "error_generic": "Something went wrong. Please try again.",
+      "in_progress": "Processing deposit",
+      "processing_message": "Processing your deposit..."
     },
     "withdrawal": {
       "title": "出金",
@@ -863,16 +924,22 @@
       "done": "完了",
       "initiated": "Withdrawal initiated",
       "wait_time_message": "Your funds should arrive within 5 minutes",
+      "submitting": "Submitting...",
       "error": "Withdrawal failed",
-      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
-      "arrival_time": "Funds will arrive within 5 minutes",
+      "success_toast": "Withdrawal successful",
+      "arrival_time": "{{amount}} {{symbol}} will arrive within 5 minutes",
       "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
       "invalid_amount": "Please enter a valid amount",
-      "completed": "Withdrawal Complete",
       "max": "最大額",
       "percentage_10": "10%",
-      "percentage_25": "25%"
+      "percentage_25": "25%",
+      "available_balance": "Available perps balance: {{amount}}",
+      "receive": "Receive",
+      "provider_fee": "Provider fee",
+      "you_will_receive": "You'll receive",
+      "continue": "Continue",
+      "funds_received": "{{amount}} {{symbol}} received"
     },
     "quote": {
       "network_fee": "ネットワーク手数料",
@@ -887,15 +954,28 @@
       "title": "新規注文",
       "leverage": "レバレッジ",
       "limit_price": "Limit price",
+      "enter_price": "Enter price",
+      "trigger_price": "Trigger price",
       "liquidation_price": "清算価格",
       "fees": "手数料",
       "market": "マーケット",
       "limit": "Limit",
+      "open_orders": "Orders",
+      "max": "max",
+      "cancel_order": "Cancel order",
+      "filled": "filled",
+      "reduce_only": "Reduce only",
+      "yes": "Yes",
+      "status": {
+        "open": "Open",
+        "filled": "Filled",
+        "canceled": "Canceled",
+        "rejected": "Rejected"
+      },
       "validation": {
         "failed": "注文の検証に失敗しました",
         "amount_required": "注文金額は0より大きい数字にしてください",
         "minimum_amount": "最低注文サイズは${{amount}}です",
-        "maximum_amount": "最大注文サイズは${{amount}}です",
         "insufficient_balance": "残高が不足しています。必要額: ${{required}}、利用可能額: ${{available}}",
         "invalid_leverage": "レバレッジは{{min}}倍から{{max}}倍までの間にしてください",
         "high_leverage_warning": "レバレッジが高くなると清算リスクが高まります",
@@ -920,7 +1000,7 @@
       "margin": "マージン",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
-      "select_payment_asset": "Select asset to pay with",
+      "tp_sl": "TP/SL",
       "button": {
         "long": "{{asset}}をロング",
         "short": "{{asset}}をショート"
@@ -941,12 +1021,14 @@
         "market": "マーケット",
         "current_price": "Current price",
         "ask_price": "Ask price",
-        "bid_price": "Bid price"
+        "bid_price": "Bid price",
+        "difference_from_market": "Difference from market:"
       },
       "leverage_modal": {
         "title": "Set Leverage",
         "confirm": "確定",
         "entry_price": "エントリー価格",
+        "current_price": "Current price",
         "liquidation_price": "Liquidation Price",
         "liquidation_distance": "Liquidation Distance"
       },
@@ -971,27 +1053,49 @@
         "viewPositions": "View Positions",
         "placeAnother": "Place Another Order",
         "backToPerps": "Back to Perps"
-      }
+      },
+      "submitted": "Order Submitted",
+      "confirmed": "Order Confirmed"
     },
     "close_position": {
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
+      "cancel": "Cancel",
+      "margin": "Margin",
       "pnl": "PnL",
+      "estimated_pnl": "Estimated PnL",
       "fees": "手数料",
-      "receive": "You'll receive (Hyperliquid USDC)",
+      "receive": "You'll receive",
+      "you_receive": "You'll receive",
+      "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!"
+      "fox_points_earned": "{{points}} Fox Points earned!",
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
-      "title": "Set take profit and stop loss",
-      "set_button": "設定",
+      "title": "Take profit and stop loss",
+      "set": "Set",
       "updating": "Updating...",
-      "usd_label": "USD"
+      "off": "Off",
+      "current_price": "Current price",
+      "liquidation_price": "Liquidation price",
+      "take_profit_long": "Take profit when price increases by",
+      "take_profit_short": "Take profit when price decreases by",
+      "stop_loss_long": "Stop loss when price drops by",
+      "stop_loss_short": "Stop loss when price increases by",
+      "trigger_price_placeholder": "Trigger price",
+      "profit_percent_placeholder": "Profit",
+      "loss_percent_placeholder": "Loss",
+      "usd_label": "($)"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1010,6 +1114,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1043,46 +1148,62 @@
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
-      "depositFailed": "デポジット失敗"
+      "depositFailed": "デポジット失敗",
+      "connectionFailed": {
+        "title": "Connection Failed",
+        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "retry": "Retry"
+      },
+      "networkError": {
+        "title": "Network Error",
+        "description": "There was a problem connecting to the network. Please try again.",
+        "retry": "Try Again"
+      },
+      "unknown": {
+        "title": "Something Went Wrong",
+        "description": "An unexpected error occurred. Please try again later.",
+        "retry": "Retry"
+      }
     },
     "position": {
       "title": "ポジション",
       "card": {
-        "entry_price": "エントリー価格",
-        "market_price": "市場価格",
-        "liquidity_price": "清算価格",
-        "take_profit": "利益確定",
-        "stop_loss": "損切り",
+        "entry_price": "Entry price",
+        "funding_cost": "Funding",
+        "liquidation_price": "Liq. Price",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss",
         "margin": "マージン",
-        "not_set": "未設定",
+        "not_set": "Not set",
         "edit_tpsl": "利確 / 損切を編集",
-        "close_position": "ポジションを決済"
+        "close_position": "Close position"
       },
       "list": {
         "loading": "ポジションを読み込み中...",
         "error_title": "ポジションの読み込みエラー",
         "empty_title": "保有中のポジションはありません",
         "empty_description": "まだポジションはありません。\n取引を開始すると、こちらに表示されます。",
+        "first_time_title": "Perps",
+        "first_time_description": "Predict price moves with up to 40x leverage.",
+        "start_trading": "Start trading",
         "open_positions": "保有中のポジション",
         "position_count": "{{count}}件のポジション",
         "position_count_plural": "{{count}}件のポジション"
       },
       "details": {
-        "title": "Position Details",
         "error_message": "ポジションのデータが見つかりません。前の画面に戻り、もう一度お試しください。",
         "section_title": "ポジション"
-      },
-      "tpsl": {
-        "update_success": "TP/SL updated successfully",
-        "update_failed": "Failed to update TP/SL",
-        "update_error": "Error updating TP/SL"
       },
       "account": {
         "summary_title": "アカウント情報",
         "total_balance": "合計残高",
         "available_balance": "利用可能残高",
         "margin_used": "利用中証拠金",
-        "total_unrealized_pnl": "未実現損益合計"
+        "total_unrealized_pnl": "未実現損益合計",
+        "unrealized_pnl": "Unrealized P&L"
+      },
+      "tpsl": {
+        "update_success": "TP/SL updated successfully"
       }
     },
     "markets": {
@@ -1096,15 +1217,16 @@
       "statistics": "Statistics",
       "24hr_high": "24hr high",
       "24hr_low": "24hr low",
-      "24h_volume": "24h volume",
+      "24h_volume": "24hr volume",
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short"
-    },
-    "network": {
-      "hyperliquid": "Hyperliquid"
+      "short": "Short",
+      "add_funds": "Add Funds",
+      "add_funds_to_start_trading_perps": "Add funds to start trading perps",
+      "position": "Position",
+      "orders": "Orders"
     },
     "buttons": {
       "get_account_balance": "アカウント残高を取得",
@@ -1113,6 +1235,70 @@
       "switch_to_testnet": "テストネットに切り替える",
       "view_markets": "View Markets",
       "positions": "ポジション"
+    },
+    "tooltips": {
+      "leverage": {
+        "title": "Leverage",
+        "content": "Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade."
+      },
+      "liquidation_price": {
+        "title": "Liquidation price",
+        "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "margin": {
+        "title": "Margin",
+        "content": "Margin is the money you put in to open a trade. It acts as collateral, and it's the most you can lose on that trade."
+      },
+      "fees": {
+        "title": "Fees",
+        "content": "Trading fees are charged when you open or close a position.",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee",
+        "total": "Total fees"
+      },
+      "closing_fees": {
+        "title": "Closing Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "estimated_pnl": {
+        "title": "Estimated P&L",
+        "content": "Your estimated profit or loss when closing this position at the current market price. This is calculated based on your entry price and includes the portion of the position you're closing."
+      },
+      "limit_price": {
+        "title": "Limit Price",
+        "content": "The specific price at which your limit order will execute. For closing long positions, the order executes when the price rises to this level. For closing short positions, it executes when the price falls to this level."
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "receive": {
+        "title": "Receive",
+        "content": "The amount of USDC you'll receive in your wallet after withdrawal."
+      },
+      "withdrawal_fees": {
+        "title": "Provider Fee",
+        "content": "A network fee charged for processing your withdrawal transaction."
+      },
+      "tp_sl": {
+        "title": "Take Profit & Stop Loss",
+        "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
+      },
+      "notifications": {
+        "title": "Turn on notifications",
+        "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",
+        "turn_on_button": "Turn on"
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "接続失敗",
@@ -1128,7 +1314,81 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Total fees",
+        "pnl": "Net P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
+    },
+    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risks. Market data provided by Hyperliquid. Price chart powered by",
+    "tutorial": {
+      "continue": "Continue",
+      "skip": "Skip",
+      "add_funds": "Add funds",
+      "what_are_perps": {
+        "title": "What are perps?",
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
+        "subtitle": "Here's how it works."
+      },
+      "go_long_or_short": {
+        "title": "Go long or short on a token",
+        "description": "Pick a token to long or short, then set your margin.",
+        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+      },
+      "choose_leverage": {
+        "title": "Choose your leverage",
+        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+      },
+      "watch_liquidation": {
+        "title": "Watch out for liquidation",
+        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+      },
+      "close_anytime": {
+        "title": "Close any time",
+        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+      },
+      "ready_to_trade": {
+        "title": "Ready to trade?",
+        "description": "Fund your perps account with any token and make your first trade in seconds."
+      },
+      "got_it": "Got it"
+    }
   },
   "receive": {
     "title": "受取"
@@ -1198,7 +1458,7 @@
     "collectible": "コレクティブル",
     "collectibles": "NFT",
     "defi": "DeFi",
-    "perps": "パーペチュアル",
+    "perps": "Perps",
     "transactions": "トランザクション",
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
@@ -1228,6 +1488,9 @@
     "import": "インポート",
     "sort_by": "並べ替え基準",
     "filter_by": "絞り込み条件：",
+    "networks": "Networks",
+    "popular": "Popular",
+    "custom": "Custom",
     "current_network": "現在のネットワーク",
     "popular_networks": "人気のネットワーク",
     "all_networks": "すべてのネットワーク",
@@ -1571,7 +1834,10 @@
     "account_connect_create_initial_account": {
       "description": "このサイトに接続するには、Solanaアカウントが必要です。",
       "button": "Solanaアカウントを作成"
-    }
+    },
+    "no_accounts_found": "No accounts found",
+    "no_accounts_found_for_search": "No accounts found matching your search",
+    "search_your_accounts": "Search your accounts"
   },
   "toast": {
     "connected_and_active": "接続済みかつ有効です。",
@@ -1732,7 +1998,8 @@
       "snaps_title": "Snap",
       "snaps_desc": "新機能や最新情報",
       "products_announcements_title": "製品に関するお知らせ",
-      "products_announcements_desc": "新しい製品や機能"
+      "products_announcements_desc": "新しい製品や機能",
+      "perps_title": "Perps trading"
     },
     "contacts_title": "連絡先",
     "contacts_desc": "アカウントを追加、編集、削除、管理します",
@@ -2044,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "アプリに戻る",
+    "postNetworkSwitchTitle": "ネットワークが正常に切り替わりました",
     "description": "サービスの使用を続けるには、アプリに戻ってください。"
   },
   "sdk_feedback_modal": {
@@ -2132,16 +2400,25 @@
     "change_password": "パスワードを変更",
     "password_hint": "パスワードのヒント"
   },
+  "fund_actionmenu": {
+    "deposit": "Deposit",
+    "deposit_description": "Low-fee bank or card transfer",
+    "buy": "Buy",
+    "buy_description": "Good for buying a specific token",
+    "sell": "Withdraw",
+    "sell_description": "Sell crypto for cash"
+  },
   "asset_overview": {
     "send_button": "送信",
     "buy_button": "購入",
+    "fund_button": "Fund",
     "token_marketplace": "トークンマーケットプレイス",
-    "sell_button": "売却",
+    "sell_button": "Withdraw",
     "receive_button": "受取",
     "portfolio_button": "Portfolio",
+    "deposit_button": "Deposit",
     "earn_button": "獲得",
-    "perps_button": "パーペチュアル",
-    "perps_sandbox_button": "Perps Sandbox",
+    "perps_button": "Perps",
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
@@ -2156,8 +2433,7 @@
       "send": "このアカウントでは送金はサポートされていません",
       "action": "このアカウントではこの操作はサポートされていません",
       "earn": "このアカウントでは獲得はサポートされていません",
-      "perps": "このアカウントではパーペチュアル取引はサポートされていません",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Perps trading not supported for this account"
     },
     "description": "説明",
     "totalSupply": "合計供給量",
@@ -2167,7 +2443,7 @@
     "troubleshooting_missing": "「残高が表示されない場合のトラブルシューティング」",
     "for_help": "をご覧ください。",
     "troubleshoot": "トラブルシューティング",
-    "deposit_description": "Low-cost card or bank transfer",
+    "deposit_description": "Low-fee bank or card transfer",
     "buy_description": "Good for buying a specific token",
     "sell_description": "仮想通貨を売って現金化します",
     "swap_description": "トークン同士を交換します",
@@ -2175,8 +2451,7 @@
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
     "earn_description": "トークンに対してリワードを獲得します",
-    "perps_description": "パーペチュアル契約を取引します",
-    "perps_sandbox_description": "Explore perpetual trading",
+    "perps_description": "Trade perp contracts",
     "chart_time_period": {
       "1d": "今日",
       "7d": "過去7日間",
@@ -2266,7 +2541,7 @@
     "not_allowed_error_desc": "QRコードをスキャンするには、デバイスの設定メニューでMetaMaskにカメラへのアクセスを許可する必要があります。",
     "unrecognized_address_qr_code_title": "認識されないQRコード",
     "unrecognized_address_qr_code_desc": "申し訳ございませんが、このQRコードはアカウントアドレスまたはコントラクトアドレスに関連付けられていません。",
-    "url_redirection_alert_title": "外部リンクにアクセスしようとしています。",
+    "url_redirection_alert_title": "You are about to visit an external link",
     "url_redirection_alert_desc": "リンクは詐欺やフィッシングに利用される場合があるため、信頼できるWebサイトにのみアクセスするようにしてください。",
     "label": "QRコードをスキャン",
     "open_settings": "設定",
@@ -2275,6 +2550,15 @@
   "action_view": {
     "cancel": "キャンセル",
     "confirm": "確定"
+  },
+  "gas_fee_token_modal": {
+    "title": "Select a token",
+    "title_pay_eth": "Pay with ETH",
+    "native_toggle_wallet": "Pay for network fee using the balance in your wallet.",
+    "list_balance": "Bal:",
+    "insufficient_balance": "Insufficient funds",
+    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction.",
+    "title_pay_with_other_tokens": "Pay with other tokens"
   },
   "transaction": {
     "transaction_id": "トランザクションID",
@@ -2764,6 +3048,7 @@
     "switch_network": "ネットワークに切り替える",
     "switch": "切り替える",
     "select_all": "すべて選択",
+    "deselect_all": "Deselect all",
     "new_network": "新しいネットワークが追加されました",
     "network_name": "{{networkName}}ネットワーク",
     "network_added": "がネットワークセレクターで利用可能になりました。",
@@ -2778,6 +3063,7 @@
     "select_network": "ネットワークを選択",
     "enabled_networks": "ネットワークが有効になりました",
     "additional_networks": "他のネットワーク",
+    "all_popular_networks": "All popular networks",
     "show_test_networks": "テストネットワークを表示",
     "deprecated_goerli": "イーサリアムのプロトコルの変更により、Goerliテストネットワークは安定して動作しない可能性があり、近日中に非推奨になります。",
     "network_deprecated_title": "このネットワークはサポートされなくなりました",
@@ -4359,12 +4645,16 @@
     "add_multichain_account": "新規{{networkName}}アカウントを作成",
     "create_an_account": "新規アカウントを作成",
     "add_new_account": "イーサリアムアカウント",
+    "create_new_wallet": "Create a new wallet",
+    "import_wallet": "Import a wallet",
     "import_srp": "シークレットリカバリーフレーズです。",
     "add_hardware_wallet": "ハードウェアウォレット",
     "import_account": "秘密鍵",
     "add_bitcoin_account": "ビットコインアカウント",
     "add_solana_account": "Solanaアカウント",
     "switch_to_smart_account": "スマートアカウントに切り替える",
+    "rename_account": "Rename account",
+    "addresses": "Addresses",
     "headers": {
       "bitcoin": "ビットコイン",
       "solana": "Solana"
@@ -4386,14 +4676,6 @@
     "show_display_nft_media_content_3": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、この設定を無効にすると利用できなくなります。",
     "show_display_nft_media_content_4": "NFTメディアの表示は次の場所でオフにできます:",
     "show_display_nft_media_content_5": "「設定」>「セキュリティとプライバシー」"
-  },
-  "solana_new_feature_content": {
-    "title": "Solanaが登場",
-    "title_description": "ウォレットをインポートして、探索、取引、送金をはじめましょう。MetaMaskでSolanaのネイティブサポートが開始されました。",
-    "not_now": "後で",
-    "view_solana_account": "Solanaアカウントを表示",
-    "learn_more": "Solanaアカウントの詳細",
-    "import_your_wallet": "ウォレットをインポート"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "「設定」で",
@@ -4728,7 +5010,10 @@
       "signing_in_with": "サインイン方法",
       "spender": "使用者",
       "now": "現在",
-      "switching_to": "切り替え先"
+      "switching_to": "切り替え先",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "署名要求",
@@ -4740,7 +5025,8 @@
       "contract_deployment": "コントラクトのデプロイ",
       "transfer": "送金リクエスト",
       "switch_account_type": "アカウントのアップデート",
-      "approve": "要求の承認"
+      "approve": "要求の承認",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -4847,7 +5133,10 @@
     "review": "確認",
     "transferRequest": "送金リクエスト",
     "nested_transaction_heading": "トランザクション {{index}}",
-    "transaction": "トランザクション"
+    "transaction": "トランザクション",
+    "available_balance": "Available: ",
+    "edit_amount_done": "Done",
+    "deposit_edit_amount_done": "Continue"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -4895,6 +5184,7 @@
     "receive_at": "受取先:",
     "error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。",
     "insufficient_funds": "資金不足",
+    "insufficient_gas": "Insufficient gas",
     "select_amount": "アカウントを選択",
     "bridge_to": "ブリッジ先:",
     "swap_to": "スワップ先",
@@ -4904,6 +5194,9 @@
     "fee_disclaimer": "0.875% のMM手数料込み",
     "hardware_wallet_not_supported": "まだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "最大額"
   },
@@ -4953,9 +5246,15 @@
     "user_cancelled_title": "ログインがキャンセルされました",
     "user_cancelled_description": "ログインの手続きをキャンセルしました。\n準備ができたら再試行してください。",
     "user_cancelled_button": "再試行",
+    "google_login_no_credential_title": "Google login failed",
+    "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
+    "google_login_no_credential_button": "Try again",
     "oauth_error_title": "ログイン失敗",
     "oauth_error_description": "ログイン中にエラーが発生しました。\nもう一度お試しください。問題が解決しない場合は、MetaMaskサポートまでお問い合わせください。",
-    "oauth_error_button": "再試行してください"
+    "oauth_error_button": "再試行してください",
+    "no_internet_connection_title": "Unable to connect",
+    "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
+    "no_internet_connection_button": "Try again"
   },
   "password_hint": {
     "title": "パスワードのヒント",
@@ -5009,6 +5308,9 @@
     "account_selector": {
       "title": "Select account"
     },
+    "dropdown": {
+      "title": "Select an option"
+    },
     "hideSentitiveInfo": {
       "message": "機密情報を非表示"
     },
@@ -5022,12 +5324,39 @@
     "show_less": "表示量を減らす"
   },
   "multichain_accounts": {
+    "add_wallet": "Add wallet",
+    "add_hardware_wallet": "Add a hardware wallet",
     "account_details": {
       "header_title": "アカウント情報",
       "account_name": "アカウント名",
+      "networks": "Networks",
       "account_address": "アカウントアドレス",
       "wallet": "ウォレット",
-      "private_key": "秘密鍵"
+      "private_key": "秘密鍵",
+      "private_keys": "Private keys",
+      "unlock_to_reveal": "Unlock to reveal",
+      "smart_account": "Smart account",
+      "set_up": "Set up",
+      "secret_recovery_phrase": "Secret Recovery Phrase",
+      "back_up": "Back up",
+      "remove_account": "Remove account"
+    },
+    "address_list": {
+      "addresses": "Addresses",
+      "receiving_address": "Receiving address",
+      "copied": "Address copied"
+    },
+    "private_key_list": {
+      "list_title": "Private keys",
+      "warning_title": "Don't share your private key",
+      "warning_description": "This key grants full control of your account for the associated chain.",
+      "learn_more": "Learn more",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "wrong_password": "Wrong password",
+      "copied": "Private key copied",
+      "continue": "Continue",
+      "cancel": "Cancel"
     },
     "accounts_list": {
       "details": "詳細"
@@ -5063,6 +5392,12 @@
       "copy_address": "アドレスをコピー",
       "view_on_explorer_button": "{{explorer}}で表示",
       "view_on_block_explorer": "ブロックエクスプローラーで表示"
+    },
+    "share_address_qr": {
+      "title": "{{networkName}} Address",
+      "copy_address": "Copy address",
+      "description": "Use this address to receive tokens and collectibles on",
+      "description_prefix": "Use this address to receive tokens and collectibles on"
     },
     "export_credentials": {
       "export_private_key": "秘密鍵",
@@ -5111,6 +5446,27 @@
     "back_button": "戻る",
     "continue_button": "続行"
   },
+  "card": {
+    "card": "MetaMaskカード",
+    "add_funds_bottomsheet": {
+      "deposit": "Fund with cash",
+      "deposit_description": "Low-cost card or bank transfer",
+      "swap": "Fund with crypto",
+      "swap_description": "Swap tokens into {{symbol}} on Linea",
+      "select_method": "Select method"
+    },
+    "card_home": {
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "再試行してください",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "資金を追加",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "advanced_card_management_description": "See transactions, freeze card, and more"
+      }
+    }
+  },
   "onboarding_error_fallback": {
     "title": "エラーが発生しました",
     "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
@@ -5124,19 +5480,11 @@
   "pay_with_modal": {
     "title": "支払方法を選択"
   },
-  "card": {
-    "card": "MetaMaskカード",
-    "card_home": {
-      "error_title": "Can’t fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
-      "try_again": "再試行してください",
-      "limited_spending_warning": "Full balance may not be available. Adjust your spending limit in {{manageCard}}",
-      "add_funds": "資金を追加",
-      "manage_card_options": {
-        "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
-      }
-    }
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "time": {
     "minutes_format": "{{count}} minute",

@@ -2,11 +2,14 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import type { PriceUpdate } from '../controllers/types';
-import { formatPrice, formatLargeNumber } from '../utils/formatUtils';
 import {
-  calculateFundingCountdown,
-  calculate24hHighLow,
-} from '../utils/marketUtils';
+  formatLargeNumber,
+  formatFundingRate,
+  PRICE_RANGES_DETAILED_VIEW,
+  LARGE_NUMBER_RANGES_DETAILED,
+  formatPerpsFiat,
+} from '../utils/formatUtils';
+import { calculate24hHighLow } from '../utils/marketUtils';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 interface MarketStats {
@@ -15,9 +18,7 @@ interface MarketStats {
   volume24h: string;
   openInterest: string;
   fundingRate: string;
-  fundingCountdown: string;
-  currentPrice: number;
-  priceChange24h: number;
+  currentPrice?: number;
   isLoading: boolean;
 }
 
@@ -38,10 +39,7 @@ export const usePerpsMarketStats = (
   symbol: string,
 ): UsePerpsMarketStatsReturn => {
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
-  const [fundingCountdown, setFundingCountdown] = useState('00:00:00');
-  const [currentPriceData, setCurrentPriceData] = useState<
-    PriceUpdate | undefined
-  >();
+  const [initialPrice, setInitialPrice] = useState<number | undefined>();
 
   // Get candlestick data for 24h high/low calculation
   const { candleData, refreshCandleData } = usePerpsPositionData({
@@ -51,6 +49,7 @@ export const usePerpsMarketStats = (
   });
 
   // Subscribe to market data updates (funding, open interest, volume)
+  // Note: We still subscribe to prices but only extract market metadata, not price itself
   useEffect(() => {
     if (!symbol) return;
 
@@ -65,13 +64,28 @@ export const usePerpsMarketStats = (
           callback: (updates: PriceUpdate[]) => {
             const update = updates.find((u) => u.coin === symbol);
             if (update) {
-              // Set both price data and market data from the same update
-              setCurrentPriceData(update);
-              setMarketData({
-                funding: update.funding,
-                openInterest: update.openInterest,
-                volume24h: update.volume24h,
+              // Only extract market data, ignore price changes to prevent re-renders
+              setMarketData((prev) => {
+                // Check if market data actually changed
+                if (
+                  prev.funding === update.funding &&
+                  prev.openInterest === update.openInterest &&
+                  prev.volume24h === update.volume24h
+                ) {
+                  return prev; // Return same reference if no change
+                }
+
+                return {
+                  funding: update.funding,
+                  openInterest: update.openInterest,
+                  volume24h: update.volume24h,
+                };
               });
+
+              // Store initial price only once for high/low calculation fallback
+              if (!initialPrice && update.price) {
+                setInitialPrice(parseFloat(update.price));
+              }
             }
           },
         });
@@ -87,47 +101,42 @@ export const usePerpsMarketStats = (
         unsubscribe();
       }
     };
-  }, [symbol]);
-
-  // Update funding countdown every second
-  useEffect(() => {
-    const updateCountdown = () => {
-      setFundingCountdown(calculateFundingCountdown());
-    };
-
-    updateCountdown(); // Initial update
-    const interval = setInterval(updateCountdown, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+  }, [symbol, initialPrice]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {
-    const currentPrice = parseFloat(currentPriceData?.price || '0');
-    const priceChange24h = parseFloat(
-      currentPriceData?.percentChange24h || '0',
-    );
     const { high, low } = calculate24hHighLow(candleData);
+    const fallbackPrice = initialPrice || 0;
 
     return {
       // 24h high/low from candlestick data, with fallback estimates
-      high24h: high > 0 ? formatPrice(high) : formatPrice(currentPrice),
-      low24h: low > 0 ? formatPrice(low) : formatPrice(currentPrice),
+      high24h:
+        high > 0
+          ? formatPerpsFiat(high, { ranges: PRICE_RANGES_DETAILED_VIEW })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_DETAILED_VIEW,
+            }),
+      low24h:
+        low > 0
+          ? formatPerpsFiat(low, { ranges: PRICE_RANGES_DETAILED_VIEW })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_DETAILED_VIEW,
+            }),
       volume24h: marketData.volume24h
-        ? formatLargeNumber(marketData.volume24h)
+        ? `$${formatLargeNumber(marketData.volume24h, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
       openInterest: marketData.openInterest
-        ? formatLargeNumber(marketData.openInterest)
+        ? `$${formatLargeNumber(marketData.openInterest, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
-      fundingRate: marketData.funding
-        ? `${(marketData.funding * 100).toFixed(4)}%`
-        : '0.0000%',
-      fundingCountdown,
-      currentPrice,
-      priceChange24h,
-      isLoading: !currentPriceData || !candleData,
+      fundingRate: formatFundingRate(marketData.funding),
+      currentPrice: fallbackPrice,
+      isLoading: !candleData,
     };
-  }, [currentPriceData, candleData, marketData, fundingCountdown]);
+  }, [candleData, marketData, initialPrice]);
 
   // Refresh function to reload market data
   const refresh = useCallback(async () => {

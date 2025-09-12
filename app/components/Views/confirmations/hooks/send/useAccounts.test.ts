@@ -1,4 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
+import { isEvmAccountType } from '@metamask/keyring-api';
+
+import { selectWallets } from '../../../../../selectors/multichainAccounts/wallets';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
+import { useSendContext } from '../../context/send-context';
+import { useSendType } from './useSendType';
 import { useAccounts } from './useAccounts';
 
 jest.mock('react-redux', () => ({
@@ -18,20 +26,16 @@ jest.mock('../../../../../core/Multichain/utils', () => ({
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/wallets', () => ({
-  selectMultichainWallets: jest.fn(),
+  selectWallets: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectInternalAccountsById: jest.fn(),
 }));
 
-import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-
-import { useSelector } from 'react-redux';
-import { useSendType } from './useSendType';
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
+jest.mock('../../context/send-context', () => ({
+  useSendContext: jest.fn(),
+}));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseSendType = useSendType as jest.MockedFunction<typeof useSendType>;
@@ -40,6 +44,9 @@ const mockIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
 >;
 const mockIsSolanaAccount = isSolanaAccount as jest.MockedFunction<
   typeof isSolanaAccount
+>;
+const mockUseSendContext = useSendContext as jest.MockedFunction<
+  typeof useSendContext
 >;
 
 describe('useAccounts', () => {
@@ -98,7 +105,7 @@ describe('useAccounts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [mockWallet];
       }
       if (selector === selectInternalAccountsById) {
@@ -113,6 +120,14 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      from: undefined,
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateTo: jest.fn(),
+      updateValue: jest.fn(),
     });
 
     mockIsEvmAccountType.mockReturnValue(true);
@@ -139,9 +154,10 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Account 1',
+          accountGroupName: 'Group 1',
+          accountName: 'Account 1',
           address: '0x1234567890123456789012345678901234567890',
-          fiatValue: '$1,000.00',
+          walletName: 'Wallet 1',
         },
       ]);
     });
@@ -159,6 +175,20 @@ describe('useAccounts', () => {
       );
       expect(mockIsEvmAccountType).toHaveBeenCalledWith('eip155:eoa');
       expect(mockIsEvmAccountType).toHaveBeenCalledWith('solana:data-account');
+    });
+
+    it('filters out account when from address matches account address', () => {
+      mockUseSendContext.mockReturnValue({
+        from: '0x1234567890123456789012345678901234567890',
+        maxValueMode: false,
+        updateAsset: jest.fn(),
+        updateTo: jest.fn(),
+        updateValue: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -182,9 +212,10 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Solana Account 1',
+          accountGroupName: 'Group 2',
+          accountName: 'Solana Account 1',
           address: 'Sol1234567890123456789012345678901234567890',
-          fiatValue: '$1,000.00',
+          walletName: 'Wallet 1',
         },
       ]);
     });
@@ -221,7 +252,7 @@ describe('useAccounts', () => {
 
   it('handles empty wallets array', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [];
       }
       if (selector === selectInternalAccountsById) {
@@ -237,7 +268,7 @@ describe('useAccounts', () => {
 
   it('handles missing internal accounts', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [mockWallet];
       }
       if (selector === selectInternalAccountsById) {
@@ -273,7 +304,7 @@ describe('useAccounts', () => {
     };
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [walletWithEmptyGroups];
       }
       if (selector === selectInternalAccountsById) {
@@ -302,7 +333,7 @@ describe('useAccounts', () => {
     };
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [walletWithEmptyAccountGroups];
       }
       if (selector === selectInternalAccountsById) {
@@ -358,7 +389,7 @@ describe('useAccounts', () => {
       );
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainWallets) {
+        if (selector === selectWallets) {
           return [mockWallet, mockSecondWallet];
         }
         if (selector === selectInternalAccountsById) {
@@ -378,14 +409,16 @@ describe('useAccounts', () => {
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
-            name: 'Account 1',
+            accountGroupName: 'Group 1',
+            accountName: 'Account 1',
             address: '0x1234567890123456789012345678901234567890',
-            fiatValue: '$1,000.00',
+            walletName: 'Wallet 1',
           },
           {
-            name: 'Account 2',
+            accountGroupName: 'Group 3',
+            accountName: 'Account 2',
             address: '0x9876543210987654321098765432109876543210',
-            fiatValue: '$1,000.00',
+            walletName: 'Wallet 2',
           },
         ]),
       );

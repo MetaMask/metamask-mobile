@@ -26,11 +26,15 @@ export enum ACTIONS {
   BUY_CRYPTO = 'buy-crypto',
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
+  DEPOSIT = 'deposit',
   HOME = 'home',
   SWAP = 'swap',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
   CREATE_ACCOUNT = 'create-account',
+  PERPS = 'perps',
+  PERPS_MARKETS = 'perps-markets',
+  PERPS_ASSET = 'perps-asset',
 }
 
 export const PREFIXES = {
@@ -51,5 +55,8 @@ export const PREFIXES = {
   [ACTIONS.HOME]: '',
   [ACTIONS.SWAP]: '',
   [ACTIONS.CREATE_ACCOUNT]: '',
+  [ACTIONS.PERPS]: '',
+  [ACTIONS.PERPS_MARKETS]: '',
+  [ACTIONS.PERPS_ASSET]: '',
   METAMASK: 'metamask://',
 };

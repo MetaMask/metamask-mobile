@@ -69,6 +69,12 @@ jest.mock('../../../../selectors/accountsController', () => ({
   ),
 }));
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => () => MOCK_SELECTED_ACCOUNT,
+  ),
+}));
+
 // Mock Engine with proper hoisting
 jest.mock('../../../../core/Engine', () => {
   const mockKeyringController = {
@@ -99,7 +105,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 import { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { store } from '../../../../store';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -160,8 +166,8 @@ describe('HyperLiquidWalletService', () => {
       it('should throw error when no account selected', async () => {
         // Mock selector to return null for this test
         jest
-          .mocked(selectSelectedInternalAccountAddress)
-          .mockReturnValueOnce(undefined);
+          .mocked(selectSelectedInternalAccountByScope)
+          .mockReturnValueOnce(() => undefined);
 
         await expect(
           walletAdapter.request({
@@ -267,8 +273,8 @@ describe('HyperLiquidWalletService', () => {
       it('should throw error when no account selected', async () => {
         // Mock selector to return null for this test
         jest
-          .mocked(selectSelectedInternalAccountAddress)
-          .mockReturnValueOnce(undefined);
+          .mocked(selectSelectedInternalAccountByScope)
+          .mockReturnValueOnce(() => undefined);
 
         await expect(
           walletAdapter.request({
@@ -344,8 +350,8 @@ describe('HyperLiquidWalletService', () => {
     it('should throw error when getting account ID with no selected account', async () => {
       // Mock selector to return null for this test
       jest
-        .mocked(selectSelectedInternalAccountAddress)
-        .mockReturnValueOnce(undefined);
+        .mocked(selectSelectedInternalAccountByScope)
+        .mockReturnValueOnce(() => undefined);
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
         'No account selected',

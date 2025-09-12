@@ -42,28 +42,13 @@ describe('usePerpsSelector', () => {
     expect(result.current).toBe(true);
   });
 
-  it('should handle undefined PerpsController state', () => {
+  it('should pass undefined when PerpsController state is undefined', () => {
     // Arrange
     const mockSelector = jest.fn((state) => state?.isFirstTimeUser ?? false);
     mockUseSelector.mockImplementation((selectorFn) =>
       selectorFn({
         engine: { backgroundState: { PerpsController: undefined } },
       }),
-    );
-
-    // Act
-    const { result } = renderHook(() => usePerpsSelector(mockSelector));
-
-    // Assert
-    expect(mockSelector).toHaveBeenCalledWith(undefined);
-    expect(result.current).toBe(false);
-  });
-
-  it('should handle undefined backgroundState', () => {
-    // Arrange
-    const mockSelector = jest.fn((state) => state?.isFirstTimeUser ?? false);
-    mockUseSelector.mockImplementation((selectorFn) =>
-      selectorFn({ engine: { backgroundState: undefined } }),
     );
 
     // Act

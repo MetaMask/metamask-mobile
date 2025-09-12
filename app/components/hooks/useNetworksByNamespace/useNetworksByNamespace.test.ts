@@ -103,9 +103,10 @@ describe('useNetworksByNamespace', () => {
       >['networkEnablementController'],
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
-      toggleNetwork: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
+      tryEnableEvmNetwork: jest.fn(),
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -277,9 +278,10 @@ describe('useNetworksByNamespace', () => {
         >['networkEnablementController'],
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -326,9 +328,10 @@ describe('useNetworksByNamespace', () => {
         >['networkEnablementController'],
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -425,9 +428,10 @@ describe('useNetworksByNamespace', () => {
         >['networkEnablementController'],
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
       });
 
       (parseCaipChainId as jest.Mock).mockReturnValue({

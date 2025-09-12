@@ -1,5 +1,4 @@
 import { Mockttp } from 'mockttp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
@@ -7,7 +6,11 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import {
+  remoteFeatureMultichainAccountsAccountDetails,
+  remoteFeatureMultichainAccountsAccountDetailsV2,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 export interface Account {
   name: string;
@@ -35,14 +38,35 @@ export const withMultichainAccountDetailsEnabled = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails();
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetails(),
+    );
+  };
+  return await withFixtures(
+    {
+      fixture: new FixtureBuilder()
+        .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+        .build(),
+      restartDevice: true,
+      testSpecificMock,
+    },
+    async () => {
+      await loginToApp();
+      await WalletView.tapIdenticon();
+      await testFn();
+    },
+  );
+};
+
+export const withMultichainAccountDetailsV2Enabled = async (
+  testFn: () => Promise<void>,
+) => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetailsV2(),
+    );
   };
   return await withFixtures(
     {

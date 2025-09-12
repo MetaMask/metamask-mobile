@@ -1162,7 +1162,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -1194,7 +1194,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -1897,20 +1897,22 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           >
                                             SOL
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 SOL
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -1919,25 +1921,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 SOL
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View
@@ -3019,7 +3003,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -3051,7 +3035,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -3754,20 +3738,22 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           >
                                             SOL
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 SOL
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -3776,25 +3762,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 SOL
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View
@@ -4876,7 +4844,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -4908,7 +4876,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -5578,20 +5546,22 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           >
                                             USDC
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 USDC
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -5600,25 +5570,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 USDC
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View
@@ -6772,7 +6724,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -6804,7 +6756,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -7507,20 +7459,22 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           >
                                             SOL
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 SOL
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -7529,25 +7483,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 SOL
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View
@@ -8629,7 +8565,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -8661,7 +8597,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -9364,20 +9300,22 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           >
                                             SOL
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 SOL
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -9386,25 +9324,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 SOL
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View
@@ -10486,7 +10406,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -10518,7 +10438,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -11188,20 +11108,22 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           >
                                             UNKNOWN
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 UNKNOWN
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -11210,25 +11132,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 UNKNOWN
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View
@@ -12912,7 +12816,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -12944,7 +12848,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -13647,20 +13551,22 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           >
                                             SOL
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 SOL
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -13669,25 +13575,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 SOL
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View
@@ -14769,7 +14657,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -14801,7 +14689,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 4,
                                                   "paddingVertical": 16,
                                                 },
@@ -15504,20 +15392,22 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           >
                                             SOL
                                           </Text>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#ca3542",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 14,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 22,
-                                                }
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
                                               }
-                                            />
-                                          </View>
+                                            }
+                                            testID="token-amount-balance-test-id"
+                                          >
+                                            0 SOL
+                                          </Text>
                                         </View>
                                         <View
                                           style={
@@ -15526,25 +15416,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               "flexShrink": 0,
                                             }
                                           }
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#686e7d",
-                                                "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 22,
-                                                "paddingHorizontal": 0,
-                                              }
-                                            }
-                                            testID="secondary-balance-test-id"
-                                          >
-                                            0 SOL
-                                          </Text>
-                                        </View>
+                                        />
                                       </TouchableOpacity>
                                     </View>
                                     <View

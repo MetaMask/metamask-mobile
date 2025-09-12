@@ -1,10 +1,18 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: [main]
   pull_request:
   merge_group:
     types: [checks_requested]
+  schedule:
+    # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
+    # This helps to identy the flaky and failed tests on main branch
+    - cron: '0 2-6 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
   check-diff:
@@ -124,12 +132,6 @@ jobs:
           else
             echo "No changes detected"
           fi
-  e2e-tests:
-    permissions:
-      contents: read
-      id-token: write
-    uses: ./.github/workflows/run-e2e.yml
-    secrets: inherit
   merge-unit-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
@@ -164,21 +166,26 @@ jobs:
             echo "No changes detected"
           fi
 
+  needs_e2e_build:
+    uses: ./.github/workflows/needs-e2e-build.yml
+
   build-android-apks:
     name: "Build Android APKs"
-    if: ${{ github.event_name != 'merge_group' }}
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
+    needs: [needs_e2e_build]
     uses: ./.github/workflows/build-android-e2e.yml
     secrets: inherit
 
   e2e-smoke-tests-android:
-    name: "E2E Smoke Tests (Android)"
+    name: "Android E2E Smoke Tests"
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [build-android-apks]
+    needs: [needs_e2e_build, build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     secrets: inherit
 
@@ -245,8 +252,8 @@ jobs:
       - name: SonarCloud Scan
         if: ${{ env.HAVE_SONAR_TOKEN == 'true' && github.event_name == 'pull_request' }}
         continue-on-error: true
-        # This is SonarSource/sonarcloud-github-action@v2.0.0
-        uses: SonarSource/sonarcloud-github-action@4b4d7634dab97dcee0b75763a54a6dc92a9e6bc1
+        # This is SonarSource/sonarqube-scan-action@v5.3.1
+        uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -332,9 +339,10 @@ jobs:
       - name: Check workflow files
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
-  all-jobs-pass:
+  all-jobs-pass-merge-pr:
     name: All jobs pass
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' }}
     needs:
       [
         check-diff,
@@ -351,11 +359,56 @@ jobs:
       - name: Set jobs passed status
         id: jobs-passed-status
         run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-  check-all-jobs-pass:
+  all-jobs-pass:
+    name: All jobs pass (merge_group)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'merge_group' }}
+    needs:
+      [
+        check-diff,
+        dedupe,
+        scripts,
+        unit-tests,
+        check-workflows,
+        js-bundle-size-check,
+        sonar-cloud-quality-gate-status,
+      ]
+    outputs:
+      ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
+    steps:
+      - name: Set jobs passed status
+        id: jobs-passed-status
+        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+  check-all-jobs-pass-merge-pr:
     name: Check all jobs pass
+    if: ${{ github.event_name != 'merge_group' && always() }}
+    runs-on: ubuntu-latest
+    needs:
+      - all-jobs-pass-merge-pr
+      - needs_e2e_build
+      - e2e-smoke-tests-android
+    steps:
+      - run: |
+          # Check if all non-E2E jobs passed
+          if [[ "${{ needs.all-jobs-pass-merge-pr.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
+            echo "Non-E2E jobs failed"
+            exit 1
+          fi
+
+          # Check E2E jobs only if they should have run
+          if [[ "${{ needs.needs_e2e_build.outputs.builds }}" == "true" ]]; then
+            if [[ "${{ needs.e2e-smoke-tests-android.result }}" == "failure" ]]; then
+              echo "Android E2E tests failed"
+              exit 1
+            fi
+          fi
+
+          echo "All required jobs passed"
+  check-all-jobs-pass:
+    name: Check all jobs pass (merge_group)
     runs-on: ubuntu-latest
     needs: all-jobs-pass
-    if: always()
+    if: ${{ github.event_name == 'merge_group' && always() }}
     steps:
       - run: |
           if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
@@ -377,3 +430,4 @@ jobs:
       GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
       SPREADSHEET_ID: ${{ secrets.GOOGLE_MERGE_QUEUE_SPREADSHEET_ID }}
       SHEET_NAME: ${{ secrets.GOOGLE_MERGE_QUEUE_SHEET_NAME }}
+

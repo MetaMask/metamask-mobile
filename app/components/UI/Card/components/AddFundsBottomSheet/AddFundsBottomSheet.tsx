@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -23,21 +24,20 @@ import { CardTokenAllowance } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
 import { isSwapsAllowed } from '../../../Swaps/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
-import Routes from '../../../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
 
 export interface AddFundsBottomSheetProps {
   setOpenAddFundsBottomSheet: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
   priorityToken?: CardTokenAllowance;
   chainId: string;
-  cardholderAddresses?: string[];
-  navigate: (route: string) => void;
+  navigate: NavigationProp<ParamListBase>['navigate'];
 }
 
 const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
@@ -45,7 +45,6 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   sheetRef,
   priorityToken,
   chainId,
-  cardholderAddresses,
   navigate,
 }) => {
   const { isDepositEnabled } = useDepositEnabled();
@@ -67,20 +66,13 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
     if (!priorityToken) return;
     openSwaps({
       chainId,
-      cardholderAddress: cardholderAddresses?.[0],
       beforeNavigate: (nav) => closeBottomSheetAndNavigate(nav),
     });
-  }, [
-    priorityToken,
-    openSwaps,
-    chainId,
-    cardholderAddresses,
-    closeBottomSheetAndNavigate,
-  ]);
+  }, [priorityToken, openSwaps, chainId, closeBottomSheetAndNavigate]);
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.DEPOSIT.ID);
+      navigate(...createDepositNavigationDetails());
     });
     trackEvent(
       createEventBuilder(

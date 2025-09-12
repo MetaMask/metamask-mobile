@@ -16,6 +16,7 @@ import {
 import {
   sortTransactions,
   filterByAddressAndNetwork,
+  isTransactionOnChains,
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -32,7 +33,10 @@ import {
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
-import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import {
+  selectEnabledNetworksByNamespace,
+  selectEVMEnabledNetworks,
+} from '../../../selectors/networkEnablementController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
@@ -74,9 +78,6 @@ const TransactionsView = ({
   useCurrencyRatePolling();
   useTokenRatesPolling();
 
-  useCurrencyRatePolling();
-  useTokenRatesPolling();
-
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
   );
@@ -102,29 +103,35 @@ const TransactionsView = ({
           tx,
           tokens,
           selectedAddress,
-          networkId,
-          chainId,
           tokenNetworkFilter,
+          allTransactionsSorted,
         );
 
         if (!filter) return false;
 
-        tx.insertImportTime = addAccountTimeFlagFilter(
+        const insertImportTime = addAccountTimeFlagFilter(
           tx,
           addedAccountTime,
           accountAddedTimeInsertPointFound,
         );
-        if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+
+        // Create a new transaction object with the insertImportTime property
+        const updatedTx = {
+          ...tx,
+          insertImportTime,
+        };
+
+        if (updatedTx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
         switch (tx.status) {
           case TX_SUBMITTED:
           case TX_SIGNED:
           case TX_UNAPPROVED:
           case TX_PENDING:
-            submittedTxs.push(tx);
+            submittedTxs.push(updatedTx);
             return false;
           case TX_CONFIRMED:
-            confirmedTxs.push(tx);
+            confirmedTxs.push(updatedTx);
             break;
         }
 
@@ -135,39 +142,62 @@ const TransactionsView = ({
       if (isRemoveGlobalNetworkSelectorEnabled()) {
         // TODO: Make sure to come back and check on how Solana transactions are handled
         allTransactionsFiltered = allTransactions.filter((tx) => {
-          const chainId = tx.chainId;
-          return enabledNetworksByNamespace[KnownCaipNamespace.Eip155]?.[
-            chainId
-          ];
+          const enabledChainIds = Object.entries(
+            enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155] ?? {},
+          )
+            .filter(([, enabled]) => enabled)
+            .map(([chainId]) => chainId);
+
+          return isTransactionOnChains(
+            tx,
+            enabledChainIds,
+            allTransactionsSorted,
+          );
         });
       } else {
         allTransactionsFiltered = isPopularNetwork
-          ? allTransactions.filter(
-              (tx) =>
-                tx.chainId === CHAIN_IDS.MAINNET ||
-                tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
-                PopularList.some((network) => network.chainId === tx.chainId),
-            )
-          : allTransactions.filter((tx) => tx.chainId === chainId);
+          ? allTransactions.filter((tx) => {
+              const popularChainIds = [
+                CHAIN_IDS.MAINNET,
+                CHAIN_IDS.LINEA_MAINNET,
+                ...PopularList.map((n) => n.chainId),
+              ];
+              return isTransactionOnChains(
+                tx,
+                popularChainIds,
+                allTransactions,
+              );
+            })
+          : allTransactions.filter((tx) =>
+              isTransactionOnChains(tx, [chainId], allTransactionsSorted),
+            );
       }
 
-      const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
-        const { from, nonce } = txParams;
-        if (!areAddressesEqual(from, selectedAddress)) {
-          return false;
-        }
-        const alreadySubmitted = submittedNonces.includes(nonce);
-        const alreadyConfirmed = confirmedTxs.find(
-          (tx) =>
-            areAddressesEqual(tx.txParams.from, selectedAddress) &&
-            tx.txParams.nonce === nonce,
-        );
-        if (alreadyConfirmed) {
-          return false;
-        }
-        submittedNonces.push(nonce);
-        return !alreadySubmitted;
-      });
+      const submittedTxsFiltered = submittedTxs.filter(
+        ({ chainId, txParams }) => {
+          const { from, nonce } = txParams;
+
+          if (!areAddressesEqual(from, selectedAddress)) {
+            return false;
+          }
+
+          const nonceKey = `${chainId}-${nonce}`;
+          const alreadySubmitted = submittedNonces.includes(nonceKey);
+          const alreadyConfirmed = confirmedTxs.find(
+            (tx) =>
+              areAddressesEqual(tx.txParams.from, selectedAddress) &&
+              tx.chainId === chainId &&
+              tx.txParams.nonce === nonce,
+          );
+
+          if (alreadyConfirmed) {
+            return false;
+          }
+
+          submittedNonces.push(nonceKey);
+          return !alreadySubmitted;
+        },
+      );
 
       // If the account added insert point is not found, add it to the last transaction
       if (
@@ -175,9 +205,11 @@ const TransactionsView = ({
         allTransactionsFiltered &&
         allTransactionsFiltered.length
       ) {
-        allTransactionsFiltered[
-          allTransactionsFiltered.length - 1
-        ].insertImportTime = true;
+        const lastIndex = allTransactionsFiltered.length - 1;
+        allTransactionsFiltered[lastIndex] = {
+          ...allTransactionsFiltered[lastIndex],
+          insertImportTime: true,
+        };
       }
 
       setAllTransactions(allTransactionsFiltered);
@@ -289,7 +321,12 @@ const mapStateToProps = (state) => {
     transactions: allTransactions,
     networkType: selectProviderType(state),
     chainId,
-    tokenNetworkFilter: selectTokenNetworkFilter(state),
+    tokenNetworkFilter: isRemoveGlobalNetworkSelectorEnabled()
+      ? selectEVMEnabledNetworks(state).reduce(
+          (acc, network) => ({ ...acc, [network]: true }),
+          {},
+        )
+      : selectTokenNetworkFilter(state),
   };
 };
 

@@ -37,7 +37,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": true,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -69,7 +69,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "backgroundColor": "#3c4d9d0f",
               "borderRadius": 12,
               "justifyContent": "center",
-              "opacity": 0.5,
+              "opacity": 1,
               "paddingHorizontal": 4,
               "paddingVertical": 16,
             },

@@ -26,31 +26,16 @@ import {
   ICON_BY_TAB_BAR_ICON_KEY,
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
-import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const tabBarRef = useRef(null);
   const tw = useTailwind();
-  /**
-   * Current onboarding wizard step
-   */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wizardStep = useSelector((reduxState: any) => reduxState.wizard.step);
-  /**
-   * Return current step of onboarding wizard if not step 5 nor 0
-   */
-  const renderOnboardingWizard = useCallback(
-    () =>
-      [4, 5, 6].includes(wizardStep) && (
-        <OnboardingWizard navigation={navigation} coachmarkRef={tabBarRef} />
-      ),
-    [navigation, wizardStep],
-  );
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
@@ -96,6 +81,11 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           case Routes.TRANSACTIONS_VIEW:
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
             break;
+          case Routes.REWARDS_VIEW:
+            if (isRewardsEnabled) {
+              navigation.navigate(Routes.REWARDS_VIEW);
+            }
+            break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
@@ -126,6 +116,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       trackEvent,
       createEventBuilder,
       tw,
+      isRewardsEnabled,
     ],
   );
 
@@ -144,7 +135,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       >
         {renderTabBarItems()}
       </Box>
-      {renderOnboardingWizard()}
     </View>
   );
 };

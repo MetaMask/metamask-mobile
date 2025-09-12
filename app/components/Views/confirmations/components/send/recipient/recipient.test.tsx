@@ -2,78 +2,90 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { Recipient } from './recipient';
-import { RecipientType } from '../../UI/recipient';
+import { doENSLookup } from '../../../../../../util/ENSUtils';
+import { useSendContext } from '../../../context/send-context/send-context';
+import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
+import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
+import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendType } from '../../../hooks/send/useSendType';
+import { RecipientType } from '../../UI/recipient';
+import { Recipient } from './recipient';
 
-const mockUpdateTo = jest.fn();
-const mockHandleSubmitPress = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    ...actual,
+    // Run focus effects as a normal effect during tests
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = effect();
+        return cleanup;
+      }, []);
+    },
+  };
+});
 
 const mockAccounts: RecipientType[] = [
   {
-    name: 'Account 1',
+    accountName: 'Account 1',
     address: '0x1234567890123456789012345678901234567890',
-    fiatValue: '$1,000.00',
   },
   {
-    name: 'Account 2',
+    accountName: 'Account 2',
     address: '0x0987654321098765432109876543210987654321',
-    fiatValue: '$500.00',
   },
 ];
 
 const mockContacts: RecipientType[] = [
   {
-    name: 'John Doe',
+    contactName: 'John Doe',
     address: '0x1111111111111111111111111111111111111111',
-    fiatValue: '$2,000.00',
   },
 ];
 
-jest.mock('../../../hooks/send/useSendNavbar', () => ({
-  useSendNavbar: jest.fn(),
-}));
-
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: Record<string, string> = {
-      'send.accounts': 'Your Accounts',
-      'send.contacts': 'Contacts',
-      'send.no_contacts_found': 'No contacts found',
-      'send.review': 'Review',
-    };
-    return mockStrings[key] || key;
-  }),
-}));
-
 jest.mock('../../../context/send-context/send-context', () => ({
-  useSendContext: jest.fn(() => ({
-    updateTo: mockUpdateTo,
-  })),
-}));
-
-jest.mock('../../../hooks/send/useSendActions', () => ({
-  useSendActions: jest.fn(() => ({
-    handleSubmitPress: mockHandleSubmitPress,
-  })),
+  useSendContext: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/useAccounts', () => ({
-  useAccounts: jest.fn(() => mockAccounts),
+  useAccounts: jest.fn(),
 }));
 
-jest.mock('../../../hooks/send/useContacts');
+jest.mock('../../../hooks/send/useContacts', () => ({
+  useContacts: jest.fn(),
+}));
 
 jest.mock('../../../hooks/send/useToAddressValidation', () => ({
-  useToAddressValidation: jest.fn((address: string) => ({
-    toAddressError: address === 'invalid' ? 'Invalid address' : null,
-  })),
+  useToAddressValidation: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/metrics/useRecipientSelectionMetrics', () => ({
+  useRecipientSelectionMetrics: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useSendActions', () => ({
+  useSendActions: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useRouteParams', () => ({
+  useRouteParams: jest.fn(),
 }));
 
 jest.mock('./recipient.styles', () => ({
   styleSheet: jest.fn(() => ({
     container: { flex: 1 },
   })),
+}));
+
+jest.mock('../../../hooks/send/useSendType', () => ({
+  useSendType: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/ENSUtils', () => ({
+  doENSLookup: jest.fn(),
 }));
 
 jest.mock('../../recipient-list/recipient-list', () => ({
@@ -97,7 +109,7 @@ jest.mock('../../recipient-list/recipient-list', () => ({
             testID={`recipient-item-${recipient.address}`}
             onPress={() => onRecipientSelected(recipient)}
           >
-            <Text>{recipient.name}</Text>
+            <Text>{recipient.accountName || recipient.contactName}</Text>
           </Pressable>
         ))}
       </View>
@@ -107,71 +119,102 @@ jest.mock('../../recipient-list/recipient-list', () => ({
 
 jest.mock('../../recipient-input', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  RecipientInput: ({ value, onChangeText }: any) => {
-    const { TextInput } = jest.requireActual('react-native');
+  RecipientInput: ({ isRecipientSelectedFromList }: any) => {
+    const { View, Text } = jest.requireActual('react-native');
     return (
-      <TextInput
-        testID="recipient-input"
-        value={value}
-        onChangeText={onChangeText}
-        placeholder="Enter address"
-      />
+      <View testID="recipient-input">
+        <Text>
+          RecipientInput - isRecipientSelectedFromList:{' '}
+          {isRecipientSelectedFromList.toString()}
+        </Text>
+      </View>
     );
   },
 }));
 
-jest.mock('react-native-scrollable-tab-view', () => {
-  const { View } = jest.requireActual('react-native');
-  const ActualReact = jest.requireActual('react');
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    default: ({ children, renderTabBar }: any) => {
-      // Extract tab labels from children
-      const tabs =
-        ActualReact.Children.map(children, (child: React.ReactElement) => ({
-          label: child.props.tabLabel,
-        })) || [];
-
-      const TabBarComponent = renderTabBar();
-      const TabBarWithTabs = ActualReact.cloneElement(TabBarComponent, {
-        tabs,
-      });
-
-      return (
-        <View testID="scrollable-tab-view">
-          {TabBarWithTabs}
-          {children}
-        </View>
-      );
-    },
-  };
-});
-
-jest.mock(
-  '../../../../../../component-library/components-temp/TabBar/TabBar',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: ({ tabs = [] }: any) => (
-        <View testID="tab-bar">
-          {tabs.map((tab: { label: string }, index: number) => (
-            <Text key={index}>{tab.label}</Text>
-          ))}
-        </View>
-      ),
+jest.mock('../../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const mockStrings: Record<string, string> = {
+      'send.accounts': 'Your Accounts',
+      'send.contacts': 'Contacts',
+      'send.no_contacts_found': 'No contacts found',
+      'send.review': 'Review',
     };
-  },
+    return mockStrings[key] || key;
+  }),
+}));
+
+const mockDoENSLookup = jest.mocked(doENSLookup);
+const mockUseSendContext = jest.mocked(useSendContext);
+const mockUseAccounts = jest.mocked(useAccounts);
+const mockUseContacts = jest.mocked(useContacts);
+const mockUseToAddressValidation = jest.mocked(useToAddressValidation);
+const mockUseRecipientSelectionMetrics = jest.mocked(
+  useRecipientSelectionMetrics,
 );
+const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseSendType = jest.mocked(useSendType);
 
 describe('Recipient', () => {
-  const mockUseContacts = jest.mocked(useContacts);
+  const mockUpdateTo = jest.fn();
+  const mockHandleSubmitPress = jest.fn();
+  const mockCaptureRecipientSelected = jest.fn();
+  const mockSetRecipientInputMethodManual = jest.fn();
+  const mockSetRecipientInputMethodSelectAccount = jest.fn();
+  const mockSetRecipientInputMethodSelectContact = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseSendContext.mockReturnValue({
+      to: '',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    mockUseAccounts.mockReturnValue(mockAccounts);
     mockUseContacts.mockReturnValue(mockContacts);
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: mockCaptureRecipientSelected,
+      setRecipientInputMethodManual: mockSetRecipientInputMethodManual,
+      setRecipientInputMethodPasted: jest.fn(),
+      setRecipientInputMethodSelectAccount:
+        mockSetRecipientInputMethodSelectAccount,
+      setRecipientInputMethodSelectContact:
+        mockSetRecipientInputMethodSelectContact,
+    });
+
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPress,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockDoENSLookup.mockReturnValue(Promise.resolve(''));
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isSolanaSendType: false,
+    });
   });
 
   it('renders recipient input correctly', () => {
@@ -180,15 +223,7 @@ describe('Recipient', () => {
     expect(getByTestId('recipient-input')).toBeOnTheScreen();
   });
 
-  it('displays tabs when address input is empty', () => {
-    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
-
-    expect(getByTestId('scrollable-tab-view')).toBeOnTheScreen();
-    expect(getByText('Your Accounts')).toBeOnTheScreen();
-    expect(getByText('Contacts')).toBeOnTheScreen();
-  });
-
-  it('displays account list in accounts tab', () => {
+  it('displays account list', () => {
     const { getByTestId, getByText } = renderWithProvider(<Recipient />);
 
     expect(getByTestId('recipient-list-accounts')).toBeOnTheScreen();
@@ -196,93 +231,37 @@ describe('Recipient', () => {
     expect(getByText('Account 2')).toBeOnTheScreen();
   });
 
-  it('displays contacts list in contacts tab', () => {
-    const { getByText } = renderWithProvider(<Recipient />);
+  it('displays contacts list', () => {
+    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
 
+    expect(getByTestId('recipient-list-contacts')).toBeOnTheScreen();
     expect(getByText('John Doe')).toBeOnTheScreen();
   });
 
-  it('displays empty message when no contacts found', () => {
-    mockUseContacts.mockReturnValue([]);
+  it('shows review button when address input has content and not selected from list', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
 
-    const { getByTestId } = renderWithProvider(<Recipient />);
-
-    expect(getByTestId('empty-message')).toBeOnTheScreen();
-  });
-
-  it('hides tabs when address input has content', () => {
-    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
-      <Recipient />,
-    );
-
-    expect(queryByTestId('scrollable-tab-view')).toBeOnTheScreen();
-
-    fireEvent.changeText(getByTestId('recipient-input'), '0x123');
-
-    rerender(<Recipient />);
-
-    expect(queryByTestId('scrollable-tab-view')).not.toBeOnTheScreen();
-  });
-
-  it('shows review button when address input has content', () => {
-    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
-
-    fireEvent.changeText(
-      getByTestId('recipient-input'),
-      '0x1234567890123456789012345678901234567890',
-    );
+    const { getByText } = renderWithProvider(<Recipient />);
 
     expect(getByText('Review')).toBeOnTheScreen();
   });
 
-  it('enables review button for valid address', () => {
-    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
+  it('does not show review button when address is empty', () => {
+    const { queryByText } = renderWithProvider(<Recipient />);
 
-    fireEvent.changeText(
-      getByTestId('recipient-input'),
-      '0x1234567890123456789012345678901234567890',
-    );
-
-    const reviewButton = getByText('Review');
-    expect(reviewButton).toBeOnTheScreen();
-
-    fireEvent.press(reviewButton);
-    expect(mockHandleSubmitPress).toHaveBeenCalled();
-  });
-
-  it('disables review button for invalid address', () => {
-    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
-
-    fireEvent.changeText(getByTestId('recipient-input'), 'invalid');
-
-    const reviewButton = getByText('Review');
-    expect(reviewButton).toBeOnTheScreen();
-
-    mockHandleSubmitPress.mockClear();
-
-    fireEvent.press(reviewButton);
-    expect(mockHandleSubmitPress).not.toHaveBeenCalled();
-  });
-
-  it('calls updateTo and handleSubmitPress when review button is pressed with valid address', () => {
-    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
-    const validAddress = '0x1234567890123456789012345678901234567890';
-
-    fireEvent.changeText(getByTestId('recipient-input'), validAddress);
-    fireEvent.press(getByText('Review'));
-
-    expect(mockUpdateTo).toHaveBeenCalledWith(validAddress);
-    expect(mockHandleSubmitPress).toHaveBeenCalledWith(validAddress);
-  });
-
-  it('does not call handlers when review button is pressed with invalid address', () => {
-    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
-
-    fireEvent.changeText(getByTestId('recipient-input'), 'invalid');
-    fireEvent.press(getByText('Review'));
-
-    expect(mockUpdateTo).not.toHaveBeenCalled();
-    expect(mockHandleSubmitPress).not.toHaveBeenCalled();
+    expect(queryByText('Review')).not.toBeOnTheScreen();
   });
 
   it('calls updateTo and handleSubmitPress when account is selected from list', () => {
@@ -293,6 +272,8 @@ describe('Recipient', () => {
 
     expect(mockUpdateTo).toHaveBeenCalledWith(selectedAccount.address);
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(selectedAccount.address);
+    expect(mockSetRecipientInputMethodSelectAccount).toHaveBeenCalledTimes(1);
+    expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
   it('calls updateTo and handleSubmitPress when contact is selected from list', () => {
@@ -303,20 +284,197 @@ describe('Recipient', () => {
 
     expect(mockUpdateTo).toHaveBeenCalledWith(selectedContact.address);
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(selectedContact.address);
+    expect(mockSetRecipientInputMethodSelectContact).toHaveBeenCalledTimes(1);
+    expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
-  it('handles address input change correctly', () => {
+  it('call handleSubmitPress with reolved address when submitted', () => {
+    const mockHandleSubmitPress = jest.fn();
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPress,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: 'some_dummy_address',
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
     const { getByTestId } = renderWithProvider(<Recipient />);
-    const newAddress = '0x9876543210987654321098765432109876543210';
 
-    fireEvent.changeText(getByTestId('recipient-input'), newAddress);
+    fireEvent.press(getByTestId('review-button-send'));
 
-    expect(getByTestId('recipient-input').props.value).toBe(newAddress);
+    expect(mockHandleSubmitPress).toHaveBeenCalledWith('some_dummy_address');
   });
 
-  it('maintains keyboard avoiding view behavior', () => {
+  it('passes correct isRecipientSelectedFromList prop to RecipientInput initially', () => {
+    const { getByText } = renderWithProvider(<Recipient />);
+
+    expect(
+      getByText('RecipientInput - isRecipientSelectedFromList: false'),
+    ).toBeOnTheScreen();
+  });
+
+  it('updates isRecipientSelectedFromList when recipient is selected from accounts list', () => {
+    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
+    const selectedAccount = mockAccounts[0];
+
+    fireEvent.press(getByTestId(`recipient-item-${selectedAccount.address}`));
+
+    expect(
+      getByText('RecipientInput - isRecipientSelectedFromList: true'),
+    ).toBeOnTheScreen();
+  });
+
+  it('updates isRecipientSelectedFromList when recipient is selected from contacts list', () => {
+    const { getByTestId, getByText } = renderWithProvider(<Recipient />);
+    const selectedContact = mockContacts[0];
+
+    fireEvent.press(getByTestId(`recipient-item-${selectedContact.address}`));
+
+    expect(
+      getByText('RecipientInput - isRecipientSelectedFromList: true'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides review button when recipient is selected from list', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId, queryByText } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId(`recipient-item-${mockAccounts[0].address}`));
+
+    expect(queryByText('Review')).not.toBeOnTheScreen();
+  });
+
+  it('renders with correct layout structure', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     expect(getByTestId('recipient-input')).toBeOnTheScreen();
+    expect(getByTestId('recipient-list-accounts')).toBeOnTheScreen();
+    expect(getByTestId('recipient-list-contacts')).toBeOnTheScreen();
+  });
+
+  it('renders warning banner when toAddressWarning is present', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: 'Warning',
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { queryByTestId } = renderWithProvider(<Recipient />);
+    expect(queryByTestId('to-address-warning-banner')).toBeOnTheScreen();
+  });
+
+  it('renders warning banner and disabled button when toAddressWarning and toAddressError is present', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: 'Error',
+      toAddressValidated: undefined,
+      toAddressWarning: 'Warning',
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId, queryByText } = renderWithProvider(<Recipient />);
+
+    expect(getByTestId('to-address-warning-banner')).toBeOnTheScreen();
+    expect(queryByText('Review')).not.toBeOnTheScreen();
+    expect(queryByText('Error')).toBeOnTheScreen();
+  });
+
+  it('button is disabled if loading returned by validating hook is true', () => {
+    const mockHandleSubmitPress = jest.fn();
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPress,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: true,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: 'Warning',
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByText } = renderWithProvider(<Recipient />);
+    fireEvent.press(getByText('Review'));
+
+    expect(mockHandleSubmitPress).not.toHaveBeenCalled();
   });
 });

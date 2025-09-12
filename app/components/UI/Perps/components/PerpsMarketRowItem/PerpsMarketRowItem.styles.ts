@@ -11,11 +11,10 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingVertical: 12,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
     perpIcon: {
-      width: 32,
-      height: 32,
       marginRight: 16,
     },
     leftSection: {
@@ -46,15 +45,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     priceChange: {
       marginTop: 2,
-    },
-    leverageContainer: {
-      backgroundColor: colors.background.muted,
-      paddingVertical: 2,
-      paddingHorizontal: 4,
-      borderRadius: 2,
-    },
-    networkAvatar: {
-      marginRight: 16,
     },
   });
 };

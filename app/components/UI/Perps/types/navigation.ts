@@ -76,6 +76,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     action?: 'view' | 'edit' | 'close';
   };
 
+  PerpsClosePosition: {
+    position: Position;
+  };
+
   // Order history routes
   PerpsOrderHistory: undefined;
 
@@ -97,6 +101,11 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsFundingTransaction: {
     transaction: PerpsTransaction;
+  };
+
+  PerpsTutorial: {
+    isFromDeeplink?: boolean;
+    isFromGTMModal?: boolean;
   };
 
   // Root perps view

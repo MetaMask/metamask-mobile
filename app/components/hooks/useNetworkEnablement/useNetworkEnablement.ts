@@ -1,13 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   parseCaipChainId,
   CaipChainId,
   Hex,
   KnownCaipNamespace,
+  toCaipChainId,
+  isHexString,
 } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
+import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -15,14 +18,26 @@ import { selectChainId } from '../../../selectors/networkController';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
- * Provides methods to enable, disable, and toggle networks.
+ * Provides methods to enable, disable, toggle, and conditionally enable networks.
+ *
  * @returns Network enablement methods and state
  * @example
+ * ```tsx
+ * const {
+ *   enableNetwork,
+ *   tryEnableEvmNetwork,
+ *   isNetworkEnabled
+ * } = useNetworkEnablement();
  *
- * const { enableNetwork, toggleNetwork } = useNetworkEnablement();
+ * // Direct network operations
  * enableNetwork('eip155:1'); // Enable Ethereum mainnet
- * toggleNetwork('eip155:137'); // Toggle Polygon
  *
+ * // Conditional enablement for transactions/swaps
+ * tryEnableEvmNetwork('0x1'); // Enable if global selector is enabled and network is disabled
+ *
+ * // Check network status
+ * const isEnabled = isNetworkEnabled('eip155:1');
+ * ```
  */
 export const useNetworkEnablement = () => {
   const enabledNetworksByNamespace = useSelector(
@@ -48,6 +63,14 @@ export const useNetworkEnablement = () => {
   const enableNetwork = useMemo(
     () => (chainId: CaipChainId) =>
       networkEnablementController.enableNetwork(chainId),
+    [networkEnablementController],
+  );
+
+  const enableAllPopularNetworks = useMemo(
+    () => () => {
+      networkEnablementController.enableAllPopularNetworks();
+      networkEnablementController.enableNetwork(SolScope.Mainnet);
+    },
     [networkEnablementController],
   );
 
@@ -81,17 +104,17 @@ export const useNetworkEnablement = () => {
     [enabledNetworksByNamespace],
   );
 
-  const toggleNetwork = useMemo(
-    () => (chainId: CaipChainId) => {
-      const networkEnabled = isNetworkEnabled(chainId);
-
-      if (networkEnabled) {
-        disableNetwork(chainId);
-      } else {
-        enableNetwork(chainId);
+  const tryEnableEvmNetwork = useCallback(
+    (chainId?: string) => {
+      if (chainId && isHexString(chainId)) {
+        const caipChainId = toCaipChainId(KnownCaipNamespace.Eip155, chainId);
+        const isEnabled = isNetworkEnabled(caipChainId);
+        if (!isEnabled) {
+          enableNetwork(caipChainId);
+        }
       }
     },
-    [isNetworkEnabled, enableNetwork, disableNetwork],
+    [isNetworkEnabled, enableNetwork],
   );
 
   return {
@@ -101,8 +124,9 @@ export const useNetworkEnablement = () => {
     networkEnablementController,
     enableNetwork,
     disableNetwork,
-    toggleNetwork,
+    enableAllPopularNetworks,
     isNetworkEnabled,
     hasOneEnabledNetwork,
+    tryEnableEvmNetwork,
   };
 };

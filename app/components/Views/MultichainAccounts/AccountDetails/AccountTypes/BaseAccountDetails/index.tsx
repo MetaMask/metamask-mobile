@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
 import Text, {
@@ -21,7 +22,6 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
@@ -29,8 +29,17 @@ import HeaderBase from '../../../../../../component-library/components/HeaderBas
 import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../reducers';
-import { selectWalletByAccount } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectWalletByAccount,
+  selectAccountToGroupMap,
+} from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+
+export const createEditAccountNameNavigationDetails = createNavigationDetails<{
+  accountGroup: AccountGroupObject;
+}>(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME);
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -44,20 +53,41 @@ export const BaseAccountDetails = ({
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarAccountType);
   const selectWallet = useSelector(selectWalletByAccount);
   const wallet = selectWallet?.(account.id);
 
+  // Feature flag and selectors for conditional navigation
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+
   const handleEditAccountName = useCallback(() => {
-    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-      params: { account },
-    });
-  }, [navigation, account]);
+    if (isMultichainAccountsState2Enabled) {
+      // Use multichain edit account name for account groups (same as MultichainAccountActions)
+      const accountGroup = accountToGroupMap[account.id];
+      if (accountGroup) {
+        navigation.navigate(
+          ...createEditAccountNameNavigationDetails({
+            accountGroup,
+          }),
+        );
+      }
+    } else {
+      // Use legacy edit account name for individual accounts
+      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen:
+          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
+        params: { account },
+      });
+    }
+  }, [
+    navigation,
+    account,
+    isMultichainAccountsState2Enabled,
+    accountToGroupMap,
+  ]);
 
   const handleShareAddress = useCallback(() => {
     navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
@@ -97,88 +127,91 @@ export const BaseAccountDetails = ({
         style={styles.container}
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
       >
-        <Box
-          flexDirection={FlexDirection.Row}
-          justifyContent={JustifyContent.center}
-          style={styles.avatar}
-        >
-          <Avatar
-            variant={AvatarVariant.Account}
-            size={AvatarSize.Xl}
-            accountAddress={account.address}
-            type={accountAvatarType}
-          />
+        <Box gap={24}>
+          <Box
+            flexDirection={FlexDirection.Row}
+            justifyContent={JustifyContent.center}
+          >
+            <Avatar
+              variant={AvatarVariant.Account}
+              size={AvatarSize.Xl}
+              accountAddress={account.address}
+              type={accountAvatarType}
+            />
+          </Box>
+          <Box style={styles.section}>
+            <TouchableOpacity
+              style={styles.baseRow}
+              testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
+              onPress={handleEditAccountName}
+            >
+              <Text variant={TextVariant.BodyMDMedium}>
+                {strings('multichain_accounts.account_details.account_name')}
+              </Text>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                  {account.metadata.name}
+                </Text>
+                <Icon
+                  name={IconName.Edit}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.baseRow}
+              testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
+              onPress={handleShareAddress}
+            >
+              <Text variant={TextVariant.BodyMDMedium}>
+                {strings('multichain_accounts.account_details.account_address')}
+              </Text>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                  {formatAddress(account.address, 'short')}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.baseRow}
+              testID={AccountDetailsIds.WALLET_NAME_LINK}
+              onPress={handleWalletClick}
+            >
+              <Text variant={TextVariant.BodyMDMedium}>
+                {strings('multichain_accounts.account_details.wallet')}
+              </Text>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                  {wallet?.metadata.name}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </TouchableOpacity>
+          </Box>
+          <Box style={styles.section}>{children}</Box>
         </Box>
-        <TouchableOpacity
-          style={styles.accountName}
-          testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
-          onPress={handleEditAccountName}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.account_name')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
-          >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {account.metadata.name}
-            </Text>
-            <Icon
-              name={IconName.Edit}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.accountAddress}
-          testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
-          onPress={handleShareAddress}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.account_address')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
-          >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {formatAddress(account.address, 'short')}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.wallet}
-          testID={AccountDetailsIds.WALLET_NAME_LINK}
-          onPress={handleWalletClick}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.wallet')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
-          >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {wallet?.metadata.name}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
-        {children}
       </ScrollView>
     </SafeAreaView>
   );
