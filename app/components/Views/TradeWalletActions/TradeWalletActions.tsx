@@ -220,7 +220,7 @@ function TradeWalletActions() {
         <Animated.View exiting={exitingWithNavigateBack}>
           <MaskedView
             maskElement={
-              <View style={tw.style('flex-1 bg-transparent')}>
+              <View style={tw.style('flex-1 bg-transparent px-4')}>
                 <View style={tw.style('flex-1 bg-black')} />
                 <View style={tw.style('flex-row mt-[-1px]')}>
                   <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
