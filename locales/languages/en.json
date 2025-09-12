@@ -1059,7 +1059,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Set Leverage",
+        "title": "Leverage",
         "confirm": "Confirm",
         "entry_price": "Entry Price",
         "current_price": "Current price",
@@ -1280,7 +1280,7 @@
         "title": "Market Details",
         "error_message": "Market data not found. Please go back and try again."
       },
-      "statistics": "Statistics",
+      "statistics": "Overview",
       "24hr_high": "24hr high",
       "24hr_low": "24hr low",
       "24h_volume": "24hr volume",
@@ -1289,7 +1289,7 @@
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
-      "add_funds": "Add Funds",
+      "add_funds": "Add funds",
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
       "orders": "Orders"
@@ -1431,7 +1431,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risks. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",

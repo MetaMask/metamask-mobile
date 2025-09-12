@@ -19,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
@@ -92,6 +91,10 @@ import {
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
+import ButtonSemantic, {
+  ButtonSemanticSeverity,
+} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -835,115 +838,125 @@ const PerpsOrderViewContentBase: React.FC = () => {
         )}
 
         {/* Order Details */}
-        <View style={styles.detailsWrapper}>
-          {/* Leverage */}
-          <View style={[styles.detailItem, styles.detailItemFirst]}>
-            <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
-              <ListItem>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <View style={styles.detailLeft}>
-                    <Text
-                      variant={TextVariant.BodyLGMedium}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('perps.order.leverage')}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => handleTooltipPress('leverage')}
-                      style={styles.infoIcon}
-                    >
-                      <Icon
-                        name={IconName.Info}
-                        size={IconSize.Sm}
-                        color={IconColor.Muted}
-                        testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Auto}>
-                  <Text
-                    variant={TextVariant.BodyLGMedium}
-                    color={TextColor.Default}
-                  >
-                    {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-            </TouchableOpacity>
-          </View>
-
-          {/* Limit price - only show for limit orders */}
-          {orderForm.type === 'limit' && (
-            <View style={styles.detailItem}>
-              <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
-                <ListItem>
+        {!isInputFocused && (
+          <View style={styles.detailsWrapper}>
+            {/* Leverage */}
+            <View style={[styles.detailItem, styles.detailItemFirst]}>
+              <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
+                <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
-                    <Text
-                      variant={TextVariant.BodyLGMedium}
-                      color={TextColor.Alternative}
-                    >
-                      {strings('perps.order.limit_price')}
-                    </Text>
+                    <View style={styles.detailLeft}>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('perps.order.leverage')}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleTooltipPress('leverage')}
+                        style={styles.infoIcon}
+                      >
+                        <Icon
+                          name={IconName.Info}
+                          size={IconSize.Sm}
+                          color={IconColor.Muted}
+                          testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
+                        />
+                      </TouchableOpacity>
+                    </View>
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
+                      variant={TextVariant.BodyMD}
                       color={TextColor.Default}
                     >
-                      {orderForm.limitPrice
-                        ? formatPrice(orderForm.limitPrice)
-                        : 'Set price'}
+                      {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
                     </Text>
                   </ListItemColumn>
                 </ListItem>
               </TouchableOpacity>
             </View>
-          )}
 
-          {/* Combined TP/SL row */}
-          <View style={[styles.detailItem, styles.detailItemLast]}>
-            <TouchableOpacity
-              onPress={handleTPSLPress}
-              testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
-            >
-              <ListItem>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <View style={styles.detailLeft}>
+            {/* Limit price - only show for limit orders */}
+            {orderForm.type === 'limit' && (
+              <View style={styles.detailItem}>
+                <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
+                  <ListItem style={styles.detailItemWrapper}>
+                    <ListItemColumn widthType={WidthType.Fill}>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('perps.order.limit_price')}
+                      </Text>
+                    </ListItemColumn>
+                    <ListItemColumn widthType={WidthType.Auto}>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Default}
+                      >
+                        {orderForm.limitPrice
+                          ? formatPrice(orderForm.limitPrice)
+                          : 'Set price'}
+                      </Text>
+                    </ListItemColumn>
+                  </ListItem>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Combined TP/SL row */}
+            <View style={[styles.detailItem, styles.detailItemLast]}>
+              <TouchableOpacity
+                onPress={handleTPSLPress}
+                testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+              >
+                <ListItem style={styles.detailItemWrapper}>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <View style={styles.detailLeft}>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('perps.order.tp_sl')}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleTooltipPress('tp_sl')}
+                        style={styles.infoIcon}
+                      >
+                        <Icon
+                          name={IconName.Info}
+                          size={IconSize.Sm}
+                          color={IconColor.Muted}
+                          testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
                     >
-                      {strings('perps.order.tp_sl')}
+                      {tpSlDisplayText}
                     </Text>
-                    <TouchableOpacity
-                      onPress={() => handleTooltipPress('tp_sl')}
-                      style={styles.infoIcon}
-                    >
-                      <Icon
-                        name={IconName.Info}
-                        size={IconSize.Sm}
-                        color={IconColor.Muted}
-                        testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Auto}>
-                  <Text
-                    variant={TextVariant.BodyLGMedium}
-                    color={TextColor.Default}
-                  >
-                    {tpSlDisplayText}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-            </TouchableOpacity>
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-
+        )}
         {/* Info Section */}
-        <View style={styles.infoSection}>
+        <View
+          style={[
+            styles.infoSection,
+            // TODO: Remove negative margin
+            // eslint-disable-next-line react-native/no-inline-styles
+            { marginBottom: orderValidation.errors.length > 0 ? 16 : -16 },
+            // eslint-disable-next-line react-native/no-inline-styles
+            { marginTop: isInputFocused ? 16 : 0 },
+          ]}
+        >
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -1083,16 +1096,22 @@ const PerpsOrderViewContentBase: React.FC = () => {
               ))}
             </View>
           )}
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={placeOrderLabel}
+
+          <ButtonSemantic
+            severity={
+              orderForm.direction === 'long'
+                ? ButtonSemanticSeverity.Success
+                : ButtonSemanticSeverity.Danger
+            }
             onPress={handlePlaceOrder}
+            isFullWidth
+            size={ButtonSizeRNDesignSystem.Lg}
             isDisabled={!orderValidation.isValid || isPlacingOrder}
-            loading={isPlacingOrder}
+            isLoading={isPlacingOrder}
             testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-          />
+          >
+            {placeOrderLabel}
+          </ButtonSemantic>
         </View>
       )}
       {/* TP/SL Bottom Sheet */}

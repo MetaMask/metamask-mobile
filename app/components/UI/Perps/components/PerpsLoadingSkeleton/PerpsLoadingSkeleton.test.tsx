@@ -8,6 +8,7 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
       text: {
+        muted: '#6B7280',
         alternative: '#6B7280',
       },
     },
@@ -122,6 +123,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       HeadingMd: 'HeadingMd',
       BodyMd: 'BodyMd',
+    },
+    TextColor: {
+      TextAlternative: 'TextAlternative',
     },
     BoxAlignItems: {
       Center: 'center',

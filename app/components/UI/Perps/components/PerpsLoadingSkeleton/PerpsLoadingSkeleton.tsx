@@ -7,6 +7,7 @@ import {
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
@@ -63,7 +64,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-1 bg-default"
+      twClassName="flex-1 bg-default mt-20"
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
     >
@@ -77,14 +78,22 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
           />
 
           {/* Main Text */}
-          <Text variant={TextVariant.HeadingMd} twClassName="text-default mb-2">
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-default mb-2"
+          >
             {strings('perps.connection.connecting_to_perps')}
           </Text>
         </>
       ) : (
         <>
           {/* Timeout Message */}
-          <Text variant={TextVariant.HeadingMd} twClassName="text-default mb-2">
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-default mb-2"
+          >
             {strings('perps.connection.timeout_title')}
           </Text>
           {/* Retry Button */}
