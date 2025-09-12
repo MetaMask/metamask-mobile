@@ -829,6 +829,14 @@
       "title": "There was an error",
       "description": "There was an error processing your deposit. Please contact support if the problem persists.",
       "try_again": "Try again"
+    },
+    "errors": {
+      "fetch_regions": "There was an issue fetching the regions.",
+      "fetch_tokens": "There was an issue fetching the tokens.",
+      "fetch_payment_methods": "There was an issue fetching the payment methods.",
+      "try_again": "Try Again",
+      "error_details_title": "Error Details",
+      "see_more": "See more"
     }
   },
   "perps": {

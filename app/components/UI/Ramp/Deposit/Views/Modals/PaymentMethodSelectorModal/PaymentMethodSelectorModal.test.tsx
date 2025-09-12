@@ -3,8 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentMethodSelectorModal from './PaymentMethodSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { DepositPaymentMethod } from '@consensys/native-ramps-sdk/dist/Deposit';
-import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { MOCK_PAYMENT_METHODS } from '../../../testUtils';
 
 const mockSetPaymentMethod = jest.fn();
 const mockUseDepositSDK = jest.fn();
@@ -37,26 +36,7 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
-
-const mockPaymentMethods: DepositPaymentMethod[] = [
-  {
-    id: 'credit_debit_card',
-    name: 'Debit or Credit',
-    duration: 'instant',
-    icon: IconName.Card,
-  },
-
-  {
-    id: 'apple_pay',
-    name: 'Apple Pay',
-    duration: 'instant',
-    icon: IconName.Apple,
-    iconColor: {
-      light: '#000000',
-      dark: '#FFFFFF',
-    },
-  },
-];
+const mockPaymentMethods = MOCK_PAYMENT_METHODS;
 
 describe('PaymentMethodSelectorModal Component', () => {
   beforeEach(() => {

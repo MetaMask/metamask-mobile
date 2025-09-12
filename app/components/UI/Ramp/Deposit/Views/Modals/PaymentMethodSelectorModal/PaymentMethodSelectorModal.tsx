@@ -3,11 +3,8 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
 import Icon, {
-  IconName,
-  IconSize,
   IconColor,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
@@ -46,18 +43,17 @@ function PaymentMethodSelectorModal() {
   const listRef = useRef<FlatList>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { themeAppearance } = useTheme();
-  const { styles, theme } = useStyles(styleSheet, {
+  const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
 
-  const { paymentMethods } =
-    useParams<PaymentMethodSelectorModalParams>();
+  const { paymentMethods } = useParams<PaymentMethodSelectorModalParams>();
   const trackEvent = useAnalytics();
   const {
-    setPaymentMethod,
+    setSelectedPaymentMethod,
     selectedRegion,
     isAuthenticated,
-    paymentMethod: selectedPaymentMethod,
+    selectedPaymentMethod,
   } = useDepositSDK();
 
   const handleSelectPaymentMethodIdCallback = useCallback(
@@ -72,7 +68,7 @@ function PaymentMethodSelectorModal() {
           payment_method_id: foundPaymentMethod.id,
           is_authenticated: isAuthenticated,
         });
-        setPaymentMethod(foundPaymentMethod);
+        setSelectedPaymentMethod(foundPaymentMethod);
       }
       sheetRef.current?.onCloseBottomSheet();
     },
@@ -81,7 +77,7 @@ function PaymentMethodSelectorModal() {
       trackEvent,
       selectedRegion?.isoCode,
       isAuthenticated,
-      setPaymentMethod,
+      setSelectedPaymentMethod,
     ],
   );
 

@@ -7,40 +7,12 @@ import {
   DepositSDKProvider,
   useDepositSDK,
 } from '.';
-
-const USDC_TOKEN = {
-  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  chainId: 'eip155:1',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-};
-
-const DEPOSIT_REGIONS = [
-  {
-    isoCode: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    currency: 'USD',
-    phone: {
-      prefix: '+1',
-      placeholder: '(555) 123-4567',
-      template: '(###) ###-####',
-    },
-    supported: true,
-  },
-];
-
-const DEBIT_CREDIT_PAYMENT_METHOD = {
-  id: 'credit_debit_card',
-  name: 'Credit/Debit Card',
-  iconName: 'card',
-  duration: '2-5 minutes',
-  fees: '3.99% + network fees',
-};
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_REGIONS,
+  MOCK_CREDIT_DEBIT_CARD,
+} from '../testUtils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import {
@@ -140,6 +112,8 @@ const mockedState = {
   },
   fiatOrders: {
     selectedRegionDeposit: null,
+    selectedCryptoCurrencyDeposit: null,
+    selectedPaymentMethodDeposit: null,
     getStartedDeposit: false,
   },
 };
@@ -321,7 +295,7 @@ describe('Deposit SDK Context', () => {
   describe('Region Management', () => {
     it('initializes with region from Redux state', () => {
       const testRegion =
-        DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
+        MOCK_REGIONS.find((region) => region.isoCode === 'US') || null;
       const stateWithRegion = {
         ...mockedState,
         fiatOrders: {
@@ -378,7 +352,7 @@ describe('Deposit SDK Context', () => {
       );
 
       const newRegion =
-        DEPOSIT_REGIONS.find((region) => region.isoCode === 'CA') || null;
+        MOCK_REGIONS.find((region) => region.isoCode === 'DE') || null;
 
       act(() => {
         contextValue?.setSelectedRegion(newRegion);
@@ -579,10 +553,10 @@ describe('Deposit SDK Context', () => {
       );
 
       const newPaymentMethod = {
-        ...DEBIT_CREDIT_PAYMENT_METHOD,
+        ...MOCK_CREDIT_DEBIT_CARD,
         id: 'new-method',
       };
-      const newCryptoCurrency = { ...USDC_TOKEN, symbol: 'NEW' };
+      const newCryptoCurrency = { ...MOCK_USDC_TOKEN, symbol: 'NEW' };
 
       act(() => {
         contextValue?.setSelectedPaymentMethod(newPaymentMethod);

@@ -27,7 +27,12 @@ import {
   setFiatOrdersGetStartedDeposit,
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
+  fiatOrdersCryptoCurrencySelectorDeposit,
+  setFiatOrdersCryptoCurrencyDeposit,
+  fiatOrdersPaymentMethodSelectorDeposit,
+  setFiatOrdersPaymentMethodDeposit,
 } from '../../../../../reducers/fiatOrders';
+import { MUSD_TOKEN } from '../constants/constants';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -54,6 +59,7 @@ export interface DepositSDK {
   setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
   selectedCryptoCurrency: DepositCryptoCurrency | null;
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
+  clearAllSelections: () => void;
 }
 
 const isDevelopment =
@@ -86,7 +92,12 @@ export const DepositSDKProvider = ({
   ...props
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
-  const providerApiKey = useSelector(selectDepositProviderApiKey);
+  const providerApiKeyFromSelector = useSelector(selectDepositProviderApiKey);
+
+  // TEMPORARY DEV FIX: Use actual dev API key if none is configured
+  const providerApiKey =
+    providerApiKeyFromSelector || 'a9d9cc56-a524-4dd7-8008-59f36bd6fa97';
+
   const selectedWalletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -99,6 +110,10 @@ export const DepositSDKProvider = ({
   const INITIAL_SELECTED_REGION: DepositRegion | null = useSelector(
     fiatOrdersRegionSelectorDeposit,
   );
+  const INITIAL_SELECTED_CRYPTO_CURRENCY: DepositCryptoCurrency | null =
+    useSelector(fiatOrdersCryptoCurrencySelectorDeposit);
+  const INITIAL_SELECTED_PAYMENT_METHOD: DepositPaymentMethod | null =
+    useSelector(fiatOrdersPaymentMethodSelectorDeposit);
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
@@ -106,9 +121,11 @@ export const DepositSDKProvider = ({
   );
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<DepositPaymentMethod | null>(null);
+    useState<DepositPaymentMethod | null>(INITIAL_SELECTED_PAYMENT_METHOD);
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] =
-    useState<DepositCryptoCurrency | null>(null);
+    useState<DepositCryptoCurrency | null>(
+      INITIAL_SELECTED_CRYPTO_CURRENCY || MUSD_TOKEN,
+    );
 
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {
@@ -125,6 +142,34 @@ export const DepositSDKProvider = ({
     },
     [dispatch],
   );
+
+  const setSelectedCryptoCurrencyCallback = useCallback(
+    (cryptoCurrency: DepositCryptoCurrency | null) => {
+      setSelectedCryptoCurrency(cryptoCurrency);
+      dispatch(setFiatOrdersCryptoCurrencyDeposit(cryptoCurrency));
+    },
+    [dispatch],
+  );
+
+  const setSelectedPaymentMethodCallback = useCallback(
+    (paymentMethod: DepositPaymentMethod | null) => {
+      setSelectedPaymentMethod(paymentMethod);
+      dispatch(setFiatOrdersPaymentMethodDeposit(paymentMethod));
+    },
+    [dispatch],
+  );
+
+  const clearAllSelections = useCallback(() => {
+    // Clear local state
+    setSelectedRegion(null);
+    setSelectedCryptoCurrency(MUSD_TOKEN);
+    setSelectedPaymentMethod(null);
+
+    // Clear Redux state
+    dispatch(setFiatOrdersRegionDeposit(null));
+    dispatch(setFiatOrdersCryptoCurrencyDeposit(MUSD_TOKEN));
+    dispatch(setFiatOrdersPaymentMethodDeposit(null));
+  }, [dispatch]);
 
   useEffect(() => {
     try {
@@ -232,9 +277,10 @@ export const DepositSDKProvider = ({
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
       selectedPaymentMethod,
-      setSelectedPaymentMethod,
+      setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
-      setSelectedCryptoCurrency,
+      setSelectedCryptoCurrency: setSelectedCryptoCurrencyCallback,
+      clearAllSelections,
     }),
     [
       sdk,
@@ -251,9 +297,10 @@ export const DepositSDKProvider = ({
       selectedRegion,
       setSelectedRegionCallback,
       selectedPaymentMethod,
-      setSelectedPaymentMethod,
+      setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
-      setSelectedCryptoCurrency,
+      setSelectedCryptoCurrencyCallback,
+      clearAllSelections,
     ],
   );
 

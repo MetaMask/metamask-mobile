@@ -7,37 +7,26 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
-
-const DEPOSIT_REGIONS = [
-  {
-    isoCode: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    currency: 'USD',
-    phone: {
-      prefix: '+1',
-      placeholder: '(555) 123-4567',
-      template: '(###) ###-####',
-    },
-    supported: true,
-  },
-];
 import { endTrace } from '../../../../../../util/trace';
 import Logger from '../../../../../../util/Logger';
+import {
+  MOCK_REGIONS,
+  MOCK_US_REGION,
+  MOCK_CA_REGION,
+  FIXED_DATE,
+  FIXED_TIMESTAMP,
+  TEST_QUOTE_ID,
+  createMockSDKMethods,
+} from '../../testUtils';
 
-const mockTrackEvent = jest.fn();
-const mockPostKycForm = jest.fn();
-const mockSubmitSsnDetails = jest.fn();
-
-const FIXED_DATE = new Date(2024, 0, 1);
-const FIXED_TIMESTAMP = FIXED_DATE.getTime();
+const { mockTrackEvent, mockPostKycForm, mockSubmitSsnDetails } =
+  createMockSDKMethods();
 
 const mockQuote = {
-  quoteId: 'test-quote-id',
+  quoteId: TEST_QUOTE_ID,
 } as BuyQuote;
 
-const mockSelectedRegion = DEPOSIT_REGIONS[0];
+const mockSelectedRegion = MOCK_US_REGION;
 
 let mockUseParamsReturnValue: {
   quote: BuyQuote;
@@ -131,7 +120,7 @@ describe('BasicInfo Component', () => {
     });
 
     mockUseRegions.mockReturnValue({
-      regions: DEPOSIT_REGIONS,
+      regions: MOCK_REGIONS,
       isFetching: false,
       error: null,
     });
@@ -181,7 +170,7 @@ describe('BasicInfo Component', () => {
 
   it('snapshot matches validation errors when continue is pressed with invalid format fields for non-US region', () => {
     mockUseDepositSDK.mockReturnValue({
-      selectedRegion: { isoCode: 'CA' } as DepositRegion,
+      selectedRegion: MOCK_CA_REGION,
     });
 
     render(BasicInfo);
@@ -374,33 +363,14 @@ describe('BasicInfo Component', () => {
   });
 
   it('passes regions to DepositPhoneField component', () => {
-    // Arrange
-    const customRegions = [
-      ...DEPOSIT_REGIONS,
-      {
-        isoCode: 'CA',
-        flag: '🇨🇦',
-        name: 'Canada',
-        currency: 'CAD',
-        phone: {
-          prefix: '+1',
-          placeholder: '(555) 123-4567',
-          template: '(###) ###-####',
-        },
-        supported: true,
-      },
-    ];
+    const customRegions = [...MOCK_REGIONS, MOCK_CA_REGION];
 
     mockUseRegions.mockReturnValue({
       regions: customRegions,
       isFetching: false,
       error: null,
     });
-
-    // Act
     render(BasicInfo);
-
-    // Assert - verify the component renders with regions (snapshot will capture the regions prop)
     expect(screen.toJSON()).toMatchSnapshot();
   });
 });

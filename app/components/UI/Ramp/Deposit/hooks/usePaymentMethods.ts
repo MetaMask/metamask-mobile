@@ -10,7 +10,10 @@ export function usePaymentMethods() {
     selectedPaymentMethod,
   } = useDepositSDK();
 
-  const [{ data: paymentMethods, error, isFetching }] = useDepositSdkMethod(
+  const [
+    { data: paymentMethods, error, isFetching },
+    retryFetchPaymentMethods,
+  ] = useDepositSdkMethod(
     'getPaymentMethods',
     selectedRegion?.isoCode,
     selectedCryptoCurrency?.assetId,
@@ -18,8 +21,25 @@ export function usePaymentMethods() {
   );
 
   useEffect(() => {
-    if (paymentMethods && paymentMethods.length > 0 && !selectedPaymentMethod) {
-      setSelectedPaymentMethod(paymentMethods[0]);
+    if (paymentMethods && paymentMethods.length > 0) {
+      let newSelectedPaymentMethod: DepositPaymentMethod | null = null;
+
+      if (selectedPaymentMethod) {
+        // Find the previously selected payment method in fresh data and reapply it
+        newSelectedPaymentMethod =
+          paymentMethods.find(
+            (method) => method.id === selectedPaymentMethod.id,
+          ) || null;
+      }
+
+      if (!newSelectedPaymentMethod) {
+        // First time or previously selected method no longer available - use first
+        newSelectedPaymentMethod = paymentMethods[0];
+      }
+
+      if (newSelectedPaymentMethod) {
+        setSelectedPaymentMethod(newSelectedPaymentMethod);
+      }
     }
   }, [paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod]);
 
@@ -27,5 +47,6 @@ export function usePaymentMethods() {
     paymentMethods,
     error,
     isFetching,
+    retryFetchPaymentMethods,
   };
 }

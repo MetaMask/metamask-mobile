@@ -157,7 +157,6 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
 
           return response;
         }
-
       } catch (responseError) {
         if (abortController?.signal.aborted) {
           return;

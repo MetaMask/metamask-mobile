@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import RegionSelectorModal from './RegionSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { MOCK_REGIONS_EXTENDED, MOCK_US_REGION } from '../../../testUtils';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -33,57 +34,7 @@ const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
-const mockRegions = [
-  {
-    isoCode: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    phone: {
-      prefix: '+1',
-      placeholder: '(555) 555-1234',
-      template: '(XXX) XXX-XXXX',
-    },
-    currency: 'USD',
-    recommended: true,
-    supported: true,
-  },
-  {
-    isoCode: 'DE',
-    flag: '🇩🇪',
-    name: 'Germany',
-    phone: {
-      prefix: '+49',
-      placeholder: '123 456 7890',
-      template: 'XXX XXX XXXX',
-    },
-    currency: 'EUR',
-    supported: true,
-  },
-  {
-    isoCode: 'CA',
-    flag: '🇨🇦',
-    name: 'Canada',
-    phone: {
-      prefix: '+1',
-      placeholder: '(555) 555-1234',
-      template: '(XXX) XXX-XXXX',
-    },
-    currency: 'CAD',
-    supported: false,
-  },
-  {
-    isoCode: 'FR',
-    flag: '🇫🇷',
-    name: 'France',
-    phone: {
-      prefix: '+33',
-      placeholder: '1 23 45 67 89',
-      template: 'X XX XX XX XX',
-    },
-    currency: 'EUR',
-    supported: true,
-  },
-];
+const mockRegions = MOCK_REGIONS_EXTENDED;
 
 describe('RegionSelectorModal Component', () => {
   let mockSetSelectedRegion: jest.Mock;
@@ -99,19 +50,7 @@ describe('RegionSelectorModal Component', () => {
     ).useParams;
 
     mockUseDepositSDK.mockReturnValue({
-      selectedRegion: {
-        isoCode: 'US',
-        flag: '🇺🇸',
-        name: 'United States',
-        phone: {
-          prefix: '+1',
-          placeholder: '(555) 555-1234',
-          template: '(XXX) XXX-XXXX',
-        },
-        currency: 'USD',
-        recommended: true,
-        supported: true,
-      },
+      selectedRegion: { ...MOCK_US_REGION, recommended: true },
       setSelectedRegion: mockSetSelectedRegion,
       isAuthenticated: false,
     });
@@ -211,7 +150,11 @@ describe('RegionSelectorModal Component', () => {
         isoCode: 'GB',
         flag: '🇬🇧',
         name: 'United Kingdom',
-        phone: { prefix: '+44', placeholder: '20 7123 4567', template: 'XX XXXX XXXX' },
+        phone: {
+          prefix: '+44',
+          placeholder: '20 7123 4567',
+          template: 'XX XXXX XXXX',
+        },
         currency: 'GBP',
         supported: true,
       },
@@ -219,7 +162,11 @@ describe('RegionSelectorModal Component', () => {
         isoCode: 'AU',
         flag: '🇦🇺',
         name: 'Australia',
-        phone: { prefix: '+61', placeholder: '2 1234 5678', template: 'X XXXX XXXX' },
+        phone: {
+          prefix: '+61',
+          placeholder: '2 1234 5678',
+          template: 'X XXXX XXXX',
+        },
         currency: 'AUD',
         supported: true,
       },
