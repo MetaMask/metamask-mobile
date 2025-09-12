@@ -417,7 +417,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -555,7 +555,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -691,7 +691,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -831,7 +831,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     >
                                       Slippage
                                     </Text>
-                                    <MetamaskRewardsPointsSvg
+                                    <SvgMock
                                       color="#b7bbc8"
                                       fill="currentColor"
                                       height={16}
@@ -866,7 +866,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
