@@ -415,7 +415,7 @@ class ChoosePassword extends PureComponent {
   onPressCreate = async () => {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
+    const canSubmit = passwordsMatch;
     if (loading) return;
     if (!canSubmit) {
       if (
@@ -744,8 +744,7 @@ class ChoosePassword extends PureComponent {
     const { isSelected, password, passwordStrength, confirmPassword, loading } =
       this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit =
-      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+    const canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
     const colors = this.context.colors || mockTheme.colors;
