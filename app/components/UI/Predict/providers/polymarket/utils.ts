@@ -1,38 +1,8 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 
-import { TransactionType } from '@metamask/transaction-controller';
 import { Hex, hexToNumber } from '@metamask/utils';
 import { Interface, parseUnits } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
-import { addTransaction } from '../../../../../util/transaction-controller';
-import {
-  AMOY_CONTRACTS,
-  ClobAuthDomain,
-  EIP712Domain,
-  MATIC_CONTRACTS,
-  MSG_TO_SIGN,
-} from './constants';
-import {
-  ClobHeaders,
-  ClobOrderObject,
-  OrderData,
-  OrderSummary,
-  UtilsSide,
-  ApiKeyCreds,
-  COLLATERAL_TOKEN_DECIMALS,
-  ContractConfig,
-  L2HeaderArgs,
-  OrderResponse,
-  OrderType,
-  RoundConfig,
-  SignatureType,
-  TickSize,
-  TickSizeResponse,
-  UserMarketOrder,
-  PolymarketMarket,
-  PolymarketEvent,
-  PolymarketPosition,
-} from './types';
 import {
   Side,
   type PredictCategory,
@@ -42,6 +12,36 @@ import {
   type Recurrence,
 } from '../../types';
 import { getRecurrenceDisplay } from '../../utils/format';
+import {
+  AMOY_CONTRACTS,
+  ClobAuthDomain,
+  EIP712Domain,
+  MATIC_CONTRACTS,
+  MSG_TO_SIGN,
+} from './constants';
+import {
+  ApiKeyCreds,
+  ClobHeaders,
+  ClobOrderObject,
+  COLLATERAL_TOKEN_DECIMALS,
+  ContractConfig,
+  L2HeaderArgs,
+  OrderData,
+  OrderResponse,
+  OrderSummary,
+  OrderType,
+  PolymarketApiEvent,
+  PolymarketApiMarket,
+  PolymarketPosition,
+  RoundConfig,
+  SignatureType,
+  TickSize,
+  TickSizeResponse,
+  UserMarketOrder,
+  UtilsSide,
+} from './types';
+import { GetMarketsParams } from '../types';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export const POLYGON_MAINNET_CHAIN_ID = 137;
 export const AMOY_TESTNET_CHAIN_ID = 80002;
@@ -194,13 +194,6 @@ export const createApiKey = async ({ address }: { address: string }) => {
   }
   const apiKeyRaw = await response.json();
   return apiKeyRaw as ApiKeyCreds;
-};
-
-export const getMarket = async ({ conditionId }: { conditionId: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints({ isStaging: false });
-  const response = await fetch(`${CLOB_ENDPOINT}/markets/${conditionId}`);
-  const responseData = await response.json();
-  return responseData as PolymarketMarket;
 };
 
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
@@ -537,45 +530,6 @@ export const encodeApprove = ({
     'function approve(address spender, uint256 amount)',
   ]).encodeFunctionData('approve', [spender, amount]) as Hex;
 
-export const approveUSDCAllowance = async ({
-  address,
-  amount,
-  negRisk,
-  networkClientId,
-}: {
-  address: string;
-  amount: bigint;
-  negRisk: boolean;
-  networkClientId: string;
-}) => {
-  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
-
-  const exchangeContract = negRisk
-    ? contractConfig.negRiskExchange
-    : contractConfig.exchange;
-
-  const encodedCallData = encodeApprove({
-    spender: exchangeContract,
-    amount,
-  });
-
-  const transactionMeta = await addTransaction(
-    {
-      from: address,
-      to: contractConfig.collateral,
-      data: encodedCallData,
-      value: '0x0',
-    },
-    {
-      networkClientId,
-      type: TransactionType.tokenMethodApprove,
-      requireApproval: true,
-    },
-  );
-
-  return transactionMeta;
-};
-
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
@@ -602,13 +556,13 @@ export const submitClobOrder = async ({
 };
 
 export const parsePolymarketEvents = (
-  events: PolymarketEvent[],
+  events: PolymarketApiEvent[],
   category: PredictCategory,
 ): PredictMarket[] => {
   const parsedMarkets: PredictMarket[] = events.map(
-    (event: PolymarketEvent) => ({
-      ...event,
+    (event: PolymarketApiEvent) => ({
       id: event.id,
+      slug: event.slug,
       providerId: 'polymarket',
       title: event.title,
       description: event.description,
@@ -616,31 +570,32 @@ export const parsePolymarketEvents = (
       status: (event.closed ? 'closed' : 'open') as PredictMarketStatus,
       recurrence: getRecurrenceDisplay(event.series) as Recurrence,
       categories: [category],
-      outcomes: event.markets
-        .filter(
-          (market: PolymarketMarket) =>
-            !!market.outcomePrices && !!market.volume && !!market.clobTokenIds,
-        )
-        .map((market: PolymarketMarket) => {
-          const outcomeTokensIds = JSON.parse(market.clobTokenIds);
-          const outcomes = JSON.parse(market.outcomes);
-          const outcomePrices = JSON.parse(market.outcomePrices);
-          return {
-            id: market.conditionId,
-            marketId: event.id,
-            title: market.question,
-            description: market.description,
-            image: market.icon ?? market.image,
-            groupItemTitle: market.groupItemTitle,
-            status: (market.closed ? 'closed' : 'open') as PredictMarketStatus,
-            volume: market.volumeNum,
-            tokens: outcomeTokensIds.map((tokenId: string, index: number) => ({
-              id: tokenId,
-              title: outcomes[index],
-              price: parseFloat(outcomePrices[index]),
-            })),
-          };
-        }),
+      outcomes: event.markets.map((market: PolymarketApiMarket) => {
+        const outcomeTokensIds = market.clobTokenIds
+          ? JSON.parse(market.clobTokenIds)
+          : [];
+        const outcomes = market.outcomes ? JSON.parse(market.outcomes) : [];
+        const outcomePrices = market.outcomePrices
+          ? JSON.parse(market.outcomePrices)
+          : [];
+        return {
+          id: market.conditionId,
+          marketId: event.id,
+          title: market.question,
+          description: market.description,
+          image: market.icon ?? market.image,
+          groupItemTitle: market.groupItemTitle,
+          status: (market.closed ? 'closed' : 'open') as PredictMarketStatus,
+          volume: market.volumeNum ?? 0,
+          tokens: outcomeTokensIds.map((tokenId: string, index: number) => ({
+            id: tokenId,
+            title: outcomes[index],
+            price: parseFloat(outcomePrices[index]),
+          })),
+          negRisk: market.negRisk,
+          tickSize: market.orderPriceMinTickSize.toString(),
+        };
+      }),
     }),
   );
   return parsedMarkets;
@@ -665,4 +620,77 @@ export const parsePolymarketPositions = ({
       : 'open') as PredictPosition['status'],
   }));
   return parsedPositions;
+};
+
+export const getMarketsFromPolymarketApi = async (
+  params?: GetMarketsParams,
+): Promise<PredictMarket[]> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+  const { category = 'trending', q, limit = 20, offset = 0 } = params || {};
+  DevLogger.log(
+    'Getting markets via Polymarket API for category:',
+    category,
+    'search:',
+    q,
+    'limit:',
+    limit,
+    'offset:',
+    offset,
+  );
+
+  let queryParamsEvents = `limit=${limit}&active=true&archived=false&closed=false&ascending=false&offset=${offset}`;
+  const queryParamsSearch = `limit_per_type=${limit}&page=${
+    Math.floor(offset / limit) + 1
+  }&ascending=false`;
+
+  const categoryTagMap: Record<PredictCategory, string> = {
+    trending: '&exclude_tag_id=100639&order=volume24hr',
+    new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
+    sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
+    crypto: '&tag_slug=crypto&order=volume24hr',
+    politics: '&tag_slug=politics&order=volume24hr',
+  };
+
+  queryParamsEvents += categoryTagMap[category];
+
+  // Use search endpoint if q parameter is provided
+  const endpoint = q
+    ? `${GAMMA_API_ENDPOINT}/public-search?q=${encodeURIComponent(
+        q,
+      )}&${queryParamsSearch}`
+    : `${GAMMA_API_ENDPOINT}/events/pagination?${queryParamsEvents}`;
+
+  const response = await fetch(endpoint);
+  const data = await response.json();
+
+  DevLogger.log('Polymarket response data:', data);
+
+  // Handle different response structures
+  const events = q ? data?.events : data?.data;
+
+  if (!events || !Array.isArray(events)) {
+    return [];
+  }
+
+  const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
+    events,
+    category,
+  );
+
+  return parsedMarkets;
+};
+
+export const getMarketFromPolymarketApi = async ({
+  conditionId,
+}: {
+  conditionId: string;
+}) => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints({ isStaging: false });
+  const response = await fetch(
+    `${GAMMA_API_ENDPOINT}/markets?condition_ids=${conditionId}`,
+  );
+  const responseData = await response.json();
+  const market = responseData[0];
+  return market as PolymarketApiMarket;
 };

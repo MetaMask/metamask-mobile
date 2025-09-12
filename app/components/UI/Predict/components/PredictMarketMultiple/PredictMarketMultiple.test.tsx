@@ -15,6 +15,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock hooks
+const mockPlaceBuyOrder = jest.fn();
+const mockUsePredictBuy = jest.fn();
+
+jest.mock('../../hooks/usePredictBuy', () => ({
+  usePredictBuy: () => mockUsePredictBuy(),
+}));
+
 const mockMarket: PredictMarket = {
   id: 'test-market-1',
   providerId: 'test-provider',
@@ -50,9 +58,22 @@ const initialState = {
 };
 
 describe('PredictMarket', () => {
+  beforeEach(() => {
+    mockUsePredictBuy.mockReturnValue({
+      placeBuyOrder: mockPlaceBuyOrder,
+      loading: false,
+      currentOrder: null,
+      result: null,
+      completed: false,
+      error: undefined,
+      isOrderLoading: jest.fn(() => false),
+      reset: jest.fn(),
+    });
+  });
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockPlaceBuyOrder.mockClear();
   });
 
   it('should render market information correctly', () => {
@@ -70,7 +91,7 @@ describe('PredictMarket', () => {
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('should navigate to market details when buttons are pressed', () => {
+  it('should call placeBuyOrder when buttons are pressed', () => {
     const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictMarketMultiple market={mockMarket} />,
       { state: initialState },
@@ -79,10 +100,20 @@ describe('PredictMarket', () => {
     const buttons = UNSAFE_getAllByType(Button);
 
     fireEvent.press(buttons[0]);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictMarketDetails');
+    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
+      amount: 1,
+      outcomeId: mockMarket.outcomes[0].id,
+      outcomeTokenId: mockMarket.outcomes[0].tokens[0].id,
+      market: mockMarket,
+    });
 
     fireEvent.press(buttons[1]);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictMarketDetails');
+    expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
+      amount: 1,
+      outcomeId: mockMarket.outcomes[0].id,
+      outcomeTokenId: mockMarket.outcomes[0].tokens[1].id,
+      market: mockMarket,
+    });
   });
 
   it('should handle missing or invalid market data gracefully', () => {
@@ -93,7 +124,10 @@ describe('PredictMarket', () => {
           ...mockMarket.outcomes[0],
           groupItemTitle: '',
           volume: 0,
-          tokens: [],
+          tokens: [
+            { id: 'token-empty-yes', title: '', price: 0 },
+            { id: 'token-empty-no', title: '', price: 0 },
+          ],
         },
       ],
     };

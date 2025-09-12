@@ -3,35 +3,37 @@ import {
   BaseController,
   type RestrictedMessenger,
 } from '@metamask/base-controller';
-import { successfulFetch } from '@metamask/controller-utils';
+import {
+  isEqualCaseInsensitive,
+  successfulFetch,
+} from '@metamask/controller-utils';
+import {
+  SignTypedDataVersion,
+  TypedMessageParams,
+} from '@metamask/keyring-controller';
 import { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
-  TransactionType,
 } from '@metamask/transaction-controller';
-import { numberToHex } from '@metamask/utils';
+import { Hex, numberToHex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { addTransaction } from '../../../../util/transaction-controller';
+import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { GetMarketsParams, PredictProvider } from '../providers/types';
 import {
   BuyParams,
-  PredictMarket,
-  PredictPosition,
-  ToggleTestnetResult,
   GetPositionsParams,
-  Result,
-  PredictOrder,
   OffchainTradeResponse,
+  PredictMarket,
+  PredictOrder,
+  PredictPosition,
+  Result,
+  ToggleTestnetResult,
 } from '../types';
 import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
-import {
-  SignTypedDataVersion,
-  TypedMessageParams,
-} from '@metamask/keyring-controller';
 
 /**
  * Get environment type for geo-blocking URLs
@@ -53,6 +55,8 @@ export const PREDICT_ERROR_CODES = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
   PLACE_BUY_ORDER_FAILED: 'PLACE_BUY_ORDER_FAILED',
   SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED: 'SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED',
+  NO_ONCHAIN_TRADE_PARAMS: 'NO_ONCHAIN_TRADE_PARAMS',
+  ONCHAIN_TRANSACTION_NOT_FOUND: 'ONCHAIN_TRANSACTION_NOT_FOUND',
 } as const;
 
 export type PredictErrorCode =
@@ -281,37 +285,90 @@ export class PredictController extends BaseController<
   private async handleTransactionConfirmed(
     _txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0],
   ): Promise<void> {
-    const activeOrder = this.state.activeOrders[_txMeta.id];
+    const batchId = _txMeta.batchId;
 
-    if (activeOrder) {
-      const provider = this.providers.get(activeOrder.providerId);
-      if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-      }
-
-      if (activeOrder.offchainTradeParams) {
-        if (!provider.submitOffchainTrade) {
-          throw new Error(
-            PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED,
-          );
-        }
-        const { clobOrder, headers } = activeOrder.offchainTradeParams;
-        const { success, response } = (await provider.submitOffchainTrade({
-          clobOrder,
-          headers,
-        })) as OffchainTradeResponse;
-
-        this.update((state) => {
-          state.activeOrders[_txMeta.id].status = success ? 'filled' : 'error';
-          state.activeOrders[_txMeta.id].error =
-            (response as { error: string }).error ?? 'Unknown error';
-        });
-      } else {
-        this.update((state) => {
-          state.activeOrders[_txMeta.id].status = 'filled';
-        });
-      }
+    if (!batchId) {
+      return;
     }
+
+    const activeOrder = this.state.activeOrders[batchId];
+
+    if (!activeOrder) {
+      return;
+    }
+
+    const provider = this.providers.get(activeOrder.providerId);
+    if (!provider) {
+      this.update((state) => {
+        state.activeOrders[batchId].status = 'error';
+        state.activeOrders[batchId].error =
+          PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
+      });
+      return;
+    }
+
+    const onchainTransactionIndex = activeOrder.onchainTradeParams.findIndex(
+      (tx) => isEqualCaseInsensitive(tx.data, _txMeta.txParams.data ?? ''),
+    );
+
+    const onchainTransactionNotFound = onchainTransactionIndex === -1;
+
+    if (onchainTransactionNotFound) {
+      this.update((state) => {
+        state.activeOrders[batchId].status = 'error';
+        state.activeOrders[batchId].error =
+          PREDICT_ERROR_CODES.ONCHAIN_TRANSACTION_NOT_FOUND;
+      });
+      return;
+    }
+
+    this.update((state) => {
+      state.activeOrders[batchId].onchainTradeParams[
+        onchainTransactionIndex
+      ].transactionId = _txMeta.id;
+    });
+
+    const isLastPendingTransaction =
+      activeOrder.onchainTradeParams.filter((tx) => !tx.transactionId)
+        .length === 1;
+
+    if (!isLastPendingTransaction) {
+      return;
+    }
+
+    const { offchainTradeParams } = activeOrder;
+
+    if (!offchainTradeParams) {
+      this.update((state) => {
+        state.activeOrders[batchId].status = 'filled';
+      });
+      return;
+    }
+
+    if (!provider.submitOffchainTrade) {
+      this.update((state) => {
+        state.activeOrders[batchId].status = 'error';
+        state.activeOrders[batchId].error =
+          PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED;
+      });
+      return;
+    }
+
+    const { clobOrder, headers } = offchainTradeParams;
+    const { success, response } = (await provider.submitOffchainTrade?.({
+      clobOrder,
+      headers,
+    })) as OffchainTradeResponse;
+
+    const status = success ? 'filled' : 'error';
+    const error = !success
+      ? (response as { error: string }).error ?? 'Unknown error'
+      : undefined;
+
+    this.update((state) => {
+      state.activeOrders[batchId].status = status;
+      state.activeOrders[batchId].error = error;
+    });
   }
 
   /**
@@ -468,14 +525,13 @@ export class PredictController extends BaseController<
   }
 
   async buy({
-    marketId,
+    market,
     outcomeId,
     outcomeTokenId,
     amount,
-    providerId,
   }: BuyParams): Promise<Result> {
     try {
-      const provider = this.providers.get(providerId);
+      const provider = this.providers.get(market.providerId);
       if (!provider) {
         throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
       }
@@ -493,44 +549,47 @@ export class PredictController extends BaseController<
             version: SignTypedDataVersion,
           ) => KeyringController.signTypedMessage(params, version),
         },
-        marketId,
         outcomeId,
         outcomeTokenId,
         amount,
         isBuy: true,
+        market,
       });
 
-      const { chainId, to, data, value } = order.onchainTradeParams;
+      if (order.onchainTradeParams.length === 0) {
+        throw new Error(PREDICT_ERROR_CODES.NO_ONCHAIN_TRADE_PARAMS);
+      }
+
+      const { chainId } = order;
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         numberToHex(chainId),
       );
 
-      const { transactionMeta } = await addTransaction(
-        {
-          from: selectedAddress,
-          to,
-          data,
-          value,
-        },
-        {
-          networkClientId,
-          type: TransactionType.contractInteraction,
-          requireApproval: true,
-        },
-      );
+      const { batchId } = await addTransactionBatch({
+        from: selectedAddress as Hex,
+        networkClientId,
+        transactions: order.onchainTradeParams.map((tx) => ({
+          params: {
+            to: tx.to as Hex,
+            data: tx.data as Hex,
+            value: tx.value as Hex,
+          },
+        })),
+        disable7702: true,
+        disableHook: true,
+        disableSequential: false,
+        requireApproval: true,
+      });
 
       this.update((state) => {
-        state.activeOrders[transactionMeta.id] = order;
-        state.activeOrders[transactionMeta.id].onchainTradeParams.txMeta =
-          transactionMeta;
-        state.activeOrders[transactionMeta.id].status = 'pending';
+        state.activeOrders[batchId] = order;
+        state.activeOrders[batchId].status = 'pending';
       });
 
       return {
         success: true,
-        error: undefined,
-        transactionId: transactionMeta.id,
+        id: batchId,
       };
     } catch (error) {
       return {
@@ -539,7 +598,7 @@ export class PredictController extends BaseController<
           error instanceof Error
             ? error.message
             : PREDICT_ERROR_CODES.PLACE_BUY_ORDER_FAILED,
-        transactionId: undefined,
+        id: undefined,
       };
     }
   }
@@ -651,5 +710,15 @@ export class PredictController extends BaseController<
         state.isEligible = isEligible;
       });
     }
+  }
+
+  /**
+   * Test utility method to update state for testing purposes
+   * @param updater - Function that updates the state
+   */
+  public updateStateForTesting(
+    updater: (state: PredictControllerState) => void,
+  ): void {
+    this.update(updater);
   }
 }

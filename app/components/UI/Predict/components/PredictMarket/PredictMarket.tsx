@@ -4,8 +4,9 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Alert, Image, View } from 'react-native';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -18,34 +19,28 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictBuy } from '../../hooks/usePredictBuy';
-import { usePredictOrder } from '../../hooks/usePredictOrder';
-import { PredictOutcome } from '../../types';
+import { PredictMarket as PredictMarketType } from '../../types';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarket.styles';
-import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+
 interface PredictMarketProps {
-  outcome: PredictOutcome;
-  providerId: string;
+  market: PredictMarketType;
 }
 
-const PredictMarket: React.FC<PredictMarketProps> = ({
-  outcome,
-  providerId,
-}) => {
+const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
+  const outcome = market.outcomes[0];
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const { placeBuyOrder, isPlacing, currentOrder, lastResult, reset } =
-    usePredictBuy();
-  const { status, error } = usePredictOrder(lastResult?.transactionId);
-
-  useEffect(() => {
-    if (status === 'filled') {
+  const { placeBuyOrder, reset, loading, isOrderLoading } = usePredictBuy({
+    onError: (error) => {
+      Alert.alert('Order failed', error);
+      reset();
+    },
+    onComplete: () => {
       Alert.alert('Order confirmed');
       reset();
-    } else if (status === 'error') {
-      Alert.alert('Order failed', (error as string) ?? 'Unknown error');
-    }
-  }, [status, reset, error]);
+    },
+  });
 
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
@@ -69,20 +64,18 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   const handleYes = () => {
     placeBuyOrder({
       amount: 1,
-      marketId: outcome.marketId,
       outcomeId: outcome.id,
       outcomeTokenId: outcome.tokens[0].id,
-      providerId,
+      market,
     });
   };
 
   const handleNo = () => {
     placeBuyOrder({
       amount: 1,
-      marketId: outcome.marketId,
       outcomeId: outcome.id,
       outcomeTokenId: outcome.tokens[1].id,
-      providerId,
+      market,
     });
   };
 
@@ -217,10 +210,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
           }
           onPress={handleYes}
           style={styles.buttonYes}
-          disabled={isPlacing}
-          loading={
-            currentOrder?.outcomeTokenId === outcome.tokens[0].id && isPlacing
-          }
+          disabled={loading}
+          loading={isOrderLoading(outcome.tokens[0].id)}
         />
         <Button
           variant={ButtonVariants.Secondary}
@@ -233,10 +224,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
           }
           onPress={handleNo}
           style={styles.buttonNo}
-          disabled={isPlacing}
-          loading={
-            currentOrder?.outcomeId === outcome.tokens[1].id && isPlacing
-          }
+          disabled={loading}
+          loading={isOrderLoading(outcome.tokens[1].id)}
         />
       </View>
       <View style={styles.marketFooter}>

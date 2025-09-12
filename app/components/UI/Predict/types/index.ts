@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-// ESLint override: BaseController requires 'type' for Json compatibility, not 'interface'
-import type { TransactionMeta } from '@metamask/transaction-controller';
 
+// ESLint override: BaseController requires 'type' for Json compatibility, not 'interface'
 export type ToggleTestnetResult = {
   success: boolean;
   isTestnet: boolean;
@@ -37,7 +36,7 @@ export type OnchainTradeParams = {
   data: string;
   value: string;
   chainId: number;
-  txMeta?: TransactionMeta;
+  transactionId?: string;
 };
 
 // This is provider-specific
@@ -63,6 +62,7 @@ export type PredictOrderStatus =
 export type PredictOrder = {
   id: string;
   providerId: string;
+  chainId: number;
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
@@ -73,7 +73,7 @@ export type PredictOrder = {
   error?: string;
   timestamp: number;
   lastUpdated: number;
-  onchainTradeParams: OnchainTradeParams;
+  onchainTradeParams: OnchainTradeParams[];
   offchainTradeParams?: OffchainTradeParams;
 };
 
@@ -91,8 +91,6 @@ export type PredictMarket = {
 };
 
 export type PredictSeries = {
-  id: string;
-  title: string;
   recurrence: string;
 };
 
@@ -113,6 +111,8 @@ export type PredictOutcome = {
   tokens: PredictOutcomeToken[];
   volume: number;
   groupItemTitle: string;
+  negRisk?: boolean;
+  tickSize?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -185,8 +185,7 @@ export type PredictPosition = {
 };
 
 export interface BuyParams {
-  providerId: string;
-  marketId: string;
+  market: PredictMarket;
   outcomeId: string;
   outcomeTokenId: string;
   amount: number;
@@ -194,7 +193,7 @@ export interface BuyParams {
 
 export type Result<T = void> = {
   success: boolean;
-  transactionId?: string;
+  id?: string;
   error?: string;
   value?: T;
 };

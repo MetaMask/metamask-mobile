@@ -1,10 +1,13 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
-import Button from '../../../../../component-library/components/Buttons/Button';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictOutcome } from '../../types';
+import {
+  PredictOutcome,
+  Recurrence,
+  PredictMarket as PredictMarketType,
+} from '../../types';
 import PredictMarket from './';
 
 // Mock Alert
@@ -14,14 +17,9 @@ jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 // Mock hooks
 const mockPlaceBuyOrder = jest.fn();
 const mockUsePredictBuy = jest.fn();
-const mockUsePredictOrder = jest.fn();
 
 jest.mock('../../hooks/usePredictBuy', () => ({
   usePredictBuy: () => mockUsePredictBuy(),
-}));
-
-jest.mock('../../hooks/usePredictOrder', () => ({
-  usePredictOrder: () => mockUsePredictOrder(),
 }));
 
 const mockOutcome: PredictOutcome = {
@@ -45,9 +43,22 @@ const mockOutcome: PredictOutcome = {
   ],
   volume: 1000000,
   groupItemTitle: 'Crypto Markets',
+  negRisk: false,
+  tickSize: '0.01',
 };
 
-const mockProviderId = 'test-provider';
+const mockMarket: PredictMarketType = {
+  id: 'test-market-1',
+  providerId: 'test-provider',
+  slug: 'bitcoin-price-prediction',
+  title: 'Will Bitcoin reach $150,000 by end of year?',
+  description: 'Bitcoin price prediction market',
+  image: 'https://example.com/bitcoin.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  categories: ['crypto'],
+  outcomes: [mockOutcome],
+};
 
 const initialState = {
   engine: {
@@ -59,16 +70,13 @@ describe('PredictMarket', () => {
   beforeEach(() => {
     mockUsePredictBuy.mockReturnValue({
       placeBuyOrder: mockPlaceBuyOrder,
-      isPlacing: false,
+      loading: false,
       currentOrder: null,
-      lastResult: null,
+      result: null,
+      completed: false,
+      error: undefined,
+      isOrderLoading: jest.fn(() => false),
       reset: jest.fn(),
-    });
-
-    mockUsePredictOrder.mockReturnValue({
-      status: 'idle',
-      currentTxHash: null,
-      error: null,
     });
   });
 
@@ -80,7 +88,7 @@ describe('PredictMarket', () => {
 
   it('should render market information correctly', () => {
     const { getByText } = renderWithProvider(
-      <PredictMarket outcome={mockOutcome} providerId={mockProviderId} />,
+      <PredictMarket market={mockMarket} />,
       { state: initialState },
     );
 
@@ -93,56 +101,49 @@ describe('PredictMarket', () => {
   });
 
   it('should call placeBuyOrder when buttons are pressed', () => {
-    const { UNSAFE_getAllByType } = renderWithProvider(
-      <PredictMarket outcome={mockOutcome} providerId={mockProviderId} />,
+    const { getByText } = renderWithProvider(
+      <PredictMarket market={mockMarket} />,
       { state: initialState },
     );
 
-    const buttons = UNSAFE_getAllByType(Button);
+    const yesButton = getByText('Buy Yes');
+    const noButton = getByText('Buy No');
 
-    fireEvent.press(buttons[0]); // Yes button
+    fireEvent.press(yesButton);
     expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
       amount: 1,
-      marketId: mockOutcome.marketId,
       outcomeId: mockOutcome.id,
       outcomeTokenId: mockOutcome.tokens[0].id,
-      providerId: mockProviderId,
+      market: mockMarket,
     });
 
-    fireEvent.press(buttons[1]); // No button
+    fireEvent.press(noButton);
     expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
       amount: 1,
-      marketId: mockOutcome.marketId,
       outcomeId: mockOutcome.id,
       outcomeTokenId: mockOutcome.tokens[1].id,
-      providerId: mockProviderId,
+      market: mockMarket,
     });
   });
 
   it('should handle missing or invalid market data gracefully', () => {
-    const outcomeWithMissingData: PredictOutcome = {
+    const invalidOutcome: PredictOutcome = {
       ...mockOutcome,
-      title: undefined as unknown as string,
-      volume: 0,
+      title: null as unknown as string, // This should trigger "Unknown Market"
       tokens: [
-        {
-          id: 'token-empty-yes',
-          title: 'Yes',
-          price: 0,
-        },
-        {
-          id: 'token-empty-no',
-          title: 'No',
-          price: 0,
-        },
+        { id: 'token-yes', title: 'Yes', price: 0 }, // Empty tokens with 0 prices
+        { id: 'token-no', title: 'No', price: 0 },
       ],
+      volume: 0,
+    };
+
+    const invalidMarket: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [invalidOutcome],
     };
 
     const { getByText } = renderWithProvider(
-      <PredictMarket
-        outcome={outcomeWithMissingData}
-        providerId={mockProviderId}
-      />,
+      <PredictMarket market={invalidMarket} />,
       { state: initialState },
     );
 

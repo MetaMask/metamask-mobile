@@ -1,16 +1,3 @@
-import React from 'react';
-import { Image, View } from 'react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PredictMarketMultiple.styles';
 import {
   Box,
   BoxAlignItems,
@@ -18,15 +5,27 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Alert, Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Routes from '../../../../../constants/navigation/Routes';
-import { PredictMarket } from '../../types';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { PredictMarket, PredictOutcome } from '../../types';
 import { formatVolume } from '../../utils/format';
+import styleSheet from './PredictMarketMultiple.styles';
 interface PredictMarketMultipleProps {
   market: PredictMarket;
 }
@@ -34,9 +33,18 @@ interface PredictMarketMultipleProps {
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
 }) => {
-  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
+  const { placeBuyOrder, reset, loading, isOrderLoading } = usePredictBuy({
+    onError: (error) => {
+      Alert.alert('Order failed', error);
+      reset();
+    },
+    onComplete: () => {
+      Alert.alert('Order confirmed');
+      reset();
+    },
+  });
 
   const getFirstOutcomePrice = (
     outcomePrices?: number[],
@@ -66,13 +74,32 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     return sum + volume;
   }, 0);
 
+  const handleYes = (outcome: PredictOutcome) => {
+    placeBuyOrder({
+      amount: 1,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcome.tokens[0].id,
+      market,
+    });
+  };
+
+  const handleNo = (outcome: PredictOutcome) => {
+    placeBuyOrder({
+      amount: 1,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcome.tokens[1].id,
+      market,
+    });
+  };
+
   const totalVolumeDisplay = formatVolume(totalVolume);
 
-  const truncateLabel = (label: string): string => label.length > 3 ? `${label.substring(0, 3)}.` : label;
+  const truncateLabel = (label: string): string =>
+    label.length > 3 ? `${label.substring(0, 3)}.` : label;
 
   return (
     <View style={styles.marketContainer}>
-      <Box key={market.id}>
+      <Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -100,7 +127,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           const outcomeLabels = outcome.tokens.map((token) => token.title);
           return (
             <Box
-              key={`${market.id}`}
+              key={`${outcome.id}`}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               twClassName="py-1 gap-4"
@@ -136,10 +163,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                       {truncateLabel(outcomeLabels[0])}
                     </Text>
                   }
-                  onPress={() =>
-                    navigation.navigate(Routes.PREDICT.MARKET_DETAILS)
-                  }
+                  onPress={() => handleYes(outcome)}
                   style={styles.buttonYes}
+                  disabled={loading}
+                  loading={isOrderLoading(outcome.tokens[0].id)}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
@@ -150,10 +177,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                       {truncateLabel(outcomeLabels[1])}
                     </Text>
                   }
-                  onPress={() =>
-                    navigation.navigate(Routes.PREDICT.MARKET_DETAILS)
-                  }
+                  onPress={() => handleNo(outcome)}
                   style={styles.buttonNo}
+                  disabled={loading}
+                  loading={isOrderLoading(outcome.tokens[1].id)}
                 />
               </Box>
             </Box>

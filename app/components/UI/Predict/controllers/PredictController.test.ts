@@ -10,15 +10,15 @@ import {
   DEFAULT_GEO_BLOCKED_REGIONS,
 } from './PredictController';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { addTransaction } from '../../../../util/transaction-controller';
+import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
 
-// Mock transaction controller addTransaction
+// Mock transaction controller addTransactionBatch
 jest.mock('../../../../util/transaction-controller', () => ({
-  addTransaction: jest.fn(),
+  addTransactionBatch: jest.fn(),
 }));
 
 // Mock Engine
@@ -295,6 +295,19 @@ describe('PredictController', () => {
     });
   });
   describe('placeOrder', () => {
+    const mockMarket = {
+      id: 'market-1',
+      providerId: 'polymarket',
+      slug: 'test-market',
+      title: 'Test Market',
+      description: 'A test market for prediction',
+      image: 'test-image.png',
+      status: 'open' as const,
+      recurrence: 'once' as any,
+      categories: [],
+      outcomes: [],
+    };
+
     it('should place order via provider, connect if needed, and track active order (polymarket approving)', async () => {
       const mockTxMeta = { id: 'tx-1' } as any;
       await withController(async ({ controller }) => {
@@ -304,7 +317,6 @@ describe('PredictController', () => {
         mockPolymarketProvider.prepareOrder.mockResolvedValue({
           id: 'order-1',
           providerId: 'polymarket',
-          marketId: 'm1',
           outcomeId: 'o1',
           outcomeTokenId: 'ot1',
           isBuy: true,
@@ -313,24 +325,24 @@ describe('PredictController', () => {
           status: 'idle',
           timestamp: Date.now(),
           lastUpdated: Date.now(),
-          onchainTradeParams: {
-            data: '0xdeadbeef',
-            to: '0x000000000000000000000000000000000000dead',
-            chainId: 1,
-            from: '0x1234567890123456789012345678901234567890',
-            value: '0x0',
-          },
+          onchainTradeParams: [
+            {
+              data: '0xdeadbeef',
+              to: '0x000000000000000000000000000000000000dead',
+              value: '0x0',
+            },
+          ],
           offchainTradeParams: {},
+          chainId: 1,
         } as any);
 
-        // Mock addTransaction to return our txMeta
-        (addTransaction as jest.Mock).mockResolvedValue({
-          transactionMeta: mockTxMeta,
+        // Mock addTransactionBatch to return our batchId
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockTxMeta.id,
         });
 
         const result = await controller.buy({
-          providerId: 'polymarket',
-          marketId: 'm1',
+          market: mockMarket,
           outcomeId: 'o1',
           outcomeTokenId: 'ot1',
           amount: 1,
@@ -338,7 +350,7 @@ describe('PredictController', () => {
 
         expect(mockPolymarketProvider.prepareOrder).toHaveBeenCalledWith(
           expect.objectContaining({
-            marketId: 'm1',
+            market: mockMarket,
             outcomeId: 'o1',
             outcomeTokenId: 'ot1',
             amount: 1,
@@ -351,8 +363,7 @@ describe('PredictController', () => {
 
         expect(result).toEqual({
           success: true,
-          error: undefined,
-          transactionId: mockTxMeta.id,
+          id: mockTxMeta.id,
         });
 
         expect(controller.state.activeOrders[mockTxMeta.id]).toBeDefined();
@@ -370,7 +381,6 @@ describe('PredictController', () => {
         mockPolymarketProvider.prepareOrder.mockResolvedValue({
           id: 'order-2',
           providerId: 'polymarket',
-          marketId: 'm2',
           outcomeId: 'o2',
           outcomeTokenId: 'ot2',
           isBuy: true,
@@ -379,23 +389,23 @@ describe('PredictController', () => {
           status: 'idle',
           timestamp: Date.now(),
           lastUpdated: Date.now(),
-          onchainTradeParams: {
-            data: '0xdeadbeef',
-            to: '0x000000000000000000000000000000000000dead',
-            chainId: 1,
-            from: '0x1234567890123456789012345678901234567890',
-            value: '0x0',
-          },
+          onchainTradeParams: [
+            {
+              data: '0xdeadbeef',
+              to: '0x000000000000000000000000000000000000dead',
+              value: '0x0',
+            },
+          ],
           offchainTradeParams: {},
+          chainId: 1,
         } as any);
 
-        (addTransaction as jest.Mock).mockResolvedValue({
-          transactionMeta: mockTxMeta,
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockTxMeta.id,
         });
 
         await controller.buy({
-          providerId: 'polymarket',
-          marketId: 'm2',
+          market: mockMarket,
           outcomeId: 'o2',
           outcomeTokenId: 'ot2',
           amount: 2,
@@ -415,8 +425,7 @@ describe('PredictController', () => {
         mockPolymarketProvider.prepareOrder.mockResolvedValue(undefined as any);
 
         const result = await controller.buy({
-          providerId: 'polymarket',
-          marketId: 'm3',
+          market: mockMarket,
           outcomeId: 'o3',
           outcomeTokenId: 'ot3',
           amount: 3,
@@ -428,8 +437,8 @@ describe('PredictController', () => {
     });
   });
 
-  describe('transaction event handlers (no-ops for now)', () => {
-    it('should not modify state on transactionSubmitted', () => {
+  describe('transaction event handlers', () => {
+    it('should not modify state on transactionSubmitted for unknown transaction', () => {
       withController(({ controller, messenger }) => {
         const initial = { ...controller.state };
         const event = {
@@ -451,14 +460,50 @@ describe('PredictController', () => {
       });
     });
 
-    it('should not modify state on transactionConfirmed', () => {
+    it('should update transaction ID in active order on transactionConfirmed', () => {
       withController(({ controller, messenger }) => {
-        const initial = { ...controller.state };
+        // Set up an active order with onchain trade params
+        const batchId = 'batch-1';
+        const txData = '0xdeadbeef';
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm1',
+            outcomeId: 'o1',
+            outcomeTokenId: 'ot1',
+            isBuy: true,
+            amount: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: txData,
+                to: '0x123',
+                value: '0x0',
+                // transactionId should be undefined initially
+              },
+            ],
+            offchainTradeParams: undefined,
+            chainId: 1,
+          };
+        });
+
         const event = {
           id: 'tx1',
           hash: '0xabc',
           status: 'confirmed',
-          txParams: { from: '0x1', to: '0x2', value: '0x0' },
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: txData,
+            value: '0x0',
+          },
         };
 
         messenger.publish(
@@ -467,25 +512,328 @@ describe('PredictController', () => {
           event,
         );
 
-        expect(controller.state).toEqual(initial);
+        expect(
+          controller.state.activeOrders[batchId].onchainTradeParams[0]
+            .transactionId,
+        ).toBe('tx1');
       });
     });
 
-    it('should not modify state on transactionFailed', () => {
+    it('should set order status to filled when all onchain transactions are confirmed (no offchain trade)', () => {
       withController(({ controller, messenger }) => {
-        const initial = { ...controller.state };
+        const batchId = 'batch-2';
+        const txData = '0xdeadbeef';
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm2',
+            outcomeId: 'o2',
+            outcomeTokenId: 'ot2',
+            isBuy: true,
+            amount: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: txData,
+                to: '0x123',
+                value: '0x0',
+                // No transactionId initially - this is the last pending transaction
+              },
+            ],
+            offchainTradeParams: undefined,
+            chainId: 1,
+          };
+        });
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: txData,
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        expect(controller.state.activeOrders[batchId].status).toBe('filled');
+      });
+    });
+
+    it('should submit offchain trade when all onchain transactions are confirmed', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const batchId = 'batch-3';
+        const txData = '0xdeadbeef';
+
+        // Mock the provider's submitOffchainTrade method
+        mockPolymarketProvider.submitOffchainTrade = jest
+          .fn()
+          .mockResolvedValue({
+            success: true,
+            response: { orderId: 'offchain-1' },
+          });
+
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm3',
+            outcomeId: 'o3',
+            outcomeTokenId: 'ot3',
+            isBuy: true,
+            amount: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: txData,
+                to: '0x123',
+                value: '0x0',
+                // No transactionId initially - this is the last pending transaction
+              },
+            ],
+            offchainTradeParams: {
+              clobOrder: { orderId: 'clob-1' },
+              headers: { auth: 'token' },
+            },
+            chainId: 1,
+          };
+        });
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: txData,
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // Wait for the async operation to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(mockPolymarketProvider.submitOffchainTrade).toHaveBeenCalledWith(
+          {
+            clobOrder: { orderId: 'clob-1' },
+            headers: { auth: 'token' },
+          },
+        );
+      });
+    });
+
+    it('should set order status to error when offchain trade fails', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const batchId = 'batch-4';
+        const txData = '0xdeadbeef';
+
+        // Mock the provider's submitOffchainTrade method to fail
+        mockPolymarketProvider.submitOffchainTrade = jest
+          .fn()
+          .mockResolvedValue({
+            success: false,
+            response: { error: 'Offchain trade failed' },
+          });
+
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm4',
+            outcomeId: 'o4',
+            outcomeTokenId: 'ot4',
+            isBuy: true,
+            amount: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: txData,
+                to: '0x123',
+                value: '0x0',
+                // No transactionId initially - this is the last pending transaction
+              },
+            ],
+            offchainTradeParams: {
+              clobOrder: { orderId: 'clob-1' },
+              headers: { auth: 'token' },
+            },
+            chainId: 1,
+          };
+        });
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: txData,
+            value: '0x0',
+          },
+        };
+
+        // Publish the event and wait for async operations
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // Wait for the async operation to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(controller.state.activeOrders[batchId].status).toBe('error');
+        expect(controller.state.activeOrders[batchId].error).toBe(
+          'Offchain trade failed',
+        );
+      });
+    });
+
+    it('should set order status to error when transaction not found in onchain params', () => {
+      withController(({ controller, messenger }) => {
+        const batchId = 'batch-5';
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm5',
+            outcomeId: 'o5',
+            outcomeTokenId: 'ot5',
+            isBuy: true,
+            amount: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: '0x111111',
+                to: '0x123',
+                value: '0x0',
+              },
+            ],
+            offchainTradeParams: undefined,
+            chainId: 1,
+          };
+        });
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: '0x222222', // Different data than in onchain params
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        expect(controller.state.activeOrders[batchId].status).toBe('error');
+        expect(controller.state.activeOrders[batchId].error).toBe(
+          'ONCHAIN_TRANSACTION_NOT_FOUND',
+        );
+      });
+    });
+
+    it('should set order status to error on transactionFailed', () => {
+      withController(({ controller, messenger }) => {
+        const batchId = 'batch-6';
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm1',
+            chainId: 1,
+            outcomeId: 'o6',
+            outcomeTokenId: 'ot6',
+            isBuy: true,
+            amount: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [],
+            offchainTradeParams: undefined,
+          };
+        });
+
         const event = {
           transactionMeta: {
-            id: 'tx1',
+            id: batchId,
             hash: '0xabc',
             status: 'failed',
-            error: { message: 'fail' },
+            error: { message: 'Transaction failed' },
             txParams: { from: '0x1', to: '0x2', value: '0x0' },
           },
         };
 
         messenger.publish(
           'TransactionController:transactionFailed',
+          // @ts-ignore
+          event,
+        );
+
+        expect(controller.state.activeOrders[batchId].status).toBe('error');
+      });
+    });
+
+    it('should not modify state on transactionConfirmed for unknown batchId', () => {
+      withController(({ controller, messenger }) => {
+        const initial = { ...controller.state };
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId: 'unknown-batch',
+          txParams: { from: '0x1', to: '0x2', value: '0x0' },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
           // @ts-ignore
           event,
         );

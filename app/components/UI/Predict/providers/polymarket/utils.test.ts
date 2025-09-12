@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
-import { addTransaction } from '../../../../../util/transaction-controller';
+import { PredictCategory, Side } from '../../types';
 import {
   AMOY_CONTRACTS,
   ClobAuthDomain,
@@ -11,7 +10,6 @@ import {
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
 } from './constants';
-import { Side } from '../../types';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -21,44 +19,50 @@ import {
   OrderResponse,
   OrderSummary,
   OrderType,
+  PolymarketApiEvent,
+  PolymarketApiMarket,
+  PolymarketPosition,
   RoundConfig,
   SignatureType,
   TickSizeResponse,
   UserMarketOrder,
   UtilsSide,
 } from './types';
+import { GetMarketsParams } from '../types';
 import {
-  POLYGON_MAINNET_CHAIN_ID,
   AMOY_TESTNET_CHAIN_ID,
-  getPolymarketEndpoints,
-  getL1Headers,
-  buildPolyHmacSignature,
-  getL2Headers,
-  deriveApiKey,
-  createApiKey,
-  getMarket,
-  priceValid,
-  getTickSize,
-  getOrderBook,
-  calculateBuyMarketPrice,
-  calculateSellMarketPrice,
-  decimalPlaces,
-  roundNormal,
-  roundDown,
-  roundUp,
-  calculateMarketPrice,
-  getMarketOrderRawAmounts,
-  generateSalt,
   buildMarketOrderCreationArgs,
-  getContractConfig,
-  getOrderTypedData,
+  buildPolyHmacSignature,
+  calculateBuyMarketPrice,
+  calculateMarketPrice,
+  calculateSellMarketPrice,
+  createApiKey,
+  decimalPlaces,
+  deriveApiKey,
   encodeApprove,
-  approveUSDCAllowance,
+  generateSalt,
+  getContractConfig,
+  getL1Headers,
+  getL2Headers,
+  getMarketFromPolymarketApi,
+  getMarketOrderRawAmounts,
+  getMarketsFromPolymarketApi,
+  getOrderBook,
+  getOrderTypedData,
+  getPolymarketEndpoints,
+  getTickSize,
+  parsePolymarketEvents,
+  parsePolymarketPositions,
+  POLYGON_MAINNET_CHAIN_ID,
+  priceValid,
+  roundDown,
+  roundNormal,
+  roundUp,
   submitClobOrder,
 } from './utils';
 
 // Mock external dependencies
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       signTypedMessage: jest.fn(),
@@ -66,8 +70,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../util/transaction-controller', () => ({
-  addTransaction: jest.fn(),
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  log: jest.fn(),
 }));
 
 // Mock fetch globally
@@ -433,77 +437,6 @@ describe('polymarket utils', () => {
       await expect(createApiKey({ address: mockAddress })).rejects.toThrow(
         'Creation failed',
       );
-    });
-  });
-
-  describe('getMarket', () => {
-    it('should fetch market data successfully', async () => {
-      const mockMarket = {
-        id: 'test-market',
-        question: 'Will it rain?',
-        outcomes: 'YES,NO',
-        image: 'test-image.jpg',
-        conditionId: 'test-condition',
-        clobTokenIds: 'token1,token2',
-        slug: 'test-market',
-        resolutionSource: 'test-source',
-        endDate: '2024-12-31',
-        liquidity: '1000',
-        startDate: '2024-01-01',
-        icon: 'test-icon.jpg',
-        description: 'Test market description',
-        outcomePrices: '0.5,0.5',
-        volume: '500',
-        active: true,
-        closed: false,
-        marketMakerAddress: '0x123',
-        createdAt: '2024-01-01',
-        updatedAt: '2024-01-01',
-        new: false,
-        featured: false,
-        submitted_by: 'test-user',
-        archived: false,
-        resolvedBy: 'test-resolver',
-        restricted: false,
-        groupItemTitle: 'Test Group',
-        groupItemThreshold: '0.5',
-        questionID: 'test-question',
-        enableOrderBook: true,
-        orderPriceMinTickSize: 0.01,
-        orderMinSize: 1,
-        volumeNum: 500,
-        liquidityNum: 1000,
-        endDateIso: '2024-12-31T00:00:00Z',
-        startDateIso: '2024-01-01T00:00:00Z',
-        hasReviewedDates: true,
-        volume24hr: 100,
-        volume1wk: 200,
-        volume1mo: 300,
-        volume1yr: 400,
-        umaBond: '100',
-        umaReward: '10',
-      };
-
-      const mockResponse = {
-        json: jest.fn().mockResolvedValue(mockMarket),
-      };
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await getMarket({ conditionId: 'test-condition' });
-
-      expect(result).toEqual(mockMarket);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://clob.polymarket.com/markets/test-condition',
-      );
-    });
-
-    it('should handle fetch errors', async () => {
-      const error = new Error('Network error');
-      mockFetch.mockRejectedValue(error);
-
-      await expect(
-        getMarket({ conditionId: 'test-condition' }),
-      ).rejects.toThrow('Network error');
     });
   });
 
@@ -1068,80 +1001,6 @@ describe('polymarket utils', () => {
     });
   });
 
-  describe('approveUSDCAllowance', () => {
-    const mockTransactionMeta = {
-      id: 'tx-1',
-      hash: '0xabc123',
-      status: 'submitted',
-    };
-
-    beforeEach(() => {
-      (addTransaction as jest.Mock).mockResolvedValue(mockTransactionMeta);
-    });
-
-    it('should approve USDC allowance for mainnet', async () => {
-      const result = await approveUSDCAllowance({
-        address: mockAddress,
-        amount: BigInt(1000000),
-        negRisk: false,
-        networkClientId: 'mainnet',
-      });
-
-      expect(result).toEqual(mockTransactionMeta);
-      expect(addTransaction).toHaveBeenCalledWith(
-        {
-          from: mockAddress,
-          to: MATIC_CONTRACTS.collateral,
-          data: expect.any(String),
-          value: '0x0',
-        },
-        {
-          networkClientId: 'mainnet',
-          type: TransactionType.tokenMethodApprove,
-          requireApproval: true,
-        },
-      );
-    });
-
-    it('should approve USDC allowance for negRisk exchange', async () => {
-      const result = await approveUSDCAllowance({
-        address: mockAddress,
-        amount: BigInt(1000000),
-        negRisk: true,
-        networkClientId: 'mainnet',
-      });
-
-      expect(result).toEqual(mockTransactionMeta);
-      expect(addTransaction).toHaveBeenCalledWith(
-        {
-          from: mockAddress,
-          to: MATIC_CONTRACTS.collateral,
-          data: expect.any(String),
-          value: '0x0',
-        },
-        {
-          networkClientId: 'mainnet',
-          type: TransactionType.tokenMethodApprove,
-          requireApproval: true,
-        },
-      );
-    });
-
-    it('should handle transaction creation errors', async () => {
-      const error = new Error('Transaction failed');
-      (addTransaction as jest.Mock).mockRejectedValue(error);
-
-      await expect(
-        approveUSDCAllowance({
-          address: mockAddress,
-          amount: BigInt(1000000),
-          negRisk: false,
-          networkClientId: 'mainnet',
-        }),
-      ).rejects.toThrow('Transaction failed');
-    });
-  });
-
   describe('submitClobOrder', () => {
     const mockHeaders: ClobHeaders = {
       POLY_ADDRESS: mockAddress,
@@ -1209,6 +1068,369 @@ describe('polymarket utils', () => {
           headers: mockHeaders,
           clobOrder: mockClobOrder,
         }),
+      ).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('parsePolymarketEvents', () => {
+    const mockCategory: PredictCategory = 'trending';
+
+    const mockEvent: PolymarketApiEvent = {
+      id: 'event-1',
+      slug: 'test-event',
+      title: 'Test Event',
+      description: 'A test event',
+      icon: 'https://example.com/icon.png',
+      closed: false,
+      series: [{ recurrence: 'daily' }],
+      markets: [
+        {
+          conditionId: 'market-1',
+          question: 'Will it rain?',
+          description: 'Weather prediction',
+          icon: 'https://example.com/market-icon.png',
+          image: 'https://example.com/market-image.png',
+          groupItemTitle: 'Weather',
+          closed: false,
+          volumeNum: 1000,
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomes: '["Yes", "No"]',
+          outcomePrices: '["0.6", "0.4"]',
+          negRisk: true,
+          orderPriceMinTickSize: 0.01,
+          status: 'open',
+        },
+      ],
+    };
+
+    it('should parse events correctly', () => {
+      const result = parsePolymarketEvents([mockEvent], mockCategory);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: 'event-1',
+        slug: 'test-event',
+        providerId: 'polymarket',
+        title: 'Test Event',
+        description: 'A test event',
+        image: 'https://example.com/icon.png',
+        status: 'open',
+        recurrence: 'Daily',
+        categories: [mockCategory],
+        outcomes: [
+          {
+            id: 'market-1',
+            marketId: 'event-1',
+            title: 'Will it rain?',
+            description: 'Weather prediction',
+            image: 'https://example.com/market-icon.png',
+            groupItemTitle: 'Weather',
+            status: 'open',
+            volume: 1000,
+            tokens: [
+              {
+                id: 'token-1',
+                title: 'Yes',
+                price: 0.6,
+              },
+              {
+                id: 'token-2',
+                title: 'No',
+                price: 0.4,
+              },
+            ],
+            negRisk: true,
+            tickSize: '0.01',
+          },
+        ],
+      });
+    });
+
+    it('should handle closed events', () => {
+      const closedEvent = {
+        ...mockEvent,
+        closed: true,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            closed: true,
+          },
+        ],
+      };
+      const result = parsePolymarketEvents([closedEvent], mockCategory);
+
+      expect(result[0].status).toBe('closed');
+      expect(result[0].outcomes[0].status).toBe('closed');
+    });
+
+    it('should handle null clobTokenIds', () => {
+      const eventWithNullTokens = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            clobTokenIds: '[]',
+            outcomes: '[]',
+            outcomePrices: '[]',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents([eventWithNullTokens], mockCategory);
+
+      expect(result[0].outcomes[0].tokens).toEqual([]);
+    });
+
+    it('should use market image when icon is not available', () => {
+      const eventWithoutIcon = {
+        ...mockEvent,
+        markets: [
+          {
+            ...mockEvent.markets[0],
+            icon: '',
+          },
+        ],
+      };
+
+      const result = parsePolymarketEvents([eventWithoutIcon], mockCategory);
+
+      expect(result[0].outcomes[0].image).toBe(
+        'https://example.com/market-image.png',
+      );
+    });
+  });
+
+  describe('parsePolymarketPositions', () => {
+    const mockPositions: PolymarketPosition[] = [
+      {
+        asset: 'position-1',
+        conditionId: 'condition-1',
+        icon: 'https://example.com/icon1.png',
+        title: 'Position 1',
+        slug: 'position-1',
+        size: 100,
+        outcome: 'Yes',
+        outcomeIndex: 0,
+        cashPnl: 10,
+        curPrice: 0.6,
+        currentValue: 60,
+        percentPnl: 5,
+        initialValue: 50,
+        avgPrice: 0.5,
+        redeemable: false,
+        negativeRisk: false,
+        endDate: '2024-12-31',
+      },
+      {
+        asset: 'position-2',
+        conditionId: 'condition-1',
+        icon: 'https://example.com/icon2.png',
+        title: 'Position 2',
+        slug: 'position-2',
+        size: 50,
+        outcome: 'No',
+        outcomeIndex: 1,
+        cashPnl: -5,
+        curPrice: 0.4,
+        currentValue: 20,
+        percentPnl: -10,
+        initialValue: 25,
+        avgPrice: 0.5,
+        redeemable: true,
+        negativeRisk: false,
+        endDate: '2024-12-31',
+      },
+    ];
+
+    it('should parse positions correctly', () => {
+      const result = parsePolymarketPositions({ positions: mockPositions });
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        ...mockPositions[0],
+        id: 'position-1',
+        providerId: 'polymarket',
+        marketId: 'condition-1',
+        outcomeId: '0',
+        outcomeTokenId: 0,
+        amount: 100,
+        price: 0.6,
+        status: 'open',
+      });
+
+      expect(result[1]).toEqual({
+        ...mockPositions[1],
+        id: 'position-2',
+        providerId: 'polymarket',
+        marketId: 'condition-1',
+        outcomeId: '1',
+        outcomeTokenId: 1,
+        amount: 50,
+        price: 0.4,
+        status: 'redeemable',
+      });
+    });
+
+    it('should handle empty positions array', () => {
+      const result = parsePolymarketPositions({ positions: [] });
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getMarketsFromPolymarketApi', () => {
+    const mockEvent: PolymarketApiEvent = {
+      id: 'event-1',
+      slug: 'test-event',
+      title: 'Test Event',
+      description: 'A test event',
+      icon: 'https://example.com/icon.png',
+      closed: false,
+      series: [{ recurrence: 'daily' }],
+      markets: [
+        {
+          conditionId: 'market-1',
+          question: 'Will it rain?',
+          description: 'Weather prediction',
+          icon: 'https://example.com/market-icon.png',
+          image: 'https://example.com/market-image.png',
+          groupItemTitle: 'Weather',
+          closed: false,
+          volumeNum: 1000,
+          clobTokenIds: '["token-1", "token-2"]',
+          outcomes: '["Yes", "No"]',
+          outcomePrices: '["0.6", "0.4"]',
+          negRisk: true,
+          orderPriceMinTickSize: 0.01,
+          status: 'open',
+        },
+      ],
+    };
+
+    it('should fetch markets without search parameters', async () => {
+      const mockResponse = {
+        data: [mockEvent],
+      };
+
+      mockFetch.mockResolvedValue({
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await getMarketsFromPolymarketApi();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('event-1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/pagination?limit=20&active=true&archived=false&closed=false&ascending=false&offset=0&exclude_tag_id=100639&order=volume24hr',
+      );
+    });
+
+    it('should fetch markets with search query', async () => {
+      const mockResponse = {
+        events: [mockEvent],
+      };
+
+      mockFetch.mockResolvedValue({
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const params: GetMarketsParams = {
+        q: 'weather',
+        limit: 10,
+        offset: 5,
+      };
+
+      const result = await getMarketsFromPolymarketApi(params);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('event-1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/public-search?q=weather&limit_per_type=10&page=1&ascending=false',
+      );
+    });
+
+    it('should handle different categories', async () => {
+      const mockResponse = {
+        data: [mockEvent],
+      };
+
+      mockFetch.mockResolvedValue({
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const params: GetMarketsParams = {
+        category: 'crypto',
+        limit: 5,
+      };
+
+      await getMarketsFromPolymarketApi(params);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/pagination?limit=5&active=true&archived=false&closed=false&ascending=false&offset=0&tag_slug=crypto&order=volume24hr',
+      );
+    });
+
+    it('should return empty array for invalid response', async () => {
+      mockFetch.mockResolvedValue({
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await getMarketsFromPolymarketApi();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle fetch errors', async () => {
+      const error = new Error('Network error');
+      mockFetch.mockRejectedValue(error);
+
+      await expect(getMarketsFromPolymarketApi()).rejects.toThrow(
+        'Network error',
+      );
+    });
+  });
+
+  describe('getMarketFromPolymarketApi', () => {
+    const mockMarket: PolymarketApiMarket = {
+      conditionId: 'market-1',
+      question: 'Will it rain?',
+      description: 'Weather prediction',
+      icon: 'https://example.com/market-icon.png',
+      image: 'https://example.com/market-image.png',
+      groupItemTitle: 'Weather',
+      closed: false,
+      volumeNum: 1000,
+      clobTokenIds: '["token-1", "token-2"]',
+      outcomes: '["Yes", "No"]',
+      outcomePrices: '["0.6", "0.4"]',
+      negRisk: true,
+      orderPriceMinTickSize: 0.01,
+      status: 'open',
+    };
+
+    it('should fetch single market successfully', async () => {
+      const mockResponse = [mockMarket];
+
+      mockFetch.mockResolvedValue({
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await getMarketFromPolymarketApi({
+        conditionId: 'market-1',
+      });
+
+      expect(result).toEqual(mockMarket);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/markets?condition_ids=market-1',
+      );
+    });
+
+    it('should handle fetch errors', async () => {
+      const error = new Error('Network error');
+      mockFetch.mockRejectedValue(error);
+
+      await expect(
+        getMarketFromPolymarketApi({ conditionId: 'market-1' }),
       ).rejects.toThrow('Network error');
     });
   });

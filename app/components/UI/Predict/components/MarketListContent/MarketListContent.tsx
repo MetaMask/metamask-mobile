@@ -44,13 +44,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
 
   const renderItem = useCallback(({ item }: { item: PredictMarketType }) => {
     if (item.outcomes.length === 1) {
-      return (
-        <PredictMarket
-          key={item.outcomes[0].id}
-          outcome={item.outcomes[0]}
-          providerId={item.providerId}
-        />
-      );
+      return <PredictMarket key={item.outcomes[0].id} market={item} />;
     }
     return <PredictMarketMultiple key={item.id} market={item} />;
   }, []);

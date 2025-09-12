@@ -3,35 +3,18 @@ import {
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ROUNDING_CONFIG } from './constants';
 import {
   OffchainTradeParams,
   OffchainTradeResponse,
+  OnchainTradeParams,
   PredictActivity,
-  PredictCategory,
   PredictMarket,
   PredictOrder,
   PredictPosition,
   Side,
 } from '../../types';
-import {
-  buildMarketOrderCreationArgs,
-  calculateMarketPrice,
-  createApiKey,
-  encodeApprove,
-  getContractConfig,
-  getL2Headers,
-  getMarket,
-  getOrderTypedData,
-  getPolymarketEndpoints,
-  getTickSize,
-  parsePolymarketEvents,
-  parsePolymarketPositions,
-  POLYGON_MAINNET_CHAIN_ID,
-  priceValid,
-  submitClobOrder,
-} from './utils';
 import { GetMarketsParams, OrderParams, PredictProvider } from '../types';
+import { ROUNDING_CONFIG } from './constants';
 import {
   ApiKeyCreds,
   OrderArtifactsParams,
@@ -42,6 +25,24 @@ import {
   SignatureType,
   TickSize,
 } from './types';
+import {
+  buildMarketOrderCreationArgs,
+  calculateMarketPrice,
+  createApiKey,
+  encodeApprove,
+  getContractConfig,
+  getL2Headers,
+  getMarketFromPolymarketApi,
+  getMarketsFromPolymarketApi,
+  getOrderTypedData,
+  getPolymarketEndpoints,
+  getTickSize,
+  parsePolymarketPositions,
+  POLYGON_MAINNET_CHAIN_ID,
+  priceValid,
+  submitClobOrder,
+} from './utils';
+import { generateOrderId } from '../../utils/orders';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -78,13 +79,14 @@ export class PolymarketProvider implements PredictProvider {
    */
   private async buildOrderArtifacts({
     address,
-    orderParams: { marketId, outcomeTokenId, side, amount },
+    orderParams: { outcomeTokenId, side, amount, conditionId },
   }: {
     address: string;
     orderParams: OrderArtifactsParams;
   }): Promise<{
     chainId: number;
     price: number;
+    negRisk: boolean;
     tickSize: TickSize;
     order: OrderData & { salt: string };
     contractConfig: ReturnType<typeof getContractConfig>;
@@ -92,17 +94,17 @@ export class PolymarketProvider implements PredictProvider {
     verifyingContract: string;
   }> {
     const chainId = POLYGON_MAINNET_CHAIN_ID;
-    const conditionId = marketId;
     const tokenId = outcomeTokenId;
 
-    const marketData = await getMarket({ conditionId });
-
-    const [tickSizeResponse, price] = await Promise.all([
+    const [tickSizeResponse, price, marketData] = await Promise.all([
       getTickSize({ tokenId }),
       calculateMarketPrice(tokenId, side, amount, OrderType.FOK),
+      getMarketFromPolymarketApi({ conditionId }),
     ]);
 
     const tickSize = tickSizeResponse.minimum_tick_size;
+
+    const negRisk = marketData.negRisk;
 
     const order = await buildMarketOrderCreationArgs({
       signer: address,
@@ -118,8 +120,6 @@ export class PolymarketProvider implements PredictProvider {
       roundConfig: ROUNDING_CONFIG[tickSize as TickSize],
     });
 
-    const negRisk = !!marketData.neg_risk;
-
     const contractConfig = getContractConfig(chainId);
 
     const exchangeContract = negRisk
@@ -131,8 +131,9 @@ export class PolymarketProvider implements PredictProvider {
     return {
       chainId,
       price,
-      tickSize,
       order,
+      negRisk,
+      tickSize,
       contractConfig,
       exchangeContract,
       verifyingContract,
@@ -156,61 +157,8 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-
-      const { category = 'trending', q, limit = 20, offset = 0 } = params || {};
-      DevLogger.log(
-        'Getting markets via Polymarket API for category:',
-        category,
-        'search:',
-        q,
-        'limit:',
-        limit,
-        'offset:',
-        offset,
-      );
-
-      let queryParamsEvents = `limit=${limit}&active=true&archived=false&closed=false&ascending=false&offset=${offset}`;
-      const queryParamsSearch = `limit_per_type=${limit}&page=${
-        Math.floor(offset / limit) + 1
-      }&ascending=false`;
-
-      const categoryTagMap: Record<PredictCategory, string> = {
-        trending: '&exclude_tag_id=100639&order=volume24hr',
-        new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
-        sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
-        crypto: '&tag_slug=crypto&order=volume24hr',
-        politics: '&tag_slug=politics&order=volume24hr',
-      };
-
-      queryParamsEvents += categoryTagMap[category];
-
-      // Use search endpoint if q parameter is provided
-      const endpoint = q
-        ? `${GAMMA_API_ENDPOINT}/public-search?q=${encodeURIComponent(
-            q,
-          )}&${queryParamsSearch}`
-        : `${GAMMA_API_ENDPOINT}/events/pagination?${queryParamsEvents}`;
-
-      const response = await fetch(endpoint);
-      const data = await response.json();
-
-      DevLogger.log('Polymarket response data:', data);
-
-      // Handle different response structures
-      const events = q ? data?.events : data?.data;
-
-      if (!events || !Array.isArray(events)) {
-        return [];
-      }
-
-      const parsedMarkets: PredictMarket[] = parsePolymarketEvents(
-        events,
-        category,
-      );
-
-      DevLogger.log('Processed markets:', parsedMarkets);
-      return parsedMarkets;
+      const markets = await getMarketsFromPolymarketApi(params);
+      return markets;
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
       return [];
@@ -260,27 +208,35 @@ export class PolymarketProvider implements PredictProvider {
 
   private async prepareBuyTransaction({
     signer,
-    marketId,
+    market,
     outcomeId,
     outcomeTokenId,
     amount,
   }: OrderParams): Promise<PredictOrder> {
     const { address, signTypedMessage } = signer;
     const side = Side.BUY;
+    const conditionId = outcomeId;
+
     const {
       chainId,
       price,
-      tickSize,
       order,
       contractConfig,
       exchangeContract,
       verifyingContract,
+      negRisk,
+      tickSize,
     } = await this.buildOrderArtifacts({
       address,
-      orderParams: { marketId, outcomeTokenId, side, amount },
+      orderParams: {
+        conditionId,
+        outcomeTokenId,
+        side,
+        amount,
+      },
     });
 
-    if (!priceValid(price, tickSize)) {
+    if (!priceValid(price, tickSize as TickSize)) {
       throw new Error(
         `invalid price (${price}), min: ${parseFloat(tickSize)} - max: ${
           1 - parseFloat(tickSize)
@@ -292,6 +248,30 @@ export class PolymarketProvider implements PredictProvider {
       spender: exchangeContract,
       amount: BigInt(order.makerAmount),
     });
+
+    const calls: OnchainTradeParams[] = [
+      {
+        data: callData,
+        to: contractConfig.collateral,
+        chainId,
+        from: address,
+        value: '0x0',
+      },
+    ];
+
+    if (negRisk) {
+      const adapterCallData = encodeApprove({
+        spender: contractConfig.negRiskAdapter,
+        amount: BigInt(order.makerAmount),
+      });
+      calls.push({
+        data: adapterCallData,
+        to: contractConfig.collateral,
+        chainId,
+        from: address,
+        value: '0x0',
+      });
+    }
 
     const typedData = getOrderTypedData({
       order,
@@ -330,9 +310,10 @@ export class PolymarketProvider implements PredictProvider {
     });
 
     return {
-      id: 'temp-id',
+      id: generateOrderId(),
+      chainId,
       providerId: this.providerId,
-      marketId,
+      marketId: market.id,
       outcomeId,
       outcomeTokenId,
       isBuy: true,
@@ -342,13 +323,7 @@ export class PolymarketProvider implements PredictProvider {
       error: undefined,
       timestamp: Date.now(),
       lastUpdated: Date.now(),
-      onchainTradeParams: {
-        data: callData,
-        to: contractConfig.collateral,
-        chainId,
-        from: address,
-        value: '0x0',
-      },
+      onchainTradeParams: calls,
       offchainTradeParams: { clobOrder, headers },
     };
   }
