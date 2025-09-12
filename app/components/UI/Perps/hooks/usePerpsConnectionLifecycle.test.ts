@@ -1,9 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { AppState } from 'react-native';
-import BackgroundTimer from 'react-native-background-timer';
 import Device from '../../../../util/device';
 import { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 // Mock dependencies
 jest.mock('react-native', () => ({
@@ -96,8 +94,7 @@ describe('usePerpsConnectionLifecycle', () => {
       expect(mockOnDisconnect).not.toHaveBeenCalled();
     });
 
-    it('should schedule disconnection when tab becomes hidden (with grace period)', () => {
-      mockIsIos.mockReturnValue(true);
+    it('should disconnect immediately when tab becomes hidden (grace period handled by PerpsConnectionManager)', () => {
       const { rerender } = renderHook(
         ({ isVisible }) =>
           usePerpsConnectionLifecycle({
@@ -114,19 +111,12 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Change to hidden - should schedule disconnection, not disconnect immediately
+      // Change to hidden - should call onDisconnect immediately (grace period managed by PerpsConnectionManager)
       rerender({ isVisible: false });
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
-
-      // Fast-forward timer to trigger disconnection
-      act(() => {
-        jest.advanceTimersByTime(20_000);
-      });
       expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('should cancel scheduled disconnection when tab becomes visible again', () => {
-      mockIsIos.mockReturnValue(true);
+    it('should disconnect and reconnect when tab visibility changes', () => {
       const { rerender } = renderHook(
         ({ isVisible }) =>
           usePerpsConnectionLifecycle({
@@ -143,21 +133,18 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Tab becomes hidden - should schedule disconnection
+      // Tab becomes hidden - should disconnect immediately
       rerender({ isVisible: false });
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
+      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
 
-      // Tab becomes visible again before timer expires - should cancel timer
+      // Tab becomes visible again - should reconnect after delay
       rerender({ isVisible: true });
-      expect(BackgroundTimer.stop).toHaveBeenCalled();
 
-      // Fast-forward past original disconnect time
       act(() => {
-        jest.advanceTimersByTime(20_000);
+        jest.advanceTimersByTime(500); // Wait for reconnection delay
       });
 
-      // Should not have disconnected
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
+      expect(mockOnConnect).toHaveBeenCalledTimes(2);
     });
 
     it('should not manage connection when visibility is undefined', () => {
@@ -186,7 +173,7 @@ describe('usePerpsConnectionLifecycle', () => {
       mockIsAndroid.mockReturnValue(false);
     });
 
-    it('should schedule disconnection when app goes to background on iOS', () => {
+    it('should disconnect immediately when app goes to background on iOS', () => {
       renderHook(() =>
         usePerpsConnectionLifecycle({
           isVisible: true,
@@ -201,24 +188,15 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Simulate app going to background
+      // Simulate app going to background - should call onDisconnect immediately
       act(() => {
         mockAppStateListener?.('background');
       });
 
-      expect(BackgroundTimer.start).toHaveBeenCalled();
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
-
-      // Advance time to trigger disconnection
-      act(() => {
-        jest.advanceTimersByTime(PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY);
-      });
-
       expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
-      expect(BackgroundTimer.stop).toHaveBeenCalled();
     });
 
-    it('should cancel disconnection when app returns to foreground quickly on iOS', () => {
+    it('should disconnect and reconnect when app background/foreground cycle happens', () => {
       renderHook(() =>
         usePerpsConnectionLifecycle({
           isVisible: true,
@@ -231,28 +209,19 @@ describe('usePerpsConnectionLifecycle', () => {
       act(() => {
         jest.runOnlyPendingTimers();
       });
+      expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Simulate app going to background
+      // Simulate app going to background - should disconnect immediately
       act(() => {
         mockAppStateListener?.('background');
       });
+      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
 
-      expect(BackgroundTimer.start).toHaveBeenCalled();
-
-      // Return to foreground before timer expires
+      // Return to foreground - should reconnect
       act(() => {
-        jest.advanceTimersByTime(5000); // 5 seconds
         mockAppStateListener?.('active');
       });
-
-      expect(BackgroundTimer.stop).toHaveBeenCalled();
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
-
-      // Verify timer doesn't fire later
-      act(() => {
-        jest.advanceTimersByTime(PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY);
-      });
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
+      expect(mockOnConnect).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -262,7 +231,7 @@ describe('usePerpsConnectionLifecycle', () => {
       mockIsAndroid.mockReturnValue(true);
     });
 
-    it('should schedule disconnection when app goes to background on Android', () => {
+    it('should disconnect immediately when app goes to background on Android', () => {
       renderHook(() =>
         usePerpsConnectionLifecycle({
           isVisible: true,
@@ -277,21 +246,15 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Simulate app going to background
+      // Simulate app going to background - should call onDisconnect immediately
       act(() => {
         mockAppStateListener?.('background');
       });
 
-      expect(BackgroundTimer.setTimeout).toHaveBeenCalledWith(
-        expect.any(Function),
-        PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY,
-      );
+      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('should cancel disconnection when app returns to foreground quickly on Android', () => {
-      const mockTimerId = 123;
-      (BackgroundTimer.setTimeout as jest.Mock).mockReturnValue(mockTimerId);
-
+    it('should disconnect and reconnect when app background/foreground cycle happens on Android', () => {
       renderHook(() =>
         usePerpsConnectionLifecycle({
           isVisible: true,
@@ -304,25 +267,24 @@ describe('usePerpsConnectionLifecycle', () => {
       act(() => {
         jest.runOnlyPendingTimers();
       });
+      expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Simulate app going to background
+      // Simulate app going to background - should disconnect immediately
       act(() => {
         mockAppStateListener?.('background');
       });
+      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
 
-      // Return to foreground before timer expires
+      // Return to foreground - should reconnect
       act(() => {
         mockAppStateListener?.('active');
       });
-
-      expect(BackgroundTimer.clearTimeout).toHaveBeenCalledWith(mockTimerId);
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
+      expect(mockOnConnect).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('Interaction between visibility and app state', () => {
     it('should not reconnect when app comes to foreground if tab is not visible', () => {
-      mockIsIos.mockReturnValue(true);
       const { rerender } = renderHook(
         ({ isVisible }) =>
           usePerpsConnectionLifecycle({
@@ -339,16 +301,15 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Hide tab - should schedule disconnection
+      // Hide tab - should disconnect immediately
       rerender({ isVisible: false });
-      expect(mockOnDisconnect).not.toHaveBeenCalled(); // Not immediate anymore
+      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
 
       mockOnConnect.mockClear();
 
       // App goes to background and returns
       act(() => {
         mockAppStateListener?.('background');
-        jest.advanceTimersByTime(1000);
         mockAppStateListener?.('active');
       });
 
@@ -356,8 +317,7 @@ describe('usePerpsConnectionLifecycle', () => {
       expect(mockOnConnect).not.toHaveBeenCalled();
     });
 
-    it('should cancel and reschedule timer when tab becomes hidden after app backgrounding', () => {
-      mockIsIos.mockReturnValue(true);
+    it('should handle app backgrounding and tab hiding independently', () => {
       const { rerender } = renderHook(
         ({ isVisible }) =>
           usePerpsConnectionLifecycle({
@@ -368,20 +328,22 @@ describe('usePerpsConnectionLifecycle', () => {
         { initialProps: { isVisible: true } },
       );
 
-      // App goes to background - should schedule disconnection
+      // Initial connection
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+      expect(mockOnConnect).toHaveBeenCalledTimes(1);
+
+      // App goes to background - should disconnect immediately
       act(() => {
         mockAppStateListener?.('background');
       });
-      expect(BackgroundTimer.start).toHaveBeenCalled();
+      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
 
-      // Tab becomes hidden - should cancel existing timer and schedule new one
+      // Tab becomes hidden - since already disconnected, hook doesn't track state so may call disconnect
       rerender({ isVisible: false });
-      expect(BackgroundTimer.stop).toHaveBeenCalled();
-      // Should schedule new disconnection timer (BackgroundTimer.start called again)
-      expect(BackgroundTimer.start).toHaveBeenCalledTimes(2);
-
-      // Disconnection should not be immediate
-      expect(mockOnDisconnect).not.toHaveBeenCalled();
+      // The hook calls disconnect when visibility changes regardless of current state
+      expect(mockOnDisconnect).toHaveBeenCalledWith();
     });
   });
 
@@ -444,28 +406,6 @@ describe('usePerpsConnectionLifecycle', () => {
       unmount();
 
       expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
-    });
-
-    it('should clean up background timer on unmount', () => {
-      mockIsIos.mockReturnValue(true);
-      const { unmount } = renderHook(() =>
-        usePerpsConnectionLifecycle({
-          isVisible: true,
-          onConnect: mockOnConnect,
-          onDisconnect: mockOnDisconnect,
-        }),
-      );
-
-      // Start background timer
-      act(() => {
-        mockAppStateListener?.('background');
-      });
-
-      expect(BackgroundTimer.start).toHaveBeenCalled();
-
-      unmount();
-
-      expect(BackgroundTimer.stop).toHaveBeenCalled();
     });
   });
 });

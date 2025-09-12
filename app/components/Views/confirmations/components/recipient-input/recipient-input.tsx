@@ -18,9 +18,11 @@ import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
+  resetStateOnInput,
   setPastedRecipient,
 }: {
   isRecipientSelectedFromList: boolean;
+  resetStateOnInput: () => void;
   setPastedRecipient: (recipient?: string) => void;
 }) => {
   const { to, updateTo } = useSendContext();
@@ -29,6 +31,7 @@ export const RecipientInput = ({
     useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
+    resetStateOnInput();
     try {
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
@@ -44,8 +47,16 @@ export const RecipientInput = ({
     } catch (error) {
       // Might consider showing an alert here if pasting fails
       // for now just ignore it
+      // eslint-disable-next-line no-console
+      console.log('error while pasting', error);
     }
-  }, [updateTo, inputRef, setPastedRecipient, setRecipientInputMethodPasted]);
+  }, [
+    updateTo,
+    inputRef,
+    setPastedRecipient,
+    resetStateOnInput,
+    setRecipientInputMethodPasted,
+  ]);
 
   const handleClearInput = useCallback(() => {
     updateTo('');
@@ -56,11 +67,17 @@ export const RecipientInput = ({
 
   const handleTextChange = useCallback(
     async (toAddress: string) => {
+      resetStateOnInput();
       updateTo(toAddress);
       setRecipientInputMethodManual();
       setPastedRecipient(undefined);
     },
-    [setPastedRecipient, setRecipientInputMethodManual, updateTo],
+    [
+      resetStateOnInput,
+      setPastedRecipient,
+      setRecipientInputMethodManual,
+      updateTo,
+    ],
   );
 
   const defaultStartAccessory = useMemo(
@@ -98,7 +115,7 @@ export const RecipientInput = ({
       <TextField
         autoCorrect={false}
         ref={inputRef}
-        value={isRecipientSelectedFromList ? '' : to}
+        value={to}
         onChangeText={handleTextChange}
         spellCheck={false}
         autoComplete="off"

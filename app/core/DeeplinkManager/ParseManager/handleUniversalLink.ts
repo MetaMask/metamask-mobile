@@ -26,6 +26,7 @@ enum SUPPORTED_ACTIONS {
   BUY_CRYPTO = ACTIONS.BUY_CRYPTO,
   SELL = ACTIONS.SELL,
   SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
+  DEPOSIT = ACTIONS.DEPOSIT,
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
@@ -35,6 +36,10 @@ enum SUPPORTED_ACTIONS {
   PERPS_ASSET = ACTIONS.PERPS_ASSET,
   WC = ACTIONS.WC,
 }
+
+const interstitialWhitelist = [
+  `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
+] as const;
 
 async function handleUniversalLink({
   instance,
@@ -123,6 +128,12 @@ async function handleUniversalLink({
     const sanitizedAction = actionName?.replace(/-/g, ' ');
     const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
+    const validatedUrlString = validatedUrl.toString();
+    if (interstitialWhitelist.some((u) => validatedUrlString.startsWith(u))) {
+      resolve(true);
+      return;
+    }
+
     handleDeepLinkModalDisplay({
       linkType: linkType(),
       pageTitle,
@@ -150,6 +161,9 @@ async function handleUniversalLink({
   ) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleSellCrypto(rampPath);
+  } else if (action === SUPPORTED_ACTIONS.DEPOSIT) {
+    const depositCashPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleDepositCash(depositCashPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     instance._handleOpenHome();
     return;

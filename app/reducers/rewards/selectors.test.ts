@@ -11,6 +11,7 @@ import {
   selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
+  selectSeasonId,
   selectSeasonName,
   selectSeasonStartDate,
   selectSeasonEndDate,
@@ -282,6 +283,40 @@ describe('Rewards selectors', () => {
         useSelector(selectSeasonStatusLoading),
       );
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectSeasonId', () => {
+    it('returns null when season ID is not set', () => {
+      const mockState = { rewards: { seasonId: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns undefined when season ID is undefined', () => {
+      const mockState = { rewards: { seasonId: undefined } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBeUndefined();
+    });
+
+    it('returns season ID when set', () => {
+      const mockState = { rewards: { seasonId: 'season-2024-summer' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe('season-2024-summer');
+    });
+
+    it('returns numeric season ID when set as number', () => {
+      const mockState = { rewards: { seasonId: 123 } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe(123);
     });
   });
 

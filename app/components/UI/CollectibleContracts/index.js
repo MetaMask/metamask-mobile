@@ -11,10 +11,10 @@ import {
   StyleSheet,
   View,
   Image,
-  FlatList,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -562,7 +562,7 @@ const CollectibleContracts = ({
 
   const renderList = useCallback(
     () => (
-      <FlatList
+      <FlashList
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (
@@ -587,6 +587,8 @@ const CollectibleContracts = ({
         }
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
+        estimatedItemSize={100}
+        scrollEnabled={false}
       />
     ),
     [
@@ -729,18 +731,27 @@ CollectibleContracts.propTypes = {
   displayNftMedia: PropTypes.bool,
 };
 
-const mapStateToProps = (state) => ({
-  networkType: selectProviderType(state),
-  chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  useNftDetection: selectUseNftDetection(state),
-  collectibleContracts: multichainCollectibleContractsSelector(state),
-  collectibles: multichainCollectiblesSelector(state),
-  isNftFetchingProgress: isNftFetchingProgressSelector(state),
-  favoriteCollectibles: favoritesCollectiblesSelector(state),
-  isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
-  displayNftMedia: selectDisplayNftMedia(state),
-});
+const mapStateToProps = (state) => {
+  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
+  const collectiblesData = multichainCollectiblesSelector(state);
+  const collectibleContractsData =
+    multichainCollectibleContractsSelector(state);
+
+  return {
+    networkType: selectProviderType(state),
+    chainId: selectChainId(state),
+    selectedAddress,
+    useNftDetection: selectUseNftDetection(state),
+    collectibleContracts: Array.isArray(collectibleContractsData)
+      ? collectibleContractsData
+      : [],
+    collectibles: Array.isArray(collectiblesData) ? collectiblesData : [],
+    isNftFetchingProgress: isNftFetchingProgressSelector(state),
+    favoriteCollectibles: favoritesCollectiblesSelector(state),
+    isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
+    displayNftMedia: selectDisplayNftMedia(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>

@@ -2171,12 +2171,20 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   };
 };
 
-export const getSettingsNavigationOptions = (title, themeColors) => {
+export const getSettingsNavigationOptions = (
+  title,
+  themeColors,
+  navigation,
+  isRewardsEnabled = false,
+) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
+    },
+    accessories: {
+      marginHorizontal: 8,
     },
   });
   return {
@@ -2189,6 +2197,16 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
         {title}
       </MorphText>
     ),
+    headerRight: () =>
+      isRewardsEnabled ? (
+        <ButtonIcon
+          size={ButtonIconSize.Lg}
+          iconName={IconName.Close}
+          onPress={() => navigation && navigation.goBack()}
+          style={innerStyles.accessories}
+          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+        />
+      ) : null,
     ...innerStyles,
   };
 };

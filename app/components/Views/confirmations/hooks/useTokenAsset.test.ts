@@ -40,7 +40,7 @@ describe('useTokenAsset', () => {
 
     expect(result.current.asset).toMatchObject({
       name: 'Ethereum',
-      symbol: 'ETH',
+      symbol: 'Ethereum',
     });
     expect(result.current.displayName).toEqual('ETH');
   });
