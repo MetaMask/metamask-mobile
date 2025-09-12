@@ -73,7 +73,7 @@ export const AvatarTokenWithNetworkBadge = () => {
         }
       >
         <AvatarTokenOrNetworkAssetLogo
-          asset={asset}
+          asset={asset as TokenI}
           chainId={chainId}
           displayName={displayName}
         />
