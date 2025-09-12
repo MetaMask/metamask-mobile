@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import Device from '../../../../../util/device';
 import { Theme } from '@metamask/design-tokens';
@@ -24,6 +24,7 @@ const createStyles = (_theme: Theme) =>
       fontFamily: 'MM Poly Regular',
       color: importedColors.gettingStartedTextColor,
       letterSpacing: -1,
+      ...(Platform.OS === 'ios' ? { fontWeight: '900' } : {}),
     },
     titleDescription: {
       paddingTop: 20,
