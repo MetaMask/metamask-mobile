@@ -16,10 +16,14 @@ import Checkbox from '../../../../component-library/components/Checkbox';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { useTheme } from '@react-navigation/native';
+import { useNavigation, useTheme } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './LearnMoreBottomSheet.styles';
+import Routes from '../../../../constants/navigation/Routes';
+import { RootState } from '../../../../reducers';
+import { useDispatch, useSelector } from 'react-redux';
+import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 
 interface LearnMoreBottomSheetProps {
   onClose: () => void;
@@ -31,6 +35,12 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const { styles } = useStyles(styleSheet, { theme: useTheme() });
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  const isBasicFunctionalityEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
 
   const handleBack = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -46,9 +56,16 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
 
   const handleConfirm = useCallback(() => {
     if (isCheckboxChecked) {
-      sheetRef.current?.onCloseBottomSheet();
+      navigation.goBack(); // close bottom sheet
+      navigation.goBack(); // close modal
+      if (isBasicFunctionalityEnabled) {
+        dispatch(setMultichainAccountsIntroModalSeen(true));
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+        });
+      }
     }
-  }, [isCheckboxChecked]);
+  }, [isCheckboxChecked, navigation, isBasicFunctionalityEnabled, dispatch]);
 
   return (
     <BottomSheet ref={sheetRef} onClose={onClose}>
@@ -98,7 +115,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             onPress={handleConfirm}
-            disabled={!isCheckboxChecked}
+            isDisabled={!isCheckboxChecked}
             testID="learn-more-confirm-button"
           />
         </View>
