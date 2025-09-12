@@ -22,6 +22,11 @@ import { EVENT_NAME } from '../../../core/Analytics';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
+// Mock OAuthLoginService
+jest.mock('../../../core/OAuthService/OAuthService', () => ({
+  updateMarketingOptInStatus: jest.fn(),
+}));
+
 // Mock the entire trace module
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
@@ -37,10 +42,16 @@ import {
   trace,
   endTrace,
 } from '../../../util/trace';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
 >;
+
+const mockUpdateMarketingOptInStatus =
+  OAuthLoginService.updateMarketingOptInStatus as jest.MockedFunction<
+    typeof OAuthLoginService.updateMarketingOptInStatus
+  >;
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -1273,6 +1284,117 @@ describe('ChoosePassword', () => {
       expect(mockEndTrace).not.toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupError,
       });
+    });
+  });
+
+  describe('Marketing API Integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockUpdateMarketingOptInStatus.mockClear();
+    });
+
+    it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in enabled', async () => {
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProviders(
+        <ChoosePassword {...props} />,
+      );
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const createButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      const marketingCheckbox = getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test1234');
+        fireEvent.changeText(confirmPasswordInput, 'Test1234');
+        fireEvent.press(marketingCheckbox); // Enable marketing opt-in
+      });
+
+      await act(async () => {
+        fireEvent.press(createButton);
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+    });
+
+    it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in disabled', async () => {
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+
+      mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProviders(
+        <ChoosePassword {...props} />,
+      );
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const createButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test1234');
+        fireEvent.changeText(confirmPasswordInput, 'Test1234');
+      });
+
+      await act(async () => {
+        fireEvent.press(createButton);
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
     });
   });
 });
