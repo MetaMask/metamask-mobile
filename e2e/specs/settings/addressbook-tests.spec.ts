@@ -13,7 +13,6 @@ import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../framework/Assertions';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -28,6 +27,11 @@ const TEST_CONTACT = {
 const MEMO = 'Test adding ENS';
 
 describe(RegressionWalletPlatform('Addressbook Tests'), () => {
+  // In this file, some of the tests are dependent on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to true.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition: boolean) => (condition ? it.only : it.skip);
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -37,13 +41,6 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
       {
         fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            sendRedesign: {
-              enabled: false,
-            },
-          });
-        },
       },
       async () => {
         await loginToApp();
@@ -81,13 +78,6 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
       {
         fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            sendRedesign: {
-              enabled: false,
-            },
-          });
-        },
       },
       async () => {
         await loginToApp();
@@ -104,13 +94,6 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
       {
         fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            sendRedesign: {
-              enabled: false,
-            },
-          });
-        },
       },
       async () => {
         await loginToApp();
@@ -151,69 +134,65 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
     );
   });
 
-  it('should add a contact with a different network', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
-        restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            sendRedesign: {
-              enabled: false,
-            },
-          });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should add a contact with a different network',
+    async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
+          restartDevice: true,
         },
-      },
-      async () => {
-        await loginToApp();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
-        await ContactsView.tapAddContactButton();
-        await Assertions.expectElementToBeVisible(AddContactView.container);
-        await AddContactView.typeInName(TEST_CONTACT.name);
-        await AddContactView.typeInAddress(TEST_CONTACT.address);
-        await AddContactView.selectNetwork(TEST_CONTACT.network);
-        await Assertions.expectElementToBeVisible(AddContactView.container);
-        await AddContactView.tapAddContactButton();
-        await Assertions.expectElementToBeVisible(ContactsView.container);
-        // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
-        await ContactsView.expectContactIsVisible(TEST_CONTACT.name);
+        async () => {
+          await loginToApp();
+          await TabBarComponent.tapSettings();
+          await SettingsView.tapContacts();
+          await ContactsView.tapAddContactButton();
+          await Assertions.expectElementToBeVisible(AddContactView.container);
+          await AddContactView.typeInName(TEST_CONTACT.name);
+          await AddContactView.typeInAddress(TEST_CONTACT.address);
+          await AddContactView.selectNetwork(TEST_CONTACT.network);
+          await Assertions.expectElementToBeVisible(AddContactView.container);
+          await AddContactView.tapAddContactButton();
+          await Assertions.expectElementToBeVisible(ContactsView.container);
+          // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
+          await ContactsView.expectContactIsVisible(TEST_CONTACT.name);
 
-        // should edit a contact with a different network
-        await ContactsView.tapOnAlias(TEST_CONTACT.name);
-        await AddContactView.tapEditButton();
-        await AddContactView.typeInName(TEST_CONTACT.editedName);
-        await AddContactView.selectNetwork(TEST_CONTACT.editedNetwork);
-        await AddContactView.tapEditContactCTA();
-        await Assertions.expectElementToBeVisible(ContactsView.container);
-        // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
-        await ContactsView.expectContactIsVisible(TEST_CONTACT.editedName);
-        await ContactsView.expectContactIsNotVisible(TEST_CONTACT.name);
+          // should edit a contact with a different network
+          await ContactsView.tapOnAlias(TEST_CONTACT.name);
+          await AddContactView.tapEditButton();
+          await AddContactView.typeInName(TEST_CONTACT.editedName);
+          await AddContactView.selectNetwork(TEST_CONTACT.editedNetwork);
+          await AddContactView.tapEditContactCTA();
+          await Assertions.expectElementToBeVisible(ContactsView.container);
+          // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
+          await ContactsView.expectContactIsVisible(TEST_CONTACT.editedName);
+          await ContactsView.expectContactIsNotVisible(TEST_CONTACT.name);
 
-        // should display all EVM contacts in the send flow
-        await TabBarComponent.tapWallet();
-        await WalletView.tapWalletSendButton();
-        await SendView.inputAddress(TEST_CONTACT.editedName[0]);
-        await Assertions.expectTextDisplayed(TEST_CONTACT.editedName, {
-          allowDuplicates: true,
-        });
-        await SendView.tapCancelButton();
+          // should display all EVM contacts in the send flow
+          await TabBarComponent.tapWallet();
+          await WalletView.tapWalletSendButton();
+          await SendView.inputAddress(TEST_CONTACT.editedName[0]);
+          await Assertions.expectTextDisplayed(TEST_CONTACT.editedName, {
+            allowDuplicates: true,
+          });
+          await SendView.tapCancelButton();
 
-        // should remove a contact
-        // Tap on Moon address
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
-        await ContactsView.tapOnAlias(TEST_CONTACT.editedName);
+          // should remove a contact
+          // Tap on Moon address
+          await TabBarComponent.tapSettings();
+          await SettingsView.tapContacts();
+          await ContactsView.tapOnAlias(TEST_CONTACT.editedName);
 
-        // Tap on edit
-        await AddContactView.tapEditButton();
-        await AddContactView.tapDeleteContactCTA();
-        await Assertions.expectElementToBeVisible(
-          DeleteContactBottomSheet.title,
-        );
-        await DeleteContactBottomSheet.tapDeleteButton();
-        await ContactsView.expectContactIsNotVisible(TEST_CONTACT.editedName);
-      },
-    );
-  });
+          // Tap on edit
+          await AddContactView.tapEditButton();
+          await AddContactView.tapDeleteContactCTA();
+          await Assertions.expectElementToBeVisible(
+            DeleteContactBottomSheet.title,
+          );
+          await DeleteContactBottomSheet.tapDeleteButton();
+          await ContactsView.expectContactIsNotVisible(TEST_CONTACT.editedName);
+        },
+      );
+    },
+  );
 });
