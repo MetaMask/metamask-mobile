@@ -103,6 +103,7 @@ describe('AccountListCell', () => {
           isSelected={false}
           onSelectAccount={mockOnSelectAccount}
           showCheckbox
+          avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
@@ -120,6 +121,7 @@ describe('AccountListCell', () => {
           isSelected={false}
           onSelectAccount={mockOnSelectAccount}
           showCheckbox={false}
+          avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
@@ -136,6 +138,7 @@ describe('AccountListCell', () => {
           accountGroup={mockAccountGroup}
           isSelected={false}
           onSelectAccount={mockOnSelectAccount}
+          avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
@@ -153,6 +156,7 @@ describe('AccountListCell', () => {
           isSelected
           onSelectAccount={mockOnSelectAccount}
           showCheckbox
+          avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
@@ -168,6 +172,7 @@ describe('AccountListCell', () => {
           isSelected={false}
           onSelectAccount={mockOnSelectAccount}
           showCheckbox
+          avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
@@ -186,6 +191,7 @@ describe('AccountListCell', () => {
           isSelected={false}
           onSelectAccount={mockOnSelectAccount}
           showCheckbox
+          avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
@@ -206,6 +212,7 @@ describe('AccountListCell', () => {
           isSelected={false}
           onSelectAccount={mockOnSelectAccount}
           showCheckbox
+          avatarAccountType={AvatarAccountType.Maskicon}
         />,
       );
 
@@ -223,6 +230,7 @@ describe('AccountListCell', () => {
             isSelected
             onSelectAccount={mockOnSelectAccount}
             showCheckbox
+            avatarAccountType={AvatarAccountType.Maskicon}
           />,
         );
 
