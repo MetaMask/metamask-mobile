@@ -8,6 +8,15 @@ import Engine from '../../../../../core/Engine';
 import PerpsWithdrawView from './PerpsWithdrawView';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 
+// Mock component-library Button to avoid IconSize import issues during tests
+jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
+  __esModule: true,
+  default: 'Button',
+  ButtonSize: { Lg: 'Lg', Md: 'Md' },
+  ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
+  ButtonWidthTypes: { Full: 'Full', Auto: 'Auto' },
+}));
+
 // Mock locales
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -126,29 +135,6 @@ jest.mock('@metamask/design-system-react-native', () => ({
   ButtonBase: 'ButtonBase',
 }));
 
-// Mock Icons
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: 'Icon',
-  IconColor: {
-    Alternative: 'Alternative',
-  },
-}));
-
-jest.mock(
-  '../../../../../component-library/components/Icons/Icon/Icon.types',
-  () => ({
-    IconName: {
-      Close: 'Close',
-      Info: 'Info',
-      Clock: 'Clock',
-    },
-    IconSize: {
-      Sm: 'Sm',
-    },
-  }),
-);
-
 // Mock Text component
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
@@ -250,7 +236,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(strings('perps.withdrawal.title')),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial amount display
+      expect(screen.getByText('$0')).toBeOnTheScreen(); // Initial amount display matches component logic
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {

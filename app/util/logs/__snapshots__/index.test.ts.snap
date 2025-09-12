@@ -334,7 +334,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "0xe708": true,
           },
           "solana": {
+            "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
             "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+            "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false,
           },
         },
       },
@@ -378,6 +380,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
         "isTestnet": false,
         "lastDepositResult": null,
+        "lastDepositTransactionId": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
@@ -460,7 +463,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
@@ -498,6 +501,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "vaultEncryptionSalt": true,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {
@@ -978,7 +982,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "0xe708": true,
           },
           "solana": {
+            "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
             "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+            "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false,
           },
         },
       },
@@ -1022,6 +1028,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "isTestnet": false,
         "lastDepositResult": null,
+        "lastDepositTransactionId": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
@@ -1104,7 +1111,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
@@ -1124,6 +1131,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "vaultEncryptionSalt": false,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {

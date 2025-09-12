@@ -43,6 +43,7 @@ import {
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -55,11 +56,18 @@ const CustomNetworkSelector = ({
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   // Use custom hooks for network management
-  const { networks } = useNetworksByNamespace({
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Custom,
   });
-  const { selectCustomNetwork } = useNetworkSelection({
+
+  const { networksToUse } = useNetworksToUse({
     networks,
+    networkType: NetworkType.Custom,
+    areAllNetworksSelected,
+  });
+
+  const { selectCustomNetwork } = useNetworkSelection({
+    networks: networksToUse,
   });
 
   const goToNetworkSettings = useCallback(() => {
@@ -137,7 +145,7 @@ const CustomNetworkSelector = ({
   return (
     <ScrollView style={styles.container}>
       <FlashList
-        data={networks}
+        data={networksToUse}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
         ListFooterComponent={renderFooter}

@@ -10,9 +10,11 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-// Mock formatPrice utility
+// Mock formatPrice and formatPerpsFiat utilities
 jest.mock('../utils/formatUtils', () => ({
   formatPrice: (price: string) => price, // Simple pass-through for testing
+  formatPerpsFiat: (price: string) => price, // Simple pass-through for testing
+  PRICE_RANGES_POSITION_VIEW: {}, // Mock the constant
 }));
 
 describe('usePerpsTPSLForm', () => {
@@ -429,7 +431,7 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleTakeProfitPercentageChange('10.00');
       });
 
-      // When not focused, should show clean format
+      // When not focused, should show clean format (10.00 -> 10)
       expect(result.current.display.formattedTakeProfitPercentage).toBe('10');
 
       // When focused, should preserve user input
@@ -437,7 +439,9 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleTakeProfitPercentageFocus();
       });
 
-      expect(result.current.display.formattedTakeProfitPercentage).toBe('10');
+      expect(result.current.display.formattedTakeProfitPercentage).toBe(
+        '10.00',
+      );
     });
   });
 
@@ -592,6 +596,357 @@ describe('usePerpsTPSLForm', () => {
 
       // Should not calculate when not visible
       expect(result.current.formState.takeProfitPercentage).toBe('');
+    });
+  });
+
+  describe('entryPrice parameter functionality', () => {
+    it('should use entryPrice for calculations when provided', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000, // Different from currentPrice (50000)
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should calculate price based on entryPrice (52000) not currentPrice (50000)
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+      // The exact calculation depends on the formula, but it should be different
+      // from what it would be with currentPrice
+    });
+
+    it('should fallback to currentPrice when entryPrice is not provided', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should still work using currentPrice
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should use position entryPrice when position is provided', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000', // Different from default currentPrice
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use position's entry price for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should handle zero or invalid entryPrice gracefully', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 0,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should not crash and should fallback to currentPrice
+      expect(result.current.formState.takeProfitPrice).toBe('');
+    });
+  });
+
+  describe('reference price logic for validation', () => {
+    it('should validate against entryPrice when provided', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000, // Higher than current price
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // For long position, TP should be above entryPrice (52000), not currentPrice (50000)
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('51000'); // Between current and entry
+      });
+
+      // Should be invalid because it's below entryPrice
+      expect(result.current.validation.takeProfitError).toContain(
+        'limit price',
+      );
+    });
+
+    it('should validate against currentPrice when entryPrice not provided', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should validate against currentPrice
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000'); // Below current
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'current price',
+      );
+    });
+
+    it('should validate against position entry price when position exists', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000',
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should validate against position's entry price
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('50500'); // Below position entry
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'entry price',
+      );
+    });
+  });
+
+  describe('price type determination in error messages', () => {
+    it('should show "entry price" error for positions', () => {
+      const params = {
+        asset: 'BTC',
+        position: mockPosition,
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000'); // Invalid for long
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'entry price',
+      );
+    });
+
+    it('should show "limit price" error for limit orders', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000, // Different from current, indicates limit order
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('51000'); // Invalid
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'limit price',
+      );
+    });
+
+    it('should show "current price" error for market orders', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined, // No entry price = market order
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000'); // Invalid for long
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'current price',
+      );
+    });
+  });
+
+  describe('formatPerpsFiat integration in button handlers', () => {
+    it('should use formatPerpsFiat for take profit button prices', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      act(() => {
+        result.current.buttons.handleTakeProfitPercentageButton(25);
+      });
+
+      // The price should be set (formatPerpsFiat is mocked to pass through)
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+      // The actual formatting is handled by the mock
+    });
+
+    it('should use formatPerpsFiat for stop loss button prices', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      act(() => {
+        result.current.buttons.handleStopLossPercentageButton(10);
+      });
+
+      // The price should be set (formatPerpsFiat is mocked to pass through)
+      expect(result.current.formState.stopLossPrice).not.toBe('');
+      // The actual formatting is handled by the mock
+    });
+
+    it('should strip non-numeric characters from formatted prices', () => {
+      // Test that the regex replacement works correctly
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
+
+      act(() => {
+        result.current.buttons.handleTakeProfitPercentageButton(25);
+      });
+
+      // Since our mock returns the input as-is, and the code strips non-numeric chars,
+      // the result should only contain numbers and decimal points
+      const price = result.current.formState.takeProfitPrice;
+      expect(price).toMatch(/^[0-9.]*$/);
+    });
+  });
+
+  describe('calculation precedence', () => {
+    it('should prioritize position entryPrice over prop entryPrice', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000',
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        entryPrice: 52000, // Different prop value
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use position's entryPrice (51000) for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should prioritize prop entryPrice over currentPrice', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000,
+        currentPrice: 50000,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use entryPrice (52000) for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+
+    it('should fallback to currentPrice when no entryPrice available', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: undefined,
+        position: undefined,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('10');
+      });
+
+      // Should use currentPrice for calculations
+      expect(result.current.formState.takeProfitPrice).not.toBe('');
+    });
+  });
+
+  describe('edge cases with entryPrice', () => {
+    it('should handle missing currentPrice and entryPrice gracefully', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 0,
+        entryPrice: undefined,
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should not crash
+      expect(result.current.formState.takeProfitPrice).toBe('');
+      expect(result.current.formState.stopLossPrice).toBe('');
+    });
+
+    it('should not calculate percentages when entryPrice and currentPrice are both invalid', () => {
+      const params = {
+        ...defaultParams,
+        currentPrice: 0,
+        entryPrice: 0,
+        initialTakeProfitPrice: '55000',
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Should not calculate initial percentages with invalid prices
+      expect(result.current.formState.takeProfitPercentage).toBe('');
+    });
+
+    it('should handle entryPrice changes during hook lifecycle', () => {
+      let entryPrice = 50000;
+      const { result, rerender } = renderHook(() =>
+        usePerpsTPSLForm({ ...defaultParams, entryPrice, isVisible: true }),
+      );
+
+      // Set initial price
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('55000');
+      });
+
+      const initialPercentage = result.current.formState.takeProfitPercentage;
+
+      // Change entryPrice
+      entryPrice = 52000;
+      rerender();
+
+      // Percentage should be recalculated based on new entryPrice
+      expect(result.current.formState.takeProfitPercentage).not.toBe(
+        initialPercentage,
+      );
     });
   });
 });

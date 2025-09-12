@@ -1,16 +1,26 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  parseCaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 
 interface UseNetworkSelectionOptions {
@@ -59,7 +69,13 @@ export const useNetworkSelection = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const internalAccounts = useSelector(selectInternalAccounts);
-  ///: END:ONLY_INCLUDE_IF(bitcoin)
+  ///: END:ONLY_INCLUDE_IF
+
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const { MultichainNetworkController, NetworkController } = Engine.context;
 
   const popularNetworkChainIds = useMemo(
     () =>
@@ -93,7 +109,7 @@ export const useNetworkSelection = ({
       ),
     [internalAccounts],
   );
-  ///: END:ONLY_INCLUDE_IF(bitcoin)
+  ///: END:ONLY_INCLUDE_IF
 
   /** Disables all custom networks except the optionally specified one */
   const resetCustomNetworks = useCallback(
@@ -112,6 +128,18 @@ export const useNetworkSelection = ({
     },
     [customNetworksToReset, disableNetwork],
   );
+
+  const resetSolanaNetworks = useCallback(() => {
+    disableNetwork(SolScope.Mainnet);
+  }, [disableNetwork]);
+
+  const resetEvmNetworks = useCallback(() => {
+    networks.forEach(({ caipChainId }) => {
+      if (caipChainId !== SolScope.Mainnet) {
+        disableNetwork(caipChainId);
+      }
+    });
+  }, [networks, disableNetwork]);
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
@@ -140,12 +168,30 @@ export const useNetworkSelection = ({
         // set the selected address to the bitcoin account
         Engine.setSelectedAddress(bitcoAccountInScope.address);
       }
-      ///: END:ONLY_INCLUDE_IF(bitcoin)
+      ///: END:ONLY_INCLUDE_IF
       await enableNetwork(chainId);
       await resetCustomNetworks(chainId);
+      if (isMultichainAccountsState2Enabled) {
+        const { reference } = parseCaipChainId(chainId);
+        const clientId = NetworkController.findNetworkClientIdByChainId(
+          toHex(reference),
+        );
+        await MultichainNetworkController.setActiveNetwork(clientId);
+        await resetSolanaNetworks();
+      }
       onComplete?.();
     },
-    [enableNetwork, resetCustomNetworks, bitcoinInternalAccounts],
+    [
+      enableNetwork,
+      resetCustomNetworks,
+      resetSolanaNetworks,
+      MultichainNetworkController,
+      isMultichainAccountsState2Enabled,
+      NetworkController,
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      bitcoinInternalAccounts,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   const selectAllPopularNetworks = useCallback(
@@ -170,13 +216,40 @@ export const useNetworkSelection = ({
           Engine.setSelectedAddress(bitcoAccountInScope.address);
         }
       }
-      ///: END:ONLY_INCLUDE_IF(bitcoin)
+      ///: END:ONLY_INCLUDE_IF
 
       await enableNetwork(chainId);
       await resetCustomNetworks();
+      if (isMultichainAccountsState2Enabled && chainId === SolScope.Mainnet) {
+        try {
+          await MultichainNetworkController.setActiveNetwork(chainId);
+        } catch (error) {
+          // Handle error silently for now
+        }
+        await resetEvmNetworks();
+      }
+      if (isMultichainAccountsState2Enabled && chainId !== SolScope.Mainnet) {
+        const { reference } = parseCaipChainId(chainId);
+        const clientId = NetworkController.findNetworkClientIdByChainId(
+          toHex(reference),
+        );
+        await MultichainNetworkController.setActiveNetwork(clientId);
+        await resetSolanaNetworks();
+      }
       onComplete?.();
     },
-    [enableNetwork, resetCustomNetworks, bitcoinInternalAccounts],
+    [
+      enableNetwork,
+      resetCustomNetworks,
+      resetSolanaNetworks,
+      isMultichainAccountsState2Enabled,
+      resetEvmNetworks,
+      MultichainNetworkController,
+      NetworkController,
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      bitcoinInternalAccounts,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
@@ -185,15 +258,52 @@ export const useNetworkSelection = ({
       hexOrCaipChainId: CaipChainId | `0x${string}` | Hex,
       onComplete?: () => void,
     ) => {
-      const inputString = String(hexOrCaipChainId);
-      const hexChainId = (
-        typeof hexOrCaipChainId === 'string' && inputString.includes(':')
-          ? toHex(inputString.split(':')[1])
-          : toHex(hexOrCaipChainId)
-      ) as `0x${string}`;
+      const chainIdString = String(hexOrCaipChainId);
 
-      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
-      const caipChainId = formatChainIdToCaip(hexOrCaipChainId);
+      let isPopularNetwork = false;
+      let caipChainId: CaipChainId;
+
+      try {
+        // Handle different input formats
+        if (isCaipChainId(chainIdString)) {
+          // Already in CAIP format
+          caipChainId = chainIdString;
+
+          // Parse the CAIP chain ID to get namespace and reference
+          const { namespace: caipNamespace, reference } =
+            parseCaipChainId(caipChainId);
+
+          // For EVM networks, check if it's popular
+          if (caipNamespace === 'eip155') {
+            const hexChainId = toHex(reference);
+            isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
+          }
+          // For non-EVM networks (like Solana), treat as popular by default
+          // since they don't have custom network support yet
+          else {
+            isPopularNetwork = true;
+          }
+        } else {
+          // Convert hex chain ID to CAIP format
+          caipChainId = formatChainIdToCaip(hexOrCaipChainId);
+          const hexChainId = toHex(hexOrCaipChainId) as `0x${string}`;
+          isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
+        }
+      } catch (error) {
+        console.error('selectNetwork: Error processing chain ID:', error);
+        // Fallback: try to format as CAIP and treat as custom
+        try {
+          caipChainId = formatChainIdToCaip(hexOrCaipChainId);
+          isPopularNetwork = false;
+        } catch (fallbackError) {
+          console.error(
+            'selectNetwork: Fallback formatting failed:',
+            fallbackError,
+          );
+          return; // Exit early if we can't process the chain ID
+        }
+      }
+
       if (isPopularNetwork) {
         selectPopularNetwork(caipChainId, onComplete);
       } else {

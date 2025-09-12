@@ -8,6 +8,7 @@ import {
 } from '../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
+import { selectMultichainAccountsState2Enabled } from '../../selectors/featureFlagController/multichainAccounts';
 
 export interface NetworkInfo {
   caipChainId: string;
@@ -34,14 +35,34 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
   const selectedChainId = useSelector(selectChainId);
   const isSolanaSelected =
     selectedChainId?.includes(KnownCaipNamespace.Solana) ?? false;
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   // Get all enabled networks for the namespace
   const enabledNetworks = useMemo(() => {
+    if (isMultichainAccountsState2Enabled) {
+      const networksForNamespace = {
+        ...Object.values(enabledNetworksByNamespace).reduce(
+          (acc, obj) => ({ ...acc, ...obj }),
+          {},
+        ),
+      };
+
+      return Object.entries(networksForNamespace)
+        .filter(([_key, value]) => value)
+        .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
+    }
+
     const networksForNamespace = enabledNetworksByNamespace[namespace] || {};
     return Object.entries(networksForNamespace)
       .filter(([_key, value]) => value)
       .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
-  }, [enabledNetworksByNamespace, namespace]);
+  }, [
+    enabledNetworksByNamespace,
+    isMultichainAccountsState2Enabled,
+    namespace,
+  ]);
 
   // Generic function to get network info by index
   const getNetworkInfo = useCallback(
@@ -75,6 +96,7 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
 
   let isDisabled: boolean = Boolean(!isEvmSelected);
   // We don't have Solana testnet networks, so we disable the network selector if Solana is selected
+  // TODO: Come back when we have Solana devnet available
   isDisabled = Boolean(isSolanaSelected);
 
   const hasEnabledNetworks = enabledNetworks.length > 0;

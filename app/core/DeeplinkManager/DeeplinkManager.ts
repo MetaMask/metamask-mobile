@@ -5,6 +5,7 @@ import { Dispatch } from 'redux';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
 import handleRampUrl from './Handlers/handleRampUrl';
+import handleDepositCashUrl from './Handlers/handleDepositCashUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
@@ -20,6 +21,7 @@ import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
+import FCMService from '../../util/notifications/services/FCMService';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
@@ -91,6 +93,13 @@ class DeeplinkManager {
       rampPath,
       navigation: this.navigation,
       rampType: RampType.SELL,
+    });
+  }
+
+  _handleDepositCash(depositCashPath: string) {
+    handleDepositCashUrl({
+      depositPath: depositCashPath,
+      navigation: this.navigation,
     });
   }
 
@@ -170,6 +179,18 @@ class DeeplinkManager {
         Logger.error(error as Error, 'Error getting Branch deeplink');
       }
     };
+
+    FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
+      if (deeplink) {
+        handleDeeplink({ uri: deeplink });
+      }
+    });
+
+    FCMService.onClickPushNotificationWhenAppSuspended((deeplink) => {
+      if (deeplink) {
+        handleDeeplink({ uri: deeplink });
+      }
+    });
 
     Linking.getInitialURL().then((url) => {
       if (!url) {

@@ -1,47 +1,43 @@
 import { useCallback } from 'react';
 
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { useSendContext } from '../../context/send-context/send-context';
 import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
-import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
+import { useNonEvmToAddressValidation } from './non-evm/useNonEvmToAddressValidation';
 import { useSendType } from './useSendType';
 
-// todo: to address validation assumees `to` is the input from the user
-// depending on implementation we may need to have 2 fields for recipient `toInput` and `toResolved`
 export const useToAddressValidation = () => {
-  const { to } = useSendContext();
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType } = useSendType();
   const { validateEvmToAddress } = useEvmToAddressValidation();
-  const { validateSolanaToAddress } = useSolanaToAddressValidation();
+  const { validateNonEvmToAddress } = useNonEvmToAddressValidation();
 
-  const validateToAddress = useCallback(
-    async (address: string) => {
-      if (isEvmSendType) {
-        return await validateEvmToAddress(address);
-      }
-      if (isSolanaSendType) {
-        return validateSolanaToAddress(address);
-      }
-      return {};
-    },
-    [
-      isEvmSendType,
-      isSolanaSendType,
-      validateEvmToAddress,
-      validateSolanaToAddress,
-    ],
-  );
+  const validateToAddress = useCallback(async () => {
+    if (isEvmSendType) {
+      return await validateEvmToAddress();
+    }
+    return validateNonEvmToAddress();
+  }, [isEvmSendType, validateEvmToAddress, validateNonEvmToAddress]);
 
-  const { value } = useAsyncResult<{
+  const { value, pending } = useAsyncResult<{
+    toAddressValidated?: string;
     error?: string;
     warning?: string;
-  }>(async () => validateToAddress(to || ''), [validateToAddress, to]);
+    loading?: boolean;
+    resolvedAddress?: string;
+  }>(async () => validateToAddress(), [validateToAddress]);
 
-  const { error: toAddressError, warning: toAddressWarning } = value ?? {};
+  const {
+    toAddressValidated,
+    error: toAddressError,
+    warning: toAddressWarning,
+    loading = false,
+    resolvedAddress,
+  } = value ?? {};
 
   return {
+    loading: loading || pending,
+    resolvedAddress,
     toAddressError,
+    toAddressValidated,
     toAddressWarning,
-    validateToAddress,
   };
 };

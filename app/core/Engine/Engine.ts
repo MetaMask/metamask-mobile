@@ -48,7 +48,10 @@ import {
   AddApprovalOptions,
 } from '@metamask/approval-controller';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
-import { SelectedNetworkController } from '@metamask/selected-network-controller';
+import {
+  SelectedNetworkController,
+  SelectedNetworkControllerState,
+} from '@metamask/selected-network-controller';
 import {
   PermissionController,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -961,7 +964,14 @@ export class Engine {
           'PermissionController:stateChange',
         ],
       }),
-      state: initialState.SelectedNetworkController || { domains: {} },
+      state:
+        initialState.SelectedNetworkController ||
+        ({
+          domains: {},
+          activeDappNetwork: null,
+        } as SelectedNetworkControllerState & {
+          activeDappNetwork: string | null;
+        }),
       useRequestQueuePreference: isPerDappSelectedNetworkEnabled(),
       // TODO we need to modify core PreferencesController for better cross client support
       onPreferencesStateChange: (
@@ -1860,7 +1870,7 @@ export class Engine {
     let totalEthFiat1dAgo = 0;
     let totalTokenFiat = 0;
     let totalTokenFiat1dAgo = 0;
-    let aggregatedNativeTokenBalance = '';
+    let aggregatedNativeTokenBalance = '0';
     let primaryTicker = '';
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
@@ -2104,17 +2114,20 @@ export class Engine {
 
       const { tokenBalances } = backgroundState.TokenBalancesController;
 
-      let tokenFound = false;
-      tokenLoop: for (const chains of Object.values(tokenBalances)) {
-        for (const tokens of Object.values(chains)) {
-          for (const balance of Object.values(tokens)) {
-            if (!isZero(balance)) {
-              tokenFound = true;
-              break tokenLoop;
+      const hasNonZeroTokenBalance = (): boolean => {
+        for (const chains of Object.values(tokenBalances)) {
+          for (const tokens of Object.values(chains)) {
+            for (const balance of Object.values(tokens)) {
+              if (!isZero(balance)) {
+                return true;
+              }
             }
           }
         }
-      }
+        return false;
+      };
+
+      const tokenFound = hasNonZeroTokenBalance();
 
       const fiatBalance = this.getTotalEvmFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
