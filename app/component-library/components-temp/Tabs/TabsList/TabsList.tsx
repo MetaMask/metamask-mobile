@@ -144,7 +144,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         <TabsBar {...tabBarProps} />
 
         {/* Tab content with dynamic height */}
-        <Box twClassName="flex-1">{currentContent}</Box>
+        <Box twClassName="flex-1 mt-2">{currentContent}</Box>
       </Box>
     );
   },

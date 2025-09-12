@@ -351,7 +351,7 @@ exports[`TabsBar Automatic Scroll Detection renders without scroll view initiall
       style={
         {
           "backgroundColor": "#121314",
-          "bottom": 0,
+          "bottom": 4,
           "height": 2,
           "position": "absolute",
           "transform": [
@@ -718,7 +718,7 @@ exports[`TabsBar Edge Cases handles invalid activeIndex gracefully 1`] = `
       style={
         {
           "backgroundColor": "#121314",
-          "bottom": 0,
+          "bottom": 4,
           "height": 2,
           "position": "absolute",
           "transform": [
@@ -1785,7 +1785,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
       style={
         {
           "backgroundColor": "#121314",
-          "bottom": 0,
+          "bottom": 4,
           "height": 2,
           "position": "absolute",
           "transform": [
@@ -1834,7 +1834,7 @@ exports[`TabsBar Rendering handles empty tabs array gracefully 1`] = `
       style={
         {
           "backgroundColor": "#121314",
-          "bottom": 0,
+          "bottom": 4,
           "height": 2,
           "position": "absolute",
           "transform": [
@@ -2201,7 +2201,7 @@ exports[`TabsBar Rendering renders correctly with tabs 1`] = `
       style={
         {
           "backgroundColor": "#121314",
-          "bottom": 0,
+          "bottom": 4,
           "height": 2,
           "position": "absolute",
           "transform": [
@@ -2568,7 +2568,7 @@ exports[`TabsBar Underline Animation renders animated underline 1`] = `
       style={
         {
           "backgroundColor": "#121314",
-          "bottom": 0,
+          "bottom": 4,
           "height": 2,
           "position": "absolute",
           "transform": [

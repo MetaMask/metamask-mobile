@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Animated, ScrollView, LayoutChangeEvent } from 'react-native';
 
 // External dependencies.
@@ -28,6 +28,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
   const isInitialized = useRef(false);
+  const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
 
   // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -38,17 +39,36 @@ const TabsBar: React.FC<TabsBarProps> = ({
     tabLayouts.current = new Array(tabs.length);
     isInitialized.current = false;
     setScrollEnabled(false);
+    // Stop any ongoing animation when tabs change
+    if (currentAnimation.current) {
+      currentAnimation.current.stop();
+      currentAnimation.current = null;
+    }
   }, [tabs.length]);
 
-  // Animate underline when active tab changes
-  useEffect(() => {
-    // If activeIndex is -1, no tab is active, so don't animate underline
-    if (activeIndex < 0) {
-      return;
-    }
+  // Improved animation function that handles race conditions
+  const animateToTab = useCallback(
+    (targetIndex: number) => {
+      // Stop any ongoing animation
+      if (currentAnimation.current) {
+        currentAnimation.current.stop();
+        currentAnimation.current = null;
+      }
 
-    const activeTabLayout = tabLayouts.current[activeIndex];
-    if (activeTabLayout) {
+      // Validate target index and layout data
+      if (targetIndex < 0 || targetIndex >= tabLayouts.current.length) {
+        return;
+      }
+
+      const activeTabLayout = tabLayouts.current[targetIndex];
+      if (
+        !activeTabLayout ||
+        typeof activeTabLayout.x !== 'number' ||
+        typeof activeTabLayout.width !== 'number'
+      ) {
+        return;
+      }
+
       if (!isInitialized.current) {
         // Set initial position without animation on first render
         underlineAnimated.setValue(activeTabLayout.x);
@@ -56,7 +76,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         isInitialized.current = true;
       } else {
         // Animate for subsequent tab changes
-        Animated.parallel([
+        const animation = Animated.parallel([
           Animated.spring(underlineAnimated, {
             toValue: activeTabLayout.x,
             useNativeDriver: false,
@@ -69,7 +89,15 @@ const TabsBar: React.FC<TabsBarProps> = ({
             tension: 300,
             friction: 30,
           }),
-        ]).start();
+        ]);
+
+        currentAnimation.current = animation;
+        animation.start((finished) => {
+          // Clear the animation reference only if this animation completed
+          if (finished && currentAnimation.current === animation) {
+            currentAnimation.current = null;
+          }
+        });
       }
 
       // Scroll to active tab if needed
@@ -79,8 +107,24 @@ const TabsBar: React.FC<TabsBarProps> = ({
           animated: true,
         });
       }
+    },
+    [scrollEnabled, underlineAnimated, underlineWidthAnimated],
+  );
+
+  // Animate underline when active tab changes
+  useEffect(() => {
+    // If activeIndex is -1, no tab is active, so don't animate underline
+    if (activeIndex < 0) {
+      // Stop any ongoing animation when no tab is active
+      if (currentAnimation.current) {
+        currentAnimation.current.stop();
+        currentAnimation.current = null;
+      }
+      return;
     }
-  }, [activeIndex, scrollEnabled, underlineAnimated, underlineWidthAnimated]);
+
+    animateToTab(activeIndex);
+  }, [activeIndex, animateToTab]);
 
   // Check if content overflows and update scroll state
   useEffect(() => {
@@ -106,47 +150,74 @@ const TabsBar: React.FC<TabsBarProps> = ({
   }, [containerWidth, tabs.length]);
 
   // Handle container layout to measure available width
-  const handleContainerLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
+  const handleContainerLayout = (layoutEvent: LayoutChangeEvent) => {
+    const { width } = layoutEvent.nativeEvent.layout;
     setContainerWidth(width);
   };
 
-  const handleTabLayout = (index: number, event: LayoutChangeEvent) => {
-    const { x, width } = event.nativeEvent.layout;
+  const handleTabLayout = useCallback(
+    (index: number, layoutEvent: LayoutChangeEvent) => {
+      const { x, width } = layoutEvent.nativeEvent.layout;
 
-    // Initialize array to proper length if needed to prevent sparse arrays
-    if (tabLayouts.current.length < tabs.length) {
-      tabLayouts.current = new Array(tabs.length);
-    }
+      // Validate input parameters
+      if (typeof index !== 'number' || index < 0 || index >= tabs.length) {
+        return;
+      }
 
-    // Store the wrapper dimensions directly
-    tabLayouts.current[index] = { x, width };
+      if (typeof x !== 'number' || typeof width !== 'number' || width <= 0) {
+        return;
+      }
 
-    // If this is the active tab and we haven't initialized the underline yet, set it immediately
-    // Only initialize if activeIndex is valid (>= 0)
-    if (index === activeIndex && activeIndex >= 0 && !isInitialized.current) {
-      underlineAnimated.setValue(x);
-      underlineWidthAnimated.setValue(width);
-      isInitialized.current = true;
-    }
+      // Initialize array to proper length if needed to prevent sparse arrays
+      if (tabLayouts.current.length < tabs.length) {
+        tabLayouts.current = new Array(tabs.length);
+      }
 
-    // Trigger scroll detection recalculation when all tabs are measured
-    const allLayoutsDefined = tabLayouts.current.every(
-      (layout) => layout && typeof layout.width === 'number',
-    );
+      // Store the wrapper dimensions directly
+      tabLayouts.current[index] = { x, width };
 
-    if (allLayoutsDefined && containerWidth > 0) {
-      const totalTabsWidth = tabLayouts.current.reduce(
-        (sum, layout) => sum + layout.width,
-        0,
+      // If this is the active tab, try to animate to it (handles both initialization and updates)
+      if (index === activeIndex && activeIndex >= 0) {
+        // Use the improved animation function to handle initialization properly
+        animateToTab(activeIndex);
+      }
+
+      // Trigger scroll detection recalculation when all tabs are measured
+      const allLayoutsDefined = tabLayouts.current.every(
+        (layout) => layout && typeof layout.width === 'number',
       );
-      const gapsWidth = (tabs.length - 1) * 24; // 24px = gap-6 in Tailwind
-      const calculatedContentWidth = totalTabsWidth + gapsWidth;
 
-      const shouldScroll = calculatedContentWidth > containerWidth;
-      setScrollEnabled(shouldScroll);
-    }
-  };
+      if (allLayoutsDefined && containerWidth > 0) {
+        const totalTabsWidth = tabLayouts.current.reduce(
+          (sum, layout) => sum + layout.width,
+          0,
+        );
+        const gapsWidth = (tabs.length - 1) * 24; // 24px = gap-6 in Tailwind
+        const calculatedContentWidth = totalTabsWidth + gapsWidth;
+
+        const shouldScroll = calculatedContentWidth > containerWidth;
+        setScrollEnabled(shouldScroll);
+
+        // CRITICAL FIX: If we haven't initialized the underline yet and we now have all layouts,
+        // try to initialize it for the active tab
+        if (
+          !isInitialized.current &&
+          activeIndex >= 0 &&
+          activeIndex < tabLayouts.current.length
+        ) {
+          const activeTabLayout = tabLayouts.current[activeIndex];
+          if (
+            activeTabLayout &&
+            typeof activeTabLayout.x === 'number' &&
+            typeof activeTabLayout.width === 'number'
+          ) {
+            animateToTab(activeIndex);
+          }
+        }
+      }
+    },
+    [tabs.length, activeIndex, animateToTab, containerWidth],
+  );
 
   const handleTabPress = (index: number) => {
     const tab = tabs[index];
@@ -159,7 +230,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
     <Box
       twClassName="relative overflow-hidden"
       testID={testID}
-      onLayout={handleContainerLayout as (event: unknown) => void}
+      onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}
     >
       {scrollEnabled ? (
@@ -179,8 +250,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
             {tabs.map((tab, index) => (
               <Box
                 key={tab.key}
-                onLayout={(event: unknown) =>
-                  handleTabLayout(index, event as LayoutChangeEvent)
+                onLayout={(layoutEvent: unknown) =>
+                  handleTabLayout(index, layoutEvent as LayoutChangeEvent)
                 }
               >
                 <Tab
@@ -213,8 +284,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
           {tabs.map((tab, index) => (
             <Box
               key={tab.key}
-              onLayout={(event: unknown) =>
-                handleTabLayout(index, event as LayoutChangeEvent)
+              onLayout={(layoutEvent: unknown) =>
+                handleTabLayout(index, layoutEvent as LayoutChangeEvent)
               }
             >
               <Tab

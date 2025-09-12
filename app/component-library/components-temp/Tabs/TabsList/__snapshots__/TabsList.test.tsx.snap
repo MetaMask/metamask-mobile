@@ -318,7 +318,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
         style={
           {
             "backgroundColor": "#121314",
-            "bottom": 0,
+            "bottom": 4,
             "height": 2,
             "position": "absolute",
             "transform": [
@@ -736,7 +736,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
         style={
           {
             "backgroundColor": "#121314",
-            "bottom": 0,
+            "bottom": 4,
             "height": 2,
             "position": "absolute",
             "transform": [

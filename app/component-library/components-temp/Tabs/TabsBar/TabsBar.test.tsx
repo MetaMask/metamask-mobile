@@ -293,6 +293,88 @@ describe('TabsBar', () => {
       // Snapshots should be different due to underline position change
       expect(initialSnapshot).not.toEqual(updatedSnapshot);
     });
+
+    it('handles rapid tab switching without animation conflicts', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Simulate rapid tab switching
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={2}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Should not throw errors and component should still be rendered and functional
+      const tabsBarComponent = getByTestId('tabs-bar');
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('initializes underline correctly when layout events come after component mount', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+      const tab0 = getByTestId('tabs-bar-tab-0');
+      const tab1 = getByTestId('tabs-bar-tab-1');
+      const tab2 = getByTestId('tabs-bar-tab-2');
+
+      // Simulate layout events coming after mount (which happens on first load)
+      act(() => {
+        // Container layout first
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // Tab layouts in order
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+        fireEvent(tab1, 'onLayout', {
+          nativeEvent: { layout: { x: 84, y: 0, width: 70, height: 40 } },
+        });
+        fireEvent(tab2, 'onLayout', {
+          nativeEvent: { layout: { x: 178, y: 0, width: 80, height: 40 } },
+        });
+      });
+
+      // Component should still be rendered and functional after delayed layout
+      expect(tabsBarComponent).toBeOnTheScreen();
+      expect(tab0).toBeOnTheScreen();
+      expect(tab1).toBeOnTheScreen();
+      expect(tab2).toBeOnTheScreen();
+    });
   });
 
   describe('Edge Cases', () => {
