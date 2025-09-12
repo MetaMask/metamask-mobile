@@ -6,6 +6,13 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Box } from '@metamask/design-system-react-native';
 import AccountCell from '.';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+
+interface StoryArgs {
+  accountGroup: AccountGroupObject;
+  isSelected: boolean;
+  avatarAccountType: AvatarAccountType;
+}
 
 const SAMPLE_ACCOUNT_GROUP = {
   type: AccountGroupType.SingleAccount,
@@ -132,28 +139,38 @@ const MultichainAccountRowMeta = {
     ),
   ],
   argTypes: {
-    accountGroup: {
-      control: { type: 'object' },
-      defaultValue: SAMPLE_ACCOUNT_GROUP,
+    accountGroup: { control: { type: 'object' } },
+    isSelected: { control: { type: 'boolean' } },
+    avatarAccountType: {
+      control: {
+        type: 'select',
+        options: Object.values(AvatarAccountType),
+      },
     },
-    isSelected: {
-      control: { type: 'boolean' },
-      defaultValue: false,
-    },
+  },
+  args: {
+    accountGroup: SAMPLE_ACCOUNT_GROUP,
+    isSelected: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
 };
 export default MultichainAccountRowMeta;
 
 export const MultichainAddressSelectedRow = {
-  render: (args: { accountGroup: AccountGroupObject }) => (
-    <AccountCell accountGroup={args.accountGroup} isSelected />
+  render: (args: StoryArgs) => (
+    <AccountCell
+      accountGroup={args.accountGroup}
+      avatarAccountType={args.avatarAccountType}
+      isSelected
+    />
   ),
 };
 
 export const MultichainAddressRow = {
-  render: (args: { accountGroup: AccountGroupObject; isSelected: boolean }) => (
+  render: (args: StoryArgs) => (
     <AccountCell
       accountGroup={args.accountGroup}
+      avatarAccountType={args.avatarAccountType}
       isSelected={args.isSelected}
     />
   ),
