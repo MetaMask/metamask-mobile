@@ -6221,10 +6221,10 @@
     react-dom "^18.3.1"
     vite-plugin-node-polyfills "^0.22.0"
 
-"@metamask/test-dapp@^9.3.0":
-  version "9.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.4.0.tgz#c6aea4b9e97625e95967d3511ebd95af9f8ad1c9"
-  integrity sha512-XDpXOiMOvnypXSUPk7s1bK5v7ZWqQztkQTl5MmwgALL5fJ488ByK6AETO3rv15UH4OyrIZPxcCXKh1Renk1m9Q==
+"@metamask/test-dapp@9.5.0":
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.5.0.tgz#2eb34d1fcf41b7e433b1e31bb847ed568ceea908"
+  integrity sha512-OxmZpTew6jZsxKUu8v4lYRKD/mwIOEAufzcB54TnPKElN2RyXMrES+yuV3BiOvDL5bD04O9cprbVQ2rUl6DKDw==
 
 "@metamask/token-search-discovery-controller@^3.1.0":
   version "3.1.0"
