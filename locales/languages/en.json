@@ -5447,6 +5447,21 @@
     "show_less": "less"
   },
   "multichain_accounts": {
+    "intro": {
+      "title": "Introducing multichain accounts",
+      "section_1_title": "What are multichain accounts?",
+      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_2_title": "Same address, more networks",
+      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+        "view_accounts_button": "View accounts",
+        "learn_more_button": "Learn more"
+      },
+      "learn_more": {
+        "title": "Learn more",
+        "description": "Multichain accounts are now the default. To opt out, turn off basic functionality.",
+        "checkbox_label": "Turn off basic functionality",
+        "confirm_button": "Confirm"
+      },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
     "account_details": {
