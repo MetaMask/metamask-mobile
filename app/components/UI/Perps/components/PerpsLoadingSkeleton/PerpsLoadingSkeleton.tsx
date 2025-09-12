@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -8,11 +7,10 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   TextColor,
-} from '@metamask/design-system-react-native';
-import Button, {
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
@@ -32,7 +30,6 @@ interface PerpsLoadingSkeletonProps {
 const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   testID = 'perps-loading-skeleton',
 }) => {
-  const tw = useTailwind();
   const { colors } = useTheme();
   const { reconnectWithNewContext } = usePerpsConnection();
   const [showTimeout, setShowTimeout] = useState(false);
@@ -64,47 +61,44 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName="flex-1 bg-default mt-20"
+      twClassName="flex-1 bg-default"
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
     >
       {!showTimeout ? (
-        <>
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-6">
           {/* Loading Spinner */}
-          <ActivityIndicator
-            size="large"
-            color={colors.text.alternative}
-            style={tw.style('mb-6')}
-          />
+          <ActivityIndicator size="large" color={colors.text.alternative} />
 
           {/* Main Text */}
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-default mb-2"
+            twClassName="text-center"
           >
             {strings('perps.connection.connecting_to_perps')}
           </Text>
-        </>
+        </Box>
       ) : (
-        <>
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-6">
           {/* Timeout Message */}
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="text-default mb-2"
+            twClassName="text-center"
           >
             {strings('perps.connection.timeout_title')}
           </Text>
           {/* Retry Button */}
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Md}
-            label={strings('perps.connection.retry_connection')}
             onPress={handleRetry}
             testID={`${testID}-retry-button`}
-          />
-        </>
+          >
+            {strings('perps.connection.retry_connection')}
+          </Button>
+        </Box>
       )}
     </Box>
   );
