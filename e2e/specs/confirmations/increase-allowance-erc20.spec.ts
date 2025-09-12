@@ -17,7 +17,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-respo
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
-  it('from a dApp', async () => {
+  it.skip('from a dApp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,

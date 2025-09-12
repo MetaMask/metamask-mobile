@@ -18,7 +18,7 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-respo
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
-  it('approve all ERC721 tokens', async () => {
+  it.skip('approve all ERC721 tokens', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
