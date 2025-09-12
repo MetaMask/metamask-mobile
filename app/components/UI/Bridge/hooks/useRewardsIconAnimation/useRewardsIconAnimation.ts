@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import { RiveRef } from 'rive-react-native';
 
 // These come from the Rive file, need to go into the Rive Editor to see them, or talk to designers
+const STATE_MACHINE_NAME = 'State Machine 1';
 enum RewardsIconTriggers {
   Disable = 'Disable',
   Start = 'Start',
@@ -45,13 +46,19 @@ export const useRewardsIconAnimation = ({
     try {
       if ((shouldShowRewardsRow && isRewardsLoading) || hasRewardsError) {
         // Loading or error state - trigger Disable
-        riveRef.current.fireState('default', RewardsIconTriggers.Disable);
+        riveRef.current.fireState(
+          STATE_MACHINE_NAME,
+          RewardsIconTriggers.Disable,
+        );
         return;
       }
 
       if (currentPoints && currentPoints > 0) {
         // Has points - trigger Start
-        riveRef.current.fireState('default', RewardsIconTriggers.Start);
+        riveRef.current.fireState(
+          STATE_MACHINE_NAME,
+          RewardsIconTriggers.Start,
+        );
       }
     } catch (error) {
       console.warn('Error triggering Rive animation:', error);
