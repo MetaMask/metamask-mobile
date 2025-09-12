@@ -791,11 +791,11 @@ describe('TabsList', () => {
       // Arrange
       const mockOnChangeTab = jest.fn();
       const tabsRef = React.createRef<TabsListRef>();
-      
+
       const { getByText } = render(
-        <TabsList 
-          ref={tabsRef} 
-          initialActiveIndex={0} 
+        <TabsList
+          ref={tabsRef}
+          initialActiveIndex={0}
           onChangeTab={mockOnChangeTab}
         >
           <View key="single" {...({ tabLabel: 'Only Tab' } as TabViewProps)}>
@@ -822,7 +822,13 @@ describe('TabsList', () => {
       const mockOnChangeTab = jest.fn();
       const { getByText } = render(
         <TabsList initialActiveIndex={-1} onChangeTab={mockOnChangeTab}>
-          <View key="single" {...({ tabLabel: 'Disabled Tab', isDisabled: true } as TabViewProps)}>
+          <View
+            key="single"
+            {...({
+              tabLabel: 'Disabled Tab',
+              isDisabled: true,
+            } as TabViewProps)}
+          >
             <Text>Disabled Tab Content</Text>
           </View>
         </TabsList>,
@@ -837,11 +843,11 @@ describe('TabsList', () => {
       // Arrange
       const mockOnChangeTab = jest.fn();
       const tabsRef = React.createRef<TabsListRef>();
-      
+
       render(
-        <TabsList 
-          ref={tabsRef} 
-          initialActiveIndex={0} 
+        <TabsList
+          ref={tabsRef}
+          initialActiveIndex={0}
           onChangeTab={mockOnChangeTab}
         >
           <View key="single" {...({ tabLabel: 'Only Tab' } as TabViewProps)}>
@@ -866,8 +872,8 @@ describe('TabsList', () => {
       // Arrange
       const mockOnChangeTab = jest.fn();
       const { getByTestId, getByText } = render(
-        <TabsList 
-          initialActiveIndex={0} 
+        <TabsList
+          initialActiveIndex={0}
           onChangeTab={mockOnChangeTab}
           testID="single-tab-list"
         >

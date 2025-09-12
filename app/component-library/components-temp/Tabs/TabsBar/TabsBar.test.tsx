@@ -554,7 +554,12 @@ describe('TabsBar', () => {
     it('handles single disabled tab', () => {
       // Arrange
       const singleDisabledTab = [
-        { key: 'single', label: 'Disabled Tab', content: null, isDisabled: true },
+        {
+          key: 'single',
+          label: 'Disabled Tab',
+          content: null,
+          isDisabled: true,
+        },
       ];
       const mockOnTabPress = jest.fn();
       const { getByTestId, getByText } = render(
