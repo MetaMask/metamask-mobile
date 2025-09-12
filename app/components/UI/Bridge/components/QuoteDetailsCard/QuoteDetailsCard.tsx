@@ -116,9 +116,13 @@ const QuoteDetailsCard = () => {
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
   );
-  const formattedEstimatedPoints = intlNumberFormatter.format(
-    estimatedPoints || 0,
-  );
+
+  let formattedEstimatedPoints = '';
+  if (hasRewardsError) {
+    formattedEstimatedPoints = strings('bridge.unable_to_load');
+  } else if (estimatedPoints) {
+    formattedEstimatedPoints = intlNumberFormatter.format(estimatedPoints);
+  }
 
   return (
     <Box>
@@ -314,9 +318,7 @@ const QuoteDetailsCard = () => {
                   />
                   {!isRewardsLoading && (
                     <Text variant={TextVariant.BodyMD}>
-                      {hasRewardsError
-                        ? strings('bridge.unable_to_load')
-                        : formattedEstimatedPoints ?? ''}
+                      {formattedEstimatedPoints}
                     </Text>
                   )}
                 </Box>
