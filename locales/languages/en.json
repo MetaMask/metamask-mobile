@@ -1651,6 +1651,9 @@
     "banner": {
       "title": "Basic functionality is off",
       "link": "Turn on basic functionality"
+    },
+    "carousel": {
+      "empty_state": "You're all caught up!"
     }
   },
   "asset_details": {
@@ -2509,7 +2512,6 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
-    "fund_button": "Fund",
     "token_marketplace": "Token marketplace",
     "sell_button": "Withdraw",
     "receive_button": "Receive",
