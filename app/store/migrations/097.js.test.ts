@@ -161,7 +161,7 @@ describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () =>
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          "Migration 96: tokenNetworkFilter is type 'string', expected object.",
+          "Migration 97: tokenNetworkFilter is type 'string', expected object.",
         ),
       }),
     );
@@ -192,7 +192,7 @@ describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () =>
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          'Migration 96: tokenNetworkFilter is empty, expected at least one network configuration.',
+          'Migration 97: tokenNetworkFilter is empty, expected at least one network configuration.',
         ),
       }),
     );
@@ -269,7 +269,7 @@ describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () =>
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          "Migration 96: selectedMultichainNetworkChainId is type 'undefined', expected string.",
+          "Migration 97: selectedMultichainNetworkChainId is type 'undefined', expected string.",
         ),
       }),
     );
@@ -301,7 +301,7 @@ describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () =>
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          "Migration 96: selectedMultichainNetworkChainId is type 'number', expected string.",
+          "Migration 97: selectedMultichainNetworkChainId is type 'number', expected string.",
         ),
       }),
     );
@@ -453,7 +453,7 @@ describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () =>
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
-          "Migration 96: selectedMultichainNetworkChainId is type 'object', expected string",
+          "Migration 97: selectedMultichainNetworkChainId is type 'object', expected string",
         ),
       }),
     );
