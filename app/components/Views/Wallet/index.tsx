@@ -390,14 +390,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
     if (isPredictEnabled) {
       tabs.push(
-        <PredictTabView
-          {...predictTabProps}
-          key={predictTabProps.key}
-          isVisible={isPredictTabVisible}
-          onVisibilityChange={(callback) => {
-            predictVisibilityCallback.current = callback;
-          }}
-        />,
+        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
       );
     }
 
