@@ -56,27 +56,17 @@ function extractPlatformAndScenario(filePath) {
   let scenario = 'unknown';
   let scenarioKey = 'Unknown';
   
-  // Determine platform and scenario from path
-  if (filePath.includes('android-imported-wallet-test-results')) {
+  // Determine platform from path (now using combined format)
+  if (filePath.includes('android-combined-test-results')) {
     platform = 'android';
     platformKey = 'Android';
-    scenario = 'imported-wallet';
-    scenarioKey = 'ImportedWallet';
-  } else if (filePath.includes('ios-imported-wallet-test-results')) {
+    scenario = 'combined';
+    scenarioKey = 'Combined';
+  } else if (filePath.includes('ios-combined-test-results')) {
     platform = 'ios';
     platformKey = 'iOS';
-    scenario = 'imported-wallet';
-    scenarioKey = 'ImportedWallet';
-  } else if (filePath.includes('android-onboarding-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
-  } else if (filePath.includes('ios-onboarding-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
+    scenario = 'combined';
+    scenarioKey = 'Combined';
   }
   
   return { platform, platformKey, scenario, scenarioKey };
@@ -89,12 +79,12 @@ function extractPlatformAndScenario(filePath) {
  */
 function extractDeviceInfo(filePath) {
   const pathParts = filePath.split('/');
-  const deviceMatch = pathParts.find(part => part.includes('-test-results-'));
+  const deviceMatch = pathParts.find(part => part.includes('-combined-test-results-'));
   
   if (deviceMatch) {
-    // Extract the part after "-test-results-"
-    const testResultsIndex = deviceMatch.indexOf('-test-results-');
-    const deviceInfo = deviceMatch.substring(testResultsIndex + '-test-results-'.length);
+    // Extract the part after "-combined-test-results-"
+    const testResultsIndex = deviceMatch.indexOf('-combined-test-results-');
+    const deviceInfo = deviceMatch.substring(testResultsIndex + '-combined-test-results-'.length);
     
     // Split by '-' and reconstruct device name and OS version
     const deviceParts = deviceInfo.split('-');
@@ -108,6 +98,27 @@ function extractDeviceInfo(filePath) {
   }
   
   return 'Unknown Device';
+}
+
+/**
+ * Determine scenario from test content
+ * @param {Object} testReport - Test report data
+ * @returns {string} Scenario key (ImportedWallet or Onboarding)
+ */
+function determineScenarioFromTest(testReport) {
+  const testName = (testReport.testName || '').toLowerCase();
+  
+  // Check for onboarding-specific keywords
+  if (testName.includes('onboarding') || 
+      testName.includes('create') || 
+      testName.includes('wallet') ||
+      testName.includes('seed') ||
+      testName.includes('phrase')) {
+    return 'Onboarding';
+  }
+  
+  // Default to ImportedWallet for other tests
+  return 'ImportedWallet';
 }
 
 /**
@@ -287,29 +298,33 @@ function aggregateReports() {
         const reportData = JSON.parse(content);
         console.log(`✅ Successfully parsed JSON data from ${filePath}`);
         
-        // Extract platform and scenario info from path
-        const { platformKey, scenarioKey } = extractPlatformAndScenario(filePath);
+        // Extract platform info from path (scenario will be determined from test content)
+        const { platformKey } = extractPlatformAndScenario(filePath);
         const deviceKey = extractDeviceInfo(filePath);
         
-        // Initialize structure if it doesn't exist
-        if (!groupedResults[scenarioKey]) {
-          groupedResults[scenarioKey] = {};
-        }
-        if (!groupedResults[scenarioKey][platformKey]) {
-          groupedResults[scenarioKey][platformKey] = {};
-        }
-        if (!groupedResults[scenarioKey][platformKey][deviceKey]) {
-          groupedResults[scenarioKey][platformKey][deviceKey] = [];
-        }
+        // Initialize structure for both scenarios
+        ['ImportedWallet', 'Onboarding'].forEach(scenarioKey => {
+          if (!groupedResults[scenarioKey]) {
+            groupedResults[scenarioKey] = {};
+          }
+          if (!groupedResults[scenarioKey][platformKey]) {
+            groupedResults[scenarioKey][platformKey] = {};
+          }
+          if (!groupedResults[scenarioKey][platformKey][deviceKey]) {
+            groupedResults[scenarioKey][platformKey][deviceKey] = [];
+          }
+        });
         
-        // Process the report data
+        // Process the report data and determine scenario from test content
         if (Array.isArray(reportData)) {
           reportData.forEach(testReport => {
             const cleanedReport = processTestReport(testReport);
+            const scenarioKey = determineScenarioFromTest(cleanedReport);
             groupedResults[scenarioKey][platformKey][deviceKey].push(cleanedReport);
           });
         } else {
           const cleanedReport = processTestReport(reportData);
+          const scenarioKey = determineScenarioFromTest(cleanedReport);
           groupedResults[scenarioKey][platformKey][deviceKey].push(cleanedReport);
         }
       } catch (error) {
@@ -332,9 +347,10 @@ function aggregateReports() {
   }
 }
 
+// Export functions for testing
+export { determineScenarioFromTest, extractDeviceInfo, extractPlatformAndScenario, aggregateReports, findJsonFiles, processTestReport };
+
 // Run the aggregation if this script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   aggregateReports();
 }
-
-export { aggregateReports, findJsonFiles, extractPlatformAndScenario, extractDeviceInfo, processTestReport };

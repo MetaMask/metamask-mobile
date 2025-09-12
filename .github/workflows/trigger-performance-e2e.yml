@@ -89,7 +89,7 @@ jobs:
   # =============================================================================
   
   run-performance-tests:
-    name: Run ${{ matrix.test_scenario }} Tests on ${{ matrix.platform }} - ${{ matrix.device.name }}
+    name: Run Combined Tests on ${{ matrix.platform }} - ${{ matrix.device.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
@@ -98,34 +98,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Imported Wallet Tests - Android Devices
-          - test_scenario: imported-wallet
-            platform: android
+          # Android - Combined Tests (Both Onboarding and Imported Wallet)
+          - platform: android
             device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
-            browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
-            app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-            build_name_suffix: Performance
-          # Imported Wallet Tests - iOS Devices
-          - test_scenario: imported-wallet
-            platform: ios
+            with_srp_browserstack_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
+            without_srp_browserstack_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
+            with_srp_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+            without_srp_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+            build_name_suffix: Combined
+          # iOS - Combined Tests (Both Onboarding and Imported Wallet)
+          - platform: ios
             device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
-            browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
-            app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-            build_name_suffix: Performance
-          # Onboarding Tests - Android Devices
-          - test_scenario: onboarding
-            platform: android
-            device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
-            browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
-            app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-            build_name_suffix: Onboarding
-          # Onboarding Tests - iOS Devices
-          - test_scenario: onboarding
-            platform: ios
-            device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
-            browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
-            app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-            build_name_suffix: Onboarding
+            with_srp_browserstack_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+            without_srp_browserstack_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+            with_srp_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+            without_srp_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+            build_name_suffix: Combined
     
     steps:
       - name: Checkout code
@@ -175,40 +163,37 @@ jobs:
       
       - name: Set Test Environment
         run: |
-          echo "Setting ${{ matrix.test_scenario }} test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
+          echo "Setting combined test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Platform: ${{ matrix.platform }}"
           
-          # Validate that we have a BrowserStack URL
-          if [ -z "${{ matrix.browserstack_app_url }}" ]; then
-            echo "❌ Error: No ${{ matrix.platform }} BrowserStack URL available"
+          # Validate that we have both BrowserStack URLs
+          if [ -z "${{ matrix.with_srp_browserstack_url }}" ] || [ -z "${{ matrix.without_srp_browserstack_url }}" ]; then
+            echo "❌ Error: Missing BrowserStack URLs for ${{ matrix.platform }}"
+            echo "With SRP URL: ${{ matrix.with_srp_browserstack_url }}"
+            echo "Without SRP URL: ${{ matrix.without_srp_browserstack_url }}"
             exit 1
           fi
           
           # Set platform-specific environment variables
           if [ "${{ matrix.platform }}" = "android" ]; then
-            APP_URL_VAR="BROWSERSTACK_ANDROID_APP_URL"
-            CLEAN_APP_URL_VAR="BROWSERSTACK_ANDROID_CLEAN_APP_URL"
+            WITH_SRP_VAR="BROWSERSTACK_ANDROID_APP_URL"
+            WITHOUT_SRP_VAR="BROWSERSTACK_ANDROID_CLEAN_APP_URL"
             TEST_PLATFORM="android"
           else
-            APP_URL_VAR="BROWSERSTACK_IOS_APP_URL"
-            CLEAN_APP_URL_VAR="BROWSERSTACK_IOS_CLEAN_APP_URL"
+            WITH_SRP_VAR="BROWSERSTACK_IOS_APP_URL"
+            WITHOUT_SRP_VAR="BROWSERSTACK_IOS_CLEAN_APP_URL"
             TEST_PLATFORM="ios"
-          fi
-          
-          # Set the appropriate URL variable based on test scenario
-          if [ "${{ matrix.test_scenario }}" = "onboarding" ]; then
-            URL_VAR="$CLEAN_APP_URL_VAR"
-          else
-            URL_VAR="$APP_URL_VAR"
           fi
           
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "$URL_VAR=${{ matrix.browserstack_app_url }}"
+            echo "$WITH_SRP_VAR=${{ matrix.with_srp_browserstack_url }}"
+            echo "$WITHOUT_SRP_VAR=${{ matrix.without_srp_browserstack_url }}"
             echo "TEST_PLATFORM=$TEST_PLATFORM"
-            echo "QA_APP_VERSION=${{ matrix.app_version }}"
+            echo "QA_APP_VERSION_WITH_SRP=${{ matrix.with_srp_version }}"
+            echo "QA_APP_VERSION_WITHOUT_SRP=${{ matrix.without_srp_version }}"
             echo "BROWSERSTACK_BUILD_NAME=${{ matrix.platform }}-${{ matrix.build_name_suffix }}-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
       
@@ -217,37 +202,41 @@ jobs:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
         run: |
-          echo "=== Testing ${{ matrix.test_scenario }} on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "=== Running Combined Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Platform: ${{ matrix.platform }}"
-          echo "BrowserStack App URL: ${{ matrix.browserstack_app_url }}"
-          echo "QA App Version: ${{ matrix.app_version }}"
+          echo "With SRP URL: ${{ matrix.with_srp_browserstack_url }}"
+          echo "Without SRP URL: ${{ matrix.without_srp_browserstack_url }}"
+          echo "With SRP Version: ${{ matrix.with_srp_version }}"
+          echo "Without SRP Version: ${{ matrix.without_srp_version }}"
           
           # Platform-specific warnings
           if [ "${{ matrix.platform }}" = "ios" ] && ([ "${{ matrix.device.os_version }}" = "13" ] || [ "${{ matrix.device.os_version }}" = "11" ]); then
             echo "Warning: iOS ${{ matrix.device.os_version }} may not be supported by MetaMask app"
           fi
           
-          # Run the appropriate test command based on platform and scenario
+          # Run both test scenarios in sequence
+          echo "🚀 Starting Imported Wallet Tests..."
           if [ "${{ matrix.platform }}" = "android" ]; then
-            if [ "${{ matrix.test_scenario }}" = "onboarding" ]; then
-              yarn run-appwright:android-onboarding-bs
-            else
-              yarn run-appwright:android-bs
-            fi
+            yarn run-appwright:android-bs
           else
-            if [ "${{ matrix.test_scenario }}" = "onboarding" ]; then
-              yarn run-appwright:ios-onboarding-bs
-            else
-              yarn run-appwright:ios-bs
-            fi
+            yarn run-appwright:ios-bs
           fi
+          
+          echo "🚀 Starting Onboarding Tests..."
+          if [ "${{ matrix.platform }}" = "android" ]; then
+            yarn run-appwright:android-onboarding-bs
+          else
+            yarn run-appwright:ios-onboarding-bs
+          fi
+          
+          echo "✅ All tests completed for ${{ matrix.platform }} on ${{ matrix.device.name }}"
       
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ matrix.platform }}-${{ matrix.test_scenario }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ${{ matrix.platform }}-combined-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports
@@ -268,7 +257,7 @@ jobs:
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
-          pattern: '*-test-results-*'
+          pattern: '*-combined-test-results-*'
           merge-multiple: true
           path: ./all-results
         continue-on-error: true
