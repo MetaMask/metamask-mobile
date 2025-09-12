@@ -151,7 +151,9 @@ export const useRewards = ({
       const feeAsset: EstimateAssetDto = {
         id: activeQuote.quote.feeData.metabridge.asset.assetId,
         amount: activeQuote.quote.feeData.metabridge.amount || '0',
-        // usdPrice: sourceToken.currencyExchangeRate?.toString(), // TODO add this once we get it from backend
+        ...(activeQuote.quote.priceData?.totalFeeAmountUsd
+          ? { usdPrice: activeQuote.quote.priceData.totalFeeAmountUsd }
+          : {}),
       };
 
       // Create estimate request
