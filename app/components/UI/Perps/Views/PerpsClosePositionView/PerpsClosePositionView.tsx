@@ -47,7 +47,6 @@ import {
 } from '../../utils/positionCalculations';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -91,7 +90,6 @@ const PerpsClosePositionView: React.FC = () => {
 
   // State for order type and bottom sheets
   const [orderType, setOrderType] = useState<OrderType>('market');
-  const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isUserInputActive, setIsUserInputActive] = useState(false);
@@ -458,13 +456,14 @@ const PerpsClosePositionView: React.FC = () => {
           <TouchableOpacity
             onPress={() => handleTooltipPress('closing_fees')}
             style={styles.labelWithTooltip}
+            testID={PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON}
           >
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.close_position.fees')}
             </Text>
             <Icon
               name={IconName.Info}
-              size={IconSize.Xs}
+              size={IconSize.Sm}
               color={IconColor.Muted}
             />
           </TouchableOpacity>
@@ -478,15 +477,29 @@ const PerpsClosePositionView: React.FC = () => {
 
       <View style={[styles.summaryRow, styles.summaryTotalRow]}>
         <View style={styles.summaryLabel}>
-          <Text variant={TextVariant.BodyMD}>
-            {strings('perps.close_position.you_receive')}
-          </Text>
+          <TouchableOpacity
+            onPress={() => handleTooltipPress('close_position_you_receive')}
+            style={styles.labelWithTooltip}
+            testID={
+              PerpsClosePositionViewSelectorsIDs.YOU_RECEIVE_TOOLTIP_BUTTON
+            }
+          >
+            <Text variant={TextVariant.BodyMD}>
+              {strings('perps.close_position.you_receive')}
+            </Text>
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.Muted}
+            />
+          </TouchableOpacity>
         </View>
         <View style={styles.summaryValue}>
-          <Text variant={TextVariant.BodyMD}>
-            {formatPrice(Math.max(0, receiveAmount), {
-              maximumDecimals: 2,
-            })}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={receiveAmount > 0 ? TextColor.Success : TextColor.Default}
+          >
+            {formatPrice(receiveAmount, { maximumDecimals: 2 })}
           </Text>
         </View>
       </View>
@@ -501,8 +514,6 @@ const PerpsClosePositionView: React.FC = () => {
         priceChange={parseFloat(
           priceData[position.coin]?.percentChange24h ?? '0',
         )}
-        orderType={orderType}
-        onOrderTypePress={() => setIsOrderTypeVisible(true)}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
       />
@@ -694,23 +705,6 @@ const PerpsClosePositionView: React.FC = () => {
           />
         )}
       </View>
-
-      {/* Order Type Bottom Sheet */}
-      <PerpsOrderTypeBottomSheet
-        isVisible={isOrderTypeVisible}
-        onClose={() => setIsOrderTypeVisible(false)}
-        onSelect={(type) => {
-          setOrderType(type);
-          // Clear limit price when switching to market order
-          if (type === 'market') {
-            setLimitPrice('');
-          }
-          setIsOrderTypeVisible(false);
-        }}
-        currentOrderType={orderType}
-        asset={position.coin}
-        direction={isLong ? 'long' : 'short'}
-      />
 
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet

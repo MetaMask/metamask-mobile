@@ -1372,6 +1372,10 @@
         "title": "Take Profit & Stop Loss",
         "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
       },
+      "close_position_you_receive": {
+        "title": "Receive amount",
+        "content": "Your receive amount is estimated and may change slightly due to slippage."
+      },
       "notifications": {
         "title": "Turn on notifications",
         "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",

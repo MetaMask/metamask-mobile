@@ -18,7 +18,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   PerpsClosePositionViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
-  PerpsOrderHeaderSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock navigation
@@ -65,10 +64,6 @@ jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple
 jest.mock('../../components/PerpsAmountDisplay');
 
-jest.mock('../../components/PerpsOrderTypeBottomSheet', () => ({
-  __esModule: true,
-  default: 'PerpsOrderTypeBottomSheet',
-}));
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () => ({
   __esModule: true,
   default: 'PerpsLimitPriceBottomSheet',
@@ -202,20 +197,6 @@ describe('PerpsClosePositionView', () => {
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       ).toBeDefined();
-    });
-
-    it('shows default market order type on initial render', () => {
-      // Arrange & Act
-      const { getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Assert
-      expect(getByText(strings('perps.order.market'))).toBeDefined();
     });
 
     it('displays order details section', () => {
@@ -375,26 +356,6 @@ describe('PerpsClosePositionView', () => {
         confirmButton.props.disabled ||
           confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
-    });
-  });
-
-  describe('Order Type Management', () => {
-    it('handles order type change from market to limit', () => {
-      // Given the default market order is displayed
-      const { getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // When order type changes to limit
-      // Simulate the component re-rendering with limit order type
-      // Note: In real implementation, this would be triggered by bottom sheet selection
-
-      // Then the limit order text should be visible
-      expect(getByText(strings('perps.order.market'))).toBeDefined();
     });
   });
 
@@ -997,23 +958,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Limit Order Features', () => {
-    it('switches between market and limit order types', () => {
-      // Given a close position view
-      const { getByTestId, getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Then it should show market order by default
-      expect(
-        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
-      ).toBeDefined();
-      expect(getByText(strings('perps.order.market'))).toBeDefined();
-    });
-
     it('validates limit order requires price', () => {
       // Given validation returns error for missing limit price
       usePerpsClosePositionValidationMock.mockReturnValue({
@@ -1415,29 +1359,6 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
-  describe('Order Type Selection', () => {
-    it('opens order type bottom sheet when order type button is pressed', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Act - Press the order type button
-      const orderTypeButton = getByTestId(
-        PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
-      );
-      fireEvent.press(orderTypeButton);
-
-      // Assert - Order type selection should trigger state change
-      // The actual bottom sheet rendering is handled by the PerpsOrderTypeBottomSheet component
-      expect(orderTypeButton).toBeDefined();
-    });
-  });
-
   describe('Tooltip Management', () => {
     it('handles tooltip interactions for closing fees', () => {
       // Arrange
@@ -1491,28 +1412,6 @@ describe('PerpsClosePositionView', () => {
 
       // Assert
       expect(percentText).toBeDefined();
-    });
-  });
-
-  describe('Limit Order Auto-Open', () => {
-    it('opens limit price bottom sheet when switching to limit order without price', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Act - Press order type button to trigger limit order selection
-      const orderTypeButton = getByTestId(
-        PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
-      );
-      fireEvent.press(orderTypeButton);
-
-      // Assert - Bottom sheet should be triggered
-      expect(orderTypeButton).toBeDefined();
     });
   });
 
@@ -1841,46 +1740,6 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Should track initial screen view (useEffect runs on mount)
       expect(track).toHaveBeenCalled();
-    });
-  });
-
-  describe('Limit Order Auto-Open Logic', () => {
-    it('auto-opens limit price sheet when switching to limit without price', () => {
-      // Arrange
-      const TestComponent = () => {
-        const [orderType, setOrderType] = React.useState<'market' | 'limit'>(
-          'market',
-        );
-        const [limitPrice] = React.useState('');
-        const [isLimitPriceVisible, setIsLimitPriceVisible] =
-          React.useState(false);
-
-        // Simulate the useEffect logic from the component
-        React.useEffect(() => {
-          if (orderType === 'limit' && !limitPrice) {
-            setIsLimitPriceVisible(true);
-          }
-        }, [orderType, limitPrice]);
-
-        return (
-          <View>
-            <TouchableOpacity onPress={() => setOrderType('limit')}>
-              <Text>Switch to Limit</Text>
-            </TouchableOpacity>
-            <Text testID="limit-sheet-visible">
-              {isLimitPriceVisible.toString()}
-            </Text>
-          </View>
-        );
-      };
-
-      // Act
-      const { getByTestId, getByText } = render(<TestComponent />);
-      const switchButton = getByText('Switch to Limit');
-      fireEvent.press(switchButton);
-
-      // Assert - Should auto-open limit price sheet
-      expect(getByTestId('limit-sheet-visible').props.children).toBe('true');
     });
   });
 
