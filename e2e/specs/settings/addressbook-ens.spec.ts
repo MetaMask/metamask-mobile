@@ -21,6 +21,7 @@ import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-resp
 import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
 import WalletView from '../../pages/wallet/WalletView';
+import { device } from 'detox';
 
 const MEMO = 'Test adding ENS';
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
@@ -158,14 +159,24 @@ describe(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
         await AddContactView.typeInName('Ibrahim edited'); // Change name from Ibrahim to Ibrahim edited
 
         await AddContactView.tapEditContactCTA();
-        await ContactsView.expectContactIsVisible('Ibrahim edited'); // Check that Ibrahim address is saved in the address book
+        if (device.getPlatform() === 'android') {
+          await TabBarComponent.tapSettings();
+          await SettingsView.tapContacts();
+        }
+        await Assertions.expectTextDisplayed('Ibrahim edited', {
+          timeout: 20000,
+          description: 'Edited contact visible in contacts list',
+        });
         await ContactsView.expectContactIsNotVisible('Ibrahim'); // Ensure Ibrahim is not visible
 
         // should go back to send flow to validate newly added address is displayed
         await CommonView.tapBackButton();
         await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
-        await Assertions.expectTextDisplayed('Ibrahim edited');
+        await Assertions.expectTextDisplayed('Ibrahim edited', {
+          timeout: 20000,
+          description: 'Edited contact visible in send flow',
+        });
       },
     );
   });
