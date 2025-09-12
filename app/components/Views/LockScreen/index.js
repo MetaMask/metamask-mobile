@@ -32,6 +32,12 @@ class LockScreen extends PureComponent {
       'change',
       this.handleAppStateChange,
     );
+
+    // Trigger biometrics immediately if app is already active
+    // This handles cases where component mounts during rapid background/foreground cycles
+    if (AppState.currentState === 'active') {
+      this.unlockKeychain();
+    }
   }
 
   handleAppStateChange = async (nextAppState) => {
@@ -98,6 +104,10 @@ const LockScreenFCWrapper = (props) => {
 };
 
 LockScreenFCWrapper.propTypes = {
+  /**
+   * The navigator object
+   */
+  navigation: PropTypes.object,
   /**
    * Navigation object that holds params including bioStateMachineId.
    */
