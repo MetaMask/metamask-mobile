@@ -116,30 +116,87 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -193,94 +250,87 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -514,7 +564,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -637,6 +687,35 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -682,7 +761,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,
@@ -889,30 +968,87 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -966,94 +1102,87 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -1287,7 +1416,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -1410,6 +1539,35 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1455,7 +1613,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,
@@ -1676,30 +1834,87 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -1753,94 +1968,87 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -2074,7 +2282,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2197,6 +2405,35 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -2242,7 +2479,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,
@@ -2449,30 +2686,87 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -2526,94 +2820,87 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -2847,7 +3134,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2970,6 +3257,35 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -3015,7 +3331,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
                                         "paddingVertical": 0,

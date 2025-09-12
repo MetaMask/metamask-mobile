@@ -75,7 +75,7 @@ describe('CardAssetItem Component', () => {
     chainId: '0x1',
     address: '0x0000000000000000000000000000000000000000',
     isStaked: false,
-    allowanceState: AllowanceState.NotActivated,
+    allowanceState: AllowanceState.NotEnabled,
     allowance: ethers.BigNumber.from('1000000000000000000'),
     decimals: 18,
     symbol: 'ETH',
@@ -109,7 +109,6 @@ describe('CardAssetItem Component', () => {
       <CardAssetItem
         assetKey={mockAssetKey}
         privacyMode={false}
-        disabled
         onPress={mockOnPress}
       />
     ));
@@ -195,14 +194,6 @@ describe('CardAssetItem Component', () => {
     );
 
     expect(toJSON()).toBeNull();
-  });
-
-  it('renders with disabled state', () => {
-    const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} disabled />
-    ));
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles test network correctly', () => {

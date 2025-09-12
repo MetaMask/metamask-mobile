@@ -16,10 +16,12 @@ export function getPerpsControllerMessenger(
       'TransactionController:transactionSubmitted',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
+      'RemoteFeatureFlagController:stateChange',
     ],
     allowedActions: [
       'AccountsController:getSelectedAccount',
       'NetworkController:getState',
+      'AuthenticationController:getBearerToken',
     ],
   });
 }

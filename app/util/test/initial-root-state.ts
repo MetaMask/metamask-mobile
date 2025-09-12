@@ -6,12 +6,14 @@ import { initialState as initialInpageProvider } from '../../core/redux/slices/i
 import { initialState as confirmationMetrics } from '../../core/redux/slices/confirmationMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import { initialState as initialBridgeState } from '../../core/redux/slices/bridge';
+import { initialState as initialCardState } from '../../core/redux/slices/card';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
 import { initialOnboardingState } from '../../reducers/onboarding';
 import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
 import { isTest } from './utils';
+import { initialState as initialRewardsState } from '../../reducers/rewards';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -21,6 +23,9 @@ const initialRootState: RootState = {
   legalNotices: undefined,
   collectibles: undefined,
   engine: { backgroundState },
+  cronjobController: {
+    storage: undefined,
+  },
   privacy: undefined,
   bookmarks: undefined,
   browser: undefined,
@@ -29,7 +34,6 @@ const initialRootState: RootState = {
   alert: undefined,
   transaction: undefined,
   user: userInitialState,
-  wizard: undefined,
   onboarding: initialOnboardingState,
   notification: undefined,
   swaps: undefined,
@@ -43,6 +47,7 @@ const initialRootState: RootState = {
     connections: {},
     approvedHosts: {},
     dappConnections: {},
+    v2Connections: {},
   },
   experimentalSettings: undefined,
   rpcEvents: undefined,
@@ -55,6 +60,8 @@ const initialRootState: RootState = {
   banners: {
     dismissedBanners: [],
   },
+  card: initialCardState,
+  rewards: initialRewardsState,
 };
 
 if (isTest) {

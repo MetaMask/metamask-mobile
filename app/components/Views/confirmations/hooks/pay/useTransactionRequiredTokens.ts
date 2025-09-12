@@ -1,66 +1,62 @@
 import { useEffect, useMemo } from 'react';
 import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
-import { Hex, add0x, createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { toHex } from '@metamask/controller-utils';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
-import { useDeepMemo } from '../useDeepMemo';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
+import { selectUSDConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 
 const log = createProjectLogger('transaction-pay');
 
 export interface TransactionToken {
   address: Hex;
-  amount: Hex;
+  allowUnderMinimum: boolean;
+  amountRaw: string;
+  amountHuman: string;
+  balanceRaw: string;
+  balanceHuman: string;
+  decimals: number;
+  skipIfBalance: boolean;
 }
 
 /**
  * Determine what tokens are required by the transaction.
  * Necessary for MetaMask Pay to generate suitable bridge or swap transactions.
  */
-export function useTransactionRequiredTokens() {
+export function useTransactionRequiredTokens({
+  log: isLoggingEnabled,
+}: { log?: boolean } = {}): TransactionToken[] {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
 
-  const balanceTokens = useTokensWithBalance({
-    chainIds: [chainId],
-  });
+  const gasToken = useGasToken(chainId);
+  const tokenTransferToken = useTokenTransferToken(chainId);
 
-  const gasToken = useGasToken();
-  const valueToken = useValueToken();
-  const tokenTransferToken = useTokenTransferToken();
-
-  const requiredTokens = useMemo(
-    () =>
-      [gasToken, valueToken, tokenTransferToken].filter(
-        (t) => t,
-      ) as TransactionToken[],
-    [gasToken, valueToken, tokenTransferToken],
+  const result = useMemo(
+    () => [tokenTransferToken, gasToken].filter(Boolean) as TransactionToken[],
+    [gasToken, tokenTransferToken],
   );
-
-  const finalTokens = getPartialTokens(
-    getUniqueTokens(requiredTokens),
-    balanceTokens,
-    chainId,
-  );
-
-  const result = useDeepMemo(() => finalTokens, [finalTokens]);
 
   useEffect(() => {
+    if (!isLoggingEnabled) return;
     log('Required tokens', result);
-  }, [result]);
+  }, [isLoggingEnabled, result]);
 
   return result;
 }
 
-function useTokenTransferToken(): TransactionToken | undefined {
+function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
-  const { data, to } = txParams;
+  const { data } = txParams;
+  const to = txParams.to as Hex | undefined;
+  const balanceProperties = useTokenBalance(to ?? '0x0', chainId);
 
   let transferAmount: Hex | undefined;
 
@@ -81,101 +77,85 @@ function useTokenTransferToken(): TransactionToken | undefined {
     }
 
     return {
-      address: to as Hex,
-      amount: transferAmount,
+      ...calculateAmountProperties(transferAmount, balanceProperties.decimals),
+      ...balanceProperties,
+      allowUnderMinimum: false,
+      skipIfBalance: false,
     };
-  }, [transferAmount, to]);
+  }, [balanceProperties, to, transferAmount]);
 }
 
-function useValueToken(): TransactionToken | undefined {
-  const transactionMetadata = useTransactionMetadataOrThrow();
-  const { txParams } = transactionMetadata;
-  const { value } = txParams;
+function useGasToken(chainId: Hex): TransactionToken | undefined {
+  const balanceProperties = useTokenBalance(NATIVE_TOKEN_ADDRESS, chainId);
+
+  const maxGasCostHex = useTransactionMaxGasCost();
+
+  const usdConversionRate = useSelector((state: RootState) =>
+    selectUSDConversionRateByChainId(state, chainId as Hex),
+  );
+
+  const oneDollarNativeWei = new BigNumber(1)
+    .dividedBy(usdConversionRate || 1)
+    .shiftedBy(18);
+
+  const maxGasCost = new BigNumber(maxGasCostHex ?? '0x0', 16);
+
+  const hasSufficientBalance = maxGasCost.isLessThanOrEqualTo(
+    balanceProperties.balanceRaw,
+  );
+
+  const amountRawHex = toHex(
+    (usdConversionRate &&
+    maxGasCost.isLessThan(oneDollarNativeWei) &&
+    !hasSufficientBalance
+      ? oneDollarNativeWei
+      : maxGasCost
+    ).toFixed(0, BigNumber.ROUND_CEIL),
+  );
 
   return useMemo(() => {
-    if (!value) {
+    if (!amountRawHex) {
       return undefined;
     }
 
     return {
-      address: NATIVE_TOKEN_ADDRESS,
-      amount: value as Hex,
+      ...calculateAmountProperties(amountRawHex, balanceProperties.decimals),
+      ...balanceProperties,
+      allowUnderMinimum: true,
+      skipIfBalance: true,
     };
-  }, [value]);
+  }, [amountRawHex, balanceProperties]);
 }
 
-function useGasToken(): TransactionToken | undefined {
-  const maxGasCost = useTransactionMaxGasCost() ?? '0x0';
+function useTokenBalance(tokenAddress: Hex, chainId: Hex) {
+  const balanceToken = useTokenWithBalance(tokenAddress, chainId);
 
-  return useMemo(() => {
-    if (maxGasCost === '0x0') {
-      return undefined;
-    }
+  const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
+  const balanceHuman = balanceToken?.balance ?? '0';
 
-    return { address: NATIVE_TOKEN_ADDRESS, amount: maxGasCost };
-  }, [maxGasCost]);
+  const balanceRaw = new BigNumber(balanceHuman, 10)
+    .shiftedBy(decimals)
+    .toFixed(0);
+
+  return useMemo(
+    () => ({
+      address: tokenAddress,
+      balanceHuman,
+      balanceRaw,
+      decimals,
+    }),
+    [balanceHuman, balanceRaw, decimals, tokenAddress],
+  );
 }
 
-function getPartialTokens(
-  tokens: TransactionToken[],
-  balanceTokens: BridgeToken[],
-  chainId: Hex,
-): TransactionToken[] {
-  return tokens.reduce((acc, token) => {
-    const balanceToken = balanceTokens.find(
-      (t) =>
-        t.address.toLowerCase() === token.address.toLowerCase() &&
-        t.chainId === chainId,
-    );
+function calculateAmountProperties(amountRawHex: Hex, decimals: number) {
+  const amountRawValue = new BigNumber(amountRawHex, 16);
+  const amountHumanValue = amountRawValue.shiftedBy(-decimals);
+  const amountRaw = amountRawValue.toFixed(0);
+  const amountHuman = amountHumanValue.toString(10);
 
-    if (!balanceToken?.balance) {
-      acc.push({
-        ...token,
-      });
-
-      return acc;
-    }
-
-    const { balance } = balanceToken;
-    const decimals = balanceToken.decimals ?? 18;
-
-    const requiredBalance = new BigNumber(token.amount, 16)
-      .shiftedBy(-decimals)
-      .minus(balance);
-
-    const requiredBalanceRaw = add0x(
-      requiredBalance.shiftedBy(decimals).toString(16),
-    );
-
-    if (requiredBalance.lte(0)) {
-      return acc;
-    }
-
-    acc.push({
-      ...token,
-      amount: requiredBalanceRaw,
-    });
-
-    return acc;
-  }, [] as TransactionToken[]);
-}
-
-function getUniqueTokens(targets: TransactionToken[]): TransactionToken[] {
-  return targets.reduce((acc, target) => {
-    const existingToken = acc.find(
-      (t) => t.address.toLowerCase() === target.address.toLowerCase(),
-    );
-
-    if (existingToken) {
-      existingToken.amount = add0x(
-        new BigNumber(existingToken.amount, 16)
-          .plus(new BigNumber(target.amount, 16))
-          .toString(16),
-      );
-    } else {
-      acc.push({ ...target });
-    }
-
-    return acc;
-  }, [] as TransactionToken[]);
+  return {
+    amountHuman,
+    amountRaw,
+  };
 }

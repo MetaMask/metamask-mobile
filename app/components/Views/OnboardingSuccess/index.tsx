@@ -33,6 +33,11 @@ import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView, { AnimationObject } from 'lottie-react-native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import { useSelector } from 'react-redux';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { capitalize } from 'lodash';
+import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -53,6 +58,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
+
+  const isSocialLogin =
+    authConnection === AuthConnection.Google ||
+    authConnection === AuthConnection.Apple;
+
   useLayoutEffect(() => {
     navigation.setOptions(
       getTransparentOnboardingNavbarOptions(colors, undefined, false),
@@ -71,7 +82,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
-      await importAdditionalAccounts();
+      // We're not running EVM discovery on its own if state 2 is enabled. The discovery
+      // will be run on every account providers (EVM included) prior to that point.
+      // See: Authentication.ts
+      if (!isMultichainAccountsState2Enabled()) {
+        await importAdditionalAccounts();
+      }
     };
     onOnboardingSuccess();
     onDone();
@@ -162,18 +178,39 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.import_description')}
+                {isSocialLogin
+                  ? strings(
+                      'onboarding_success.import_description_social_login',
+                      {
+                        authConnection: capitalize(authConnection) || '',
+                      },
+                    )
+                  : strings('onboarding_success.import_description')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {isSocialLogin ? (
                 <Text
-                  color={TextColor.Primary}
-                  onPress={handleLink}
-                  testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
                 >
-                  {strings('onboarding_success.learn_how')}{' '}
+                  {strings(
+                    'onboarding_success.import_description_social_login_2',
+                  )}
                 </Text>
-                {strings('onboarding_success.import_description2')}
-              </Text>
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  <Text
+                    color={TextColor.Primary}
+                    onPress={handleLink}
+                    testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
+                  >
+                    {strings('onboarding_success.learn_how')}{' '}
+                  </Text>
+                  {strings('onboarding_success.import_description2')}
+                </Text>
+              )}
             </View>
           </>
         );

@@ -22,16 +22,6 @@ export const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
-  1: 'Welcome',
-  2: 'Accounts',
-  3: 'Account Name',
-  4: 'Notifications',
-  5: 'Main Navigation',
-  6: 'Browser',
-  7: 'Search',
-};
-
 /**
  * Analytics Tracking Events
  */
@@ -92,6 +82,10 @@ enum EVENT_NAME {
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
+
+  // Asset Filter
+  ASSET_FILTER_SELECTED = 'Default Asset Filter Selected',
+  ASSET_FILTER_CUSTOM_SELECTED = 'Custom Asset Filter Selected',
 
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
@@ -292,6 +286,7 @@ enum EVENT_NAME {
   WALLET_VIEW = 'Wallet View',
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
+  SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
 
   // Swaps
@@ -449,7 +444,7 @@ enum EVENT_NAME {
   IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
-  //Notifications
+  // Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
@@ -460,6 +455,10 @@ enum EVENT_NAME {
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
   NOTIFICATION_STORAGE_KEY_DELETED = 'Notification Storage Key Deleted',
+
+  // Push Notifications
+  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
+  PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
@@ -514,6 +513,74 @@ enum EVENT_NAME {
 
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
+
+  // Perps Trading
+  // Perps Events - Using exact dashboard names from requirements
+  // Tutorial Flow
+  PERPS_TUTORIAL_VIEWED = 'Perp Tutorial Viewed',
+  PERPS_TUTORIAL_STARTED = 'Perp Tutorial Started',
+  PERPS_TUTORIAL_COMPLETED = 'Perp Tutorial Completed',
+
+  // Account Funding Flow
+  PERPS_FUNDING_INPUT_VIEWED = 'Perp Funding Input Viewed',
+  PERPS_FUNDING_REVIEW_VIEWED = 'Perp Funding Review Viewed',
+  PERPS_FUNDING_INITIATED = 'Perp Funding Initiated',
+  PERPS_FUNDING_COMPLETED = 'Perp Funding Completed',
+  PERPS_FUNDING_FAILED = 'Perp Funding Failed',
+
+  // Account Withdrawal Flow
+  PERPS_WITHDRAWAL_INPUT_VIEWED = 'Perp Withdrawal Input Viewed',
+  PERPS_WITHDRAWAL_INITIATED = 'Perp Withdrawal Initiated',
+  PERPS_WITHDRAWAL_COMPLETED = 'Perp Withdrawal Completed',
+  PERPS_WITHDRAWAL_FAILED = 'Perp Withdrawal Failed',
+
+  // Pre-Trade Flow
+  PERPS_MARKETS_VIEWED = 'Perp Markets Viewed',
+  PERPS_ASSET_SEARCH_BAR_CLICKED = 'Perp Asset Search Bar Clicked',
+  PERPS_ASSET_SCREEN_VIEWED = 'Perp Asset Screen Viewed',
+  PERPS_CHART_INTERACTION = 'Perp Chart Interaction',
+  PERPS_CHART_TIME_SERIE_CHANGED = 'Perp Chart time serie changed',
+
+  // Trade Flow
+  PERPS_TRADING_SCREEN_VIEWED = 'Perp Trading Screen Viewed',
+  PERPS_ORDER_TYPE_VIEWED = 'Perp Order Type Viewed',
+  PERPS_ORDER_TYPE_SELECTED = 'Perp Order Type Selected',
+  PERPS_LEVERAGE_SCREEN_VIEWED = 'Perp Leverage Screen Viewed',
+  PERPS_LEVERAGE_CHANGED = 'Perp Leverage Changed',
+  PERPS_TRADE_TRANSACTION_INITIATED = 'Perp Trade Transaction Initiated',
+  PERPS_TRADE_TRANSACTION_SUBMITTED = 'Perp Trade Transaction Submitted',
+  PERPS_TRADE_TRANSACTION_EXECUTED = 'Perp Trade Transaction Executed',
+  PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED = 'Perp Trade Transaction Partially filled',
+  PERPS_TRADE_TRANSACTION_FAILED = 'Perp Trade Transaction Failed',
+
+  // Close Position Flow
+  PERPS_HOMESCREEN_TAB_VIEWED = 'Perp Homescreen Tab Viewed',
+  PERPS_POSITION_CLOSE_SCREEN_VIEWED = 'Perp Position Close Screen Viewed',
+  PERPS_POSITION_CLOSE_INITIATED = 'Perp Position Close Initiated',
+  PERPS_POSITION_CLOSE_SUBMITTED = 'Perp Position Close Submitted',
+  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
+  PERPS_POSITION_CLOSE_EXECUTED = 'Perp Position Close Executed',
+  PERPS_POSITION_CLOSE_PARTIALLY_FILLED = 'Perp Position Close Partially filled',
+  PERPS_POSITION_CLOSE_FAILED = 'Perp Position Close Failed',
+
+  // Risk Management Flow
+  PERPS_STOP_LOSS_SET = 'Stop Loss Set',
+  PERPS_TAKE_PROFIT_SET = 'Take Profit Set',
+  PERPS_STOP_LOSS_EXECUTED = 'Stop Loss Executed',
+  PERPS_TAKE_PROFIT_EXECUTED = 'Take Profit Executed',
+  PERPS_ORDER_LIQUIDATED = 'Order liquidated',
+
+  // Error Management Flow
+  PERPS_WARNING_DISPLAYED = 'Warning displayed',
+  PERPS_ERROR_ENCOUNTERED = 'Error Encountered',
+
+  // Card
+  CARD_VIEWED = 'Card Viewed',
+  CARD_HOME_CLICKED = 'Card Home Clicked',
+  CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
+  CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
+  CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
+  CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
 }
 
 enum ACTIONS {
@@ -536,6 +603,8 @@ enum ACTIONS {
   RECEIVE_OPTIONS = 'Receive Options',
   // Send Flow
   SEND_FLOW = 'Send Flow',
+  // Re-designed send
+  SEND = 'Send',
   // Dapp Interactions
   APPROVE_REQUEST = 'Approve Request',
   // Swaps
@@ -1054,6 +1123,13 @@ const events = {
   NOTIFICATION_STORAGE_KEY_DELETED: generateOpt(
     EVENT_NAME.NOTIFICATION_STORAGE_KEY_DELETED,
   ),
+
+  // Push Notifications Flow
+  PUSH_NOTIFICATION_RECEIVED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
+  ),
+  PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
@@ -1277,6 +1353,129 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
+  // Perps Events - Mapped to dashboard requirements (47 events total)
+  // Tutorial Flow (3 events)
+  PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
+  PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),
+  PERPS_TUTORIAL_COMPLETED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_COMPLETED),
+
+  // Account Funding Flow (5 events)
+  PERPS_FUNDING_INPUT_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_FUNDING_INPUT_VIEWED,
+  ),
+  PERPS_FUNDING_REVIEW_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_FUNDING_REVIEW_VIEWED,
+  ),
+  PERPS_FUNDING_INITIATED: generateOpt(EVENT_NAME.PERPS_FUNDING_INITIATED),
+  PERPS_FUNDING_COMPLETED: generateOpt(EVENT_NAME.PERPS_FUNDING_COMPLETED),
+  PERPS_FUNDING_FAILED: generateOpt(EVENT_NAME.PERPS_FUNDING_FAILED),
+
+  // Account Withdrawal Flow (4 events)
+  PERPS_WITHDRAWAL_INPUT_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_WITHDRAWAL_INPUT_VIEWED,
+  ),
+  PERPS_WITHDRAWAL_INITIATED: generateOpt(
+    EVENT_NAME.PERPS_WITHDRAWAL_INITIATED,
+  ),
+  PERPS_WITHDRAWAL_COMPLETED: generateOpt(
+    EVENT_NAME.PERPS_WITHDRAWAL_COMPLETED,
+  ),
+  PERPS_WITHDRAWAL_FAILED: generateOpt(EVENT_NAME.PERPS_WITHDRAWAL_FAILED),
+
+  // Pre-Trade Flow (5 events)
+  PERPS_MARKETS_VIEWED: generateOpt(EVENT_NAME.PERPS_MARKETS_VIEWED),
+  PERPS_ASSET_SEARCH_BAR_CLICKED: generateOpt(
+    EVENT_NAME.PERPS_ASSET_SEARCH_BAR_CLICKED,
+  ),
+  PERPS_ASSET_SCREEN_VIEWED: generateOpt(EVENT_NAME.PERPS_ASSET_SCREEN_VIEWED),
+  PERPS_CHART_INTERACTION: generateOpt(EVENT_NAME.PERPS_CHART_INTERACTION),
+  PERPS_CHART_TIME_SERIE_CHANGED: generateOpt(
+    EVENT_NAME.PERPS_CHART_TIME_SERIE_CHANGED,
+  ),
+
+  // Trade Flow (11 events)
+  PERPS_TRADING_SCREEN_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_TRADING_SCREEN_VIEWED,
+  ),
+  PERPS_ORDER_TYPE_VIEWED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_VIEWED),
+  PERPS_ORDER_TYPE_SELECTED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_SELECTED),
+  PERPS_LEVERAGE_SCREEN_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_LEVERAGE_SCREEN_VIEWED,
+  ),
+  PERPS_LEVERAGE_CHANGED: generateOpt(EVENT_NAME.PERPS_LEVERAGE_CHANGED),
+  PERPS_TRADE_TRANSACTION_INITIATED: generateOpt(
+    EVENT_NAME.PERPS_TRADE_TRANSACTION_INITIATED,
+  ),
+  PERPS_TRADE_TRANSACTION_SUBMITTED: generateOpt(
+    EVENT_NAME.PERPS_TRADE_TRANSACTION_SUBMITTED,
+  ),
+  PERPS_TRADE_TRANSACTION_EXECUTED: generateOpt(
+    EVENT_NAME.PERPS_TRADE_TRANSACTION_EXECUTED,
+  ),
+  PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED: generateOpt(
+    EVENT_NAME.PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED,
+  ),
+  PERPS_TRADE_TRANSACTION_FAILED: generateOpt(
+    EVENT_NAME.PERPS_TRADE_TRANSACTION_FAILED,
+  ),
+
+  // Close Position Flow (9 events)
+  PERPS_HOMESCREEN_TAB_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_HOMESCREEN_TAB_VIEWED,
+  ),
+  PERPS_POSITION_CLOSE_SCREEN_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
+  ),
+  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
+  ),
+  PERPS_POSITION_CLOSE_INITIATED: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_INITIATED,
+  ),
+  PERPS_POSITION_CLOSE_SUBMITTED: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_SUBMITTED,
+  ),
+  PERPS_POSITION_CLOSE_EXECUTED: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_EXECUTED,
+  ),
+  PERPS_POSITION_CLOSE_PARTIALLY_FILLED: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_PARTIALLY_FILLED,
+  ),
+  PERPS_POSITION_CLOSE_FAILED: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_FAILED,
+  ),
+
+  // Risk Management Flow (5 events)
+  PERPS_STOP_LOSS_SET: generateOpt(EVENT_NAME.PERPS_STOP_LOSS_SET),
+  PERPS_TAKE_PROFIT_SET: generateOpt(EVENT_NAME.PERPS_TAKE_PROFIT_SET),
+  PERPS_STOP_LOSS_EXECUTED: generateOpt(EVENT_NAME.PERPS_STOP_LOSS_EXECUTED),
+  PERPS_TAKE_PROFIT_EXECUTED: generateOpt(
+    EVENT_NAME.PERPS_TAKE_PROFIT_EXECUTED,
+  ),
+  PERPS_ORDER_LIQUIDATED: generateOpt(EVENT_NAME.PERPS_ORDER_LIQUIDATED),
+
+  // Error Management Flow (2 events)
+  PERPS_WARNING_DISPLAYED: generateOpt(EVENT_NAME.PERPS_WARNING_DISPLAYED),
+  PERPS_ERROR_ENCOUNTERED: generateOpt(EVENT_NAME.PERPS_ERROR_ENCOUNTERED),
+
+  // Asset Filter
+  ASSET_FILTER_SELECTED: generateOpt(EVENT_NAME.ASSET_FILTER_SELECTED),
+  ASSET_FILTER_CUSTOM_SELECTED: generateOpt(
+    EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
+  ),
+  // Card
+  CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
+  CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
+  CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
+  CARD_ADD_FUNDS_SWAPS_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ADD_FUNDS_SWAPS_CLICKED,
+  ),
+  CARD_ADD_FUNDS_DEPOSIT_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+  ),
+  CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
+  ),
 };
 
 /**
@@ -1295,6 +1494,7 @@ enum DESCRIPTION {
   NAVIGATION_TAPS_GET_HELP = 'Get Help',
   NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
   NAVIGATION_TAPS_SETTINGS = 'Settings',
+  NAVIGATION_TAPS_REWARDS = 'Rewards',
   NAVIGATION_TAPS_LOGOUT = 'Logout',
   // Dapp
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
@@ -1330,6 +1530,12 @@ enum DESCRIPTION {
   RECEIVE_OPTIONS_SHARE_ADDRESS = 'Share address',
   RECEIVE_OPTIONS_QR_CODE = 'QR Code',
   RECEIVE_OPTIONS_PAYMENT_REQUEST = 'Payment Request',
+  // Re-designed send
+  SEND_STARTED = 'Send flow started',
+  SEND_ASSET_SELECTED = 'Send asset selected',
+  SEND_AMOUNT_SELECTED = 'Send amount selected',
+  SEND_RECIPIENT_SELECTED = 'Send recipient selected',
+  SEND_EXIT = 'Send flow exitted',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
@@ -1395,6 +1601,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.NAVIGATION_DRAWER,
     ACTIONS.NAVIGATION_DRAWER,
     DESCRIPTION.NAVIGATION_TAPS_SETTINGS,
+  ),
+  NAVIGATION_TAPS_REWARDS: generateOpt(
+    EVENT_NAME.NAVIGATION_DRAWER,
+    ACTIONS.NAVIGATION_DRAWER,
+    DESCRIPTION.NAVIGATION_TAPS_REWARDS,
   ),
   NAVIGATION_TAPS_LOGOUT: generateOpt(
     EVENT_NAME.NAVIGATION_DRAWER,
@@ -1543,7 +1754,28 @@ const legacyMetaMetricsEvents = {
     ACTIONS.RECEIVE_OPTIONS,
     DESCRIPTION.RECEIVE_OPTIONS_PAYMENT_REQUEST,
   ),
-  // Send flow
+  // Re-designed send
+  SEND_STARTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_STARTED,
+  ),
+  SEND_ASSET_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_ASSET_SELECTED,
+  ),
+  SEND_AMOUNT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_AMOUNT_SELECTED,
+  ),
+  SEND_RECIPIENT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_RECIPIENT_SELECTED,
+  ),
+  SEND_EXIT: generateOpt(EVENT_NAME.SEND, ACTIONS.SEND, DESCRIPTION.SEND_EXIT), // Send flow
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,
@@ -1660,4 +1892,4 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };
+export { MetaMetricsEvents, EVENT_NAME };

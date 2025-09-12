@@ -8,9 +8,9 @@ import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOver
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import {
-  getLocalTestDappUrl,
+  getTestDappLocalUrl,
   getSecondTestDappLocalUrl,
-} from '../../fixtures/utils';
+} from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Utilities, Gestures, Matchers } from '../../framework';
 
@@ -289,7 +289,7 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    await this.navigateToURL(getLocalTestDappUrl());
+    await this.navigateToURL(getTestDappLocalUrl());
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
@@ -307,7 +307,7 @@ class Browser {
     await this.tapUrlInputBox();
     const encodedParams = encodeURIComponent(JSON.stringify(transactionParams));
     await this.navigateToURL(
-      `${getLocalTestDappUrl()}/request?method=eth_sendTransaction&params=${encodedParams}`,
+      `${getTestDappLocalUrl()}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
 

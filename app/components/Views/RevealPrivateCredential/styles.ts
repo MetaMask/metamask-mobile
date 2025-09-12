@@ -44,9 +44,10 @@ export const createStyles = (theme: Theme) =>
     },
     rowWrapper: {
       padding: 20,
+      paddingBottom: 0,
     },
     tabContentContainer: {
-      minHeight: 320,
+      minHeight: Platform.OS === 'android' ? 320 : 0,
       flexGrow: 1,
       flexShrink: 0,
       marginBottom: Platform.OS === 'android' ? 20 : 0,
@@ -58,11 +59,12 @@ export const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.colors.error.default,
       marginTop: 16,
+      paddingBottom: 20,
     },
     warningRowWrapper: {
       flexDirection: 'row',
       flexShrink: 1,
-      alignItems: 'center',
+      alignItems: 'flex-start',
       width: '100%',
     },
     warningText: {
@@ -79,6 +81,8 @@ export const createStyles = (theme: Theme) =>
     },
     icon: {
       color: theme.colors.error.default,
+      position: 'relative',
+      marginTop: 3,
     },
     blueText: {
       color: theme.colors.primary.default,
@@ -87,7 +91,7 @@ export const createStyles = (theme: Theme) =>
       top: 2.5,
     },
     warningMessageText: {
-      marginLeft: 10,
+      marginLeft: 20,
       marginRight: 40,
       ...fontStyles.normal,
       color: theme.colors.text.default,
@@ -100,9 +104,6 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
       ...fontStyles.bold,
     },
-    tabContent: {
-      paddingVertical: 20,
-    },
     tabContainer: {
       paddingHorizontal: 16,
     },
@@ -111,7 +112,6 @@ export const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.background.default,
     },
     qrCodeWrapper: {
-      marginTop: 20,
       alignSelf: 'center',
       justifyContent: 'center',
       padding: 8,

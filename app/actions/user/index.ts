@@ -23,6 +23,8 @@ import {
   type PersistedDataLoadedAction,
   type SetAppServicesReadyAction,
   type SetExistingUserAction,
+  type SetIsConnectionRemovedAction,
+  type SetMultichainAccountsIntroModalSeenAction,
   UserActionType,
 } from './types';
 
@@ -185,5 +187,29 @@ export function setExistingUser(existingUser: boolean): SetExistingUserAction {
   return {
     type: UserActionType.SET_EXISTING_USER,
     payload: { existingUser },
+  };
+}
+
+/**
+ * Action to set isConnectionRemoved state
+ */
+export function setIsConnectionRemoved(
+  isConnectionRemoved: boolean,
+): SetIsConnectionRemovedAction {
+  return {
+    type: UserActionType.SET_IS_CONNECTION_REMOVED,
+    payload: { isConnectionRemoved },
+  };
+}
+
+/**
+ * Action to set multichain accounts intro modal as seen
+ */
+export function setMultichainAccountsIntroModalSeen(
+  seen: boolean,
+): SetMultichainAccountsIntroModalSeenAction {
+  return {
+    type: UserActionType.SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN,
+    payload: { seen },
   };
 }

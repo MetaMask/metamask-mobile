@@ -13,6 +13,7 @@ import {
   Button,
   TextInput,
   TextInputProps,
+  TouchableOpacity,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DepositTextField from '../DepositTextField';
@@ -41,7 +42,6 @@ interface DepositDateFieldProps {
   value: string;
   onChangeText: (text: string) => void;
   error?: string;
-  containerStyle?: object;
   onSubmitEditing?: () => void;
   textFieldProps?: TextInputProps;
   handleOnPress?: () => void;
@@ -54,7 +54,6 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
       value,
       onChangeText,
       error,
-      containerStyle,
       onSubmitEditing,
       textFieldProps,
       handleOnPress,
@@ -69,8 +68,12 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     const handleOpenPicker = useCallback(() => {
       handleOnPress?.();
+      // if opened with no value set the default date
+      if (!value || value.trim() === '') {
+        setPendingDateSelection(DEFAULT_DATE);
+      }
       setShowDatePicker(true);
-    }, [handleOnPress]);
+    }, [handleOnPress, value]);
 
     const handleClosePicker = useCallback(() => {
       setShowDatePicker(false);
@@ -103,24 +106,32 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     return (
       <>
-        <TouchableWithoutFeedback onPress={handleOpenPicker}>
-          <View style={styles.touchableArea}>
-            <DepositTextField
-              startAccessory={
-                <Icon name={IconName.Calendar} size={IconSize.Md} />
-              }
-              label={label}
-              placeholder={formatDateForDisplay(DEFAULT_DATE)}
-              value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
-              error={error}
-              containerStyle={containerStyle}
-              ref={ref || fieldRef}
-              pointerEvents="none"
-              readOnly
-              {...textFieldProps}
-            />
-          </View>
-        </TouchableWithoutFeedback>
+        <DepositTextField
+          startAccessory={<Icon name={IconName.Calendar} size={IconSize.Md} />}
+          label={label}
+          placeholder={formatDateForDisplay(DEFAULT_DATE)}
+          value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
+          error={error}
+          ref={ref || fieldRef}
+          readOnly
+          inputElement={
+            <TouchableOpacity
+              style={styles.inputStyle}
+              onPress={handleOpenPicker}
+              activeOpacity={0.7}
+            >
+              <TextInput
+                style={styles.textInputStyle}
+                value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
+                placeholder={formatDateForDisplay(DEFAULT_DATE)}
+                placeholderTextColor={theme.colors.text.muted}
+                editable={false}
+                pointerEvents="none"
+                {...textFieldProps}
+              />
+            </TouchableOpacity>
+          }
+        />
 
         {Platform.OS === 'android' && showDatePicker && (
           <DateTimePicker

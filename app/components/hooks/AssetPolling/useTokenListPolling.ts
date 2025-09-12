@@ -1,46 +1,20 @@
-import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
-import {
-  selectAllPopularNetworkConfigurations,
-  selectEvmChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { usePollingNetworks } from './use-polling-networks';
 
 const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
-  // Selectors to determine polling input
-  const networkConfigurationsPopularNetworks = useSelector(
-    selectAllPopularNetworkConfigurations,
-  );
-  const currentChainId = useSelector(selectEvmChainId);
-  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const pollingNetworks = usePollingNetworks();
+  const pollingInput = pollingNetworks.map((c) => ({ chainId: c.chainId }));
 
-  // if all networks are selected, poll all popular networks
-  const filteredChainIds =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map(
-          (network) => network.chainId,
-        )
-      : [currentChainId];
-
-  const chainIdsToPoll = isEvmSelected
-    ? filteredChainIds.map((chainId) => ({ chainId: chainId as Hex }))
-    : [];
+  let overridePollingInput: { chainId: Hex }[] | undefined;
+  if (chainIds) {
+    overridePollingInput = chainIds.map((chainId) => ({ chainId }));
+  }
 
   const { TokenListController } = Engine.context;
 
-  let providedChainIds;
-  if (chainIds) {
-    providedChainIds = chainIds.map((chainId) => ({ chainId: chainId as Hex }));
-  }
-
-  const input = providedChainIds ?? chainIdsToPoll;
+  const input = overridePollingInput ?? pollingInput;
 
   usePolling({
     startPolling: TokenListController.startPolling.bind(TokenListController),

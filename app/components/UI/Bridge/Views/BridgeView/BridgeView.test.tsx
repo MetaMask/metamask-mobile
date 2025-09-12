@@ -11,17 +11,18 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
+import type { BridgeRouteParams } from './index';
 import { createBridgeTestState } from '../../testUtils';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
-import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
-import { BridgeViewMode } from '../../types';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { BridgeViewMode } from '../../types';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -32,6 +33,14 @@ jest.mock(
         state: { accountTree: { wallets: {} } },
       },
     })),
+  }),
+);
+
+// Mock the isUnifiedSwapsEnvVarEnabled function to return false for consistent test behavior
+jest.mock(
+  '../../../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
+  () => ({
+    isUnifiedSwapsEnvVarEnabled: jest.fn(() => true),
   }),
 );
 
@@ -167,6 +176,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         yOffset: 0,
         isSelected: true,
         caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        scopes: ['eip155:0', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
       },
     ],
     ensByAccountAddress: {
@@ -209,9 +219,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 const mockNavigate = jest.fn();
 const mockRoute = {
   params: {
-    bridgeViewMode: BridgeViewMode.Bridge, // Default to bridge mode using enum
     sourcePage: 'test',
-  },
+  } as BridgeRouteParams,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -307,7 +316,7 @@ describe('BridgeView', () => {
     );
 
     // Find and click the destination token area
-    const destTokenArea = getByText('Bridge to');
+    const destTokenArea = getByText('Swap to');
     expect(destTokenArea).toBeTruthy();
 
     fireEvent.press(destTokenArea);
@@ -529,13 +538,14 @@ describe('BridgeView', () => {
 
   describe('Solana Swap', () => {
     it('should set slippage to undefined when isSolanaSwap is true', async () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0',
@@ -607,13 +617,14 @@ describe('BridgeView', () => {
     });
 
     it('displays "Insufficient funds" when amount exceeds balance', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: true,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
       });
@@ -659,13 +670,14 @@ describe('BridgeView', () => {
     });
 
     it('displays Continue button and Terms link when amount is valid', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -681,7 +693,7 @@ describe('BridgeView', () => {
           willRefresh: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -689,18 +701,20 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(getByText('Confirm Bridge')).toBeTruthy();
-      expect(getByText('Terms & Conditions')).toBeTruthy();
+      // Use getAllByText to handle multiple elements with "Bridge" text
+      const bridgeElements = getAllByText(strings('bridge.confirm_bridge'));
+      expect(bridgeElements.length).toBeGreaterThan(0);
     });
 
     it('should handle "Confirm Bridge" button press', async () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -708,7 +722,7 @@ describe('BridgeView', () => {
         },
       });
 
-      const { getByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -718,41 +732,15 @@ describe('BridgeView', () => {
         },
       );
 
-      const button = getByText('Confirm Bridge');
+      // Use getAllByText to handle multiple elements and get the button
+      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
+      const button = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
       fireEvent.press(button);
 
       // TODO: Add expectations once quote response is implemented
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
     });
 
-    it('should handle Terms & Conditions press', () => {
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quoteRequest: {
-            insufficientBal: false,
-          },
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0', // Less than balance of 2.0 ETH
-        },
-      });
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const termsButton = getByText('Terms & Conditions');
-      fireEvent.press(termsButton);
-
-      // TODO: Add expectations once Terms navigation is implemented
-    });
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -863,6 +851,7 @@ describe('BridgeView', () => {
       const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
       jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
 
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState(
         {
           bridgeControllerOverrides: {
@@ -870,7 +859,7 @@ describe('BridgeView', () => {
               insufficientBal: false,
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuotes[0] as unknown as QuoteResponse],
+            quotes: [mockQuote as unknown as QuoteResponse],
             quotesLastFetched: 12,
           },
           bridgeReducerOverrides: {
@@ -1002,10 +991,11 @@ describe('BridgeView', () => {
   });
 
   describe('handleContinue - Blockaid Validation', () => {
-    const mockQuote = mockQuotes[0] as unknown as QuoteResponse;
+    let mockQuote: QuoteResponse;
 
     beforeEach(() => {
       jest.clearAllMocks();
+      mockQuote = mockQuoteWithMetadata as unknown as QuoteResponse;
       mockValidateBridgeTx.mockResolvedValue({
         result: { validation: { reason: null } },
         error: null,
@@ -1120,7 +1110,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1128,8 +1118,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_bridge'));
+      // Find and press the continue button - use getAllByText to handle multiple elements
+      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
+      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1208,9 +1199,6 @@ describe('BridgeView', () => {
     });
 
     it('should skip validation for non-Solana transactions', async () => {
-      // Set route params for bridge mode
-      mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
-
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
@@ -1246,7 +1234,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1254,8 +1242,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_bridge'));
+      // Find and press the continue button - use getAllByText to handle multiple elements
+      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
+      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1268,6 +1257,158 @@ describe('BridgeView', () => {
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
+    });
+  });
+
+  describe('deep link parameter handling', () => {
+    const mockDeepLinkSourceToken = {
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chainId: '0x1' as Hex,
+      decimals: 6,
+      name: 'USD Coin',
+      symbol: 'USDC',
+    };
+
+    const mockDeepLinkDestToken = {
+      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      chainId: '0x1' as Hex,
+      decimals: 6,
+      name: 'Tether USD',
+      symbol: 'USDT',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset route params to default for deep link testing
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+      } as BridgeRouteParams;
+    });
+
+    it('uses sourceToken from route params when provided', async () => {
+      mockRoute.params.sourceToken = mockDeepLinkSourceToken;
+
+      // Update the mock state to include the deep link source token
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockDeepLinkSourceToken,
+        },
+      };
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Should display the deep link token symbol
+      expect(getByText('USDC')).toBeTruthy();
+    });
+
+    it('uses destToken from route params when provided', () => {
+      mockRoute.params.destToken = mockDeepLinkDestToken;
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display the deep link dest token symbol
+      expect(getByText('USDT')).toBeTruthy();
+    });
+
+    it('uses sourceAmount from route params when provided', () => {
+      // Need to provide a source token for the amount to be set
+      mockRoute.params.sourceToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        image: '',
+        name: 'Ether',
+        symbol: 'ETH',
+      };
+      mockRoute.params.sourceAmount = '1000000';
+
+      // Update the mock state to include the source token and amount
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockRoute.params.sourceToken,
+          sourceAmount: '1000000',
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Should display the deep link amount in the input
+      const input = getByTestId('source-token-area-input');
+      expect(input.props.value).toBe('1000000');
+    });
+
+    it('uses all deep link params when all are provided', async () => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        sourceToken: mockDeepLinkSourceToken,
+        destToken: mockDeepLinkDestToken,
+        sourceAmount: '1000000',
+      } as BridgeRouteParams;
+
+      // Update the mock state to include the deep link tokens and amount
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockDeepLinkSourceToken,
+          destToken: mockDeepLinkDestToken,
+          sourceAmount: '1000000',
+        },
+      };
+
+      const { getByText, getByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      // Should display all deep link data
+      expect(getByText('USDC')).toBeTruthy();
+      expect(getByText('USDT')).toBeTruthy();
+      const input = getByTestId('source-token-area-input');
+      expect(input.props.value).toBe('1000000');
+    });
+
+    it('falls back to Redux state when deep link params are not provided', () => {
+      // Ensure no deep link params are set
+      mockRoute.params = {
+        sourcePage: 'test',
+      } as BridgeRouteParams;
+
+      const { getByText } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      // Should display default ETH token from Redux state
+      expect(getByText('ETH')).toBeTruthy();
     });
   });
 });

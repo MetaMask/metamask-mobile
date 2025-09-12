@@ -1,7 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
-import { METAMASK_FEE_CONFIG } from '../constants/perpsConfig';
 import type { FeeCalculationResult } from '../controllers/types';
 
 // Mock dependencies
@@ -30,22 +29,29 @@ describe('usePerpsOrderFees', () => {
       subscribeToPrices: jest.fn(),
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
-      deposit: jest.fn(),
-      getDepositRoutes: jest.fn(),
-      resetDepositState: jest.fn(),
+      depositWithConfirmation: jest.fn(),
+      clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
+      getFunding: jest.fn(),
+      getOrders: jest.fn(),
+      getOrderFills: jest.fn(),
     });
   });
 
   describe('Fee calculation', () => {
     it('should calculate fees for market orders', async () => {
       const mockFeeResult: FeeCalculationResult = {
-        feeRate: 0.00045, // 0.045%
+        feeRate: 0.00045, // 0.045% total
         feeAmount: 45,
+        protocolFeeRate: 0.00045, // 0.045% protocol
+        metamaskFeeRate: 0, // 0% MetaMask currently
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
@@ -74,17 +80,17 @@ describe('usePerpsOrderFees', () => {
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
       expect(result.current.protocolFee).toBe(45); // 100000 * 0.00045
-      expect(result.current.metamaskFeeRate).toBe(
-        METAMASK_FEE_CONFIG.TRADING_FEE_RATE,
-      );
+      expect(result.current.metamaskFeeRate).toBe(0); // 0% currently
       expect(result.current.metamaskFee).toBe(0); // 100000 * 0
       expect(result.current.totalFee).toBe(45); // protocol + metamask
     });
 
     it('should calculate fees for limit orders as maker', async () => {
       const mockFeeResult: FeeCalculationResult = {
-        feeRate: 0.00015, // 0.015%
+        feeRate: 0.00015, // 0.015% total
         feeAmount: 15,
+        protocolFeeRate: 0.00015, // 0.015% protocol
+        metamaskFeeRate: 0, // 0% MetaMask currently
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
@@ -111,8 +117,10 @@ describe('usePerpsOrderFees', () => {
 
     it('should calculate fees for limit orders as taker', async () => {
       const mockFeeResult: FeeCalculationResult = {
-        feeRate: 0.00045, // 0.045%
+        feeRate: 0.00045, // 0.045% total
         feeAmount: 45,
+        protocolFeeRate: 0.00045, // 0.045% protocol
+        metamaskFeeRate: 0, // 0% MetaMask currently
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
@@ -141,6 +149,8 @@ describe('usePerpsOrderFees', () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 0,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
@@ -165,6 +175,8 @@ describe('usePerpsOrderFees', () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 0,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
@@ -222,7 +234,7 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.isLoadingMetamaskFee).toBe(false);
       });
 
-      expect(result.current.error).toBe('Failed to fetch protocol fees');
+      expect(result.current.error).toBe('Failed to fetch fees');
       expect(result.current.protocolFeeRate).toBe(0); // No fallback - error state
     });
   });
@@ -258,6 +270,8 @@ describe('usePerpsOrderFees', () => {
       deferred.resolve({
         feeRate: 0.00045,
         feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
       });
 
       // Wait for loading to complete
@@ -272,15 +286,29 @@ describe('usePerpsOrderFees', () => {
       const mockMarketFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
       };
       const mockLimitFeeResult: FeeCalculationResult = {
         feeRate: 0.00015,
         feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
       };
 
+      const updatedMockMarketFeeResult: FeeCalculationResult = {
+        ...mockMarketFeeResult,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      };
+      const updatedMockLimitFeeResult: FeeCalculationResult = {
+        ...mockLimitFeeResult,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      };
       mockCalculateFees
-        .mockResolvedValueOnce(mockMarketFeeResult)
-        .mockResolvedValueOnce(mockLimitFeeResult);
+        .mockResolvedValueOnce(updatedMockMarketFeeResult)
+        .mockResolvedValueOnce(updatedMockLimitFeeResult);
 
       const { result, rerender } = renderHook(
         (props: {
@@ -317,8 +345,18 @@ describe('usePerpsOrderFees', () => {
 
     it('should recalculate when amount changes', async () => {
       mockCalculateFees
-        .mockResolvedValueOnce({ feeRate: 0.00045, feeAmount: 45 })
-        .mockResolvedValueOnce({ feeRate: 0.00045, feeAmount: 90 });
+        .mockResolvedValueOnce({
+          feeRate: 0.00045,
+          feeAmount: 45,
+          protocolFeeRate: 0.00045,
+          metamaskFeeRate: 0,
+        })
+        .mockResolvedValueOnce({
+          feeRate: 0.00045,
+          feeAmount: 90,
+          protocolFeeRate: 0.00045,
+          metamaskFeeRate: 0,
+        });
 
       const { result, rerender } = renderHook(
         ({ amount }) =>
@@ -343,18 +381,14 @@ describe('usePerpsOrderFees', () => {
   describe('MetaMask fee integration', () => {
     it('should include MetaMask fees in total calculation', async () => {
       const mockFeeResult: FeeCalculationResult = {
-        feeRate: 0.00045,
-        feeAmount: 45,
+        feeRate: 0.01045, // 0.045% protocol + 1% MetaMask = 1.045% total
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-      // Temporarily mock a non-zero MetaMask fee
-      const originalMetamaskFee = METAMASK_FEE_CONFIG.TRADING_FEE_RATE;
-      Object.defineProperty(METAMASK_FEE_CONFIG, 'TRADING_FEE_RATE', {
-        value: 0.01, // 1%
-        writable: true,
-        configurable: true,
-      });
+      // The provider now returns MetaMask fee directly
 
       const { result } = renderHook(() =>
         usePerpsOrderFees({
@@ -371,13 +405,6 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.metamaskFeeRate).toBe(0.01);
       expect(result.current.metamaskFee).toBe(1000); // 100000 * 0.01
       expect(result.current.totalFee).toBe(1045); // 45 + 1000
-
-      // Restore original value
-      Object.defineProperty(METAMASK_FEE_CONFIG, 'TRADING_FEE_RATE', {
-        value: originalMetamaskFee,
-        writable: true,
-        configurable: true,
-      });
     });
   });
 });
@@ -398,5 +425,11 @@ describe('formatFeeRate', () => {
   it('should handle large fee rates', () => {
     expect(formatFeeRate(0.1)).toBe('10.000%');
     expect(formatFeeRate(1)).toBe('100.000%');
+  });
+
+  it('should handle invalid values', () => {
+    expect(formatFeeRate(undefined)).toBe('N/A');
+    expect(formatFeeRate(null)).toBe('N/A');
+    expect(formatFeeRate(NaN)).toBe('N/A');
   });
 });

@@ -1,14 +1,12 @@
 import { CaipAssetId } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-native';
+import type { Hex } from 'viem';
 import Engine from '../../../../core/Engine';
 import type {
   AccountState,
-  AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
-  DepositParams,
-  DepositResult,
   GetAccountStateParams,
   MarketInfo,
   OrderParams,
@@ -35,15 +33,17 @@ jest.mock('../../../../core/Engine', () => ({
       subscribeToPrices: jest.fn(),
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
-      deposit: jest.fn(),
-      getDepositRoutes: jest.fn(),
-      resetDepositState: jest.fn(),
+      depositWithConfirmation: jest.fn(),
+      clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
       calculateFees: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
     },
   },
 }));
@@ -270,6 +270,8 @@ describe('usePerpsTrading', () => {
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '16.67',
+        totalValue: '10500',
       };
 
       (
@@ -293,6 +295,8 @@ describe('usePerpsTrading', () => {
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '16.67',
+        totalValue: '10500',
       };
 
       (
@@ -386,82 +390,32 @@ describe('usePerpsTrading', () => {
   });
 
   describe('deposit methods', () => {
-    it('should call PerpsController.deposit with correct parameters', async () => {
-      const mockDepositResult: DepositResult = {
-        success: true,
-        txHash: '0xabc123',
+    it('should call PerpsController.depositWithConfirmation', async () => {
+      const mockResult = {
+        result: Promise.resolve('0xabc123'),
       };
-
-      (Engine.context.PerpsController.deposit as jest.Mock).mockResolvedValue(
-        mockDepositResult,
-      );
-
-      const { result } = renderHook(() => usePerpsTrading());
-
-      const depositParams: DepositParams = {
-        amount: '1000',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const response = await result.current.deposit(depositParams);
-
-      expect(Engine.context.PerpsController.deposit).toHaveBeenCalledWith(
-        depositParams,
-      );
-      expect(response).toEqual(mockDepositResult);
-    });
-
-    it('should handle deposit errors', async () => {
-      const mockError = new Error('Deposit failed');
-      (Engine.context.PerpsController.deposit as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      const { result } = renderHook(() => usePerpsTrading());
-
-      const depositParams: DepositParams = {
-        amount: '1000',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      await expect(result.current.deposit(depositParams)).rejects.toThrow(
-        'Deposit failed',
-      );
-    });
-
-    it('should call getDepositRoutes and return routes', () => {
-      const mockRoutes: AssetRoute[] = [
-        {
-          assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
-        },
-      ];
 
       (
-        Engine.context.PerpsController.getDepositRoutes as jest.Mock
-      ).mockReturnValue(mockRoutes);
+        Engine.context.PerpsController.depositWithConfirmation as jest.Mock
+      ).mockResolvedValue(mockResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
-      const routes = result.current.getDepositRoutes();
+      const response = await result.current.depositWithConfirmation();
 
       expect(
-        Engine.context.PerpsController.getDepositRoutes,
+        Engine.context.PerpsController.depositWithConfirmation,
       ).toHaveBeenCalled();
-      expect(routes).toEqual(mockRoutes);
+      expect(response).toEqual(mockResult);
     });
 
-    it('should call resetDepositState', () => {
+    it('should call clearDepositResult', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
-      result.current.resetDepositState();
+      result.current.clearDepositResult();
 
       expect(
-        Engine.context.PerpsController.resetDepositState,
+        Engine.context.PerpsController.clearDepositResult,
       ).toHaveBeenCalled();
     });
   });
@@ -670,6 +624,144 @@ describe('usePerpsTrading', () => {
     });
   });
 
+  describe('validateOrder', () => {
+    it('should call PerpsController.validateOrder with correct parameters', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateOrder as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.5',
+        orderType: 'market',
+      };
+
+      const response = await result.current.validateOrder(orderParams);
+
+      expect(Engine.context.PerpsController.validateOrder).toHaveBeenCalledWith(
+        orderParams,
+      );
+      expect(response).toEqual(mockValidationResult);
+    });
+
+    it('should return validation error', async () => {
+      const mockValidationResult = {
+        isValid: false,
+        error: 'Minimum order size is $10.00',
+      };
+      (
+        Engine.context.PerpsController.validateOrder as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.00001',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const response = await result.current.validateOrder(orderParams);
+
+      expect(response.isValid).toBe(false);
+      expect(response.error).toBe('Minimum order size is $10.00');
+    });
+  });
+
+  describe('validateClosePosition', () => {
+    it('should call PerpsController.validateClosePosition with correct parameters', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateClosePosition as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const response = await result.current.validateClosePosition(closeParams);
+
+      expect(
+        Engine.context.PerpsController.validateClosePosition,
+      ).toHaveBeenCalledWith(closeParams);
+      expect(response).toEqual(mockValidationResult);
+    });
+
+    it('should return validation error for invalid close position', async () => {
+      const mockValidationResult = {
+        isValid: false,
+        error: 'Coin is required',
+      };
+      (
+        Engine.context.PerpsController.validateClosePosition as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const closeParams: ClosePositionParams = {
+        coin: '',
+        orderType: 'market',
+      };
+
+      const response = await result.current.validateClosePosition(closeParams);
+
+      expect(response.isValid).toBe(false);
+      expect(response.error).toBe('Coin is required');
+    });
+  });
+
+  describe('validateWithdrawal', () => {
+    it('should call PerpsController.validateWithdrawal with correct parameters', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateWithdrawal as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '100',
+        destination: '0x1234567890123456789012345678901234567890' as Hex,
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+      };
+
+      const response = await result.current.validateWithdrawal(withdrawParams);
+
+      expect(
+        Engine.context.PerpsController.validateWithdrawal,
+      ).toHaveBeenCalledWith(withdrawParams);
+      expect(response).toEqual(mockValidationResult);
+    });
+
+    it('should handle validation without errors', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateWithdrawal as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '100',
+      };
+
+      const response = await result.current.validateWithdrawal(withdrawParams);
+
+      expect(response.isValid).toBe(true);
+      expect(response.error).toBeUndefined();
+    });
+  });
+
   describe('hook stability', () => {
     it('should return stable function references', () => {
       const { result, rerender } = renderHook(() => usePerpsTrading());
@@ -700,12 +792,11 @@ describe('usePerpsTrading', () => {
       expect(initialFunctions.subscribeToOrderFills).toBe(
         updatedFunctions.subscribeToOrderFills,
       );
-      expect(initialFunctions.deposit).toBe(updatedFunctions.deposit);
-      expect(initialFunctions.getDepositRoutes).toBe(
-        updatedFunctions.getDepositRoutes,
+      expect(initialFunctions.depositWithConfirmation).toBe(
+        updatedFunctions.depositWithConfirmation,
       );
-      expect(initialFunctions.resetDepositState).toBe(
-        updatedFunctions.resetDepositState,
+      expect(initialFunctions.clearDepositResult).toBe(
+        updatedFunctions.clearDepositResult,
       );
       expect(initialFunctions.withdraw).toBe(updatedFunctions.withdraw);
       expect(initialFunctions.calculateLiquidationPrice).toBe(
@@ -722,6 +813,15 @@ describe('usePerpsTrading', () => {
       );
       expect(initialFunctions.calculateFees).toBe(
         updatedFunctions.calculateFees,
+      );
+      expect(initialFunctions.validateOrder).toBe(
+        updatedFunctions.validateOrder,
+      );
+      expect(initialFunctions.validateClosePosition).toBe(
+        updatedFunctions.validateClosePosition,
+      );
+      expect(initialFunctions.validateWithdrawal).toBe(
+        updatedFunctions.validateWithdrawal,
       );
     });
   });

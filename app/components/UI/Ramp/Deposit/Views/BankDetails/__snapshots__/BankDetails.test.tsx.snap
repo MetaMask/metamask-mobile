@@ -116,30 +116,87 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -193,94 +250,87 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -487,7 +537,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
-                          handlerTag={-1}
+                          handlerTag={1}
                           handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -499,7 +549,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                 ]
                               }
                               onRefresh={[Function]}
-                              refreshing={false}
+                              refreshing={true}
                               tintColor="#121314"
                             />
                           }
@@ -1168,30 +1218,87 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -1245,94 +1352,87 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -1551,7 +1651,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                 ]
                               }
                               onRefresh={[Function]}
-                              refreshing={false}
+                              refreshing={true}
                               tintColor="#121314"
                             />
                           }
@@ -1907,6 +2007,77 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                         }
                                       >
                                         Test Bank
+                                      </Text>
+                                      <TouchableOpacity
+                                        onPress={[Function]}
+                                        testID="copy-button"
+                                      >
+                                        <SvgMock
+                                          color="#686e7d"
+                                          fill="currentColor"
+                                          height={16}
+                                          name="Copy"
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          width={16}
+                                        />
+                                      </TouchableOpacity>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "flexDirection": "row",
+                                        "justifyContent": "space-between",
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Beneficiary address
+                                    </Text>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                          "justifyContent": "flex-end",
+                                          "marginLeft": 16,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#686e7d",
+                                            "flex": 1,
+                                            "flexWrap": "wrap",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                            "textAlign": "right",
+                                          }
+                                        }
+                                      >
+                                        456 Recipient Street
                                       </Text>
                                       <TouchableOpacity
                                         onPress={[Function]}

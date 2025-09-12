@@ -1,327 +1,407 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import Routes from '../../../../../constants/navigation/Routes';
+import React, { useMemo, useState } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsPositionCardSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PerpsNavigationParamList,
   Position,
 } from '../../controllers/types';
+import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import {
-  formatPercentage,
+  formatPerpsFiat,
   formatPnl,
-  formatPrice,
   formatPositionSize,
+  formatPrice,
+  PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_POSITION_VIEW,
 } from '../../utils/formatUtils';
-import { calculatePnLPercentageFromUnrealized } from '../../utils/pnlCalculations';
+import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import styleSheet from './PerpsPositionCard.styles';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
+import { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip';
 
 interface PerpsPositionCardProps {
   position: Position;
-  onClose?: (position: Position) => void;
-  onEdit?: (position: Position) => void;
-  disabled?: boolean;
   expanded?: boolean;
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
-  isInPerpsNavContext?: boolean; // NEW: Indicates if this is used within the Perps navigation stack
+  onPositionUpdate?: () => Promise<void>;
+  onTooltipPress?: (contentKey: PerpsTooltipContentKey) => void;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   position,
-  onClose,
-  onEdit,
-  disabled = false,
   expanded = true, // Default to expanded for backward compatibility
   showIcon = false, // Default to not showing icon
   rightAccessory,
-  isInPerpsNavContext = true, // Default to true since most usage is within Perps stack
+  onPositionUpdate,
+  onTooltipPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { assetUrl } = usePerpsAssetMetadata(position.coin);
+
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+
+  const isEligible = useSelector(selectPerpsEligibility);
+
+  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
+    null,
+  );
+
+  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
+    onSuccess: () => {
+      // Positions update automatically via WebSocket
+      // Call parent's position update callback if provided
+      if (onPositionUpdate) {
+        onPositionUpdate();
+      }
+    },
+  });
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
   const direction = isLong ? 'long' : 'short';
   const absoluteSize = Math.abs(parseFloat(position.size));
 
+  const { markets, error, isLoading } = usePerpsMarkets();
+
+  const marketData = useMemo(
+    () => markets.find((market) => market.symbol === position.coin),
+    [markets, position.coin],
+  );
+
   const handleCardPress = async () => {
-    // await triggerSelectionHaptic();
-    if (isInPerpsNavContext) {
-      // Direct navigation when already in Perps stack
-      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-        position,
-        action: 'view',
-      });
-    } else {
-      // Navigate to nested Perps screen when in main navigation context
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.POSITION_DETAILS,
-        params: {
-          position,
-          action: 'view',
-        },
-      });
+    if (isLoading || error) {
+      DevLogger.log(
+        'Failed to redirect to market details. Error fetching market data: ',
+        error,
+      );
+      return;
     }
+
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: marketData,
+        initialTab: 'position',
+      },
+    });
   };
 
   const handleClosePress = () => {
-    // await triggerSelectionHaptic();
-    if (onClose) {
-      onClose(position);
-    } else {
-      // Navigate to position details with close action
-      if (isInPerpsNavContext) {
-        // Direct navigation when already in Perps stack
-        navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-          position,
-          action: 'close',
-        });
-      }
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.POSITION_DETAILS,
-        params: {
-          position,
-          action: 'close',
-        },
-      });
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
     }
-  };
 
-  const handleEditPress = () => {
-    DevLogger.log('PerpsPositionCard: handleEditPress called', {
-      hasOnEdit: !!onEdit,
-      position: position.coin,
-      disabled,
-    });
-    // await triggerSelectionHaptic();
-    if (onEdit) {
-      DevLogger.log('PerpsPositionCard: calling onEdit callback');
-      onEdit(position);
-    } else {
-      DevLogger.log('PerpsPositionCard: navigating to position details');
-      // Navigate to position details with edit action
-      if (isInPerpsNavContext) {
-        // Direct navigation when already in Perps stack
-        navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-          position,
-          action: 'edit_tpsl',
-        });
-      } else {
-        // Navigate to nested Perps screen when in main navigation context
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.POSITION_DETAILS,
-          params: {
-            position,
-            action: 'edit_tpsl',
-          },
-        });
-      }
-    }
+    DevLogger.log('PerpsPositionCard: Navigating to close position screen');
+    navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);
-  const pnlPercentage = calculatePnLPercentageFromUnrealized({
-    unrealizedPnl: pnlNum,
-    entryPrice: parseFloat(position.entryPrice),
-    size: parseFloat(position.size),
-  });
-  const isPositive24h =
-    position.cumulativeFunding.sinceChange &&
-    parseFloat(position.cumulativeFunding.sinceChange) >= 0;
+
+  // ROE is always stored as a decimal (e.g., 0.171 for 17.1%)
+  // Convert to percentage for display
+  const roeValue = parseFloat(position.returnOnEquity || '0');
+  const roe = isNaN(roeValue) ? 0 : roeValue * 100;
+
+  const handleEditTPSL = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    DevLogger.log('PerpsPositionCard: Editing TPSL', { position });
+    setSelectedPosition(position);
+    setIsTPSLVisible(true);
+  };
+
+  // Funding cost (cumulative since open) formatting logic
+  const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
+  const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
+  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+  // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
+  const fundingColor = isNearZeroFunding
+    ? TextColor.Default
+    : fundingSinceOpen === 0
+    ? TextColor.Default
+    : fundingSinceOpen > 0
+    ? TextColor.Error
+    : TextColor.Success;
+  const fundingDisplay = isNearZeroFunding
+    ? '$0.00'
+    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
+        Math.abs(fundingSinceOpen),
+        {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        },
+      )}`;
 
   return (
-    <TouchableOpacity
-      style={expanded ? styles.expandedContainer : styles.collapsedContainer}
-      onPress={handleCardPress}
-      testID="PerpsPositionCard"
-      disabled={disabled}
-    >
-      {/* Header - Always shown */}
-      <View style={styles.header}>
-        {/* Icon Section - Conditionally shown */}
-        {showIcon && (
-          <View style={styles.perpIcon}>
-            {assetUrl ? (
-              <RemoteImage
-                source={{ uri: assetUrl }}
-                style={styles.tokenIcon}
-              />
-            ) : (
-              <Icon name={IconName.Coin} size={IconSize.Md} />
-            )}
+    <>
+      <TouchableOpacity
+        style={expanded ? styles.expandedContainer : styles.collapsedContainer}
+        // There's not functional reason for the card to be clickable when expanded
+        onPress={expanded ? undefined : handleCardPress}
+        testID="PerpsPositionCard"
+        activeOpacity={expanded ? 1 : 0.2}
+      >
+        {/* Header - Always shown */}
+        <View style={[styles.header, expanded && styles.headerExpanded]}>
+          {/* Icon Section - Conditionally shown (only in collapsed mode) */}
+          {showIcon && !expanded && (
+            <View style={styles.perpIcon}>
+              <PerpsTokenLogo symbol={position.coin} size={40} />
+            </View>
+          )}
+
+          <View style={styles.headerLeft}>
+            <View style={styles.headerRow}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {position.coin} {position.leverage.value}x{' '}
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {direction}
+                </Text>
+              </Text>
+            </View>
+            <View style={styles.headerRow}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {formatPositionSize(absoluteSize.toString())} {position.coin}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.headerRight}>
+            <View style={styles.headerRow}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {formatPrice(position.positionValue, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                })}
+              </Text>
+            </View>
+            <View style={styles.headerRow}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
+              >
+                {formatPnl(pnlNum)} ({roe >= 0 ? '+' : ''}
+                {roe.toFixed(1)}%)
+              </Text>
+            </View>
+          </View>
+
+          {/* Right Accessory - Conditionally shown */}
+          {rightAccessory && (
+            <View style={styles.rightAccessory}>{rightAccessory}</View>
+          )}
+        </View>
+
+        {/* Body - Only shown when expanded */}
+        {expanded && (
+          <View style={styles.body}>
+            <View style={styles.bodyRow}>
+              <View style={styles.bodyItem}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.entry_price')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {formatPerpsFiat(position.entryPrice, {
+                    ranges: PRICE_RANGES_POSITION_VIEW,
+                  })}
+                </Text>
+              </View>
+              <View style={styles.bodyItem}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.liquidation_price')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {position.liquidationPrice
+                    ? formatPerpsFiat(position.liquidationPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
+                      })
+                    : 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.bodyItem}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.margin')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {formatPerpsFiat(position.marginUsed, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })}
+                </Text>
+              </View>
+            </View>
+
+            <View style={[styles.bodyRow, styles.bodyRowLast]}>
+              <View style={styles.bodyItem}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.take_profit')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {position.takeProfitPrice
+                    ? formatPerpsFiat(position.takeProfitPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
+                      })
+                    : strings('perps.position.card.not_set')}
+                </Text>
+              </View>
+              <View style={styles.bodyItem}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.stop_loss')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {position.stopLossPrice
+                    ? formatPerpsFiat(position.stopLossPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
+                      })
+                    : strings('perps.position.card.not_set')}
+                </Text>
+              </View>
+              <View style={styles.bodyItem}>
+                <View style={styles.fundingCostLabelFlex}>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.fundingCostLabelRightMargin}
+                  >
+                    {strings('perps.position.card.funding_cost')}
+                  </Text>
+                  {onTooltipPress && (
+                    <TouchableOpacity
+                      onPress={() => onTooltipPress('funding_rate')}
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Muted}
+                        testID={
+                          PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON
+                        }
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text variant={TextVariant.BodySM} color={fundingColor}>
+                  {fundingDisplay}
+                </Text>
+              </View>
+            </View>
           </View>
         )}
 
-        <View style={styles.headerLeft}>
-          <View style={styles.headerRow}>
-            <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
-              {position.leverage.value}x{' '}
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={isLong ? TextColor.Success : TextColor.Error}
-              >
-                {direction}
-              </Text>
-            </Text>
+        {/* Footer - Only shown when expanded */}
+        {expanded && (
+          <View style={styles.footer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Auto}
+              label={strings('perps.position.card.edit_tpsl')}
+              onPress={handleEditTPSL}
+              style={styles.footerButton}
+              testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Auto}
+              label={
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {strings('perps.position.card.close_position')}
+                </Text>
+              }
+              onPress={handleClosePress}
+              style={styles.footerButton}
+              testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
+            />
           </View>
-          <View style={styles.headerRow}>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-              {formatPositionSize(absoluteSize.toString())} {position.coin}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRight}>
-          <View style={styles.headerRow}>
-            <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
-              {formatPrice(position.positionValue)}
-            </Text>
-          </View>
-          <View style={styles.headerRow}>
-            <Text
-              variant={TextVariant.BodySMBold}
-              color={isPositive24h ? TextColor.Success : TextColor.Error}
-            >
-              {formatPnl(pnlNum)} ({formatPercentage(pnlPercentage)})
-            </Text>
-          </View>
-        </View>
-
-        {/* Right Accessory - Conditionally shown */}
-        {rightAccessory && (
-          <View style={styles.rightAccessory}>{rightAccessory}</View>
         )}
-      </View>
-
-      {/* Body - Only shown when expanded */}
-      {expanded && (
-        <View style={styles.body}>
-          <View style={styles.bodyRow}>
-            <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {strings('perps.position.card.entry_price')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {formatPrice(position.entryPrice)}
-              </Text>
-            </View>
-            <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {strings('perps.position.card.market_price')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {formatPrice(position.liquidationPrice || position.entryPrice)}
-              </Text>
-            </View>
-            <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {strings('perps.position.card.liquidity_price')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {position.liquidationPrice
-                  ? formatPrice(position.liquidationPrice)
-                  : 'N/A'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.bodyRow}>
-            <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {strings('perps.position.card.take_profit')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {position.takeProfitPrice
-                  ? formatPrice(position.takeProfitPrice)
-                  : strings('perps.position.card.not_set')}
-              </Text>
-            </View>
-            <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {strings('perps.position.card.stop_loss')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {position.stopLossPrice
-                  ? formatPrice(position.stopLossPrice)
-                  : strings('perps.position.card.not_set')}
-              </Text>
-            </View>
-            <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {strings('perps.position.card.margin')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {formatPrice(position.marginUsed)}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {/* Footer - Only shown when expanded */}
-      {expanded && (
-        <View style={styles.footer}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Md}
-            width={ButtonWidthTypes.Auto}
-            label={strings('perps.position.card.edit_tpsl')}
-            onPress={() => handleEditPress()}
-            disabled={disabled}
-            style={styles.footerButton}
-            testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+      </TouchableOpacity>
+      {/* TP/SL Bottom Sheet - Wrapped in Modal to render from root */}
+      {isTPSLVisible && selectedPosition && (
+        <Modal visible transparent animationType="fade">
+          <PerpsTPSLBottomSheet
+            isVisible
+            onClose={() => {
+              setIsTPSLVisible(false);
+              setSelectedPosition(null);
+            }}
+            onConfirm={async (takeProfitPrice, stopLossPrice) => {
+              await handleUpdateTPSL(
+                selectedPosition,
+                takeProfitPrice,
+                stopLossPrice,
+              );
+              setIsTPSLVisible(false);
+              setSelectedPosition(null);
+            }}
+            asset={selectedPosition.coin}
+            position={selectedPosition}
+            initialTakeProfitPrice={selectedPosition.takeProfitPrice}
+            initialStopLossPrice={selectedPosition.stopLossPrice}
+            isUpdating={isUpdating}
           />
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Md}
-            width={ButtonWidthTypes.Auto}
-            label={strings('perps.position.card.close_position')}
-            onPress={() => handleClosePress()}
-            disabled={disabled}
-            style={styles.footerButton}
-            testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
-          />
-        </View>
+        </Modal>
       )}
-    </TouchableOpacity>
+      {isEligibilityModalVisible && (
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={() => setIsEligibilityModalVisible(false)}
+            contentKey={'geo_block'}
+          />
+        </Modal>
+      )}
+    </>
   );
 };
 

@@ -13,6 +13,7 @@ import {
   logOut,
   passwordSet,
   setExistingUser,
+  setIsConnectionRemoved,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -29,7 +30,9 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -67,6 +70,8 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
+import { EntropySourceId } from '@metamask/keyring-api';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -82,6 +87,9 @@ class AuthenticationService {
 
   private async dispatchLogin(): Promise<void> {
     await AccountTreeInitService.initializeAccountTree();
+    const { MultichainAccountService } = Engine.context;
+    await MultichainAccountService.init();
+
     ReduxService.store.dispatch(logIn());
   }
 
@@ -98,6 +106,15 @@ class AuthenticationService {
   }
 
   /**
+   * This method gets the primary entropy source ID. It assumes it's always being defined, which means, vault
+   * creation must have been executed beforehand.
+   * @returns Primary entropy source ID (similar to keyring ID).
+   */
+  private getPrimaryEntropySourceId(): EntropySourceId {
+    return Engine.context.KeyringController.state.keyrings[0].metadata.id;
+  }
+
+  /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
    * @param password - password entered on login
    */
@@ -105,10 +122,13 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
+
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
-      SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
-        Logger.error(err, 'Failed to revoke refresh token');
+
+      // renew refresh token
+      renewSeedlessControllerRefreshTokens(password).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
       });
     }
     password = this.wipeSensitiveData();
@@ -134,32 +154,49 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    if (isMultichainAccountsState2Enabled()) {
+      await this.attemptMultichainAccountWalletDiscovery();
+    } else {
+      await Promise.all(
+        Object.values(WalletClientType).map(async (clientType) => {
+          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
-        try {
-          await this.attemptAccountDiscovery(clientType);
-        } catch (error) {
-          console.warn(
-            'Account discovery failed during wallet creation:',
-            clientType,
-            error,
-          );
-          // Store flag to retry on next unlock
-          await StorageWrapper.setItem(discoveryStorageId, TRUE);
-        }
-      }),
-    );
+          try {
+            await this.attemptAccountDiscovery(clientType);
+          } catch (error) {
+            console.warn(
+              'Account discovery failed during wallet creation:',
+              clientType,
+              error,
+            );
+            // Store flag to retry on next unlock
+            await StorageWrapper.setItem(discoveryStorageId, TRUE);
+          }
+        }),
+      );
+    }
 
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
 
+  private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
+    try {
+      await retryWithExponentialDelay(
+        discovery,
+        3, // maxRetries
+        1000, // baseDelay
+        10000, // maxDelay
+      );
+    } catch (error) {
+      console.error('Account discovery failed after all retries:', error);
+    }
+  };
+
   private attemptAccountDiscovery = async (
     clientType: WalletClientType,
   ): Promise<void> => {
-    const performAccountDiscovery = async (): Promise<void> => {
+    await this.retryAccountDiscovery(async (): Promise<void> => {
       const primaryHdKeyringId =
         Engine.context.KeyringController.state.keyrings[0].metadata.id;
       const client = MultichainWalletSnapFactory.createClient(clientType, {
@@ -170,35 +207,40 @@ class AuthenticationService {
 
       await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
       await StorageWrapper.removeItem(discoveryStorageId);
-    };
+    });
+  };
 
-    try {
-      await retryWithExponentialDelay(
-        performAccountDiscovery,
-        3, // maxRetries
-        1000, // baseDelay
-        10000, // maxDelay
+  private attemptMultichainAccountWalletDiscovery = async (
+    entropySource?: EntropySourceId,
+  ): Promise<void> => {
+    await this.retryAccountDiscovery(async (): Promise<void> => {
+      await discoverAndCreateAccounts(
+        entropySource ?? this.getPrimaryEntropySourceId(),
       );
-    } catch (error) {
-      console.error('Account discovery failed after all retries:', error);
-    }
+    });
   };
 
   private retryDiscoveryIfPending = async (): Promise<void> => {
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    if (isMultichainAccountsState2Enabled()) {
+      // We just re-run the same discovery here. Each wallets know their highest group index and restart
+      // the discovery from there, thus acting as a "retry".
+      await this.attemptMultichainAccountWalletDiscovery();
+    } else {
+      await Promise.all(
+        Object.values(WalletClientType).map(async (clientType) => {
+          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
-        try {
-          const isPending = await StorageWrapper.getItem(discoveryStorageId);
-          if (isPending === TRUE) {
-            await this.attemptAccountDiscovery(clientType);
+          try {
+            const isPending = await StorageWrapper.getItem(discoveryStorageId);
+            if (isPending === TRUE) {
+              await this.attemptAccountDiscovery(clientType);
+            }
+          } catch (error) {
+            console.warn('Failed to check/retry discovery:', clientType, error);
           }
-        } catch (error) {
-          console.warn('Failed to check/retry discovery:', clientType, error);
-        }
-      }),
-    );
+        }),
+      );
+    }
   };
 
   /**
@@ -214,22 +256,26 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    if (isMultichainAccountsState2Enabled()) {
+      await this.attemptMultichainAccountWalletDiscovery();
+    } else {
+      await Promise.all(
+        Object.values(WalletClientType).map(async (clientType) => {
+          const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
-        try {
-          await this.attemptAccountDiscovery(clientType);
-        } catch (error) {
-          console.warn(
-            'Account discovery failed during wallet creation:',
-            error,
-          );
-          // Store flag to retry on next unlock
-          await StorageWrapper.setItem(discoveryStorageId, TRUE);
-        }
-      }),
-    );
+          try {
+            await this.attemptAccountDiscovery(clientType);
+          } catch (error) {
+            console.warn(
+              'Account discovery failed during wallet creation:',
+              error,
+            );
+            // Store flag to retry on next unlock
+            await StorageWrapper.setItem(discoveryStorageId, TRUE);
+          }
+        }),
+      );
+    }
 
     password = this.wipeSensitiveData();
   };
@@ -512,10 +558,10 @@ class AuthenticationService {
 
       if (authData.oauth2Login) {
         // if seedless flow - rehydrate
-        await this.rehydrateSeedPhrase(password, authData);
+        await this.rehydrateSeedPhrase(password);
       } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password, authData);
+        await this.syncPasswordAndUnlockWallet(password);
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -618,25 +664,27 @@ class AuthenticationService {
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
-  lockApp = async ({ reset = true, locked = false } = {}): Promise<void> => {
+  lockApp = async ({
+    reset = true,
+    locked = false,
+    navigateToLogin = true,
+  } = {}): Promise<void> => {
     const { KeyringController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
     // async check seedless password outdated skip cache when app lock
-    this.checkIsSeedlessPasswordOutdated(true).catch((err: Error) => {
-      Logger.error(
-        err,
-        'Error in lockApp: checking seedless password outdated',
-      );
-    });
+    // the function swallowed the error
+    this.checkIsSeedlessPasswordOutdated(true);
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
-    NavigationService.navigation?.reset({
-      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
-    });
+    if (navigateToLogin) {
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
+      });
+    }
   };
 
   getType = async (): Promise<AuthData> =>
@@ -745,9 +793,22 @@ class AuthenticationService {
           const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
 
           // import the new mnemonic to the current vault
-          await this.importSeedlessMnemonicToVault(mnemonicToRestore);
+          const keyringMetadata = await this.importSeedlessMnemonicToVault(
+            mnemonicToRestore,
+          );
+
+          // discover multichain accounts from imported srp
+          if (isMultichainAccountsState2Enabled()) {
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
+          } else {
+            this.addMultichainAccounts([keyringMetadata]);
+          }
         } else {
-          Logger.error(new Error('Unknown secret type'), secret.type);
+          Logger.error(
+            new Error('SeedlessOnboardingController: Unknown secret type'),
+            secret.type,
+          );
         }
       }
     }
@@ -897,10 +958,7 @@ class AuthenticationService {
     }
   };
 
-  rehydrateSeedPhrase = async (
-    password: string,
-    authData: AuthData,
-  ): Promise<void> => {
+  rehydrateSeedPhrase = async (password: string): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
       let allSRPs: Awaited<
@@ -944,7 +1002,8 @@ class AuthenticationService {
         }
 
         const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
-        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+
+        await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
         const keyringMetadataList: KeyringMetadata[] = [];
         if (restOfSeedPhrases.length > 0) {
@@ -962,24 +1021,43 @@ class AuthenticationService {
                   await this.importSeedlessMnemonicToVault(mnemonic);
                 keyringMetadataList.push(keyringMetadata);
               } else {
-                Logger.error(new Error('Unknown secret type'), item.type);
+                Logger.error(
+                  new Error(
+                    'SeedlessOnboardingController : Unknown secret type',
+                  ),
+                  item.type,
+                );
               }
             } catch (error) {
               // catch error to prevent unable to login
-              Logger.error(error as Error);
+              Logger.error(
+                error as Error,
+                'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+              );
             }
           }
         }
         await this.syncKeyringEncryptionKey();
 
-        this.addMultichainAccounts(keyringMetadataList);
+        if (isMultichainAccountsState2Enabled()) {
+          for (const { id } of keyringMetadataList) {
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+            this.attemptMultichainAccountWalletDiscovery(id);
+          }
+        } else {
+          this.addMultichainAccounts(keyringMetadataList);
+        }
 
         this.dispatchOauthReset();
+
+        ReduxService.store.dispatch(setExistingUser(true));
+        await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {
         throw new Error('No account data found');
       }
     } catch (error) {
-      Logger.error(error as Error);
+      this.lockApp({ reset: false, navigateToLogin: false });
+      Logger.log(error);
       throw error;
     }
   };
@@ -992,7 +1070,6 @@ class AuthenticationService {
    */
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
-    authData: AuthData,
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
@@ -1016,8 +1093,8 @@ class AuthenticationService {
 
     if (!success) {
       const errorMessage = (seedlessSyncError as Error).message;
-      Logger.error(
-        seedlessSyncError as Error,
+      Logger.log(
+        seedlessSyncError,
         `error while submitting global password: ${errorMessage}`,
       );
 
@@ -1031,8 +1108,9 @@ class AuthenticationService {
 
         // rehydrate with social accounts if max keychain length exceeded
         await SeedlessOnboardingController.refreshAuthTokens();
-        await this.rehydrateSeedPhrase(globalPassword, authData);
+        await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
+        ReduxService.store.dispatch(setIsConnectionRemoved(true));
         return;
       } else if (
         errorMessage ===
@@ -1047,6 +1125,11 @@ class AuthenticationService {
           throw seedlessSyncError;
         }
       } else {
+        // Case 3: Both keyring and seedless controller password verification failed.
+        Logger.error(
+          seedlessSyncError as Error,
+          'Error in syncPasswordAndUnlockWallet',
+        );
         throw seedlessSyncError;
       }
     }
@@ -1065,11 +1148,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
-        (err) => {
-          Logger.error(err, 'Failed to revoke refresh token');
-        },
-      );
+      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
+      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });

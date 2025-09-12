@@ -12,6 +12,10 @@ import {
   KeyringControllerGetStateAction,
   KeyringControllerStateChangeEvent,
 } from '@metamask/keyring-controller';
+import {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
 
 type Actions =
   | AccountsControllerListMultichainAccountsAction
@@ -19,10 +23,14 @@ type Actions =
   | AccountsControllerGetAccountByAddressAction
   | SnapControllerHandleRequest
   | KeyringControllerGetStateAction
-  | KeyringControllerWithKeyringAction;
+  | KeyringControllerWithKeyringAction
+  | NetworkControllerGetNetworkClientByIdAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction;
 
 type Events =
   | KeyringControllerStateChangeEvent
+  | AccountsControllerAccountAddedEvent
+  | AccountsControllerAccountRemovedEvent
   | AccountsControllerAccountAddedEvent
   | AccountsControllerAccountRemovedEvent;
 
@@ -42,7 +50,11 @@ export function getMultichainAccountServiceMessenger(
 ) {
   return messenger.getRestricted({
     name: 'MultichainAccountService',
-    allowedEvents: ['KeyringController:stateChange'],
+    allowedEvents: [
+      'KeyringController:stateChange',
+      'AccountsController:accountAdded',
+      'AccountsController:accountRemoved',
+    ],
     allowedActions: [
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccountByAddress',
@@ -50,6 +62,8 @@ export function getMultichainAccountServiceMessenger(
       'SnapController:handleRequest',
       'KeyringController:getState',
       'KeyringController:withKeyring',
+      'NetworkController:getNetworkClientById',
+      'NetworkController:findNetworkClientIdByChainId',
     ],
   });
 }

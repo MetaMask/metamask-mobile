@@ -23,10 +23,7 @@ import {
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
-import {
-  BridgeSourceNetworksBar,
-  MAX_NETWORK_ICONS,
-} from '../BridgeSourceNetworksBar';
+import { BridgeSourceNetworksBar } from '../BridgeSourceNetworksBar';
 import {
   BridgeTokenSelectorBase,
   SkeletonItem,
@@ -145,9 +142,9 @@ export const BridgeSourceTokenSelector: React.FC = () => {
 
   const networksToShow = useMemo(
     () =>
-      sortedSourceNetworks
-        .filter(({ chainId }) => selectedSourceChainIds.includes(chainId))
-        .filter((_, i) => i < MAX_NETWORK_ICONS),
+      sortedSourceNetworks.filter(({ chainId }) =>
+        selectedSourceChainIds.includes(chainId),
+      ),
     [selectedSourceChainIds, sortedSourceNetworks],
   );
 

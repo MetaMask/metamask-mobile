@@ -5,9 +5,6 @@ import { createStore } from 'redux';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: initialBackgroundState,
   },

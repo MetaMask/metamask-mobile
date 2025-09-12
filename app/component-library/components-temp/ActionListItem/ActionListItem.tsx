@@ -76,7 +76,15 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
     }
 
     if (iconName) {
-      return <Icon name={iconName} size={IconSize.Md} {...iconProps} />;
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="h-6"
+        >
+          <Icon name={iconName} size={IconSize.Md} {...iconProps} />
+        </Box>
+      );
     }
 
     return null;

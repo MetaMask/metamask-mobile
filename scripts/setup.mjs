@@ -11,6 +11,8 @@ let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
 let BUILD_ANDROID = true
 let INSTALL_PODS;
+// GitHub CI pipeline flag - defaults to false
+let GITHUB_CI = false;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
   switch (arg) {
@@ -31,6 +33,9 @@ for (const arg of args) {
       continue;
     case '--no-build-android':
       BUILD_ANDROID = false
+      continue;
+    case '--build-on-github-ci':
+      GITHUB_CI = true;
       continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
@@ -118,7 +123,10 @@ const buildPpomTask = {
       [
         {
           title: 'Clean',
-          task: async () => {
+          task: async (_, task) => {
+            if (GITHUB_CI) {
+              return task.skip('Skipping clean in GitHub CI.');
+            }
             await $ppom`yarn clean`;
           },
         },
@@ -160,14 +168,31 @@ const setupIosTask = {
     const tasks = [
       {
         title: 'Install bundler gem',
-        task: async () => {
-          await $`gem install bundler -v 2.5.8`;
+        task: async (_, task) => {
+          if (GITHUB_CI) {
+            // In GitHub CI, we still need bundler for self-hosted runners
+            try {
+              await $`gem install bundler -v 2.5.8`;
+            } catch (error) {
+              // If bundler is already installed, continue
+              if (!error.stderr?.includes('already installed')) {
+                throw error;
+              }
+            }
+          } else {
+            await $`gem install bundler -v 2.5.8`;
+          }
         },
       },
       {
         title: 'Install gems',
-        task: async () => {
-          await $`yarn gem:bundle:install`;
+        task: async (_, task) => {
+          if (GITHUB_CI) {
+            // In GitHub CI, install gems for self-hosted runners
+            await $`yarn gem:bundle:install`;
+          } else {
+            await $`yarn gem:bundle:install`;
+          }
         },
       },
       {
@@ -352,7 +377,7 @@ const generateTermsOfUseTask = {
 const installHuskyTask = {
   title: 'Install Husky git hooks',
   task: async () => {
-    await $`npx husky install`;
+    await $`yarn husky install`;
   },
 };
 

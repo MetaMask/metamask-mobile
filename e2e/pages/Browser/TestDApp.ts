@@ -2,7 +2,7 @@ import enContent from '../../../locales/languages/en.json';
 
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { getLocalTestDappUrl } from '../../fixtures/utils';
+import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
@@ -272,6 +272,32 @@ class TestDApp {
     );
   }
 
+  async getConnectedAccounts(): Promise<string> {
+    const webview = Matchers.getWebViewByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
+    const accountsElement = webview.element(by.web.id(`accounts`));
+
+    const accountsText = await accountsElement
+      .runScript('(el) => el.textContent')
+      .catch(() => '');
+
+    return typeof accountsText === 'string' ? accountsText : '';
+  }
+
+  async getConnectedChainId(): Promise<string> {
+    const webview = Matchers.getWebViewByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
+    const chainIdElement = webview.element(by.web.id(`chainId`));
+
+    const chainIdText = await chainIdElement
+      .runScript('(el) => el.textContent')
+      .catch(() => '');
+
+    return typeof chainIdText === 'string' ? chainIdText : '';
+  }
+
   async connect(): Promise<void> {
     await Gestures.waitAndTap(this.DappConnectButton, {
       elemDescription: 'Dapp connect button',
@@ -386,6 +412,13 @@ class TestDApp {
     });
   }
 
+  async tapConfirmButtonToDisappear(): Promise<void> {
+    await Gestures.tap(this.confirmButtonText, {
+      elemDescription: 'Confirm Button',
+      waitForElementToDisappear: true,
+    });
+  }
+
   async tapConnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.connectButtonText, {
       elemDescription: 'Connect Button',
@@ -423,7 +456,7 @@ class TestDApp {
   }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${getLocalTestDappUrl()}?scrollTo=''&contract=${contractAddress}`,
+      `${getTestDappLocalUrl()}/?scrollTo=''&contract=${contractAddress}`,
     );
   }
 

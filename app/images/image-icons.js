@@ -38,6 +38,8 @@ import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
+import FRAX from './frax.png';
+import AAVE from './aave-token-round.png';
 
 export default {
   PALM,
@@ -50,6 +52,7 @@ export default {
   BNB,
   AETH,
   AVAX,
+  AAVE,
   'LINEA-GOERLI': LINEA_TESTNET,
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
@@ -82,4 +85,5 @@ export default {
   ABSTRACT,
   OMNI: OMNI_TOKEN,
   HL,
+  FRAX,
 };

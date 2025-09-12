@@ -3,68 +3,120 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { useSelector } from 'react-redux';
-import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
+import { noop } from 'lodash';
 
-const log = createProjectLogger('transaction-pay');
+const logger = createProjectLogger('transaction-pay');
 
 /**
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
-export function useTransactionPayTokenAmounts() {
+export function useTransactionPayTokenAmounts({
+  amountOverrides,
+  log: isLoggingEnabled,
+}: {
+  amountOverrides?: Record<Hex, string>;
+  log?: boolean;
+} = {}) {
   const { payToken } = useTransactionPayToken();
-  const { address, chainId } = payToken;
+  const { address, chainId, decimals } = payToken ?? {};
+  const log = isLoggingEnabled ? logger : noop;
 
-  const tokens = useSelector((state) =>
-    selectTokensByChainIdAndAddress(state, chainId),
-  );
+  const fiatRequests = useMemo(() => {
+    if (!address || !chainId) {
+      return [];
+    }
 
-  const tokenDecimals = tokens[address.toLowerCase()]?.decimals ?? 18;
-
-  const fiatRequest = useMemo(
-    () => [
+    return [
       {
         address,
         chainId,
       },
-    ],
-    [address, chainId],
+    ];
+  }, [address, chainId]);
+
+  const safeAmountOverrides = useDeepMemo(
+    () => amountOverrides,
+    [amountOverrides],
   );
 
-  const tokenFiatRate = useTokenFiatRates(fiatRequest)[0];
+  const tokenFiatRate = useTokenFiatRates(fiatRequests)[0];
 
-  const { fiatValues } = useTransactionRequiredFiat();
+  const { values } = useTransactionRequiredFiat({
+    amountOverrides: safeAmountOverrides,
+  });
 
   const amounts = useDeepMemo(() => {
-    if (!tokenFiatRate) {
+    if (!address || !chainId || !tokenFiatRate || !decimals) {
       return undefined;
     }
 
-    return fiatValues.map((fiatValue) =>
-      calculateAmount(fiatValue, tokenFiatRate, tokenDecimals),
-    );
-  }, [fiatValues, tokenFiatRate, tokenDecimals]);
+    return values
+      .filter((value) => {
+        const hasBalance = value.balanceFiat > value.amountFiat;
+
+        const isSameTokenSelected =
+          address.toLowerCase() === value.address.toLowerCase();
+
+        if (value.skipIfBalance && hasBalance) {
+          log('Skipping token due to sufficient balance', value.address);
+          return false;
+        }
+
+        if (isSameTokenSelected && hasBalance) {
+          log(
+            'Skipping token due to sufficient balance and matching pay token',
+            value.address,
+          );
+          return false;
+        }
+
+        return true;
+      })
+      .map((value) => {
+        const amountHumanValue = new BigNumber(value.totalFiat).div(
+          tokenFiatRate,
+        );
+
+        const amountHuman = amountHumanValue.toString(10);
+        const amountRaw = amountHumanValue.shiftedBy(decimals).toFixed(0);
+
+        return {
+          address: value.address,
+          allowUnderMinimum: value.allowUnderMinimum,
+          amountHuman,
+          amountRaw,
+          targetAmountRaw: value.amountRaw,
+        };
+      });
+  }, [address, chainId, decimals, tokenFiatRate, values]);
+
+  const totalHuman = amounts
+    ?.reduce(
+      (acc, { amountHuman }) => acc.plus(new BigNumber(amountHuman ?? '0')),
+      new BigNumber(0),
+    )
+    .toString(10);
+
+  const totalRaw = amounts
+    ?.reduce(
+      (acc, { amountRaw }) => acc.plus(new BigNumber(amountRaw ?? '0')),
+      new BigNumber(0),
+    )
+    .toFixed(0);
 
   useEffect(() => {
-    log('Pay token amounts', amounts);
-  }, [amounts]);
+    log('Pay token amounts', {
+      amounts,
+      totalHuman,
+      totalRaw,
+    });
+  }, [amounts, log, totalHuman, totalRaw]);
 
-  return amounts;
-}
-
-function calculateAmount(
-  fiatAmount: number | undefined,
-  fiatRate: number,
-  decimals: number,
-) {
-  if (!fiatAmount) {
-    return undefined;
-  }
-
-  const amountDecimals = new BigNumber(fiatAmount).div(fiatRate);
-  const amountRaw = amountDecimals.shiftedBy(decimals).toFixed(0);
-
-  return amountRaw;
+  return {
+    amounts,
+    totalHuman,
+    totalRaw,
+  };
 }

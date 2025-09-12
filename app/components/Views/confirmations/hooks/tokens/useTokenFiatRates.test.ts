@@ -1,6 +1,12 @@
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { ARBITRUM_USDC_ADDRESS } from '../../external/perps-temp/hooks/usePerpsDepositInit';
 import { TokenFiatRateRequest, useTokenFiatRates } from './useTokenFiatRates';
+
+jest.mock('../../../../../util/address', () => ({
+  toChecksumAddress: jest.fn((address) => address),
+}));
 
 const CHAIN_ID_1_MOCK = '0x123';
 const CHAIN_ID_2_MOCK = '0x456';
@@ -20,6 +26,7 @@ function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
         backgroundState: {
           ...backgroundState,
           CurrencyRateController: {
+            currentCurrency: 'usd',
             currencyRates: {
               [TICKER_1_MOCK]: {
                 conversionRate: CONVERSION_RATE_1_MOCK,
@@ -43,11 +50,13 @@ function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
             marketData: {
               [CHAIN_ID_1_MOCK]: {
                 [ADDRESS_1_MOCK]: {
+                  tokenAddress: ADDRESS_1_MOCK,
                   price: PRICE_1_MOCK,
                 },
               },
               [CHAIN_ID_2_MOCK]: {
                 [ADDRESS_2_MOCK]: {
+                  tokenAddress: ADDRESS_2_MOCK,
                   price: PRICE_2_MOCK,
                 },
               },
@@ -88,5 +97,18 @@ describe('useTokenFiatRates', () => {
     });
 
     expect(result).toEqual([CONVERSION_RATE_1_MOCK]);
+  });
+
+  it('returns fixed exchange rate if Arbitrum USDC and selected currency is USD', () => {
+    const result = runHook({
+      requests: [
+        {
+          address: ARBITRUM_USDC_ADDRESS,
+          chainId: CHAIN_IDS.ARBITRUM,
+        },
+      ],
+    });
+
+    expect(result).toEqual([1]);
   });
 });

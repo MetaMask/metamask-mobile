@@ -2,6 +2,7 @@ import { noop } from 'lodash';
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
 import { getAccountTreeControllerMessenger } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
+import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
 import {
@@ -37,7 +38,10 @@ import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-
 
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
+import { getBridgeControllerMessenger } from './bridge-controller-messenger';
+import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
 import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
+import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -138,12 +142,28 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,
   },
+  NetworkEnablementController: {
+    getMessenger: getNetworkEnablementControllerMessenger,
+    getInitMessenger: noop,
+  },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
     getInitMessenger: noop,
   },
+  BridgeController: {
+    getMessenger: getBridgeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  BridgeStatusController: {
+    getMessenger: getBridgeStatusControllerMessenger,
+    getInitMessenger: noop,
+  },
   MultichainAccountService: {
     getMessenger: getMultichainAccountServiceMessenger,
+    getInitMessenger: noop,
+  },
+  RewardsController: {
+    getMessenger: getRewardsControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

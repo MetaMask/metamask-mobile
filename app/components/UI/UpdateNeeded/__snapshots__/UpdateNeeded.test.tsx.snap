@@ -396,6 +396,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 "alignItems": "center",
                                 "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
+                                "gap": 16,
                               },
                               {
                                 "marginTop": 0,
@@ -420,7 +421,6 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "flex": 1,
-                                "marginHorizontal": 16,
                               }
                             }
                           >

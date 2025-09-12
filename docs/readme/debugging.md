@@ -57,3 +57,20 @@ adb reverse tcp:9090 tcp:9090
 ```
 
 Then refresh the app again.
+
+## Debugging with React Native DevTools
+
+React Native DevTools is useful for viewing logs, inspecting components, and profiling the app.
+
+### Open DevTools on iOS
+
+- In the Metro bundler terminal, press `Shift + M`.
+- Select **Toggle Developer Menu**.
+- In the iOS Simulator, choose **Open JS Debugger**.
+
+### Open DevTools on Android
+
+- In the Metro bundler terminal, press `Shift + M`.
+- Select **Toggle Developer Menu**.
+- In the Android emulator, choose **Open Developer Menu**.
+- Select **Open DevTools**.

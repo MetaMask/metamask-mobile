@@ -51,6 +51,7 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectProviderTypeByChainId,
+  selectNetworkConfigurations,
 } from '../../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -66,6 +67,9 @@ import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+import ContextualNetworkPicker from '../../../../../UI/ContextualNetworkPicker';
+import { selectNetworkImageSource } from '../../../../../../selectors/networkInfos';
+import { NETWORK_SELECTOR_SOURCES } from '../../../../../../constants/networkSelector';
 
 const dummy = () => true;
 
@@ -147,6 +151,14 @@ class SendFlow extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Network name
+     */
+    networkName: PropTypes.string,
+    /**
+     * Network image source
+     */
+    networkImageSource: PropTypes.object,
   };
 
   addressToInputRef = React.createRef();
@@ -168,6 +180,7 @@ class SendFlow extends PureComponent {
   updateNavBar = () => {
     const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
+
     navigation.setOptions(
       getSendFlowTitle(
         'send.send_to',
@@ -175,6 +188,7 @@ class SendFlow extends PureComponent {
         route,
         colors,
         resetTransaction,
+        null,
       ),
     );
   };
@@ -496,8 +510,24 @@ class SendFlow extends PureComponent {
     }
   };
 
+  onNetworkSelectorPress = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+      params: {
+        source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+      },
+    });
+  };
+
   render = () => {
-    const { ticker, addressBook, globalChainId } = this.props;
+    const {
+      ticker,
+      addressBook,
+      globalChainId,
+      networkImageSource,
+      networkName,
+    } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -538,6 +568,13 @@ class SendFlow extends PureComponent {
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
+        {isRemoveGlobalNetworkSelectorEnabled() ? (
+          <ContextualNetworkPicker
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            onPress={this.onNetworkSelectorPress}
+          />
+        ) : null}
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
             chainId={globalChainId}
@@ -719,6 +756,9 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
+    networkImageSource: selectNetworkImageSource(state, globalChainId),
+    networkName:
+      selectNetworkConfigurations(state)?.[globalChainId]?.name || '',
   };
 };
 

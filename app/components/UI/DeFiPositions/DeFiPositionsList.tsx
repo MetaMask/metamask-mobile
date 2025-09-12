@@ -7,7 +7,10 @@ import {
   selectIsAllNetworks,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { selectDeFiPositionsByAddress } from '../../../selectors/defiPositionsController';
+import {
+  selectDeFiPositionsByAddress,
+  selectDefiPositionsByEnabledNetworks,
+} from '../../../selectors/defiPositionsController';
 import styleSheet from './DeFiPositionsList.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import {
@@ -29,6 +32,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
@@ -40,6 +44,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   const currentChainId = useSelector(selectChainId) as Hex;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
+  const defiPositionsByEnabledNetworks = useSelector(
+    selectDefiPositionsByEnabledNetworks,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
 
   const formattedDeFiPositions = useMemo(() => {
@@ -48,7 +55,11 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     }
 
     let chainFilteredDeFiPositions: { [key: Hex]: GroupedDeFiPositions };
-    if (isAllNetworks) {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
+        [key: Hex]: GroupedDeFiPositions;
+      };
+    } else if (isAllNetworks) {
       chainFilteredDeFiPositions = defiPositions;
     } else if (currentChainId in defiPositions) {
       chainFilteredDeFiPositions = {
@@ -83,7 +94,13 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     };
 
     return sortAssets(defiPositionsList, defiSortConfig);
-  }, [defiPositions, isAllNetworks, currentChainId, tokenSortConfig]);
+  }, [
+    defiPositions,
+    isAllNetworks,
+    currentChainId,
+    tokenSortConfig,
+    defiPositionsByEnabledNetworks,
+  ]);
 
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
@@ -152,6 +169,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
         keyExtractor={(protocolChainAggregate) =>
           `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
         }
+        scrollEnabled={false}
       />
     </View>
   );

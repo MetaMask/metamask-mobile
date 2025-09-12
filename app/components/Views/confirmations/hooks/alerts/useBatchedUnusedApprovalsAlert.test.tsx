@@ -131,7 +131,9 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       const { result } = runHook({
         ...batchApprovalConfirmation,
         nestedTransactions,
-        simulationData: [] as unknown as SimulationData, // no outflows
+        simulationData: {
+          tokenBalanceChanges: [],
+        } as unknown as SimulationData,
       });
 
       await waitFor(() => {
@@ -474,7 +476,9 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       const { result } = runHook({
         ...batchApprovalConfirmation,
         nestedTransactions,
-        simulationData: simulationData as unknown as SimulationData,
+        simulationData: {
+          tokenBalanceChanges: simulationData,
+        } as unknown as SimulationData,
       });
 
       await waitFor(() => {
@@ -580,6 +584,58 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       });
     });
 
+    it('does not show alert when simulation data is missing', async () => {
+      const nestedTransactions = [
+        createMockNestedTransaction('0x123', TOKEN_ADDRESS_1),
+      ];
+
+      jest
+        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
+        .mockReturnValue({
+          name: ApproveMethod.APPROVE,
+          amountOrTokenId: new BigNumber('1000'),
+          tokenAddress: undefined,
+          isRevokeAll: false,
+        });
+
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        nestedTransactions,
+        simulationData: undefined, // Missing simulation data
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual([]);
+      });
+    });
+
+    it('does not show alert when simulation data has no token balance changes', async () => {
+      const nestedTransactions = [
+        createMockNestedTransaction('0x123', TOKEN_ADDRESS_1),
+      ];
+
+      jest
+        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
+        .mockReturnValue({
+          name: ApproveMethod.APPROVE,
+          amountOrTokenId: new BigNumber('1000'),
+          tokenAddress: undefined,
+          isRevokeAll: false,
+        });
+
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        nestedTransactions,
+        simulationData: {
+          tokenBalanceChanges: undefined, // Missing token balance changes
+        } as unknown as SimulationData,
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual([]);
+      });
+    });
+
     it('handles empty simulation data array', async () => {
       const nestedTransactions = [
         createMockNestedTransaction('0x123', TOKEN_ADDRESS_1),
@@ -597,7 +653,9 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       const { result } = runHook({
         ...batchApprovalConfirmation,
         nestedTransactions,
-        simulationData: undefined,
+        simulationData: {
+          tokenBalanceChanges: [],
+        } as unknown as SimulationData,
       });
 
       await waitFor(() => {

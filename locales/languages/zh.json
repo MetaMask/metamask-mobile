@@ -49,6 +49,16 @@
     "batched_unused_approvals": {
       "title": "不必要的许可",
       "message": "您在授予他人提取您的代币的许可，尽管当前交易不需要此操作。"
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
+    },
+    "no_pay_token_quotes": {
+      "title": "We couldn't find any quotes.",
+      "message": "Change the amount or select a different token for payment."
     }
   },
   "blockaid_banner": {
@@ -150,7 +160,7 @@
     "or": "或者",
     "import_existing_wallet": "导入现有钱包",
     "bottom_sheet_title": "选择一个选项以继续",
-    "continue_with_srp": "使用私钥助记词继续",
+    "continue_with_srp": "Use Secret Recovery Phrase",
     "import_srp": "使用私钥助记词导入",
     "sign_in_with_google": "使用 Google 登录",
     "sign_in_with_apple": "使用 Apple 登录",
@@ -176,6 +186,8 @@
     "import_title": "您的钱包已经准备就绪！",
     "import_description": "如果您弄丢私钥助记词，将无法使用您的钱包。",
     "import_description2": "您可以妥善保管该助记词，以确保不会失去动用您资金的权限。",
+    "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
+    "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
     "done": "已完成",
     "create_hint": "创建密码提示",
     "hint_title": "密码提示",
@@ -410,7 +422,7 @@
     "confirm_password_placeholder": "重新输入您的密码",
     "confirm_btn": "保存",
     "warning_password_change_title": "您确定吗？",
-    "warning_password_change_description": "在此处更改密码将锁定您在其他设备上使用的 MetaMask。您需要使用新密码重新登录。",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "确认",
     "warning_password_cancel_button": "取消",
     "changing_password": "正在更改密码……",
@@ -461,6 +473,12 @@
     "wallet": "钱包",
     "transfer": "转账"
   },
+  "bottom_nav": {
+    "home": "Home",
+    "browser": "Browser",
+    "activity": "Activity",
+    "settings": "Settings"
+  },
   "drawer": {
     "send_button": "发送",
     "receive_button": "充值",
@@ -488,16 +506,40 @@
     "public_address": "公钥"
   },
   "send": {
+    "available": "available",
+    "invalid_value": "Invalid value",
+    "insufficient_funds": "Insufficient funds",
+    "continue": "Continue",
+    "unit": "unit",
+    "units": "units",
+    "next": "Next",
     "title": "发送",
     "deeplink_failure": "出错了。请重试",
     "warn_network_change": "网络已更改为",
     "send_to": "发送到",
     "amount": "数额",
     "confirm": "确认",
+    "paste": "Paste",
+    "no_assets_available": "No assets available to send",
+    "clear": "Clear",
+    "to": "To",
+    "enter_address_to_send_to": "Enter address to send to",
+    "accounts": "Accounts",
+    "contacts": "Contacts",
+    "no_contacts_found": "No contacts found",
+    "review": "Review",
+    "all_networks": "All",
+    "no_tokens_match_filters": "No tokens match your filters",
+    "clear_filters": "Clear filters",
+    "no_tokens_available": "No tokens available",
     "sign": "签名",
     "network_not_found_title": "未找到网络",
     "network_not_found_description": "在您的钱包中没有发现链 ID 为 {{chain_id}} 的网络。请先添加该网络。",
-    "network_missing_id": "缺少链 ID。"
+    "network_missing_id": "缺少链 ID。",
+    "search_tokens_and_nfts": "Search tokens and NFTs",
+    "tokens": "Tokens",
+    "nfts": "NFTs",
+    "show_more_nfts": "Show more NFTs"
   },
   "deposit": {
     "title": "保证金",
@@ -512,8 +554,18 @@
     },
     "token_modal": {
       "select_a_token": "选择代币",
+      "select_token": "Select token",
       "search_by_name_or_address": "按名称或地址搜索代币",
       "no_tokens_found": "没有符合“{{searchString}}”的代币"
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -628,11 +680,11 @@
       "title": "输入您的基本信息",
       "continue": "继续",
       "subtitle": "接下来，我们需要您的一些基本信息。",
-      "first_name": "名字",
-      "last_name": "姓氏",
-      "phone_number": "电话号码",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone_number": "Phone number",
       "date_of_birth": "出生日期",
-      "social_security_number": "社会安全号码",
+      "social_security_number": "Social security number (SSN)",
       "enter_phone_number": "输入电话号码",
       "select_region": "选择地区",
       "first_name_required": "名字为必填项",
@@ -643,7 +695,8 @@
       "mobile_number_invalid": "请输入有效电话号码",
       "dob_required": "出生日期为必填项",
       "dob_invalid": "请输入有效出生日期",
-      "ssn_required": "社会保障号码为必填项"
+      "ssn_required": "社会保障号码为必填项",
+      "unexpected_error": "An unexpected error occurred. Please try again."
     },
     "enter_address": {
       "navbar_title": "验证您的身份",
@@ -719,11 +772,11 @@
     },
     "bank_details": {
       "navbar_title": "{{paymentMethod}} 银行转账",
-      "button": "银行转账已汇出",
+      "button": "Confirm transfer",
       "button_cancel": "取消订单",
       "main_title": "要完成您的订单",
       "main_content_1": "使用以下信息从您的首选银行发起转账。",
-      "main_content_2": "完成后，返回并点击“已进行银行转账”进行确认。",
+      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
       "show_bank_info": "显示银行信息",
       "hide_bank_info": "隐藏银行信息",
       "transfer_amount": "转账金额",
@@ -735,6 +788,7 @@
       "bic": "BIC",
       "account_type": "账户类型",
       "bank_name": "银行名称",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "银行地址",
       "info_banner_text": "您应该看到账户持有人为 “{{accountHolderName}}”。这将有助于您的银行处理转账。",
       "error_message": "我们无法确认您的银行转账。请重试。",
@@ -760,8 +814,9 @@
     }
   },
   "perps": {
-    "title": "永续合约交易",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "title": "Perps",
+    "perps_trading": "Perps Trading",
+    "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "总余额",
     "available_balance": "可用余额",
@@ -770,13 +825,12 @@
     "withdraw": "提取",
     "refresh_balance": "Refresh Balance",
     "add_funds": "充值",
-    "perpetuals": "永续合约",
     "your_positions": "Your positions",
     "loading_positions": "正在加载头寸……",
     "refreshing_positions": "Refreshing positions...",
+    "no_open_orders": "No open orders",
     "deposit": {
       "title": "Amount to deposit",
-      "pay_with": "支付方式：",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "资金不足",
       "enter_amount": "输入金额",
@@ -840,7 +894,13 @@
         "completed": "已完成",
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
-      }
+      },
+      "success_toast": "Deposit Complete",
+      "success_message": "Your balance will update in a few moments",
+      "error_toast": "Deposit Failed",
+      "error_generic": "Something went wrong. Please try again.",
+      "in_progress": "Processing deposit",
+      "processing_message": "Processing your deposit..."
     },
     "withdrawal": {
       "title": "提取",
@@ -864,16 +924,22 @@
       "done": "已完成",
       "initiated": "Withdrawal initiated",
       "wait_time_message": "Your funds should arrive within 5 minutes",
+      "submitting": "Submitting...",
       "error": "Withdrawal failed",
-      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
-      "arrival_time": "Funds will arrive within 5 minutes",
+      "success_toast": "Withdrawal successful",
+      "arrival_time": "{{amount}} {{symbol}} will arrive within 5 minutes",
       "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
       "invalid_amount": "Please enter a valid amount",
-      "completed": "Withdrawal Complete",
       "max": "最大值",
       "percentage_10": "10%",
-      "percentage_25": "25%"
+      "percentage_25": "25%",
+      "available_balance": "Available perps balance: {{amount}}",
+      "receive": "Receive",
+      "provider_fee": "Provider fee",
+      "you_will_receive": "You'll receive",
+      "continue": "Continue",
+      "funds_received": "{{amount}} {{symbol}} received"
     },
     "quote": {
       "network_fee": "网络费",
@@ -888,15 +954,28 @@
       "title": "新订单",
       "leverage": "杠杆",
       "limit_price": "Limit price",
+      "enter_price": "Enter price",
+      "trigger_price": "Trigger price",
       "liquidation_price": "清算价格",
       "fees": "费用",
       "market": "市场型",
       "limit": "Limit",
+      "open_orders": "Orders",
+      "max": "max",
+      "cancel_order": "Cancel order",
+      "filled": "filled",
+      "reduce_only": "Reduce only",
+      "yes": "Yes",
+      "status": {
+        "open": "Open",
+        "filled": "Filled",
+        "canceled": "Canceled",
+        "rejected": "Rejected"
+      },
       "validation": {
         "failed": "订单验证失败",
         "amount_required": "订单金额必须大于 0",
         "minimum_amount": "最小订单金额为 ${{amount}}",
-        "maximum_amount": "最大订单金额为 ${{amount}}",
         "insufficient_balance": "余额不足。需要：${{required}}，可用：${{available}}",
         "invalid_leverage": "杠杆必须介于 {{min}} 倍和 {{max}} 倍之间",
         "high_leverage_warning": "高杠杆会增加清算风险",
@@ -921,7 +1000,7 @@
       "margin": "保证金",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
-      "select_payment_asset": "Select asset to pay with",
+      "tp_sl": "TP/SL",
       "button": {
         "long": "做多 {{asset}}",
         "short": "做空 {{asset}}"
@@ -942,12 +1021,14 @@
         "market": "市场型",
         "current_price": "Current price",
         "ask_price": "Ask price",
-        "bid_price": "Bid price"
+        "bid_price": "Bid price",
+        "difference_from_market": "Difference from market:"
       },
       "leverage_modal": {
         "title": "Set Leverage",
         "confirm": "确认",
         "entry_price": "建仓价",
+        "current_price": "Current price",
         "liquidation_price": "Liquidation Price",
         "liquidation_distance": "Liquidation Distance"
       },
@@ -972,27 +1053,49 @@
         "viewPositions": "查看头寸",
         "placeAnother": "再来一单",
         "backToPerps": "Back to Perps"
-      }
+      },
+      "submitted": "Order Submitted",
+      "confirmed": "Order Confirmed"
     },
     "close_position": {
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
+      "cancel": "Cancel",
+      "margin": "Margin",
       "pnl": "PnL",
+      "estimated_pnl": "Estimated PnL",
       "fees": "费用",
-      "receive": "You'll receive (Hyperliquid USDC)",
+      "receive": "You'll receive",
+      "you_receive": "You'll receive",
+      "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!"
+      "fox_points_earned": "{{points}} Fox Points earned!",
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
-      "title": "Set take profit and stop loss",
-      "set_button": "设置",
+      "title": "Take profit and stop loss",
+      "set": "Set",
       "updating": "Updating...",
-      "usd_label": "USD"
+      "off": "Off",
+      "current_price": "Current price",
+      "liquidation_price": "Liquidation price",
+      "take_profit_long": "Take profit when price increases by",
+      "take_profit_short": "Take profit when price decreases by",
+      "stop_loss_long": "Stop loss when price drops by",
+      "stop_loss_short": "Stop loss when price increases by",
+      "trigger_price_placeholder": "Trigger price",
+      "profit_percent_placeholder": "Profit",
+      "loss_percent_placeholder": "Loss",
+      "usd_label": "($)"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1011,6 +1114,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1044,46 +1148,62 @@
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
-      "depositFailed": "存款失败"
+      "depositFailed": "存款失败",
+      "connectionFailed": {
+        "title": "Connection Failed",
+        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "retry": "Retry"
+      },
+      "networkError": {
+        "title": "Network Error",
+        "description": "There was a problem connecting to the network. Please try again.",
+        "retry": "Try Again"
+      },
+      "unknown": {
+        "title": "Something Went Wrong",
+        "description": "An unexpected error occurred. Please try again later.",
+        "retry": "Retry"
+      }
     },
     "position": {
       "title": "头寸",
       "card": {
-        "entry_price": "建仓价",
-        "market_price": "市价",
-        "liquidity_price": "清算价格",
-        "take_profit": "止盈",
-        "stop_loss": "止损",
+        "entry_price": "Entry price",
+        "funding_cost": "Funding",
+        "liquidation_price": "Liq. Price",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss",
         "margin": "保证金",
-        "not_set": "未设置",
+        "not_set": "Not set",
         "edit_tpsl": "编辑止盈/止损",
-        "close_position": "平仓"
+        "close_position": "Close position"
       },
       "list": {
         "loading": "正在加载头寸……",
         "error_title": "加载头寸时出错",
         "empty_title": "无未平仓头寸",
         "empty_description": "您目前没有任何未平仓头寸。\n开始交易后，即可在此处将查看您的头寸。",
+        "first_time_title": "Perps",
+        "first_time_description": "Predict price moves with up to 40x leverage.",
+        "start_trading": "Start trading",
         "open_positions": "未平仓头寸",
         "position_count": "{{count}} 笔头寸",
         "position_count_plural": "{{count}} 笔头寸"
       },
       "details": {
-        "title": "头寸详情",
         "error_message": "未找到头寸数据。请返回并重试。",
         "section_title": "头寸"
-      },
-      "tpsl": {
-        "update_success": "TP/SL updated successfully",
-        "update_failed": "Failed to update TP/SL",
-        "update_error": "Error updating TP/SL"
       },
       "account": {
         "summary_title": "账户摘要",
         "total_balance": "总余额",
         "available_balance": "可用余额",
         "margin_used": "已用保证金",
-        "total_unrealized_pnl": "未实现盈亏总额"
+        "total_unrealized_pnl": "未实现盈亏总额",
+        "unrealized_pnl": "Unrealized P&L"
+      },
+      "tpsl": {
+        "update_success": "TP/SL updated successfully"
       }
     },
     "markets": {
@@ -1097,15 +1217,16 @@
       "statistics": "Statistics",
       "24hr_high": "24hr high",
       "24hr_low": "24hr low",
-      "24h_volume": "24h volume",
+      "24h_volume": "24hr volume",
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short"
-    },
-    "network": {
-      "hyperliquid": "Hyperliquid"
+      "short": "Short",
+      "add_funds": "Add funds",
+      "add_funds_to_start_trading_perps": "Add funds to start trading perps",
+      "position": "Position",
+      "orders": "Orders"
     },
     "buttons": {
       "get_account_balance": "获取账户余额",
@@ -1114,6 +1235,70 @@
       "switch_to_testnet": "切换到测试网",
       "view_markets": "View Markets",
       "positions": "头寸"
+    },
+    "tooltips": {
+      "leverage": {
+        "title": "Leverage",
+        "content": "Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade."
+      },
+      "liquidation_price": {
+        "title": "Liquidation price",
+        "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "margin": {
+        "title": "Margin",
+        "content": "Margin is the money you put in to open a trade. It acts as collateral, and it's the most you can lose on that trade."
+      },
+      "fees": {
+        "title": "Fees",
+        "content": "Trading fees are charged when you open or close a position.",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee",
+        "total": "Total fees"
+      },
+      "closing_fees": {
+        "title": "Closing Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "estimated_pnl": {
+        "title": "Estimated P&L",
+        "content": "Your estimated profit or loss when closing this position at the current market price. This is calculated based on your entry price and includes the portion of the position you're closing."
+      },
+      "limit_price": {
+        "title": "Limit Price",
+        "content": "The specific price at which your limit order will execute. For closing long positions, the order executes when the price rises to this level. For closing short positions, it executes when the price falls to this level."
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "receive": {
+        "title": "Receive",
+        "content": "The amount of USDC you'll receive in your wallet after withdrawal."
+      },
+      "withdrawal_fees": {
+        "title": "Provider Fee",
+        "content": "A network fee charged for processing your withdrawal transaction."
+      },
+      "tp_sl": {
+        "title": "Take Profit & Stop Loss",
+        "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
+      },
+      "notifications": {
+        "title": "Turn on notifications",
+        "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",
+        "turn_on_button": "Turn on"
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "连接失败",
@@ -1124,12 +1309,86 @@
     "chart": {
       "no_data": "无可用图表数据"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Total fees",
+        "pnl": "Net P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
+    },
+    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "tutorial": {
+      "continue": "Continue",
+      "skip": "Skip",
+      "add_funds": "Add funds",
+      "what_are_perps": {
+        "title": "What are perps?",
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
+        "subtitle": "Here's how it works."
+      },
+      "go_long_or_short": {
+        "title": "Go long or short on a token",
+        "description": "Pick a token to long or short, then set your margin.",
+        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+      },
+      "choose_leverage": {
+        "title": "Choose your leverage",
+        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+      },
+      "watch_liquidation": {
+        "title": "Watch out for liquidation",
+        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+      },
+      "close_anytime": {
+        "title": "Close any time",
+        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+      },
+      "ready_to_trade": {
+        "title": "Ready to trade?",
+        "description": "Fund your perps account with any token and make your first trade in seconds."
+      },
+      "got_it": "Got it"
+    }
   },
   "receive": {
     "title": "接收"
@@ -1199,7 +1458,7 @@
     "collectible": "收藏品",
     "collectibles": "收藏品",
     "defi": "去中心化金融",
-    "perps": "永续合约",
+    "perps": "Perps",
     "transactions": "交易",
     "no_collectibles": "您没有任何收藏品！",
     "no_available_tokens": "没有看到您的代币？",
@@ -1229,6 +1488,9 @@
     "import": "导入",
     "sort_by": "排序方式",
     "filter_by": "筛选方式",
+    "networks": "Networks",
+    "popular": "Popular",
+    "custom": "Custom",
     "current_network": "当前网络",
     "popular_networks": "热门网络",
     "all_networks": "所有网络",
@@ -1572,7 +1834,10 @@
     "account_connect_create_initial_account": {
       "description": "连接到此网站需要 Solana 账户。",
       "button": "创建 Solana 账户"
-    }
+    },
+    "no_accounts_found": "No accounts found",
+    "no_accounts_found_for_search": "No accounts found matching your search",
+    "search_your_accounts": "Search your accounts"
   },
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",
@@ -1733,7 +1998,8 @@
       "snaps_title": "Snap",
       "snaps_desc": "新功能和更新",
       "products_announcements_title": "产品公告",
-      "products_announcements_desc": "新产品和功能"
+      "products_announcements_desc": "新产品和功能",
+      "perps_title": "Perps trading"
     },
     "contacts_title": "联系方式",
     "contacts_desc": "添加、编辑、删除和管理您的账户",
@@ -2045,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "返回应用程序",
+    "postNetworkSwitchTitle": "网络已成功切换",
     "description": "请返回应用程序继续使用其服务。"
   },
   "sdk_feedback_modal": {
@@ -2133,16 +2400,25 @@
     "change_password": "更改密码",
     "password_hint": "密码提示"
   },
+  "fund_actionmenu": {
+    "deposit": "Deposit",
+    "deposit_description": "Low-fee bank or card transfer",
+    "buy": "Buy",
+    "buy_description": "Good for buying a specific token",
+    "sell": "Withdraw",
+    "sell_description": "Sell crypto for cash"
+  },
   "asset_overview": {
     "send_button": "发送",
     "buy_button": "买入",
+    "fund_button": "Fund",
     "token_marketplace": "代币市场",
-    "sell_button": "卖出",
+    "sell_button": "Withdraw",
     "receive_button": "接收",
     "portfolio_button": "Portfolio",
+    "deposit_button": "Deposit",
     "earn_button": "赚取",
-    "perps_button": "永续合约",
-    "perps_sandbox_button": "Perps Sandbox",
+    "perps_button": "Perps",
     "add_collectible_button": "添加",
     "info": "信息",
     "swap": "兑换",
@@ -2157,8 +2433,7 @@
       "send": "此账户不支持发送",
       "action": "此账户不支持此操作",
       "earn": "此账户不支持赚取",
-      "perps": "此账户不支持永续合约交易",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Perps trading not supported for this account"
     },
     "description": "描述",
     "totalSupply": "总供给量",
@@ -2168,7 +2443,7 @@
     "troubleshooting_missing": "“解决余额丢失问题”",
     "for_help": "以寻求帮助。",
     "troubleshoot": "故障排除",
-    "deposit_description": "Low-cost card or bank transfer",
+    "deposit_description": "Low-fee bank or card transfer",
     "buy_description": "Good for buying a specific token",
     "sell_description": "卖出加密货币换取现金",
     "swap_description": "代币之间的兑换",
@@ -2176,8 +2451,7 @@
     "send_description": "向任何账户发送加密货币",
     "receive_description": "接收加密货币",
     "earn_description": "通过您的代币赚取奖励",
-    "perps_description": "交易永续合约",
-    "perps_sandbox_description": "Explore perpetual trading",
+    "perps_description": "Trade perp contracts",
     "chart_time_period": {
       "1d": "今天",
       "7d": "过去 7 天",
@@ -2267,7 +2541,7 @@
     "not_allowed_error_desc": "要扫描二维码，您需要从设备的设置菜单中授予 MetaMask 摄像头访问权限。",
     "unrecognized_address_qr_code_title": "二维码无法识别",
     "unrecognized_address_qr_code_desc": "对不起，此二维码没有关联的账户地址或合约地址。",
-    "url_redirection_alert_title": "您即将访问外部链接",
+    "url_redirection_alert_title": "You are about to visit an external link",
     "url_redirection_alert_desc": "链接可能会被用于诈骗或网络钓鱼，因此请确保您只访问您信任的网站。",
     "label": "扫描二维码",
     "open_settings": "设置",
@@ -2276,6 +2550,15 @@
   "action_view": {
     "cancel": "取消",
     "confirm": "确认"
+  },
+  "gas_fee_token_modal": {
+    "title": "Select a token",
+    "title_pay_eth": "Pay with ETH",
+    "native_toggle_wallet": "Pay for network fee using the balance in your wallet.",
+    "list_balance": "Bal:",
+    "insufficient_balance": "Insufficient funds",
+    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction.",
+    "title_pay_with_other_tokens": "Pay with other tokens"
   },
   "transaction": {
     "transaction_id": "交易 ID",
@@ -2765,6 +3048,7 @@
     "switch_network": "切换到网络",
     "switch": "切换",
     "select_all": "全部选择",
+    "deselect_all": "Deselect all",
     "new_network": "已增加新网络",
     "network_name": "{{networkName}}网络",
     "network_added": " 现已在网络选择工具中。",
@@ -2779,6 +3063,7 @@
     "select_network": "选择网络",
     "enabled_networks": "启用的网络",
     "additional_networks": "其他网络",
+    "all_popular_networks": "All popular networks",
     "show_test_networks": "显示测试网络",
     "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
     "network_deprecated_title": "该网络已弃用",
@@ -4360,12 +4645,16 @@
     "add_multichain_account": "创建新的 {{networkName}} 账户",
     "create_an_account": "创建新账户",
     "add_new_account": "以太坊账户",
+    "create_new_wallet": "Create a new wallet",
+    "import_wallet": "Import a wallet",
     "import_srp": "私钥助记词，",
     "add_hardware_wallet": "硬件钱包",
     "import_account": "私钥",
     "add_bitcoin_account": "比特币账户",
     "add_solana_account": "Solana 账户",
     "switch_to_smart_account": "切换到智能账户",
+    "rename_account": "Rename account",
+    "addresses": "Addresses",
     "headers": {
       "bitcoin": "比特币",
       "solana": "Solana"
@@ -4387,14 +4676,6 @@
     "show_display_nft_media_content_3": "显示NFT媒体和数据会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后将不可用。",
     "show_display_nft_media_content_4": "您可以在此处关闭显示 NFT 媒体：",
     "show_display_nft_media_content_5": "设置 > 安全和隐私."
-  },
-  "solana_new_feature_content": {
-    "title": "现已支持 solana",
-    "title_description": "导入您的钱包，探索、交易并发送。MetaMask 现已支持原生 Solana。",
-    "not_now": "暂时不",
-    "view_solana_account": "查看 Solana 账户",
-    "learn_more": "了解有关 Solana 账户的更多详情",
-    "import_your_wallet": "导入钱包"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 网关",
@@ -4729,7 +5010,10 @@
       "signing_in_with": "使用以下方式登录",
       "spender": "支出者",
       "now": "立即",
-      "switching_to": "切换至"
+      "switching_to": "切换至",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "签名请求",
@@ -4741,7 +5025,8 @@
       "contract_deployment": "部署合约",
       "transfer": "转账请求",
       "switch_account_type": "账户更新",
-      "approve": "批准请求"
+      "approve": "批准请求",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",
@@ -4848,7 +5133,10 @@
     "review": "审核",
     "transferRequest": "转账请求",
     "nested_transaction_heading": "交易 {{index}}",
-    "transaction": "交易"
+    "transaction": "交易",
+    "available_balance": "Available: ",
+    "edit_amount_done": "Done",
+    "deposit_edit_amount_done": "Continue"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -4896,6 +5184,7 @@
     "receive_at": "接收地址：",
     "error_banner_description": "目前该交易路线不可用。请调整交易金额、切换网络或更换代币类型，我们将为您自动匹配最优通道。",
     "insufficient_funds": "资金不足",
+    "insufficient_gas": "Insufficient gas",
     "select_amount": "选择金额",
     "bridge_to": "桥接至",
     "swap_to": "兑换至",
@@ -4905,6 +5194,9 @@
     "fee_disclaimer": "包含0.875%的做市商手续费",
     "hardware_wallet_not_supported": "目前暂不支持硬件钱包。请改用热钱包继续操作。",
     "hardware_wallet_not_supported_solana": "Solana 目前暂不支持硬件钱包。请改用热钱包继续操作。",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "最大值"
   },
@@ -4954,9 +5246,15 @@
     "user_cancelled_title": "登录已取消",
     "user_cancelled_description": "您已取消登录流程。\n准备好后请重试。",
     "user_cancelled_button": "请重试",
+    "google_login_no_credential_title": "Google login failed",
+    "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
+    "google_login_no_credential_button": "Try again",
     "oauth_error_title": "登录失败",
     "oauth_error_description": "登录时发生错误。\n请重试，若问题仍存在，请联系 MetaMask 支持团队。",
-    "oauth_error_button": "请重试"
+    "oauth_error_button": "请重试",
+    "no_internet_connection_title": "Unable to connect",
+    "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
+    "no_internet_connection_button": "Try again"
   },
   "password_hint": {
     "title": "密码提示",
@@ -5010,6 +5308,9 @@
     "account_selector": {
       "title": "Select account"
     },
+    "dropdown": {
+      "title": "Select an option"
+    },
     "hideSentitiveInfo": {
       "message": "隐藏敏感信息"
     },
@@ -5023,12 +5324,39 @@
     "show_less": "收起"
   },
   "multichain_accounts": {
+    "add_wallet": "Add wallet",
+    "add_hardware_wallet": "Add a hardware wallet",
     "account_details": {
       "header_title": "账户详情",
       "account_name": "账户名称",
+      "networks": "Networks",
       "account_address": "账户地址",
       "wallet": "钱包",
-      "private_key": "私钥"
+      "private_key": "私钥",
+      "private_keys": "Private keys",
+      "unlock_to_reveal": "Unlock to reveal",
+      "smart_account": "Smart account",
+      "set_up": "Set up",
+      "secret_recovery_phrase": "Secret Recovery Phrase",
+      "back_up": "Back up",
+      "remove_account": "Remove account"
+    },
+    "address_list": {
+      "addresses": "Addresses",
+      "receiving_address": "Receiving address",
+      "copied": "Address copied"
+    },
+    "private_key_list": {
+      "list_title": "Private keys",
+      "warning_title": "Don't share your private key",
+      "warning_description": "This key grants full control of your account for the associated chain.",
+      "learn_more": "Learn more",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "wrong_password": "Wrong password",
+      "copied": "Private key copied",
+      "continue": "Continue",
+      "cancel": "Cancel"
     },
     "accounts_list": {
       "details": "详情"
@@ -5064,6 +5392,12 @@
       "copy_address": "复制地址",
       "view_on_explorer_button": "在 {{explorer}} 上查看",
       "view_on_block_explorer": "在区块浏览器上查看"
+    },
+    "share_address_qr": {
+      "title": "{{networkName}} Address",
+      "copy_address": "Copy address",
+      "description": "Use this address to receive tokens and collectibles on",
+      "description_prefix": "Use this address to receive tokens and collectibles on"
     },
     "export_credentials": {
       "export_private_key": "私钥",
@@ -5112,6 +5446,27 @@
     "back_button": "返回",
     "continue_button": "继续"
   },
+  "card": {
+    "card": "MetaMask Card",
+    "add_funds_bottomsheet": {
+      "deposit": "Fund with cash",
+      "deposit_description": "Low-cost card or bank transfer",
+      "swap": "Fund with crypto",
+      "swap_description": "Swap tokens into {{symbol}} on Linea",
+      "select_method": "Select method"
+    },
+    "card_home": {
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "请重试",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "充值",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "advanced_card_management_description": "See transactions, freeze card, and more"
+      }
+    }
+  },
   "onboarding_error_fallback": {
     "title": "发生错误",
     "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
@@ -5125,19 +5480,11 @@
   "pay_with_modal": {
     "title": "选择付款方式"
   },
-  "card": {
-    "card": "MetaMask Card",
-    "card_home": {
-      "error_title": "Can’t fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
-      "try_again": "请重试",
-      "limited_spending_warning": "Full balance may not be available. Adjust your spending limit in {{manageCard}}",
-      "add_funds": "充值",
-      "manage_card_options": {
-        "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
-      }
-    }
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "time": {
     "minutes_format": "{{count}} minute",

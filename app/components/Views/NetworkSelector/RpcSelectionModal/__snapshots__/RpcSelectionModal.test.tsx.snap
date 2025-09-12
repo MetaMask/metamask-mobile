@@ -74,8 +74,8 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 5,
             "overflow": "hidden",
@@ -124,6 +124,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             {
               "backgroundColor": "#ffffff",
               "flexDirection": "row",
+              "gap": 16,
               "padding": 16,
             },
             false,
@@ -134,20 +135,8 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
         <View
           style={
             {
-              "width": undefined,
-            }
-          }
-        >
-          <View
-            onLayout={[Function]}
-          />
-        </View>
-        <View
-          style={
-            {
               "alignItems": "center",
               "flex": 1,
-              "marginHorizontal": 16,
             }
           }
         >
@@ -274,17 +263,6 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
               </View>
             </View>
           </TouchableOpacity>
-        </View>
-        <View
-          style={
-            {
-              "width": undefined,
-            }
-          }
-        >
-          <View
-            onLayout={[Function]}
-          />
         </View>
       </View>
       <View

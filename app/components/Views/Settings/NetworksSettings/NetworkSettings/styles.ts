@@ -1,5 +1,6 @@
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { StyleSheet } from 'react-native';
+import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import { Colors } from '../../../../../util/theme/models';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -22,6 +23,17 @@ const createStyles = () =>
     icon: {
       marginRight: 16,
       marginTop: 4,
+    },
+  });
+
+export const createCustomNetworkStyles = (params: { colors: Colors }) =>
+  StyleSheet.create({
+    listHeader: {
+      color: params.colors.text.alternative,
+      marginVertical: 16,
+    },
+    iconContainer: {
+      marginRight: 12,
     },
   });
 

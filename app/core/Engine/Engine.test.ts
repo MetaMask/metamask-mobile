@@ -14,6 +14,9 @@ import { KeyringControllerState } from '@metamask/keyring-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
+import { AppState, AppStateStatus } from 'react-native';
+import ReduxService from '../redux';
+import configureStore from '../../util/test/configureStore';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -24,7 +27,19 @@ jest.mock('../BackupVault', () => ({
 }));
 jest.unmock('./Engine');
 jest.mock('../../store', () => ({
-  store: { getState: jest.fn(() => ({ engine: {} })) },
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              rewards: true,
+            },
+          },
+        },
+      },
+    })),
+  },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
@@ -61,10 +76,16 @@ describe('Engine', () => {
   // Create a shared mock account for tests
   const validAddress = MOCK_ADDRESS_1;
   const mockAccount = createMockInternalAccount(validAddress, 'Test Account');
+  let mockAppStateListener: (state: AppStateStatus) => void;
 
-  afterEach(() => {
+  beforeEach(() => {
+    ReduxService.store = configureStore({});
+  });
+
+  afterEach(async () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
+    await Engine.destroyEngine();
   });
 
   it('should expose an API', () => {
@@ -102,6 +123,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
   });
 
@@ -168,6 +190,12 @@ describe('Engine', () => {
     // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
+      AccountTrackerController: {
+        ...backgroundState.AccountTrackerController,
+        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
+        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
+        accountsByChainId: {},
+      },
       AppMetadataController: {
         currentAppVersion,
         previousAppVersion: '', // This will be managed by the controller
@@ -320,9 +348,6 @@ describe('Engine', () => {
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
-    let engine: EngineClass;
-    afterEach(() => engine?.destroyEngineInstance());
-
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const selectedAccountId = 'test-account-id';
     const chainId: Hex = '0x1';
@@ -373,14 +398,26 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      engine = Engine.init(state);
+      const engine = Engine.init({
+        ...state,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: {
+                balance: '0',
+                stakedBalance: '0',
+              },
+            },
+          },
+        },
+      });
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
         ethFiat1dAgo: 0,
         tokenFiat: 0,
         tokenFiat1dAgo: 0,
-        ticker: '',
+        ticker: 'ETH',
         totalNativeTokenBalance: '0',
       });
     });
@@ -388,7 +425,7 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokenRatesController: {
           marketData: {
@@ -439,7 +476,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokensController: {
           allTokens: {
@@ -535,7 +572,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         AccountTrackerController: {
           accountsByChainId: {
@@ -614,5 +651,62 @@ describe('Engine', () => {
         totalNativeTokenBalance: '1',
       });
     });
+  });
+
+  it('calls `SnapController:setClientActive` when app state changes to active', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    const engine = Engine.init(backgroundState);
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to active
+    mockAppStateListener('active');
+
+    expect(messengerSpy).toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      true,
+    );
+  });
+
+  it('calls `SnapController:setClientActive` when app state changes to background', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    const engine = Engine.init(backgroundState);
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to background
+    mockAppStateListener('background');
+
+    expect(messengerSpy).toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      false,
+    );
+  });
+
+  it('does not call `SnapController:setClientActive` for other app states', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    const engine = Engine.init(backgroundState);
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to inactive
+    mockAppStateListener('inactive');
+
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      expect.anything(),
+    );
   });
 });

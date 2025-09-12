@@ -6,6 +6,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import * as TransactionMetadataRequestHook from '../../hooks/transactions/useTransactionMetadataRequest';
 import { ConfirmationAssetPollingProvider } from './confirmation-asset-polling-provider';
 import { AssetPollingProvider } from '../../../../hooks/AssetPolling/AssetPollingProvider';
+import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+
+const CHAIN_ID_MOCK = '0x1';
+const CHAIN_ID_2_MOCK = '0x2';
+
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectEnabledSourceChains: jest.fn(),
+}));
 
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: jest.fn(() => null),
@@ -14,8 +24,7 @@ jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 describe('ConfirmationAssetPollingProvider', () => {
   const mockTransactionMetadata = {
     id: 'test-transaction-id',
-    chainId: '0x1' as `0x${string}`,
-    networkClientId: 'mainnet',
+    chainId: CHAIN_ID_MOCK,
     txParams: {
       from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
       to: '0x1234567890123456789012345678901234567890',
@@ -26,10 +35,16 @@ describe('ConfirmationAssetPollingProvider', () => {
   } as unknown as TransactionMeta;
 
   const mockAssetPollingProvider = jest.mocked(AssetPollingProvider);
+  const selectEnabledSourceChainsMock = jest.mocked(selectEnabledSourceChains);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockAssetPollingProvider.mockClear();
+    selectEnabledSourceChainsMock.mockReturnValue([
+      { chainId: CHAIN_ID_MOCK, isEvm: true },
+      { chainId: CHAIN_ID_2_MOCK, isEvm: true },
+      { chainId: 'SolanaChainId', isEvm: false },
+    ] as unknown as MultichainNetworkConfiguration[]);
   });
 
   describe('when transaction metadata is available', () => {
@@ -64,8 +79,7 @@ describe('ConfirmationAssetPollingProvider', () => {
 
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
-          chainId: '0x1',
-          networkClientId: 'mainnet',
+          chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),
@@ -165,8 +179,7 @@ describe('ConfirmationAssetPollingProvider', () => {
 
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
-          chainId: '0x1',
-          networkClientId: 'mainnet',
+          chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),
@@ -192,7 +205,6 @@ describe('ConfirmationAssetPollingProvider', () => {
       const customTransactionMetadata = {
         ...mockTransactionMetadata,
         chainId: '0x89' as `0x${string}`,
-        networkClientId: 'polygon-mainnet',
       };
 
       jest
@@ -210,8 +222,7 @@ describe('ConfirmationAssetPollingProvider', () => {
 
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
-          chainId: '0x89',
-          networkClientId: 'polygon-mainnet',
+          chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),

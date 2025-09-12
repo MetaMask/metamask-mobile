@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { View, RefreshControl, Dimensions } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { View, RefreshControl } from 'react-native';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -14,10 +14,11 @@ import TextComponent, {
 import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListFooter } from './TokenListFooter';
-import { TokenListItem } from './TokenListItem';
+import { TokenListItem, TokenListItemBip44 } from './TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 
 export interface FlashListAssetKey {
   address: string;
@@ -48,17 +49,18 @@ const TokenListComponent = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const listRef = useRef<FlashList<FlashListAssetKey>>(null);
+  // BIP44 MAINTENANCE: Once stable, only use TokenListItemBip44
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const TokenListItemComponent = isMultichainAccountsState2Enabled
+    ? TokenListItemBip44
+    : TokenListItem;
+
+  const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
-
-  const { width: deviceWidth } = Dimensions.get('window');
-
-  const itemHeight = 70; // Adjust this to match TokenListItem height
-  const numberOfItemsOnScreen = 6; // Adjust this to match number of items on screen
-
-  const estimatedListHeight = itemHeight * numberOfItemsOnScreen;
 
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
@@ -72,7 +74,7 @@ const TokenListComponent = ({
 
   const renderTokenListItem = useCallback(
     ({ item }: { item: FlashListAssetKey }) => (
-      <TokenListItem
+      <TokenListItemComponent
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
         setShowScamWarningModal={setShowScamWarningModal}
@@ -85,6 +87,7 @@ const TokenListComponent = ({
       setShowScamWarningModal,
       privacyMode,
       showPercentageChange,
+      TokenListItemComponent,
     ],
   );
 
@@ -93,16 +96,12 @@ const TokenListComponent = ({
       ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
-      estimatedItemSize={itemHeight}
-      estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
-      removeClippedSubviews
+      removeClippedSubviews={false}
       viewabilityConfig={{
-        waitForInteraction: true,
         itemVisiblePercentThreshold: 50,
         minimumViewTime: 1000,
       }}
       decelerationRate={0}
-      disableAutoLayout
       renderItem={renderTokenListItem}
       keyExtractor={(item) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';
@@ -118,6 +117,7 @@ const TokenListComponent = ({
         />
       }
       extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+      scrollEnabled={false}
     />
   ) : (
     <View style={styles.emptyView}>

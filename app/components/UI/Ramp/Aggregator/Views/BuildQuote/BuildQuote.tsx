@@ -37,7 +37,7 @@ import Row from '../../components/Row';
 import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import AmountInput from '../../components/AmountInput';
-import Keypad from '../../components/Keypad';
+import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../../Swaps/components/TokenIcon';
@@ -849,7 +849,7 @@ const BuildQuote = () => {
         >
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
-              <AccountSelector />
+              <AccountSelector isEvmOnly={isSell} />
               <View style={styles.spacer} />
               <SelectorButton
                 accessibilityRole="button"
@@ -1036,6 +1036,7 @@ const BuildQuote = () => {
           amounts={quickAmounts}
         />
         <Keypad
+          style={styles.keypad}
           value={amount}
           onChange={handleKeypadChange}
           currency={

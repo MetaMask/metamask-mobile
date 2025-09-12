@@ -5,7 +5,6 @@ import Utilities from '../../framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
 import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
-
 class AccountActionsBottomSheet {
   get editAccount(): DetoxElement {
     return Matchers.getElementByID(
@@ -31,6 +30,12 @@ class AccountActionsBottomSheet {
     );
   }
 
+  get multichainEditName(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_EDIT_NAME,
+    );
+  }
+
   async tapEditAccount(): Promise<void> {
     await Gestures.waitAndTap(this.editAccount, {
       elemDescription: 'Edit account button',
@@ -52,6 +57,12 @@ class AccountActionsBottomSheet {
   async tapShowSRP(): Promise<void> {
     await Gestures.waitAndTap(this.showSrp, {
       elemDescription: 'Show secret recovery phrase button',
+    });
+  }
+
+  async tapRenameAccount(): Promise<void> {
+    await Gestures.waitAndTap(this.multichainEditName, {
+      elemDescription: 'Edit Account Name button in V2 account actions modal',
     });
   }
 

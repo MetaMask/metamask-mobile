@@ -167,6 +167,80 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 }
               }
             >
+              <TouchableOpacity
+                onLongPress={[Function]}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                    "marginBottom": 16,
+                    "padding": 16,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Select a network
+                </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "marginLeft": 16,
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                    testID="select-network-button"
+                  >
+                    <SvgMock
+                      color="#121314"
+                      fill="currentColor"
+                      height={16}
+                      name="ArrowDown"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
               <Text
                 style={
                   {
@@ -334,7 +408,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               activeOpacity={1}
               disabled={true}
               loading={false}
-              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
@@ -445,7 +518,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                     }
                   }
                 >
-                  Ethereum Main Network
+                  Ethereum Mainnet
                 </Text>
               </TouchableOpacity>
               <View
@@ -474,7 +547,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                   <Image
                     onError={[Function]}
                     resizeMode="contain"
-                    source={1}
+                    source="ethereum"
                     style={
                       {
                         "height": 24,
@@ -668,7 +741,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
           accessible={true}
           activeOpacity={1}
           disabled={true}
-          onPress={[Function]}
           onPressIn={[Function]}
           onPressOut={[Function]}
           style={
@@ -933,7 +1005,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={true}
-        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

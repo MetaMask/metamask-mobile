@@ -6,12 +6,10 @@ import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelecto
 import SlippageModal from './components/SlippageModal';
 import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
 import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
-import QuoteInfoModal from './components/QuoteInfoModal';
 import BridgeView from './Views/BridgeView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
-import PriceImpactWarningModal from './components/PriceImpactWarningModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -24,7 +22,7 @@ const clearStackNavigatorOptions = {
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
-    <Stack.Screen name="BridgeView" component={BridgeView} />
+    <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
   </Stack.Navigator>
 );
 
@@ -55,10 +53,6 @@ export const BridgeModalStack = () => (
       component={SlippageModal}
     />
     <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL}
-      component={QuoteInfoModal}
-    />
-    <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
       component={BlockExplorersModal}
     />
@@ -69,10 +63,6 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}
       component={BlockaidModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL}
-      component={PriceImpactWarningModal}
     />
   </ModalStack.Navigator>
 );

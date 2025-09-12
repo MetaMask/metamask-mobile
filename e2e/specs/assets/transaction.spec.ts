@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -12,10 +12,12 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import ToastModal from '../../pages/wallet/ToastModal';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(Regression('Transaction'), () => {
+describe(RegressionAssets('Transaction'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -30,8 +32,11 @@ describe(Regression('Transaction'), () => {
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+          );
         },
       },
       async () => {
@@ -42,7 +47,7 @@ describe(Regression('Transaction'), () => {
         await TestHelpers.delay(2000);
 
         // Scroll to top first to ensure consistent starting position
-        await WalletView.scrollToBottomOfTokensList();
+        await WalletView.scrollToTopOfTokensList();
         await TestHelpers.delay(1000);
 
         // Then scroll to Ethereum with extra stability

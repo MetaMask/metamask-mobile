@@ -21,7 +21,6 @@ import {
 import { IUseMetricsHook } from '../../hooks/useMetrics/useMetrics.types';
 import {
   OPTIN_META_METRICS_UI_SEEN,
-  ONBOARDING_WIZARD,
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
 } from '../../../constants/storage';
@@ -88,11 +87,6 @@ jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
-// Mock setOnboardingWizardStep action
-jest.mock('../../../actions/wizard', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({ type: 'SET_ONBOARDING_WIZARD_STEP' })),
-}));
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({
     currentAuthType: 'device_passcode',
@@ -182,6 +176,18 @@ jest.mock('../../hooks/useMetrics', () => ({
   },
 }));
 
+// Mock useNetInfo
+jest.mock('@react-native-community/netinfo', () => ({
+  useNetInfo: jest.fn(() => ({
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'wifi',
+    details: {
+      isConnectionExpensive: false,
+    },
+  })),
+}));
+
 const mockUseMetrics = jest.mocked(useMetrics);
 
 const mockBackHandlerAddEventListener = jest.fn();
@@ -253,7 +259,6 @@ describe('Login', () => {
   it('should call trace function for AuthenticateUser during non-OAuth login', async () => {
     (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
       if (key === OPTIN_META_METRICS_UI_SEEN) return true;
-      if (key === ONBOARDING_WIZARD) return true;
       return null;
     });
 
@@ -312,7 +317,6 @@ describe('Login', () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 
@@ -368,7 +372,6 @@ describe('Login', () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 
@@ -413,7 +416,6 @@ describe('Login', () => {
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
             return Promise.resolve('true');
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 
@@ -458,7 +460,6 @@ describe('Login', () => {
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
             return Promise.resolve('true');
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 
@@ -514,7 +515,6 @@ describe('Login', () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 
@@ -569,7 +569,6 @@ describe('Login', () => {
         // Arrange
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 
@@ -613,7 +612,6 @@ describe('Login', () => {
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
             return Promise.resolve('true');
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 
@@ -657,7 +655,6 @@ describe('Login', () => {
         (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
           if (key === OPTIN_META_METRICS_UI_SEEN)
             return Promise.resolve('true');
-          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
           return Promise.resolve(null);
         });
 

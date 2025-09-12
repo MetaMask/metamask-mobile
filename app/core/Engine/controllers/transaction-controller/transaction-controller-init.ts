@@ -39,6 +39,7 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
+import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -134,7 +135,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   }
 };
 
-function publishHook({
+async function publishHook({
   transactionMeta,
   getState,
   transactionController,
@@ -152,8 +153,13 @@ function publishHook({
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash: string }> {
   const state = getState();
+
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
+
+  await new PayHook({
+    messenger: initMessenger,
+  }).getHook()(transactionMeta, signedTransactionInHex);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({
@@ -215,9 +221,7 @@ function publishBatchSmartTransactionHook({
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
   if (!shouldUseSmartTransaction) {
-    throw new Error(
-      'publishBatchSmartTransactionHook: Smart Transaction is required for batch submissions',
-    );
+    return Promise.resolve(undefined);
   }
 
   return submitBatchSmartTransactionHook({

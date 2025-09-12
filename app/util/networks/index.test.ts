@@ -16,6 +16,9 @@ import NetworkList, {
   TESTNET_CHAIN_IDS,
   WHILELIST_NETWORK_NAME,
   isValidNetworkName,
+  isWhitelistedSymbol,
+  isWhitelistedRpcUrl,
+  isWhitelistedNetworkName,
 } from '.';
 import {
   convertNetworkId,
@@ -32,6 +35,7 @@ import {
   MEGAETH_TESTNET,
   MONAD_TESTNET,
   BASE_MAINNET,
+  NETWORKS_CHAIN_ID,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -820,6 +824,11 @@ describe('network-utils', () => {
         name: 'Monad Testnet',
         nickname: WHILELIST_NETWORK_NAME[ChainId['monad-testnet']],
       },
+      {
+        chainId: NETWORKS_CHAIN_ID.SEI,
+        name: 'Sei Mainnet',
+        nickname: WHILELIST_NETWORK_NAME[NETWORKS_CHAIN_ID.SEI],
+      },
     ])(
       'returns true if the chainId is %.chainId and network nickname is the same with the whilelisted name',
       ({ chainId, name, nickname }) => {
@@ -831,6 +840,190 @@ describe('network-utils', () => {
       expect(
         isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Some other nickname'),
       ).toBe(false);
+    });
+  });
+
+  describe('isWhitelistedSymbol', () => {
+    it('returns true when chainId and symbol match a whitelisted entry', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const symbol = 'HYPE';
+
+      const result = isWhitelistedSymbol(chainId, symbol);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when chainId and symbol match a whitelisted entry with different case', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const symbol = 'hype';
+
+      const result = isWhitelistedSymbol(chainId, symbol);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when chainId is not whitelisted', () => {
+      const chainId = '0x123';
+      const symbol = 'HYPE';
+
+      const result = isWhitelistedSymbol(chainId, symbol);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when symbol does not match whitelisted symbol', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const symbol = 'ETH';
+
+      const result = isWhitelistedSymbol(chainId, symbol);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when chainId is empty string', () => {
+      const chainId = '';
+      const symbol = 'HYPE';
+
+      const result = isWhitelistedSymbol(chainId, symbol);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when symbol is empty string', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const symbol = '';
+
+      const result = isWhitelistedSymbol(chainId, symbol);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isWhitelistedRpcUrl', () => {
+    it('returns true when chainId and rpcUrl match a whitelisted entry', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const rpcUrl = 'https://rpc.hyperliquid.xyz';
+
+      const result = isWhitelistedRpcUrl(chainId, rpcUrl);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when chainId and rpcUrl match a whitelisted entry with different case', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const rpcUrl = 'HTTPS://RPC.HYPERLIQUID.XYZ';
+
+      const result = isWhitelistedRpcUrl(chainId, rpcUrl);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when chainId is not whitelisted', () => {
+      const chainId = '0x123';
+      const rpcUrl = 'https://rpc.hyperliquid.xyz';
+
+      const result = isWhitelistedRpcUrl(chainId, rpcUrl);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when rpcUrl does not match whitelisted RPC URL', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const rpcUrl = 'https://different-rpc.com';
+
+      const result = isWhitelistedRpcUrl(chainId, rpcUrl);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when chainId is empty string', () => {
+      const chainId = '';
+      const rpcUrl = 'https://rpc.hyperliquid.xyz';
+
+      const result = isWhitelistedRpcUrl(chainId, rpcUrl);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when rpcUrl is empty string', () => {
+      const chainId = NETWORKS_CHAIN_ID.HYPER_EVM;
+      const rpcUrl = '';
+
+      const result = isWhitelistedRpcUrl(chainId, rpcUrl);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isWhitelistedNetworkName', () => {
+    it('returns true when chainId and networkName match a whitelisted entry', () => {
+      const chainId = ChainId.mainnet;
+      const networkName = 'Mainnet';
+
+      const result = isWhitelistedNetworkName(chainId, networkName);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when chainId and networkName match a whitelisted entry with different case', () => {
+      const chainId = ChainId['linea-mainnet'];
+      const networkName = 'linea mainnet';
+
+      const result = isWhitelistedNetworkName(chainId, networkName);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for all whitelisted network names', () => {
+      const testCases = [
+        { chainId: ChainId.mainnet, networkName: 'Mainnet' },
+        { chainId: ChainId['linea-mainnet'], networkName: 'Linea Mainnet' },
+        { chainId: ChainId['megaeth-testnet'], networkName: 'Mega Testnet' },
+        { chainId: ChainId['monad-testnet'], networkName: 'Monad Testnet' },
+        { chainId: NETWORKS_CHAIN_ID.SEI, networkName: 'Sei Mainnet' },
+        { chainId: NETWORKS_CHAIN_ID.HYPER_EVM, networkName: 'HyperEVM' },
+      ];
+
+      testCases.forEach(({ chainId, networkName }) => {
+        const result = isWhitelistedNetworkName(chainId, networkName);
+        expect(result).toBe(true);
+      });
+    });
+
+    it('returns false when chainId is not whitelisted', () => {
+      const chainId = '0x123';
+      const networkName = 'Mainnet';
+
+      const result = isWhitelistedNetworkName(chainId, networkName);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when networkName does not match whitelisted network name', () => {
+      const chainId = ChainId.mainnet;
+      const networkName = 'Ethereum';
+
+      const result = isWhitelistedNetworkName(chainId, networkName);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when chainId is empty string', () => {
+      const chainId = '';
+      const networkName = 'Mainnet';
+
+      const result = isWhitelistedNetworkName(chainId, networkName);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when networkName is empty string', () => {
+      const chainId = ChainId.mainnet;
+      const networkName = '';
+
+      const result = isWhitelistedNetworkName(chainId, networkName);
+
+      expect(result).toBe(false);
     });
   });
 });

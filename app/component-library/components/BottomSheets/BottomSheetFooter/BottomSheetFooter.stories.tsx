@@ -3,13 +3,13 @@
 import React from 'react';
 
 // Internal dependencies.
-import { default as BottomSheetFooterComponent } from './BottomSheetFooter';
+import { default as BottomSheetFooter } from './BottomSheetFooter';
 import { SAMPLE_BOTTOMSHEETFOOTER_PROPS } from './BottomSheetFooter.constants';
 import { ButtonsAlignment } from './BottomSheetFooter.types';
 
 const BottomSheetFooterMeta = {
-  title: 'Component Library / BottomSheets',
-  component: BottomSheetFooterComponent,
+  title: 'Component Library / BottomSheets / BottomSheetFooter',
+  component: BottomSheetFooter,
   argTypes: {
     buttonsAlignment: {
       options: ButtonsAlignment,
@@ -22,11 +22,11 @@ const BottomSheetFooterMeta = {
 };
 export default BottomSheetFooterMeta;
 
-export const BottomSheetFooter = {
+export const Default = {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
-    <BottomSheetFooterComponent
+    <BottomSheetFooter
       {...args}
       buttonPropsArray={SAMPLE_BOTTOMSHEETFOOTER_PROPS.buttonPropsArray}
     />

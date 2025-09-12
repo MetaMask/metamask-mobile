@@ -24,6 +24,7 @@ import Networks, {
   isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
+  isWhitelistedSymbol,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -103,6 +104,7 @@ import {
   addItemToChainIdList,
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 
 const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
@@ -982,6 +984,11 @@ export class NetworkSettings extends PureComponent {
       }
     }
 
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      const { NetworkEnablementController } = Engine.context;
+      NetworkEnablementController.enableNetwork(chainId);
+    }
+
     await this.handleNetworkUpdate({
       rpcUrl,
       chainId,
@@ -1173,7 +1180,14 @@ export class NetworkSettings extends PureComponent {
    * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
    */
   validateSymbol = (chainToMatch = null) => {
-    const { ticker, networkList } = this.state;
+    const { ticker, networkList, chainId } = this.state;
+
+    if (isWhitelistedSymbol(chainId, ticker)) {
+      return this.setState({
+        warningSymbol: undefined,
+        validatedSymbol: !!ticker,
+      });
+    }
 
     const { useSafeChainsListValidation } = this.props;
 

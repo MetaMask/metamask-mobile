@@ -4,29 +4,60 @@
 import React from 'react';
 
 // Internal dependencies.
-import { default as BottomSheetHeaderComponent } from './BottomSheetHeader';
+import { default as BottomSheetHeader } from './BottomSheetHeader';
+import { BottomSheetHeaderVariant } from './BottomSheetHeader.types';
 
 const BottomSheetHeaderMeta = {
-  title: 'Component Library / BottomSheets',
-  component: BottomSheetHeaderComponent,
+  title: 'Component Library / BottomSheets / BottomSheetHeader',
+  component: BottomSheetHeader,
 };
 export default BottomSheetHeaderMeta;
 
-export const BottomSheetHeader = {
+export const Default = {
   args: {
-    chidlren: 'Super Long BottomSheetHeader Title that may span 3 lines',
+    children: 'Super Long BottomSheetHeader Title that may span 3 lines',
+    onBack: () => {
+      console.log('Back button clicked');
+    },
+    onClose: () => {
+      console.log('Close button clicked');
+    },
   },
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (args: any) => (
-    <BottomSheetHeaderComponent
-      {...args}
-      onBack={() => {
-        console.log('Back button clicked');
-      }}
-      onClose={() => {
-        console.log('Close button clicked');
-      }}
-    />
-  ),
+};
+
+export const Variant = {
+  render: function Render() {
+    return (
+      <>
+        <BottomSheetHeader variant={BottomSheetHeaderVariant.Compact}>
+          BottomSheetHeader Variant: Compact with a long title
+        </BottomSheetHeader>
+        <BottomSheetHeader
+          variant={BottomSheetHeaderVariant.Compact}
+          onBack={() => {
+            console.log('Back button clicked');
+          }}
+          onClose={() => {
+            console.log('Close button clicked');
+          }}
+        >
+          BottomSheetHeader Variant: Compact with accessories
+        </BottomSheetHeader>
+        <BottomSheetHeader variant={BottomSheetHeaderVariant.Display}>
+          BottomSheetHeader Variant: Display with a long title
+        </BottomSheetHeader>
+        <BottomSheetHeader
+          variant={BottomSheetHeaderVariant.Display}
+          onBack={() => {
+            console.log('Back button clicked');
+          }}
+          onClose={() => {
+            console.log('Close button clicked');
+          }}
+        >
+          BottomSheetHeader Variant: Display with accessories
+        </BottomSheetHeader>
+      </>
+    );
+  },
 };

@@ -1,20 +1,45 @@
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { toHex } from 'viem';
+import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useEffect } from 'react';
 
-import { AssetType } from '../../types/token';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { AssetType, Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
+import { useAccountTokens } from './useAccountTokens';
+import { useEVMNfts } from './useNfts';
 
-const useRouteParams = () => {
-  const route =
-    useRoute<RouteProp<Record<string, { asset: AssetType }>, string>>();
-  const paramsAsset = route?.params?.asset;
-  const { updateAsset } = useSendContext();
+export const useRouteParams = () => {
+  const tokens = useAccountTokens();
+  const nfts = useEVMNfts();
+
+  const { asset: paramsAsset } = useParams<{
+    asset: AssetType;
+  }>();
+  const { asset, updateAsset } = useSendContext();
 
   useEffect(() => {
-    if (paramsAsset) {
-      updateAsset(paramsAsset);
+    if (asset) {
+      return;
     }
-  }, [paramsAsset, updateAsset]);
-};
+    if (paramsAsset) {
+      const paramChainId =
+        isEvmAddress(paramsAsset.address) && paramsAsset?.chainId
+          ? toHex(paramsAsset?.chainId)
+          : paramsAsset?.chainId?.toString().toLowerCase();
 
-export default useRouteParams;
+      let asset: AssetType | Nft | undefined = tokens.find(
+        ({ address, chainId }) =>
+          address === paramsAsset.address &&
+          chainId?.toLowerCase() === paramChainId,
+      );
+      if (!asset && nfts.length) {
+        asset = nfts.find(
+          ({ address, chainId }) =>
+            address === paramsAsset.address &&
+            chainId?.toLowerCase() === paramChainId,
+        );
+      }
+      updateAsset(asset ?? paramsAsset);
+    }
+  }, [asset, paramsAsset, nfts, tokens, updateAsset]);
+};

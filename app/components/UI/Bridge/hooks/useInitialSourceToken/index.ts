@@ -1,9 +1,9 @@
 import {
   selectSourceToken,
+  setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRef } from 'react';
 import { BridgeToken } from '../../types';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -12,11 +12,16 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import {
   getNativeAssetForChainId,
   isSolanaChainId,
+  formatChainIdToCaip,
+  formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import { constants } from 'ethers';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
+import usePrevious from '../../../../hooks/usePrevious';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../../../selectors/multichainNetworkController';
 
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   const nativeAsset = getNativeAssetForChainId(chainId);
@@ -38,57 +43,72 @@ export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
-export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
+export const useInitialSourceToken = (
+  initialSourceToken?: BridgeToken,
+  initialSourceAmount?: string,
+) => {
   const dispatch = useDispatch();
+  const sourceToken = useSelector(selectSourceToken);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const hasSetInitialSourceToken = useRef(false);
-  const sourceToken = useSelector(selectSourceToken);
+  const prevInitialSourceToken = usePrevious(initialSourceToken);
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
 
   const {
-    chainId: selectedChainId,
+    chainId: selectedEvmChainId,
     domainIsConnectedDapp,
-    networkName: selectedNetworkName,
+    networkName: selectedEvmNetworkName,
   } = useNetworkInfo();
-  const {
-    onSetRpcTarget,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
-  } = useSwitchNetworks({
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
     domainIsConnectedDapp,
-    selectedChainId,
-    selectedNetworkName,
+    selectedChainId: selectedEvmChainId,
+    selectedNetworkName: selectedEvmNetworkName,
   });
 
-  if (hasSetInitialSourceToken.current || sourceToken) return;
+  const chainId = isEvmNetworkSelected
+    ? selectedEvmChainId
+    : selectedNonEvmNetworkChainId;
 
   // Will default to the native token of the current chain if no token is provided
-  if (!initialSourceToken) {
-    dispatch(setSourceToken(getNativeSourceToken(selectedChainId)));
+  if (!initialSourceToken && !sourceToken) {
+    dispatch(setSourceToken(getNativeSourceToken(chainId)));
     return;
   }
+
+  if (prevInitialSourceToken === initialSourceToken) return;
+
   // Fix for the case where the initial source token is the native token of the current chain
-  if (initialSourceToken.address === constants.AddressZero) {
+  if (initialSourceToken?.address === constants.AddressZero) {
     // Set the source token
-    dispatch(setSourceToken(getNativeSourceToken(initialSourceToken.chainId)));
+    dispatch(setSourceToken(getNativeSourceToken(initialSourceToken?.chainId)));
   } else {
     // Set the source token
     dispatch(setSourceToken(initialSourceToken));
   }
 
-  // Change network if necessary
-  if (initialSourceToken.chainId !== selectedChainId) {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (initialSourceToken.chainId === SolScope.Mainnet) {
-      onNonEvmNetworkChange(initialSourceToken.chainId);
-      return;
-    }
-    ///: END:ONLY_INCLUDE_IF
-
-    onSetRpcTarget(evmNetworkConfigurations[initialSourceToken.chainId as Hex]);
+  // Set source amount if provided
+  if (initialSourceAmount) {
+    dispatch(setSourceAmount(initialSourceAmount));
   }
 
-  hasSetInitialSourceToken.current = true;
+  // Change network if necessary
+  if (initialSourceToken?.chainId) {
+    // Convert both chain IDs to CAIP format for accurate comparison
+    const sourceCaipChainId = formatChainIdToCaip(initialSourceToken.chainId);
+    const currentCaipChainId = formatChainIdToCaip(chainId);
+
+    if (sourceCaipChainId !== currentCaipChainId) {
+      if (sourceCaipChainId === SolScope.Mainnet) {
+        onNonEvmNetworkChange(SolScope.Mainnet);
+        return;
+      }
+
+      const hexChainId = formatChainIdToHex(sourceCaipChainId);
+      onSetRpcTarget(evmNetworkConfigurations[hexChainId]);
+    }
+  }
 };

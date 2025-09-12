@@ -19,8 +19,11 @@
   },
   "AccountTreeController": {
     "accountTree": {
+      "selectedAccountGroup": "",
       "wallets": {}
-    }
+    },
+    "accountGroupsMetadata": {},
+    "accountWalletsMetadata": {}
   },
   "AddressBookController": {
     "addressBook": {}
@@ -163,6 +166,25 @@
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
+      }
+    }
+  },
+  "NetworkEnablementController": {
+    "enabledNetworkMap": {
+      "bip122": {
+        "bip122:000000000019d6689c085ae165831e93": true,
+        "bip122:000000000933ea01ad0ee984209779ba": false,
+        "bip122:00000008819873e925422c1ff0f99f7c": false
+      },
+      "eip155": {
+        "0x1": true,
+        "0x2105": true,
+        "0xe708": true
+      },
+      "solana": {
+        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
       }
     }
   },
@@ -364,23 +386,35 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "activeDepositTransactions": {},
+    "depositInProgress": false,
+    "lastDepositTransactionId": null,
+    "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "isEligible": false
+    "isEligible": false,
+    "isFirstTimeUser": {
+      "testnet": true,
+      "mainnet": true
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
   },
   "SeedlessOnboardingController": {
+    "isSeedlessOnboardingUserAuthenticated": false,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {}
+    "domains": {},
+    "activeDappNetwork": null
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -572,5 +606,13 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "RewardsController": {
+    "accounts": {},
+    "activeAccount": null,
+    "seasonStatuses": {},
+    "seasons": {},
+    "subscriptionReferralDetails": {},
+    "subscriptions": {}
   }
 }

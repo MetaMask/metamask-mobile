@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
-import { shallowEqual, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
@@ -31,7 +31,6 @@ import {
   getLabelTextByInternalAccount,
   toFormattedAddress,
 } from '../../../util/address';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
@@ -40,6 +39,8 @@ import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccountSections } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 import {
   AccountSection,
@@ -49,7 +50,6 @@ import {
 import styleSheet from './EvmAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './EvmAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator';
@@ -59,7 +59,7 @@ import {
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -89,25 +89,22 @@ const EvmAccountSelectorList = ({
   /**
    * Ref for the FlashList component.
    */
-  const accountListRef = useRef<FlashList<FlattenedAccountListItem>>(null);
+  const accountListRef = useRef<FlashListRef<FlattenedAccountListItem>>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
-  const accountAvatarType = useSelector(
-    (state: RootState) =>
-      state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
-    shallowEqual,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
+  const isMultichainAccountsState1Enabled = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
   const accountTreeSections = useSelector(selectAccountSections);
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
-    if (accountTreeSections) {
+    if (isMultichainAccountsState1Enabled) {
       const accountsById = new Map<string, Account>();
       internalAccounts.forEach((account) => {
         const accountObj = accounts.find((a) => a.id === account.id);
@@ -122,12 +119,19 @@ const EvmAccountSelectorList = ({
         wallet: section.wallet,
         data: section.data
           .map((accountId: string) => accountsById.get(accountId))
-          .filter((account): account is Account => account !== undefined),
+          .filter(
+            (account: Account | undefined) => account !== undefined,
+          ) as Account[],
       }));
     }
     // Fallback for old behavior
     return accounts.length > 0 ? [{ title: 'Accounts', data: accounts }] : [];
-  }, [accounts, accountTreeSections, internalAccounts]);
+  }, [
+    accounts,
+    isMultichainAccountsState1Enabled,
+    accountTreeSections,
+    internalAccounts,
+  ]);
 
   // Flatten sections into a single array for FlatList
   const flattenedData = useMemo((): FlattenedAccountListItem[] => {
@@ -135,7 +139,7 @@ const EvmAccountSelectorList = ({
     let accountIndex = 0;
 
     accountSections.forEach((section, sectionIndex) => {
-      if (accountTreeSections) {
+      if (isMultichainAccountsState1Enabled) {
         items.push({
           type: 'header',
           data: section,
@@ -153,7 +157,10 @@ const EvmAccountSelectorList = ({
         accountIndex++;
       });
 
-      if (accountTreeSections && sectionIndex < accountSections.length - 1) {
+      if (
+        isMultichainAccountsState1Enabled &&
+        sectionIndex < accountSections.length - 1
+      ) {
         items.push({
           type: 'footer',
           data: section,
@@ -163,7 +170,7 @@ const EvmAccountSelectorList = ({
     });
 
     return items;
-  }, [accountSections, accountTreeSections]);
+  }, [accountSections, isMultichainAccountsState1Enabled]);
 
   const getKeyExtractor = (item: FlattenedAccountListItem) => {
     if (item.type === 'header') {
@@ -181,7 +188,7 @@ const EvmAccountSelectorList = ({
     [],
   );
 
-  const useMultichainAccountDesign = Boolean(accountTreeSections);
+  const useMultichainAccountDesign = Boolean(isMultichainAccountsState1Enabled);
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return undefined;
@@ -414,7 +421,7 @@ const EvmAccountSelectorList = ({
 
       const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = accountTreeSections
+      const tagLabel = isMultichainAccountsState1Enabled
         ? undefined
         : getLabelTextByInternalAccount(internalAccount);
       const ensName = ensByAccountAddress[address];
@@ -525,7 +532,7 @@ const EvmAccountSelectorList = ({
       onNavigateToAccountActions,
       navigate,
       styles.titleText,
-      accountTreeSections,
+      isMultichainAccountsState1Enabled,
       renderSectionHeader,
       renderSectionFooter,
       internalAccountsById,
@@ -560,10 +567,6 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
-  // Needed for the FlashList estimated item size prop: https://shopify.github.io/flash-list/docs/1.x/estimated-item-size
-  // This is a require prop that makes the list rendering more performant
-  const listItemHeight = 80; // Exact height of the Cell component
-
   return (
     <View style={styles.listContainer}>
       <FlashList
@@ -572,13 +575,11 @@ const EvmAccountSelectorList = ({
         data={flattenedData}
         keyExtractor={getKeyExtractor}
         renderItem={renderItem}
-        estimatedItemSize={listItemHeight}
         getItemType={getItemType}
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
         }
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
-        disableAutoLayout
         {...props}
       />
     </View>

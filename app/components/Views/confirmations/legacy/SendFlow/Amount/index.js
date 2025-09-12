@@ -51,6 +51,7 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../../../util/transactions';
+import { TransactionType } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
@@ -85,7 +86,6 @@ import { selectContractBalances } from '../../../../../../selectors/tokenBalance
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import { swapsLivenessSelector } from '../../../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
@@ -109,7 +109,8 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
-import { isHardwareAccount } from '../../../../../../util/address';
+import { selectIsSwapsLive } from '../../../../../../core/redux/slices/bridge';
+import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -730,9 +731,17 @@ class Amount extends PureComponent {
             : BNToHex(transaction.value),
       };
 
+      let transactionType;
+      if (isNativeToken(selectedAsset)) {
+        transactionType = TransactionType.simpleSend;
+      } else if (!selectedAsset.tokenId) {
+        transactionType = TransactionType.tokenMethodTransfer;
+      }
+
       await addTransaction(transactionParams, {
         origin: MMM_ORIGIN,
         networkClientId: globalNetworkClientId,
+        type: transactionType,
       });
       this.setState({ isRedesignedTransferTransactionLoading: false });
       navigation.navigate('SendFlowView', {
@@ -1409,6 +1418,14 @@ class Amount extends PureComponent {
     );
   };
 
+  isOPStackNetwork = (chainId) =>
+    [
+      NETWORKS_CHAIN_ID.OPTIMISM,
+      NETWORKS_CHAIN_ID.OPTIMISM_SEPOLIA,
+      NETWORKS_CHAIN_ID.BASE,
+      NETWORKS_CHAIN_ID.BASE_SEPOLIA,
+    ].includes(chainId);
+
   renderCollectibleInput = () => {
     const { amountError } = this.state;
     const { selectedAsset } = this.props;
@@ -1456,6 +1473,8 @@ class Amount extends PureComponent {
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+
+    const disableMax = this.isOPStackNetwork(this.props.globalChainId);
 
     return (
       <SafeAreaView
@@ -1513,7 +1532,7 @@ class Amount extends PureComponent {
                 </TouchableOpacity>
               </View>
               <View style={[styles.actionBorder, styles.actionMax]}>
-                {!selectedAsset.tokenId && (
+                {!selectedAsset.tokenId && !disableMax && (
                   <TouchableOpacity
                     testID={AmountViewSelectorsIDs.MAX_BUTTON}
                     style={styles.actionMaxTouchable}
@@ -1593,7 +1612,7 @@ const mapStateToProps = (state, ownProps) => {
     ),
     isRedesignedTransferConfirmationEnabledForTransfer:
       selectConfirmationRedesignFlags(state).transfer,
-    swapsIsLive: swapsLivenessSelector(state),
+    swapsIsLive: selectIsSwapsLive(state, globalChainId),
     globalChainId,
     globalNetworkClientId,
   };
