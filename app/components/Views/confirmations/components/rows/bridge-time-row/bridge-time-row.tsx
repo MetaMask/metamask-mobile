@@ -12,6 +12,7 @@ import {
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import Text from '../../../../../../component-library/components/Texts/Text';
+import { SkeletonRow } from '../skeleton-row';
 
 export function BridgeTimeRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
@@ -33,6 +34,10 @@ export function BridgeTimeRow() {
 
   if (!showEstimate) {
     return null;
+  }
+
+  if (isQuotesLoading) {
+    return <SkeletonRow />;
   }
 
   return (

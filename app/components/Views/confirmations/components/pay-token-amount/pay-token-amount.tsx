@@ -10,6 +10,7 @@ import I18n from '../../../../../../locales/i18n';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -43,7 +44,7 @@ export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
   const payTokenFiatRate = fiatRates[0];
   const assetFiatRate = fiatRates[1];
 
-  if (!payTokenFiatRate || !assetFiatRate) return null;
+  if (!payTokenFiatRate || !assetFiatRate) return <PayTokenAmountSkeleton />;
 
   const assetToPayTokenRate = new BigNumber(assetFiatRate).dividedBy(
     payTokenFiatRate,
@@ -62,4 +63,9 @@ export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
       </Text>
     </View>
   );
+}
+
+export function PayTokenAmountSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+  return <Skeleton height={30} width={90} style={styles.skeleton} />;
 }
