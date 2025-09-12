@@ -5,7 +5,7 @@ exports[`PerpsLoadingSkeleton should match snapshot 1`] = `
   alignItems="center"
   justifyContent="center"
   testID="perps-loading-skeleton"
-  twClassName="flex-1 bg-default"
+  twClassName="flex-1 bg-default mt-20"
 >
   <ActivityIndicator
     color="#686e7d"
@@ -17,8 +17,9 @@ exports[`PerpsLoadingSkeleton should match snapshot 1`] = `
     }
   />
   <Text
+    color="TextAlternative"
     twClassName="text-default mb-2"
-    variant="HeadingMd"
+    variant="BodyMd"
   >
     Connecting to Perps
   </Text>
