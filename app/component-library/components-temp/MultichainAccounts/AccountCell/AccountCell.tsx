@@ -23,12 +23,14 @@ interface AccountCellProps {
   accountGroup: AccountGroupObject;
   isSelected: boolean;
   hideMenu?: boolean;
+  startAccessory?: React.ReactNode;
 }
 
 const AccountCell = ({
   accountGroup,
   isSelected,
   hideMenu = false,
+  startAccessory,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
@@ -66,6 +68,7 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
+      {startAccessory}
       <View style={styles.avatar} testID={AccountCellIds.AVATAR}></View>
       <View style={styles.accountName}>
         <Text
@@ -77,7 +80,7 @@ const AccountCell = ({
         >
           {accountGroup.metadata.name}
         </Text>
-        {isSelected && (
+        {!startAccessory && isSelected && (
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Md}

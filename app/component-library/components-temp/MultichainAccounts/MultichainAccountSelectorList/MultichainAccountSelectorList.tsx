@@ -39,6 +39,7 @@ const MultichainAccountSelectorList = ({
   selectedAccountGroups,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
+  showCheckbox = false,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -214,6 +215,7 @@ const MultichainAccountSelectorList = ({
                 accountGroup={item.data}
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
+                showCheckbox={showCheckbox}
               />
             );
           }
@@ -231,7 +233,7 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedIdSet, handleSelectAccount, handleAccountCreated],
+      [selectedIdSet, handleSelectAccount, handleAccountCreated, showCheckbox],
     );
 
   const keyExtractor = useCallback(

@@ -634,4 +634,144 @@ describe('MultichainAccountSelectorList', () => {
       expect(getByText('Create account')).toBeTruthy();
     });
   });
+
+  describe('Checkbox functionality', () => {
+    it('shows checkboxes when showCheckbox prop is true', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showCheckbox
+        />,
+        { state: mockState },
+      );
+
+      expect(getByTestId('checkbox-icon-component')).toBeTruthy();
+    });
+
+    it('hides checkboxes when showCheckbox prop is false', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { queryByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showCheckbox={false}
+        />,
+        { state: mockState },
+      );
+
+      expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
+    });
+
+    it('displays checked checkbox for selected accounts', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const account2 = createMockAccountGroup('group2', 'Account 2');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+      ]);
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getAllByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account1]}
+          showCheckbox
+        />,
+        { state: mockState },
+      );
+
+      const checkboxIcons = getAllByTestId('checkbox-icon-component');
+      expect(checkboxIcons).toHaveLength(2);
+    });
+
+    it('displays unchecked checkbox for unselected accounts', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const account2 = createMockAccountGroup('group2', 'Account 2');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+      ]);
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getAllByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showCheckbox
+        />,
+        { state: mockState },
+      );
+
+      const checkboxIcons = getAllByTestId('checkbox-icon-component');
+      expect(checkboxIcons).toHaveLength(2);
+    });
+
+    it('calls onSelectAccount when checkbox is pressed', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          showCheckbox
+        />,
+        { state: mockState },
+      );
+
+      const checkboxIcon = getByTestId('checkbox-icon-component');
+      fireEvent.press(checkboxIcon);
+
+      expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
+    });
+
+    it('shows checkboxes correctly with multiple selected accounts', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const account2 = createMockAccountGroup('group2', 'Account 2');
+      const account3 = createMockAccountGroup('group3', 'Account 3');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+        account3,
+      ]);
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+        account3,
+      ]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      const { getAllByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account1, account3]}
+          showCheckbox
+        />,
+        { state: mockState },
+      );
+
+      const checkboxIcons = getAllByTestId('checkbox-icon-component');
+      expect(checkboxIcons).toHaveLength(3);
+    });
+  });
 });

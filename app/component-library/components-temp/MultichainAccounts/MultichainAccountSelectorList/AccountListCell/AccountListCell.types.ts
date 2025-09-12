@@ -4,4 +4,5 @@ export interface AccountListCellProps {
   accountGroup: AccountGroupObject;
   isSelected: boolean;
   onSelectAccount: (accountGroup: AccountGroupObject) => void;
+  showCheckbox?: boolean;
 }

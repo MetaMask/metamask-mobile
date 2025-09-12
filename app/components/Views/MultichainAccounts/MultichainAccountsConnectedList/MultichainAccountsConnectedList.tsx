@@ -38,7 +38,6 @@ const MultichainAccountsConnectedList = ({
   const renderItem = useCallback(
     ({ item }: { item: AccountGroupObject }) => (
       <AccountListCell
-        isSelected
         accountGroup={item}
         onSelectAccount={() => {
           // No op here because it is handled by edit accounts.

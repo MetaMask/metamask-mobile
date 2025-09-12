@@ -5,9 +5,15 @@ import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
+import Checkbox from '../../../../components/Checkbox';
 
 const AccountListCell = memo(
-  ({ accountGroup, isSelected, onSelectAccount }: AccountListCellProps) => {
+  ({
+    accountGroup,
+    isSelected,
+    onSelectAccount,
+    showCheckbox = false,
+  }: AccountListCellProps) => {
     const { styles } = useStyles(createStyles, {});
 
     const handlePress = useCallback(() => {
@@ -20,7 +26,15 @@ const AccountListCell = memo(
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        <AccountCell accountGroup={accountGroup} isSelected={isSelected} />
+        <AccountCell
+          startAccessory={
+            showCheckbox ? (
+              <Checkbox isChecked={isSelected} onPress={handlePress} />
+            ) : undefined
+          }
+          accountGroup={accountGroup}
+          isSelected={isSelected}
+        />
       </TouchableOpacity>
     );
   },
