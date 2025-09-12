@@ -47,11 +47,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      getOrAddQRKeyring: jest.fn(),
-    },
-  },
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),

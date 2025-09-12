@@ -236,7 +236,7 @@ class ApproveTransactionReview extends PureComponent {
      */
     nicknameExists: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
-    QRState: PropTypes.object,
+    pendingScanRequest: PropTypes.object,
     /**
      * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
      */
@@ -1309,7 +1309,7 @@ class ApproveTransactionReview extends PureComponent {
     const {
       activeTabUrl,
       transaction: { origin, from },
-      QRState,
+      pendingScanRequest,
     } = this.props;
     const styles = this.getStyles();
     return (
@@ -1323,7 +1323,7 @@ class ApproveTransactionReview extends PureComponent {
           }}
         />
         <QRSigningDetails
-          QRState={QRState}
+          pendingScanRequest={pendingScanRequest}
           tighten
           showHint={false}
           showCancelButton

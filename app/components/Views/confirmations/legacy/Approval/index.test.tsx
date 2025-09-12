@@ -34,7 +34,6 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       resetQRKeyringState: jest.fn(),
-      getOrAddQRKeyring: jest.fn(),
     },
     GasFeeController: {
       getGasFeeEstimatesAndStartPolling: jest.fn().mockResolvedValue(null),

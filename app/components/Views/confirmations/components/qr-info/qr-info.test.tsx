@@ -8,21 +8,21 @@ import { typedSignV3ConfirmationState } from '../../../../../util/test/confirm-d
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import QRInfo from './qr-info';
-import Engine from '../../../../../core/Engine';
+import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
+
+const mockQrKeyringBridge = {
+  requestScan: jest.fn(),
+  resolvePendingScan: jest.fn(),
+  rejectPendingScan: jest.fn(),
+};
 
 jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      submitQRSignature: jest.fn(),
-    },
-  },
+  getQrKeyringScanner: jest.fn(() => mockQrKeyringBridge),
 }));
 
 jest.mock('uuid', () => ({
   stringify: jest.fn().mockReturnValue('c95ecc76-d6e9-4a0a-afa3-31429bc80566'),
 }));
-
-const MockEngine = jest.mocked(Engine);
 
 const MockView = View;
 const MockText = Text;
@@ -50,23 +50,21 @@ jest.mock('../../../../UI/QRHardware/AnimatedQRScanner', () => ({
   ),
 }));
 
-const mockQRState = {
-  sign: {
-    request: {
-      requestId: 'c95ecc76-d6e9-4a0a-afa3-31429bc80566',
-      payload: {
-        type: 'eth-sign-request',
-        cbor: 'a501d82550c95ecc76d6e94a0aafa331429bc8056602581f4578616d706c652060706572736f6e616c5f7369676e60206d657373616765030305d90130a2018a182cf5183cf500f500f400f4021a73eadf6d0654126f6e36f2fbc44016d788c91b82ab4c50f74e17',
-      },
-      title: 'Scan with your Keystone',
-      description:
-        'After your Keystone has signed this message, click on "Scan Keystone" to receive the signature',
+const mockPendingScanRequest: QrScanRequest = {
+  request: {
+    requestId: 'c95ecc76-d6e9-4a0a-afa3-31429bc80566',
+    payload: {
+      type: 'eth-sign-request',
+      cbor: 'a501d82550c95ecc76d6e94a0aafa331429bc8056602581f4578616d706c652060706572736f6e616c5f7369676e60206d657373616765030305d90130a2018a182cf5183cf500f500f400f4021a73eadf6d0654126f6e36f2fbc44016d788c91b82ab4c50f74e17',
     },
+    requestTitle: 'Scan with your Keystone',
+    requestDescription:
+      'After your Keystone has signed this message, click on "Scan Keystone" to receive the signature',
   },
+  type: QrScanRequestType.SIGN,
 };
 
 describe('QRInfo', () => {
-  const mockKeyringController = MockEngine.context.KeyringController;
   const mockSetRequestCompleted = jest.fn();
 
   beforeEach(() => {
@@ -75,7 +73,8 @@ describe('QRInfo', () => {
 
   const createQRHardwareHookSpy = (mockedValues = {}) => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      QRState: mockQRState,
+      pendingScanRequest: mockPendingScanRequest,
+      isSigningQRObject: true,
       setRequestCompleted: mockSetRequestCompleted,
       ...mockedValues,
     } as unknown as QRHardwareHook.QRHardwareContextType);
@@ -137,7 +136,7 @@ describe('QRInfo', () => {
 
   it('submits request when onScanSuccess is called by scanner', () => {
     jest.spyOn(ETHSignature, 'fromCBOR').mockReturnValue({
-      getRequestId: () => mockQRState.sign.request?.requestId,
+      getRequestId: () => mockPendingScanRequest.request?.requestId,
     } as unknown as ETHSignature);
     const mockSetScannerVisible = jest.fn();
     createQRHardwareHookSpy({
@@ -148,7 +147,7 @@ describe('QRInfo', () => {
       state: typedSignV3ConfirmationState,
     });
     fireEvent.press(getByText('onScanSuccess'));
-    expect(mockKeyringController.submitQRSignature).toHaveBeenCalledTimes(1);
+    expect(mockQrKeyringBridge.resolvePendingScan).toHaveBeenCalledTimes(1);
     expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
     expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
