@@ -1004,6 +1004,9 @@ export function getWalletNavbarOptions(
       left: 12,
       right: 12,
     },
+    accountPickerStyle: {
+      marginRight: 16,
+    },
   });
 
   const onScanSuccess = (data, content) => {
@@ -1104,11 +1107,7 @@ export function getWalletNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
-        variant={
-          isFeatureFlagEnabled
-            ? HeaderBaseVariant.Display
-            : HeaderBaseVariant.Compact
-        }
+        variant={HeaderBaseVariant.Display}
         style={innerStyles.headerContainer}
         startAccessory={
           !isFeatureFlagEnabled && (
@@ -1193,6 +1192,7 @@ export function getWalletNavbarOptions(
           }}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
           hitSlop={innerStyles.touchAreaSlop}
+          style={innerStyles.accountPickerStyle}
         />
       </HeaderBase>
     ),

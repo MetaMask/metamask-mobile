@@ -628,7 +628,14 @@
       "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
       "bullet_3_title": "Faster than banks",
       "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
-      "button": "Get started"
+      "button": "Get started",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Verify your identity",

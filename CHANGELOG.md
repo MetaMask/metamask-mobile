@@ -443,6 +443,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: Fix padding issue of transactions view ([#17804](https://github.com/MetaMask/metamask-mobile/pull/17804))
 - fix: cp-7.51.2 scroll behaviour on Solana New Feature view ([#17807](https://github.com/MetaMask/metamask-mobile/pull/17807))
 - fix: refactor recreatevault -> change password cp-7.53.0 ([#17642](https://github.com/MetaMask/metamask-mobile/pull/17642))
+
+## [7.54.2]
+
+### Fixed
+- fix(deposit): disable Base & Linea USDT ([#19557](https://github.com/MetaMask/metamask-mobile/pull/19557))
+- fix(deposit): get started mUSD ([#19552](https://github.com/MetaMask/metamask-mobile/pull/19552))
+- fix(deposit): add force update and fix faulty data migration ([#19541](https://github.com/MetaMask/metamask-mobile/pull/19541))
+- fix: Unnecessary truncation for MainActionButton ([#19612](https://github.com/MetaMask/metamask-mobile/pull/19612))
+- fix: left aligned account picker in all cases for wallet homepage ([#19617](https://github.com/MetaMask/metamask-mobile/pull/19617))
+
 ## [7.54.1]
 
 ### Added
@@ -6901,8 +6911,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.55.0...HEAD
-[7.55.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.0...v7.55.0
-[7.54.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.1...v7.54.1
+[7.55.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.2...v7.55.0
+[7.54.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.1...v7.54.2
+[7.54.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.54.0...v7.54.1
 [7.54.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.53.1...v7.54.0
 [7.53.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.53.0...v7.53.1
 [7.53.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...v7.53.0
