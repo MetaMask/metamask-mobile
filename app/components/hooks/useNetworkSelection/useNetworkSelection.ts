@@ -227,6 +227,7 @@ export const useNetworkSelection = ({
           await MultichainNetworkController.setActiveNetwork(chainId);
         } catch (error) {
           // Handle error silently for now
+          console.error('Error setting active network:', error);
         }
         await resetEvmNetworks();
       }
