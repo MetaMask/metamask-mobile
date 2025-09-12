@@ -309,13 +309,6 @@ class TestDApp {
     throw new Error(`Could not find network cell with label "${networkLabel}"`);
   }
 
-  async tapNetworkCellByLabel(networkLabel: string): Promise<void> {
-    const networkCell = await this.getNetworkCellByLabel(networkLabel);
-    await Gestures.waitAndTap(networkCell, {
-      elemDescription: `Tap on the network cell ${networkLabel}`,
-    });
-  }
-
   /**
    * Checks if the user is connected to the test dapp by checking if there are connected accounts
    * @returns true if connected, false otherwise

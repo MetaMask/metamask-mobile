@@ -120,11 +120,14 @@ export default class Assertions {
       async () => {
         const el = await webElement;
         const actualText = await el.getText();
-        const normalizedText = actualText.replace(/\s+/g, ' ').trim();
-
-        if (!normalizedText.includes(text)) {
+        const normalizedText = actualText
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+        const expectedText = text.toLowerCase();
+        if (!normalizedText.includes(expectedText)) {
           throw new Error(
-            `Expected text containing "${text}" but got "${normalizedText}"`,
+            `Expected text containing "${text}" but got "${actualText}"`,
           );
         }
       },

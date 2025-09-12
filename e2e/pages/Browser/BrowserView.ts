@@ -315,7 +315,7 @@ class Browser {
     await this.tapUrlInputBox();
 
     const urlInputBox = (await this.urlInputBoxID) as IndexableNativeElement;
-    await urlInputBox.typeText('\r');
+    await urlInputBox.typeText('\n');
   }
 }
 
