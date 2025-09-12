@@ -58,10 +58,7 @@ describe('AccountListCell', () => {
         onSelectAccount={mockOnSelectAccount}
       />,
       {
-        state: {
-          ...baseState,
-          settings: { avatarAccountType: 'Maskicon' },
-        },
+        state: baseState,
       },
     );
     expect(getByText('Test Account')).toBeTruthy();
@@ -69,10 +66,10 @@ describe('AccountListCell', () => {
 
   it('calls onSelectAccount when pressed', () => {
     const mockOnSelectAccount = jest.fn();
-    const groups2 = [mockAccountGroup];
-    const wallet2 = createMockWallet('test-group', 'Test Wallet', groups2);
-    const internalAccounts2 = createMockInternalAccountsFromGroups(groups2);
-    const baseState2 = createMockState([wallet2], internalAccounts2);
+    const groups = [mockAccountGroup];
+    const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+    const internalAccounts = createMockInternalAccountsFromGroups(groups);
+    const baseState = createMockState([wallet], internalAccounts);
     const { getByText } = renderWithProvider(
       <AccountListCell
         accountGroup={mockAccountGroup}
@@ -81,10 +78,7 @@ describe('AccountListCell', () => {
         onSelectAccount={mockOnSelectAccount}
       />,
       {
-        state: {
-          ...baseState2,
-          settings: { avatarAccountType: 'Maskicon' },
-        },
+        state: baseState,
       },
     );
     // Given a rendered cell
@@ -95,6 +89,15 @@ describe('AccountListCell', () => {
   });
 
   describe('Checkbox functionality', () => {
+    let baseState: any;
+
+    beforeEach(() => {
+      const groups = [mockAccountGroup];
+      const wallet = createMockWallet('test-group', 'Test Wallet', groups);
+      const internalAccounts = createMockInternalAccountsFromGroups(groups);
+      baseState = createMockState([wallet], internalAccounts);
+    });
+
     it('shows checkbox when showCheckbox prop is true', () => {
       const mockOnSelectAccount = jest.fn();
       const { UNSAFE_getAllByProps } = renderWithProvider(
@@ -105,6 +108,7 @@ describe('AccountListCell', () => {
           showCheckbox
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
+        { state: baseState },
       );
 
       const checkboxElements = UNSAFE_getAllByProps({
@@ -123,6 +127,7 @@ describe('AccountListCell', () => {
           showCheckbox={false}
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
+        { state: baseState },
       );
 
       const checkboxElements = UNSAFE_queryAllByProps({
@@ -140,6 +145,7 @@ describe('AccountListCell', () => {
           onSelectAccount={mockOnSelectAccount}
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
+        { state: baseState },
       );
 
       const checkboxElements = UNSAFE_queryAllByProps({
@@ -158,6 +164,7 @@ describe('AccountListCell', () => {
           showCheckbox
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
+        { state: baseState },
       );
 
       const checkboxIcon = getByTestId('checkbox-icon-component');
@@ -174,6 +181,7 @@ describe('AccountListCell', () => {
           showCheckbox
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
+        { state: baseState },
       );
 
       const checkboxElements = UNSAFE_getAllByProps({
@@ -193,6 +201,7 @@ describe('AccountListCell', () => {
           showCheckbox
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
+        { state: baseState },
       );
 
       const checkboxElements = UNSAFE_getAllByProps({
@@ -214,6 +223,7 @@ describe('AccountListCell', () => {
           showCheckbox
           avatarAccountType={AvatarAccountType.Maskicon}
         />,
+        { state: baseState },
       );
 
       fireEvent.press(getByText('Test Account'));
@@ -232,6 +242,7 @@ describe('AccountListCell', () => {
             showCheckbox
             avatarAccountType={AvatarAccountType.Maskicon}
           />,
+          { state: baseState },
         );
 
       const checkboxElements = UNSAFE_getAllByProps({
