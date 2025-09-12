@@ -23,8 +23,10 @@ export interface BalanceOverride {
 
 export function useAutomaticTransactionPayToken({
   balanceOverrides,
+  countOnly = false,
 }: {
   balanceOverrides?: BalanceOverride[];
+  countOnly?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
@@ -43,11 +45,12 @@ export function useAutomaticTransactionPayToken({
   );
 
   const tokens = useTokensWithBalance({ chainIds });
-
   const isHardwareWallet = isHardwareAccount(from ?? '');
-  let automaticToken: { address: string; chainId?: string } | undefined;
 
-  if (!isUpdated.current) {
+  let automaticToken: { address: string; chainId?: string } | undefined;
+  let count = 0;
+
+  if (!isUpdated.current || countOnly) {
     const targetToken =
       requiredTokens.find((token) => token.address !== NATIVE_TOKEN_ADDRESS) ??
       requiredTokens[0];
@@ -67,6 +70,8 @@ export function useAutomaticTransactionPayToken({
       (token) => token?.tokenFiatAmount ?? 0,
       'desc',
     );
+
+    count = sufficientBalanceTokens.length;
 
     const requiredToken = sufficientBalanceTokens.find(
       (token) =>
@@ -100,7 +105,12 @@ export function useAutomaticTransactionPayToken({
   }
 
   useEffect(() => {
-    if (isUpdated.current || !automaticToken || !requiredTokens?.length) {
+    if (
+      isUpdated.current ||
+      !automaticToken ||
+      !requiredTokens?.length ||
+      countOnly
+    ) {
       return;
     }
 
@@ -112,7 +122,9 @@ export function useAutomaticTransactionPayToken({
     isUpdated.current = true;
 
     log('Automatically selected pay token', automaticToken);
-  }, [automaticToken, isUpdated, requiredTokens, setPayToken]);
+  }, [automaticToken, countOnly, isUpdated, requiredTokens, setPayToken]);
+
+  return { count };
 }
 
 function isTokenSupported(
