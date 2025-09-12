@@ -18,6 +18,7 @@ import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -330,6 +331,23 @@ const TradingViewChart = React.forwardRef<
       );
     }
 
+    const webViewElement = (
+      <WebView
+        ref={webViewRef}
+        source={{ html: htmlContent }}
+        style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
+        onMessage={handleWebViewMessage}
+        onError={handleWebViewError}
+        onHttpError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.error('TradingViewChart: HTTP Error:', nativeEvent);
+        }}
+        testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
+        {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}
+        {...platformSpecificProps}
+      />
+    );
+
     return (
       <Box
         twClassName="bg-default rounded-lg"
@@ -356,21 +374,13 @@ const TradingViewChart = React.forwardRef<
               }-skeleton`}
             />
           )}
-          <WebView
-            ref={webViewRef}
-            source={{ html: htmlContent }}
-            style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
-            onMessage={handleWebViewMessage}
-            onError={handleWebViewError}
-            onHttpError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('TradingViewChart: HTTP Error:', nativeEvent);
-            }}
-            testID={`${
-              testID || TradingViewChartSelectorsIDs.CONTAINER
-            }-webview`}
-            {...platformSpecificProps}
-          />
+          {Platform.OS === 'android' ? (
+            <GestureDetector gesture={Gesture.Native()}>
+              {webViewElement}
+            </GestureDetector>
+          ) : (
+            webViewElement
+          )}
         </Box>
 
         {/* OHLC Legend */}

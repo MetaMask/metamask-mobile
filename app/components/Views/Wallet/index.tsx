@@ -115,6 +115,7 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   selectUseTokenDetection,
@@ -822,6 +823,11 @@ const Wallet = ({
    * Show multi rpc modal if there are networks duplicated and if never showed before
    */
   useCheckMultiRpcModal();
+
+  /**
+   * Show multichain accounts intro modal if state 2 is enabled and never showed before
+   */
+  useMultichainAccountsIntroModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
