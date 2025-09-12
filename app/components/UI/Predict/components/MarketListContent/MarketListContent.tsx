@@ -157,7 +157,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       onEndReached={handleEndReached}
-      onEndReachedThreshold={0.5}
+      onEndReachedThreshold={0.7}
       ListFooterComponent={renderFooter}
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />

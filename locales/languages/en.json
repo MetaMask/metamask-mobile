@@ -1524,8 +1524,8 @@
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
-    "buy_yes": "Buy Yes",
-    "buy_no": "Buy No",
+    "buy_yes": "Yes",
+    "buy_no": "No",
     "outcomes": "outcomes",
     "volume_abbreviated": "Vol.",
     "recurrence": {

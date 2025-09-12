@@ -29,7 +29,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     marketFooter: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       alignItems: 'flex-end',
       width: '100%',
       marginTop: 8,
@@ -43,11 +43,13 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttonYes: {
       width: '48%',
+      paddingVertical: 0,
       color: theme.colors.success.default,
       backgroundColor: theme.colors.success.muted,
     },
     buttonNo: {
       width: '48%',
+      paddingVertical: 0,
       color: theme.colors.error.default,
       backgroundColor: theme.colors.error.muted,
     },

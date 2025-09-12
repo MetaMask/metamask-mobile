@@ -114,7 +114,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
 
     return (
       <Box
-        twClassName="relative items-center justify-center"
+        twClassName="relative items-center justify-end"
         style={{ width: size, height: size / 2 }}
       >
         <Svg width={size} height={size / 2} style={tw.style('absolute')}>
@@ -157,9 +157,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
           />
         </Svg>
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.HeadingSM}
           color={TextColor.Success}
-          style={[tw.style('absolute'), { top: radius - 18 }]}
+          style={tw.style('-mb-1')}
         >
           {percentage}%
         </Text>
@@ -189,7 +189,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
           <Text
             variant={TextVariant.HeadingMD}
             color={TextColor.Default}
-            style={tw.style('flex-1')}
+            style={tw.style('flex-1 font-medium')}
           >
             {getTitle()}
           </Text>
@@ -201,10 +201,10 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
       <View style={styles.buttonContainer}>
         <Button
           variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
+          size={ButtonSize.Md}
           width={ButtonWidthTypes.Full}
           label={
-            <Text style={tw.style('font-bold')} color={TextColor.Success}>
+            <Text style={tw.style('font-medium')} color={TextColor.Success}>
               {strings('predict.buy_yes')}
             </Text>
           }
@@ -215,10 +215,10 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
         />
         <Button
           variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
+          size={ButtonSize.Md}
           width={ButtonWidthTypes.Full}
           label={
-            <Text style={tw.style('font-bold')} color={TextColor.Error}>
+            <Text style={tw.style('font-medium')} color={TextColor.Error}>
               {strings('predict.buy_no')}
             </Text>
           }

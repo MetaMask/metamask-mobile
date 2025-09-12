@@ -103,7 +103,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="mb-4 gap-3"
+          twClassName="mb-2 gap-3"
         >
           <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
             {market.outcomes[0]?.image && (
@@ -117,7 +117,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             )}
           </Box>
           <Box twClassName="flex-1">
-            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.HeadingMD}
+              color={TextColor.Default}
+              style={tw.style('font-medium')}
+            >
               {market.title}
             </Text>
           </Box>
@@ -153,11 +157,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
                 <Button
                   variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
+                  size={ButtonSize.Md}
                   width={ButtonWidthTypes.Full}
                   label={
                     <Text
-                      style={tw.style('font-bold')}
+                      style={tw.style('font-medium')}
                       color={TextColor.Success}
                     >
                       {truncateLabel(outcomeLabels[0])}
@@ -170,10 +174,13 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
+                  size={ButtonSize.Md}
                   width={ButtonWidthTypes.Full}
                   label={
-                    <Text style={tw.style('font-bold')} color={TextColor.Error}>
+                    <Text
+                      style={tw.style('font-medium')}
+                      color={TextColor.Error}
+                    >
                       {truncateLabel(outcomeLabels[1])}
                     </Text>
                   }
