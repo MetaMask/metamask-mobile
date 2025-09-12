@@ -348,7 +348,6 @@ describe('useRewardsIconAnimation', () => {
 
     it('updates previousPointsRef even when fireState throws', () => {
       // Arrange
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
       mockRiveRef.current.fireState.mockImplementation(() => {
         throw new Error('Rive error');
       });
@@ -363,9 +362,6 @@ describe('useRewardsIconAnimation', () => {
 
       // Assert
       expect(mockPreviousPointsRef.current).toBe(100);
-
-      // Cleanup
-      consoleSpy.mockRestore();
     });
   });
 
