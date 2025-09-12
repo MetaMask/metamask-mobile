@@ -94,7 +94,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
             color={TextColor.TextAlternative}
             twClassName="text-default mb-2"
           >
-            {strings('perps.connection.connecting_to_perps')}
+            {strings('perps.connection.timeout_title')}
           </Text>
           {/* Retry Button */}
           <Button
