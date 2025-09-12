@@ -104,6 +104,17 @@ jest.mock('../../../core/Engine', () => ({
         },
       },
     },
+    NetworkEnablementController: {
+      state: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x00': true,
+            '0x01': true,
+            '0x02': true,
+          },
+        },
+      },
+    },
   },
 }));
 
@@ -194,8 +205,10 @@ const initialState = {
         },
       },
       NetworkEnablementController: {
-        enabledNetworks: {
-          '0x1': true,
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+          },
         },
       },
     },
@@ -582,6 +595,16 @@ describe('Tokens', () => {
                 '0x89': false,
               },
             },
+            NetworkEnablementController: {
+              state: {
+                enabledNetworkMap: {
+                  eip155: {
+                    '0x1': true,
+                    '0x89': false,
+                  },
+                },
+              },
+            },
           },
           selectedAccountTokensChains: {
             '0x1': [
@@ -631,6 +654,15 @@ describe('Tokens', () => {
                   tokenSortConfig: { key: 'symbol', order: 'asc' },
                   tokenNetworkFilter: {
                     '0x1': true,
+                  },
+                },
+                NetworkEnablementController: {
+                  state: {
+                    enabledNetworkMap: {
+                      eip155: {
+                        '0x1': true,
+                      },
+                    },
                   },
                 },
                 TokenBalancesController: {
@@ -704,6 +736,16 @@ describe('Tokens', () => {
                   tokenNetworkFilter: {
                     '0x1': true,
                     '0xe705': true,
+                  },
+                },
+                NetworkEnablementController: {
+                  state: {
+                    enabledNetworkMap: {
+                      eip155: {
+                        '0x1': true,
+                        '0xe705': true,
+                      },
+                    },
                   },
                 },
                 TokenBalancesController: {
@@ -806,6 +848,16 @@ describe('Tokens', () => {
                 tokenNetworkFilter: {
                   '0x1': true,
                   '0xe705': true,
+                },
+              },
+              NetworkEnablementController: {
+                state: {
+                  enabledNetworkMap: {
+                    eip155: {
+                      '0x1': true,
+                      '0xe705': true,
+                    },
+                  },
                 },
               },
               TokenBalancesController: {

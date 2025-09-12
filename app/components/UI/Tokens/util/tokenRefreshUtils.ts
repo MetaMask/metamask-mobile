@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
@@ -16,14 +16,20 @@ export const performEvmRefresh = async (
     TokenRatesController,
     TokenBalancesController,
     NetworkController,
-    PreferencesController,
+    NetworkEnablementController,
   } = Engine.context;
 
-  const tokenListChains = PreferencesController.state.tokenNetworkFilter;
   const networkConfigurations =
     NetworkController.state.networkConfigurationsByChainId;
 
-  const chainIds = Object.keys(tokenListChains) as Hex[];
+  const chainIds = Object.entries(
+    NetworkEnablementController.state.enabledNetworkMap[
+      KnownCaipNamespace.Eip155
+    ] || {},
+  )
+    .filter(([, isEnabled]) => isEnabled === true)
+    .map(([chainId]) => chainId as Hex);
+
   const networkClientIds = chainIds
     .map((c) => {
       const config = networkConfigurations[c];
