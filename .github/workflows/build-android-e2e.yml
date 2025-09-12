@@ -78,19 +78,13 @@ jobs:
           build_action: ${{ inputs.build_action }}
           apk_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           pr_number: ${{ github.event.pull_request.number }}
-
-      - name: Clean Native Build Directory (expo prebuild)
-        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
-        run: |
-          echo "Cleaning native build directory..."
-          yarn expo prebuild --clean --platform android
-
       - name: Build Android E2E APKs
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
+          # to be replaced by expo prebuild
           yarn build:android:main:e2e
         shell: bash
         env:
