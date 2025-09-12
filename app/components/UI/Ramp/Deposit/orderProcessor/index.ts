@@ -71,7 +71,6 @@ export async function processDepositOrder(
     return {
       ...updatedFiatOrder,
       account: order.account,
-      network: order.network,
       lastTimeFetched: Date.now(),
       errorCount: 0,
     };

@@ -3672,7 +3672,7 @@ app:
       VERSION_NUMBER: 2391
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.54.0
+      FLASK_VERSION_NAME: 7.55.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 2391
