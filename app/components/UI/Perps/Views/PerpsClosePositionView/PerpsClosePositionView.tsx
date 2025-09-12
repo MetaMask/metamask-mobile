@@ -47,7 +47,6 @@ import {
 } from '../../utils/positionCalculations';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -91,7 +90,6 @@ const PerpsClosePositionView: React.FC = () => {
 
   // State for order type and bottom sheets
   const [orderType, setOrderType] = useState<OrderType>('market');
-  const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isUserInputActive, setIsUserInputActive] = useState(false);
@@ -473,8 +471,6 @@ const PerpsClosePositionView: React.FC = () => {
         priceChange={parseFloat(
           priceData[position.coin]?.percentChange24h ?? '0',
         )}
-        orderType={orderType}
-        onOrderTypePress={() => setIsOrderTypeVisible(true)}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
       />
@@ -666,23 +662,6 @@ const PerpsClosePositionView: React.FC = () => {
           />
         )}
       </View>
-
-      {/* Order Type Bottom Sheet */}
-      <PerpsOrderTypeBottomSheet
-        isVisible={isOrderTypeVisible}
-        onClose={() => setIsOrderTypeVisible(false)}
-        onSelect={(type) => {
-          setOrderType(type);
-          // Clear limit price when switching to market order
-          if (type === 'market') {
-            setLimitPrice('');
-          }
-          setIsOrderTypeVisible(false);
-        }}
-        currentOrderType={orderType}
-        asset={position.coin}
-        direction={isLong ? 'long' : 'short'}
-      />
 
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
