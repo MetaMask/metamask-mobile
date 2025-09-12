@@ -241,7 +241,7 @@ describe(
   },
 );
 
-xdescribe(
+describe(
   RegressionNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     // These tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
@@ -336,51 +336,54 @@ xdescribe(
       },
     );
 
-    it.skip('should add network permission when requested', async () => {
-      await withFixtures(
-        {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
-          fixture: new FixtureBuilder()
-            .withPermissionControllerConnectedToTestDapp()
-            .withChainPermission()
-            .build(),
-          restartDevice: true,
-        },
-        async () => {
-          await loginToApp();
+    itif(isRemoveGlobalNetworkSelectorEnabled)(
+      'should add network permission when requested',
+      async () => {
+        await withFixtures(
+          {
+            dapps: [
+              {
+                dappVariant: DappVariants.TEST_DAPP,
+              },
+            ],
+            fixture: new FixtureBuilder()
+              .withPermissionControllerConnectedToTestDapp()
+              .withChainPermission()
+              .build(),
+            restartDevice: true,
+          },
+          async () => {
+            await loginToApp();
 
-          // Switch to non-permitted network
-          await TabBarComponent.tapWallet();
-          await WalletView.tapNetworksButtonOnNavBar();
-          await NetworkListModal.scrollToBottomOfNetworkList();
-          await NetworkListModal.changeNetworkTo(SEPOLIA);
-          await device.disableSynchronization();
-          await NetworkEducationModal.tapGotItButton();
-          await device.enableSynchronization();
+            // Switch to non-permitted network
+            await TabBarComponent.tapWallet();
+            await WalletView.tapNetworksButtonOnNavBar();
+            await NetworkListModal.scrollToBottomOfNetworkList();
+            await NetworkListModal.changeNetworkTo(SEPOLIA);
+            await device.disableSynchronization();
+            await NetworkEducationModal.tapGotItButton();
+            await device.enableSynchronization();
 
-          // Add network permission
-          await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
-          await Browser.navigateToTestDApp();
-          await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
+            // Add network permission
+            await TabBarComponent.tapBrowser();
+            await TestHelpers.delay(3000);
+            await Browser.navigateToTestDApp();
+            await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
-          // Verify the permission was added by checking that disconnecting both networks shows disconnect all button
-          await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-          await ConnectedAccountsModal.tapManagePermissionsButton();
-          await ConnectedAccountsModal.tapPermissionsSummaryTab();
-          await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-          await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
-          await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-          await Assertions.checkIfVisible(
-            ConnectedAccountsModal.disconnectNetworksButton,
-          );
-        },
-      );
-    });
+            // Verify the permission was added by checking that disconnecting both networks shows disconnect all button
+            await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+            await ConnectedAccountsModal.tapManagePermissionsButton();
+            await ConnectedAccountsModal.tapPermissionsSummaryTab();
+            await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+            await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+            await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+            await Assertions.checkIfVisible(
+              ConnectedAccountsModal.disconnectNetworksButton,
+            );
+          },
+        );
+      },
+    );
 
     itif(isRemoveGlobalNetworkSelectorEnabled)(
       'should allow switching to permitted network when attempting to use non-permitted network',

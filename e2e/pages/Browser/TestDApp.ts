@@ -587,36 +587,8 @@ class TestDApp {
       });
       return;
     } catch {
-      // Network not visible, need to scroll
+      throw new Error(`Could not find network "${networkName}"`);
     }
-
-    // If not found, scroll the entire webview to find the network
-    // const webview = await Matchers.getWebViewByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
-    // let attempts = 0;
-    // const maxAttempts = 5;
-
-    // while (attempts < maxAttempts) {
-    //   try {
-    //     // Scroll the webview
-    //     await Gestures.swipe(webview as unknown as DetoxElement, 'up', {
-    //       speed: 'slow',
-    //       percentage: 0.3,
-    //     });
-
-    //     // Try to find the network after scrolling using web-specific matcher
-    //     const networkItem = await this.getNetworkItemByName(networkName);
-    //     await Assertions.expectElementToBeVisible(networkItem as unknown as WebElement, { timeout: 1000 });
-
-    //     await Gestures.waitAndTap(networkItem as unknown as WebElement, {
-    //       elemDescription: `tap ${networkName} network`,
-    //     });
-    //     return;
-    //   } catch {
-    //     attempts++;
-    //   }
-    // }
-
-    //  throw new Error(`Could not find network "${networkName}" after scrolling through modal`);
   }
 }
 
