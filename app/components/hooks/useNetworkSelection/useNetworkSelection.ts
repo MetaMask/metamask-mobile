@@ -5,7 +5,9 @@ import {
   Hex,
   isCaipChainId,
   parseCaipChainId,
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   KnownCaipNamespace,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -15,10 +17,10 @@ import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespa
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
