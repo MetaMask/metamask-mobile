@@ -374,8 +374,8 @@ export const OnboardingSuccess = () => {
           // Batch update balances for all chains
           await Promise.all(
             addedChainIds.map((chainId) =>
-              TokenBalancesController.updateBalancesByChainId({
-                chainId,
+              TokenBalancesController.updateBalances({
+                chainIds: [chainId],
               }).catch((error) =>
                 Logger.error(
                   error as Error,

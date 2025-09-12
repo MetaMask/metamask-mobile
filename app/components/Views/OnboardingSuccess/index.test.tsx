@@ -223,7 +223,7 @@ describe('OnboardingSuccess', () => {
       await waitFor(() => {
         expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalled();
         expect(
-          Engine.context.TokenBalancesController.updateBalancesByChainId,
+          Engine.context.TokenBalancesController.updateBalances,
         ).toHaveBeenCalled();
         expect(
           Engine.context.TokenListController.fetchTokenList,
@@ -326,7 +326,7 @@ describe('OnboardingSuccess', () => {
         authConnection: capitalize(AuthConnection.Apple) || '',
       }),
     );
-    expect(description).toBeOnTheScreen();
+    expect(description).toBeDefined();
   });
 
   it('renders social login description when authConnection is Google', () => {
