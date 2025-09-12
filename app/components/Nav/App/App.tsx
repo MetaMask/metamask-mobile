@@ -41,8 +41,6 @@ import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottom
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
-import AccountConnect from '../../../components/Views/AccountConnect';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import ConnectionDetails from '../../../components/Views/AccountPermissions/ConnectionDetails';
@@ -97,6 +95,7 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
@@ -141,6 +140,8 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
+import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
+import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
@@ -152,7 +153,9 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
+import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
+import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -408,11 +411,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={AccountConnect}
+      component={State2AccountConnectWrapper}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={AccountPermissions}
+      component={BIP44AccountPermissionWrapper}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
@@ -507,6 +510,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
       component={NFTAutoDetectionModal}
     />
+    <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
@@ -529,6 +533,16 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO}
+      component={MultichainAccountsIntroModal}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
+      component={LearnMoreBottomSheet}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

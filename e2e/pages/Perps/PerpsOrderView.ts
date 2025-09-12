@@ -1,11 +1,12 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import {
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
 } from '../../selectors/Perps/Perps.selectors';
-import { waitFor, element as detoxElement, by as detoxBy } from 'detox';
+import { element as detoxElement, by as detoxBy } from 'detox';
 
 class PerpsOrderView {
   get placeOrderButton() {
@@ -21,17 +22,17 @@ class PerpsOrderView {
   }
 
   // Leverage chip by visible text, e.g., "3x", "10x", "20x"
-  leverageOption(leverageX: number, index = 0) {
+  leverageOption(leverageX: number, index = 0): DetoxElement {
     return Matchers.getElementByText(`${leverageX}x`, index);
   }
 
   // Row label to open the leverage modal (uses visible text "Leverage")
-  get leverageRowLabel() {
+  get leverageRowLabel(): DetoxElement {
     return Matchers.getElementByText('Leverage');
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
-  get leverageModalTitle() {
+  get leverageModalTitle(): DetoxElement {
     return Matchers.getElementByText('Set Leverage');
   }
 
@@ -50,67 +51,50 @@ class PerpsOrderView {
     });
 
     // Wait for the modal to be visible
-    const title = this.leverageModalTitle as unknown as DetoxElement;
-    await Assertions.expectElementToBeVisible(title, {
+    await Assertions.expectElementToBeVisible(this.leverageModalTitle, {
       description: 'Leverage modal title visible',
     });
 
-    // Tap quick option (2x/5x/10x/20x/40x)
-    // Robust against duplicates: detect the highest existing index and use it (button > slider label)
+    // Tap quick option (2x/5x/10x/20x/40x) deterministically using visibility checks
+    // Detect the highest existing index and use it (button > slider label)
     const label = `${leverageX}x`;
     let chosenIdx = -1;
     for (const idx of [3, 2, 1, 0]) {
-      try {
-        await waitFor(detoxElement(detoxBy.text(label)).atIndex(idx))
-          .toExist()
-          .withTimeout(250);
+      const candidate = detoxElement(detoxBy.text(label)).atIndex(idx);
+      const exists = await Utilities.isElementVisible(
+        candidate as unknown as DetoxElement,
+        250,
+      );
+      if (exists) {
         chosenIdx = idx;
         break;
-      } catch {
-        // try next lower index
       }
     }
     if (chosenIdx < 0) {
       throw new Error(`Leverage option ${label} not found`);
     }
 
-    // Prefer unwrapped Detox tap to avoid long internal retries and allow a quick fallback
-    let tapped = false;
-    for (const idx of [chosenIdx, 1, 0]) {
-      try {
-        await detoxElement(detoxBy.text(label)).atIndex(idx).tap();
-        tapped = true;
-        break;
-      } catch {
-        // try next index quickly
-      }
-    }
-    if (!tapped) {
-      // Final fallback with our wrapper to bubble a clear error
-      const option = this.leverageOption(
-        leverageX,
-        chosenIdx,
-      ) as unknown as DetoxElement;
-      await Gestures.waitAndTap(option, {
-        elemDescription: `Select leverage ${label} at index ${chosenIdx}`,
-      });
-    }
+    // Tap the detected option index
+    const option = this.leverageOption(leverageX, chosenIdx);
+    await Gestures.waitAndTap(option, {
+      elemDescription: `Select leverage ${label} at index ${chosenIdx}`,
+    });
 
     // Confirm by tapping footer button "Set Xx"
     const confirm = Matchers.getElementByText(
       `Set ${leverageX}x`,
-    ) as unknown as DetoxElement;
+    ) as DetoxElement;
     await Gestures.waitAndTap(confirm, {
       elemDescription: `Confirm leverage ${leverageX}x`,
     });
   }
 
   // Amount handling
-  get amountDisplay() {
+  get amountDisplay(): DetoxElement {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.CONTAINER);
   }
 
-  get amountValue() {
+  get amountValue(): DetoxElement {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
   }
 
@@ -118,34 +102,77 @@ class PerpsOrderView {
   async setAmountUSD(amount: string) {
     // Open keypad by tapping the value by ID (more reliable than tapping the container)
     await device.disableSynchronization();
-    const amountEl = this.amountValue as unknown as DetoxElement;
-    await Assertions.expectElementToBeVisible(amountEl, {
+    await Assertions.expectElementToBeVisible(this.amountValue, {
       description: 'Amount value is visible',
     });
-    await Gestures.waitAndTap(amountEl, {
+    await Gestures.waitAndTap(this.amountValue, {
       elemDescription: 'Open amount keypad by tapping amount label',
       checkEnabled: false,
       checkVisibility: false,
     });
     // Type each character using the native keypad (buttons 0-9 and '.')
     for (const ch of amount) {
-      const key = Matchers.getElementByText(ch);
-      await Gestures.waitAndTap(key as unknown as DetoxElement, {
+      const key = Matchers.getElementByText(ch) as DetoxElement;
+      await Gestures.waitAndTap(key, {
         elemDescription: `Keypad: ${ch}`,
         checkEnabled: false,
         checkVisibility: false,
       });
     }
     // Close the keypad using the Done button (with locale fallbacks)
-    const doneByText = Matchers.getElementByText('Done');
+    const doneByText = Matchers.getElementByText('Done') as DetoxElement;
 
-    await Gestures.waitAndTap(doneByText as unknown as DetoxElement, {
+    await Gestures.waitAndTap(doneByText, {
       elemDescription: 'Tap Done (by text) to close keypad',
       checkEnabled: false,
       checkVisibility: false,
     });
 
     await device.enableSynchronization();
+  }
+
+  // Order type / Limit Price helpers
+  private get orderTypeMarket(): DetoxElement {
+    return Matchers.getElementByText('Market');
+  }
+
+  private get orderTypeLimit(): DetoxElement {
+    return Matchers.getElementByText('Limit');
+  }
+
+  async openOrderTypeSelector(): Promise<void> {
+    // Tap whichever order type label is currently visible (no try/catch)
+    const marketVisible = await Utilities.isElementVisible(
+      this.orderTypeMarket,
+      300,
+    );
+    const target = marketVisible ? this.orderTypeMarket : this.orderTypeLimit;
+    const desc = marketVisible
+      ? 'Open order type selector (Market)'
+      : 'Open order type selector (Limit)';
+    await Gestures.waitAndTap(target, { elemDescription: desc });
+  }
+
+  async selectLimitOrderType() {
+    await Gestures.waitAndTap(this.orderTypeLimit, {
+      elemDescription: 'Select Limit order type',
+    });
+  }
+
+  async setLimitPricePresetLong(percentage: number) {
+    // For long orders, presets are negative values: -1, -2, -5, -10
+    const label = `${percentage > 0 ? '+' : ''}${percentage}%`;
+    const preset = Matchers.getElementByText(label) as DetoxElement;
+    await Gestures.waitAndTap(preset, {
+      elemDescription: `Select limit price preset ${label}`,
+    });
+  }
+
+  async confirmLimitPrice() {
+    const setButton = Matchers.getElementByText('Set') as DetoxElement;
+    await Gestures.waitAndTap(setButton, {
+      elemDescription: 'Confirm limit price',
+    });
   }
 }
 

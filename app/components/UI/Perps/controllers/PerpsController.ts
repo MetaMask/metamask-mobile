@@ -87,6 +87,8 @@ export const PERPS_ERROR_CODES = {
   ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
   MARKETS_FAILED: 'MARKETS_FAILED',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+  // Provider-agnostic order errors
+  ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
 } as const;
 
 export type PerpsErrorCode =
@@ -129,6 +131,10 @@ export type PerpsControllerState = {
 
   // Simple deposit state (transient, for UI feedback)
   depositInProgress: boolean;
+  // TODO: Update tests
+  // Internal transaction id for the deposit transaction
+  // We use this to fetch the bridge quotes and get the estimated time.
+  lastDepositTransactionId: string | null;
   lastDepositResult: {
     success: boolean;
     txHash?: string;
@@ -178,6 +184,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   depositInProgress: false,
   lastDepositResult: null,
   withdrawInProgress: false,
+  lastDepositTransactionId: null,
   lastWithdrawResult: null,
   lastError: null,
   lastUpdateTimestamp: 0,
@@ -204,6 +211,7 @@ const metadata = {
   connectionStatus: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
   depositInProgress: { persist: false, anonymous: false },
+  lastDepositTransactionId: { persist: false, anonymous: false },
   lastDepositResult: { persist: false, anonymous: false },
   withdrawInProgress: { persist: false, anonymous: false },
   lastWithdrawResult: { persist: false, anonymous: false },
@@ -798,14 +806,17 @@ export class PerpsController extends BaseController<
 
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
-      const { result } = await TransactionController.addTransaction(
-        transaction,
-        {
+      const { result, transactionMeta } =
+        await TransactionController.addTransaction(transaction, {
           networkClientId,
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
-        },
-      );
+        });
+
+      // Store the transaction ID
+      this.update((state) => {
+        state.lastDepositTransactionId = transactionMeta.id;
+      });
 
       // At this point, the confirmation modal is shown to the user
       // The result promise will resolve/reject based on user action and transaction outcome
@@ -850,12 +861,14 @@ export class PerpsController extends BaseController<
             // User cancelled - clear any state, no toast
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
               // Don't set lastDepositResult - no toast needed
             });
           } else {
             // Transaction failed after confirmation - show error toast
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
               state.lastDepositResult = {
                 success: false,
                 error: errorMessage,
@@ -880,6 +893,7 @@ export class PerpsController extends BaseController<
       if (!userCancelled) {
         // Only track actual errors, not user cancellations
         this.update((state) => {
+          state.lastDepositTransactionId = null;
           state.lastDepositResult = {
             success: false,
             error: errorMessage,
@@ -1202,6 +1216,23 @@ export class PerpsController extends BaseController<
           return;
         }),
       ]);
+
+      // Add safety check for accountState to prevent TypeError
+      if (!accountState) {
+        const error = new Error(
+          'Failed to get account state: received null/undefined response',
+        );
+
+        // Track null account state errors in Sentry for API monitoring
+        Logger.error(error, {
+          message: 'Received null/undefined account state from provider',
+          context: 'PerpsController.getAccountState',
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        });
+
+        throw error;
+      }
 
       // fallback to the current account total value if possible
       const historicalPortfolioToUse: HistoricalPortfolioResult =
