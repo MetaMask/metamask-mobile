@@ -56,6 +56,11 @@ describe('ConnectionRegistry', () => {
     ) as jest.Mocked<ConnectionStore>;
     mockKeyManager = new KeyManager() as jest.Mocked<KeyManager>;
 
+    mockStore.list = jest.fn().mockResolvedValue([]);
+    mockStore.save = jest.fn().mockResolvedValue(undefined);
+    mockStore.delete = jest.fn().mockResolvedValue(undefined);
+    mockStore.get = jest.fn().mockResolvedValue(null);
+
     mockConnection = {
       id: mockConnectionRequest.sessionRequest.id,
       metadata: mockConnectionRequest.metadata,

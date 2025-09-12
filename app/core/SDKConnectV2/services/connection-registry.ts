@@ -39,7 +39,7 @@ export class ConnectionRegistry {
    * One-time initialization to resume all persisted connections on app cold start.
    */
   private async initialize(): Promise<void> {
-    console.log(
+    console.warn(
       '[SDKConnectV2] Initializing and resuming persisted connections...',
     );
 
@@ -164,7 +164,7 @@ export class ConnectionRegistry {
     AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus): void => {
-        console.log('[SDKConnectV2] App state changed to:', nextAppState);
+        console.warn('[SDKConnectV2] App state changed to:', nextAppState);
 
         if (nextAppState !== 'active') {
           return;
@@ -188,20 +188,20 @@ export class ConnectionRegistry {
    * for preventing stale/zombie connections after the app was put in the background.
    */
   private async reconnectAll(): Promise<void> {
-    console.log('[SDKConnectV2] Proactively refreshing all connections...');
+    console.warn('[SDKConnectV2] Proactively refreshing all connections...');
 
     const connections = Array.from(this.connections.values());
 
-    const promises = connections.map((conn) => {
-      return conn.client
+    const promises = connections.map((conn) =>
+      conn.client
         .reconnect()
         .catch((err: Error) =>
           console.error(
             `[SDKConnectV2] Failed to reconnect connection ${conn.id}`,
             err,
           ),
-        );
-    });
+        ),
+    );
 
     await Promise.allSettled(promises);
   }
