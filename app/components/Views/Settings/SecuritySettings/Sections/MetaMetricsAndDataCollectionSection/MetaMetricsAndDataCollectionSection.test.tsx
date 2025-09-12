@@ -12,6 +12,9 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetricsEventBuilder } from '../../../../../../core/Analytics/MetricsEventBuilder';
+import OAuthService from '../../../../../../core/OAuthService/OAuthService';
+import Logger from '../../../../../../util/Logger';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 
 const { InteractionManager, Alert, Linking } =
   jest.requireActual('react-native');
@@ -40,6 +43,14 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
+jest.mock('../../../../../../core/OAuthService/OAuthService', () => ({
+  updateMarketingOptInStatus: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 const mockAutoSignIn = jest.fn();
 jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
   useAutoSignIn: () => ({
@@ -55,6 +66,20 @@ const mockMetrics = {
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+
+const mockUpdateMarketingOptInStatus =
+  OAuthService.updateMarketingOptInStatus as jest.MockedFunction<
+    typeof OAuthService.updateMarketingOptInStatus
+  >;
+
+jest.mock('../../../../../../selectors/seedlessOnboardingController', () => ({
+  selectSeedlessOnboardingLoginFlow: jest.fn(),
+}));
+
+const mockSelectSeedlessOnboardingLoginFlow =
+  selectSeedlessOnboardingLoginFlow as jest.MockedFunction<
+    typeof selectSeedlessOnboardingLoginFlow
+  >;
 
 jest.mock(
   '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
@@ -93,6 +118,8 @@ const initialStateMarketingFalse = {
 describe('MetaMetricsAndDataCollectionSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUpdateMarketingOptInStatus.mockClear();
+    mockSelectSeedlessOnboardingLoginFlow.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -471,6 +498,117 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             },
           );
         });
+      });
+    });
+  });
+
+  describe('Marketing API Integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockUpdateMarketingOptInStatus.mockClear();
+    });
+
+    it('should call updateMarketingOptInStatus API when marketing switch is turned on for social login users', async () => {
+      mockMetrics.isEnabled.mockReturnValue(false);
+      mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingFalse },
+      );
+
+      const marketingSwitch = await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      expect(marketingSwitch).toBeTruthy();
+      expect(marketingSwitch.props.value).toBe(false);
+
+      fireEvent(marketingSwitch, 'valueChange', true);
+
+      await waitFor(() => {
+        expect(marketingSwitch.props.value).toBe(true);
+        expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it('should call updateMarketingOptInStatus API when marketing switch is turned off for social login users', async () => {
+      mockMetrics.isEnabled.mockReturnValue(true);
+      mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingTrue },
+      );
+
+      const marketingSwitch = await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      expect(marketingSwitch).toBeTruthy();
+      expect(marketingSwitch.props.value).toBe(true);
+
+      fireEvent(marketingSwitch, 'valueChange', false);
+
+      await waitFor(() => {
+        expect(marketingSwitch.props.value).toBe(false);
+        expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+      });
+    });
+
+    it('should handle API error when updateMarketingOptInStatus fails for social login users', async () => {
+      mockMetrics.isEnabled.mockReturnValue(false);
+      mockUpdateMarketingOptInStatus.mockRejectedValue(new Error('API Error'));
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingFalse },
+      );
+
+      const marketingSwitch = await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      expect(marketingSwitch).toBeTruthy();
+      expect(marketingSwitch.props.value).toBe(false);
+
+      fireEvent(marketingSwitch, 'valueChange', true);
+
+      await waitFor(() => {
+        expect(marketingSwitch.props.value).toBe(true);
+        expect(mockUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(Logger.error).toHaveBeenCalledWith(expect.any(Error));
+      });
+    });
+
+    it('should NOT call updateMarketingOptInStatus API for SRP users', async () => {
+      mockMetrics.isEnabled.mockReturnValue(false);
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingFalse },
+      );
+
+      const marketingSwitch = await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      expect(marketingSwitch).toBeTruthy();
+      expect(marketingSwitch.props.value).toBe(false);
+
+      fireEvent(marketingSwitch, 'valueChange', true);
+
+      await waitFor(() => {
+        expect(marketingSwitch.props.value).toBe(true);
+        expect(mockUpdateMarketingOptInStatus).not.toHaveBeenCalled();
       });
     });
   });

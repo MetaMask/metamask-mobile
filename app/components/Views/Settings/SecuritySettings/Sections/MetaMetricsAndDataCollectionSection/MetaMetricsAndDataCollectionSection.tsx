@@ -29,6 +29,9 @@ import { useNavigation } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
+import OAuthService from '../../../../../../core/OAuthService/OAuthService';
+import Logger from '../../../../../../util/Logger';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 
 const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
@@ -48,6 +51,10 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
 
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
   );
 
   useEffect(() => {
@@ -138,6 +145,14 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       }
     }
     dispatch(setDataCollectionForMarketing(value));
+
+    if (isSeedlessOnboardingLoginFlow) {
+      try {
+        await OAuthService.updateMarketingOptInStatus(value);
+      } catch (error) {
+        Logger.error(error as Error);
+      }
+    }
   };
 
   const renderMetaMetricsSection = () => (
