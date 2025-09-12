@@ -58,7 +58,7 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
       },
       async () => {
         await loginToApp();
-        await WalletView.tapWalletFundButton();
+        await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
         await Assertions.expectTextNotDisplayed('SEPA Bank Transfer');
