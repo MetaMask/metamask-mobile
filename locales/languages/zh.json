@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "发送",
     "buy_button": "买入",
-    "fund_button": "Fund",
     "token_marketplace": "代币市场",
     "sell_button": "Withdraw",
     "receive_button": "接收",
