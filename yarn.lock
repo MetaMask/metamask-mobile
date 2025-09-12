@@ -4556,7 +4556,7 @@
     bs58check "^2.1.2"
     tslib "^2.3.0"
 
-"@keystonehq/metamask-airgapped-keyring@^0.14.1", "@keystonehq/metamask-airgapped-keyring@^0.15.2":
+"@keystonehq/metamask-airgapped-keyring@^0.15.2":
   version "0.15.2"
   resolved "https://registry.yarnpkg.com/@keystonehq/metamask-airgapped-keyring/-/metamask-airgapped-keyring-0.15.2.tgz#d4b8aa807458124d437b3537253d570231b82bac"
   integrity sha512-csC7m+7CbWwl2Qhm41/apOAR1KOkLdjXxChfKVRR+k4+KCOMQvUnzksnymhAtnkEOiePGjpf9ZuGeJtYD4h52w==
@@ -5180,14 +5180,15 @@
     json-rpc-random-id "^1.0.1"
     pify "^5.0.0"
 
-"@metamask/eth-hd-keyring@^12.0.0", "@metamask/eth-hd-keyring@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-12.1.0.tgz#f70e421cc7fbecc039b3f6347172444dadb10168"
-  integrity sha512-jL7l1oPasTClknOuT0LleqyV9WbuXdM7fU5POramgjyh+sl++PyRh1W6cZzskNEXSpPH08pVy1Xh/LU7rNBPqQ==
+"@metamask/eth-hd-keyring@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-13.0.0.tgz#e6a4bf007866a0282a875ad3d39629b1efeed695"
+  integrity sha512-MU9k94rYWEartYu8Mf9YfTRHwQDOLLwZ6Z/5NuBEda9L5eLczTdPD9EbqGWN4ARmQa0TtgmbmNWXGUYZ8uO/vg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/key-tree" "^10.0.2"
+    "@metamask/keyring-utils" "^3.1.0"
     "@metamask/scure-bip39" "^2.1.1"
     "@metamask/utils" "^11.1.0"
     ethereum-cryptography "^2.1.2"
@@ -5463,20 +5464,29 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-controller@^22.1.0":
-  version "22.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.1.1.tgz#e9abf443b68e607b00e5bc520ef0a58df1a54ef0"
-  integrity sha512-nCpZWzv6TiuRvQpqK7l+8Hhg92Enx2C97DzF603Xd+ARdC5gOSZ6/+mKFocq1J30cGK2v1Yrtrk7EuNwIAAQvQ==
+"@metamask/keyring-api@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-21.0.0.tgz#7b008b752aae071890ac00b3ad48244f489d14b8"
+  integrity sha512-3U9pFBposblP7oNfSfaBViTlT9MM6biYIh7icSAIaI2guZ9iNwcpxyeGSzsvSYjQKQCp0HmYqfqw2UFj2P9rWw==
+  dependencies:
+    "@metamask/keyring-utils" "^3.1.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
+"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@23.0.0-preview-9a5f096":
+  version "23.0.0-preview-9a5f096"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/keyring-controller/-/keyring-controller-23.0.0-preview-9a5f096.tgz#cc2363e627cd8946c071b30aa9d3701c8835a12f"
+  integrity sha512-+pIW//zNkNGKP+EK9zQAMjOpOCZbpTTYPIigTx6c/O6V7k9D+iMrMFiM+18G6NrTyzB4TkwMqP+rs8prajbZsg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^12.0.0"
+    "@metamask/eth-hd-keyring" "^13.0.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/eth-simple-keyring" "^10.0.0"
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-internal-api" "^8.0.0"
+    "@metamask/keyring-api" "^21.0.0"
+    "@metamask/keyring-internal-api" "^9.0.0"
     "@metamask/utils" "^11.4.2"
     async-mutex "^0.5.0"
     ethereumjs-wallet "^1.0.1"
@@ -5499,6 +5509,15 @@
   integrity sha512-rFLm5fELp5akU6nZV0/q6sCWscskFbjn07tjjGouZrb78Py0TLUHfktytl7OcDptgce2icuyy7E08spmfPda1w==
   dependencies:
     "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-utils" "^3.1.0"
+    "@metamask/superstruct" "^3.1.0"
+
+"@metamask/keyring-internal-api@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-9.0.0.tgz#7dcde8fec3a3b02fe683fe7f8d0b8a3a94267514"
+  integrity sha512-xzPXBDyrUOOeKWY3yvf6+T8vzCRRkG6ecwujunfJGITud+weym/XczhvfscEH4ajIt4tFiqawd2bYKmBLYoayQ==
+  dependencies:
+    "@metamask/keyring-api" "^21.0.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
 
