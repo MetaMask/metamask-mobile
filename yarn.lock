@@ -1439,10 +1439,10 @@
     reflect-metadata "^0.1.13"
     uuid "^9.0.0"
 
-"@consensys/on-ramp-sdk@2.1.10":
-  version "2.1.10"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.1.10.tgz#c681d10473a6d20f8d62008d70e972ed8abc302d"
-  integrity sha512-PnY84qBWs21jM0RdFfw0TDwk/gbv/G9rOGmsj8g8sj4OQNAULNkC0QPdft0U1IztTkCa6A+9O94YnQeTXSTeBQ==
+"@consensys/on-ramp-sdk@2.1.11":
+  version "2.1.11"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.1.11.tgz#22aeb0095eda31e9f1dc506959ea621a02f577ef"
+  integrity sha512-IuGdFezLXyl1WlKp/OT1y/BxNeNxixefW+bFcuxqftLPnWORweLBb42j6/jgCk4FjvtKKlLZR29Kus+JodMf5A==
   dependencies:
     async "^3.2.3"
     axios "^1.8.3"
