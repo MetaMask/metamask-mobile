@@ -29,6 +29,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
   const isInitialized = useRef(false);
   const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
+  const pendingActiveIndex = useRef<number | null>(null);
 
   // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -39,6 +41,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
     tabLayouts.current = new Array(tabs.length);
     isInitialized.current = false;
     setScrollEnabled(false);
+    setIsLayoutReady(false);
+    pendingActiveIndex.current = null;
     // Stop any ongoing animation when tabs change
     if (currentAnimation.current) {
       currentAnimation.current.stop();
@@ -66,16 +70,25 @@ const TabsBar: React.FC<TabsBarProps> = ({
         typeof activeTabLayout.x !== 'number' ||
         typeof activeTabLayout.width !== 'number'
       ) {
+        // If layout data isn't available yet, store this as a pending animation
+        pendingActiveIndex.current = targetIndex;
         return;
       }
 
-      if (!isInitialized.current) {
+      // Clear any pending animation since we're about to animate
+      pendingActiveIndex.current = null;
+
+      // Check if this is the very first initialization (no previous position set)
+      const isFirstInitialization = !isInitialized.current;
+
+      if (isFirstInitialization) {
         // Set initial position without animation on first render
         underlineAnimated.setValue(activeTabLayout.x);
         underlineWidthAnimated.setValue(activeTabLayout.width);
         isInitialized.current = true;
       } else {
-        // Animate for subsequent tab changes
+        // Always animate for subsequent tab changes, even if we're switching
+        // to a tab that just got its layout measured
         const animation = Animated.parallel([
           Animated.spring(underlineAnimated, {
             toValue: activeTabLayout.x,
@@ -125,6 +138,14 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
     animateToTab(activeIndex);
   }, [activeIndex, animateToTab]);
+
+  // Ensure underline is initialized when layout becomes ready
+  useEffect(() => {
+    if (isLayoutReady && !isInitialized.current && activeIndex >= 0) {
+      // Force initialization when layout is ready but underline hasn't been initialized yet
+      animateToTab(activeIndex);
+    }
+  }, [isLayoutReady, activeIndex, animateToTab]);
 
   // Check if content overflows and update scroll state
   useEffect(() => {
@@ -182,6 +203,12 @@ const TabsBar: React.FC<TabsBarProps> = ({
         animateToTab(activeIndex);
       }
 
+      // Check if there's a pending animation for this tab that just got its layout
+      if (pendingActiveIndex.current === index && index >= 0) {
+        // Execute the pending animation now that layout data is available
+        animateToTab(index);
+      }
+
       // Trigger scroll detection recalculation when all tabs are measured
       const allLayoutsDefined = tabLayouts.current.every(
         (layout) => layout && typeof layout.width === 'number',
@@ -197,6 +224,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
         const shouldScroll = calculatedContentWidth > containerWidth;
         setScrollEnabled(shouldScroll);
+
+        // Mark layout as ready when all tabs are measured
+        if (!isLayoutReady) {
+          setIsLayoutReady(true);
+        }
 
         // CRITICAL FIX: If we haven't initialized the underline yet and we now have all layouts,
         // try to initialize it for the active tab
@@ -216,7 +248,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         }
       }
     },
-    [tabs.length, activeIndex, animateToTab, containerWidth],
+    [tabs.length, activeIndex, animateToTab, containerWidth, isLayoutReady],
   );
 
   const handleTabPress = (index: number) => {

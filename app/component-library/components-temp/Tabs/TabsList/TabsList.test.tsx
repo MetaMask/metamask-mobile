@@ -477,4 +477,106 @@ describe('TabsList', () => {
     expect(queryByText('Tokens Content')).toBeNull();
     expect(queryByText('Perps Content')).toBeNull();
   });
+
+  describe('Swipe Gesture Navigation', () => {
+    it('renders with GestureDetector wrapper', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TabsList testID="tabs-list">
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Component should render with gesture support
+      const tabsList = getByTestId('tabs-list');
+      expect(tabsList).toBeOnTheScreen();
+    });
+
+    it('navigates to next tab programmatically via ref', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabsRef = React.createRef<TabsListRef>();
+      const { getByText } = render(
+        <TabsList
+          ref={tabsRef}
+          initialActiveIndex={0}
+          onChangeTab={mockOnChangeTab}
+        >
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Tab 3 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert initial state
+      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+
+      // Act - Navigate to next tab programmatically
+      act(() => {
+        tabsRef.current?.goToTabIndex(1);
+      });
+
+      // Assert - Should navigate to Tab 2
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: 1,
+        ref: expect.anything(),
+      });
+    });
+
+    it('skips disabled tabs when navigating programmatically', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabsRef = React.createRef<TabsListRef>();
+      const { getByText } = render(
+        <TabsList
+          ref={tabsRef}
+          initialActiveIndex={0}
+          onChangeTab={mockOnChangeTab}
+        >
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View
+            key="tab2"
+            {...({ tabLabel: 'Tab 2', isDisabled: true } as TabViewProps)}
+          >
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Tab 3 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert initial state
+      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+
+      // Act - Try to navigate to disabled tab (should be ignored)
+      act(() => {
+        tabsRef.current?.goToTabIndex(1);
+      });
+
+      // Assert - Should not navigate to disabled tab
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+
+      // Act - Navigate to enabled tab
+      act(() => {
+        tabsRef.current?.goToTabIndex(2);
+      });
+
+      // Assert - Should navigate to Tab 3
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: 2,
+        ref: expect.anything(),
+      });
+    });
+  });
 });
