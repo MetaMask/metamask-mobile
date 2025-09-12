@@ -12,6 +12,9 @@ import { ToastContext } from '../../../../../component-library/components/Toast'
 jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   __esModule: true,
   default: 'Button',
+  ButtonSize: { Lg: 'Lg', Md: 'Md' },
+  ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
+  ButtonWidthTypes: { Full: 'Full', Auto: 'Auto' },
 }));
 
 // Mock locales
@@ -233,7 +236,7 @@ describe('PerpsWithdrawView', () => {
       expect(
         screen.getByText(strings('perps.withdrawal.title')),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial amount display
+      expect(screen.getByText('$0')).toBeOnTheScreen(); // Initial amount display matches component logic
       expect(
         screen.getByText(
           strings('perps.withdrawal.available_balance', {

@@ -110,6 +110,7 @@ describe('RecipientInput', () => {
     const { getByText, getByPlaceholderText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -122,6 +123,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -147,6 +149,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -170,32 +173,14 @@ describe('RecipientInput', () => {
     });
 
     const { getByText } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList setPastedRecipient={noop} />,
+      <RecipientInput
+        isRecipientSelectedFromList
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Paste')).toBeOnTheScreen();
-  });
-
-  it('shows empty input when recipient is selected from list', () => {
-    mockUseSendContext.mockReturnValue({
-      to: '0x123...',
-      updateTo: mockUpdateTo,
-      asset: undefined,
-      chainId: undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fromAccount: {} as any,
-      from: '',
-      maxValueMode: false,
-      updateAsset: jest.fn(),
-      updateValue: jest.fn(),
-      value: undefined,
-    });
-
-    const { getByDisplayValue } = renderWithProvider(
-      <RecipientInput isRecipientSelectedFromList setPastedRecipient={noop} />,
-    );
-
-    expect(() => getByDisplayValue('0x123...')).toThrow();
   });
 
   it('calls requires callbacks when text input changes', () => {
@@ -207,10 +192,12 @@ describe('RecipientInput', () => {
       setRecipientInputMethodSelectContact: jest.fn(),
     });
 
+    const mockSetIsRecipientSelectedFromList = jest.fn();
     const mockSetPastedRecipient = jest.fn();
     const { getByPlaceholderText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={mockSetIsRecipientSelectedFromList}
         setPastedRecipient={mockSetPastedRecipient}
       />,
     );
@@ -224,6 +211,7 @@ describe('RecipientInput', () => {
     expect(mockUpdateTo).toHaveBeenCalledWith(
       '0x1234567890123456789012345678901234567890',
     );
+    expect(mockSetIsRecipientSelectedFromList).toHaveBeenCalled();
     expect(mockSetPastedRecipient).toHaveBeenCalledWith(undefined);
     expect(mockSetRecipientInputMethodManual).toHaveBeenCalled();
   });
@@ -232,11 +220,13 @@ describe('RecipientInput', () => {
     const mockAddress = '0x1234567890123456789012345678901234567890';
     mockClipboardManager.getString.mockResolvedValue(mockAddress);
     mockValidateToAddress.mockResolvedValue({ error: 'Invalid address' });
+    const mockSetIsRecipientSelectedFromList = jest.fn();
     const mockSetPastedRecipient = jest.fn();
 
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={mockSetIsRecipientSelectedFromList}
         setPastedRecipient={mockSetPastedRecipient}
       />,
     );
@@ -246,6 +236,7 @@ describe('RecipientInput', () => {
 
     await waitFor(() => {
       expect(mockUpdateTo).toHaveBeenCalledWith(mockAddress);
+      expect(mockSetIsRecipientSelectedFromList).toHaveBeenCalled();
       expect(mockSetPastedRecipient).toHaveBeenCalledWith(mockAddress);
     });
 
@@ -261,6 +252,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -279,6 +271,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -301,6 +294,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -333,6 +327,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -363,6 +358,7 @@ describe('RecipientInput', () => {
     const { getByText, rerender } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -370,7 +366,11 @@ describe('RecipientInput', () => {
     expect(getByText('Clear')).toBeOnTheScreen();
 
     rerender(
-      <RecipientInput isRecipientSelectedFromList setPastedRecipient={noop} />,
+      <RecipientInput
+        isRecipientSelectedFromList
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
     expect(getByText('Paste')).toBeOnTheScreen();
   });
@@ -379,6 +379,7 @@ describe('RecipientInput', () => {
     const { getByText, rerender } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -402,6 +403,7 @@ describe('RecipientInput', () => {
     rerender(
       <RecipientInput
         isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );

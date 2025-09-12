@@ -938,6 +938,14 @@ PERFORMANCE OPTIMIZATIONS:
                             console.log('📊 TradingView: Reset to default state - 45 candles');
                         }
                         break;
+                    case 'ZOOM_TO_LATEST_CANDLE':
+                        // Zoom to show the latest candles when period changes
+                        if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
+                            const candleCount = message.candleCount || window.visibleCandleCount;
+                            window.applyZoom(candleCount, true); // Force zoom to latest
+                            console.log('📊 TradingView: Zoomed to latest', candleCount, 'candles');
+                        }
+                        break;
                     case 'UPDATE_INTERVAL':
                         // Send confirmation back to React Native
                         if (window.ReactNativeWebView) {

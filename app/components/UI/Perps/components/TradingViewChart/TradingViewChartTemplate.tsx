@@ -264,12 +264,12 @@ export const createTradingViewChartTemplate = (
             }
             // Create new candlestick series with performance optimizations
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
-                upColor: '#BAF24A',
-                downColor: '#FF7584',
+                upColor: '${theme.colors.success.default}',
+                downColor: '${theme.colors.error.default}',
                 borderVisible: false,
-                wickUpColor: '#BAF24A',
-                wickDownColor: '#FF7584',
-                priceLineColor: '#FFF',
+                wickUpColor: '${theme.colors.success.default}',
+                wickDownColor: '${theme.colors.error.default}',
+                priceLineColor: '${theme.colors.icon.alternative}',
                 priceLineWidth: 1,
                 lastValueVisible: false,
                 // Use native PriceLineSource for better price line handling
@@ -779,6 +779,14 @@ export const createTradingViewChartTemplate = (
                             window.visibleCandleCount = window.ZOOM_LIMITS.DEFAULT_CANDLES;
                             window.applyZoom(window.ZOOM_LIMITS.DEFAULT_CANDLES, true); // Force reset
                             console.log('📊 TradingView: Reset to default state - 45 candles');
+                        }
+                        break;
+                    case 'ZOOM_TO_LATEST_CANDLE':
+                        // Zoom to show the latest candles when period changes
+                        if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
+                            const candleCount = message.candleCount || window.visibleCandleCount;
+                            window.applyZoom(candleCount, true); // Force zoom to latest
+                            console.log('📊 TradingView: Zoomed to latest', candleCount, 'candles');
                         }
                         break;
                     case 'UPDATE_INTERVAL':

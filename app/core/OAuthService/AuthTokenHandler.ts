@@ -2,8 +2,9 @@ import { Platform } from 'react-native';
 import { AuthConnection } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
 
-const AUTH_SERVER_REVOKE_PATH = '/api/v1/oauth/revoke';
-const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
+export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
+export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
+export const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
 
 class AuthTokenHandler {
   async refreshJWTToken(params: {
@@ -43,10 +44,54 @@ class AuthTokenHandler {
     const refreshTokenData = await response.json();
     const idToken = refreshTokenData.id_token;
 
+    if (
+      !idToken ||
+      !refreshTokenData.access_token ||
+      !refreshTokenData.metadata_access_token
+    ) {
+      throw new Error(
+        'Failed to refresh JWT token - respoond json ' +
+          JSON.stringify(refreshTokenData),
+      );
+    }
+
     return {
       idTokens: [idToken],
       accessToken: refreshTokenData.access_token,
       metadataAccessToken: refreshTokenData.metadata_access_token,
+    };
+  }
+
+  async renewRefreshToken(params: {
+    connection: AuthConnection;
+    revokeToken: string;
+  }) {
+    const { connection, revokeToken } = params;
+    const loginHandler = createLoginHandler(Platform.OS, connection);
+
+    const requestData = {
+      revoke_token: revokeToken,
+    };
+
+    const response = await fetch(
+      `${loginHandler.options.authServerUrl}${AUTH_SERVER_RENEW_PATH}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to renew refresh token - ' + response.statusText);
+    }
+
+    const responseData = await response.json();
+    return {
+      newRefreshToken: responseData.refresh_token,
+      newRevokeToken: responseData.revoke_token,
     };
   }
 
@@ -73,14 +118,12 @@ class AuthTokenHandler {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to revoke refresh token');
+      throw new Error(
+        'Failed to revoke refresh token - ' + response.statusText,
+      );
     }
 
-    const responseData = await response.json();
-    return {
-      newRefreshToken: responseData.refresh_token,
-      newRevokeToken: responseData.revoke_token,
-    };
+    return;
   }
 }
 
