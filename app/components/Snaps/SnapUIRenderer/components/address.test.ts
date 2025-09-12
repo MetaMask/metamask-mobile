@@ -1,14 +1,15 @@
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { renderInterface } from '../testUtils';
 import { Address } from '@metamask/snaps-sdk/jsx';
 
 jest.mock('../../../../core/Engine/Engine');
 
 const withBlockies = {
-  useBlockieIcon: true,
+  avatarAccountType: AvatarAccountType.Blockies,
 };
 
 const withoutBlockies = {
-  useBlockieIcon: false,
+  avatarAccountType: AvatarAccountType.Maskicon,
 };
 
 describe('SnapUIAddress', () => {

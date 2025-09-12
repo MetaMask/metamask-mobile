@@ -198,7 +198,7 @@ export class HyperLiquidSubscriptionService {
             }
           });
 
-          DevLogger.log('🔍 Cached funding rates from initial market data:', {
+          DevLogger.log('Cached funding rates from initial market data:', {
             cachedCount: perpsMeta.universe.filter((_asset, index) => {
               const assetCtx = assetCtxs[1][index];
               return assetCtx && 'funding' in assetCtx;
@@ -323,7 +323,13 @@ export class HyperLiquidSubscriptionService {
             // Process trigger orders for TP/SL
             if (order.triggerPx) {
               const coin = order.coin;
-              const position = positions.find((p) => p.coin === coin);
+              const position = positions.find(
+                (p) =>
+                  p.coin === coin &&
+                  order.reduceOnly &&
+                  Math.abs(parseFloat(p.size)) ===
+                    Math.abs(parseFloat(order.sz)),
+              );
 
               if (position) {
                 const existing = tpslMap.get(coin) || {};

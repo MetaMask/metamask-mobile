@@ -14,10 +14,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.alternative, // Darker contrasting background
+      backgroundColor: colors.background.section,
       borderRadius: 12,
       padding: 16,
-      marginVertical: 6,
+      marginVertical: 8,
     },
     collapsedContainer: {
       borderRadius: 8,
@@ -64,7 +64,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingVertical: 16,
-      marginBottom: 16,
+      marginBottom: 4,
     },
     bodyRow: {
       flexDirection: 'row',
@@ -88,7 +88,14 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerButton: {
       flex: 1,
-      borderColor: colors.border.default,
+    },
+    fundingCostLabelRightMargin: {
+      marginRight: 4,
+    },
+    fundingCostLabelFlex: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
     },
   });
 };

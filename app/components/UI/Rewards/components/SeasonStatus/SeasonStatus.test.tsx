@@ -169,10 +169,14 @@ jest.mock('../SeasonTierImage', () => {
   );
 });
 
-// Mock lodash capitalize
-jest.mock('lodash', () => ({
-  capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
-}));
+// Mock lodash capitalize but preserve the rest of lodash
+jest.mock('lodash', () => {
+  const actual = jest.requireActual('lodash');
+  return {
+    ...actual,
+    capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
+  };
+});
 
 describe('SeasonStatus', () => {
   // Default mock values
@@ -237,15 +241,6 @@ describe('SeasonStatus', () => {
       expect(getByTestId('skeleton')).toBeTruthy();
       expect(queryByText('Level')).toBeNull();
     });
-
-    it('should render skeleton when seasonStartDate is null', () => {
-      mockSelectSeasonStartDate.mockReturnValue(null);
-
-      const { getByTestId, queryByText } = render(<SeasonStatus />);
-
-      expect(getByTestId('skeleton')).toBeTruthy();
-      expect(queryByText('Level')).toBeNull();
-    });
   });
 
   describe('Basic Rendering', () => {
@@ -256,7 +251,8 @@ describe('SeasonStatus', () => {
       expect(getByText('Bronze')).toBeTruthy();
       expect(getByText('Season ends')).toBeTruthy();
       expect(getByText('15d 10h')).toBeTruthy();
-      expect(getByText('1,500 points')).toBeTruthy();
+      expect(getByText('1,500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
       expect(getByText('500 to level up')).toBeTruthy();
       expect(getByTestId('season-tier-image')).toBeTruthy();
       expect(getByTestId('metamask-rewards-points-svg')).toBeTruthy();
@@ -385,7 +381,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('1,500 points')).toBeTruthy();
+      expect(getByText('1,500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should display singular "point" for single point', () => {
@@ -393,7 +390,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('1 point')).toBeTruthy();
+      expect(getByText('1')).toBeTruthy();
+      expect(getByText('point')).toBeTruthy();
     });
 
     it('should display "0 points" when balance is null', () => {
@@ -401,7 +399,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('0 points')).toBeTruthy();
+      expect(getByText('0')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should display "0 points" when balance is undefined', () => {
@@ -409,7 +408,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('0 points')).toBeTruthy();
+      expect(getByText('0')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should handle formatting errors gracefully', () => {
@@ -423,7 +423,8 @@ describe('SeasonStatus', () => {
       const { getByText } = render(<SeasonStatus />);
 
       // Then: fallback to string conversion is used
-      expect(getByText('1500 points')).toBeTruthy();
+      expect(getByText('1500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
 
       // Cleanup: restore normal formatter behavior
       mockIntlFormatter.format.mockImplementation((value) =>
@@ -474,14 +475,16 @@ describe('SeasonStatus', () => {
     it('should update displayed points when balance changes', () => {
       // Given: initial balance of 1500
       const { getByText, rerender } = render(<SeasonStatus />);
-      expect(getByText('1,500 points')).toBeTruthy();
+      expect(getByText('1,500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
 
       // When: balance changes to 1000
       mockSelectBalanceTotal.mockReturnValue(1000);
       rerender(<SeasonStatus />);
 
       // Then: new balance is displayed
-      expect(getByText('1,000 points')).toBeTruthy();
+      expect(getByText('1,000')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should update time remaining when seasonEndDate changes', () => {

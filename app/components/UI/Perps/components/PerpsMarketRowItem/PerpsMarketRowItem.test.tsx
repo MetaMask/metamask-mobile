@@ -73,7 +73,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000.00')).toBeOnTheScreen();
-      expect(screen.getByText('+$2,000.00 (+4.00%)')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       expect(screen.getByText('$2.5B')).toBeOnTheScreen();
     });
 
@@ -90,7 +90,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
       const tokenLogo = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
+        getPerpsMarketRowItemSelector.tokenLogo('BTC'),
       );
       expect(tokenLogo).toBeOnTheScreen();
       expect(tokenLogo.props['data-symbol']).toBe('BTC');
@@ -186,7 +186,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={largePriceChangeMarket} />);
 
-      expect(screen.getByText('+$25,000.00 (+85.50%)')).toBeOnTheScreen();
+      expect(screen.getByText('+85.50%')).toBeOnTheScreen();
     });
   });
 
@@ -218,7 +218,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={specialCharMarket} />);
 
       expect(screen.getByText('BTC/USD')).toBeOnTheScreen();
-      expect(screen.getByText('+$1,000.00 (+2.50%)')).toBeOnTheScreen();
+      expect(screen.getByText('+2.50%')).toBeOnTheScreen();
     });
 
     it('handles unicode characters', () => {
@@ -255,9 +255,15 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={customMarket} />);
 
       const avatar = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('ETH'),
+        getPerpsMarketRowItemSelector.tokenLogo('ETH'),
       );
       expect(avatar).toBeOnTheScreen();
+
+      // Also assert the row container keeps its own testID
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('ETH'),
+      );
+      expect(rowItem).toBeOnTheScreen();
     });
   });
 
@@ -324,7 +330,7 @@ describe('PerpsMarketRowItem', () => {
 
       // Should keep original data when price is the same
       expect(screen.getByText('$52,000.00')).toBeOnTheScreen();
-      expect(screen.getByText('+$2,000.00 (+4.00%)')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
     });
 
     it('handles negative price changes correctly', () => {
@@ -413,7 +419,7 @@ describe('PerpsMarketRowItem', () => {
 
       expect(screen.getByText('$53,000.00')).toBeOnTheScreen();
       // Should keep original change data when percentChange24h is missing
-      expect(screen.getByText('+$2,000.00 (+4.00%)')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       // Should keep original volume when volume24h is missing
       expect(screen.getByText('$2.5B')).toBeOnTheScreen();
     });
@@ -483,8 +489,8 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // With 2 decimal enforcement, very small prices show as $0.00
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      // With PRICE_RANGES_DETAILED_VIEW, small prices preserve 3 significant digits
+      expect(screen.getByText('$0.000123')).toBeOnTheScreen();
     });
 
     it('handles very large price values', () => {

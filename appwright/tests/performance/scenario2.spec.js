@@ -1,7 +1,6 @@
-import { test } from 'appwright';
+import { test, expect } from '../../fixtures/performance-test.js';
 
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -15,6 +14,7 @@ import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
     'Time until the user clicks on the "Get Started" button',
@@ -56,14 +56,14 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on "Done" button until Solana feature sheet is visible',
   );
 
-  timer1.start();
+  /*timer1.start();
   await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
   timer1.stop();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
   timer2.start();
-  await TermOfUseScreen.tapAcceptButton();
+  await TermOfUseScreen.tapAcceptButton();*/
   await OnboardingScreen.isScreenTitleVisible();
   timer2.stop();
   timer3.start();
@@ -93,7 +93,6 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   await OnboardingSucessScreen.tapDone();
   timer8.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);

@@ -5,7 +5,6 @@ import {
   ScrollView,
   Switch,
   View,
-  Image,
   TouchableOpacity,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -22,12 +21,13 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setSearchEngine,
   setPrimaryCurrency,
-  setUseBlockieIcon,
+  setAvatarAccountType,
   setHideZeroBalanceTokens,
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
-import { toDataUrl } from '../../../../util/blockies.js';
-import Jazzicon from 'react-native-jazzicon';
+import AvatarAccount, {
+  AvatarAccountType,
+} from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
@@ -39,6 +39,7 @@ import Text, {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { colors as staticColors } from '../../../../styles/common';
 
 const diameter = 40;
 const spacing = 8;
@@ -132,30 +133,31 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     identicon_row: {
-      width: '50%',
+      width: '33%',
       alignItems: 'center',
-      flexDirection: 'row',
+      flexDirection: 'column',
     },
     identiconText: {
-      marginLeft: 12,
+      marginTop: 12,
     },
     blockie: {
       height: diameter,
       width: diameter,
       borderRadius: diameter / 2,
     },
-    border: {
-      height: diameter + spacing,
-      width: diameter + spacing,
-      borderRadius: (diameter + spacing) / 2,
-      backgroundColor: colors.background.default,
+    avatarWrapper: {
+      borderRadius: 12,
+      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
+      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
       borderWidth: 2,
-      borderColor: colors.background.default,
-      alignItems: 'center',
       justifyContent: 'center',
+      alignItems: 'center',
     },
-    selected: {
+    selectedAvatarWrapper: {
       borderColor: colors.primary.default,
+    },
+    unselectedAvatarWrapper: {
+      borderColor: staticColors.transparent,
     },
   });
 
@@ -189,13 +191,13 @@ class Settings extends PureComponent {
      */
     primaryCurrency: PropTypes.string,
     /**
-     * Show a BlockieIcon instead of JazzIcon
+     * Selected avatar style (Maskicon | Blockies | JazzIcon)
      */
-    useBlockieIcon: PropTypes.bool,
+    avatarAccountType: PropTypes.string,
     /**
-     * called to toggle BlockieIcon
+     * Called to set avatar style
      */
-    setUseBlockieIcon: PropTypes.func,
+    setAvatarAccountType: PropTypes.func,
     /**
      * A string that represents the selected address
      */
@@ -326,8 +328,8 @@ class Settings extends PureComponent {
     const {
       currentCurrency,
       primaryCurrency,
-      useBlockieIcon,
-      setUseBlockieIcon,
+      avatarAccountType,
+      setAvatarAccountType,
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
@@ -477,28 +479,69 @@ class Settings extends PureComponent {
             <View style={styles.accessory}>
               <View style={styles.identicon_container}>
                 <TouchableOpacity
-                  onPress={() => setUseBlockieIcon(false)}
+                  onPress={() =>
+                    setAvatarAccountType(AvatarAccountType.Maskicon)
+                  }
                   style={styles.identicon_row}
                 >
                   <View
-                    style={[styles.border, !useBlockieIcon && styles.selected]}
+                    style={[
+                      styles.avatarWrapper,
+                      avatarAccountType === AvatarAccountType.Maskicon
+                        ? styles.selectedAvatarWrapper
+                        : styles.unselectedAvatarWrapper,
+                    ]}
                   >
-                    <Jazzicon size={diameter} address={selectedAddress} />
+                    <AvatarAccount
+                      type={AvatarAccountType.Maskicon}
+                      accountAddress={selectedAddress}
+                      size={diameter}
+                    />
+                  </View>
+                  <Text style={styles.identiconText}>Maskicons</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    setAvatarAccountType(AvatarAccountType.JazzIcon)
+                  }
+                  style={styles.identicon_row}
+                >
+                  <View
+                    style={[
+                      styles.avatarWrapper,
+                      avatarAccountType === AvatarAccountType.JazzIcon
+                        ? styles.selectedAvatarWrapper
+                        : styles.unselectedAvatarWrapper,
+                    ]}
+                  >
+                    <AvatarAccount
+                      type={AvatarAccountType.JazzIcon}
+                      accountAddress={selectedAddress}
+                      size={diameter}
+                    />
                   </View>
                   <Text style={styles.identiconText}>
                     {strings('app_settings.jazzicons')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setUseBlockieIcon(true)}
+                  onPress={() =>
+                    setAvatarAccountType(AvatarAccountType.Blockies)
+                  }
                   style={styles.identicon_row}
                 >
                   <View
-                    style={[styles.border, useBlockieIcon && styles.selected]}
+                    style={[
+                      styles.avatarWrapper,
+                      avatarAccountType === AvatarAccountType.Blockies
+                        ? styles.selectedAvatarWrapper
+                        : styles.unselectedAvatarWrapper,
+                    ]}
                   >
-                    <Image
-                      source={{ uri: toDataUrl(selectedAddress) }}
-                      style={styles.blockie}
+                    <AvatarAccount
+                      type={AvatarAccountType.Blockies}
+                      accountAddress={selectedAddress}
+                      size={diameter}
                     />
                   </View>
                   <Text style={styles.identiconText}>
@@ -521,7 +564,7 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
-  useBlockieIcon: state.settings.useBlockieIcon,
+  avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
@@ -531,8 +574,8 @@ const mapDispatchToProps = (dispatch) => ({
   setSearchEngine: (searchEngine) => dispatch(setSearchEngine(searchEngine)),
   setPrimaryCurrency: (primaryCurrency) =>
     dispatch(setPrimaryCurrency(primaryCurrency)),
-  setUseBlockieIcon: (useBlockieIcon) =>
-    dispatch(setUseBlockieIcon(useBlockieIcon)),
+  setAvatarAccountType: (avatarAccountType) =>
+    dispatch(setAvatarAccountType(avatarAccountType)),
   setHideZeroBalanceTokens: (hideZeroBalanceTokens) =>
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });

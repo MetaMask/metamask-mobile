@@ -48,28 +48,20 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       borderTopColor: theme.colors.border.muted,
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: 32, // Extra padding for safe area
+      paddingBottom: 26,
     },
-
     // Action buttons container
     actionsContainer: {
       flexDirection: 'row',
       gap: 12,
     },
-
     // Single action container (for add funds)
     singleActionContainer: {
       alignItems: 'center',
       gap: 12,
     },
-    actionButton: {
+    actionButtonWrapper: {
       flex: 1,
-    },
-    longButton: {
-      backgroundColor: theme.colors.success.default,
-    },
-    shortButton: {
-      backgroundColor: theme.colors.error.default,
     },
     errorContainer: {
       flex: 1,
@@ -78,7 +70,7 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       padding: 24,
     },
     riskDisclaimer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 4,
       paddingTop: 8,
       textAlign: 'left',
     },
