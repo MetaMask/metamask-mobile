@@ -32,6 +32,7 @@ export type { TimeDuration } from '../../constants/chartConfig';
 export interface TradingViewChartRef {
   resetToDefault: () => void;
   zoomToLatestCandle: (candleCount?: number) => void;
+  clearTPSLLines: () => void;
 }
 
 interface TradingViewChartProps {
@@ -151,6 +152,16 @@ const TradingViewChart = React.forwardRef<
       },
       [isChartReady, visibleCandleCount],
     );
+
+    // Clear TPSL lines (except current price line)
+    const clearTPSLLines = useCallback(() => {
+      if (webViewRef.current && isChartReady) {
+        const message = {
+          type: 'CLEAR_TPSL_LINES',
+        };
+        webViewRef.current.postMessage(JSON.stringify(message));
+      }
+    }, [isChartReady]);
 
     // Handle messages from WebView
     const handleWebViewMessage = useCallback(
@@ -290,11 +301,19 @@ const TradingViewChart = React.forwardRef<
 
     // Update auxiliary lines when they change
     useEffect(() => {
-      if (isChartReady && tpslLines) {
-        sendMessage({
-          type: 'ADD_AUXILIARY_LINES',
-          lines: tpslLines,
-        });
+      if (isChartReady) {
+        if (tpslLines) {
+          // Update TPSL lines when they exist
+          sendMessage({
+            type: 'ADD_AUXILIARY_LINES',
+            lines: tpslLines,
+          });
+        } else {
+          // Clear TPSL lines when they don't exist (position closed)
+          sendMessage({
+            type: 'CLEAR_TPSL_LINES',
+          });
+        }
       }
     }, [tpslLines, isChartReady, sendMessage]);
 
@@ -304,8 +323,9 @@ const TradingViewChart = React.forwardRef<
       () => ({
         resetToDefault,
         zoomToLatestCandle,
+        clearTPSLLines,
       }),
-      [resetToDefault, zoomToLatestCandle],
+      [resetToDefault, zoomToLatestCandle, clearTPSLLines],
     );
 
     // Handle WebView errors

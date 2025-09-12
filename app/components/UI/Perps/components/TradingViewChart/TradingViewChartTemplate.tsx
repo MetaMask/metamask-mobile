@@ -789,6 +789,53 @@ export const createTradingViewChartTemplate = (
                             console.log('📊 TradingView: Zoomed to latest', candleCount, 'candles');
                         }
                         break;
+                    case 'CLEAR_TPSL_LINES':
+                        // Clear all TPSL lines except current price line
+                        if (window.candlestickSeries) {
+                            // Remove entry price line
+                            if (window.priceLines.entryPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.entryPrice);
+                                    window.priceLines.entryPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing entry line:', error);
+                                }
+                            }
+                            
+                            // Remove take profit line
+                            if (window.priceLines.takeProfitPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.takeProfitPrice);
+                                    window.priceLines.takeProfitPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing take profit line:', error);
+                                }
+                            }
+                            
+                            // Remove stop loss line
+                            if (window.priceLines.stopLossPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.stopLossPrice);
+                                    window.priceLines.stopLossPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing stop loss line:', error);
+                                }
+                            }
+                            
+                            // Remove liquidation line
+                            if (window.priceLines.liquidationPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.liquidationPrice);
+                                    window.priceLines.liquidationPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing liquidation line:', error);
+                                }
+                            }
+                            
+                            // Note: currentPrice line is intentionally preserved
+                            console.log('📊 TradingView: Cleared TPSL lines (preserved current price line)');
+                        }
+                        break;
                     case 'UPDATE_INTERVAL':
                         // Send confirmation back to React Native
                         if (window.ReactNativeWebView) {
