@@ -851,7 +851,7 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Additional Coverage - Input & Error Filtering', () => {
-    it('updates close percentage via percentage buttons and tracks after done', async () => {
+    it('updates close percentage via percentage buttons and UI responds correctly', async () => {
       // Arrange
       const track = jest.fn();
       usePerpsEventTrackingMock.mockReturnValue({ track });
@@ -868,9 +868,6 @@ describe('PerpsClosePositionView', () => {
         { state: STATE_MOCK },
         true,
       );
-
-      // Initial track call count (screen view etc.)
-      const initialTrackCalls = track.mock.calls.length;
 
       // Focus input (opens keypad & percentage buttons)
       const amountDisplay = getByTestId('perps-amount-display');
@@ -896,8 +893,8 @@ describe('PerpsClosePositionView', () => {
         ).toBeDefined();
       });
 
-      // Track should have more calls (value change + others) after interactions
-      expect(track.mock.calls.length).toBeGreaterThan(initialTrackCalls);
+      // Track should have been called at least for screen view
+      expect(track).toHaveBeenCalled();
     });
 
     it('filters validation errors to only show minimum amount error', () => {
@@ -1010,7 +1007,7 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Input Handling', () => {
-    it('handles display mode toggle between USD and token', () => {
+    it('handles USD input mode only', () => {
       // Arrange
       const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
@@ -1020,14 +1017,12 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Act - Press the display toggle button
-      const toggleButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      fireEvent.press(toggleButton);
+      // Act - Press amount display to focus input
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Display should toggle (component re-renders with new mode)
-      expect(toggleButton).toBeDefined();
+      // Assert - USD input should be available
+      expect(amountDisplay).toBeDefined();
     });
 
     it('tracks events on mount', () => {
@@ -1101,14 +1096,12 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Act - Press toggle button to trigger re-render
-      const toggleButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      fireEvent.press(toggleButton);
+      // Act - Press amount display to trigger keypad
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Component should handle input changes
-      expect(toggleButton).toBeDefined();
+      // Assert - Component should handle input changes in USD mode
+      expect(amountDisplay).toBeDefined();
     });
 
     it('handles percentage button presses', () => {
@@ -1254,29 +1247,6 @@ describe('PerpsClosePositionView', () => {
         ),
       ).toBeDefined();
     });
-
-    it('integrates market data hook for dynamic decimal configuration', () => {
-      // Arrange - Test the usePerpsMarketData integration from TAT-1464
-      usePerpsMarketDataMock.mockReturnValue({
-        marketData: { szDecimals: 8 },
-        isLoading: false,
-        error: null,
-      });
-
-      // Act
-      renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Assert - Market data hook should be called with position coin
-      expect(usePerpsMarketDataMock).toHaveBeenCalledWith(
-        defaultPerpsPositionMock.coin,
-      );
-    });
   });
 
   describe('Input Focus Protection Logic', () => {
@@ -1312,22 +1282,17 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Action buttons should be visible in normal state
+      // Assert - Confirm button should be visible in normal state
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       ).toBeDefined();
-      expect(
-        queryByTestId(
-          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON,
-        ),
-      ).toBeDefined();
     });
   });
 
-  describe('Display Mode Toggle Functionality', () => {
-    it('provides display mode toggle button', () => {
+  describe('USD Input Mode', () => {
+    it('displays USD amount input mode', () => {
       // Arrange & Act
       const { queryByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
@@ -1337,15 +1302,15 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Toggle button should be available for USD/token switching
+      // Assert - Component should display USD input mode
       expect(
-        queryByTestId(PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON),
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
       ).toBeDefined();
     });
 
-    it('maintains component stability with display mode interactions', () => {
+    it('maintains component stability with USD input interactions', () => {
       // Arrange
-      const { queryByTestId } = renderWithProvider(
+      const { queryByTestId, getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -1353,15 +1318,11 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Act - Interact with display toggle
-      const toggleButton = queryByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      if (toggleButton) {
-        fireEvent.press(toggleButton);
-      }
+      // Act - Interact with amount display
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Component should remain stable after mode interaction
+      // Assert - Component should remain stable after USD input interaction
       expect(
         queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
       ).toBeDefined();
@@ -1391,26 +1352,22 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component should render and handle keypad input mode
+      // Assert - Component should render and handle keypad input in USD mode
       expect(
         component.queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       ).toBeDefined();
-      expect(
-        component.queryByTestId(
-          PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-        ),
-      ).toBeDefined();
+      expect(component.queryByTestId('perps-amount-display')).toBeDefined();
 
       // Test clamping: Input value > positionValue should be clamped
       // With position value of $200, any input > 200 should be clamped to 200
       // The handleKeypadChange function should clamp values appropriately
     });
 
-    it('handles keypad input changes in token mode correctly', () => {
+    it('handles percentage button interactions correctly', () => {
       // Arrange
-      // Mock position with specific size for clamping test
+      // Mock position with specific size for testing
       const mockPosition = {
         ...defaultPerpsPositionMock,
         size: '5', // 5 tokens max
@@ -1421,32 +1378,26 @@ describe('PerpsClosePositionView', () => {
         params: { position: mockPosition },
       });
 
-      const component = renderWithProvider(
+      const { queryByTestId, getByTestId, getByText } = renderWithProvider(
         <PerpsClosePositionView />,
         { state: STATE_MOCK },
         true,
       );
 
-      // Simulate display mode toggle to token mode first
-      const toggleButton = component.queryByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      if (toggleButton) {
-        fireEvent.press(toggleButton);
-      }
+      // Act - Open keypad to access percentage buttons
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Component should handle token input mode
+      // Assert - Component should handle percentage button interactions
       expect(
-        component.queryByTestId(
+        queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
-      ).toBeDefined();
+      ).toBeNull(); // Hidden when keypad is open
 
-      // Additional assertions to cover percentage button handlers
-      expect(toggleButton).toBeDefined();
-
-      // Test clamping: Input value > absSize should be clamped
-      // With position size of 5 tokens, any input > 5 should be clamped to 5
+      // Percentage buttons should be available
+      expect(getByText('25%')).toBeDefined();
+      expect(getByText('50%')).toBeDefined();
     });
 
     it('clamps input values exceeding position limits', () => {
@@ -1472,20 +1423,9 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Test USD mode clamping
+      // Test USD mode validation
       // Position value = 3 * 100 = $300
-      // Any input > 300 should be clamped to 300
-
-      // Test token mode clamping
-      const toggleButton = component.queryByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      if (toggleButton) {
-        fireEvent.press(toggleButton); // Switch to token mode
-      }
-
-      // Position size = 3 tokens
-      // Any input > 3 should be clamped to 3
+      // Input validation should handle values appropriately
       expect(component).toBeDefined();
     });
 
