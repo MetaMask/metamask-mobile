@@ -135,8 +135,7 @@ export class ConnectionRegistry {
       throw new Error('[SDKConnectV2] Payload too large (max 1MB).');
     }
 
-    let connreq: unknown;
-    connreq = JSON.parse(payload);
+    const connreq: unknown = JSON.parse(payload);
 
     if (!isConnectionRequest(connreq)) {
       throw new Error('[SDKConnectV2] Invalid connection request structure.');
