@@ -38,17 +38,6 @@ describe('ActionListItem', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('should render correctly with rounded prop', () => {
-      const { toJSON } = render(
-        <ActionListItem
-          {...SAMPLE_ACTIONLISTITEM_PROPS}
-          onPress={mockOnPress}
-          rounded
-        />,
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-
     it('should render with string label', () => {
       const testLabel = 'Test Label';
       const { getByText } = render(

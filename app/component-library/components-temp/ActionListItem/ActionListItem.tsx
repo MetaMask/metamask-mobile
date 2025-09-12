@@ -30,7 +30,6 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   descriptionTextProps,
   iconProps,
   isDisabled = false,
-  rounded = false,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -97,9 +96,8 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
         'bg-default px-4 py-3',
         pressed && !isDisabled && 'bg-default-pressed',
         isDisabled && 'opacity-50',
-        rounded && 'rounded-lg',
       ),
-    [tw, isDisabled, rounded],
+    [tw, isDisabled],
   );
 
   return (
