@@ -264,12 +264,12 @@ export const createTradingViewChartTemplate = (
             }
             // Create new candlestick series with performance optimizations
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
-                upColor: '#BAF24A',
-                downColor: '#FF7584',
+                upColor: '${theme.colors.success.default}',
+                downColor: '${theme.colors.error.default}',
                 borderVisible: false,
-                wickUpColor: '#BAF24A',
-                wickDownColor: '#FF7584',
-                priceLineColor: '#FFF',
+                wickUpColor: '${theme.colors.success.default}',
+                wickDownColor: '${theme.colors.error.default}',
+                priceLineColor: '${theme.colors.icon.alternative}',
                 priceLineWidth: 1,
                 lastValueVisible: false,
                 // Use native PriceLineSource for better price line handling

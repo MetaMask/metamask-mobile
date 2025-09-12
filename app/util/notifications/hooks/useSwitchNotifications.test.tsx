@@ -13,7 +13,6 @@ import {
   useFeatureAnnouncementToggle,
   useFetchAccountNotifications,
   useNotificationsToggle,
-  usePerpsNotificationToggle,
   useSwitchNotificationLoadingText,
 } from './useSwitchNotifications';
 
@@ -473,95 +472,5 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
   it('returns undefined when no loading state is active', () => {
     const { hook } = arrangeAct();
     expect(hook.result.current).toBeUndefined();
-  });
-});
-
-describe('useSwitchNotifications - usePerpsNotificationToggle()', () => {
-  const arrangeMocks = () => {
-    const mockListNotifications = jest.fn();
-    const mockUseListNotifications = jest
-      .spyOn(UseNotificationsModule, 'useListNotifications')
-      .mockReturnValue({
-        error: null,
-        isLoading: false,
-        notificationsData: [],
-        listNotifications: mockListNotifications,
-      });
-
-    const mockSelectIsEnabled = jest
-      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
-      .mockReturnValue(true);
-    const mockSelectIsPerpsNotificationsEnabled = jest
-      .spyOn(Selectors, 'selectIsPerpsNotificationsEnabled')
-      .mockReturnValue(false);
-
-    const mockTogglePerpsNotifications = jest
-      .spyOn(Actions, 'togglePerpsNotifications')
-      .mockImplementation(jest.fn());
-
-    return {
-      mockListNotifications,
-      mockUseListNotifications,
-      mockSelectIsEnabled,
-      mockSelectIsPerpsNotificationsEnabled,
-      mockTogglePerpsNotifications,
-    };
-  };
-
-  type Mocks = ReturnType<typeof arrangeMocks>;
-  const arrangeAct = async (val: boolean, mutateMocks?: (m: Mocks) => void) => {
-    // Arrange
-    const mocks = arrangeMocks();
-    mutateMocks?.(mocks);
-    const hook = renderHookWithProvider(() => usePerpsNotificationToggle());
-
-    // Act
-    await act(() => hook.result.current.switchPerpsNotifications(val));
-
-    return { mocks, hook };
-  };
-
-  it('performs enable perps notifications flow', async () => {
-    const { mocks } = await arrangeAct(true);
-    await waitFor(() =>
-      expect(mocks.mockTogglePerpsNotifications).toHaveBeenCalledWith(true),
-    );
-    await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
-  });
-
-  it('performs disable perps notifications flow', async () => {
-    const { mocks } = await arrangeAct(false);
-    await waitFor(() =>
-      expect(mocks.mockTogglePerpsNotifications).toHaveBeenCalledWith(false),
-    );
-    await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
-  });
-
-  it('bails if notifications are not enabled', async () => {
-    const { mocks } = await arrangeAct(true, (m) =>
-      m.mockSelectIsEnabled.mockReturnValue(false),
-    );
-    await waitFor(() =>
-      expect(mocks.mockTogglePerpsNotifications).not.toHaveBeenCalledWith(true),
-    );
-    await waitFor(() =>
-      expect(mocks.mockListNotifications).not.toHaveBeenCalled(),
-    );
-  });
-
-  it('returns current perps notifications enabled state', () => {
-    const mocks = arrangeMocks();
-    mocks.mockSelectIsPerpsNotificationsEnabled.mockReturnValue(true);
-    const hook = renderHookWithProvider(() => usePerpsNotificationToggle());
-
-    expect(hook.result.current.data).toBe(true);
-  });
-
-  it('returns false when perps notifications are disabled', () => {
-    const mocks = arrangeMocks();
-    mocks.mockSelectIsPerpsNotificationsEnabled.mockReturnValue(false);
-    const hook = renderHookWithProvider(() => usePerpsNotificationToggle());
-
-    expect(hook.result.current.data).toBe(false);
   });
 });
