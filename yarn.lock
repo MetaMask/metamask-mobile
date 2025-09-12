@@ -2739,6 +2739,23 @@
     resolve-from "^5.0.0"
     semver "^7.6.0"
 
+"@expo/fingerprint@^0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@expo/fingerprint/-/fingerprint-0.15.0.tgz#4e8d8e5b5ec96c6132ef3426dc314a36130304af"
+  integrity sha512-PrLA6fxScZfnLy7OHZ2GHXsDG9YbE7L5DbNhion6j/U/O+FQgz4VbxJarW5C00kMg1ll2u6EghB7ENAvL1T4qg==
+  dependencies:
+    "@expo/spawn-async" "^1.7.2"
+    arg "^5.0.2"
+    chalk "^4.1.2"
+    debug "^4.3.4"
+    getenv "^2.0.0"
+    glob "^10.4.2"
+    ignore "^5.3.1"
+    minimatch "^9.0.0"
+    p-limit "^3.1.0"
+    resolve-from "^5.0.0"
+    semver "^7.6.0"
+
 "@expo/image-utils@^0.6.5":
   version "0.6.5"
   resolved "https://registry.yarnpkg.com/@expo/image-utils/-/image-utils-0.6.5.tgz#af25e9dd79d1168bebea91dc7f1e6f3efd28643c"
@@ -2841,6 +2858,14 @@
     resolve-from "^5.0.0"
     semver "^7.6.0"
     xml2js "0.6.0"
+
+"@expo/repack-app@^0.2.9":
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/@expo/repack-app/-/repack-app-0.2.9.tgz#4386e5054b38cc02ccbfdc47e3a5f83e8966b704"
+  integrity sha512-ZkFacmnJMZ6Wzt73crL1Bc+cpsXzU0wG+MkXerdYx1wXa89PlLrOdIF0s1RlTbmjEBcjR/aYOKnBnwTngSsikg==
+  dependencies:
+    commander "^13.1.0"
+    picocolors "^1.1.1"
 
 "@expo/rudder-sdk-node@^1.1.1":
   version "1.1.1"
@@ -21398,6 +21423,11 @@ getenv@^1.0.0:
   resolved "https://registry.yarnpkg.com/getenv/-/getenv-1.0.0.tgz#874f2e7544fbca53c7a4738f37de8605c3fcfc31"
   integrity sha512-7yetJWqbS9sbn0vIfliPsFgoXMKn/YMF+Wuiog97x+urnSRRRZ7xB+uVkwGKzRgq9CDFfMQnE9ruL5DHv9c6Xg==
 
+getenv@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/getenv/-/getenv-2.0.0.tgz#b1698c7b0f29588f4577d06c42c73a5b475c69e0"
+  integrity sha512-VilgtJj/ALgGY77fiLam5iD336eSWi96Q15JSAG1zi8NRBysm3LXKdGnHb4m5cuyxvOLQQKWpBZAT6ni4FI2iQ==
+
 git-repo-info@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/git-repo-info/-/git-repo-info-2.1.1.tgz#220ffed8cbae74ef8a80e3052f2ccb5179aed058"
@@ -25333,7 +25363,7 @@ minimatch@^8.0.2:
   dependencies:
     brace-expansion "^2.0.1"
 
-minimatch@^9.0.1, minimatch@^9.0.4:
+minimatch@^9.0.0, minimatch@^9.0.1, minimatch@^9.0.4:
   version "9.0.5"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-9.0.5.tgz#d74f9dd6b57d83d8e98cfb82133b03978bc929e5"
   integrity sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==
