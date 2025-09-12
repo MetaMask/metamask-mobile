@@ -25,6 +25,7 @@ import { getNavbar } from '../UI/navbar/navbar';
 import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const ConfirmWrapped = ({
   styles,
@@ -53,7 +54,7 @@ const ConfirmWrapped = ({
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <AlertBanner />
+                    <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>

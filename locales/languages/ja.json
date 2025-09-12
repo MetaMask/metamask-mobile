@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "送信",
     "buy_button": "購入",
-    "fund_button": "Fund",
     "token_marketplace": "トークンマーケットプレイス",
     "sell_button": "Withdraw",
     "receive_button": "受取",
