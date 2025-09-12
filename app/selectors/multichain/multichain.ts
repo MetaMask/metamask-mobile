@@ -474,7 +474,7 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
 
         for (const entry of entries) {
           const txs = entry?.transactions ?? [];
-          aggregated.transactions = aggregated.transactions.concat(txs);
+          aggregated.transactions.push(...txs);
 
           const lu = entry?.lastUpdated;
           if (typeof lu === 'number') {

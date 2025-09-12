@@ -193,7 +193,6 @@ export function useUnifiedTxActions() {
   };
 
   return {
-    // state
     retryIsOpen,
     retryErrorMsg,
     speedUpIsOpen,
@@ -206,7 +205,6 @@ export function useUnifiedTxActions() {
     existingTx,
     speedUpTxId,
     cancelTxId,
-    // actions
     toggleRetry,
     onSpeedUpAction,
     onCancelAction,

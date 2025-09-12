@@ -2,6 +2,7 @@ import {
   selectNetworkEnablementControllerState,
   selectEnabledNetworksByNamespace,
   selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
 } from './index';
 import { RootState } from '../../reducers';
 
@@ -239,6 +240,137 @@ describe('NetworkEnablementController Selectors', () => {
       const result = selectEVMEnabledNetworks(stateWithMixedEVM);
 
       expect(result).toEqual(['0x1', '0xe708']);
+    });
+  });
+
+  describe('selectNonEVMEnabledNetworks', () => {
+    it('returns enabled non-EVM networks across namespaces', () => {
+      // Arrange / Act
+      const result = selectNonEVMEnabledNetworks(mockState);
+
+      // Assert
+      expect(result).toEqual(['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']);
+    });
+
+    it('excludes eip155 (EVM) namespace even if enabled', () => {
+      // Arrange
+      const stateWithMixed = {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                },
+                solana: {
+                  'solana:mainnet': true,
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectNonEVMEnabledNetworks(stateWithMixed);
+
+      // Assert
+      expect(result).toEqual(['solana:mainnet']);
+    });
+
+    it('handles multiple non-EVM namespaces with mixed enabled flags', () => {
+      // Arrange
+      const stateWithMultiple = {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                  '0x2105': false,
+                },
+                solana: {
+                  'solana:mainnet': true,
+                  'solana:testnet': false,
+                },
+                cosmos: {
+                  'cosmos:cosmoshub-4': true,
+                  'cosmos:osmosis-1': false,
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectNonEVMEnabledNetworks(stateWithMultiple);
+
+      // Assert
+      expect(result.sort()).toEqual(
+        ['solana:mainnet', 'cosmos:cosmoshub-4'].sort(),
+      );
+    });
+
+    it('returns empty array when there are no non-EVM namespaces', () => {
+      // Arrange
+      const stateOnlyEvm = {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectNonEVMEnabledNetworks(stateOnlyEvm);
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when enabledNetworkMap is undefined', () => {
+      // Arrange
+      const stateWithoutMap = {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {},
+          },
+        },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectNonEVMEnabledNetworks(stateWithoutMap);
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when non-EVM namespaces are present but empty', () => {
+      // Arrange
+      const stateWithEmptyNonEvm = {
+        engine: {
+          backgroundState: {
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                solana: {},
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      // Act
+      const result = selectNonEVMEnabledNetworks(stateWithEmptyNonEvm);
+
+      // Assert
+      expect(result).toEqual([]);
     });
   });
 });

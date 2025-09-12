@@ -21,9 +21,12 @@ import {
   selectChainId,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
-import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import {
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+} from '../../../selectors/networkEnablementController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSortedTransactions } from '../../../selectors/transactionController';
+import { selectSortedEVMTransactionsForSelectedAccountGroup } from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import {
   filterByAddress,
@@ -49,9 +52,14 @@ import { filterDuplicateOutgoingTransactions } from '../../UI/Transactions/utils
 import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 
+enum TransactionKind {
+  Evm = 'evm',
+  NonEvm = 'nonEvm',
+}
+
 type UnifiedItem =
-  | { kind: 'evm'; tx: TransactionMeta | SmartTransaction }
-  | { kind: 'nonEvm'; tx: NonEvmTransaction };
+  | { kind: TransactionKind.Evm; tx: TransactionMeta | SmartTransaction }
+  | { kind: TransactionKind.NonEvm; tx: NonEvmTransaction };
 
 interface UnifiedTransactionsViewProps {
   header?: React.ReactElement;
@@ -68,7 +76,9 @@ const UnifiedTransactionsView = ({
   const { colors } = useTheme();
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
-  const evmTransactions = useSelector(selectSortedTransactions);
+  const evmTransactions = useSelector(
+    selectSortedEVMTransactionsForSelectedAccountGroup,
+  );
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
@@ -88,9 +98,19 @@ const UnifiedTransactionsView = ({
   const selectedAccountGroupInternalAccountsAddresses =
     selectedAccountGroupInternalAccounts.map((account) => account.address);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
-  const enabledNetworksByNamespace = useSelector(
-    selectEnabledNetworksByNamespace,
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
+  const enabledEVMChainIds = useMemo(
+    () => enabledEVMNetworks ?? [],
+    [enabledEVMNetworks],
   );
+  const enabledNonEVMNetworks = useSelector(selectNonEVMEnabledNetworks);
+  const enabledNonEVMChainIds = useMemo(
+    () => enabledNonEVMNetworks ?? [],
+    [enabledNonEVMNetworks],
+  );
+
+  // TODO: This should be deleted once we deprecate the global network selector,
+  // we need to use the selected account group chain ids
   const currentEvmChainId = useSelector(selectChainId);
 
   const data: UnifiedItem[] = useMemo(() => {
@@ -99,19 +119,23 @@ const UnifiedTransactionsView = ({
     const addedAccountTime = selectedInternalAccount?.metadata?.importTime;
     const submittedTxs: (TransactionMeta | SmartTransaction)[] = [];
     const confirmedTxs: (TransactionMeta | SmartTransaction)[] = [];
-    const submittedNonces: string[] = [];
 
     const allTransactionsSorted = sortTransactions(
       evmTransactions || [],
-    ).filter(
-      (tx: any, index: number, self: any[]) =>
-        self.findIndex((_tx) => _tx.id === tx.id) === index,
-    );
-    const allConfirmed = allTransactionsSorted.filter((tx: any) => {
-      const filter = selectedAccountGroupInternalAccountsAddresses.some(
-        (addr) => filterByAddress(tx, tokens, addr, allTransactionsSorted),
+    ).filter((tx: any, index: number, self: any[]) => {
+      const key = 'id' in tx ? tx.id : tx.uuid;
+      return (
+        self.findIndex(
+          (_tx: any) => ('id' in _tx ? _tx.id : _tx.uuid) === key,
+        ) === index
       );
-      if (!filter) return false;
+    });
+    const allConfirmed = allTransactionsSorted.filter((tx: any) => {
+      const isReceivedOrSentTransaction =
+        selectedAccountGroupInternalAccountsAddresses.some((addr) =>
+          filterByAddress(tx, tokens, addr, allTransactionsSorted),
+        );
+      if (!isReceivedOrSentTransaction) return false;
 
       const insertImportTime = addAccountTimeFlagFilter(
         tx as any,
@@ -133,21 +157,16 @@ const UnifiedTransactionsView = ({
           confirmedTxs.push(updatedTx);
           break;
       }
-      return filter;
+      return isReceivedOrSentTransaction;
     });
 
     // Network filtering for confirmed EVM txs
     let allConfirmedFiltered: (TransactionMeta | SmartTransaction)[] = [];
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      const enabledChainIds = Object.entries(
-        (enabledNetworksByNamespace as any)?.eip155 ?? {},
-      )
-        .filter(([, enabled]) => enabled)
-        .map(([id]) => id) as any;
       allConfirmedFiltered = allConfirmed.filter((tx) =>
         isTransactionOnChains(
           tx as any,
-          enabledChainIds as any,
+          enabledEVMChainIds as any,
           allConfirmed as any,
         ),
       );
@@ -173,19 +192,25 @@ const UnifiedTransactionsView = ({
         ),
       );
     }
-    // Deduplicate submitted by nonce and drop submitted if already confirmed
+    // Deduplicate submitted by (address + chain + nonce) and drop if already confirmed
+    const seenSubmittedNonces = new Set<string>();
     const submittedTxsFiltered = submittedTxs.filter(
-      ({ chainId: _chainId, txParams }: any) => {
+      ({ chainId: _chainId, txParams }) => {
         const { from, nonce } = txParams || {};
         if (
           !selectedAccountGroupInternalAccountsAddresses.some((addr) =>
             areAddressesEqual(from, addr),
           )
-        )
+        ) {
           return false;
-        const nonceKey = `${_chainId}-${nonce}`;
-        const alreadySubmitted = submittedNonces.includes(nonceKey);
-        const alreadyConfirmed = confirmedTxs.find(
+        }
+
+        const dedupeKey = `${_chainId}-${String(from).toLowerCase()}-${nonce}`;
+        if (seenSubmittedNonces.has(dedupeKey)) {
+          return false;
+        }
+
+        const alreadyConfirmed = allConfirmedFiltered.find(
           (tx: any) =>
             selectedAccountGroupInternalAccountsAddresses.some((addr) =>
               areAddressesEqual(tx.txParams?.from, addr),
@@ -194,9 +219,12 @@ const UnifiedTransactionsView = ({
             tx.txParams?.nonce === nonce,
         );
 
-        if (alreadyConfirmed) return false;
-        submittedNonces.push(nonceKey);
-        return !alreadySubmitted;
+        if (alreadyConfirmed) {
+          return false;
+        }
+
+        seenSubmittedNonces.add(dedupeKey);
+        return true;
       },
     );
     // Ensure insertImportTime appears at least once if applicable
@@ -216,16 +244,26 @@ const UnifiedTransactionsView = ({
       allConfirmedFiltered as any,
     ) as (TransactionMeta | SmartTransaction)[];
 
+    // Non-EVM: filter by enabled chains
+    const nonEvmTransactionsForSelectedChain = nonEvmTransactions
+      .filter((tx) => enabledNonEVMChainIds.includes(tx.chain))
+      // deduplicate by id
+      .filter(
+        (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
+      );
+
     const evmPendingItems: UnifiedItem[] = evmPendingFirst.map((tx) => ({
-      kind: 'evm',
+      kind: TransactionKind.Evm,
       tx,
     }));
     const evmConfirmedItems: UnifiedItem[] = evmConfirmedDeduped.map((tx) => ({
-      kind: 'evm',
+      kind: TransactionKind.Evm,
       tx,
     }));
-    const nonEvmItems: UnifiedItem[] = (nonEvmTransactions ?? []).map((tx) => ({
-      kind: 'nonEvm',
+    const nonEvmItems: UnifiedItem[] = (
+      nonEvmTransactionsForSelectedChain ?? []
+    ).map((tx) => ({
+      kind: TransactionKind.NonEvm,
       tx,
     }));
 
@@ -233,11 +271,11 @@ const UnifiedTransactionsView = ({
     const confirmedUnified = [...evmConfirmedItems, ...nonEvmItems].sort(
       (a, b) => {
         const ta =
-          a.kind === 'evm'
+          a.kind === TransactionKind.Evm
             ? (a.tx as any)?.time ?? 0
             : ((a.tx as any)?.timestamp ?? 0) * 1000;
         const tb =
-          b.kind === 'evm'
+          b.kind === TransactionKind.Evm
             ? (b.tx as any)?.time ?? 0
             : ((b.tx as any)?.timestamp ?? 0) * 1000;
         return tb - ta;
@@ -246,14 +284,15 @@ const UnifiedTransactionsView = ({
 
     return [...evmPendingItems, ...confirmedUnified];
   }, [
-    currentEvmChainId,
-    enabledNetworksByNamespace,
     evmTransactions,
-    isPopularNetwork,
     nonEvmTransactions,
     selectedAccountGroupInternalAccountsAddresses,
+    enabledEVMChainIds,
+    enabledNonEVMChainIds,
+    isPopularNetwork,
     selectedInternalAccount,
     tokens,
+    currentEvmChainId,
   ]);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -313,7 +352,7 @@ const UnifiedTransactionsView = ({
     item: UnifiedItem;
     index: number;
   }) => {
-    if (item.kind === 'evm') {
+    if (item.kind === TransactionKind.Evm) {
       // Reuse existing EVM TransactionElement via the Transactions list item renderer
       return (
         <TransactionElement

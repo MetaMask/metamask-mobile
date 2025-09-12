@@ -66,6 +66,12 @@ const createStyles = (colors, typography) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    rowWithBorder: {
+      backgroundColor: colors.background.default,
+      flex: 1,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
+    },
     actionContainerStyle: {
       height: 25,
       padding: 0,
@@ -678,15 +684,9 @@ class TransactionElement extends PureComponent {
     return (
       <>
         <TouchableHighlight
-          style={[
-            styles.row,
-            // eslint-disable-next-line react-native/no-inline-styles
-            this.props.showBottomBorder && {
-              // eslint-disable-next-line react-native/no-inline-styles
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border.muted,
-            },
-          ]}
+          style={
+            this.props.showBottomBorder ? styles.rowWithBorder : styles.row
+          }
           onPress={this.onPressItem}
           underlayColor={colors.background.alternative}
           activeOpacity={1}

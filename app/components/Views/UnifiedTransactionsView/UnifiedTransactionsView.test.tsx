@@ -74,7 +74,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../selectors/transactionController', () => ({
-  selectSortedTransactions: jest.fn(),
+  selectSortedEVMTransactionsForSelectedAccountGroup: jest.fn(),
 }));
 jest.mock('../../../selectors/multichain/multichain', () => ({
   selectNonEvmTransactionsForSelectedAccountGroup: jest.fn(),
@@ -96,7 +96,8 @@ jest.mock('../../../selectors/networkController', () => ({
   selectIsPopularNetwork: jest.fn(),
 }));
 jest.mock('../../../selectors/networkEnablementController', () => ({
-  selectEnabledNetworksByNamespace: jest.fn(),
+  selectEVMEnabledNetworks: jest.fn(),
+  selectNonEVMEnabledNetworks: jest.fn(),
 }));
 jest.mock('../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
@@ -218,7 +219,7 @@ jest.mock('../../UI/Transactions/RetryModal', () => {
 });
 
 // Local helpers
-const { selectSortedTransactions } = jest.requireMock(
+const { selectSortedEVMTransactionsForSelectedAccountGroup } = jest.requireMock(
   '../../../selectors/transactionController',
 );
 const { selectNonEvmTransactionsForSelectedAccountGroup } = jest.requireMock(
@@ -236,9 +237,8 @@ const { selectTokens } = jest.requireMock(
 const { selectChainId, selectIsPopularNetwork } = jest.requireMock(
   '../../../selectors/networkController',
 );
-const { selectEnabledNetworksByNamespace } = jest.requireMock(
-  '../../../selectors/networkEnablementController',
-);
+const { selectEVMEnabledNetworks, selectNonEVMEnabledNetworks } =
+  jest.requireMock('../../../selectors/networkEnablementController');
 const { selectCurrentCurrency } = jest.requireMock(
   '../../../selectors/currencyRateController',
 );
@@ -255,7 +255,8 @@ describe('UnifiedTransactionsView', () => {
     jest.clearAllMocks();
 
     mockUseSelector.mockImplementation((selector: any) => {
-      if (selector === selectSortedTransactions) return [];
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
       if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
         return { transactions: [] } as any;
       if (selector === selectSelectedInternalAccount)
@@ -265,8 +266,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectTokens) return [];
       if (selector === selectChainId) return '0x1';
       if (selector === selectIsPopularNetwork) return false;
-      if (selector === selectEnabledNetworksByNamespace)
-        return { eip155: { '0x1': true } };
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
       return undefined as any;
     });
@@ -280,7 +281,7 @@ describe('UnifiedTransactionsView', () => {
   it('renders EVM transactions via TransactionElement list items', () => {
     // Arrange: two EVM transactions, one submitted and one confirmed
     (mockUseSelector as any).mockImplementation((selector: any) => {
-      if (selector === selectSortedTransactions)
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
         return [
           {
             id: 'a',
@@ -306,8 +307,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectTokens) return [];
       if (selector === selectChainId) return '0x1';
       if (selector === selectIsPopularNetwork) return false;
-      if (selector === selectEnabledNetworksByNamespace)
-        return { eip155: { '0x1': true } };
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
       return undefined;
     });
@@ -326,12 +327,13 @@ describe('UnifiedTransactionsView', () => {
 
   it('renders non-EVM transactions', () => {
     (mockUseSelector as any).mockImplementation((selector: any) => {
-      if (selector === selectSortedTransactions) return [];
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
       if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
         return {
           transactions: [
-            { id: 'n1', timestamp: 1000, chainId: 'solana:mainnet' },
-            { id: 'n2', timestamp: 2000, chainId: 'solana:mainnet' },
+            { id: 'n1', timestamp: 1000, chain: 'solana:mainnet' },
+            { id: 'n2', timestamp: 2000, chain: 'solana:mainnet' },
           ],
         };
       if (selector === selectSelectedAccountGroupInternalAccounts)
@@ -341,8 +343,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectTokens) return [];
       if (selector === selectChainId) return '0x1';
       if (selector === selectIsPopularNetwork) return false;
-      if (selector === selectEnabledNetworksByNamespace)
-        return { eip155: { '0x1': true } };
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
       return undefined;
     });
@@ -354,12 +356,13 @@ describe('UnifiedTransactionsView', () => {
   it('renders bridge non-EVM item when bridge history exists', () => {
     (global as any).__bridgeMap = { n1: { some: 'bridge' } } as any;
     (mockUseSelector as any).mockImplementation((selector: any) => {
-      if (selector === selectSortedTransactions) return [];
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
       if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
         return {
           transactions: [
-            { id: 'n1', timestamp: 1000, chainId: 'solana:mainnet' },
-            { id: 'n2', timestamp: 2000, chainId: 'solana:mainnet' },
+            { id: 'n1', timestamp: 1000, chain: 'solana:mainnet' },
+            { id: 'n2', timestamp: 2000, chain: 'solana:mainnet' },
           ],
         };
       if (selector === selectSelectedAccountGroupInternalAccounts)
@@ -369,8 +372,8 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectTokens) return [];
       if (selector === selectChainId) return '0x1';
       if (selector === selectIsPopularNetwork) return false;
-      if (selector === selectEnabledNetworksByNamespace)
-        return { eip155: { '0x1': true } };
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
       return undefined;
     });
