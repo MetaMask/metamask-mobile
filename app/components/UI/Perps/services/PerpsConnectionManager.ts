@@ -693,6 +693,13 @@ class PerpsConnectionManagerClass {
       this.connectionRefCount === 0
     );
   }
+
+  /**
+   * Check if the manager is currently connecting
+   */
+  isCurrentlyConnecting(): boolean {
+    return this.isConnecting;
+  }
 }
 
 export const PerpsConnectionManager = PerpsConnectionManagerClass.getInstance();
