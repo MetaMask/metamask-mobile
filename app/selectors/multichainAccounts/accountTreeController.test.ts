@@ -14,6 +14,7 @@ import {
   selectAccountGroupById,
   selectSelectedAccountGroupId,
   selectInternalAccountFromAccountGroup,
+  selectSelectedAccountGroupInternalAccounts,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -1418,6 +1419,123 @@ describe('AccountTreeController Selectors', () => {
         {},
       );
       expect(result).toBeNull();
+    });
+  });
+
+  describe('selectSelectedAccountGroupInternalAccounts', () => {
+    it('returns empty array when no account is selected', () => {
+      // Given a wallet with a group and internal accounts but no selected account
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1', 'account2']),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        { accountTree: { wallets: { [walletId]: wallet } } },
+        true,
+        internalAccounts,
+      );
+
+      // When selecting internal accounts for the (non-selected) group
+      const result = selectSelectedAccountGroupInternalAccounts(state);
+
+      // Then it returns an empty array
+      expect(result).toEqual([]);
+    });
+
+    it('returns internal accounts for the selected account group', () => {
+      // Given a wallet with a group that contains two accounts
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1', 'account2']),
+        },
+      };
+
+      const internalAccounts = {
+        account1: {
+          ...createMockInternalAccount('0x1', 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        { accountTree: { wallets: { [walletId]: wallet } } },
+        true,
+        internalAccounts,
+      );
+      // And a selected account that belongs to that group
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      (
+        state.engine.backgroundState.AccountsController.internalAccounts as any
+      ).selectedAccount = 'account2';
+      /* eslint-enable @typescript-eslint/no-explicit-any */
+
+      // When selecting internal accounts for the selected group
+      const result = selectSelectedAccountGroupInternalAccounts(state);
+
+      // Then it returns the list of internal account objects in the group order
+      expect(result.map((a) => a.id)).toEqual(['account1', 'account2']);
+    });
+
+    it('filters out accounts missing from internal accounts map', () => {
+      // Given a group with two account IDs but only one present in internal accounts
+      const walletId = 'keyring:test-wallet' as const;
+      const groupId = `${walletId}/ethereum` as const;
+      const wallet = {
+        id: walletId,
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          [groupId]: createMockAccountGroup(groupId, ['account1', 'account2']),
+        },
+      };
+
+      const internalAccounts = {
+        account2: {
+          ...createMockInternalAccount('0x2', 'Account 2'),
+          id: 'account2',
+        },
+      } as Record<string, InternalAccount>;
+
+      const state = createMockState(
+        { accountTree: { wallets: { [walletId]: wallet } } },
+        true,
+        internalAccounts,
+      );
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      (
+        state.engine.backgroundState.AccountsController.internalAccounts as any
+      ).selectedAccount = 'account2';
+      /* eslint-enable @typescript-eslint/no-explicit-any */
+
+      // When selecting internal accounts for the selected group
+      const result = selectSelectedAccountGroupInternalAccounts(state);
+
+      // Then it includes only the internal accounts that exist
+      expect(result.map((a) => a.id)).toEqual(['account2']);
     });
   });
 });

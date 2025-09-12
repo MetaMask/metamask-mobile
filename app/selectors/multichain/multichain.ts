@@ -41,6 +41,7 @@ import {
 } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
+import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -435,6 +436,64 @@ export const selectNonEvmTransactions = createDeepEqualSelector(
     );
   },
 );
+
+/**
+ * Returns non-EVM transactions for all internal accounts in the selected account group.
+ * Flattens transactions across all supported non-EVM chains within the group.
+ */
+export const selectNonEvmTransactionsForSelectedAccountGroup =
+  createDeepEqualSelector(
+    selectMultichainTransactions,
+    selectSelectedAccountGroupInternalAccounts,
+    (nonEvmTransactions, selectedGroupAccounts) => {
+      if (!selectedGroupAccounts || selectedGroupAccounts.length === 0) {
+        return DEFAULT_TRANSACTION_STATE_ENTRY;
+      }
+
+      const aggregated = { ...DEFAULT_TRANSACTION_STATE_ENTRY } as {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        transactions: any[];
+        next: null;
+        lastUpdated: number | undefined;
+      };
+
+      for (const account of selectedGroupAccounts) {
+        const accountTx =
+          nonEvmTransactions?.[account.id as keyof typeof nonEvmTransactions];
+        if (!accountTx) {
+          continue;
+        }
+
+        // Support both single-level and chain-scoped structures
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const entries = Array.isArray((accountTx as any)?.transactions)
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            [accountTx as any]
+          : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            Object.values(accountTx as Record<string, any>);
+
+        for (const entry of entries) {
+          const txs = entry?.transactions ?? [];
+          aggregated.transactions = aggregated.transactions.concat(txs);
+
+          const lu = entry?.lastUpdated;
+          if (typeof lu === 'number') {
+            aggregated.lastUpdated =
+              aggregated.lastUpdated !== undefined
+                ? Math.max(aggregated.lastUpdated, lu)
+                : lu;
+          }
+        }
+      }
+
+      // Sort by timestamp (non-EVM tx use seconds)
+      aggregated.transactions.sort(
+        (a, b) => (b?.timestamp ?? 0) - (a?.timestamp ?? 0),
+      );
+
+      return aggregated;
+    },
+  );
 
 export const makeSelectNonEvmAssetById = () =>
   createSelector(
