@@ -470,7 +470,7 @@ class ResetPassword extends PureComponent {
   };
 
   handleSeedlessChangePasswordError = () => {
-    // show seedless password outdated modal and force user to lock app
+    // show seedless password error modal and redirect to security settings screen
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
@@ -485,7 +485,7 @@ class ResetPassword extends PureComponent {
         ),
         type: 'error',
         icon: IconName.Danger,
-        isInteractable: true,
+        isInteractable: false,
         onPrimaryButtonPress: async () => {
           this.props.navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
         },
