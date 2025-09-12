@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -15,13 +16,18 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import { formatPrice } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  formatWithSignificantDigits,
+  PRICE_RANGES_POSITION_VIEW,
+} from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   PERPS_CONSTANTS,
   LIMIT_PRICE_CONFIG,
 } from '../../constants/perpsConfig';
+import { BigNumber } from 'bignumber.js';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -31,6 +37,7 @@ interface PerpsLimitPriceBottomSheetProps {
   limitPrice?: string;
   currentPrice?: number;
   direction?: 'long' | 'short';
+  isClosingPosition?: boolean;
 }
 
 /**
@@ -51,10 +58,15 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   limitPrice: initialLimitPrice,
   currentPrice: passedCurrentPrice = 0,
   direction = 'long',
+  isClosingPosition = false,
 }) => {
   const { colors } = useTheme();
+  const tw = useTailwind();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  // Cursor animation
+  const cursorOpacity = useRef(new Animated.Value(1)).current;
 
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
@@ -75,8 +87,28 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
+
+      // Start cursor blinking animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(cursorOpacity, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(cursorOpacity, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    } else {
+      // Stop animation when not visible
+      cursorOpacity.stopAnimation();
+      cursorOpacity.setValue(1);
     }
-  }, [isVisible]);
+  }, [isVisible, cursorOpacity]);
 
   const handleConfirm = () => {
     // Remove any formatting (commas, dollar signs) before passing the value
@@ -88,10 +120,109 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      // Enforce 9-digit limit (ignore non-digits like '.' or ',')
+      const digitCount = (value.match(/\d/g) || []).length;
+      if (digitCount > 9) {
+        return; // Ignore input that would exceed 9 digits
+      }
       setLimitPrice(value || '');
     },
     [],
   );
+
+  /**
+   * Format limit price with proper decimal handling
+   * @param price - Price string to format
+   * @returns Formatted price string
+   */
+  const formatLimitPriceValue = useCallback((price: string) => {
+    if (!price || price === '0') {
+      return '';
+    }
+
+    const formatConfig = {
+      ranges: [
+        {
+          condition: () => true,
+          threshold: 0.00000001,
+          maximumDecimals: 7,
+          minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
+        },
+      ],
+    };
+
+    return formatPerpsFiat(price, formatConfig);
+  }, []);
+
+  /**
+   * Get text color for limit price based on value
+   * @param price - Price string to check
+   * @returns Style object with color
+   */
+  const getLimitPriceTextStyle = useCallback(
+    (price: string) => {
+      const baseStyle = styles.limitPriceValue;
+      const isEmptyOrZero = !price || price === '0';
+
+      return [baseStyle, isEmptyOrZero && { color: colors.text.muted }];
+    },
+    [colors.text.muted, styles.limitPriceValue],
+  );
+
+  /**
+   * Get animated cursor style
+   * @returns Style array for animated cursor
+   */
+  const getCursorStyle = useCallback(
+    () => [
+      tw.style('w-0.5 h-5'),
+      {
+        backgroundColor: colors.primary.default,
+        opacity: cursorOpacity,
+      },
+    ],
+    [colors.primary.default, cursorOpacity, tw],
+  );
+
+  /**
+   * Compute contextual warning based on limit price vs current price
+   * Open Long: warn if limit > current (above)
+   * Open Short: warn if limit < current (below)
+   * Close Long (isClosingPosition && direction === 'short'): warn if limit < current (below)
+   * Close Short (isClosingPosition && direction === 'long'): warn if limit > current (above)
+   */
+  const limitPriceWarning = React.useMemo(() => {
+    // Sanitize inputs
+    const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
+    const price = Number(currentPrice);
+
+    if (!limitPrice || isNaN(parsedLimit) || !price || price <= 0) {
+      return '';
+    }
+
+    // Opening orders
+    if (!isClosingPosition) {
+      if (direction === 'long' && parsedLimit > price) {
+        return strings('perps.order.limit_price_modal.limit_price_above');
+      }
+      if (direction === 'short' && parsedLimit < price) {
+        return strings('perps.order.limit_price_modal.limit_price_below');
+      }
+      return '';
+    }
+
+    // Closing positions: direction prop is opposite of the underlying position
+    // direction === 'short' => closing a LONG position
+    if (isClosingPosition && direction === 'short' && parsedLimit < price) {
+      return strings('perps.order.limit_price_modal.limit_price_below');
+    }
+    // direction === 'long' => closing a SHORT position
+    if (isClosingPosition && direction === 'long' && parsedLimit > price) {
+      return strings('perps.order.limit_price_modal.limit_price_above');
+    }
+
+    return '';
+  }, [limitPrice, currentPrice, direction, isClosingPosition]);
 
   /**
    * Calculate limit price based on percentage from current market price
@@ -111,10 +242,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
       }
 
       const multiplier = 1 + percentage / 100;
-      const calculatedPrice = basePrice * multiplier;
+      const calculatedPrice = BigNumber(basePrice)
+        .multipliedBy(multiplier)
+        .toString();
       // Return the raw numeric value as a string (without formatting)
       // The display will format it when needed
-      return calculatedPrice.toFixed(2);
+      return calculatedPrice;
     },
     [currentPrice],
   );
@@ -153,31 +286,24 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           {strings('perps.order.limit_price')}
         </Text>
         <View style={styles.limitPriceDisplay}>
-          <Text
-            style={[
-              styles.limitPriceValue,
-              (!limitPrice || limitPrice === '0') && {
-                color: colors.text.muted,
-              },
-            ]}
-          >
-            {!limitPrice || limitPrice === '0'
-              ? ''
-              : formatPrice(limitPrice, {
-                  minimumDecimals: 2,
-                  maximumDecimals: 2,
-                })}
-          </Text>
+          <View style={tw.style('flex-row items-center flex-1')}>
+            <Text style={getLimitPriceTextStyle(limitPrice)}>
+              {formatLimitPriceValue(limitPrice)}
+            </Text>
+            {/* Blinking cursor */}
+            <Animated.View style={getCursorStyle()} />
+          </View>
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
-
+        {limitPriceWarning && (
+          <Text style={styles.errorText}>{limitPriceWarning}</Text>
+        )}
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
           {asset}-USD{' '}
           {currentPrice
-            ? formatPrice(currentPrice, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
+            ? formatPerpsFiat(currentPrice, {
+                ranges: PRICE_RANGES_POSITION_VIEW,
               })
             : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
         </Text>
@@ -192,7 +318,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                   key={percentage}
                   style={styles.percentageButton}
                   onPress={() =>
-                    setLimitPrice(calculatePriceForPercentage(percentage))
+                    setLimitPrice(
+                      formatWithSignificantDigits(
+                        parseFloat(calculatePriceForPercentage(percentage)),
+                        4,
+                      ).value.toString(),
+                    )
                   }
                 >
                   <Text variant={TextVariant.BodyMD}>
@@ -227,9 +358,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         <View style={styles.keypadContainer}>
           <Keypad
             value={limitPrice}
+            // This is intentionaly not a real currecy
+            // It is used to override the default decimals for USD with minimal changes
+            currency="USD_PERPS"
             onChange={handleKeypadChange}
-            currency="USD"
-            decimals={2}
+            decimals={5}
           />
         </View>
       </View>

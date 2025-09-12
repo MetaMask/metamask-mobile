@@ -5,6 +5,7 @@ import {
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
+import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 
@@ -172,6 +173,34 @@ class AccountListBottomSheet {
     await Gestures.swipe(this.accountList, 'up', {
       speed: 'fast',
     });
+  }
+
+  // V2 Multichain Accounts Methods
+  get ellipsisMenuButton(): DetoxElement {
+    return Matchers.getElementByID(AccountCellIds.MENU);
+  }
+
+  /**
+   * Tap the ellipsis menu button for a specific account in V2 multichain accounts
+   * @param accountIndex - The index of the account to tap (0-based)
+   */
+  async tapAccountEllipsisButtonV2(accountIndex: number): Promise<void> {
+    await Gestures.tapAtIndex(this.ellipsisMenuButton, accountIndex, {
+      elemDescription: `V2 ellipsis menu button for account at index ${accountIndex}`,
+    });
+  }
+
+  /**
+   * Dismiss the account list modal in V2 multichain accounts
+   * Note: EditAccountName screen auto-dismisses after save in V2, so no manual close needed
+   * V2 has multiple modal layers - need to swipe twice to fully dismiss
+   */
+  async dismissAccountListModalV2(): Promise<void> {
+    // First swipe to dismiss the MultichainAccountActions modal
+    await this.swipeToDismissAccountsModal();
+
+    // Second swipe to dismiss the AccountListBottomSheet
+    await this.swipeToDismissAccountsModal();
   }
 }
 

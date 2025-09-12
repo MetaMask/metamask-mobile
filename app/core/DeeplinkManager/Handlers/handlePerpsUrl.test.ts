@@ -229,5 +229,98 @@ describe('handlePerpsUrl', () => {
         'SOL',
       );
     });
+
+    it('should navigate to tutorial for first-time users regardless of parameters', async () => {
+      // Mock first-time user
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
+
+      // First-time users always go to tutorial, even with screen=markets parameter
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+        params: {
+          isFromDeeplink: true,
+        },
+      });
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+      // Should not call setParams or navigate to markets
+      expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('should navigate directly to markets for returning users with screen=markets parameter', async () => {
+      // Mock returning user
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
+
+      // Returning users with screen=markets parameter go directly to markets
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+      // Should not call setParams for direct navigation
+      expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('should navigate to wallet tab for returning users with regular perps URL', async () => {
+      // Mock returning user
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+
+      await handlePerpsUrl({ perpsPath: 'perps' });
+
+      // Returning users with regular perps URL go to wallet tab
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+
+      // Fast-forward timer to trigger setParams
+      jest.runAllTimers();
+
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
+    });
+
+    it('should handle screen=markets parameter with additional query params', async () => {
+      // Mock returning user
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=markets&utm_source=deeplink',
+      });
+
+      // Should navigate to markets for screen=markets parameter
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+    });
+
+    it('should log correct debug messages for parameter-based routing', async () => {
+      // Test first-time user
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePerpsUrl] Starting perps deeplink handling with path:',
+        'perps?screen=markets',
+      );
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL',
+      );
+    });
+
+    it('should log correct debug messages for returning user markets navigation', async () => {
+      // Test returning user with screen=markets parameter
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handlePerpsUrl] Returning user requesting markets, navigating directly to markets list',
+      );
+    });
   });
 });

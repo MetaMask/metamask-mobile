@@ -39,6 +39,7 @@ import Text, {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { colors as staticColors } from '../../../../styles/common';
 
 const diameter = 40;
 const spacing = 8;
@@ -144,9 +145,19 @@ const createStyles = (colors) =>
       width: diameter,
       borderRadius: diameter / 2,
     },
-    selectedAvatar: {
+    avatarWrapper: {
+      borderRadius: 12,
+      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
+      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
       borderWidth: 2,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    selectedAvatarWrapper: {
       borderColor: colors.primary.default,
+    },
+    unselectedAvatarWrapper: {
+      borderColor: staticColors.transparent,
     },
   });
 
@@ -473,17 +484,21 @@ class Settings extends PureComponent {
                   }
                   style={styles.identicon_row}
                 >
-                  <AvatarAccount
-                    type={AvatarAccountType.Maskicon}
-                    accountAddress={selectedAddress}
-                    size={diameter}
-                    style={
+                  <View
+                    style={[
+                      styles.avatarWrapper,
                       avatarAccountType === AvatarAccountType.Maskicon
-                        ? styles.selectedAvatar
-                        : undefined
-                    }
-                  />
-                  <Text style={styles.identiconText}>Mask Icons</Text>
+                        ? styles.selectedAvatarWrapper
+                        : styles.unselectedAvatarWrapper,
+                    ]}
+                  >
+                    <AvatarAccount
+                      type={AvatarAccountType.Maskicon}
+                      accountAddress={selectedAddress}
+                      size={diameter}
+                    />
+                  </View>
+                  <Text style={styles.identiconText}>Maskicons</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() =>
@@ -491,16 +506,20 @@ class Settings extends PureComponent {
                   }
                   style={styles.identicon_row}
                 >
-                  <AvatarAccount
-                    type={AvatarAccountType.JazzIcon}
-                    accountAddress={selectedAddress}
-                    size={diameter}
-                    style={
+                  <View
+                    style={[
+                      styles.avatarWrapper,
                       avatarAccountType === AvatarAccountType.JazzIcon
-                        ? styles.selectedAvatar
-                        : undefined
-                    }
-                  />
+                        ? styles.selectedAvatarWrapper
+                        : styles.unselectedAvatarWrapper,
+                    ]}
+                  >
+                    <AvatarAccount
+                      type={AvatarAccountType.JazzIcon}
+                      accountAddress={selectedAddress}
+                      size={diameter}
+                    />
+                  </View>
                   <Text style={styles.identiconText}>
                     {strings('app_settings.jazzicons')}
                   </Text>
@@ -511,16 +530,20 @@ class Settings extends PureComponent {
                   }
                   style={styles.identicon_row}
                 >
-                  <AvatarAccount
-                    type={AvatarAccountType.Blockies}
-                    accountAddress={selectedAddress}
-                    size={diameter}
-                    style={
+                  <View
+                    style={[
+                      styles.avatarWrapper,
                       avatarAccountType === AvatarAccountType.Blockies
-                        ? styles.selectedAvatar
-                        : undefined
-                    }
-                  />
+                        ? styles.selectedAvatarWrapper
+                        : styles.unselectedAvatarWrapper,
+                    ]}
+                  >
+                    <AvatarAccount
+                      type={AvatarAccountType.Blockies}
+                      accountAddress={selectedAddress}
+                      size={diameter}
+                    />
+                  </View>
                   <Text style={styles.identiconText}>
                     {strings('app_settings.blockies')}
                   </Text>

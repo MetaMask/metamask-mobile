@@ -29,17 +29,13 @@ jobs:
     needs: [needs_e2e_build]
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
-
-  needs-e2e:
-    needs: [needs_e2e_build]
-    uses: ./.github/workflows/needs-e2e.yml
   
   e2e-smoke-tests-ios:
     name: "iOS E2E Smoke Tests"
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && needs.needs-e2e.outputs.needs-e2e == 'true' }}
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, build-ios-apps, needs-e2e]
+    needs: [needs_e2e_build, build-ios-apps]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     secrets: inherit

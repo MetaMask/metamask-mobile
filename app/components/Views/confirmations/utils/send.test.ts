@@ -1,3 +1,4 @@
+import BN from 'bnjs4';
 import {
   TransactionMeta,
   TransactionType,
@@ -18,11 +19,13 @@ import {
   fromHexWithDecimals,
   fromTokenMinUnits,
   getConfusableCharacterInfo,
+  getFractionLength,
   getLayer1GasFeeForSend,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
   toBNWithDecimals,
+  toTokenMinimalUnit,
 } from './send';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -87,11 +90,12 @@ describe('prepareEVMTransaction', () => {
           name: 'MyToken',
           address: '0x123',
           chainId: '0x1',
+          decimals: 0,
         } as AssetType,
         { from: '0x123', to: '0x456', value: '100' },
       ),
     ).toStrictEqual({
-      data: '0xa9059cbb0000000000000000000000000000000000000000000000000000000000000456000000000000000000000000000000000000000000000000000000000003b27c',
+      data: '0xa9059cbb00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000064',
       from: '0x123',
       to: '0x123',
       value: '0x0',
@@ -286,6 +290,29 @@ describe('getLayer1GasFeeForSend', () => {
       value: '10',
     });
     expect(mockGetLayer1GasFee).toHaveBeenCalled();
+  });
+});
+
+describe('toTokenMinimalUnit', () => {
+  it('converts string value to token minimal units', () => {
+    expect(toTokenMinimalUnit('.1', 18)).toEqual(
+      new BN('100000000000000000', 10),
+    );
+    expect(toTokenMinimalUnit('1.75', 4)).toEqual(new BN('17500'));
+    expect(toTokenMinimalUnit('0', 0)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('0', 2)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('', 2)).toEqual(new BN('0'));
+    expect(toTokenMinimalUnit('0.75', 6)).toEqual(new BN('750000'));
+    expect(toTokenMinimalUnit('0.750251', 2)).toEqual(new BN('75'));
+  });
+});
+
+describe('getFractionLength', () => {
+  it('return width of fractional part', () => {
+    expect(getFractionLength('.1')).toEqual(1);
+    expect(getFractionLength('0')).toEqual(0);
+    expect(getFractionLength('.0001')).toEqual(4);
+    expect(getFractionLength('0.075')).toEqual(3);
   });
 });
 
