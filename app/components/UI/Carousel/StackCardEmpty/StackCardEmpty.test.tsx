@@ -34,8 +34,8 @@ jest.mock('../animations/animationTimings', () => ({
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key) => {
-    const translations = {
+  strings: jest.fn((key: string) => {
+    const translations: Record<string, string> = {
       'wallet.carousel.empty_state': "You're all caught up!",
     };
     return translations[key] || key;
