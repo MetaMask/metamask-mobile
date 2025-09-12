@@ -337,7 +337,7 @@ const TradingViewChart = React.forwardRef<
       >
         {/* Chart WebView */}
         <Box
-          twClassName="overflow-hidden rounded-lg"
+          twClassName="overflow-hidden rounded-lg bg-default"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
           {/* Show skeleton while chart is loading */}
@@ -354,7 +354,7 @@ const TradingViewChart = React.forwardRef<
           <WebView
             ref={webViewRef}
             source={{ html: htmlContent }}
-            style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
+            style={[styles.webView, { height, width: '100%', backgroundColor: 'transparent' }]} // eslint-disable-line react-native/no-inline-styles
             onMessage={handleWebViewMessage}
             onError={handleWebViewError}
             onHttpError={(syntheticEvent) => {
