@@ -89,6 +89,9 @@ import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../RPCMethods/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 
+// Timeout for fetching deprecated network version (5 seconds)
+const GET_DEPRECATED_NETWORK_VERSION_TIMEOUT = 5000;
+
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
     store.getState().engine.backgroundState.NetworkController;
@@ -313,26 +316,51 @@ export class BackgroundBridge extends EventEmitter {
 
     const { chainId } = networkClient.configuration;
 
-    let networkVersion = this.deprecatedNetworkVersions[networkClientId];
-    if (!networkVersion) {
-      const ethQuery = new EthQuery(networkClient.provider);
-      networkVersion = await new Promise((resolve) => {
-        ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
-          if (error) {
-            console.error(error);
-            resolve(null);
-          } else {
-            resolve(result);
-          }
-        });
-      });
-      this.deprecatedNetworkVersions[networkClientId] = networkVersion;
-    }
+    const networkVersion = await this.getDeprecatedNetworkVersion({
+      networkClientId,
+      networkClient,
+    });
 
     return {
       chainId,
       networkVersion: networkVersion ?? 'loading',
     };
+  }
+
+  async getDeprecatedNetworkVersion({ networkClient, networkClientId }) {
+    const networkVersion = this.deprecatedNetworkVersions[networkClientId];
+    if (networkVersion !== undefined) {
+      return networkVersion;
+    }
+
+    const ethQuery = new EthQuery(networkClient.provider);
+    const networkVersionPromise = new Promise((resolve, reject) => {
+      ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          // If the timeout below occurs before this request resolves with
+          // a valid response, we still want to use that result in future
+          // cached lookups for the network version. Because of that, we set
+          // the value to the map here, overriding any previous null or undefined value,
+          // rather than setting it from the Promise.race() below.
+          this.deprecatedNetworkVersions[networkClientId] = result;
+          resolve(result);
+        }
+      });
+    });
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('timed out fetching net_version')), GET_DEPRECATED_NETWORK_VERSION_TIMEOUT);
+    });
+
+    try {
+      return await Promise.race([networkVersionPromise, timeoutPromise]);
+    } catch (err) {
+      console.error(err);
+      this.deprecatedNetworkVersions[networkClientId] = null;
+      return null;
+    }
   }
 
   async notifyChainChanged(params) {
