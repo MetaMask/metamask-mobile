@@ -142,6 +142,27 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     setIsTPSLVisible(true);
   };
 
+  // Funding cost (cumulative since open) formatting logic
+  const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
+  const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
+  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+  // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
+  const fundingColor = isNearZeroFunding
+    ? TextColor.Default
+    : fundingSinceOpen === 0
+    ? TextColor.Default
+    : fundingSinceOpen > 0
+    ? TextColor.Error
+    : TextColor.Success;
+  const fundingDisplay = isNearZeroFunding
+    ? '$0.00'
+    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
+        Math.abs(fundingSinceOpen),
+        {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        },
+      )}`;
+
   return (
     <>
       <TouchableOpacity
@@ -170,10 +191,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </Text>
             </View>
             <View style={styles.headerRow}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
-              >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>
@@ -211,12 +229,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <View style={styles.bodyRow}>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.entry_price')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {formatPerpsFiat(position.entryPrice, {
                     ranges: PRICE_RANGES_POSITION_VIEW,
                   })}
@@ -224,12 +242,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.liquidationPrice
                     ? formatPerpsFiat(position.liquidationPrice, {
                         ranges: PRICE_RANGES_POSITION_VIEW,
@@ -239,12 +257,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.margin')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {formatPerpsFiat(position.marginUsed, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })}
@@ -255,12 +273,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <View style={[styles.bodyRow, styles.bodyRowLast]}>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.take_profit')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.takeProfitPrice
                     ? formatPerpsFiat(position.takeProfitPrice, {
                         ranges: PRICE_RANGES_POSITION_VIEW,
@@ -270,12 +288,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
               <View style={styles.bodyItem}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.position.card.stop_loss')}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {position.stopLossPrice
                     ? formatPerpsFiat(position.stopLossPrice, {
                         ranges: PRICE_RANGES_POSITION_VIEW,
@@ -286,7 +304,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               <View style={styles.bodyItem}>
                 <View style={styles.fundingCostLabelFlex}>
                   <Text
-                    variant={TextVariant.BodyXS}
+                    variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
                     style={styles.fundingCostLabelRightMargin}
                   >
@@ -307,25 +325,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={
-                    parseFloat(position.cumulativeFunding.sinceOpen) === 0
-                      ? TextColor.Default
-                      : parseFloat(position.cumulativeFunding.sinceOpen) > 0
-                      ? TextColor.Error
-                      : TextColor.Success
-                  }
-                >
-                  {parseFloat(position.cumulativeFunding.sinceOpen) >= 0
-                    ? '-'
-                    : '+'}
-                  {formatPerpsFiat(
-                    Math.abs(parseFloat(position.cumulativeFunding.sinceOpen)),
-                    {
-                      ranges: PRICE_RANGES_MINIMAL_VIEW,
-                    },
-                  )}
+                <Text variant={TextVariant.BodySM} color={fundingColor}>
+                  {fundingDisplay}
                 </Text>
               </View>
             </View>

@@ -335,6 +335,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <PerpsMarketHeader
           market={market}
           onBackPress={handleBackPress}
+          onActivityPress={() =>
+            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+              screen: Routes.TRANSACTIONS_VIEW,
+              params: { redirectToPerpsTransactions: true },
+            })
+          }
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
       </View>
@@ -412,7 +418,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 color={TextColor.Alternative}
                 onPress={handleTradingViewPress}
               >
-                Trading View
+                Trading View.
               </Text>
             </Text>
           </View>
