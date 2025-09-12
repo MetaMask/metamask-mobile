@@ -69,7 +69,8 @@ jobs:
           command: |
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
-            - name: Fingerprint build check
+
+      - name: Fingerprint build check
         id: build-decision
         uses: ./.github/actions/fingerprint-build-check
         with:
