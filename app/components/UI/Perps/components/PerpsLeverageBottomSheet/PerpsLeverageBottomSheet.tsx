@@ -213,7 +213,6 @@ const LeverageSlider: React.FC<{
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
-      thumbScale.value = 1.1; // Subtle scale effect, instant
       runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
       if (onDragStart) {
         runOnJS(onDragStart)();
@@ -533,7 +532,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           textStyle: styles.warningTextSafe,
           containerStyle: styles.warningContainerSafe,
           iconColor: IconColor.Success,
-          priceColor: LEVERAGE_COLORS.SAFE,
+          priceColor: colors.text.alternative,
         };
       case 'caution':
         return {
@@ -738,7 +737,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               <Text
                 variant={TextVariant.BodyLGMedium}
                 color={
-                  tempLeverage === value ? TextColor.Primary : TextColor.Default
+                  tempLeverage === value ? TextColor.Inverse : TextColor.Default
                 }
                 style={styles.quickSelectText}
               >

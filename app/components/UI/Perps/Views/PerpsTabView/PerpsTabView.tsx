@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -51,6 +51,8 @@ import {
   TouchablePerpsComponent,
   useCoordinatedPress,
 } from '../../components/PressablePerpsComponent/PressablePerpsComponent';
+
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 interface PerpsTabViewProps {}
 
@@ -218,12 +220,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const renderPositionsSection = () => {
     if (isInitialLoading) {
+      // Removed loading state as it was redundant to the first loading state and only appeared for very little time
       return (
-        <View style={styles.loadingContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-            {strings('perps.position.list.loading')}
-          </Text>
-        </View>
+        <Skeleton height={30} width="100%" style={styles.loadingContainer} />
       );
     }
 
@@ -278,50 +277,49 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-        >
-          {!isInitialLoading && hasNoPositionsOrOrders ? (
-            <View style={styles.firstTimeContent}>
-              <View style={styles.firstTimeContainer}>
-                <Icon
-                  name={IconName.Details}
-                  color={IconColor.Muted}
-                  size={firstTimeUserIconSize}
-                  style={styles.firstTimeIcon}
-                />
-                <Text
-                  variant={TextVariant.HeadingMD}
-                  color={TextColor.Default}
-                  style={styles.firstTimeTitle}
-                >
-                  {strings('perps.position.list.first_time_title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Muted}
-                  style={styles.firstTimeDescription}
-                >
-                  {strings('perps.position.list.first_time_description')}
-                </Text>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  label={strings('perps.position.list.start_trading')}
-                  onPress={handleNewTrade}
-                  style={styles.startTradingButton}
-                  width={ButtonWidthTypes.Full}
-                />
+        <View style={styles.content}>
+          <View style={styles.contentContainer}>
+            {!isInitialLoading && hasNoPositionsOrOrders ? (
+              <View style={styles.firstTimeContent}>
+                <View style={styles.firstTimeContainer}>
+                  <Icon
+                    name={IconName.Details}
+                    color={IconColor.Muted}
+                    size={firstTimeUserIconSize}
+                    style={styles.firstTimeIcon}
+                  />
+                  <Text
+                    variant={TextVariant.HeadingMD}
+                    color={TextColor.Default}
+                    style={styles.firstTimeTitle}
+                  >
+                    {strings('perps.position.list.first_time_title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.firstTimeDescription}
+                  >
+                    {strings('perps.position.list.first_time_description')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    size={ButtonSize.Lg}
+                    label={strings('perps.position.list.start_trading')}
+                    onPress={handleNewTrade}
+                    style={styles.startTradingButton}
+                    width={ButtonWidthTypes.Full}
+                  />
+                </View>
               </View>
-            </View>
-          ) : (
-            <View style={styles.tradeInfoContainer}>
-              <View style={styles.section}>{renderPositionsSection()}</View>
-              <View style={styles.section}>{renderOrdersSection()}</View>
-            </View>
-          )}
-        </ScrollView>
+            ) : (
+              <View style={styles.tradeInfoContainer}>
+                <View style={styles.section}>{renderPositionsSection()}</View>
+                <View style={styles.section}>{renderOrdersSection()}</View>
+              </View>
+            )}
+          </View>
+        </View>
         {isEligibilityModalVisible && (
           <Modal visible transparent animationType="none" statusBarTranslucent>
             <PerpsBottomSheetTooltip
