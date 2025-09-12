@@ -13,7 +13,6 @@ import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 import { Maskicon } from '@metamask/design-system-react-native';
 import JazzIcon from 'react-native-jazzicon';
 import { Image as RNImage } from 'react-native';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -37,10 +36,13 @@ jest.mock('../../../../selectors/assets/balances', () => {
 
 // Mock account selector to avoid deep store dependencies
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
-  const actual = jest.requireActual('../../../../selectors/multichainAccounts/accounts');
+  const actual = jest.requireActual(
+    '../../../../selectors/multichainAccounts/accounts',
+  );
   return {
     ...actual,
-    selectIconSeedAddressByAccountGroupId: () => () => '0x1234567890abcdef1234567890abcdef12345678',
+    selectIconSeedAddressByAccountGroupId: () => () =>
+      '0x1234567890abcdef1234567890abcdef12345678',
   };
 });
 
