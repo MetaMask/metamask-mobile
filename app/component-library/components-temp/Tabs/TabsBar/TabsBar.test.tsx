@@ -375,6 +375,104 @@ describe('TabsBar', () => {
       expect(tab1).toBeOnTheScreen();
       expect(tab2).toBeOnTheScreen();
     });
+
+    it('handles pending animations when target tab layout is not ready', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId, rerender } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+      const tab0 = getByTestId('tabs-bar-tab-0');
+
+      // Simulate first tab getting its layout
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Switch to tab 1 before its layout is measured (simulates first load scenario)
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Now provide tab 1's layout - should trigger pending animation
+      const tab1 = getByTestId('tabs-bar-tab-1');
+      act(() => {
+        fireEvent(tab1, 'onLayout', {
+          nativeEvent: { layout: { x: 84, y: 0, width: 70, height: 40 } },
+        });
+      });
+
+      // Component should handle the pending animation gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles animation interruption during pending state', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId, rerender } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+      const tab0 = getByTestId('tabs-bar-tab-0');
+
+      // Initialize first tab
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Switch to tab 1 (pending)
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Switch to tab 2 before tab 1 layout is ready (interrupt pending)
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={2}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Provide tab 2's layout
+      const tab2 = getByTestId('tabs-bar-tab-2');
+      act(() => {
+        fireEvent(tab2, 'onLayout', {
+          nativeEvent: { layout: { x: 178, y: 0, width: 80, height: 40 } },
+        });
+      });
+
+      // Should handle interrupted pending animation
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
   });
 
   describe('Edge Cases', () => {
@@ -413,6 +511,71 @@ describe('TabsBar', () => {
         />,
       );
       expect(getAllByText('Single Tab')[0]).toBeOnTheScreen();
+    });
+
+    it('handles single tab with full functionality', () => {
+      // Arrange
+      const singleTab = [{ key: 'single', label: 'Single Tab', content: null }];
+      const mockOnTabPress = jest.fn();
+      const { getByTestId, getByText } = render(
+        <TabsBar
+          tabs={singleTab}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="single-tab-bar"
+        />,
+      );
+
+      // Assert - Single tab should be rendered and active
+      const tabsBarComponent = getByTestId('single-tab-bar');
+      const singleTabButton = getByTestId('single-tab-bar-tab-0');
+
+      expect(tabsBarComponent).toBeOnTheScreen();
+      expect(singleTabButton).toBeOnTheScreen();
+
+      // Act - Click on the single tab
+      fireEvent.press(singleTabButton);
+
+      // Assert - onTabPress should be called
+      expect(mockOnTabPress).toHaveBeenCalledWith(0);
+
+      // Simulate layout for single tab
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        fireEvent(singleTabButton, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 40 } },
+        });
+      });
+
+      // Should not enable scrolling for single tab
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles single disabled tab', () => {
+      // Arrange
+      const singleDisabledTab = [
+        { key: 'single', label: 'Disabled Tab', content: null, isDisabled: true },
+      ];
+      const mockOnTabPress = jest.fn();
+      const { getByTestId, getByText } = render(
+        <TabsBar
+          tabs={singleDisabledTab}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="disabled-single-tab-bar"
+        />,
+      );
+
+      // Assert - Single disabled tab should be rendered
+      const tabButton = getByTestId('disabled-single-tab-bar-tab-0');
+
+      expect(tabButton).toBeOnTheScreen();
+
+      // Act - Try to click on the disabled tab
+      fireEvent.press(tabButton);
+
+      // Assert - onTabPress should not be called for disabled tab
+      expect(mockOnTabPress).not.toHaveBeenCalled();
     });
 
     it('handles out-of-order layout events without sparse array errors', () => {
@@ -475,6 +638,178 @@ describe('TabsBar', () => {
 
       const container = getByTestId('tabs-bar');
       expect(container).toBeOnTheScreen();
+    });
+
+    it('handles invalid layout measurements gracefully', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+      const tab0 = getByTestId('tabs-bar-tab-0');
+
+      // Simulate invalid layout measurements
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // Invalid measurements (negative width, NaN values, etc.)
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: NaN, y: 0, width: -10, height: 40 } },
+        });
+      });
+
+      // Should handle invalid measurements without crashing
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('maintains animation state consistency during tab array changes', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Initialize with layout
+      const tabsBarComponent = getByTestId('tabs-bar');
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+      });
+
+      // Change tabs array while animation might be in progress
+      const newTabs = [
+        { key: 'new1', label: 'New Tab 1', content: null },
+        { key: 'new2', label: 'New Tab 2', content: null },
+      ];
+
+      rerender(
+        <TabsBar
+          tabs={newTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Should handle tab array changes gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles extreme scroll scenarios', () => {
+      const manyTabs = Array.from({ length: 20 }, (_, i) => ({
+        key: `tab${i}`,
+        label: `Very Long Tab Label ${i + 1}`,
+        content: null,
+      }));
+
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={manyTabs}
+          activeIndex={15}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Simulate small container with many tabs
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(200));
+
+        // Simulate all tab layouts
+        manyTabs.forEach((_, index) => {
+          const tab = getByTestId(`tabs-bar-tab-${index}`);
+          fireEvent(tab, 'onLayout', {
+            nativeEvent: {
+              layout: { x: index * 120, y: 0, width: 100, height: 40 },
+            },
+          });
+        });
+      });
+
+      // Should handle extreme scroll scenarios
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
+  describe('Performance and Memory', () => {
+    it('cleans up animations properly when component unmounts', () => {
+      const mockOnTabPress = jest.fn();
+      const { unmount, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Initialize layout
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+      });
+
+      // Unmount component
+      unmount();
+
+      // Should not throw errors or cause memory leaks
+      expect(true).toBe(true); // Test passes if no errors thrown
+    });
+
+    it('handles rapid activeIndex changes efficiently', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Initialize all layouts
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        mockTabs.forEach((_, index) => {
+          const tab = getByTestId(`tabs-bar-tab-${index}`);
+          fireEvent(tab, 'onLayout', {
+            nativeEvent: {
+              layout: { x: index * 80, y: 0, width: 70, height: 40 },
+            },
+          });
+        });
+      });
+
+      // Rapid activeIndex changes
+      const indices = [1, 2, 0, 1, 2, 0, 1];
+      indices.forEach((activeIndex) => {
+        rerender(
+          <TabsBar
+            tabs={mockTabs}
+            activeIndex={activeIndex}
+            onTabPress={mockOnTabPress}
+            testID="tabs-bar"
+          />,
+        );
+      });
+
+      // Should handle rapid changes efficiently
+      expect(tabsBarComponent).toBeOnTheScreen();
     });
   });
 

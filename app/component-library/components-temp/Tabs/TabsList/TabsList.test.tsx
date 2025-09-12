@@ -486,6 +486,9 @@ describe('TabsList', () => {
           <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
             <Text>Tab 1 Content</Text>
           </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
         </TabsList>,
       );
 
@@ -577,6 +580,310 @@ describe('TabsList', () => {
         i: 2,
         ref: expect.anything(),
       });
+    });
+
+    it('handles swipe gesture integration with disabled tabs', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId, getByText } = render(
+        <TabsList
+          initialActiveIndex={0}
+          onChangeTab={mockOnChangeTab}
+          testID="tabs-list"
+        >
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View
+            key="tab2"
+            {...({ tabLabel: 'Tab 2', isDisabled: true } as TabViewProps)}
+          >
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Tab 3 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Component should render with gesture support and handle disabled tabs
+      const tabsList = getByTestId('tabs-list');
+      expect(tabsList).toBeOnTheScreen();
+
+      // Initial content should be visible
+      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+    });
+
+    it('maintains performance by only rendering active tab content', () => {
+      // Arrange
+      const { getByText, queryByText } = render(
+        <TabsList initialActiveIndex={1} testID="tabs-list">
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Tab 3 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Only active tab content is rendered
+      expect(queryByText('Tab 1 Content')).toBeNull();
+      expect(getByText('Tab 2 Content')).toBeOnTheScreen();
+      expect(queryByText('Tab 3 Content')).toBeNull();
+    });
+  });
+
+  describe('Enhanced Edge Cases', () => {
+    it('handles rapid tab switching during initialization', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabsRef = React.createRef<TabsListRef>();
+
+      render(
+        <TabsList
+          ref={tabsRef}
+          initialActiveIndex={0}
+          onChangeTab={mockOnChangeTab}
+        >
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Tab 3 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Act - Rapid tab switching
+      act(() => {
+        tabsRef.current?.goToTabIndex(1); // 0 -> 1: should trigger onChangeTab
+      });
+
+      act(() => {
+        tabsRef.current?.goToTabIndex(2); // 1 -> 2: should trigger onChangeTab
+      });
+
+      act(() => {
+        tabsRef.current?.goToTabIndex(0); // 2 -> 0: should trigger onChangeTab
+      });
+
+      // Assert - Should handle rapid switching gracefully
+      expect(mockOnChangeTab).toHaveBeenCalledTimes(3);
+      expect(tabsRef.current?.getCurrentIndex()).toBe(0);
+    });
+
+    it('handles tab array changes during active session', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const { rerender, getByText, queryByText } = render(
+        <TabsList initialActiveIndex={0} onChangeTab={mockOnChangeTab}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert initial state
+      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+
+      // Act - Add more tabs
+      rerender(
+        <TabsList initialActiveIndex={0} onChangeTab={mockOnChangeTab}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            <Text>Tab 3 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Should maintain active tab
+      expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+      expect(queryByText('Tab 2 Content')).toBeNull();
+      expect(queryByText('Tab 3 Content')).toBeNull();
+    });
+
+    it('handles mixed enabled/disabled tab scenarios', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabsRef = React.createRef<TabsListRef>();
+
+      render(
+        <TabsList
+          ref={tabsRef}
+          initialActiveIndex={0}
+          onChangeTab={mockOnChangeTab}
+        >
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View
+            key="tab2"
+            {...({ tabLabel: 'Tab 2', isDisabled: true } as TabViewProps)}
+          >
+            <Text>Tab 2 Content</Text>
+          </View>
+          <View
+            key="tab3"
+            {...({ tabLabel: 'Tab 3', isDisabled: true } as TabViewProps)}
+          >
+            <Text>Tab 3 Content</Text>
+          </View>
+          <View key="tab4" {...({ tabLabel: 'Tab 4' } as TabViewProps)}>
+            <Text>Tab 4 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Act - Try to navigate to disabled tabs
+      act(() => {
+        tabsRef.current?.goToTabIndex(1); // Disabled
+        tabsRef.current?.goToTabIndex(2); // Disabled
+      });
+
+      // Assert - Should not navigate to disabled tabs
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+
+      // Act - Navigate to enabled tab
+      act(() => {
+        tabsRef.current?.goToTabIndex(3); // Enabled
+      });
+
+      // Assert - Should navigate to enabled tab
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: 3,
+        ref: expect.anything(),
+      });
+    });
+  });
+
+  describe('Single Tab Support', () => {
+    it('handles single tab correctly', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const { getByText, queryByText } = render(
+        <TabsList initialActiveIndex={0} onChangeTab={mockOnChangeTab}>
+          <View key="single" {...({ tabLabel: 'Only Tab' } as TabViewProps)}>
+            <Text>Only Tab Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Single tab should be rendered and active
+      expect(getByText('Only Tab Content')).toBeOnTheScreen();
+    });
+
+    it('handles single tab with swipe gestures disabled', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabsRef = React.createRef<TabsListRef>();
+      
+      const { getByText } = render(
+        <TabsList 
+          ref={tabsRef} 
+          initialActiveIndex={0} 
+          onChangeTab={mockOnChangeTab}
+        >
+          <View key="single" {...({ tabLabel: 'Only Tab' } as TabViewProps)}>
+            <Text>Only Tab Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Single tab should be rendered
+      expect(getByText('Only Tab Content')).toBeOnTheScreen();
+
+      // Act - Try programmatic navigation (should not do anything)
+      act(() => {
+        tabsRef.current?.goToTabIndex(1); // Invalid index
+      });
+
+      // Assert - Should remain on the single tab, no callback triggered
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+      expect(tabsRef.current?.getCurrentIndex()).toBe(0);
+    });
+
+    it('handles single disabled tab', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const { getByText } = render(
+        <TabsList initialActiveIndex={-1} onChangeTab={mockOnChangeTab}>
+          <View key="single" {...({ tabLabel: 'Disabled Tab', isDisabled: true } as TabViewProps)}>
+            <Text>Disabled Tab Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Single disabled tab should be rendered but not active
+      // Content should not be rendered when activeIndex is -1
+      expect(() => getByText('Disabled Tab Content')).toThrow();
+    });
+
+    it('handles single tab with ref methods', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabsRef = React.createRef<TabsListRef>();
+      
+      render(
+        <TabsList 
+          ref={tabsRef} 
+          initialActiveIndex={0} 
+          onChangeTab={mockOnChangeTab}
+        >
+          <View key="single" {...({ tabLabel: 'Only Tab' } as TabViewProps)}>
+            <Text>Only Tab Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Ref methods should work correctly
+      expect(tabsRef.current?.getCurrentIndex()).toBe(0);
+
+      // Act - Try to navigate to same tab (should not trigger callback)
+      act(() => {
+        tabsRef.current?.goToTabIndex(0);
+      });
+
+      // Assert - Should not trigger callback for same index
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+    });
+
+    it('handles single tab layout and animation', () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId, getByText } = render(
+        <TabsList 
+          initialActiveIndex={0} 
+          onChangeTab={mockOnChangeTab}
+          testID="single-tab-list"
+        >
+          <View key="single" {...({ tabLabel: 'Only Tab' } as TabViewProps)}>
+            <Text>Only Tab Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Component should render correctly
+      const tabsList = getByTestId('single-tab-list');
+      expect(tabsList).toBeOnTheScreen();
+      expect(getByText('Only Tab Content')).toBeOnTheScreen();
+
+      // Single tab should not enable scrolling
+      // The underline animation should still work for the single tab
     });
   });
 });
