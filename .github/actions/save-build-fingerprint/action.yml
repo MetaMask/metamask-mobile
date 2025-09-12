@@ -18,9 +18,9 @@ runs:
     - name: Generate and save fingerprint
       shell: bash
       run: |
-        echo "💾 Generating fingerprint for ${{ inputs.platform }}..."
+        echo "Generating fingerprint for ${{ inputs.platform }}..."
         yarn fingerprint:generate
-        echo "✅ Fingerprint saved to .app-native-fingerprint"
+        echo "Fingerprint saved to .app-native-fingerprint"
 
     - name: Cache build artifacts for future reuse
       uses: actions/cache@v4

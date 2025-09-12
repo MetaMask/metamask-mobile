@@ -47,7 +47,7 @@
     "build:android:main:test": "./scripts/build.sh android main test",
     "build:android:main:e2e": "./scripts/build.sh android main e2e",
     "build:android:flask:prod": "./scripts/build.sh android flask production",
-    "fingerprint:generate": "npx expo fingerprint --mode prebuild > .app-native-fingerprint",
+    "fingerprint:generate": "node scripts/generate-fingerprint.js > .app-native-fingerprint",
     "fingerprint:check": "node scripts/check-fingerprint.js",
     "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:flask:test": "./scripts/build.sh android flask test",
