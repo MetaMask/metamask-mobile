@@ -1,3 +1,5 @@
+import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import {
   isRemoveGlobalNetworkSelectorEnabled,
   isPerDappSelectedNetworkEnabled,
@@ -6,9 +8,11 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { RpcEndpointType } from '@metamask/network-controller';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useMetrics } from '../../hooks/useMetrics';
 import Engine from '../../../core/Engine';
+import { useSwitchNetworks } from './useSwitchNetworks';
 
 // Mock the feature flags
 jest.mock('../../../util/networks', () => ({
@@ -78,6 +82,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+// Mock Redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 // Mock setTimeout
 jest.useFakeTimers();
 
@@ -99,6 +108,9 @@ const mockIsPerDappSelectedNetworkEnabled =
 const mockSelectNetwork = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
+
+// Mock useSelector
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('useSwitchNetworks Feature Flag Tests', () => {
   beforeEach(() => {
@@ -145,6 +157,34 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(() => ({ event: 'test' })),
     });
+
+    // Mock useSelector to return expected values
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => {
+        if (selector.toString().includes('selectIsAllNetworks')) {
+          return false;
+        }
+        if (
+          selector
+            .toString()
+            .includes('selectEvmNetworkConfigurationsByChainId')
+        ) {
+          return {
+            '0x1': {
+              chainId: '0x1',
+              name: 'Ethereum Mainnet',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+            },
+          };
+        }
+        return undefined;
+      },
+    );
   });
 
   describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
@@ -246,6 +286,57 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       });
       expect(networksResult.networks).toBeDefined();
       expect(Array.isArray(networksResult.networks)).toBe(true);
+    });
+  });
+
+  describe('setTokenNetworkFilter behavior', () => {
+    it('should NOT call setTokenNetworkFilter when onSetRpcTarget is executed (commented out functionality)', async () => {
+      // Arrange
+      const mockDismissModal = jest.fn();
+      const mockNetworkConfiguration = {
+        chainId: '0x1' as `0x${string}`,
+        name: 'Test Network',
+        rpcEndpoints: [
+          {
+            networkClientId: 'test-network-client-id',
+            type: RpcEndpointType.Custom as RpcEndpointType.Custom,
+            url: 'https://test-rpc.com',
+            name: 'Test RPC',
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        blockExplorerUrls: ['https://test-explorer.com'],
+        nativeCurrency: 'ETH',
+      };
+
+      // Act
+      const { result } = renderHook(() =>
+        useSwitchNetworks({
+          domainIsConnectedDapp: false,
+          origin: 'test-origin',
+          selectedChainId: '0x1' as `0x${string}`,
+          selectedNetworkName: 'Old Network',
+          dismissModal: mockDismissModal,
+          closeRpcModal: jest.fn(),
+        }),
+      );
+
+      // Execute the onSetRpcTarget function
+      await result.current.onSetRpcTarget(mockNetworkConfiguration);
+
+      // Assert
+      // Verify that setTokenNetworkFilter was NOT called (since it's commented out)
+      expect(
+        Engine.context.PreferencesController.setTokenNetworkFilter,
+      ).not.toHaveBeenCalled();
+
+      // Verify that other expected functions were called
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).toHaveBeenCalledWith('test-network-client-id');
+      expect(mockDismissModal).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });
