@@ -56,37 +56,61 @@ function extractPlatformAndScenario(filePath) {
   let scenario = 'unknown';
   let scenarioKey = 'Unknown';
   
-  // Determine platform and scenario from path
+  console.log(`🔍 Analyzing file path: ${filePath}`);
+  
+  // Determine platform and scenario from path - handle various artifact naming patterns
   if (filePath.includes('android-imported-wallet-test-results')) {
     platform = 'android';
     platformKey = 'Android';
     scenario = 'imported-wallet';
     scenarioKey = 'ImportedWallet';
+    console.log(`✅ Detected Android imported wallet from path`);
   } else if (filePath.includes('ios-imported-wallet-test-results')) {
     platform = 'ios';
     platformKey = 'iOS';
     scenario = 'imported-wallet';
     scenarioKey = 'ImportedWallet';
-  } else if (filePath.includes('android-onboarding-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
-  } else if (filePath.includes('ios-onboarding-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
+    console.log(`✅ Detected iOS imported wallet from path`);
   } else if (filePath.includes('android-onboarding-flow-test-results')) {
     platform = 'android';
     platformKey = 'Android';
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
+    console.log(`✅ Detected Android onboarding flow from path`);
   } else if (filePath.includes('ios-onboarding-flow-test-results')) {
     platform = 'ios';
     platformKey = 'iOS';
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
+    console.log(`✅ Detected iOS onboarding flow from path`);
+  } else if (filePath.includes('android-onboarding-test-results') || 
+             filePath.includes('android-test-results-')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
+    console.log(`✅ Detected Android onboarding from path`);
+  } else if (filePath.includes('ios-onboarding-test-results') || 
+             filePath.includes('ios-test-results-')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
+    console.log(`✅ Detected iOS onboarding from path`);
+  } else if (filePath.includes('android-combined-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'combined';
+    scenarioKey = 'Combined';
+    console.log(`✅ Detected Android combined from path`);
+  } else if (filePath.includes('ios-combined-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'combined';
+    scenarioKey = 'Combined';
+    console.log(`✅ Detected iOS combined from path`);
+  } else {
+    console.log(`⚠️ Could not detect platform/scenario from path: ${filePath}`);
   }
   
   return { platform, platformKey, scenario, scenarioKey };
@@ -99,24 +123,71 @@ function extractPlatformAndScenario(filePath) {
  */
 function extractDeviceInfo(filePath) {
   const pathParts = filePath.split('/');
+  console.log(`🔍 Extracting device info from path: ${filePath}`);
+  console.log(`📁 Path parts:`, pathParts);
+  
   const deviceMatch = pathParts.find(part => part.includes('-test-results-'));
+  console.log(`🎯 Found device match: ${deviceMatch}`);
   
   if (deviceMatch) {
     // Extract the part after "-test-results-"
     const testResultsIndex = deviceMatch.indexOf('-test-results-');
     const deviceInfo = deviceMatch.substring(testResultsIndex + '-test-results-'.length);
+    console.log(`📱 Raw device info: ${deviceInfo}`);
     
-    // Split by '-' and reconstruct device name and OS version
-    const deviceParts = deviceInfo.split('-');
-    if (deviceParts.length >= 2) {
-      const osVersion = deviceParts[deviceParts.length - 1];
-      const deviceName = deviceParts.slice(0, -1).join(' ');
-      return `${deviceName}+${osVersion}`;
-    } else {
-      return deviceInfo;
+    // Handle different patterns:
+    // 1. Empty string (e.g., "android-test-results--")
+    if (!deviceInfo || deviceInfo === '' || deviceInfo === '-') {
+      console.log(`⚠️ Empty device info, using default`);
+      return 'Unknown Device';
     }
+    
+    // 2. Device name with version (e.g., "Google Pixel 8 Pro-14.0", "iPhone 12-17")
+    const deviceParts = deviceInfo.split('-');
+    console.log(`🔧 Device parts:`, deviceParts);
+    
+    if (deviceParts.length >= 2) {
+      // Handle patterns like "Google Pixel 8 Pro-14.0" where we want "Google Pixel 8 Pro+14.0"
+      // or "iPhone 12-17" where we want "iPhone 12+17"
+      
+      // Look for the last two parts - if both are numeric, combine them as version
+      if (deviceParts.length >= 3 && 
+          /^\d+$/.test(deviceParts[deviceParts.length - 1]) && 
+          /^\d+$/.test(deviceParts[deviceParts.length - 2])) {
+        // Pattern: "Device-Name-14-2" -> "Device Name+14.2"
+        const majorVersion = deviceParts[deviceParts.length - 2];
+        const minorVersion = deviceParts[deviceParts.length - 1];
+        const deviceName = deviceParts.slice(0, -2).join(' ');
+        const result = `${deviceName}+${majorVersion}.${minorVersion}`;
+        console.log(`✅ Extracted device (major.minor): ${result}`);
+        return result;
+      } else if (deviceParts.length >= 2) {
+        // Look for the last part - if it's numeric or contains a dot, it's the version
+        const lastPart = deviceParts[deviceParts.length - 1];
+        if (/^\d+(\.\d+)?$/.test(lastPart)) {
+          // Pattern: "Device-Name-14.0" or "Device-Name-17" -> "Device Name+14.0" or "Device Name+17"
+          const osVersion = lastPart;
+          const deviceName = deviceParts.slice(0, -1).join(' ');
+          const result = `${deviceName}+${osVersion}`;
+          console.log(`✅ Extracted device (version with dot): ${result}`);
+          return result;
+        } else {
+          // Fallback: use last part as version, rest as device name
+          const osVersion = deviceParts[deviceParts.length - 1];
+          const deviceName = deviceParts.slice(0, -1).join(' ');
+          const result = `${deviceName}+${osVersion}`;
+          console.log(`✅ Extracted device (fallback): ${result}`);
+          return result;
+        }
+      }
+    }
+    
+    // If we can't parse it properly, return as-is
+    console.log(`⚠️ Could not parse device info, using as-is: ${deviceInfo}`);
+    return deviceInfo;
   }
   
+  console.log(`❌ No device match found, using default`);
   return 'Unknown Device';
 }
 
@@ -293,8 +364,15 @@ function aggregateReports() {
   try {
     console.log('🔍 Looking for performance JSON reports...');
     
+    // Ensure output directory exists
+    const outputDir = 'appwright/aggregated-reports';
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+      console.log(`📁 Created output directory: ${outputDir}`);
+    }
+    
     // Search all results
-    const jsonFiles = findJsonFiles('./all-results');
+    const jsonFiles = findJsonFiles('./test-results');
     console.log(`📊 Found ${jsonFiles.length} JSON report files:`);
     jsonFiles.forEach((file, index) => {
       console.log(`  ${index + 1}. ${file}`);
