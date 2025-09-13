@@ -7,6 +7,10 @@ import StorageWrapper from '../../store/storage-wrapper';
 
 const PENDING_SRP_DISCOVERY = 'pendingSRPDiscovery';
 
+import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
+import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
+import Engine from '../Engine';
+
 interface AccountDiscoverySRP {
   [keyringId: string]: {
     [walletType: string]: boolean;
@@ -38,23 +42,34 @@ class AccountDiscoveryService {
     this.discoveryRunning = true;
 
     try {
-      for (const keyringId in this.pendingKeyring) {
-        for (const walletType of Object.values(WalletClientType)) {
-          if (this.pendingKeyring[keyringId][walletType]) {
-            const clientType = walletType;
-            const client = MultichainWalletSnapFactory.createClient(
-              clientType,
-              {
-                setSelectedAccount: false,
-              },
-            );
-            const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-            await client.addDiscoveredAccounts(keyringId, discoveryScope);
-            this.pendingKeyring[keyringId][walletType] = false;
-            await StorageWrapper.setItem(
-              PENDING_SRP_DISCOVERY,
-              JSON.stringify(this.pendingKeyring),
-            );
+      if (isMultichainAccountsState2Enabled()) {
+        const getAllEntropySourcesIds =
+          Engine.context.KeyringController.state.keyrings.map(
+            (keyring) => keyring.metadata.id,
+          );
+
+        for (const entropySource of getAllEntropySourcesIds) {
+          await discoverAndCreateAccounts(entropySource);
+        }
+      } else {
+        for (const keyringId in this.pendingKeyring) {
+          for (const walletType of Object.values(WalletClientType)) {
+            if (this.pendingKeyring[keyringId][walletType]) {
+              const clientType = walletType;
+              const client = MultichainWalletSnapFactory.createClient(
+                clientType,
+                {
+                  setSelectedAccount: false,
+                },
+              );
+              const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+              await client.addDiscoveredAccounts(keyringId, discoveryScope);
+              this.pendingKeyring[keyringId][walletType] = false;
+              await StorageWrapper.setItem(
+                PENDING_SRP_DISCOVERY,
+                JSON.stringify(this.pendingKeyring),
+              );
+            }
           }
         }
       }
