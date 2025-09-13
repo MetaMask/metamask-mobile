@@ -207,6 +207,18 @@ export const startMockServer = async (
         logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
         logger.info(`Response status: ${matchingEvent.responseCode}`);
         logger.debug('Response:', matchingEvent.response);
+        // If proxyUrl is provided, proxy the request to proxyUrl
+        if (matchingEvent?.proxyUrl) {
+          logger.debug(
+            `Proxying ${matchingEvent.urlEndpoint} to ${matchingEvent.proxyUrl}`,
+          );
+          return handleDirectFetch(
+            matchingEvent.proxyUrl,
+            method,
+            request.headers,
+            method === 'POST' ? requestBodyText : undefined,
+          );
+        }
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
           const result = processPostRequestBody(
