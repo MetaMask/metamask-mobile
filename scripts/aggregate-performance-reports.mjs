@@ -56,18 +56,8 @@ function extractPlatformAndScenario(filePath) {
   let scenario = 'unknown';
   let scenarioKey = 'Unknown';
   
-  // Determine platform from path (now using combined format)
-  if (filePath.includes('android-combined-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'combined';
-    scenarioKey = 'Combined';
-  } else if (filePath.includes('ios-combined-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'combined';
-    scenarioKey = 'Combined';
-  } else if (filePath.includes('android-imported-wallet-test-results')) {
+  // Determine platform and scenario from path
+  if (filePath.includes('android-imported-wallet-test-results')) {
     platform = 'android';
     platformKey = 'Android';
     scenario = 'imported-wallet';
@@ -87,6 +77,16 @@ function extractPlatformAndScenario(filePath) {
     platformKey = 'iOS';
     scenario = 'onboarding';
     scenarioKey = 'Onboarding';
+  } else if (filePath.includes('android-onboarding-flow-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
+  } else if (filePath.includes('ios-onboarding-flow-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
   }
   
   return { platform, platformKey, scenario, scenarioKey };
@@ -99,30 +99,12 @@ function extractPlatformAndScenario(filePath) {
  */
 function extractDeviceInfo(filePath) {
   const pathParts = filePath.split('/');
+  const deviceMatch = pathParts.find(part => part.includes('-test-results-'));
   
-  // Look for various test result patterns
-  const patterns = [
-    '-combined-test-results-',
-    '-imported-wallet-test-results-',
-    '-onboarding-test-results-',
-    '-test-results-'
-  ];
-  
-  let deviceMatch = null;
-  let pattern = null;
-  
-  for (const p of patterns) {
-    deviceMatch = pathParts.find(part => part.includes(p));
-    if (deviceMatch) {
-      pattern = p;
-      break;
-    }
-  }
-  
-  if (deviceMatch && pattern) {
-    // Extract the part after the pattern
-    const testResultsIndex = deviceMatch.indexOf(pattern);
-    const deviceInfo = deviceMatch.substring(testResultsIndex + pattern.length);
+  if (deviceMatch) {
+    // Extract the part after "-test-results-"
+    const testResultsIndex = deviceMatch.indexOf('-test-results-');
+    const deviceInfo = deviceMatch.substring(testResultsIndex + '-test-results-'.length);
     
     // Split by '-' and reconstruct device name and OS version
     const deviceParts = deviceInfo.split('-');
@@ -139,27 +121,6 @@ function extractDeviceInfo(filePath) {
 }
 
 /**
- * Determine scenario from test content
- * @param {Object} testReport - Test report data
- * @returns {string} Scenario key (ImportedWallet or Onboarding)
- */
-function determineScenarioFromTest(testReport) {
-  const testName = (testReport.testName || '').toLowerCase();
-  
-  // Check for onboarding-specific keywords
-  if (testName.includes('onboarding') || 
-      testName.includes('create') || 
-      testName.includes('new wallet') ||
-      testName.includes('seed') ||
-      testName.includes('phrase')) {
-    return 'Onboarding';
-  }
-  
-  // Default to ImportedWallet for other tests (import, swap, send, asset view, etc.)
-  return 'ImportedWallet';
-}
-
-/**
  * Process a single test report and clean the data
  * @param {Object} testReport - Raw test report data
  * @returns {Object} Cleaned test report
@@ -168,19 +129,13 @@ function processTestReport(testReport) {
   const cleanedReport = {
     testName: testReport.testName,
     steps: testReport.steps || [],
-    total: testReport.total || testReport.totalTime || 0,
-    device: testReport.device || { name: 'Unknown', osVersion: 'Unknown' },
-    videoURL: testReport.videoURL || null,
-    sessionId: testReport.sessionId || null
+    totalTime: testReport.total,
+    videoURL: testReport.videoURL || null
   };
   
   if (testReport.testFailed) {
     cleanedReport.testFailed = true;
     cleanedReport.failureReason = testReport.failureReason;
-  }
-  
-  if (testReport.note) {
-    cleanedReport.note = testReport.note;
   }
   
   return cleanedReport;
@@ -194,19 +149,29 @@ function createEmptyReport(outputPath) {
   console.log('❌ No performance JSON files found - creating empty report structure');
   
   const emptyReport = {
-    ImportedWallet: { Android: {}, iOS: {} },
-    Onboarding: { Android: {}, iOS: {} }
+    Android: {},
+    iOS: {}
   };
   
   fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
+  fs.writeFileSync('appwright/aggregated-reports/performance-results.json', JSON.stringify(emptyReport, null, 2));
+  fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
   
   const emptySummary = {
     totalTests: 0,
-    scenarios: {
-      importedWallet: { totalTests: 0, platforms: { android: 0, ios: 0 } },
-      onboarding: { totalTests: 0, platforms: { android: 0, ios: 0 } }
-    },
+    platforms: { android: 0, ios: 0 },
+    testsByPlatform: { android: 0, ios: 0 },
     devices: [],
+    platformDevices: { Android: [], iOS: [] },
+    metadata: {
+      generatedAt: new Date().toISOString(),
+      totalReports: 0,
+      platforms: { android: 0, ios: 0 },
+      jobResults: { android: "unknown", ios: "unknown" },
+      branch: process.env.GITHUB_REF_NAME || 'unknown',
+      commit: process.env.GITHUB_SHA || 'unknown',
+      workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
+    },
     generatedAt: new Date().toISOString(),
     branch: process.env.GITHUB_REF_NAME || 'unknown',
     commit: process.env.GITHUB_SHA || 'unknown',
@@ -226,20 +191,33 @@ function createFallbackReport(outputPath, error) {
   console.error('❌ Error during aggregation:', error.message);
   
   const fallbackReport = {
-    ImportedWallet: { Android: {}, iOS: {} },
-    Onboarding: { Android: {}, iOS: {} }
+    Android: {},
+    iOS: {}
   };
   
   try {
     fs.writeFileSync(outputPath, JSON.stringify(fallbackReport, null, 2));
+    fs.writeFileSync('appwright/aggregated-reports/performance-results.json', JSON.stringify(fallbackReport, null, 2));
+    fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
     fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
       totalTests: 0,
-      scenarios: {
-        importedWallet: { totalTests: 0, platforms: { android: 0, ios: 0 } },
-        onboarding: { totalTests: 0, platforms: { android: 0, ios: 0 } }
+      platforms: { android: 0, ios: 0 },
+      testsByPlatform: { android: 0, ios: 0 },
+      devices: [],
+      platformDevices: { Android: [], iOS: [] },
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        totalReports: 0,
+        platforms: { android: 0, ios: 0 },
+        jobResults: { android: "error", ios: "error" },
+        branch: process.env.GITHUB_REF_NAME || 'unknown',
+        commit: process.env.GITHUB_SHA || 'unknown',
+        workflowRun: process.env.GITHUB_RUN_ID || 'unknown'
       },
-      error: error.message,
-      generatedAt: new Date().toISOString()
+      generatedAt: new Date().toISOString(),
+      branch: process.env.GITHUB_REF_NAME || 'unknown',
+      commit: process.env.GITHUB_SHA || 'unknown',
+      error: error.message
     }, null, 2));
     console.log('✅ Fallback reports created successfully');
   } catch (writeError) {
@@ -255,51 +233,43 @@ function createFallbackReport(outputPath, error) {
 function createSummary(groupedResults) {
   let totalTests = 0;
   const devices = [];
-  const platformDevices = {};
-  const testsByPlatform = {};
   
-  // Process the structure: platform -> device -> tests
   Object.keys(groupedResults).forEach(platform => {
-    const platformKey = platform.charAt(0).toUpperCase() + platform.slice(1); // Android, iOS
-    platformDevices[platformKey] = [];
+    Object.keys(groupedResults[platform]).forEach(device => {
+      devices.push(`${platform}-${device}`);
+      totalTests += groupedResults[platform][device].length;
+    });
+  });
+  
+  // Count tests by platform
+  const platforms = {};
+  const testsByPlatform = {};
+  const summaryDevices = [];
+  const platformDevices = { Android: [], iOS: [] };
+  
+  Object.keys(groupedResults).forEach(platform => {
+    platforms[platform.toLowerCase()] = Object.keys(groupedResults[platform]).length;
     testsByPlatform[platform.toLowerCase()] = 0;
     
     Object.keys(groupedResults[platform]).forEach(device => {
-      const deviceTests = groupedResults[platform][device];
-      // Extract OS version from device name (assumes format like "Google Pixel 8 Pro 14.0")
-      const deviceParts = device.split(' ');
-      const osVersion = deviceParts[deviceParts.length - 1];
-      const deviceName = deviceParts.slice(0, -1).join(' ');
-      const deviceKey = `${deviceName}+${osVersion}`;
+      const testsCount = groupedResults[platform][device].length;
+      testsByPlatform[platform.toLowerCase()] += testsCount;
       
-      devices.push({
-        platform: platformKey,
-        device: deviceKey,
-        testCount: deviceTests.length
-      });
-      
-      platformDevices[platformKey].push(deviceKey);
-      testsByPlatform[platform.toLowerCase()] += deviceTests.length;
-      totalTests += deviceTests.length;
+      summaryDevices.push({ platform, device, testCount: testsCount });
+      platformDevices[platform].push(device);
     });
   });
   
   const summary = {
     totalTests,
-    platforms: {
-      android: platformDevices.Android ? platformDevices.Android.length : 0,
-      ios: platformDevices.iOS ? platformDevices.iOS.length : 0
-    },
+    platforms,
     testsByPlatform,
-    devices,
+    devices: summaryDevices,
     platformDevices,
     metadata: {
       generatedAt: new Date().toISOString(),
-      totalReports: totalTests,
-      platforms: {
-        android: platformDevices.Android ? platformDevices.Android.length : 0,
-        ios: platformDevices.iOS ? platformDevices.iOS.length : 0
-      },
+      totalReports: summaryDevices.length,
+      platforms,
       jobResults: {
         android: "success", // This would need to be determined from actual test results
         ios: "success"
@@ -323,15 +293,8 @@ function aggregateReports() {
   try {
     console.log('🔍 Looking for performance JSON reports...');
     
-    // Ensure output directory exists
-    const outputDir = 'appwright/aggregated-reports';
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-      console.log(`📁 Created output directory: ${outputDir}`);
-    }
-    
     // Search all results
-    const jsonFiles = findJsonFiles('./test-results');
+    const jsonFiles = findJsonFiles('./all-results');
     console.log(`📊 Found ${jsonFiles.length} JSON report files:`);
     jsonFiles.forEach((file, index) => {
       console.log(`  ${index + 1}. ${file}`);
@@ -344,7 +307,7 @@ function aggregateReports() {
       return;
     }
     
-    // Create the grouped structure - organized by platform then device
+    // Create the grouped structure - match the expected format
     const groupedResults = {
       Android: {},
       iOS: {}
@@ -358,8 +321,8 @@ function aggregateReports() {
         const reportData = JSON.parse(content);
         console.log(`✅ Successfully parsed JSON data from ${filePath}`);
         
-        // Extract platform info from path
-        const { platformKey } = extractPlatformAndScenario(filePath);
+        // Extract platform and scenario info from path
+        const { platformKey, scenarioKey } = extractPlatformAndScenario(filePath);
         const deviceKey = extractDeviceInfo(filePath);
         
         // Initialize structure if it doesn't exist
@@ -385,55 +348,34 @@ function aggregateReports() {
       }
     });
     
-    // Transform groupedResults to match expected format
-    const transformedResults = {};
-    Object.keys(groupedResults).forEach(platform => {
-      const platformKey = platform.charAt(0).toUpperCase() + platform.slice(1); // Android, iOS
-      transformedResults[platformKey] = {};
-      
-      Object.keys(groupedResults[platform]).forEach(device => {
-        const deviceTests = groupedResults[platform][device];
-        // Extract OS version from device name (assumes format like "Google Pixel 8 Pro 14.0")
-        const deviceParts = device.split(' ');
-        const osVersion = deviceParts[deviceParts.length - 1];
-        const deviceName = deviceParts.slice(0, -1).join(' ');
-        const deviceKey = `${deviceName}+${osVersion}`;
-        
-        // Transform test data to match expected format
-        transformedResults[platformKey][deviceKey] = deviceTests.map(test => ({
-          testName: test.testName,
-          steps: test.steps || [],
-          totalTime: test.total || 0,
-          videoURL: test.videoURL || '',
-          testFailed: test.status === 'failed' || test.testFailed || false,
-          failureReason: test.failureReason || (test.status === 'failed' ? 'failed' : '')
-        }));
-      });
-    });
+    // Write the combined report
+    fs.writeFileSync(outputPath, JSON.stringify(groupedResults, null, 2));
     
-    // Write the aggregated report (main format)
-    fs.writeFileSync(outputPath, JSON.stringify(transformedResults, null, 2));
+    // Create performance-results.json (same structure as combined-performance-report.json)
+    const performanceResultsPath = 'appwright/aggregated-reports/performance-results.json';
+    fs.writeFileSync(performanceResultsPath, JSON.stringify(groupedResults, null, 2));
     
-    // Write performance-results.json (same format)
-    fs.writeFileSync('appwright/aggregated-reports/performance-results.json', JSON.stringify(transformedResults, null, 2));
+    // Create aggregated-performance-report.json (same structure as combined-performance-report.json)
+    const aggregatedReportPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
+    fs.writeFileSync(aggregatedReportPath, JSON.stringify(groupedResults, null, 2));
     
     // Create summary
     const summary = createSummary(groupedResults);
     fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
     
-    console.log(`✅ Aggregated report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
+    console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
     console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
     console.log('📋 Performance results saved to: appwright/aggregated-reports/performance-results.json');
+    console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
     
   } catch (error) {
     createFallbackReport('appwright/aggregated-reports/combined-performance-report.json', error);
   }
 }
 
-// Export functions for testing
-export { determineScenarioFromTest, extractDeviceInfo, extractPlatformAndScenario, aggregateReports, findJsonFiles, processTestReport, createSummary };
-
 // Run the aggregation if this script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   aggregateReports();
 }
+export { aggregateReports, findJsonFiles, extractPlatformAndScenario, extractDeviceInfo, processTestReport };
+

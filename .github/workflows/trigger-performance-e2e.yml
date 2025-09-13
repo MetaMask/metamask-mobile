@@ -45,9 +45,9 @@ jobs:
         id: read-matrix
         run: |
           echo "Reading device matrix from appwright/device-matrix.json"
-          # Extract Android devices
+          # Extract ALL Android devices
           ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-          # Extract iOS devices
+          # Extract ALL iOS devices
           IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
           
           {
@@ -55,14 +55,14 @@ jobs:
             echo "ios_matrix=$IOS_MATRIX"
           } >> "$GITHUB_OUTPUT"
           
-          echo "Android matrix: $ANDROID_MATRIX"
-          echo "iOS matrix: $IOS_MATRIX"
+          echo "Android matrix (all devices): $ANDROID_MATRIX"
+          echo "iOS matrix (all devices): $IOS_MATRIX"
           
           # Validate that we have devices
           ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
           IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
           
-          echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
+          echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices (all devices, sequential execution)"
           
           if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
             echo "Error: No devices found in device-matrix.json"
@@ -84,56 +84,76 @@ jobs:
     secrets: inherit
 
   run-android-imported-wallet-tests:
-    name: Run Android Imported Wallet Tests
+    name: Run Android Imported Wallet Tests on Device ${{ matrix.device.name }}
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions]
+    needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
     if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
     with:
       platform: android
       build_type: imported-wallet
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      device_matrix: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
     secrets: inherit
 
   run-android-onboarding-tests:
-    name: Run Android Onboarding Tests
+    name: Run Android Onboarding Tests on Device ${{ matrix.device.name }}
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions]
+    needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
     if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
     with:
       platform: android
       build_type: onboarding
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      device_matrix: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
     secrets: inherit
 
   run-ios-imported-wallet-tests:
-    name: Run iOS Imported Wallet Tests
+    name: Run iOS Imported Wallet Tests on Device ${{ matrix.device.name }}
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions]
+    needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
     if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
     with:
       platform: ios
       build_type: imported-wallet
-      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      device_matrix: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
     secrets: inherit
 
   run-ios-onboarding-tests:
-    name: Run iOS Onboarding Tests
+    name: Run iOS Onboarding Tests on Device ${{ matrix.device.name }}
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions]
+    needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
     if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
     with:
       platform: ios
       build_type: onboarding
-      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      device_matrix: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
@@ -165,7 +185,7 @@ jobs:
       - name: Upload Final Combined Results
         uses: actions/upload-artifact@v4
         with:
-          name: final-combined-performance-results
+          name: aggregated-performance-report
           path: |
             appwright/aggregated-reports/
           if-no-files-found: ignore
@@ -183,7 +203,7 @@ jobs:
       - name: Download Aggregated Results
         uses: actions/download-artifact@v4
         with:
-          name: final-combined-performance-results
+          name: aggregated-performance-report
           path: ./aggregated-reports
       
       - name: Generate Test Summary
@@ -191,8 +211,8 @@ jobs:
         run: |
           if [ -f "aggregated-reports/summary.json" ]; then
             # Get device information
-            androidDevices=$(jq -r '.devices[] | select(.platform == "Android") | "  • \(.device) (\(.osVersion))"' aggregated-reports/summary.json | tr '\n' '\n')
-            iosDevices=$(jq -r '.devices[] | select(.platform == "iOS") | "  • \(.device) (\(.osVersion))"' aggregated-reports/summary.json | tr '\n' '\n')
+            androidDevices=$(jq -r '.devices[] | select(.platform == "Android") | "  • \(.device)"' aggregated-reports/summary.json | tr '\n' '\n')
+            iosDevices=$(jq -r '.devices[] | select(.platform == "iOS") | "  • \(.device)"' aggregated-reports/summary.json | tr '\n' '\n')
             
             # Get test counts
             androidTests=$(jq -r '.testsByPlatform.android // 0' aggregated-reports/summary.json)

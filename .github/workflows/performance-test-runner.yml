@@ -50,6 +50,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         device: ${{ fromJson(inputs.device_matrix) }}
     steps:
@@ -151,7 +152,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ inputs.platform }}-${{ inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || 'imported-wallet' }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports
