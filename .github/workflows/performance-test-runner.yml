@@ -42,15 +42,6 @@ jobs:
       fail-fast: false
       matrix:
         device: ${{ fromJson(inputs.device_matrix) }}
-    env:
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
-      TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
-      TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
-      TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
-      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-      DISABLE_VIDEO_DOWNLOAD: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -116,6 +107,14 @@ jobs:
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
             echo "BROWSERSTACK_BUILD_NAME=${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'Onboarding' || 'Performance' }}-${{ inputs.branch_name }}-Branch"
+            echo "BROWSERSTACK_USERNAME=${{ secrets.BROWSERSTACK_USERNAME }}"
+            echo "BROWSERSTACK_ACCESS_KEY=${{ secrets.BROWSERSTACK_ACCESS_KEY }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+            echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
       
       - name: Run Tests
