@@ -856,10 +856,10 @@
     "available_balance": "Available balance",
     "margin_used": "Margin Used",
     "gtm_content": {
-      "title": "WE'VE GOT PERPS",
-      "title_description": "Predict price moves with up to 40x leverage.",
+      "title": "PERPS ARE HERE",
+      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
       "not_now": "Not now",
-      "try_now": "Trade perps"
+      "try_now": "Get started"
     },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
