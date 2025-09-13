@@ -27,6 +27,21 @@ on:
         required: true
         type: string
         description: 'Branch name'
+    secrets:
+      BROWSERSTACK_USERNAME:
+        required: true
+      BROWSERSTACK_ACCESS_KEY:
+        required: true
+      MM_TEST_ACCOUNT_SRP:
+        required: true
+      TEST_SRP_1:
+        required: true
+      TEST_SRP_2:
+        required: true
+      TEST_SRP_3:
+        required: true
+      E2E_PASSWORD:
+        required: true
 
 jobs:
   run-tests:
@@ -66,8 +81,8 @@ jobs:
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
-          username: ${{ env.BROWSERSTACK_USERNAME }}
-          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+          username: ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
       
       - name: Setup BrowserStack Local
@@ -102,13 +117,13 @@ jobs:
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
             echo "BROWSERSTACK_BUILD_NAME=${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'Onboarding' || 'Performance' }}-${{ inputs.branch_name }}-Branch"
-            echo "BROWSERSTACK_USERNAME=${{ env.BROWSERSTACK_USERNAME }}"
-            echo "BROWSERSTACK_ACCESS_KEY=${{ env.BROWSERSTACK_ACCESS_KEY }}"
-            echo "MM_TEST_ACCOUNT_SRP=${{ env.MM_TEST_ACCOUNT_SRP }}"
-            echo "TEST_SRP_1=${{ env.TEST_SRP_1 }}"
-            echo "TEST_SRP_2=${{ env.TEST_SRP_2 }}"
-            echo "TEST_SRP_3=${{ env.TEST_SRP_3 }}"
-            echo "E2E_PASSWORD=${{ env.E2E_PASSWORD }}"
+            echo "BROWSERSTACK_USERNAME=${{ secrets.BROWSERSTACK_USERNAME }}"
+            echo "BROWSERSTACK_ACCESS_KEY=${{ secrets.BROWSERSTACK_ACCESS_KEY }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
       
