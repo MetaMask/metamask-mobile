@@ -149,6 +149,7 @@ function getNonEvmState(
   account?: InternalAccount,
   mockBtcRate?: string,
   showFiatOnTestnets: boolean = true,
+  isSolanaTestnetEnabled: boolean = false,
 ): RootState {
   const {
     MOCK_ACCOUNT_BIP122_P2WPKH: mockBtcAccount,
@@ -178,6 +179,11 @@ function getNonEvmState(
           encryptionSalt: '',
           memStore: {
             isUnlocked: true,
+          },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            solanaTestnetsEnabled: isSolanaTestnetEnabled,
           },
         },
         AccountsController: {
@@ -672,6 +678,109 @@ describe('MultichainNonEvm Selectors', () => {
         next: null,
         transactions: [],
       });
+    });
+
+    it('returns mainnet transactions normally', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
+
+      const mockTransactionData = {
+        transactions: [
+          {
+            id: 'sol-tx-id',
+            timestamp: 1733736433,
+            chain: SolScope.Mainnet,
+            status: 'confirmed' as const,
+            type: 'send' as const,
+            account: MOCK_SOLANA_ACCOUNT.id,
+            from: [],
+            to: [],
+            fees: [],
+            events: [],
+          },
+        ],
+        next: null,
+        lastUpdated: Date.now(),
+      };
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            [SolScope.Mainnet]: mockTransactionData,
+          },
+        };
+
+      expect(selectNonEvmTransactions(state)).toEqual(mockTransactionData);
+    });
+
+    it('blocks devnet transactions when feature flag is disabled', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT, undefined, true, false);
+      state.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        SolScope.Devnet;
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            [SolScope.Devnet]: {
+              transactions: [
+                {
+                  id: 'devnet-tx',
+                  timestamp: 1733736433,
+                  chain: SolScope.Devnet,
+                  status: 'confirmed' as const,
+                  type: 'send' as const,
+                  account: MOCK_SOLANA_ACCOUNT.id,
+                  from: [],
+                  to: [],
+                  fees: [],
+                  events: [],
+                },
+              ],
+              next: null,
+              lastUpdated: Date.now(),
+            },
+          },
+        };
+
+      // Returns empty state when devnet is selected but feature flag is disabled
+      expect(selectNonEvmTransactions(state)).toEqual({
+        lastUpdated: 0,
+        next: null,
+        transactions: [],
+      });
+    });
+
+    it('allows devnet transactions when feature flag is enabled', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT, undefined, true, true);
+      state.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        SolScope.Devnet;
+
+      const mockDevnetData = {
+        transactions: [
+          {
+            id: 'devnet-tx',
+            timestamp: 1733736433,
+            chain: SolScope.Devnet,
+            status: 'confirmed' as const,
+            type: 'send' as const,
+            account: MOCK_SOLANA_ACCOUNT.id,
+            from: [],
+            to: [],
+            fees: [],
+            events: [],
+          },
+        ],
+        next: null,
+        lastUpdated: Date.now(),
+      };
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {
+          [MOCK_SOLANA_ACCOUNT.id]: {
+            [SolScope.Devnet]: mockDevnetData,
+          },
+        };
+
+      expect(selectNonEvmTransactions(state)).toEqual(mockDevnetData);
     });
   });
 
