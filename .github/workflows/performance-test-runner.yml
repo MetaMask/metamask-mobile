@@ -11,18 +11,10 @@ on:
         required: true
         type: string
         description: 'Build type (imported-wallet/onboarding)'
-      device_name:
+      device_matrix:
         required: true
         type: string
-        description: 'Device name'
-      device_os_version:
-        required: true
-        type: string
-        description: 'Device OS version'
-      device_category:
-        required: true
-        type: string
-        description: 'Device category (high/medium/low)'
+        description: 'JSON string of device matrix'
       browserstack_app_url:
         required: true
         type: string
@@ -53,9 +45,13 @@ on:
 
 jobs:
   run-tests:
-    name: Run ${{ inputs.build_type }} Tests on ${{ inputs.platform }} - ${{ inputs.device_name }}
+    name: Run ${{ inputs.build_type }} Tests on ${{ inputs.platform }} - ${{ matrix.device.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        device: ${{ fromJson(inputs.device_matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -104,8 +100,8 @@ jobs:
       
       - name: Set Test Environment
         run: |
-          echo "Setting ${{ inputs.build_type }} test environment for device: ${{ inputs.device_name }} (${{ inputs.device_category }} Class)"
-          echo "OS Version: ${{ inputs.device_os_version }}"
+          echo "Setting ${{ inputs.build_type }} test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
+          echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Platform: ${{ inputs.platform }}"
           
           # Validate that we have a BrowserStack URL
@@ -115,8 +111,8 @@ jobs:
           fi
           
           {
-            echo "BROWSERSTACK_DEVICE=${{ inputs.device_name }}"
-            echo "BROWSERSTACK_OS_VERSION=${{ inputs.device_os_version }}"
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.browserstack_app_url }}"
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
@@ -136,8 +132,8 @@ jobs:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
         run: |
-          echo "=== Running ${{ inputs.build_type }} Tests on ${{ inputs.device_name }} (${{ inputs.device_category }} Class) ==="
-          echo "OS Version: ${{ inputs.device_os_version }}"
+          echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Platform: ${{ inputs.platform }}"
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
@@ -149,13 +145,13 @@ jobs:
             yarn run-appwright:${{ inputs.platform }}-bs
           fi
           
-          echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ inputs.device_name }}"
+          echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
       
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || 'imported-wallet' }}-test-results-${{ inputs.device_name }}-${{ inputs.device_os_version }}
+          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || 'imported-wallet' }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             appwright/test-reports/appwright-report/
             appwright/reporters/reports

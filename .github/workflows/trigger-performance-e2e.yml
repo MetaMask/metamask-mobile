@@ -101,9 +101,7 @@ jobs:
     with:
       platform: android
       build_type: onboarding
-      device_name: ${{ matrix.device.name }}
-      device_os_version: ${{ matrix.device.os_version }}
-      device_category: ${{ matrix.device.category }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
@@ -122,9 +120,7 @@ jobs:
     with:
       platform: ios
       build_type: onboarding
-      device_name: ${{ matrix.device.name }}
-      device_os_version: ${{ matrix.device.os_version }}
-      device_category: ${{ matrix.device.category }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
@@ -149,7 +145,7 @@ jobs:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion]
-    if: always() && !failure() && !cancelled()
+    if: always()
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -158,9 +154,7 @@ jobs:
     with:
       platform: android
       build_type: imported-wallet
-      device_name: ${{ matrix.device.name }}
-      device_os_version: ${{ matrix.device.os_version }}
-      device_category: ${{ matrix.device.category }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
@@ -170,7 +164,7 @@ jobs:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion]
-    if: always() && !failure() && !cancelled()
+    if: always()
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -179,9 +173,7 @@ jobs:
     with:
       platform: ios
       build_type: imported-wallet
-      device_name: ${{ matrix.device.name }}
-      device_os_version: ${{ matrix.device.os_version }}
-      device_category: ${{ matrix.device.category }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
