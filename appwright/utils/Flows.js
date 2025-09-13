@@ -89,8 +89,16 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
-
+  //Dismiss any GTM modal
+  const notNowButton = await AppwrightSelectors.getElementByText(
+    device,
+    'Not now',
+  );
+  if (await notNowButton.isVisible({ timeout: 2000 })) {
+    await notNowButton.tap();
+  }
   await WalletMainScreen.isMainWalletViewVisible();
+
   await dismissSystemDialogs(device);
 }
 

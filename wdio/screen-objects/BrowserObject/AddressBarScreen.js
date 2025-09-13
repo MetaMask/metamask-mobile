@@ -13,13 +13,27 @@ import  {
 
 } from '../../../e2e/selectors/Browser/BrowserView.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../../e2e/selectors/Browser/BrowserURLBar.selectors';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 
 class AddressBarScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get urlCancelButton() {
     return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID);
   }
 
   get urlModalInput() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.URL_INPUT);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, BrowserURLBarSelectorsIDs.URL_INPUT);
+    }
     return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
@@ -32,7 +46,11 @@ class AddressBarScreen {
   }
 
   get urlClearIcon() {
-    return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
+    }
   }
 
   async isAddressInputViewDisplayed() {
@@ -44,8 +62,12 @@ class AddressBarScreen {
   }
 
   async submitUrlWebsite() {
-    await driver.pressKeyCode(66);
-    await driver.pause(500);
+    if (!this._device) {
+      await driver.pressKeyCode(66);
+    } else {
+      const driver = await this._device.webDriverClient;
+      await driver.pressKeyCode(66);
+    }
   }
 
   async isUrlValueContains(text) {
@@ -57,11 +79,21 @@ class AddressBarScreen {
   }
 
   async tapClearButton() {
-    await Gestures.waitAndTap(this.urlClearIcon);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.urlClearIcon);
+    } else {
+      const urlClearIcon = await this.urlClearIcon;
+      await urlClearIcon.tap();
+    }
   }
 
   async editUrlInput(text) {
-    await Gestures.typeText(this.urlModalInput, text);
+    if (!this._device) {
+      await Gestures.typeText(this.urlModalInput, text);
+    } else {
+      const urlModalInput = await this.urlModalInput;
+      await urlModalInput.fill(text);
+    }
   }
 
   async tapUrlCancelButton() {
