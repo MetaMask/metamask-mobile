@@ -202,11 +202,19 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkButtonOptions, closeButtonOptions } = options;
+    const {
+      labelOptions,
+      linkButtonOptions,
+      closeButtonOptions,
+      startAccessory,
+    } = options;
+
+    const isStartAccessoryValid =
+      Boolean(startAccessory) && React.isValidElement(startAccessory);
 
     return (
       <>
-        {renderAvatar()}
+        {isStartAccessoryValid ? startAccessory : renderAvatar()}
         <View
           style={styles.labelsContainer}
           testID={ToastSelectorsIDs.CONTAINER}
