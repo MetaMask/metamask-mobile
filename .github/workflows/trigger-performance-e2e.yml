@@ -84,25 +84,10 @@ jobs:
     if: ${{ !inputs.browserstack_app_url_ios }}
     secrets: inherit
 
-  run-android-imported-wallet-tests:
-    name: Run Android Imported Wallet Tests
-    uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions]
-    if: always() && !failure() && !cancelled()
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
-    with:
-      platform: android
-      build_type: imported-wallet
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      branch_name: ${{ github.ref_name }}
-    secrets: inherit
-
+  # =============================================================================
+  # PHASE 1: ONBOARDING TESTS (Run First)
+  # =============================================================================
+  
   run-android-onboarding-tests:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
@@ -122,25 +107,6 @@ jobs:
       branch_name: ${{ github.ref_name }}
     secrets: inherit
 
-  run-ios-imported-wallet-tests:
-    name: Run iOS Imported Wallet Tests
-    uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions]
-    if: always() && !failure() && !cancelled()
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
-    with:
-      platform: ios
-      build_type: imported-wallet
-      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
-      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
-      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      branch_name: ${{ github.ref_name }}
-    secrets: inherit
-
   run-ios-onboarding-tests:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
@@ -157,6 +123,48 @@ jobs:
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets: inherit
+
+  # =============================================================================
+  # PHASE 2: IMPORTED WALLET TESTS (Run After Onboarding Complete)
+  # =============================================================================
+  
+  run-android-imported-wallet-tests:
+    name: Run Android Imported Wallet Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-android-dual-versions, run-android-onboarding-tests]
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
+    with:
+      platform: android
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets: inherit
+
+  run-ios-imported-wallet-tests:
+    name: Run iOS Imported Wallet Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-ios-dual-versions, run-ios-onboarding-tests]
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
+    with:
+      platform: ios
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
     secrets: inherit
 
