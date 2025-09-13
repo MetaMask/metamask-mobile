@@ -39,8 +39,8 @@ jobs:
         id: read-matrix
         run: |
           echo "Reading device matrix from appwright/device-matrix.json"
-          android_matrix=$(jq -c '.android' appwright/device-matrix.json)
-          ios_matrix=$(jq -c '.ios' appwright/device-matrix.json)
+          android_matrix=$(jq -c '.android_devices' appwright/device-matrix.json)
+          ios_matrix=$(jq -c '.ios_devices' appwright/device-matrix.json)
           echo "android_matrix=$android_matrix" >> $GITHUB_OUTPUT
           echo "ios_matrix=$ios_matrix" >> $GITHUB_OUTPUT
           echo "Android devices: $(echo $android_matrix | jq length)"
