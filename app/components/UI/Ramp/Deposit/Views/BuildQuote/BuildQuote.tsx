@@ -154,9 +154,7 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
           showClose: true,
           showConfiguration: true,
           onConfigurationPress: () => {
-            navigation.navigate('DepositModals', {
-              screen: 'DepositConfigurationModal',
-            });
+            navigation.navigate('DepositConfigurationModal');
           },
         },
         theme,
@@ -226,27 +224,21 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
   }, [chainId, supportedTokens]);
 
   const handleRegionPress = useCallback(() => {
-    navigation.navigate('DepositModals', {
-      screen: 'DepositRegionSelectorModal',
-    });
+    navigation.navigate('DepositRegionSelectorModal');
   }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
       if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
-          navigation.navigate('DepositModals', {
-            screen: 'DepositUnsupportedRegionModal',
-          });
+          navigation.navigate('DepositUnsupportedRegionModal');
         });
       }
     }, [selectedRegion, navigation]),
   );
 
   const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
-    navigation.navigate('DepositModals', {
-      screen: 'IncompatibleAccountTokenModal',
-    });
+    navigation.navigate('IncompatibleAccountTokenModal');
   }, [navigation]);
 
   const handleOnPressContinue = useCallback(async () => {
@@ -336,7 +328,7 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
 
     try {
       if (!isAuthenticated) {
-        navigateToVerifyIdentity({ quote });
+        navigateToVerifyIdentity();
         return;
       }
 
@@ -453,12 +445,9 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
 
   const handleCryptoPress = useCallback(
     () =>
-      navigation.navigate('DepositModals', {
-        screen: 'DepositTokenSelectorModal',
-        params: {
-          selectedAssetId: cryptoCurrency.assetId,
-          handleSelectAssetId,
-        },
+      navigation.navigate('DepositTokenSelectorModal', {
+        selectedAssetId: cryptoCurrency.assetId,
+        handleSelectAssetId,
       }),
     [cryptoCurrency, navigation, handleSelectAssetId],
   );
@@ -483,12 +472,9 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
   );
 
   const handlePaymentMethodPress = useCallback(() => {
-    navigation.navigate('DepositModals', {
-      screen: 'DepositPaymentMethodSelectorModal',
-      params: {
-        selectedPaymentMethodId: paymentMethod.id,
-        handleSelectPaymentMethodId,
-      },
+    navigation.navigate('DepositPaymentMethodSelectorModal', {
+      selectedPaymentMethodId: paymentMethod.id,
+      handleSelectPaymentMethodId,
     });
   }, [handleSelectPaymentMethodId, navigation, paymentMethod.id]);
 

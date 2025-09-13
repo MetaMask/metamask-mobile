@@ -1,5 +1,5 @@
 'use strict';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SafeAreaView, Image, View, StyleSheet } from 'react-native';
 import Text from '../../Base/Text';
 import NetInfo from '@react-native-community/netinfo';
@@ -78,6 +78,10 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
     }
   };
 
+  useEffect(() => {
+    navigation.setOptions(getOfflineModalNavbar(navigation));
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <Image source={astronautImage} style={styles.frame} />
@@ -102,9 +106,6 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
     </SafeAreaView>
   );
 };
-
-OfflineMode.navigationOptions = ({ navigation }) =>
-  getOfflineModalNavbar(navigation);
 
 OfflineMode.propTypes = {
   /**

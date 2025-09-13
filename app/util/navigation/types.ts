@@ -87,12 +87,13 @@ import { TooltipModalParams } from '../../components/Views/TooltipModal/ToolTipM
 import { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
 import { MarketDetailsParams } from '../../components/UI/Perps/Views/PerpsMarketDetailsView';
 import { RegionSelectorModalParams } from '../../components/UI/Ramp/Deposit/Views/Modals/RegionSelectorModal/RegionSelectorModal.types';
+import { TokenI } from '../../components/UI/Tokens/types';
 
 // This MUST use type and not interface according to docs - https://reactnavigation.org/docs/typescript/?config=dynamic#type-checking-screens
 export type RootParamList = {
   // TODO - The detected tokens screens does not seem to be used anymore
-  DetectedTokensConfirmation: { isHidingAll?: boolean; onConfirm: () => void };
-  DetectedTokens: undefined;
+  // DetectedTokensConfirmation: { isHidingAll?: boolean; onConfirm: () => void };
+  // DetectedTokens: undefined;
 
   // Onboarding Screens
   OnboardingSuccess: {
@@ -122,6 +123,7 @@ export type RootParamList = {
   AccountStatus: AccountStatusParams;
   AccountAlreadyExists: AccountStatusParams;
   AccountNotFound: AccountStatusParams;
+  // TODO: Why is this using the Login screen?
   Rehydrate: LoginParams;
 
   Webview: undefined;
@@ -261,9 +263,9 @@ export type RootParamList = {
   SRPRevealQuizInMultichainAccountDetails: SRPQuizParams | undefined;
   MultichainRevealPrivateCredential: MultichainRevealPrivateCredentialParams;
   // TODO - This screen does not seem to be used anymore
-  RevealSRPCredential: {
-    account: InternalAccount;
-  };
+  // RevealSRPCredential: {
+  //   account: InternalAccount;
+  // };
 
   // Asset/Token Screens
   AssetHideConfirmation: {
@@ -340,13 +342,14 @@ export type RootParamList = {
     destToken?: BridgeToken;
     sourceAmount?: string;
   };
-  BridgeModals: undefined;
   BridgeSourceTokenSelector: undefined;
   BridgeDestTokenSelector: undefined;
   BridgeSourceNetworkSelector: undefined;
-  BridgeDestNetworkSelector: {
-    shouldGoToTokens?: boolean;
-  };
+  BridgeDestNetworkSelector:
+    | {
+        shouldGoToTokens?: boolean;
+      }
+    | undefined;
   SlippageModal: undefined;
   QuoteInfoModal: undefined;
   TransactionDetailsBlockExplorer: {
@@ -373,7 +376,6 @@ export type RootParamList = {
   PerpsOrder: PerpsOrderViewParams;
   PerpsClosePosition: PerpsRouteParams<'PerpsClosePosition'>;
   PerpsTutorial: PerpsRouteParams<'PerpsTutorial'> | undefined;
-  PerpsModals: undefined;
   PerpsQuoteExpiredModal: undefined;
   PerpsBalanceModal: undefined;
 
@@ -484,7 +486,6 @@ export type RootParamList = {
   };
 
   // Deposit Modal Routes
-  DepositModals: undefined;
   DepositTokenSelectorModal: {
     selectedAssetId?: string;
     handleSelectAssetId?: (assetId: string) => void;
@@ -578,19 +579,17 @@ export type RootParamList = {
   Home: undefined;
   CollectiblesDetails: CollectibleModalParams;
   DeprecatedNetworkDetails: undefined;
-  Asset: {
-    address?: string;
-    isNative?: boolean;
-    isETH?: boolean;
-    chainId?: string;
-    symbol?: string;
-  };
+  AssetStack: undefined;
+  Asset: TokenI & { chainId?: string; isFromSearch?: boolean };
   AssetDetails: AssetDetailsParams;
   SendView: undefined;
+  SendAsset: undefined;
   SendFlowView: undefined;
   AddBookmarkView: undefined;
   OfflineModeView: undefined;
   NotificationsView: undefined;
+  NftDetailsStack: undefined;
+  NftDetailsFullImageStack: undefined;
   NftDetails: NftDetailsParams;
   NftDetailsFullImage: NftDetailsParams;
   PaymentRequestView: undefined;
@@ -601,13 +600,17 @@ export type RootParamList = {
         sourcePage?: string; // Component accesses route.params?.sourcePage
       }
     | undefined;
-  SwapsAmountView: undefined;
+  SwapsAmountView: {
+    sourceToken?: string;
+    destinationToken?: string;
+    chainId?: string;
+    sourcePage?: string;
+  };
   SwapsQuotesView: undefined;
   SetPasswordFlow: undefined;
   DeFiProtocolPositionDetails: DeFiProtocolPositionDetailsParams;
   CardRoutes: undefined;
   StakeScreens: undefined;
-  StakeModals: undefined;
 
   // Tab Navigator Screens
   WalletTabHome: undefined;
@@ -625,9 +628,6 @@ export type RootParamList = {
         initialTab?: string;
       }
     | undefined;
-  WalletTabStackFlow: {
-    screen: string;
-  };
   AddAsset: AddAssetParams;
   Collectible: undefined;
   ConfirmAddAsset: {
@@ -679,7 +679,8 @@ export type RootParamList = {
     existingTabId?: string;
     timestamp?: number;
   };
-  AssetView: undefined;
+  // TODO: AssetView is not used anymore
+  // AssetView: undefined;
   AssetLoader: AssetLoaderParams;
 
   // Payment Flow Screens
@@ -706,7 +707,6 @@ export type RootParamList = {
 
   // Earn Flow Screens
   EarnScreens: undefined;
-  EarnModals: undefined;
   EarnLendingDepositConfirmation: LendingDepositViewRouteParams;
   EarnLendingWithdrawalConfirmation: EarnWithdrawalConfirmationViewRouteParams;
   EarnLendingMaxWithdrawalModal: undefined;

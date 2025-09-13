@@ -39,19 +39,14 @@ function UnsupportedRegionModal() {
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-      });
+      navigation.navigate('DepositRegionSelectorModal');
     });
   }, [navigation]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate('WalletTabHome', {
-        screen: 'WalletTabStackFlow',
-        params: {
-          screen: 'WalletView',
-        },
+        screen: 'WalletView',
       });
     });
   }, [navigation]);

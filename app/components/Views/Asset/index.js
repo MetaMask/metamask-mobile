@@ -8,7 +8,6 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import Routes from '../../../constants/navigation/Routes';
 import {
   TX_CONFIRMED,
   TX_PENDING,
@@ -80,7 +79,6 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
-import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';

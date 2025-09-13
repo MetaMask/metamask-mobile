@@ -1,33 +1,19 @@
 /* eslint-disable react/display-name */
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
-
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-
 import { useStyles } from '../../../../component-library/hooks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { AccountsList } from './AccountsList';
-
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-
-import Routes from '../../../../constants/navigation/Routes';
-
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useSwitchNotificationLoadingText } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { FeatureAnnouncementToggle } from './FeatureAnnouncementToggle';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import { PerpsNotificationToggle } from './PerpsNotificationToggle';
-import styleSheet, {
-  styles as navigationOptionsStyles,
-} from './NotificationsSettings.styles';
+import styleSheet from './NotificationsSettings.styles';
 import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
@@ -124,24 +110,3 @@ const NotificationsSettings = ({
 };
 
 export default NotificationsSettings;
-
-NotificationsSettings.navigationOptions = ({
-  navigation,
-  isNotificationEnabled,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-  isNotificationEnabled: boolean;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Lg}
-      iconName={IconName.ArrowLeft}
-      onPress={() =>
-        !isNotificationEnabled
-          ? navigation.navigate(Routes.WALLET.HOME)
-          : navigation.goBack()
-      }
-      style={navigationOptionsStyles.headerLeft}
-    />
-  ),
-});

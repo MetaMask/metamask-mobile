@@ -1285,10 +1285,7 @@ export function getImportTokenNavbarOptions(
               ? () => onClose()
               : () =>
                   navigation.navigate(Routes.WALLET.HOME, {
-                    screen: Routes.WALLET.TAB_STACK_FLOW,
-                    params: {
-                      screen: Routes.WALLET_VIEW,
-                    },
+                    screen: Routes.WALLET_VIEW,
                   })
           }
         />
@@ -1430,7 +1427,6 @@ export function getNetworkNavbarOptions(
   return {
     header: () => (
       <HeaderBase
-        includesTopInset
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}

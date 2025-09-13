@@ -19,13 +19,9 @@ import { RootParamList } from '../../../../util/navigation/types';
 const Stack = createStackNavigator<RootParamList>();
 
 const PerpsModalStack = () => (
-  <Stack.Navigator
+  <Stack.Group
     screenOptions={{
-      headerShown: false,
-      cardStyle: {
-        backgroundColor: 'transparent',
-      },
-      presentation: 'modal',
+      presentation: 'transparentModal',
     }}
   >
     <Stack.Screen
@@ -33,7 +29,7 @@ const PerpsModalStack = () => (
       component={PerpsQuoteExpiredModal}
     />
     <Stack.Screen name={'PerpsBalanceModal'} component={PerpsBalanceModal} />
-  </Stack.Navigator>
+  </Stack.Group>
 );
 
 const PerpsScreenStack = () => (
@@ -114,17 +110,7 @@ const PerpsScreenStack = () => (
         />
 
         {/* Modal stack for bottom sheet modals */}
-        <Stack.Screen
-          name={'PerpsModals'}
-          component={PerpsModalStack}
-          options={{
-            headerShown: false,
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            animationEnabled: false,
-          }}
-        />
+        {PerpsModalStack()}
 
         <Stack.Screen name={'RedesignedConfirmations'} component={Confirm} />
       </Stack.Navigator>

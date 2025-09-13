@@ -176,7 +176,10 @@ const createStyles = (colors) =>
   });
 
 const debouncedNavigation = debounce((navigation, collectible) => {
-  navigation.navigate('NftDetails', { collectible });
+  navigation.navigate('NftDetailsStack', {
+    screen: 'NftDetails',
+    params: { collectible },
+  });
 }, 200);
 
 /**

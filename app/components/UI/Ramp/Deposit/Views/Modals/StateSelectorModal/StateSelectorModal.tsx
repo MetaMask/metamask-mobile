@@ -3,8 +3,14 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp , StackScreenProps } from '@react-navigation/stack';
-import type { NavigatableRootParamList , RootParamList } from '../../../../../../../util/navigation/types';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -84,13 +90,10 @@ function StateSelectorModal({ route }: StateSelectorModalProps) {
     (state: { code: string; name: string }) => {
       if (state.code === 'NY') {
         sheetRef.current?.onCloseBottomSheet(() => {
-          navigation.navigate('DepositModals', {
-            screen: 'DepositUnsupportedStateModal',
-            params: {
-              stateCode: state.code,
-              stateName: state.name,
-              onStateSelect,
-            },
+          navigation.navigate('DepositUnsupportedStateModal', {
+            stateCode: state.code,
+            stateName: state.name,
+            onStateSelect,
           });
         });
       } else {

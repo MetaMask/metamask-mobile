@@ -15,14 +15,6 @@ import { RootParamList } from '../../../../util/navigation/types';
 
 const Stack = createStackNavigator<RootParamList>();
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-
 // Regular Stack for Screens
 const StakeScreenStack = () => (
   <StakeSDKProvider>
@@ -49,9 +41,7 @@ const StakeScreenStack = () => (
 // Modal Stack for Modals
 const StakeModalStack = () => (
   <StakeSDKProvider>
-    <Stack.Navigator
-      screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
-    >
+    <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
       <Stack.Screen
         name={'LearnMore'}
         component={PoolStakingLearnMoreModal}
@@ -72,7 +62,7 @@ const StakeModalStack = () => (
         component={EarnTokenList}
         options={{ headerShown: false }}
       />
-    </Stack.Navigator>
+    </Stack.Group>
   </StakeSDKProvider>
 );
 

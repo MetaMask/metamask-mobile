@@ -126,10 +126,13 @@ const AssetOptions = ({ route }: AssetOptionsProps) => {
 
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('AssetDetails', {
-        address: address as Hex,
-        chainId: networkId as Hex,
-        asset,
+      navigation.navigate('AssetStack', {
+        screen: 'AssetDetails',
+        params: {
+          address: address as Hex,
+          chainId: networkId as Hex,
+          asset,
+        },
       });
     });
   };

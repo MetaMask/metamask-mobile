@@ -32,6 +32,8 @@ import { PopularList } from '../../../../../util/networks/customNetworks';
 import Engine from '../../../../../core/Engine';
 import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../util/navigation/types';
 
 export const getNetworkName = (
   chainId: Hex,
@@ -50,7 +52,8 @@ const createStyles = () =>
 export const BridgeDestTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -88,14 +91,10 @@ export const BridgeDestTokenSelector: React.FC = () => {
       // Open the asset details screen as a bottom sheet
       // Use dispatch with unique key to force new modal instance
       const handleInfoButtonPress = () => {
-        // TODO - This navigation logic may be a bit fragile and should be refactored
-        navigation.dispatch({
-          type: 'NAVIGATE',
-          payload: {
-            name: 'Asset',
-            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
-            params: { ...item },
-          },
+        // @ts-expect-error - TODO: BridgeToken should be TokenI?
+        navigation.push('AssetStack', {
+          screen: 'Asset',
+          params: item,
         });
 
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(

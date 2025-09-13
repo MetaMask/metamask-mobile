@@ -8,14 +8,6 @@ import { RootParamList } from '../../../../util/navigation/types';
 
 const Stack = createStackNavigator<RootParamList>();
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-
 const EarnScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -30,20 +22,16 @@ const EarnScreenStack = () => (
 );
 
 const EarnModalStack = () => (
-  <Stack.Navigator
-    screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
-  >
+  <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
     <Stack.Screen
       name={'EarnLendingMaxWithdrawalModal'}
       component={EarnLendingMaxWithdrawalModal}
-      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={'EarnLendingLearnMoreModal'}
       component={LendingLearnMoreModal}
-      options={{ headerShown: false }}
     />
-  </Stack.Navigator>
+  </Stack.Group>
 );
 
 export { EarnScreenStack, EarnModalStack };

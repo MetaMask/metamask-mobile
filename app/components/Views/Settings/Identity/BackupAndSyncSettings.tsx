@@ -1,21 +1,11 @@
 /* eslint-disable react/display-name */
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import styleSheet, {
-  styles as navigationOptionsStyles,
-} from './BackupAndSyncSettings.styles';
+import styleSheet from './BackupAndSyncSettings.styles';
 import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import BackupAndSyncFeaturesToggles from '../../../UI/Identity/BackupAndSyncFeaturesToggles/BackupAndSyncFeaturesToggles';
 import { strings } from '../../../../../locales/i18n';
@@ -57,18 +47,3 @@ const BackupAndSyncSettings = ({ route }: BackupAndSyncSettingsProps) => {
 };
 
 export default BackupAndSyncSettings;
-
-BackupAndSyncSettings.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Lg}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-      style={navigationOptionsStyles.headerLeft}
-    />
-  ),
-});

@@ -179,18 +179,16 @@ const EarnInputView = ({ route }: EarnInputViewProps) => {
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
-      navigation.navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.LEARN_MORE,
-        params: { chainId: earnToken?.chainId },
+      navigation.navigate(Routes.STAKING.MODALS.LEARN_MORE, {
+        chainId: earnToken?.chainId,
       });
     }
 
     if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
-      // @ts-expect-error - earnToken can be undefined, handle case
-      navigation.navigate(Routes.EARN.MODALS.ROOT, {
-        screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-        params: { asset: earnToken },
+      navigation.navigate(Routes.EARN.MODALS.LENDING_LEARN_MORE, {
+        // @ts-expect-error - earnToken can be undefined, handle case
+        asset: earnToken,
       });
     }
   };
@@ -448,18 +446,15 @@ const EarnInputView = ({ route }: EarnInputViewProps) => {
           .build(),
       );
 
-      navigation.navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.GAS_IMPACT,
-        params: {
-          amountWei: amountTokenMinimalUnit.toString(),
-          amountFiat: amountFiatNumber,
-          annualRewardsToken,
-          annualRewardsFiat,
-          annualRewardRate,
-          estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
-          estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
-          chainId: earnToken?.chainId,
-        },
+      navigation.navigate(Routes.STAKING.MODALS.GAS_IMPACT, {
+        amountWei: amountTokenMinimalUnit.toString(),
+        amountFiat: amountFiatNumber,
+        annualRewardsToken,
+        annualRewardsFiat,
+        annualRewardRate,
+        estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
+        estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
+        chainId: earnToken?.chainId,
       });
       return;
     }
@@ -572,11 +567,8 @@ const EarnInputView = ({ route }: EarnInputViewProps) => {
     lastQuickAmountButtonPressed.current = 'MAX';
 
     if (!isStablecoinLendingEnabled || token.isETH) {
-      navigation.navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.MAX_INPUT,
-        params: {
-          handleMaxPress: handleMax,
-        },
+      navigation.navigate(Routes.STAKING.MODALS.MAX_INPUT, {
+        handleMaxPress: handleMax,
       });
     } else {
       handleMax();

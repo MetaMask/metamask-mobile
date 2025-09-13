@@ -75,10 +75,7 @@ const AccountNetworkRow = ({
     if (!useMultichainAccountsDesign) {
       // This navigation below is to close account modal.
       navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
+        screen: Routes.WALLET_VIEW,
       });
     }
 

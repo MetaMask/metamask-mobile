@@ -140,23 +140,16 @@ const QuoteDetailsCard = () => {
   });
 
   const handleQuoteInfoPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL,
-    });
+    navigation.navigate(Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL);
   };
 
   const handleSlippagePress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
-    });
+    navigation.navigate(Routes.BRIDGE.MODALS.SLIPPAGE_MODAL);
   };
 
   const handlePriceImpactWarningPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
-      params: {
-        isGasIncluded: !!activeQuote?.quote.gasIncluded,
-      },
+    navigation.navigate(Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL, {
+      isGasIncluded: !!activeQuote?.quote.gasIncluded,
     });
   };
 

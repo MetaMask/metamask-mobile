@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
@@ -10,8 +16,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import {
-  NavigationProp,
-  ParamListBase,
+  type NavigationProp,
   useFocusEffect,
   useNavigation,
 } from '@react-navigation/native';
@@ -61,6 +66,7 @@ import {
   SkeletonProps,
 } from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
+import type { NavigatableRootParamList } from '../../../../../util/navigation';
 
 const SkeletonLoading = (props: SkeletonProps) => {
   if (isE2E) return null;
@@ -89,7 +95,7 @@ const CardHome = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const { trackEvent, createEventBuilder } = useMetrics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<NavigatableRootParamList>>();
   const theme = useTheme();
 
   const styles = createStyles(theme);
@@ -99,6 +105,35 @@ const CardHome = () => {
   const cardholderAddresses = useSelector(selectCardholderAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const isCardholder = useIsCardholder();
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <ButtonIcon
+          style={headerStyle.icon}
+          size={ButtonIconSizes.Md}
+          iconName={IconName.ArrowLeft}
+          onPress={() => navigation.goBack()}
+        />
+      ),
+      headerTitle: () => (
+        <Text
+          variant={TextVariant.HeadingSM}
+          style={headerStyle.title}
+          testID={'card-view-title'}
+        >
+          {strings('card.card')}
+        </Text>
+      ),
+      headerRight: () => (
+        <ButtonIcon
+          size={ButtonIconSizes.Md}
+          iconName={IconName.Setting}
+          style={headerStyle.invisibleIcon}
+        />
+      ),
+    });
+  }, [navigation]);
 
   // Handle network and account changes
   useFocusEffect(
@@ -417,36 +452,5 @@ const CardHome = () => {
     </ScrollView>
   );
 };
-
-CardHome.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      style={headerStyle.invisibleIcon}
-    />
-  ),
-});
 
 export default CardHome;

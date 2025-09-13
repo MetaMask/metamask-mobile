@@ -41,7 +41,7 @@ export interface CustomTabBarProps {
     [key: string]: Descriptor<
       BottomTabNavigationOptions & {
         tabBarIconKey: TabBarIconKey;
-        callback: () => void;
+        callback?: () => void;
         rootScreenName: string;
       },
       BottomTabNavigationProp<ParamListBase>,

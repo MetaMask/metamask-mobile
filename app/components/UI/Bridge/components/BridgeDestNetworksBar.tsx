@@ -116,9 +116,7 @@ export const BridgeDestNetworksBar = () => {
   );
 
   const navigateToNetworkSelector = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
-    });
+    navigation.navigate(Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR);
   };
 
   const renderDestChains = useCallback(

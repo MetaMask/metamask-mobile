@@ -59,12 +59,9 @@ const EarnTokenSelector = ({
       tokenFilter.includeReceiptTokens = true;
     }
 
-    navigation.navigate('StakeModals', {
-      screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
-      params: {
-        tokenFilter,
-        onItemPressScreen: action,
-      },
+    navigation.navigate(Routes.STAKING.MODALS.EARN_TOKEN_LIST, {
+      tokenFilter,
+      onItemPressScreen: action,
     });
   };
 

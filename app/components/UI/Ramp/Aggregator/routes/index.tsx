@@ -8,7 +8,6 @@ import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
-import { colors } from '../../../../../styles/common';
 import { RootParamList } from '../../../../../util/navigation/types';
 
 const Stack = createStackNavigator<RootParamList>();
@@ -31,17 +30,10 @@ const RampRoutes = ({ rampType }: { rampType: RampType }) => (
         component={BuildQuote}
         options={{ animationEnabled: false }}
       />
-      <Stack.Screen
-        name={'Quotes'}
-        component={Quotes}
-        options={{
-          headerShown: false,
-          cardStyle: { backgroundColor: colors.transparent },
-          animationEnabled: false,
-          gestureEnabled: false,
-          detachPreviousScreen: false,
-        }}
-      />
+      {/* Modal Routes */}
+      <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
+        <Stack.Screen name={'Quotes'} component={Quotes} />
+      </Stack.Group>
       <Stack.Screen name={'Checkout'} component={CheckoutWebView} />
       <Stack.Screen name={'Region'} component={Regions} />
       <Stack.Screen

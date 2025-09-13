@@ -126,9 +126,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   ]);
 
   const handleManageBalancePress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.BALANCE_MODAL,
-    });
+    navigation.navigate(Routes.PERPS.MODALS.BALANCE_MODAL);
   }, [navigation]);
 
   const handleStartTrading = useCallback(() => {

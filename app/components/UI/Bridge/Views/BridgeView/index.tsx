@@ -297,14 +297,10 @@ const BridgeView = ({ route }: BridgeViewProps) => {
   };
 
   const handleSourceTokenPress = () =>
-    navigation.navigate('BridgeModals', {
-      screen: 'BridgeSourceTokenSelector',
-    });
+    navigation.navigate('BridgeSourceTokenSelector');
 
   const handleDestTokenPress = () =>
-    navigation.navigate('BridgeModals', {
-      screen: 'BridgeDestTokenSelector',
-    });
+    navigation.navigate('BridgeDestTokenSelector');
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
@@ -321,9 +317,7 @@ const BridgeView = ({ route }: BridgeViewProps) => {
     if (isExpired && !willRefresh) {
       setIsInputFocused(false);
       // open the quote tooltip modal
-      navigation.navigate('BridgeModals', {
-        screen: 'QuoteExpiredModal',
-      });
+      navigation.navigate('QuoteExpiredModal');
     }
   }, [isExpired, willRefresh, navigation]);
 

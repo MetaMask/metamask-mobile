@@ -61,12 +61,9 @@ const UnsupportedStateModal: React.FC<UnsupportedStateModalProps> = ({
 
   const handleSelectDifferentState = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate('DepositModals', {
-        screen: 'DepositStateSelectorModal',
-        params: {
-          selectedState: stateCode,
-          onStateSelect,
-        },
+      navigation.navigate('DepositStateSelectorModal', {
+        selectedState: stateCode,
+        onStateSelect,
       });
     });
   }, [closeBottomSheetAndNavigate, navigation, stateCode, onStateSelect]);
@@ -81,10 +78,7 @@ const UnsupportedStateModal: React.FC<UnsupportedStateModalProps> = ({
   const handleClose = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       navigation.navigate('WalletTabHome', {
-        screen: 'WalletTabStackFlow',
-        params: {
-          screen: 'WalletView',
-        },
+        screen: 'WalletView',
       });
     });
   }, [closeBottomSheetAndNavigate, navigation]);

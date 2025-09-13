@@ -12,11 +12,7 @@ const CardRoutes = () => (
       initialRouteName={'CardHome'}
       screenOptions={{ headerMode: 'screen' }}
     >
-      <Stack.Screen
-        name={'CardHome'}
-        component={CardHome}
-        options={CardHome.navigationOptions}
-      />
+      <Stack.Screen name={'CardHome'} component={CardHome} />
     </Stack.Navigator>
   </CardSDKProvider>
 );

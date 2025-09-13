@@ -49,9 +49,7 @@ export const BridgeDestNetworkSelector: React.FC<
       navigation.goBack();
 
       if (route?.params?.shouldGoToTokens) {
-        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-        });
+        navigation.navigate(Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR);
       }
     },
     [dispatch, navigation, route?.params?.shouldGoToTokens],

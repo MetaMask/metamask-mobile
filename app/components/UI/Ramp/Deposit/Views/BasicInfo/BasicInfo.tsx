@@ -253,9 +253,7 @@ const BasicInfo = ({ route }: BasicInfoProps) => {
   );
 
   const handleSsnInfoPress = useCallback(() => {
-    navigation.navigate('DepositModals', {
-      screen: 'SsnInfoModal',
-    });
+    navigation.navigate('SsnInfoModal');
   }, [navigation]);
 
   return (

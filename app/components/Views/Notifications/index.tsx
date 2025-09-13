@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -131,6 +131,36 @@ const NotificationsView = ({
     [allNotifications],
   );
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <ButtonIcon
+          size={ButtonIconSizes.Md}
+          iconName={IconName.Setting}
+          onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
+          style={styles.icon}
+        />
+      ),
+      headerLeft: () => (
+        <ButtonIcon
+          size={ButtonIconSizes.Md}
+          iconName={IconName.Close}
+          onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+          style={styles.icon}
+        />
+      ),
+      headerTitle: () => (
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.title}
+          testID={NotificationMenuViewSelectorsIDs.TITLE}
+        >
+          {strings('app_settings.notifications_title')}
+        </Text>
+      ),
+    });
+  }, [navigation]);
+
   return (
     <View
       style={styles.wrapper}
@@ -166,35 +196,3 @@ const NotificationsView = ({
 };
 
 export default NotificationsView;
-
-NotificationsView.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerRight: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
-      style={styles.icon}
-    />
-  ),
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Close}
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
-      style={styles.icon}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingMD}
-      style={styles.title}
-      testID={NotificationMenuViewSelectorsIDs.TITLE}
-    >
-      {strings('app_settings.notifications_title')}
-    </Text>
-  ),
-});

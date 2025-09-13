@@ -13,15 +13,8 @@ import BlockaidModal from './components/BlockaidModal';
 import PriceImpactWarningModal from './components/PriceImpactWarningModal';
 import { type RootParamList } from '../../../util/navigation';
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-
 const Stack = createStackNavigator<RootParamList>();
+
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen name="BridgeView" component={BridgeView} />
@@ -29,9 +22,7 @@ export const BridgeScreenStack = () => (
 );
 
 export const BridgeModalStack = () => (
-  <Stack.Navigator
-    screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
-  >
+  <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
     <Stack.Screen
       name={'BridgeSourceTokenSelector'}
       component={BridgeSourceTokenSelector}
@@ -60,5 +51,5 @@ export const BridgeModalStack = () => (
       name={'PriceImpactWarningModal'}
       component={PriceImpactWarningModal}
     />
-  </Stack.Navigator>
+  </Stack.Group>
 );

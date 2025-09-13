@@ -78,12 +78,9 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
 
     const handleFlagPress = useCallback(() => {
       // TODO: Params are not used in RegionSelectorModal
-      navigation.navigate('DepositModals', {
-        screen: 'DepositRegionSelectorModal',
-        params: {
-          selectedRegionCode: selectedRegion?.isoCode,
-          handleSelectRegion: handleRegionSelect,
-        },
+      navigation.navigate('DepositRegionSelectorModal', {
+        selectedRegionCode: selectedRegion?.isoCode,
+        handleSelectRegion: handleRegionSelect,
       });
     }, [navigation, selectedRegion, handleRegionSelect]);
 

@@ -38,7 +38,6 @@ enum RouteNames {
   DepositOrderDetails = 'DepositOrderDetails',
   BankDetails = 'BankDetails',
   AdditionalVerification = 'AdditionalVerification',
-  DepositModals = 'DepositModals',
   DepositTokenSelectorModal = 'DepositTokenSelectorModal',
   DepositRegionSelectorModal = 'DepositRegionSelectorModal',
   DepositPaymentMethodSelectorModal = 'DepositPaymentMethodSelectorModal',
@@ -79,6 +78,9 @@ enum RouteNames {
   WalletActions = 'WalletActions',
   FundActionMenu = 'FundActionMenu',
   NFTAutoDetectionModal = 'NFTAutoDetectionModal',
+  NftDetails = 'NftDetails',
+  NftDetailsStack = 'NftDetailsStack',
+  NftDetailsFullImageStack = 'NftDetailsFullImageStack',
   MultiRPcMigrationModal = 'MultiRPcMigrationModal',
   MaxBrowserTabsModal = 'MaxBrowserTabsModal',
   DeepLinkModal = 'DeepLinkModal',
@@ -179,7 +181,6 @@ enum RouteNames {
 
   // Wallet Routes
   WalletTabHome = 'WalletTabHome',
-  WalletTabStackFlow = 'WalletTabStackFlow',
   WalletConnectSessionsView = 'WalletConnectSessionsView',
 
   // Vault Recovery Routes
@@ -198,7 +199,6 @@ enum RouteNames {
   // Bridge Routes
   Bridge = 'Bridge',
   BridgeView = 'BridgeView',
-  BridgeModals = 'BridgeModals',
   BridgeSourceTokenSelector = 'BridgeSourceTokenSelector',
   BridgeSourceNetworkSelector = 'BridgeSourceNetworkSelector',
   SlippageModal = 'SlippageModal',
@@ -221,7 +221,6 @@ enum RouteNames {
   PerpsMarketDetails = 'PerpsMarketDetails',
   PerpsTutorial = 'PerpsTutorial',
   PerpsClosePosition = 'PerpsClosePosition',
-  PerpsModals = 'PerpsModals',
   PerpsQuoteExpiredModal = 'PerpsQuoteExpiredModal',
   PerpsBalanceModal = 'PerpsBalanceModal',
   PerpsPositionTransaction = 'PerpsPositionTransaction',
@@ -258,7 +257,6 @@ enum RouteNames {
   EarnScreens = 'EarnScreens',
   EarnLendingDepositConfirmation = 'EarnLendingDepositConfirmation',
   EarnLendingWithdrawalConfirmation = 'EarnLendingWithdrawalConfirmation',
-  EarnModals = 'EarnModals',
   EarnLendingMaxWithdrawalModal = 'EarnLendingMaxWithdrawalModal',
   EarnLendingLearnMoreModal = 'EarnLendingLearnMoreModal',
 
@@ -291,6 +289,7 @@ enum RouteNames {
   CardHome = 'CardHome',
   Recipient = 'Recipient',
   Asset = 'Asset',
+  SendAsset = 'SendAsset',
   Send = 'Send',
   RewardsView = 'RewardsView',
   ReferralRewardsView = 'ReferralRewardsView',
@@ -302,6 +301,10 @@ const Routes = {
   BROWSER_VIEW: RouteNames.BrowserView,
   SETTINGS_VIEW: RouteNames.SettingsView,
   DEPRECATED_NETWORK_DETAILS: RouteNames.DeprecatedNetworkDetails,
+  ASSET: RouteNames.Asset,
+  NftDetailsStack: RouteNames.NftDetailsStack,
+  NftDetailsFullImageStack: RouteNames.NftDetailsFullImageStack,
+  NFT_DETAILS: RouteNames.NftDetails,
   RAMP: {
     ID: RouteNames.Ramp,
     BUY: RouteNames.RampBuy,
@@ -334,7 +337,6 @@ const Routes = {
     BANK_DETAILS: RouteNames.BankDetails,
     ADDITIONAL_VERIFICATION: RouteNames.AdditionalVerification,
     MODALS: {
-      ID: RouteNames.DepositModals,
       TOKEN_SELECTOR: RouteNames.DepositTokenSelectorModal,
       REGION_SELECTOR: RouteNames.DepositRegionSelectorModal,
       PAYMENT_METHOD_SELECTOR: RouteNames.DepositPaymentMethodSelectorModal,
@@ -479,7 +481,6 @@ const Routes = {
   },
   WALLET: {
     HOME: RouteNames.WalletTabHome,
-    TAB_STACK_FLOW: RouteNames.WalletTabStackFlow,
     WALLET_CONNECT_SESSIONS_VIEW: RouteNames.WalletConnectSessionsView,
   },
   VAULT_RECOVERY: {
@@ -495,7 +496,6 @@ const Routes = {
     ROOT: RouteNames.Bridge,
     BRIDGE_VIEW: RouteNames.BridgeView,
     MODALS: {
-      ROOT: RouteNames.BridgeModals,
       SOURCE_TOKEN_SELECTOR: RouteNames.BridgeSourceTokenSelector,
       SOURCE_NETWORK_SELECTOR: RouteNames.BridgeSourceNetworkSelector,
       SLIPPAGE_MODAL: RouteNames.SlippageModal,
@@ -521,7 +521,6 @@ const Routes = {
     TUTORIAL: RouteNames.PerpsTutorial,
     CLOSE_POSITION: RouteNames.PerpsClosePosition,
     MODALS: {
-      ROOT: RouteNames.PerpsModals,
       QUOTE_EXPIRED_MODAL: RouteNames.PerpsQuoteExpiredModal,
       BALANCE_MODAL: RouteNames.PerpsBalanceModal,
     },
@@ -562,7 +561,6 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION:
       RouteNames.EarnLendingWithdrawalConfirmation,
     MODALS: {
-      ROOT: RouteNames.EarnModals,
       LENDING_MAX_WITHDRAWAL: RouteNames.EarnLendingMaxWithdrawalModal,
       LENDING_LEARN_MORE: RouteNames.EarnLendingLearnMoreModal,
     },
@@ -606,7 +604,7 @@ const Routes = {
   },
   SEND: {
     RECIPIENT: RouteNames.Recipient,
-    ASSET: RouteNames.Asset,
+    ASSET: RouteNames.SendAsset,
     AMOUNT: RouteNames.Amount,
     DEFAULT: RouteNames.Send,
   },

@@ -269,12 +269,9 @@ export const useDepositRouting = ({
       });
 
       popToBuildQuote();
-      navigation.navigate('DepositModals', {
-        screen: 'DepositWebviewModal',
-        params: {
-          sourceUrl: paymentUrl,
-          handleNavigationStateChange,
-        },
+      navigation.navigate('DepositWebviewModal', {
+        sourceUrl: paymentUrl,
+        handleNavigationStateChange,
       });
     },
     [navigation, popToBuildQuote, handleNavigationStateChange],
@@ -299,15 +296,12 @@ export const useDepositRouting = ({
       workFlowRunId: string;
     }) => {
       popToBuildQuote();
-      navigation.navigate('DepositModals', {
-        screen: 'DepositKycWebviewModal',
-        params: {
-          quote,
-          sourceUrl: kycUrl,
-          workFlowRunId,
-          cryptoCurrencyChainId,
-          paymentMethodId,
-        },
+      navigation.navigate('DepositKycWebviewModal', {
+        quote,
+        sourceUrl: kycUrl,
+        workFlowRunId,
+        cryptoCurrencyChainId,
+        paymentMethodId,
       });
     },
     [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],

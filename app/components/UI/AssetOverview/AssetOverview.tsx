@@ -203,10 +203,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     ///: END:ONLY_INCLUDE_IF
 
     navigation.navigate('WalletTabHome', {
-      screen: 'WalletTabStackFlow',
-      params: {
-        screen: 'WalletView',
-      },
+      screen: 'WalletView',
     });
 
     // For EVM networks, switch the network if needed

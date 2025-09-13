@@ -34,8 +34,12 @@ const NftImageAndNetworkBadge = ({
   const showPlaceholder = !nft || !chainId?.length || !image;
 
   const onPress = useCallback(() => {
-    navigation.navigate('NftDetailsFullImage', {
-      collectible: nft,
+    // @ts-expect-error - TODO: Nft type should not be undefined
+    navigation.navigate('NftDetailsFullImageStack', {
+      screen: 'NftDetailsFullImage',
+      params: {
+        collectible: nft,
+      },
     });
   }, [navigation, nft]);
 

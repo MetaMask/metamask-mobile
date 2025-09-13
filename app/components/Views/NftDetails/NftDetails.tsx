@@ -286,8 +286,11 @@ const NftDetails = ({ route }: NftDetailsProps) => {
 
   const onMediaPress = useCallback(() => {
     // Navigate to new NFT details page
-    navigation.navigate('NftDetailsFullImage', {
-      collectible,
+    navigation.navigate('NftDetailsFullImageStack', {
+      screen: 'NftDetailsFullImage',
+      params: {
+        collectible,
+      },
     });
   }, [collectible, navigation]);
 

@@ -392,13 +392,13 @@ export const BridgeTransactionDetails = ({
               });
             } else {
               // For bridges, show the modal with both explorers
-              navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-                screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-                params: {
+              navigation.navigate(
+                Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+                {
                   evmTxMeta: route.params.evmTxMeta,
                   multiChainTx: route.params.multiChainTx,
                 },
-              });
+              );
             }
           }}
         />

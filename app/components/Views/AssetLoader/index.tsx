@@ -1,15 +1,20 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { selectTokenDisplayData } from '../../../selectors/tokenSearchDiscoveryDataController';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './styles';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootParamList } from '../../../util/navigation/types';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../util/navigation/types';
 
 type AssetLoaderProps = StackScreenProps<RootParamList, 'AssetLoader'>;
 
@@ -20,7 +25,8 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, chainId, address),
   );
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -30,13 +36,15 @@ export const AssetLoader: React.FC<AssetLoaderProps> = ({
       address,
     );
     if (tokenResult?.found) {
-      navigation.dispatch(
-        StackActions.replace(Routes.BROWSER.ASSET_VIEW, {
+      // @ts-expect-error - TODO: Asset type should be TokenI?
+      navigation.replace('AssetStack', {
+        screen: 'Asset',
+        params: {
           ...tokenResult.token,
           chainId,
           isFromSearch: true,
-        }),
-      );
+        },
+      });
     }
   }, [tokenResult, address, chainId, navigation]);
 

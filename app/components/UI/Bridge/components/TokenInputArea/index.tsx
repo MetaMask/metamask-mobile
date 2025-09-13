@@ -178,11 +178,8 @@ export const TokenInputArea = forwardRef<
     const navigation = useNavigation();
 
     const navigateToDestNetworkSelector = () => {
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
-        params: {
-          shouldGoToTokens: true,
-        },
+      navigation.navigate(Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR, {
+        shouldGoToTokens: true,
       });
     };
 

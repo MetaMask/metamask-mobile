@@ -46,12 +46,9 @@ const StateSelector: React.FC<StateSelectorProps> = ({
   )?.name;
 
   const handlePress = useCallback(() => {
-    navigation.navigate('DepositModals', {
-      screen: 'DepositStateSelectorModal',
-      params: {
-        selectedState: selectedValue,
-        onStateSelect: onValueChange,
-      },
+    navigation.navigate('DepositStateSelectorModal', {
+      selectedState: selectedValue,
+      onStateSelect: onValueChange,
     });
   }, [navigation, selectedValue, onValueChange]);
 

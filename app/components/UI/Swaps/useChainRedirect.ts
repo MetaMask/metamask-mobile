@@ -29,10 +29,7 @@ export function useChainRedirect(selectedAddress: string): boolean {
     if (selectedAddress && isSolanaAddress(selectedAddress)) {
       // First navigate to Home screen in case they press back after they are in the Bridge UI
       navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
+        screen: Routes.WALLET_VIEW,
       });
 
       // Wait for next render cycle, then navigate to bridge

@@ -24,7 +24,7 @@ export const Send = () => {
             options={sendNavigationOptions.Amount}
           />
           <Stack.Screen
-            name={'Asset'}
+            name={'SendAsset'}
             component={Asset}
             options={sendNavigationOptions.Asset}
           />

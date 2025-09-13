@@ -329,12 +329,19 @@ export const TokenListItem = React.memo(
 
       // if the asset is staked, navigate to the native asset details
       if (asset?.isStaked) {
-        return navigation.navigate('Asset', {
-          ...token.nativeAsset,
+        // @ts-expect-error - TODO: Native asset should not be undefined
+        return navigation.navigate('AssetStack', {
+          screen: 'Asset',
+          params: {
+            ...token.nativeAsset,
+          },
         });
       }
-      navigation.navigate('Asset', {
-        ...token,
+      navigation.navigate('AssetStack', {
+        screen: 'Asset',
+        params: {
+          ...token,
+        },
       });
     };
 

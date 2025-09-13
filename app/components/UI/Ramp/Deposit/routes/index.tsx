@@ -28,14 +28,6 @@ import SsnInfoModal from '../Views/Modals/SsnInfoModal';
 import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 import { RootParamList } from '../../../../../util/navigation/types';
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-
 const Stack = createStackNavigator<RootParamList>();
 
 const getAnimationOptions = ({
@@ -120,9 +112,7 @@ const MainRoutes = () => (
 );
 
 const DepositModalsRoutes = () => (
-  <Stack.Navigator
-    screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
-  >
+  <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
     <Stack.Screen
       name={'DepositTokenSelectorModal'}
       component={TokenSelectorModal}
@@ -158,7 +148,7 @@ const DepositModalsRoutes = () => (
       name={'DepositConfigurationModal'}
       component={ConfigurationModal}
     />
-  </Stack.Navigator>
+  </Stack.Group>
 );
 
 const DepositRoutes = () => (
@@ -168,14 +158,7 @@ const DepositRoutes = () => (
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name={'DepositRoot'} component={MainRoutes} />
-      <Stack.Screen
-        name={'DepositModals'}
-        component={DepositModalsRoutes}
-        options={{
-          ...clearStackNavigatorOptions,
-          detachPreviousScreen: false,
-        }}
-      />
+      {DepositModalsRoutes()}
     </Stack.Navigator>
   </DepositSDKProvider>
 );

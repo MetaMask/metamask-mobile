@@ -117,10 +117,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     );
 
     // @ts-expect-error - earnToken can be undefined, handle case
-    navigate(Routes.EARN.MODALS.ROOT, {
-      screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-      params: { asset: earnToken },
-    });
+    navigate(Routes.EARN.MODALS.LENDING_LEARN_MORE, { asset: earnToken });
   };
 
   if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;

@@ -3,12 +3,13 @@ import { RootState } from '../../../../reducers';
 import { BrowserTab } from '../../Tokens/types';
 import { isCardUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { NavigatableRootParamList } from '../../../../util/navigation';
 
 export const useNavigateToCardPage = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: NavigationProp<NavigatableRootParamList>,
 ) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const { trackEvent, createEventBuilder } = useMetrics();

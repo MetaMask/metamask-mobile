@@ -181,9 +181,12 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const handlePress = useCallback(
     () =>
       !asset.isNative &&
-      navigation.navigate('AssetDetails', {
-        chainId: asset.chainId,
-        address: asset.address,
+      navigation.navigate('AssetStack', {
+        screen: 'AssetDetails',
+        params: {
+          address: asset.address,
+          chainId: asset.chainId,
+        },
       }),
     [asset.address, asset.chainId, asset.isNative, navigation],
   );

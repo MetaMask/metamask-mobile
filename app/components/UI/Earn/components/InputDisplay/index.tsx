@@ -189,9 +189,7 @@ const InputDisplay = ({
   ]);
 
   const onNavigateToLendingMaxWithdrawModal = () => {
-    navigation.navigate(Routes.EARN.MODALS.ROOT, {
-      screen: Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL,
-    });
+    navigation.navigate(Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL);
   };
 
   return (
