@@ -3,6 +3,7 @@
 
 name: Run E2E
 
+
 on:
   workflow_call:
     inputs:
@@ -37,7 +38,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && fromJSON('["ghcr.io/cirruslabs/macos-runner:sequoia", "low-priority"]') || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    runs-on: ${{ inputs.platform == 'ios' && fromJSON('["ghcr.io/cirruslabs/macos-runner:sequoia", "low-priority"]') || 'ubuntu-latest' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
@@ -86,7 +87,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config 
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-benchmark
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
