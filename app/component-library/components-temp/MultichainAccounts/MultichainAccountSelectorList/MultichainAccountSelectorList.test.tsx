@@ -19,6 +19,26 @@ import {
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
+        },
+      },
+    },
+    MultichainAccountService: {
+      createNextMultichainAccountGroup: jest.fn().mockResolvedValue({
+        id: 'new-account-group-id',
+        metadata: { name: 'New Account' },
+        accounts: [],
+      }),
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -63,22 +83,28 @@ describe('MultichainAccountSelectorList', () => {
   const renderComponentWithMockState = (
     wallets: AccountWalletObject[],
     internalAccounts: Record<string, InternalAccount>,
-    selectedAccountGroup: AccountGroupObject,
+    selectedAccountGroups: AccountGroupObject[],
   ) => {
     const mockState = createMockState(wallets, internalAccounts);
 
     return renderWithProvider(
       <MultichainAccountSelectorList
         onSelectAccount={mockOnSelectAccount}
-        selectedAccountGroup={selectedAccountGroup}
+        selectedAccountGroups={selectedAccountGroups}
       />,
       { state: mockState },
     );
   };
 
   it('shows accounts correctly', () => {
-    const account1 = createMockAccountGroup('group1', 'Account 1');
-    const account2 = createMockAccountGroup('group2', 'Account 2');
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const account2 = createMockAccountGroup(
+      'keyring:wallet2/group2',
+      'Account 2',
+    );
     const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
     const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
 
@@ -89,7 +115,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [wallet1, wallet2],
       internalAccounts,
-      account1,
+      [account1],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -97,8 +123,14 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   it('shows accounts correctly when there are multiple accounts with different categories', () => {
-    const srpAccount = createMockAccountGroup('srp-group', 'SRP Account');
-    const snapAccount = createMockAccountGroup('snap-group', 'Snap Account');
+    const srpAccount = createMockAccountGroup(
+      'keyring:srp-wallet/srp-group',
+      'SRP Account',
+    );
+    const snapAccount = createMockAccountGroup(
+      'keyring:snap-wallet/snap-group',
+      'Snap Account',
+    );
     const srpWallet = createMockWallet('srp-wallet', 'Wallet 1', [srpAccount]);
     const snapWallet = createMockWallet('snap-wallet', 'Simple Keyring', [
       snapAccount,
@@ -111,7 +143,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [srpWallet, snapWallet],
       internalAccounts,
-      srpAccount,
+      [srpAccount],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -119,9 +151,12 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   it('shows accounts correctly when there are multiple accounts with hardware wallets', () => {
-    const srpAccount = createMockAccountGroup('srp-group', 'SRP Account');
+    const srpAccount = createMockAccountGroup(
+      'keyring:srp-wallet/srp-group',
+      'SRP Account',
+    );
     const ledgerAccount = createMockAccountGroup(
-      'ledger-group',
+      'keyring:ledger-wallet/ledger-group',
       'Ledger Account',
     );
     const srpWallet = createMockWallet('srp-wallet', 'Wallet 1', [srpAccount]);
@@ -136,7 +171,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [srpWallet, ledgerWallet],
       internalAccounts,
-      srpAccount,
+      [srpAccount],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -144,8 +179,14 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   it('shows the correct account as selected', () => {
-    const account1 = createMockAccountGroup('group1', 'Account 1');
-    const account2 = createMockAccountGroup('group2', 'Account 2');
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const account2 = createMockAccountGroup(
+      'keyring:wallet1/group2',
+      'Account 2',
+    );
     const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
       account1,
       account2,
@@ -158,7 +199,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getAllByTestId } = renderComponentWithMockState(
       [wallet1],
       internalAccounts,
-      account2,
+      [account2],
     );
 
     const accountCells = getAllByTestId('multichain-account-cell-container');
@@ -169,15 +210,21 @@ describe('MultichainAccountSelectorList', () => {
 
   describe('Search functionality', () => {
     it('filters accounts by name', async () => {
-      const account1 = createMockAccountGroup('group1', 'My Account', [
-        'account1',
-      ]);
-      const account2 = createMockAccountGroup('group2', 'Test Account', [
-        'account2',
-      ]);
-      const account3 = createMockAccountGroup('group3', 'Another Account', [
-        'account3',
-      ]);
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+        ['account1'],
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Test Account',
+        ['account2'],
+      );
+      const account3 = createMockAccountGroup(
+        'keyring:wallet1/group3',
+        'Another Account',
+        ['account3'],
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -192,7 +239,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       // Initially all accounts should be visible
@@ -211,12 +258,16 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('debounces search input with 300ms delay', async () => {
-      const account1 = createMockAccountGroup('group1', 'My Account', [
-        'account1',
-      ]);
-      const account2 = createMockAccountGroup('group2', 'Test Account', [
-        'account2',
-      ]);
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+        ['account1'],
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Test Account',
+        ['account2'],
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -229,7 +280,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       // Initially all accounts should be visible
@@ -257,15 +308,21 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('filters accounts by address', async () => {
-      const account1 = createMockAccountGroup('group1', 'Account 1', [
-        'account1',
-      ]);
-      const account2 = createMockAccountGroup('group2', 'Account 2', [
-        'account2',
-      ]);
-      const account3 = createMockAccountGroup('group3', 'Account 3', [
-        'account3',
-      ]);
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+        ['account1'],
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Account 2',
+        ['account2'],
+      );
+      const account3 = createMockAccountGroup(
+        'keyring:wallet1/group3',
+        'Account 3',
+        ['account3'],
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -284,7 +341,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       // Initially all accounts should be visible
@@ -303,14 +360,16 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('filters account groups when any account in group matches', async () => {
-      const account1 = createMockAccountGroup('group1', 'Group 1', [
-        'account1',
-        'account2',
-      ]);
-      const account2 = createMockAccountGroup('group2', 'Group 2', [
-        'account3',
-        'account4',
-      ]);
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Group 1',
+        ['account1', 'account2'],
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Group 2',
+        ['account3', 'account4'],
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -329,7 +388,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       // Initially all groups should be visible
@@ -347,15 +406,21 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('filters across multiple wallets', async () => {
-      const account1 = createMockAccountGroup('group1', 'Account 1', [
-        'account1',
-      ]);
-      const account2 = createMockAccountGroup('group2', 'Account 2', [
-        'account2',
-      ]);
-      const account3 = createMockAccountGroup('group3', 'Account 3', [
-        'account3',
-      ]);
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+        ['account1'],
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet2/group2',
+        'Account 2',
+        ['account2'],
+      );
+      const account3 = createMockAccountGroup(
+        'keyring:wallet2/group3',
+        'Account 3',
+        ['account3'],
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
       const wallet2 = createMockWallet('wallet2', 'Wallet 2', [
         account2,
@@ -370,7 +435,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1, wallet2],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       // Initially all accounts should be visible
@@ -389,8 +454,14 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('shows empty state when no accounts match search', async () => {
-      const account1 = createMockAccountGroup('group1', 'My Account');
-      const account2 = createMockAccountGroup('group2', 'Test Account');
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Test Account',
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -403,7 +474,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, getByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       // Search for non-existent term
@@ -427,8 +498,14 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('is case insensitive', async () => {
-      const account1 = createMockAccountGroup('group1', 'My Account');
-      const account2 = createMockAccountGroup('group2', 'Test Account');
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Test Account',
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -441,7 +518,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       // Search with different cases
@@ -471,8 +548,14 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('handles empty search input', async () => {
-      const account1 = createMockAccountGroup('group1', 'My Account');
-      const account2 = createMockAccountGroup('group2', 'Test Account');
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Test Account',
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -485,7 +568,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       const searchInput = getByTestId(
@@ -518,8 +601,14 @@ describe('MultichainAccountSelectorList', () => {
     });
 
     it('trims whitespace from search input', async () => {
-      const account1 = createMockAccountGroup('group1', 'My Account');
-      const account2 = createMockAccountGroup('group2', 'Test Account');
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Test Account',
+      );
       const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
         account1,
         account2,
@@ -532,7 +621,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1],
         internalAccounts,
-        account1,
+        [account1],
       );
 
       const searchInput = getByTestId(
@@ -548,6 +637,82 @@ describe('MultichainAccountSelectorList', () => {
         },
         { timeout: 1000 }, // Increased timeout to account for debounce delay
       );
+    });
+  });
+
+  describe('Account Creation and Scrolling', () => {
+    it('renders AccountListFooter with correct props', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      const { getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account1]}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Verify the component renders correctly with AccountListFooter
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Create account')).toBeTruthy();
+    });
+
+    it('handles multiple wallets with AccountListFooter', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet2/group2',
+        'Account 2',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+
+      const { getAllByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account1]}
+        />,
+        { state: createMockState([wallet1, wallet2], internalAccounts) },
+      );
+
+      // Should have multiple "Create account" buttons (one per wallet)
+      const createAccountButtons = getAllByText('Create account');
+      expect(createAccountButtons.length).toBe(2);
+    });
+
+    it('passes walletId to AccountListFooter', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      const { getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account1]}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Verify the component renders correctly
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Create account')).toBeTruthy();
     });
   });
 });

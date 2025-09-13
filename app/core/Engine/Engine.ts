@@ -48,7 +48,10 @@ import {
   AddApprovalOptions,
 } from '@metamask/approval-controller';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
-import { SelectedNetworkController } from '@metamask/selected-network-controller';
+import {
+  SelectedNetworkController,
+  SelectedNetworkControllerState,
+} from '@metamask/selected-network-controller';
 import {
   PermissionController,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -238,6 +241,8 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
+import { rewardsControllerInit } from './controllers/rewards-controller';
+import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -294,6 +299,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  rewardsDataService: RewardsDataService;
   /**
    * Creates a CoreController instance
    */
@@ -448,10 +454,11 @@ export class Engine {
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
+      async ({ chainId, endpointUrl, error }) => {
         onRpcEndpointDegraded({
           chainId,
           endpointUrl,
+          error,
           infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
@@ -957,7 +964,14 @@ export class Engine {
           'PermissionController:stateChange',
         ],
       }),
-      state: initialState.SelectedNetworkController || { domains: {} },
+      state:
+        initialState.SelectedNetworkController ||
+        ({
+          domains: {},
+          activeDappNetwork: null,
+        } as SelectedNetworkControllerState & {
+          activeDappNetwork: string | null;
+        }),
       useRequestQueuePreference: isPerDappSelectedNetworkEnabled(),
       // TODO we need to modify core PreferencesController for better cross client support
       onPreferencesStateChange: (
@@ -1197,6 +1211,7 @@ export class Engine {
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
+        RewardsController: rewardsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1213,6 +1228,19 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const rewardsController = controllersByName.RewardsController;
+
+    // Initialize and store RewardsDataService
+    this.rewardsDataService = new RewardsDataService({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RewardsDataService',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      fetch,
+      locale: I18n.locale,
+    });
+
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1248,6 +1276,10 @@ export class Engine {
     const multichainAccountService = controllersByName.MultichainAccountService;
     ///: END:ONLY_INCLUDE_IF
 
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
+    networkEnablementController.init();
+
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -1261,9 +1293,6 @@ export class Engine {
       initialState: initialState.RatesController,
     });
 
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
-
     // Set up currency rate sync
     setupCurrencyRateSync(
       multichainRatesControllerMessenger,
@@ -1276,7 +1305,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-
     // Notify Snaps that the app is active when the Engine is initialized.
     this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
@@ -1336,13 +1364,13 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'EarnController',
         allowedEvents: [
-          'AccountsController:selectedAccountChange',
+          'AccountTreeController:selectedAccountGroupChange',
           'TransactionController:transactionConfirmed',
           'NetworkController:networkDidChange',
         ],
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         ],
       }),
       addTransactionFn: transactionController.addTransaction.bind(
@@ -1454,6 +1482,8 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:updateNativeBalances',
+            'AccountTrackerController:updateStakedBalances',
           ],
           allowedEvents: [
             'TokensController:stateChange',
@@ -1465,6 +1495,10 @@ export class Engine {
         // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
+        useAccountsAPI: false,
+        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
+        queryMultipleAccounts:
+          preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1584,6 +1618,7 @@ export class Engine {
       SeedlessOnboardingController: seedlessOnboardingController,
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
+      RewardsController: rewardsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1835,7 +1870,7 @@ export class Engine {
     let totalEthFiat1dAgo = 0;
     let totalTokenFiat = 0;
     let totalTokenFiat1dAgo = 0;
-    let aggregatedNativeTokenBalance = '';
+    let aggregatedNativeTokenBalance = '0';
     let primaryTicker = '';
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
@@ -2079,17 +2114,20 @@ export class Engine {
 
       const { tokenBalances } = backgroundState.TokenBalancesController;
 
-      let tokenFound = false;
-      tokenLoop: for (const chains of Object.values(tokenBalances)) {
-        for (const tokens of Object.values(chains)) {
-          for (const balance of Object.values(tokens)) {
-            if (!isZero(balance)) {
-              tokenFound = true;
-              break tokenLoop;
+      const hasNonZeroTokenBalance = (): boolean => {
+        for (const chains of Object.values(tokenBalances)) {
+          for (const tokens of Object.values(chains)) {
+            for (const balance of Object.values(tokens)) {
+              if (!isZero(balance)) {
+                return true;
+              }
             }
           }
         }
-      }
+        return false;
+      };
+
+      const tokenFound = hasNonZeroTokenBalance();
 
       const fiatBalance = this.getTotalEvmFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
@@ -2328,6 +2366,7 @@ export default {
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
+      RewardsController,
     } = instance.datamodel.state;
 
     return {
@@ -2384,6 +2423,7 @@ export default {
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
+      RewardsController,
     };
   },
 

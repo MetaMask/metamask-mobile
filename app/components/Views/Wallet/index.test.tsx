@@ -1,4 +1,8 @@
 import React from 'react';
+import type { Json } from '@metamask/utils';
+
+// Import StorageWrapper mock from global testSetup - this provides StorageWrapper.getItem
+import StorageWrapper from '../../../store/storage-wrapper';
 
 // Local mocks specific to this test file to avoid affecting other tests
 jest.mock('react-native-device-info', () => ({
@@ -21,26 +25,45 @@ jest.mock('../AssetDetails/AssetDetailsActions', () =>
   jest.fn((_props) => null),
 );
 
-// Create shared mock reference
-let mockScrollableTabViewComponent: jest.Mock;
+// Mock PerpsTabView
+jest.mock('../../UI/Perps/Views/PerpsTabView', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
 
-jest.mock('react-native-scrollable-tab-view', () => {
-  const mockComponent = jest.fn((_props) => null);
+// Mock remoteFeatureFlag util to ensure version check passes
+jest.mock('../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn(() => true),
+}));
+
+// Mock the Perps feature flag selector - will be controlled per test
+let mockPerpsEnabled = true;
+let mockPerpsGTMModalEnabled = false;
+jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
+  selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
+  selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
+    () => mockPerpsGTMModalEnabled,
+  ),
+}));
+
+// Create shared mock reference for TabsList
+let mockTabsListComponent: jest.Mock;
+
+jest.mock('../../../component-library/components-temp/Tabs', () => {
+  const ReactMock = jest.requireActual('react');
+  const mockComponent = jest.fn((props) =>
+    // Render children so we can test them
+    ReactMock.createElement('View', null, props.children),
+  );
 
   // Store reference for tests
-  mockScrollableTabViewComponent = mockComponent;
-
-  // TODO - Clean up mock.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  mockComponent.defaultProps = {
-    onChangeTab: jest.fn(),
-    renderTabBar: jest.fn(),
-  };
+  mockTabsListComponent = mockComponent;
 
   return {
     __esModule: true,
-    default: mockComponent,
+    TabsList: mockComponent,
+    TabsListRef: {},
   };
 });
 
@@ -56,6 +79,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
+import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
@@ -92,6 +116,18 @@ jest.mock('../../../core/Engine', () => {
     }),
     context: {
       NftController: {
+        state: {
+          allNfts: {
+            [MOCK_ADDRESS]: {
+              [MOCK_ADDRESS]: [],
+            },
+          },
+          allNftContracts: {
+            [MOCK_ADDRESS]: {
+              [MOCK_ADDRESS]: [],
+            },
+          },
+        },
         allNfts: {
           [MOCK_ADDRESS]: {
             [MOCK_ADDRESS]: [],
@@ -223,6 +259,9 @@ const mockInitialState = {
               },
             },
           },
+          sendRedesign: {
+            enabled: false,
+          },
         },
       },
       TokensController: {
@@ -332,10 +371,14 @@ jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
-    useNavigation: () => ({
+    useNavigation: jest.fn(() => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
-    }),
+    })),
+    useRoute: jest.fn(() => ({
+      params: {},
+    })),
+    useFocusEffect: jest.fn(),
   };
 });
 
@@ -395,12 +438,12 @@ describe('Wallet', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('should render ScrollableTabView', () => {
+  it('should render TabsList', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 
-    // Check if ScrollableTabView mock was called
-    expect(mockScrollableTabViewComponent).toHaveBeenCalled();
+    // Check if TabsList mock was called
+    expect(mockTabsListComponent).toHaveBeenCalled();
   });
   it('should render the address copy button', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
@@ -417,6 +460,15 @@ describe('Wallet', () => {
       WalletViewSelectorsIDs.ACCOUNT_ICON,
     );
     expect(accountPicker).toBeDefined();
+  });
+
+  it('should render scan qr icon', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+    const scanButton = RNScreen.getByTestId(
+      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+    );
+    expect(scanButton).toBeDefined();
   });
 
   it('Should add tokens to state automatically when there are detected tokens', () => {
@@ -442,9 +494,9 @@ describe('Wallet', () => {
   // Simple test to verify mock setup
   it('should have proper mock setup', () => {
     expect(typeof jest.fn()).toBe('function');
-    expect(typeof mockScrollableTabViewComponent).toBe('function');
+    expect(typeof mockTabsListComponent).toBe('function');
     expect(jest.fn()).toBeDefined();
-    expect(mockScrollableTabViewComponent).toBeDefined();
+    expect(mockTabsListComponent).toBeDefined();
   });
 
   // Unified UI Feature Flag Tests
@@ -457,7 +509,7 @@ describe('Wallet', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       mockAssetDetailsActions.mockClear();
-      mockScrollableTabViewComponent.mockClear();
+      mockTabsListComponent.mockClear();
     });
 
     it('should pass displayBridgeButton as true when isUnifiedSwapsEnabled is false', () => {
@@ -946,6 +998,395 @@ describe('Wallet', () => {
         renderWalletWithState(mockInitialState);
 
         expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Perps Tab Visibility', () => {
+    let mockPerpsTabView: jest.Mock;
+    let mockNavigation: NavigationProp<ParamListBase>;
+
+    beforeEach(() => {
+      // Get the actual mock that was created at the top
+      mockPerpsTabView = jest.requireMock(
+        '../../UI/Perps/Views/PerpsTabView',
+      ).default;
+      mockPerpsTabView.mockClear();
+
+      // Setup navigation mock
+      mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      // Default to enabled
+      mockPerpsEnabled = true;
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      mockPerpsEnabled = true; // Reset to default
+    });
+
+    it('should register visibility callback when Perps is enabled', () => {
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Debug: Check if TabsList was rendered
+      expect(mockTabsListComponent).toHaveBeenCalled();
+
+      // Check that PerpsTabView was rendered
+      expect(mockPerpsTabView).toHaveBeenCalled();
+
+      // Check the props it was called with
+      const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
+      expect(perpsTabViewProps.onVisibilityChange).toBeDefined();
+      expect(typeof perpsTabViewProps.onVisibilityChange).toBe('function');
+      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should calculate correct perpsTabIndex when Perps is enabled', () => {
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Perps should be at index 1 when enabled (after Tokens at index 0)
+      const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
+      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+    });
+
+    it('should not render PerpsTabView when Perps is disabled', () => {
+      // Set the flag to disabled for this test
+      mockPerpsEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                perpsPerpTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // PerpsTabView should not be rendered
+      expect(mockPerpsTabView).not.toHaveBeenCalled();
+    });
+
+    it('should not call visibility callback when Perps is disabled', () => {
+      // Set the flag to disabled for this test
+      mockPerpsEnabled = false;
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                perpsPerpTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Simulate tab change
+      const tabsList = mockTabsListComponent.mock.calls[0][0];
+      tabsList.onChangeTab({
+        i: 1,
+        ref: { props: { tabLabel: 'Perps' } },
+      });
+
+      // Perps visibility callback should not be called since Perps is disabled
+      expect(mockPerpsTabView).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Perps GTM Modal Navigation', () => {
+    let mockNavigation: NavigationProp<ParamListBase>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.mocked(StorageWrapper.getItem).mockClear();
+      mockNavigate.mockClear();
+
+      // Setup navigation mock
+      mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      // Reset flags to default state
+      mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = false;
+    });
+
+    afterEach(() => {
+      // Reset mocks and flags
+      mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = false;
+      jest.clearAllMocks();
+    });
+
+    it('should navigate to GTM modal when both flags are enabled and modal not shown', async () => {
+      // Arrange
+      mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = true;
+      jest.mocked(StorageWrapper.getItem).mockResolvedValue(null); // Modal not shown yet
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                perpsPerpTradingGTMModalEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Wait for useEffect to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Assert
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        '@MetaMask:perpsGTMModalShown',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith('PerpsModals', {
+        screen: 'PerpsGTMModal',
+      });
+    });
+
+    it('should not navigate to GTM modal when already shown', async () => {
+      // Arrange
+      mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = true;
+      jest.mocked(StorageWrapper.getItem).mockResolvedValue('true'); // Modal already shown
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                perpsPerpTradingGTMModalEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Wait for useEffect to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Assert
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        '@MetaMask:perpsGTMModalShown',
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith('PerpsModals', {
+        screen: 'PerpsGTMModal',
+      });
+    });
+
+    it('should not navigate to GTM modal when Perps feature is disabled', async () => {
+      // Arrange
+      mockPerpsEnabled = false;
+      mockPerpsGTMModalEnabled = true;
+      jest.mocked(StorageWrapper.getItem).mockResolvedValue(null);
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                perpsPerpTradingEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+                perpsPerpTradingGTMModalEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Wait for useEffect to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Assert
+      expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
+        '@MetaMask:perpsGTMModalShown',
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith('PerpsModals', {
+        screen: 'PerpsGTMModal',
+      });
+    });
+
+    it('should not navigate to GTM modal when GTM modal feature is disabled', async () => {
+      // Arrange
+      mockPerpsEnabled = true;
+      mockPerpsGTMModalEnabled = false;
+      jest.mocked(StorageWrapper.getItem).mockResolvedValue(null);
+
+      const state = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              ...backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
+                perpsPerpTradingGTMModalEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // Act
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
+
+      // Wait for useEffect to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Assert
+      expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
+        '@MetaMask:perpsGTMModalShown',
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith('PerpsModals', {
+        screen: 'PerpsGTMModal',
       });
     });
   });

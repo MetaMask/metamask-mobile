@@ -66,6 +66,7 @@ jest.mock('../../../constants/network', () => ({
 jest.mock('../../../util/activity', () => ({
   sortTransactions: jest.fn((txs) => txs || []),
   filterByAddressAndNetwork: jest.fn(() => true),
+  isTransactionOnChains: jest.fn(() => false),
 }));
 
 jest.mock('../../../util/transactions', () => ({
@@ -126,6 +127,7 @@ jest.mock('../../../selectors/networkEnablementController', () => ({
       '0x1': true,
     },
   })),
+  selectEVMEnabledNetworks: jest.fn(() => ['0x1']),
 }));
 
 jest.mock('@metamask/keyring-api', () => ({
@@ -167,7 +169,7 @@ jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
 
-jest.mock('../../UI/Transactions', () => () => null);
+jest.mock('../../UI/Transactions', () => jest.fn());
 
 jest.mock('../../../core/Engine', () => ({
   context: {

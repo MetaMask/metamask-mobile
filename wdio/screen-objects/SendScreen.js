@@ -10,10 +10,34 @@ import {
   UNDERSTAND_WARNING_CONTINUE,
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
+import { expect as appwrightExpect } from 'appwright';
+import { NETWORK_SELECTOR_TEST_IDS } from '../../app/constants/networkSelector.js';
 
 class SendScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get container() {
-    return Selectors.getElementByPlatform(SEND_SCREEN_ID);
+    if (!this._device) {
+      return Selectors.getElementByPlatform(SEND_SCREEN_ID);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SEND_SCREEN_ID);
+    }
+  }
+
+  get networkPicker() {
+    if (!this._device) {
+      return Selectors.getElementByPlatform(NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER);
+    }
   }
 
   get sendAddressInputField() {
@@ -49,8 +73,22 @@ class SendScreen {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
   }
 
+  async openNetworkPicker() {
+    if (!this._device) {
+      await Gestures.waitAndTap(await this.networkPicker);
+    } else {
+      const element = await this.networkPicker;
+      await element.tap();
+    }
+  }
+
   async typeAddressInSendAddressField(address) {
-    await Gestures.typeText(this.sendAddressInputField, address);
+    if (!this._device) {
+      await Gestures.typeText(this.sendAddressInputField, address);
+    } else {
+      const element = await AppwrightSelectors.getElementByID(this._device, SEND_ADDRESS_INPUT_FIELD);
+      await element.fill(address);
+    }
   }
 
   async isSendWarningMessageVisible(message) {
@@ -65,6 +103,11 @@ class SendScreen {
     await expect(this.understandWarningcontinue).toBeDisplayed();
   }
 
+  async isVisible() {
+    const element = await this.container;
+    await appwrightExpect(element).toBeVisible();
+  }
+
   async tapAddAddressButton() {
     await Gestures.tapTextByXpath(this.addAddressButton);
   }
@@ -74,8 +117,13 @@ class SendScreen {
   }
 
   async isAmountScreenDisplayed() {
-    const amountScreen = await this.amountScreen;
-    await amountScreen.waitForDisplayed();
+    if (!this._device) {
+      const amountScreen = await this.amountScreen;
+      await amountScreen.waitForDisplayed();
+    } else {
+      const element = await AppwrightSelectors.getElementByID(this._device, AMOUNT_SCREEN);
+      await appwrightExpect(element).toBeVisible();
+    }
   }
 
   async isChangedContactNameVisible(contactName) {
@@ -93,6 +141,24 @@ class SendScreen {
   async waitForDisplayed() {
     const screen = await this.container;
     await screen.waitForDisplayed();
+  }
+
+  async tapOnContactAddress(contactName) {
+    if (!this._device) {
+      await Gestures.tapTextByXpath(contactName);
+    } else {
+      const element = await AppwrightSelectors.getElementByText(this._device, contactName);
+      await element.tap();
+    }
+  }
+
+  async tapOnNextButton() {
+    if (!this._device) {
+      await Gestures.tapTextByXpath(NEXT_BUTTON);
+    } else {
+      const element = await AppwrightSelectors.getElementByID(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
+      await element.tap();
+    }
   }
 }
 

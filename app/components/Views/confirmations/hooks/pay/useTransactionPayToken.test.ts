@@ -11,10 +11,10 @@ import {
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { BridgeToken } from '../../../../UI/Bridge/types';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 
-jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
+jest.mock('../tokens/useTokenWithBalance');
 
 const STATE_MOCK = merge(
   simpleSendTransactionControllerMock,
@@ -29,6 +29,14 @@ const PAY_TOKEN_MOCK: ConfirmationMetricsReducer.TransactionPayToken = {
   address: tokenAddress1Mock,
   chainId: '0x1',
 };
+
+const BRIDGE_TOKEN_MOCK = {
+  address: tokenAddress1Mock,
+  balance: '123.456',
+  decimals: 4,
+  chainId: ChainId.mainnet,
+  tokenFiatAmount: 456.123,
+} as unknown as BridgeToken;
 
 function runHook({
   payToken,
@@ -50,57 +58,28 @@ function runHook({
 }
 
 describe('useTransactionPayToken', () => {
-  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
+  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    useTokensWithBalanceMock.mockReturnValue([
-      {
-        address: tokenAddress1Mock,
-        balance: '123.456',
-        decimals: 4,
-        chainId: ChainId.mainnet,
-        tokenFiatAmount: 456.123,
-      },
-    ] as unknown as BridgeToken[]);
+    useTokenWithBalanceMock.mockReturnValue(BRIDGE_TOKEN_MOCK as never);
   });
 
   it('returns undefined if no state', () => {
+    useTokenWithBalanceMock.mockReset();
     const { result } = runHook();
     expect(result.current.payToken).toBeUndefined();
   });
 
-  it('returns token from state', () => {
+  it('returns bridge token matching state', () => {
     const { result } = runHook({
       payToken: PAY_TOKEN_MOCK,
     });
 
-    expect(result.current.payToken).toEqual(PAY_TOKEN_MOCK);
-  });
-
-  it('returns decimals', () => {
-    const { result } = runHook({
-      payToken: PAY_TOKEN_MOCK,
+    expect(result.current.payToken).toStrictEqual({
+      ...BRIDGE_TOKEN_MOCK,
+      balanceRaw: '1234560',
     });
-
-    expect(result.current.decimals).toEqual(4);
-  });
-
-  it('returns balance', () => {
-    const { result } = runHook({
-      payToken: PAY_TOKEN_MOCK,
-    });
-
-    expect(result.current.balanceHuman).toEqual('123.456');
-  });
-
-  it('returns fiat balance', () => {
-    const { result } = runHook({
-      payToken: PAY_TOKEN_MOCK,
-    });
-
-    expect(result.current.balanceFiat).toEqual('456.123');
   });
 
   it('sets token in state', () => {

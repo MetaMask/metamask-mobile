@@ -19,6 +19,11 @@ export interface PerpsBottomSheetTooltipProps {
    * Optional test ID for testing
    */
   testID?: string;
+
+  /**
+   * Optional data to pass to custom content renderers
+   */
+  data?: Record<string, unknown>;
 }
 
 export type PerpsTooltipContentKey =
@@ -26,6 +31,12 @@ export type PerpsTooltipContentKey =
   | 'liquidation_price'
   | 'margin'
   | 'fees'
+  | 'closing_fees'
+  | 'withdrawal_fees'
+  | 'receive'
   | 'open_interest'
   | 'funding_rate'
-  | 'perps_geo_block';
+  | 'geo_block'
+  | 'estimated_pnl'
+  | 'limit_price'
+  | 'tp_sl';

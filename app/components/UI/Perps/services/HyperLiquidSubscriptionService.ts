@@ -31,6 +31,7 @@ import type {
 import {
   adaptPositionFromSDK,
   adaptOrderFromSDK,
+  adaptAccountStateFromSDK,
 } from '../utils/hyperLiquidAdapter';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
@@ -64,6 +65,7 @@ export class HyperLiquidSubscriptionService {
 
   // Global singleton subscriptions
   private globalAllMidsSubscription?: Subscription;
+  private globalAllMidsPromise?: Promise<void>; // Track in-progress subscription
   private globalActiveAssetSubscriptions = new Map<string, Subscription>();
   private globalL2BookSubscriptions = new Map<string, Subscription>();
   private symbolSubscriberCounts = new Map<string, number>();
@@ -74,12 +76,12 @@ export class HyperLiquidSubscriptionService {
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
   private accountSubscriberCount = 0;
-  private cachedPositions: Position[] = [];
-  private cachedOrders: Order[] = [];
-  private cachedAccount: AccountState | null = null;
 
+  private cachedPositions: Position[] | null = null;
+  private cachedOrders: Order[] | null = null;
+  private cachedAccount: AccountState | null = null;
   // Global price data cache
-  private cachedPriceData = new Map<string, PriceUpdate>();
+  private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
   // Order book data cache
   private orderBookCache = new Map<
@@ -113,11 +115,15 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
   }
 
+  // updateFundingRatesCache method removed - funding rates now come directly from assetCtx
+
   /**
    * Subscribe to live price updates with singleton subscription architecture
-   * Uses allMids for fast price updates and activeAssetCtx for market data
+   * Uses allMids for fast price updates and predictedFundings for accurate funding rates
    */
-  public subscribeToPrices(params: SubscribePricesParams): () => void {
+  public async subscribeToPrices(
+    params: SubscribePricesParams,
+  ): Promise<() => void> {
     const {
       symbols,
       callback,
@@ -164,6 +170,47 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure global subscriptions are established
     this.ensureGlobalAllMidsSubscription();
+
+    // Cache funding rates from initial market data fetch if available
+    if (includeMarketData) {
+      // Get initial market data to cache funding rates
+      try {
+        // Get the provider through the clientService instead of Engine directly
+        const infoClient = this.clientService.getInfoClient();
+        const [perpsMeta, assetCtxs] = await Promise.all([
+          infoClient.meta(),
+          infoClient.metaAndAssetCtxs(),
+        ]);
+
+        if (perpsMeta?.universe && assetCtxs?.[1]) {
+          // Cache funding rates directly from assetCtxs
+          perpsMeta.universe.forEach((asset, index) => {
+            const assetCtx = assetCtxs[1][index];
+            if (assetCtx && 'funding' in assetCtx) {
+              const existing = this.marketDataCache.get(asset.name) || {
+                lastUpdated: 0,
+              };
+              this.marketDataCache.set(asset.name, {
+                ...existing,
+                funding: parseFloat(assetCtx.funding),
+                lastUpdated: Date.now(),
+              });
+            }
+          });
+
+          DevLogger.log('Cached funding rates from initial market data:', {
+            cachedCount: perpsMeta.universe.filter((_asset, index) => {
+              const assetCtx = assetCtxs[1][index];
+              return assetCtx && 'funding' in assetCtx;
+            }).length,
+            totalMarkets: perpsMeta.universe.length,
+          });
+        }
+      } catch (error) {
+        DevLogger.log('Failed to cache initial funding rates:', error);
+      }
+    }
+
     symbols.forEach((symbol) => {
       // Subscribe to activeAssetCtx only when market data is requested
       if (includeMarketData) {
@@ -176,7 +223,7 @@ export class HyperLiquidSubscriptionService {
 
     // Send cached data immediately if available
     symbols.forEach((symbol) => {
-      const cachedPrice = this.cachedPriceData.get(symbol);
+      const cachedPrice = this.cachedPriceData?.get(symbol);
       if (cachedPrice) {
         callback([cachedPrice]);
       }
@@ -276,7 +323,13 @@ export class HyperLiquidSubscriptionService {
             // Process trigger orders for TP/SL
             if (order.triggerPx) {
               const coin = order.coin;
-              const position = positions.find((p) => p.coin === coin);
+              const position = positions.find(
+                (p) =>
+                  p.coin === coin &&
+                  order.reduceOnly &&
+                  Math.abs(parseFloat(p.size)) ===
+                    Math.abs(parseFloat(order.sz)),
+              );
 
               if (position) {
                 const existing = tpslMap.get(coin) || {};
@@ -329,20 +382,10 @@ export class HyperLiquidSubscriptionService {
           });
 
           // Extract account data from clearinghouseState (with null checks)
-          const accountState: AccountState = {
-            totalBalance:
-              data.clearinghouseState?.marginSummary?.accountValue || '0',
-            availableBalance: data.clearinghouseState?.withdrawable || '0',
-            marginUsed:
-              data.clearinghouseState?.marginSummary?.totalMarginUsed || '0',
-            // Calculate unrealized PnL from all positions
-            unrealizedPnl: positionsWithTPSL
-              .reduce((total, pos) => {
-                const pnl = parseFloat(pos.unrealizedPnl || '0');
-                return total + pnl;
-              }, 0)
-              .toString(),
-          };
+          const accountState: AccountState = adaptAccountStateFromSDK(
+            data.clearinghouseState,
+            data.spotState,
+          );
 
           //TODO: @abretonc7s - We need to revisit this logic for increased performance.
           // Check if data actually changed
@@ -354,7 +397,8 @@ export class HyperLiquidSubscriptionService {
           const accountChanged =
             JSON.stringify(accountState) !== JSON.stringify(this.cachedAccount);
 
-          // Only update and notify if data actually changed
+          // Only notify position subscribers on first update (when cachedPositions is null) or when data changes
+          // This prevents repeated notifications when positions remain empty
           if (positionsChanged) {
             this.cachedPositions = positionsWithTPSL;
             this.positionSubscribers.forEach((callback) => {
@@ -362,6 +406,7 @@ export class HyperLiquidSubscriptionService {
             });
           }
 
+          // Only notify order subscribers on first update (when cachedOrders is null) or when data changes
           if (ordersChanged) {
             this.cachedOrders = orders;
             this.orderSubscribers.forEach((callback) => {
@@ -411,8 +456,8 @@ export class HyperLiquidSubscriptionService {
       this.positionSubscriberCount = 0;
       this.orderSubscriberCount = 0;
       this.accountSubscriberCount = 0;
-      this.cachedPositions = [];
-      this.cachedOrders = [];
+      this.cachedPositions = null;
+      this.cachedOrders = null;
       this.cachedAccount = null;
       DevLogger.log('Shared webData2 subscription cleaned up');
     }
@@ -432,7 +477,7 @@ export class HyperLiquidSubscriptionService {
     this.positionSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedPositions.length > 0) {
+    if (this.cachedPositions) {
       callback(this.cachedPositions);
     }
 
@@ -459,6 +504,7 @@ export class HyperLiquidSubscriptionService {
     );
 
     let subscription: Subscription | undefined;
+    let cancelled = false;
 
     this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
@@ -497,7 +543,17 @@ export class HyperLiquidSubscriptionService {
           );
         })
         .then((sub) => {
-          subscription = sub;
+          // If cleanup was called before subscription completed, immediately unsubscribe
+          if (cancelled) {
+            sub.unsubscribe().catch((error: Error) => {
+              DevLogger.log(
+                strings('perps.errors.failedToUnsubscribeOrderFill'),
+                error,
+              );
+            });
+          } else {
+            subscription = sub;
+          }
         })
         .catch((error) => {
           DevLogger.log(
@@ -508,6 +564,7 @@ export class HyperLiquidSubscriptionService {
     }
 
     return () => {
+      cancelled = true;
       unsubscribe();
 
       if (subscription) {
@@ -536,7 +593,7 @@ export class HyperLiquidSubscriptionService {
     this.orderSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedOrders.length > 0) {
+    if (this.cachedOrders) {
       callback(this.cachedOrders);
     }
 
@@ -629,7 +686,7 @@ export class HyperLiquidSubscriptionService {
       this.marketDataSubscribers.has(symbol) &&
       (this.marketDataSubscribers.get(symbol)?.size ?? 0) > 0;
 
-    return {
+    const priceUpdate = {
       coin: symbol,
       price, // This is the mid price from allMids
       timestamp: Date.now(),
@@ -642,20 +699,24 @@ export class HyperLiquidSubscriptionService {
       bestBid: orderBookData?.bestBid,
       bestAsk: orderBookData?.bestAsk,
       spread: orderBookData?.spread,
+      // Always include funding when available (don't default to 0, preserve undefined)
+      funding: marketData?.funding,
       // Add market data only if requested by at least one subscriber
-      funding: hasMarketDataSubscribers ? marketData?.funding : undefined,
       openInterest: hasMarketDataSubscribers
         ? marketData?.openInterest
         : undefined,
       volume24h: hasMarketDataSubscribers ? marketData?.volume24h : undefined,
     };
+
+    return priceUpdate;
   }
 
   /**
    * Ensure global allMids subscription is active (singleton pattern)
    */
   private ensureGlobalAllMidsSubscription(): void {
-    if (this.globalAllMidsSubscription) {
+    // Check both the subscription AND the promise to prevent race conditions
+    if (this.globalAllMidsSubscription || this.globalAllMidsPromise) {
       return;
     }
 
@@ -672,23 +733,35 @@ export class HyperLiquidSubscriptionService {
       startTime: Date.now(),
     };
 
-    subscriptionClient
+    // Store the promise immediately to prevent duplicate calls
+    this.globalAllMidsPromise = subscriptionClient
       .allMids((data: WsAllMids) => {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
         // Update cache for ALL available symbols
         Object.entries(data.mids).forEach(([symbol, price]) => {
+          // Initialize the Map if it doesn't exist
+          if (!this.cachedPriceData) {
+            this.cachedPriceData = new Map<string, PriceUpdate>();
+          }
+
           const priceUpdate = this.createPriceUpdate(symbol, price.toString());
           this.cachedPriceData.set(symbol, priceUpdate);
         });
 
-        // Notify all price subscribers with their requested symbols
+        // Always notify price subscribers when we receive price data
+        // This ensures subscribers get updates and the UI can display current prices
         this.notifyAllPriceSubscribers();
       })
       .then((sub) => {
         this.globalAllMidsSubscription = sub;
         DevLogger.log('HyperLiquid: Global allMids subscription established');
+
+        // Notify existing subscribers with any cached data now that subscription is established
+        if (this.cachedPriceData && this.cachedPriceData.size > 0) {
+          this.notifyAllPriceSubscribers();
+        }
 
         // Trace WebSocket connection
         trace({
@@ -701,6 +774,9 @@ export class HyperLiquidSubscriptionService {
         });
       })
       .catch((error) => {
+        // Clear the promise on error so it can be retried
+        this.globalAllMidsPromise = undefined;
+
         DevLogger.log(strings('perps.errors.failedToEstablishAllMids'), error);
 
         // Trace WebSocket error
@@ -759,11 +835,18 @@ export class HyperLiquidSubscriptionService {
             // Cache market data for consolidation with price updates
             const marketData = {
               prevDayPx: parseFloat(ctx.prevDayPx?.toString() || '0'),
-              funding: isPerpsContext(ctx)
-                ? parseFloat(ctx.funding?.toString() || '0')
-                : 0,
+              // Cache funding rate from activeAssetCtx for real-time updates
+              funding:
+                isPerpsContext(ctx) && ctx.funding !== undefined
+                  ? parseFloat(ctx.funding.toString())
+                  : undefined,
+              // Convert openInterest from token units to USD by multiplying by current price
+              // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
               openInterest: isPerpsContext(ctx)
-                ? parseFloat(ctx.openInterest?.toString() || '0')
+                ? parseFloat(ctx.openInterest?.toString() || '0') *
+                  parseFloat(
+                    ctx.midPx?.toString() || ctx.markPx?.toString() || '0',
+                  )
                 : 0,
               volume24h: parseFloat(ctx.dayNtlVlm?.toString() || '0'),
               oraclePrice: isPerpsContext(ctx)
@@ -775,12 +858,18 @@ export class HyperLiquidSubscriptionService {
             this.marketDataCache.set(symbol, marketData);
 
             // Update cached price data with new 24h change if we have current price
-            const currentCachedPrice = this.cachedPriceData.get(symbol);
+            const currentCachedPrice = this.cachedPriceData?.get(symbol);
             if (currentCachedPrice) {
               const updatedPrice = this.createPriceUpdate(
                 symbol,
                 currentCachedPrice.price,
               );
+
+              // Ensure the Map exists
+              if (!this.cachedPriceData) {
+                this.cachedPriceData = new Map<string, PriceUpdate>();
+              }
+
               this.cachedPriceData.set(symbol, updatedPrice);
               this.notifyAllPriceSubscribers();
             }
@@ -792,7 +881,6 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log(
           `HyperLiquid: Market data subscription established for ${symbol}`,
         );
-
         // Trace WebSocket connection for market data
         trace({
           name: TraceName.PerpsWebSocketConnected,
@@ -883,12 +971,18 @@ export class HyperLiquidSubscriptionService {
             });
 
             // Update cached price data with new order book data
-            const currentCachedPrice = this.cachedPriceData.get(symbol);
+            const currentCachedPrice = this.cachedPriceData?.get(symbol);
             if (currentCachedPrice) {
               const updatedPrice = this.createPriceUpdate(
                 symbol,
                 currentCachedPrice.price,
               );
+
+              // Ensure the Map exists
+              if (!this.cachedPriceData) {
+                this.cachedPriceData = new Map<string, PriceUpdate>();
+              }
+
               this.cachedPriceData.set(symbol, updatedPrice);
               this.notifyAllPriceSubscribers();
             }
@@ -929,6 +1023,13 @@ export class HyperLiquidSubscriptionService {
    * Optimized to batch updates per subscriber
    */
   private notifyAllPriceSubscribers(): void {
+    // If no price data exists yet, don't notify
+    if (!this.cachedPriceData) {
+      return;
+    }
+
+    const priceData = this.cachedPriceData;
+
     // Group updates by subscriber to batch notifications
     const subscriberUpdates = new Map<
       (prices: PriceUpdate[]) => void,
@@ -936,7 +1037,7 @@ export class HyperLiquidSubscriptionService {
     >();
 
     this.priceSubscribers.forEach((subscriberSet, symbol) => {
-      const priceUpdate = this.cachedPriceData.get(symbol);
+      const priceUpdate = priceData.get(symbol);
       if (priceUpdate) {
         subscriberSet.forEach((callback) => {
           if (!subscriberUpdates.has(callback)) {
@@ -971,7 +1072,10 @@ export class HyperLiquidSubscriptionService {
     this.marketDataSubscribers.clear();
 
     // Clear cached data
-    this.cachedPriceData.clear();
+    this.cachedPriceData = null;
+    this.cachedPositions = null;
+    this.cachedOrders = null;
+    this.cachedAccount = null;
     this.marketDataCache.clear();
     this.orderBookCache.clear();
     this.symbolSubscriberCounts.clear();

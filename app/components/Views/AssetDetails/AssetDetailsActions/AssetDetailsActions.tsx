@@ -10,7 +10,6 @@ import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/T
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
-import useRampNetwork from '../../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 
 export interface AssetDetailsActionsProps {
@@ -58,9 +57,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { navigate } = useNavigation();
 
   // Check if FundActionMenu would be empty
-  const [isNetworkRampSupported] = useRampNetwork();
   const { isDepositEnabled } = useDepositEnabled();
-  const isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported;
+  const isFundMenuAvailable = isDepositEnabled || true;
 
   // Button should be enabled if we have standard funding options OR a custom onBuy function
   const isFundingAvailable = isFundMenuAvailable || !!onBuy;
@@ -86,7 +84,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconName={IconName.Money}
             label={strings('asset_overview.fund_button')}
             onPress={handleFundPress}
-            isDisabled={!canSignTransactions || !isFundingAvailable}
+            isDisabled={!isFundingAvailable}
             testID={fundButtonActionID}
           />
         </View>

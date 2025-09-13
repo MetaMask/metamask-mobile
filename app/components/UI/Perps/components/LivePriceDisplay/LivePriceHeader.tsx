@@ -6,9 +6,9 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  formatPrice,
-  formatPercentage,
   formatPnl,
+  formatPerpsFiat,
+  PRICE_RANGES_DETAILED_VIEW,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
 
@@ -27,12 +27,6 @@ const styleSheet = () =>
       flexDirection: 'row',
       alignItems: 'baseline',
       gap: 6,
-    },
-    positionValue: {
-      fontWeight: '700',
-    },
-    priceChange24h: {
-      fontSize: 12,
     },
   });
 
@@ -73,20 +67,18 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.HeadingSM}
+        variant={TextVariant.BodyMD}
         color={TextColor.Default}
-        style={styles.positionValue}
         testID={testIDPrice}
       >
-        {formatPrice(displayPrice)}
+        {formatPerpsFiat(displayPrice, { ranges: PRICE_RANGES_DETAILED_VIEW })}
       </Text>
       <Text
-        variant={TextVariant.BodySM}
+        variant={TextVariant.BodyMD}
         color={changeColor}
-        style={styles.priceChange24h}
         testID={testIDChange}
       >
-        {formatPnl(changeAmount)} ({formatPercentage(displayChange.toString())})
+        {formatPnl(changeAmount)}
       </Text>
     </View>
   );

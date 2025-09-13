@@ -46,6 +46,14 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     isTrigger: false,
     reduceOnly: false,
   })),
+  adaptAccountStateFromSDK: jest.fn(() => ({
+    availableBalance: '1000.00',
+    totalBalance: '10000.00',
+    marginUsed: '500.00',
+    unrealizedPnl: '100.00',
+    returnOnEquity: '20.0',
+    totalValue: '10100.00',
+  })),
 }));
 
 // Mock DevLogger
@@ -110,9 +118,10 @@ describe('HyperLiquidSubscriptionService', () => {
             ctx: {
               prevDayPx: '49000',
               funding: '0.01',
-              openInterest: '1000000',
+              openInterest: '1000000', // Raw token units from API
               dayNtlVlm: '50000000',
               oraclePx: '50100',
+              midPx: '50000', // Price used for openInterest USD conversion: 1M tokens * $50K = $50B
             },
           });
         }, 0);
@@ -232,7 +241,7 @@ describe('HyperLiquidSubscriptionService', () => {
         includeMarketData: true, // Enable market data to test activeAssetCtx subscription
       };
 
-      const unsubscribe = service.subscribeToPrices(params);
+      const unsubscribe = await service.subscribeToPrices(params);
 
       expect(mockClientService.ensureSubscriptionClient).toHaveBeenCalledWith(
         mockWalletAdapter,
@@ -254,7 +263,7 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should handle subscription client not available', () => {
+    it('should handle subscription client not available', async () => {
       mockClientService.getSubscriptionClient.mockReturnValue(undefined);
 
       const mockCallback = jest.fn();
@@ -263,7 +272,7 @@ describe('HyperLiquidSubscriptionService', () => {
         callback: mockCallback,
       };
 
-      const unsubscribe = service.subscribeToPrices(params);
+      const unsubscribe = await service.subscribeToPrices(params);
 
       expect(typeof unsubscribe).toBe('function');
       expect(mockSubscriptionClient.allMids).not.toHaveBeenCalled();
@@ -273,7 +282,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback = jest.fn();
 
       // First subscription to populate cache
-      const firstUnsubscribe = service.subscribeToPrices({
+      const firstUnsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: jest.fn(),
       });
@@ -282,7 +291,7 @@ describe('HyperLiquidSubscriptionService', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Second subscription should get cached data immediately
-      const secondUnsubscribe = service.subscribeToPrices({
+      const secondUnsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
       });
@@ -298,13 +307,13 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback2 = jest.fn();
 
       // Test that subscribing without market data does not call activeAssetCtx
-      const unsubscribe1 = service.subscribeToPrices({
+      const unsubscribe1 = await service.subscribeToPrices({
         symbols: ['ETH'],
         callback: mockCallback1,
         includeMarketData: false,
       });
 
-      const unsubscribe2 = service.subscribeToPrices({
+      const unsubscribe2 = await service.subscribeToPrices({
         symbols: ['ETH'],
         callback: mockCallback2,
         includeMarketData: false,
@@ -713,7 +722,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback = jest.fn();
 
       // First subscription to populate cache
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeMarketData: true, // Enable market data to get percentChange24h
@@ -758,7 +767,7 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       );
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
       });
@@ -777,7 +786,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should track WebSocket connection and performance', async () => {
       const mockCallback = jest.fn();
 
-      service.subscribeToPrices({
+      await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
       });
@@ -804,7 +813,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Clear previous calls
       traceModule.endTrace.mockClear();
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
       });
@@ -837,12 +846,12 @@ describe('HyperLiquidSubscriptionService', () => {
   });
 
   describe('Cleanup and Error Handling', () => {
-    it('should clear all subscriptions and cache', () => {
+    it('should clear all subscriptions and cache', async () => {
       service.clearAll();
 
       // Verify cache is cleared by trying to subscribe
       const mockCallback = jest.fn();
-      service.subscribeToPrices({
+      await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
       });
@@ -857,7 +866,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       const mockCallback = jest.fn();
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
       });
@@ -918,7 +927,7 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       );
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
       });
@@ -958,8 +967,12 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for processing
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // Should not call callback without position data
-      expect(mockCallback).not.toHaveBeenCalled();
+      // Should call callback with empty positions to fix loading state
+      // This ensures the UI can transition from loading to empty state for new users without cached positions
+      expect(mockCallback).toHaveBeenCalledWith([]);
+
+      // Verify it was only called once (not repeatedly)
+      expect(mockCallback).toHaveBeenCalledTimes(1);
 
       unsubscribe();
     });
@@ -970,7 +983,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback = jest.fn();
 
       // Subscribe without market data
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeMarketData: false,
@@ -1012,9 +1025,10 @@ describe('HyperLiquidSubscriptionService', () => {
               ctx: {
                 prevDayPx: 45000,
                 funding: 0.0001,
-                openInterest: 1000000,
+                openInterest: 1000000, // Raw token units from API
                 dayNtlVlm: 5000000,
                 oraclePx: 50100,
+                midPx: 50000, // Price used for openInterest USD conversion: 1M tokens * $50K = $50B
               },
             });
           }, 10);
@@ -1023,7 +1037,7 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       // Subscribe with market data
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeMarketData: true,
@@ -1045,7 +1059,7 @@ describe('HyperLiquidSubscriptionService', () => {
           price: expect.any(String),
           timestamp: expect.any(Number),
           funding: 0.0001,
-          openInterest: 1000000,
+          openInterest: 50000000000, // 1M tokens * $50K price = $50B
           volume24h: 5000000,
         }),
       ]);
@@ -1077,7 +1091,7 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       );
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeOrderBook: true,
@@ -1112,7 +1126,7 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should not subscribe to L2 book when includeOrderBook is false', async () => {
       const mockCallback = jest.fn();
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeOrderBook: false,
@@ -1132,7 +1146,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback2 = jest.fn();
 
       // First subscription
-      const unsubscribe1 = service.subscribeToPrices({
+      const unsubscribe1 = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback1,
         includeOrderBook: true,
@@ -1141,7 +1155,7 @@ describe('HyperLiquidSubscriptionService', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Second subscription to same symbol
-      const unsubscribe2 = service.subscribeToPrices({
+      const unsubscribe2 = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback2,
         includeOrderBook: true,
@@ -1181,7 +1195,7 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       );
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeOrderBook: true,
@@ -1215,7 +1229,7 @@ describe('HyperLiquidSubscriptionService', () => {
         new Error('L2 book subscription failed'),
       );
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeOrderBook: true,
@@ -1251,7 +1265,7 @@ describe('HyperLiquidSubscriptionService', () => {
         },
       );
 
-      const unsubscribe = service.subscribeToPrices({
+      const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
         includeOrderBook: true,
@@ -1275,5 +1289,175 @@ describe('HyperLiquidSubscriptionService', () => {
 
       unsubscribe();
     });
+  });
+
+  describe('Race condition prevention', () => {
+    it('should prevent duplicate allMids subscriptions when multiple subscribeToPrices calls happen simultaneously', async () => {
+      const callbacks = [jest.fn(), jest.fn(), jest.fn()];
+      const unsubscribes: (() => void)[] = [];
+
+      // Call subscribeToPrices multiple times simultaneously
+      const subscribePromises = callbacks.map(async (callback) => {
+        const unsubscribe = await service.subscribeToPrices({
+          symbols: ['BTC'],
+          callback,
+        });
+        unsubscribes.push(unsubscribe);
+        return new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // Wait for all subscriptions to complete
+      await Promise.all(subscribePromises);
+
+      // Should only create one allMids subscription despite multiple simultaneous calls
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(1);
+
+      // All callbacks should still work
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      callbacks.forEach((callback) => {
+        expect(callback).toHaveBeenCalled();
+      });
+
+      // Cleanup
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    });
+
+    it('should retry allMids subscription if initial attempt fails', async () => {
+      const callback = jest.fn();
+      const mockUnsubscribeFn = jest.fn();
+      const mockSubscriptionObj = {
+        unsubscribe: mockUnsubscribeFn,
+      };
+
+      // Make first attempt fail
+      mockSubscriptionClient.allMids.mockImplementationOnce(() =>
+        Promise.reject(new Error('Connection failed')),
+      );
+
+      // Second attempt succeeds
+      mockSubscriptionClient.allMids.mockImplementationOnce((cb: any) => {
+        setTimeout(() => {
+          cb({
+            mids: {
+              BTC: '50000',
+            },
+          });
+        }, 10);
+        return Promise.resolve(mockSubscriptionObj);
+      });
+
+      // First subscription attempt
+      const unsubscribe1 = await service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      // Wait for first attempt to fail
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Second subscription attempt should retry
+      const unsubscribe2 = await service.subscribeToPrices({
+        symbols: ['ETH'],
+        callback,
+      });
+
+      // Wait for second attempt to succeed
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Should have tried twice total
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
+
+      // Cleanup
+      unsubscribe1();
+      unsubscribe2();
+    });
+  });
+
+  it('should not repeatedly notify subscribers with empty positions', async () => {
+    const mockCallback = jest.fn();
+
+    // Mock webData2 to send multiple empty updates
+    mockSubscriptionClient.webData2.mockImplementation(
+      (_params: any, callback: any) => {
+        // Send first update
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [],
+            },
+            openOrders: [],
+          });
+        }, 0);
+
+        // Send second update (still empty)
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [],
+            },
+            openOrders: [],
+          });
+        }, 20);
+
+        return Promise.resolve({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
+      },
+    );
+
+    const unsubscribe = service.subscribeToPositions({
+      callback: mockCallback,
+    });
+
+    // Wait for both updates to process
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Should only be called once with empty positions (initial notification)
+    expect(mockCallback).toHaveBeenCalledTimes(1);
+    expect(mockCallback).toHaveBeenCalledWith([]);
+
+    unsubscribe();
+  });
+
+  it('should notify price subscribers on first update even with zero prices', async () => {
+    const mockCallback = jest.fn();
+
+    // Mock allMids with zero prices
+    mockSubscriptionClient.allMids.mockImplementation((callback: any) => {
+      // Send first update
+      setTimeout(() => {
+        callback({
+          mids: {
+            BTC: '0',
+            ETH: '0',
+          },
+        });
+      }, 0);
+      return Promise.resolve({
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      });
+    });
+
+    const unsubscribe = await service.subscribeToPrices({
+      symbols: ['BTC', 'ETH'],
+      callback: mockCallback,
+    });
+
+    // Wait for processing
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    // Should call callback with zero prices to enable UI state
+    expect(mockCallback).toHaveBeenCalledWith([
+      expect.objectContaining({
+        coin: 'BTC',
+        price: '0',
+      }),
+      expect.objectContaining({
+        coin: 'ETH',
+        price: '0',
+      }),
+    ]);
+
+    unsubscribe();
   });
 });

@@ -31,6 +31,7 @@ export interface TypeTextOptions extends GestureOptions {
 export interface SwipeOptions extends GestureOptions {
   speed?: 'fast' | 'slow';
   percentage?: number;
+  startOffsetPercentage?: { x: number; y: number };
 }
 
 export interface LongPressOptions extends GestureOptions {
@@ -98,6 +99,7 @@ export interface GanacheNodeOptions {
 }
 export interface AnvilNodeOptions {
   hardfork?: Hardfork;
+  forkUrl?: string;
   loadState?: string;
   balance?: number;
   blockTime?: number;
@@ -153,11 +155,36 @@ export type LocalNode = AnvilManager | Ganache;
 
 export interface TestSuiteParams {
   contractRegistry?: ContractAddressRegistry;
-  mockServer?: Mockttp;
+  mockServer: Mockttp;
   localNodes?: LocalNode[];
 }
 
-export interface TestSpecificMock {
+/**
+ * ONLY TO BE USED BY DEFAULT MOCKS
+ *
+ * If you are using individual mocks for specific tests
+ * Use the `testSpecificMock` function instead for improved mock management and type safety.
+ *
+ * Interface representing a collection of mock API endpoints grouped by HTTP methods.
+ * Each property corresponds to an HTTP method (GET, POST, PUT, etc.) and contains
+ * an array of mock endpoints for that method.
+ *
+ * @example
+ * ```typescript
+ * // Deprecated usage - avoid this pattern
+ * const mocks: MockObject = {
+ *   GET: [{ url: '/api/users', response: { users: [] } }],
+ *   POST: [{ url: '/api/users', response: { id: 1 } }]
+ * };
+ *
+ * // Preferred approach - use testSpecificMock instead
+ * testSpecificMock(mockServer) {
+ *   mockServer.forGet('/api/users').thenReply(200, JSON.stringify({ users: [] }));
+ *   mockServer.forPost('/api/users').thenReply(200, JSON.stringify({ id: 1 }));
+ * };
+ * ```
+ */
+export interface MockEventsObject {
   GET?: MockApiEndpoint[];
   POST?: MockApiEndpoint[];
   PUT?: MockApiEndpoint[];
@@ -165,12 +192,14 @@ export interface TestSpecificMock {
 }
 
 export interface MockApiEndpoint {
-  urlEndpoint: string;
+  urlEndpoint: string | RegExp;
   requestBody?: unknown;
   ignoreFields?: string[];
   response: unknown;
   responseCode: number;
 }
+
+export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
 
 /**
  * The options for the withFixtures function.
@@ -180,11 +209,10 @@ export interface MockApiEndpoint {
  * @param {LocalNodeOptionsInput} [localNodeOptions] - The local node options to use for the test.
  * @param {boolean} [disableLocalNodes=false] - If true, disables the local nodes.
  * @param {DappOptions[]} [dapps] - The dapps to load for test. The base static port is defined and all dapps from dapp[1] will have the port incremented by 1.
- * @param {Record<string, unknown>} [testSpecificMock] - The test specific mock to load for test. This needs to be properly typed once we convert api-mocking.js to ts
+ * @param {Record<string, unknown>} [testSpecificMock] - The test specific mock function to use for the test.
  * @param {Partial<LaunchArgs>} [launchArgs] - The launch arguments to use for the test.
  * @param {LanguageAndLocale} [languageAndLocale] - The language and locale to use for the test.
  * @param {Record<string, unknown>} [permissions] - The permissions to set for the device.
- * @param {Mockttp} [mockServerInstance] - The mock server instance to use for the test. Useful when a custom setup of the mock server is needed.
  * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
  */
 export interface WithFixturesOptions {
@@ -198,7 +226,6 @@ export interface WithFixturesOptions {
   launchArgs?: Partial<LaunchArgs>;
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
-  mockServerInstance?: Mockttp;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTestfn?: (...args: any[]) => Promise<void>;
 }

@@ -8,11 +8,11 @@ import { isSwapsAllowed } from '../../../Swaps/utils';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
-import Routes from '../../../../../constants/navigation/Routes';
 import { CardTokenAllowance, AllowanceState } from '../../types';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
 
 // Mock dependencies
 jest.mock('../../hooks/useOpenSwaps', () => ({
@@ -31,7 +31,7 @@ jest.mock('../../../Swaps/utils', () => ({
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
-    CARD_ADD_FUNDS_SWAPS_CLICKED: 'card_add_funds_swaps_clicked',
+    CARD_ADD_FUNDS_DEPOSIT_CLICKED: 'card_add_funds_deposit_clicked',
     RAMPS_BUTTON_CLICKED: 'ramps_button_clicked',
   },
 }));
@@ -108,7 +108,6 @@ describe('AddFundsBottomSheet', () => {
     sheetRef: mockSheetRef,
     priorityToken: mockPriorityToken,
     chainId: '0xe708',
-    cardholderAddresses: ['0xcardholder'],
     navigate: mockNavigate,
   };
 
@@ -153,18 +152,6 @@ describe('AddFundsBottomSheet', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with only swap option when token is not USDC and matches snapshot', () => {
-    const nonUSDCToken = {
-      ...mockPriorityToken,
-      symbol: 'ETH',
-    };
-
-    const { toJSON } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} priorityToken={nonUSDCToken} />
-    ));
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders with only deposit option when swaps are not allowed and matches snapshot', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
 
@@ -199,10 +186,10 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    expect(getByText('Deposit')).toBeTruthy();
-    expect(getByText('Swap')).toBeTruthy();
-    expect(getByText('Convert cash to USDC on Linea')).toBeTruthy();
-    expect(getByText('Exchange tokens into USDC on Linea')).toBeTruthy();
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
+    expect(getByText('Low-cost card or bank transfer')).toBeTruthy();
+    expect(getByText('Swap tokens into USDC on Linea')).toBeTruthy();
   });
 
   it('handles deposit option press correctly', () => {
@@ -210,8 +197,11 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    fireEvent.press(getByText('Deposit'));
+    fireEvent.press(getByText('Fund with cash'));
 
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+    );
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
     );
@@ -226,11 +216,10 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    fireEvent.press(getByText('Swap'));
+    fireEvent.press(getByText('Fund with crypto'));
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
       chainId: '0xe708',
-      cardholderAddress: '0xcardholder',
       beforeNavigate: expect.any(Function),
     });
   });
@@ -240,22 +229,65 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} priorityToken={undefined} />
     ));
 
-    fireEvent.press(getByText('Swap'));
+    fireEvent.press(getByText('Fund with crypto'));
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
   });
 
   it('renders correct descriptions for different tokens', () => {
+    const usdtToken = {
+      ...mockPriorityToken,
+      symbol: 'USDT',
+    };
+
+    const { getByText } = renderWithProvider(() => (
+      <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
+    ));
+
+    expect(getByText('Low-cost card or bank transfer')).toBeTruthy();
+    expect(getByText('Swap tokens into USDT on Linea')).toBeTruthy();
+  });
+
+  it('renders both options for USDT token', () => {
+    const usdtToken = {
+      ...mockPriorityToken,
+      symbol: 'USDT',
+      name: 'Tether USD',
+    };
+
+    const { getByText } = renderWithProvider(() => (
+      <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
+    ));
+
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
+  });
+
+  it('renders both options for USDC token', () => {
+    const { getByText } = renderWithProvider(() => (
+      <AddFundsBottomSheet {...defaultProps} />
+    ));
+
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
+  });
+
+  it('renders both options for other tokens like ETH', () => {
     const ethToken = {
       ...mockPriorityToken,
       symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: 18,
     };
 
     const { getByText } = renderWithProvider(() => (
       <AddFundsBottomSheet {...defaultProps} priorityToken={ethToken} />
     ));
 
-    expect(getByText('Exchange tokens into ETH on Linea')).toBeTruthy();
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
+    expect(getByText('Low-cost card or bank transfer')).toBeTruthy();
+    expect(getByText('Swap tokens into ETH on Linea')).toBeTruthy();
   });
 
   it('navigates to deposit route when deposit callback is executed', () => {
@@ -263,9 +295,11 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    fireEvent.press(getByText('Deposit'));
+    fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createDepositNavigationDetails(),
+    );
   });
 
   it('handles ref prop correctly', () => {

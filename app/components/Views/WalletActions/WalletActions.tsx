@@ -10,7 +10,6 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
-import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IconName } from '@metamask/design-system-react-native';
@@ -37,6 +36,10 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { RootState } from '../../../reducers';
+import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -45,12 +48,16 @@ const WalletActions = () => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const chainId = useSelector(selectChainId);
-  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
+  const swapsIsLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
@@ -122,12 +129,20 @@ const WalletActions = () => {
   ]);
 
   const onPerps = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PERPS.ROOT, {
+    let params: Record<string, string> | null = null;
+    if (isFirstTimePerpsUser) {
+      params = {
+        screen: Routes.PERPS.TUTORIAL,
+      };
+    } else {
+      params = {
         screen: Routes.PERPS.MARKETS,
-      });
+      };
+    }
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT, params);
     });
-  }, [closeBottomSheetAndNavigate, navigate]);
+  }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser]);
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
@@ -154,7 +169,7 @@ const WalletActions = () => {
           />
         )}
 
-        {isPerpsEnabled && (
+        {isPerpsEnabled && isEvmSelected && (
           <ActionListItem
             label={strings('asset_overview.perps_button')}
             description={strings('asset_overview.perps_description')}

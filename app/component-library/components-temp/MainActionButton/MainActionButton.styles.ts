@@ -33,7 +33,7 @@ const styleSheet = (params: {
       {
         backgroundColor,
         borderRadius: 12,
-        paddingHorizontal: 8,
+        paddingHorizontal: 4,
         paddingVertical: 16,
         justifyContent: 'center',
         alignItems: 'center',
@@ -51,6 +51,7 @@ const styleSheet = (params: {
     label: {
       textAlign: 'center',
       marginTop: 2,
+      flexShrink: 0,
     },
   });
 };

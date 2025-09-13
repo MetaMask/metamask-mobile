@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  formatPrice,
+  formatPerpsFiat,
   formatPercentage,
   formatPnl,
 } from '../../utils/formatUtils';
@@ -18,8 +18,8 @@ describe('LivePriceHeader', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
     typeof usePerpsLivePrices
   >;
-  const mockFormatPrice = formatPrice as jest.MockedFunction<
-    typeof formatPrice
+  const mockFormatPerpsFiat = formatPerpsFiat as jest.MockedFunction<
+    typeof formatPerpsFiat
   >;
   const mockFormatPercentage = formatPercentage as jest.MockedFunction<
     typeof formatPercentage
@@ -29,7 +29,7 @@ describe('LivePriceHeader', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFormatPrice.mockImplementation((price) => {
+    mockFormatPerpsFiat.mockImplementation((price) => {
       const num = typeof price === 'string' ? parseFloat(price) : price;
       return `$${num.toFixed(2)}`;
     });
@@ -65,7 +65,7 @@ describe('LivePriceHeader', () => {
 
     expect(getByText('$50000.00')).toBeTruthy();
     // 5.5% of 50000 = 2750
-    expect(getByText('+$2750.00 (5.5%)')).toBeTruthy();
+    expect(getByText('+$2750.00')).toBeTruthy();
   });
 
   it('should use fallback values when no live data', () => {
@@ -81,7 +81,7 @@ describe('LivePriceHeader', () => {
 
     expect(getByText('$3000.00')).toBeTruthy();
     // 2.5% of 3000 = 75
-    expect(getByText('+$75.00 (2.5%)')).toBeTruthy();
+    expect(getByText('+$75.00')).toBeTruthy();
   });
 
   it('should handle negative price change', () => {
@@ -98,7 +98,7 @@ describe('LivePriceHeader', () => {
 
     expect(getByText('$100.00')).toBeTruthy();
     // -10% of 100 = -10
-    expect(getByText('-$10.00 (-10%)')).toBeTruthy();
+    expect(getByText('-$10.00')).toBeTruthy();
   });
 
   it('should handle positive price change color', () => {
@@ -113,7 +113,7 @@ describe('LivePriceHeader', () => {
 
     const { getByText } = render(<LivePriceHeader symbol="AVAX" />);
 
-    expect(getByText('+$2.00 (8%)')).toBeTruthy();
+    expect(getByText('+$2.00')).toBeTruthy();
   });
 
   it('should handle zero price change', () => {
@@ -129,7 +129,7 @@ describe('LivePriceHeader', () => {
     const { getByText } = render(<LivePriceHeader symbol="MATIC" />);
 
     expect(getByText('$1.00')).toBeTruthy();
-    expect(getByText('+$0.00 (0%)')).toBeTruthy();
+    expect(getByText('+$0.00')).toBeTruthy();
   });
 
   it('should use custom throttle value', () => {
@@ -203,7 +203,7 @@ describe('LivePriceHeader', () => {
     const { getByText } = render(<LivePriceHeader symbol="DOT" />);
 
     expect(getByText('$5.00')).toBeTruthy();
-    expect(getByText('+$0.00 (0%)')).toBeTruthy(); // Defaults to 0
+    expect(getByText('+$0.00')).toBeTruthy(); // Defaults to 0
   });
 
   it('should calculate change amount correctly', () => {
@@ -220,7 +220,7 @@ describe('LivePriceHeader', () => {
 
     expect(getByText('$0.50')).toBeTruthy();
     // 20% of 0.5 = 0.1
-    expect(getByText('+$0.10 (20%)')).toBeTruthy();
+    expect(getByText('+$0.10')).toBeTruthy();
   });
 
   it('should use fallback values as defaults', () => {
@@ -232,7 +232,7 @@ describe('LivePriceHeader', () => {
 
     expect(getByText('$0.60')).toBeTruthy();
     // -5% of 0.6 = -0.03
-    expect(getByText('-$0.03 (-5%)')).toBeTruthy();
+    expect(getByText('-$0.03')).toBeTruthy();
   });
 
   it('should prefer live data over fallback', () => {
@@ -252,6 +252,6 @@ describe('LivePriceHeader', () => {
     // Should use live data, not fallback
     expect(getByText('$0.20')).toBeTruthy();
     // 15% of 0.2 = 0.03
-    expect(getByText('+$0.03 (15%)')).toBeTruthy();
+    expect(getByText('+$0.03')).toBeTruthy();
   });
 });

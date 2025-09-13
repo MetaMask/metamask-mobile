@@ -63,6 +63,8 @@ import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import AccountDiscovery from '../AccountDiscovery';
+import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
+import { EntropySourceId } from '@metamask/keyring-api';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -78,6 +80,9 @@ class AuthenticationService {
 
   private async dispatchLogin(): Promise<void> {
     await AccountTreeInitService.initializeAccountTree();
+    const { MultichainAccountService } = Engine.context;
+    await MultichainAccountService.init();
+
     ReduxService.store.dispatch(logIn());
   }
 
@@ -94,6 +99,15 @@ class AuthenticationService {
   }
 
   /**
+   * This method gets the primary entropy source ID. It assumes it's always being defined, which means, vault
+   * creation must have been executed beforehand.
+   * @returns Primary entropy source ID (similar to keyring ID).
+   */
+  private getPrimaryEntropySourceId(): EntropySourceId {
+    return Engine.context.KeyringController.state.keyrings[0].metadata.id;
+  }
+
+  /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
    * @param password - password entered on login
    */
@@ -101,10 +115,13 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
+
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
-      SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
-        Logger.error(err, 'Failed to revoke refresh token');
+
+      // renew refresh token
+      renewSeedlessControllerRefreshTokens(password).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
       });
     }
     password = this.wipeSensitiveData();
@@ -552,12 +569,8 @@ class AuthenticationService {
       await KeyringController.setLocked();
     }
     // async check seedless password outdated skip cache when app lock
-    this.checkIsSeedlessPasswordOutdated(true).catch((err: Error) => {
-      Logger.error(
-        err,
-        'Error in lockApp: checking seedless password outdated',
-      );
-    });
+    // the function swallowed the error
+    this.checkIsSeedlessPasswordOutdated(true);
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
@@ -683,7 +696,10 @@ class AuthenticationService {
             keyringMetadata.id,
           ]);
         } else {
-          Logger.error(new Error('Unknown secret type'), secret.type);
+          Logger.error(
+            new Error('SeedlessOnboardingController: Unknown secret type'),
+            secret.type,
+          );
         }
       }
     }
@@ -898,11 +914,19 @@ class AuthenticationService {
                   await this.importSeedlessMnemonicToVault(mnemonic);
                 keyringMetadataList.push(keyringMetadata);
               } else {
-                Logger.error(new Error('Unknown secret type'), item.type);
+                Logger.error(
+                  new Error(
+                    'SeedlessOnboardingController : Unknown secret type',
+                  ),
+                  item.type,
+                );
               }
             } catch (error) {
               // catch error to prevent unable to login
-              Logger.error(error as Error);
+              Logger.error(
+                error as Error,
+                'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+              );
             }
           }
         }
@@ -921,7 +945,7 @@ class AuthenticationService {
       }
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
-      Logger.error(error as Error);
+      Logger.log(error);
       throw error;
     }
   };
@@ -957,8 +981,8 @@ class AuthenticationService {
 
     if (!success) {
       const errorMessage = (seedlessSyncError as Error).message;
-      Logger.error(
-        seedlessSyncError as Error,
+      Logger.log(
+        seedlessSyncError,
         `error while submitting global password: ${errorMessage}`,
       );
 
@@ -989,6 +1013,11 @@ class AuthenticationService {
           throw seedlessSyncError;
         }
       } else {
+        // Case 3: Both keyring and seedless controller password verification failed.
+        Logger.error(
+          seedlessSyncError as Error,
+          'Error in syncPasswordAndUnlockWallet',
+        );
         throw seedlessSyncError;
       }
     }
@@ -1007,11 +1036,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
-        (err) => {
-          Logger.error(err, 'Failed to revoke refresh token');
-        },
-      );
+      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
+      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });

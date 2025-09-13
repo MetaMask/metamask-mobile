@@ -8,7 +8,7 @@ import {
 } from './PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { PriceUpdate } from '../controllers/types';
+import type { PriceUpdate, PerpsMarketData } from '../controllers/types';
 
 // Mock dependencies
 jest.mock('../../../../core/Engine');
@@ -45,6 +45,9 @@ const TestPriceComponent = ({
 describe('PerpsStreamManager', () => {
   let mockSubscribeToPrices: jest.Mock;
   let mockUnsubscribeFromPrices: jest.Mock;
+  let mockSubscribeToOrders: jest.Mock;
+  let mockSubscribeToPositions: jest.Mock;
+  let mockSubscribeToAccount: jest.Mock;
   let testStreamManager: PerpsStreamManager;
 
   beforeEach(() => {
@@ -58,10 +61,21 @@ describe('PerpsStreamManager', () => {
     // Setup default mocks
     mockSubscribeToPrices = jest.fn();
     mockUnsubscribeFromPrices = jest.fn();
+    mockSubscribeToOrders = jest.fn();
+    mockSubscribeToPositions = jest.fn();
+    mockSubscribeToAccount = jest.fn();
+
+    // Setup mock return values for all subscription methods
+    mockSubscribeToOrders.mockReturnValue(jest.fn());
+    mockSubscribeToPositions.mockReturnValue(jest.fn());
+    mockSubscribeToAccount.mockReturnValue(jest.fn());
 
     mockEngine.context.PerpsController = {
       subscribeToPrices: mockSubscribeToPrices,
       unsubscribeFromPrices: mockUnsubscribeFromPrices,
+      subscribeToOrders: mockSubscribeToOrders,
+      subscribeToPositions: mockSubscribeToPositions,
+      subscribeToAccount: mockSubscribeToAccount,
     } as unknown as typeof mockEngine.context.PerpsController;
 
     mockDevLogger.log = jest.fn();
@@ -636,6 +650,171 @@ describe('PerpsStreamManager', () => {
       });
     });
 
+    it('should cleanup prewarm subscription when clearing price cache', async () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.prices,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      await testStreamManager.prices.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup prewarm subscription when clearing order cache', () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.orders,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      testStreamManager.orders.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.orders.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup prewarm subscription when clearing position cache', () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.positions,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      testStreamManager.positions.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.positions.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup prewarm subscription when clearing account cache', () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.account,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      testStreamManager.account.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.account.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should reset all prewarm state when clearing price cache', async () => {
+      // Mock market data to populate allMarketSymbols
+      const mockGetMarketDataWithPrices = jest.fn();
+      const mockMarketData = [
+        { symbol: 'BTC', name: 'Bitcoin' },
+        { symbol: 'ETH', name: 'Ethereum' },
+      ];
+
+      mockEngine.context.PerpsController.getActiveProvider = jest
+        .fn()
+        .mockReturnValue({
+          getMarketDataWithPrices:
+            mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData),
+        });
+
+      // Mock the cleanupPrewarm method to verify it's called and resets state
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.prices,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription which populates allMarketSymbols
+      await testStreamManager.prices.prewarm();
+
+      // Clear cache - should call cleanupPrewarm which resets all state
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup all prewarm subscriptions when clearing all channel caches', async () => {
+      // Create spies for all cleanupPrewarm methods
+      const priceCleanupSpy = jest.spyOn(
+        testStreamManager.prices,
+        'cleanupPrewarm',
+      );
+      const orderCleanupSpy = jest.spyOn(
+        testStreamManager.orders,
+        'cleanupPrewarm',
+      );
+      const positionCleanupSpy = jest.spyOn(
+        testStreamManager.positions,
+        'cleanupPrewarm',
+      );
+      const accountCleanupSpy = jest.spyOn(
+        testStreamManager.account,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscriptions for all channels
+      await testStreamManager.prices.prewarm();
+      testStreamManager.orders.prewarm();
+      testStreamManager.positions.prewarm();
+      testStreamManager.account.prewarm();
+
+      // Clear all caches - should call cleanupPrewarm on each channel
+      act(() => {
+        testStreamManager.prices.clearCache();
+        testStreamManager.orders.clearCache();
+        testStreamManager.positions.clearCache();
+        testStreamManager.account.clearCache();
+      });
+
+      // Verify all cleanupPrewarm methods were called
+      expect(priceCleanupSpy).toHaveBeenCalled();
+      expect(orderCleanupSpy).toHaveBeenCalled();
+      expect(positionCleanupSpy).toHaveBeenCalled();
+      expect(accountCleanupSpy).toHaveBeenCalled();
+
+      // Clean up spies
+      priceCleanupSpy.mockRestore();
+      orderCleanupSpy.mockRestore();
+      positionCleanupSpy.mockRestore();
+      accountCleanupSpy.mockRestore();
+    });
+
     it('should disconnect WebSocket when clearing cache', async () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
@@ -969,6 +1148,215 @@ describe('PerpsStreamManager', () => {
 
     await waitFor(() => {
       expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('MarketDataChannel', () => {
+    const mockGetMarketDataWithPrices = jest.fn();
+    const mockMarketData: PerpsMarketData[] = [
+      {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        price: '$50,000.00',
+        change24h: '+2.5%',
+        change24hPercent: '2.5',
+        volume: '$1.2B',
+      },
+      {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        maxLeverage: '25x',
+        price: '$3,000.00',
+        change24h: '-1.2%',
+        change24hPercent: '-1.2',
+        volume: '$900M',
+      },
+    ];
+
+    const mockProvider = {
+      getMarketDataWithPrices: mockGetMarketDataWithPrices,
+    };
+
+    beforeEach(() => {
+      mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
+      mockEngine.context.PerpsController.getActiveProvider = jest
+        .fn()
+        .mockReturnValue(mockProvider);
+    });
+
+    afterEach(() => {
+      mockGetMarketDataWithPrices.mockClear();
+    });
+
+    it('should fetch market data on first subscription', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Should fetch data immediately
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Should notify subscriber with data
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+    });
+
+    it('should use cached data for subsequent subscriptions within cache duration', async () => {
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      // First subscription
+      const unsubscribe1 = testStreamManager.marketData.subscribe({
+        callback: callback1,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+        expect(callback1).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      // Second subscription (within cache duration)
+      const unsubscribe2 = testStreamManager.marketData.subscribe({
+        callback: callback2,
+        throttleMs: 0,
+      });
+
+      // Should use cached data, not fetch again
+      await waitFor(() => {
+        expect(callback2).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1); // Still only 1 call
+
+      unsubscribe1();
+      unsubscribe2();
+    });
+
+    it('should refresh market data when refresh() is called', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Call refresh
+      await testStreamManager.marketData.refresh();
+
+      // Should fetch again
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(2);
+      });
+
+      // Should notify subscriber with new data
+      expect(callback).toHaveBeenCalledTimes(2);
+
+      unsubscribe();
+    });
+
+    it('should clear cache when clearCache() is called', async () => {
+      const callback = jest.fn();
+
+      // First subscription to populate cache
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      // Clear cache
+      testStreamManager.marketData.clearCache();
+
+      // Should notify with empty array
+      expect(callback).toHaveBeenLastCalledWith([]);
+
+      unsubscribe();
+    });
+
+    it('should handle fetch errors gracefully', async () => {
+      const callback = jest.fn();
+      const error = new Error('Network error');
+
+      mockGetMarketDataWithPrices.mockRejectedValue(error);
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // Wait for fetch attempt
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalled();
+      });
+
+      // Should not crash, callback might receive empty array or cached data
+      // depending on implementation
+
+      unsubscribe();
+    });
+
+    it('should prewarm market data cache', async () => {
+      // Call prewarm
+      const cleanup = testStreamManager.marketData.prewarm();
+
+      // Should fetch data immediately
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Cleanup function should be a no-op for REST data
+      expect(typeof cleanup).toBe('function');
+      cleanup(); // Should not throw
+    });
+
+    it('should deduplicate concurrent fetch requests', async () => {
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      // Clear cache to force fetch
+      testStreamManager.marketData.clearCache();
+
+      // Two subscriptions at the same time
+      const unsubscribe1 = testStreamManager.marketData.subscribe({
+        callback: callback1,
+        throttleMs: 0,
+      });
+
+      const unsubscribe2 = testStreamManager.marketData.subscribe({
+        callback: callback2,
+        throttleMs: 0,
+      });
+
+      // Should only fetch once despite two subscriptions
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Both callbacks should receive data
+      await waitFor(() => {
+        expect(callback1).toHaveBeenCalledWith(mockMarketData);
+        expect(callback2).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe1();
+      unsubscribe2();
     });
   });
 });

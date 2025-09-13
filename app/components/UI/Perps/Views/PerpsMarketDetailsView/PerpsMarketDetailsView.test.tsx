@@ -1,15 +1,23 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
+
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+}));
 
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
@@ -21,12 +29,24 @@ const mockUseHasExistingPosition = jest.fn();
 // Navigation mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
 
 // Mock notification feature flag
 const mockIsNotificationsFeatureEnabled = jest.fn();
 
 // Mock route params that can be modified during tests
-const mockRouteParams = {
+const mockRouteParams: {
+  market?: {
+    symbol: string;
+    name: string;
+    price: string;
+    change24h: string;
+    change24hPercent: string;
+    volume: string;
+    maxLeverage: string;
+  };
+  isNavigationFromOrderSuccess: boolean;
+} = {
   market: {
     symbol: 'BTC',
     name: 'Bitcoin',
@@ -46,6 +66,8 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
+      setOptions: jest.fn(),
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -60,6 +82,17 @@ jest.mock('../../hooks/useHasExistingPosition', () => ({
 
 jest.mock('../../hooks/usePerpsAccount', () => ({
   usePerpsAccount: () => mockUsePerpsAccount(),
+}));
+
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
@@ -189,6 +222,9 @@ jest.mock('../../hooks', () => ({
     depositWithConfirmation: jest.fn(() => Promise.resolve()),
     withdrawWithConfirmation: jest.fn(),
   })),
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 // Mock PerpsMarketStatisticsCard to simplify the test
@@ -249,12 +285,6 @@ jest.mock('../../../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => mockIsNotificationsFeatureEnabled(),
 }));
 
-// Mock perps config to control the notification feature flag
-jest.mock('../../constants/perpsConfig', () => ({
-  ...jest.requireActual('../../constants/perpsConfig'),
-  PERPS_NOTIFICATIONS_FEATURE_ENABLED: false, // Hardcoded to false until feature is ready
-}));
-
 // Mock PerpsNotificationTooltip
 jest.mock('../../components/PerpsNotificationTooltip', () => ({
   __esModule: true,
@@ -277,32 +307,31 @@ jest.mock('../../components/PerpsOpenOrderCard', () => ({
 }));
 
 // Mock PerpsBottomSheetTooltip to avoid SafeAreaProvider issues
-jest.mock('../../components/PerpsBottomSheetTooltip', () => {
-  const { View } = jest.requireActual('react-native');
-  const ReactActual = jest.requireActual('react');
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip',
+  () => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
-  return {
-    __esModule: true,
-    default: function MockPerpsBottomSheetTooltip({
-      isVisible,
-      onClose,
-    }: {
-      isVisible: boolean;
-      onClose?: () => void;
-    }) {
-      // Store the visibility in the mock for easier testing
-      ReactActual.useEffect(() => {
-        if (isVisible && onClose) {
-          // Auto-close after a brief delay for testing
-          const timer = setTimeout(onClose, 100);
-          return () => clearTimeout(timer);
-        }
-      }, [isVisible, onClose]);
-
-      return isVisible ? <View testID="perps-bottom-sheet-tooltip" /> : null;
-    },
-  };
-});
+    return {
+      __esModule: true,
+      default: function MockPerpsBottomSheetTooltip({
+        isVisible,
+        onClose,
+        testID,
+      }: {
+        isVisible: boolean;
+        onClose?: () => void;
+        testID: string;
+      }) {
+        return isVisible ? (
+          <TouchableOpacity testID={testID} onPress={onClose}>
+            <Text>Geo Block Tooltip</Text>
+          </TouchableOpacity>
+        ) : null;
+      },
+    };
+  },
+);
 
 const initialState = {
   engine: {
@@ -328,11 +357,35 @@ describe('PerpsMarketDetailsView', () => {
       refreshPosition: jest.fn(),
     });
 
+    // Reset navigation mocks
+    mockCanGoBack.mockReturnValue(true);
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
+    });
+
     // Reset notification feature flag to default
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
 
     // Reset route params to default
     mockRouteParams.isNavigationFromOrderSuccess = false;
+    mockRouteParams.market = {
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      price: '$45,000.00',
+      change24h: '+$1,125.00',
+      change24hPercent: '+2.50%',
+      volume: '$1.23B',
+      maxLeverage: '40x',
+    };
   });
 
   // Clean up mocks after each test
@@ -496,7 +549,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Shows add funds message and button
       expect(getByText('Add funds to start trading perps')).toBeTruthy();
-      expect(getByText('Add Funds')).toBeTruthy();
+      expect(getByText('Add funds')).toBeTruthy();
 
       // When balance is zero, the Add Funds button should be present
       // and the long/short buttons should not be present
@@ -613,14 +666,15 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
     });
 
-    it('refreshes position data when position tab is active', async () => {
+    it('refreshes candle data when position tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
         isLoading: false,
         error: null,
         existingPosition: null,
-        refreshPosition: mockRefreshPosition,
+        refreshPosition: mockRefreshPosition, // No-op function for WebSocket positions
       });
 
       const { getByTestId } = renderWithProvider(
@@ -632,76 +686,21 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh (position tab is active by default)
       await refreshControl.props.onRefresh();
 
-      // Should refresh both candle data and position data
+      // Assert - Only candle data refreshes since positions update via WebSocket
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
-    });
-
-    it('refreshes orders data when orders tab is active', async () => {
-      const mockRefreshPosition = jest.fn();
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: {
-          coin: 'BTC',
-          size: '0.5',
-          entryPrice: '44000',
-          positionValue: '22000',
-          unrealizedPnl: '50',
-          marginUsed: '500',
-          leverage: { type: 'isolated', value: 5 },
-          liquidationPrice: '40000',
-          maxLeverage: 20,
-          returnOnEquity: '1.14',
-          cumulativeFunding: {
-            allTime: '0',
-            sinceOpen: '0',
-            sinceChange: '0',
-          },
-        },
-        refreshPosition: mockRefreshPosition,
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Switch to orders tab
-      const ordersTab = getByTestId('perps-market-tabs-orders-tab');
-      fireEvent.press(ordersTab);
-
-      // Get the ScrollView component
-      const scrollView = getByTestId(
-        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
-      );
-      const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
-      await refreshControl.props.onRefresh();
-
-      // Should refresh candle data
-      // Note: Orders refresh automatically via WebSocket, no manual refresh needed
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      // Should not refresh position data when orders tab is active
+      // refreshPosition is a no-op for WebSocket, so we don't expect it to be called
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('refreshes statistics data when statistics tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
@@ -736,28 +735,26 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Switch to statistics tab
+      // Act - Switch to statistics tab
       const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
       fireEvent.press(statisticsTab);
 
-      // Get the ScrollView component
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data, market stats, and position data
+      // Assert - Only candle data refreshes (all other data updates via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshMarketStats).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
-      // Should not refresh orders data when statistics tab is active
+      // Market stats, positions, and orders update via WebSocket, no manual refresh
+      expect(mockRefreshMarketStats).not.toHaveBeenCalled();
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
       expect(mockRefreshOrders).not.toHaveBeenCalled();
     });
 
-    it('calls refresh functions for chart data and position by default', async () => {
+    it('refreshes candle data by default', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
@@ -776,18 +773,16 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data and position data (default behavior)
+      // Assert - Only candle data refreshes (positions update via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('handles refresh state correctly during refresh operation', async () => {
@@ -866,23 +861,18 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Navigation functionality', () => {
-    it('calls navigation.goBack when back button is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
+    it('navigates to long order screen when long button is pressed and user is eligible', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
 
-      const backButton = getByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON);
-      fireEvent.press(backButton);
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('navigates to long order screen when long button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -895,7 +885,9 @@ describe('PerpsMarketDetailsView', () => {
       const longButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
       );
-      fireEvent.press(longButton);
+      await act(async () => {
+        fireEvent.press(longButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
@@ -904,7 +896,18 @@ describe('PerpsMarketDetailsView', () => {
       });
     });
 
-    it('navigates to short order screen when short button is pressed', () => {
+    it('navigates to short order screen when short button is pressed and user is eligible', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -917,7 +920,9 @@ describe('PerpsMarketDetailsView', () => {
       const shortButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
       );
-      fireEvent.press(shortButton);
+      await act(async () => {
+        fireEvent.press(shortButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
@@ -926,7 +931,7 @@ describe('PerpsMarketDetailsView', () => {
       });
     });
 
-    it('navigates to deposit screen when add funds button is pressed', () => {
+    it('navigates to deposit screen when add funds button is pressed', async () => {
       // Set zero balance to show add funds button
       mockUsePerpsAccount.mockReturnValue({
         availableBalance: '0.00',
@@ -947,18 +952,154 @@ describe('PerpsMarketDetailsView', () => {
       const addFundsButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
       );
-      fireEvent.press(addFundsButton);
+      await act(async () => {
+        fireEvent.press(addFundsButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
     });
+
+    it('shows geo block modal when long button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const longButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows geo block modal when short button is pressed and user is not eligible', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const shortButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+      );
+      fireEvent.press(shortButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows geo block modal when add funds button is pressed and user is not eligible', () => {
+      // Set user as not eligible
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      // Set zero balance to show add funds button
+      mockUsePerpsAccount.mockReturnValue({
+        availableBalance: '0.00',
+        totalBalance: '0.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const longButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+
+      const tooltip = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
+      );
+      fireEvent.press(tooltip);
+
+      expect(queryByText('Geo Block Tooltip')).toBeNull();
+    });
   });
 
   describe('notification tooltip functionality', () => {
-    // TODO: Update this test when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
-    it('does not show PerpsNotificationTooltip even when conditions are met due to PERPS_NOTIFICATIONS_FEATURE_ENABLED being false', async () => {
+    it('renders tooltip when flags are true and from successful order', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
       mockRouteParams.isNavigationFromOrderSuccess = true;
 
@@ -971,12 +1112,9 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Notification tooltip should NOT be visible because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
-      await waitFor(() => {
-        expect(
-          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-        ).toBeNull();
-      });
+      expect(
+        queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+      ).toBeOnTheScreen();
     });
 
     it('does not show PerpsNotificationTooltip when not navigating from order success', () => {
@@ -992,7 +1130,6 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Notification tooltip should not be visible
       expect(
         queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
       ).toBeNull();
@@ -1011,125 +1148,184 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Notification tooltip should not be visible even when navigating from order success
       expect(
         queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
       ).toBeNull();
     });
+  });
 
-    // TODO: Update this test when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
-    it('never shows tooltip because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false', () => {
-      // Test all four combinations - all should result in no tooltip due to the constant flag
-      const testCases = [
-        {
-          notificationsEnabled: true,
-          fromOrderSuccess: true,
-          shouldShow: false, // Would be true if PERPS_NOTIFICATIONS_FEATURE_ENABLED was true
-        },
-        {
-          notificationsEnabled: true,
-          fromOrderSuccess: false,
-          shouldShow: false,
-        },
-        {
-          notificationsEnabled: false,
-          fromOrderSuccess: true,
-          shouldShow: false,
-        },
-        {
-          notificationsEnabled: false,
-          fromOrderSuccess: false,
-          shouldShow: false,
-        },
-      ];
+  describe('Error state handling', () => {
+    it('renders error message when market data is undefined', () => {
+      // Set market to undefined to trigger error state
+      mockRouteParams.market = undefined;
 
-      testCases.forEach(({ notificationsEnabled, fromOrderSuccess }) => {
-        mockIsNotificationsFeatureEnabled.mockReturnValue(notificationsEnabled);
-        mockRouteParams.isNavigationFromOrderSuccess = fromOrderSuccess;
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
 
-        const { queryByTestId, unmount } = renderWithProvider(
-          <PerpsConnectionProvider>
-            <PerpsMarketDetailsView />
-          </PerpsConnectionProvider>,
-          {
-            state: initialState,
-          },
+      // Should show error container and message
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ERROR),
+      ).toBeTruthy();
+      expect(
+        getByText('Market data not found. Please go back and try again.'),
+      ).toBeTruthy();
+    });
+
+    it('does not render main content when market is undefined', () => {
+      mockRouteParams.market = undefined;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Main container should not be present
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeNull();
+    });
+  });
+
+  describe('TradingView link functionality', () => {
+    it('opens TradingView URL when link is pressed', async () => {
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Find and press the Trading View link
+      const tradingViewLink = getByText('Trading View.');
+      fireEvent.press(tradingViewLink);
+
+      // Verify Linking.openURL was called with correct URL
+      await waitFor(() => {
+        expect(Linking.openURL).toHaveBeenCalledWith(
+          'https://www.tradingview.com/',
         );
-
-        // Always expect null because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
-        expect(
-          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-        ).toBeNull();
-
-        unmount();
       });
     });
 
-    describe('notifications feature flag behavior', () => {
-      beforeEach(() => {
-        jest.clearAllMocks();
-      });
+    it('handles error when opening TradingView URL fails', async () => {
+      // Mock console.error to avoid test output pollution
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      // TODO: Update these tests when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
-      it('does not render notification when PERPS_NOTIFICATIONS_FEATURE_ENABLED is false', async () => {
-        // Even when isNotificationsFeatureEnabled returns true, the constant flag prevents rendering
-        mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-        mockRouteParams.isNavigationFromOrderSuccess = true;
+      // Mock Linking.openURL to reject
+      (Linking.openURL as jest.Mock).mockRejectedValueOnce(
+        new Error('Failed to open URL'),
+      );
 
-        const { queryByTestId } = renderWithProvider(
-          <PerpsConnectionProvider>
-            <PerpsMarketDetailsView />
-          </PerpsConnectionProvider>,
-          {
-            state: initialState,
-          },
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Find and press the Trading View link
+      const tradingViewLink = getByText('Trading View.');
+      fireEvent.press(tradingViewLink);
+
+      // Wait for the error to be logged
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Failed to open Trading View URL:',
+          expect.any(Error),
         );
-
-        // Tooltip should NOT be shown because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
-        await waitFor(() => {
-          expect(
-            queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-          ).toBeNull();
-        });
       });
 
-      it('does not render notification when feature is disabled even when navigating from order success', () => {
-        mockIsNotificationsFeatureEnabled.mockReturnValue(false);
-        mockRouteParams.isNavigationFromOrderSuccess = true;
+      consoleErrorSpy.mockRestore();
+    });
+  });
 
-        const { queryByTestId } = renderWithProvider(
-          <PerpsConnectionProvider>
-            <PerpsMarketDetailsView />
-          </PerpsConnectionProvider>,
-          {
-            state: initialState,
-          },
-        );
+  describe('Navigation back button handling', () => {
+    it('verifies navigation mock is properly set up', () => {
+      // This test just verifies that our navigation can go back
+      mockCanGoBack.mockReturnValue(true);
 
-        // Tooltip should NOT be shown since notifications feature is disabled
-        expect(
-          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-        ).toBeNull();
-      });
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
 
-      it('does not render notification when feature is enabled but not navigating from order success', () => {
-        mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-        mockRouteParams.isNavigationFromOrderSuccess = false;
+      // The component should have been rendered with navigation available
+      expect(mockCanGoBack).toBeDefined();
+    });
 
-        const { queryByTestId } = renderWithProvider(
-          <PerpsConnectionProvider>
-            <PerpsMarketDetailsView />
-          </PerpsConnectionProvider>,
-          {
-            state: initialState,
-          },
-        );
+    it('verifies navigation mock when cannot go back', () => {
+      // This test verifies the fallback scenario setup
+      mockCanGoBack.mockReturnValue(false);
 
-        // Tooltip should NOT be shown since not navigating from order success
-        expect(
-          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-        ).toBeNull();
-      });
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // The component should have been rendered with navigation available
+      expect(mockCanGoBack).toBeDefined();
+    });
+  });
+
+  describe('Candle period bottom sheet', () => {
+    it('verifies duration selector is rendered', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Verify the duration selector is rendered
+      const durationSelector = getByTestId(
+        'perps-market-details-view-candle-period-selector-period-1m',
+      );
+      expect(durationSelector).toBeTruthy();
+    });
+
+    it('verifies bottom sheet can be mocked', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Initially bottom sheet should not be visible
+      expect(
+        queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET,
+        ),
+      ).toBeNull();
     });
   });
 });

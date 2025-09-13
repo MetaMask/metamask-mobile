@@ -1,7 +1,7 @@
 # This workflow runs mobile E2E tests for a specific test category.
 # It passes matrix sharding info to the test framework via environment variables.
 
-name: Test Mobile E2E Category
+name: Run E2E
 
 on:
   workflow_call:
@@ -18,24 +18,38 @@ on:
         description: 'The Cucumber tag expression to use for filtering tests'
         required: true
         type: string
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
-
+      split_number:
+        description: 'Which split number to run (1-based index)'
+        required: false
+        type: number
+        default: 1
+      total_splits:
+        description: 'Total number of splits to divide tests into'
+        required: false
+        type: number
+        default: 1
+      test-timeout-minutes:
+        description: 'The timeout in minutes for the test command'
+        required: false
+        type: number
+        default: 30
 
 jobs:
-
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-large' }}
-    continue-on-error: true
+    runs-on: ${{ inputs.platform == 'ios' && fromJSON('["ghcr.io/cirruslabs/macos-runner:sequoia", "low-priority"]') || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
+      cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
     env:
+      PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       GITHUB_CI: 'true'
+      SPLIT_NUMBER: ${{ inputs.split_number }}
+      TOTAL_SPLITS: ${{ inputs.total_splits }}
       MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       MM_BRIDGE_ENABLED: 'true'
@@ -46,6 +60,7 @@ jobs:
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
@@ -66,7 +81,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref }}
+          ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.head.sha || github.sha }}
           clean: true
           fetch-depth: 0
 
@@ -77,7 +92,6 @@ jobs:
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
           configure-keystores: false
-          sd-card-size: 8192
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -125,6 +139,19 @@ jobs:
             exit 1
           fi
 
+      - name: Setup iOS artifacts from build job
+        if: ${{ inputs.platform == 'ios' }}
+        run: |
+          echo "🏗 Setting up iOS artifacts from build job..."
+          
+          # Create required directories
+          mkdir -p ios/build/Build/Products/Release-iphonesimulator/
+
+      - name: Download iOS build artifacts
+        if: ${{ inputs.platform == 'ios' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
       - name: Clean environment before tests (iOS only)
         if: ${{ inputs.platform == 'ios' }}
         run: |
@@ -143,32 +170,44 @@ jobs:
           echo "✅ iOS environment cleaned"
 
       - name: Run E2E tests
-        run: |
-          platform="${{ inputs.platform }}"
-          test_suite_tag="${{ inputs.test_suite_tag }}"
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: ${{ inputs.test-timeout-minutes }}
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            platform="${{ inputs.platform }}"
+            test_suite_tag="${{ inputs.test_suite_tag }}"
 
-          echo "🚀 Running ${{ inputs.test-suite-name }} tests on $platform"
+            echo "🚀 Running ${{ inputs.test-suite-name }} tests on $platform"
 
-          # Validate required test suite tag
-          if [[ -z "$test_suite_tag" ]]; then
-            echo "❌ Error: test_suite_tag is required for non-api-specs tests"
-            exit 1
-          fi
+            # Validate required test suite tag
+            if [[ -z "$test_suite_tag" ]]; then
+              echo "❌ Error: test_suite_tag is required for non-api-specs tests"
+              exit 1
+            fi
 
-          export TEST_SUITE_TAG="$test_suite_tag"
-          echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
+            export TEST_SUITE_TAG="$test_suite_tag"
+            echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
 
-          # Run tests (Detox/Jest handle retries internally)
-          echo "🚀 Starting E2E tests..."
-          if [[ "$platform" == "ios" ]]; then
-            export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
-          else
-            export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
-          fi
-          
-          ./scripts/run-e2e-tags.sh
-          
-          echo "✅ Test execution completed"
+            # Run tests (Detox/Jest handle retries internally)
+            echo "🚀 Starting E2E tests..."
+            if [[ "$platform" == "ios" ]]; then
+              export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
+            else
+              export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
+            fi
+            
+            # Always use the splitting script (handles both split and non-split cases)
+            echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+
+            ./scripts/run-e2e-tags-gha.sh
+            
+            echo "✅ Test execution completed"
+        env:
+          JOB_NAME: ${{ inputs.test-suite-name }}
+          RUN_ID: ${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
       - name: Upload test results
         if: always()
@@ -181,11 +220,27 @@ jobs:
       - name: Prepare screenshots
         if: failure()
         run: |
-          echo "Removing APKs from artifacts..."
-          # Remove APKs, but ignore coverage folders and ios-bundle
-          find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type f -name "*app-*" -delete 2>/dev/null || true
-          # Also remove artifact directories that contain APK/AAB files (download-artifact creates directories)
-          find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type d -name "*app-*" -exec rm -rf {} + 2>/dev/null || true
+          echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
+
+          case "${{ inputs.platform }}" in
+            android)
+              KEEP_PREFIX="android"
+              ;;
+            ios)
+              KEEP_PREFIX="ios"
+              ;;
+            *)
+              echo "⚠️ Unknown platform '${{ inputs.platform }}'; skipping pruning to avoid accidental deletion."
+              exit 0
+              ;;
+          esac
+
+          # Remove all artifacts except the ones that match the keep prefix. We should later on improve this to avoid having rm -rf references.
+          find artifacts -mindepth 1 -prune \
+            ! -name "${KEEP_PREFIX}*" \
+            ! -name 'coverage-*' \
+            -exec echo "Removing:" {} \; \
+            -exec rm -rf {} + 2>/dev/null || true
         continue-on-error: true
 
       - name: Upload screenshots

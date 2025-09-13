@@ -8,6 +8,8 @@ import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { getNativeSourceToken } from '../useInitialSourceToken';
+import { BigNumber } from 'bignumber.js';
+import { isNumberValue } from '../../../../../util/number';
 
 interface Props {
   quote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -40,10 +42,17 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     decimals: sourceChainNativeAsset?.decimals,
   });
 
+  // quote.gasFee.effective.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
+  const gasAmount = quote?.gasFee?.effective?.amount;
+  const effectiveGasFee =
+    isNumberValue(gasAmount) && gasAmount != null
+      ? new BigNumber(gasAmount).toFixed()
+      : null;
+
   const atomicGasFee =
-    quote?.gasFee.effective && !gasIncluded
+    effectiveGasFee && !gasIncluded
       ? ethers.utils.parseUnits(
-          quote.gasFee.effective.amount,
+          effectiveGasFee,
           sourceChainNativeAsset?.decimals,
         )
       : null;

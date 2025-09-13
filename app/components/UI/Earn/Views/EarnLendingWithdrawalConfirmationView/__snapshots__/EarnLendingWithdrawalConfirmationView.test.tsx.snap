@@ -481,7 +481,14 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                           }
                         }
                       >
-                        <Image />
+                        <View
+                          style={
+                            {
+                              "height": 16,
+                              "width": 16,
+                            }
+                          }
+                        />
                       </View>
                       <View
                         accessible={false}
@@ -660,9 +667,11 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                       <View
                         style={
                           {
+                            "alignItems": "center",
                             "backgroundColor": "#ffffff",
                             "borderRadius": 4,
                             "height": 16,
+                            "justifyContent": "center",
                             "overflow": "hidden",
                             "width": 16,
                           }

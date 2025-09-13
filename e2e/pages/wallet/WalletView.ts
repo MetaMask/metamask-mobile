@@ -66,6 +66,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
   }
 
+  get navbarCardButtonBadge(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON_BADGE);
+  }
+
   get nftTab(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -108,6 +112,10 @@ class WalletView {
 
   get tokenNetworkFilter(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get sortButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
   }
 
   get sortBy(): DetoxElement {
@@ -232,6 +240,15 @@ class WalletView {
     });
   }
 
+  async pullToRefreshTokensList(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+      speed: 'slow',
+      percentage: 0.8,
+      elemDescription: 'pull to refresh tokens list',
+    });
+  }
+
   async scrollToToken(
     tokenName: string,
     direction: 'up' | 'down' = 'down',
@@ -325,7 +342,7 @@ class WalletView {
   }
 
   async tapSortBy(): Promise<void> {
-    await Gestures.waitAndTap(this.sortBy, {
+    await Gestures.waitAndTap(this.sortButton, {
       elemDescription: 'Sort By',
     });
   }
@@ -546,6 +563,26 @@ class WalletView {
     await Gestures.waitAndTap(this.walletReceiveButton, {
       elemDescription: 'Wallet Receive Button',
     });
+  }
+
+  get perpsTab(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  }
+
+  async tapOnPerpsTab(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsTab, {
+      elemDescription: 'Perps Tab Button',
+    });
+  }
+
+  async verifyTokenNetworkFilterText(expectedText: string): Promise<void> {
+    await Assertions.expectElementToHaveLabel(
+      this.tokenNetworkFilter,
+      expectedText,
+      {
+        description: `token network filter should display "${expectedText}"`,
+      },
+    );
   }
 }
 

@@ -27,11 +27,13 @@ import {
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const tabBarRef = useRef(null);
   const tw = useTailwind();
 
@@ -79,6 +81,11 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           case Routes.TRANSACTIONS_VIEW:
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
             break;
+          case Routes.REWARDS_VIEW:
+            if (isRewardsEnabled) {
+              navigation.navigate(Routes.REWARDS_VIEW);
+            }
+            break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
@@ -109,6 +116,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       trackEvent,
       createEventBuilder,
       tw,
+      isRewardsEnabled,
     ],
   );
 
@@ -122,7 +130,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full pt-3 px-2 bg-default border-t border-muted gap-x-2"
+        twClassName="w-full pt-3 px-2 bg-default border-t border-muted"
         style={[tw.style(`pb-[${bottomInset}px]`)]}
       >
         {renderTabBarItems()}

@@ -61,6 +61,14 @@ describe('useCurrencyRatePolling', () => {
               '0x89': true,
             },
           },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+                '0x89': true,
+              },
+            },
+          },
         },
       },
     } as unknown as RootState;
@@ -111,6 +119,14 @@ describe('useCurrencyRatePolling', () => {
             tokenNetworkFilter: {
               '0x82750': true,
               '0x89': true,
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x82750': true,
+                '0x89': false,
+              },
             },
           },
         },

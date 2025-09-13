@@ -44,18 +44,13 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  TRUE,
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -81,7 +76,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { CommonActions } from '@react-navigation/native';
 import {
   SRP_LENGTHS,
@@ -143,8 +137,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState();
   const [biometryType, setBiometryType] = useState(null);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [biometryChoice, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
@@ -163,10 +155,13 @@ const ImportFromSecretRecoveryPhrase = ({
     onTransactionComplete: false,
   });
 
-  const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhrase.length),
-    [seedPhrase],
-  );
+  const isSRPContinueButtonDisabled = useMemo(() => {
+    const updatedSeedPhrase = [...seedPhrase];
+    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
+      (word) => word !== '',
+    ).length;
+    return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
+  }, [seedPhrase]);
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -212,20 +207,48 @@ const ImportFromSecretRecoveryPhrase = ({
           }
 
           // Build the new seed phrase array
-          const newSeedPhrase = [
+          const mergedSeedPhrase = [
             ...seedPhrase.slice(0, index),
             ...splitArray,
             ...seedPhrase.slice(index + 1),
           ];
 
-          // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace) {
-            newSeedPhrase.push('');
+          const normalizedWords = mergedSeedPhrase
+            .map((w) => w.trim())
+            .filter((w) => w !== '');
+          const maxAllowed = Math.max(...SRP_LENGTHS);
+          const hasReachedMax = normalizedWords.length >= maxAllowed;
+          const isCompleteAndValid =
+            SRP_LENGTHS.includes(normalizedWords.length) &&
+            isValidMnemonic(normalizedWords.join(' '));
+
+          // Prepare next state, retaining a single trailing empty input only when appropriate
+          let nextSeedPhraseState = normalizedWords;
+          if (
+            isEndWithSpace &&
+            index === seedPhrase.length - 1 &&
+            !isCompleteAndValid &&
+            !hasReachedMax
+          ) {
+            nextSeedPhraseState = [...normalizedWords, ''];
           }
 
-          setSeedPhrase(newSeedPhrase);
+          // Always update component state before handling keyboard/focus
+          setSeedPhrase(nextSeedPhraseState);
+
+          if (isCompleteAndValid || hasReachedMax) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
+          }
+
+          const targetIndex = Math.min(
+            nextSeedPhraseState.length - 1,
+            index + splitArray.length,
+          );
           setTimeout(() => {
-            setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
+            setNextSeedPhraseInputFocusedIndex(targetIndex);
           }, 0);
           return;
         }
@@ -384,20 +407,10 @@ const ImportFromSecretRecoveryPhrase = ({
     updateNavBar();
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-        PASSCODE_DISABLED,
-      );
       if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
         setBiometryType(passcodeType(authData.currentAuthType));
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
       }
     };
 
@@ -405,16 +418,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
-
-  const termsOfUse = useCallback(async () => {
-    if (navigation) {
-      await navigateTermsOfUse(navigation.navigate);
-    }
-  }, [navigation]);
-
-  useEffect(() => {
-    termsOfUse();
-  }, [termsOfUse]);
 
   useEffect(
     () => () => {
@@ -425,11 +428,6 @@ const ImportFromSecretRecoveryPhrase = ({
     },
     [],
   );
-
-  const updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    setBiometryChoice(biometryChoice);
-  };
 
   /**
    * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
@@ -451,7 +449,6 @@ const ImportFromSecretRecoveryPhrase = ({
       this.setState({ loading: false, error: err.toString() });
     }
     setBiometryType(newAuthData.availableBiometryType);
-    updateBiometryChoice(false);
   };
 
   const onPasswordChange = (value) => {
@@ -471,20 +468,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const jumpToConfirmPassword = () => {
     const { current } = confirmPasswordInput;
     current && current.focus();
-  };
-
-  const renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMe) => {
-      setRememberMe(rememberMe);
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
   };
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
@@ -596,9 +579,23 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        trace({
+          name: TraceName.OnboardingSRPAccountImportTime,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: {
+            is_social_login: oauthLoginSuccess,
+            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
+            biometrics_enabled: Boolean(biometryType),
+          },
+        });
+
+        // latest ux changes - we are forcing user to enable biometric by default
         const authData = await Authentication.componentAuthenticationType(
-          biometryChoice,
-          rememberMe,
+          true,
+          true,
         );
 
         try {
@@ -638,6 +635,7 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
+        endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
         endTrace({ name: TraceName.OnboardingExistingSrpImport });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
@@ -860,10 +858,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             setNextSeedPhraseInputFocusedIndex(index);
                           }}
                           onChangeText={(text) => {
-                            // Don't process masked text input
-                            if (!isFirstInput && text.includes('•')) {
-                              return;
-                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index);
@@ -1140,7 +1134,6 @@ const ImportFromSecretRecoveryPhrase = ({
             </View>
 
             <View style={styles.createPasswordCtaContainer}>
-              {renderSwitch()}
               <Button
                 loading={loading}
                 width={ButtonWidthTypes.Full}
