@@ -27,11 +27,6 @@ on:
         required: true
         type: string
         description: 'Branch name'
-    secrets:
-      BROWSERSTACK_USERNAME:
-        required: true
-      BROWSERSTACK_ACCESS_KEY:
-        required: true
 
 jobs:
   run-tests:
@@ -42,15 +37,6 @@ jobs:
       fail-fast: false
       matrix:
         device: ${{ fromJson(inputs.device_matrix) }}
-    env:
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
-      TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
-      TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
-      TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
-      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-      DISABLE_VIDEO_DOWNLOAD: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -122,6 +108,14 @@ jobs:
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
+          TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
+          TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
+          TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          DISABLE_VIDEO_DOWNLOAD: true
         run: |
           echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
