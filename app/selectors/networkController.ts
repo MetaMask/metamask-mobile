@@ -1,5 +1,6 @@
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { createSelector, weakMapMemoize } from 'reselect';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
   BuiltInNetworkClientId,
@@ -11,7 +12,10 @@ import {
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../constants/popular-networks';
+import {
+  NON_EVM_POPULAR_NETWORK_CHAIN_IDS,
+  POPULAR_NETWORK_CHAIN_IDS,
+} from '../constants/popular-networks';
 import { selectTokenNetworkFilter } from './preferencesController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
 import { PopularList } from '../util/networks/customNetworks';
@@ -270,7 +274,9 @@ export const selectCustomNetworkConfigurationsByCaipChainId = createSelector(
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
         !POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
-        !networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+        !NON_EVM_POPULAR_NETWORK_CHAIN_IDS.has(
+          networkConfiguration.caipChainId as BtcScope | SolScope,
+        ),
     ),
 );
 
@@ -280,7 +286,9 @@ export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
         POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
-        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+        NON_EVM_POPULAR_NETWORK_CHAIN_IDS.has(
+          networkConfiguration.caipChainId as BtcScope | SolScope,
+        ),
     ),
 );
 

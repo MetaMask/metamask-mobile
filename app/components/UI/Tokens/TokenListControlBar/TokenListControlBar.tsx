@@ -36,7 +36,7 @@ export const TokenListControlBar = ({
     <BaseControlBar
       networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
       additionalButtons={additionalButtons}
-      useEvmSelectionLogic
+      useEvmSelectionLogic={isEvmSelected}
       customWrapper="outer"
     />
   );

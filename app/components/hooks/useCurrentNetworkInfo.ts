@@ -1,7 +1,11 @@
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
+import {
+  selectNetworkConfigurationsByCaipChainId,
+  selectChainId,
+} from '../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
 import { selectMultichainAccountsState2Enabled } from '../../selectors/featureFlagController/multichainAccounts';
@@ -28,6 +32,9 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     selectNetworkConfigurationsByCaipChainId,
   );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedChainId = useSelector(selectChainId);
+  const isSolanaSelected =
+    selectedChainId?.includes(KnownCaipNamespace.Solana) ?? false;
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
@@ -87,7 +94,11 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     [enabledNetworks, networksByCaipChainId],
   );
 
-  const isDisabled = !isEvmSelected && !isMultichainAccountsState2Enabled;
+  let isDisabled: boolean = Boolean(!isEvmSelected);
+  // We don't have Solana testnet networks, so we disable the network selector if Solana is selected
+  // TODO: Come back when we have Solana devnet available
+  isDisabled = Boolean(isSolanaSelected);
+
   const hasEnabledNetworks = enabledNetworks.length > 0;
 
   return {

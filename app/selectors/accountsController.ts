@@ -10,6 +10,7 @@ import { selectFlattenedKeyringAccounts } from './keyringController';
 import {
   BtcMethod,
   EthMethod,
+  SolAccountType,
   SolMethod,
   isEvmAccountType,
 } from '@metamask/keyring-api';
@@ -161,7 +162,7 @@ export const selectLastSelectedEvmAccount = createSelector(
 export const selectLastSelectedSolanaAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
   (accounts) =>
-    accounts.find((account) => account.type === 'solana:data-account'),
+    accounts.find((account) => account.type === SolAccountType.DataAccount),
 );
 
 /**
