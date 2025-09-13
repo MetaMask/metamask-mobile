@@ -19,6 +19,12 @@ on:
       builds:
         description: 'Whether any builds will happen'
         value: ${{ jobs.needs-e2e-build.outputs.builds }}
+      android_build_action:
+        description: 'Android build action: full, repack, or skip'
+        value: ${{ jobs.needs-e2e-build.outputs.android_build_action }}
+      ios_build_action:
+        description: 'iOS build action: full, repack, or skip'
+        value: ${{ jobs.needs-e2e-build.outputs.ios_build_action }}
 
 jobs:
   needs-e2e-build:
@@ -28,6 +34,8 @@ jobs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
       builds: ${{ steps.set-outputs.outputs.builds }}
+      android_build_action: ${{ steps.set-outputs.outputs.android_build_action }}
+      ios_build_action: ${{ steps.set-outputs.outputs.ios_build_action }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -111,6 +119,7 @@ jobs:
               - '**/*'                             # Matches everything for conservative fallback
           list-files: 'shell'  # Output lists for comparison
 
+
       - name: Set final outputs
         id: set-outputs
         run: |
@@ -121,6 +130,8 @@ jobs:
               echo "android_final=false"
               echo "ios_final=false"
               echo "builds=false"
+              echo "android_build_action=skip"
+              echo "ios_build_action=skip"
             } >> "${GITHUB_OUTPUT}"
             echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
             exit 0
@@ -136,6 +147,7 @@ jobs:
           ignore_files="${{ steps.filter.outputs.ignore_files }}"
           catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
 
+
           # Use Cases for State Machine:
           # 1. Purely ignored changes -> Skip both
           # 2. Shared changes -> Build both 
@@ -144,7 +156,7 @@ jobs:
           # 5. Android-only changes -> Android only
           # 6. iOS-only changes -> iOS only
 
-          # State Machine
+          # State Machine for determining which platforms need attention
           if [[ "$android" == 'true' && "$ios" != 'true' ]]; then
             state="ANDROID_ONLY"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
@@ -155,31 +167,46 @@ jobs:
             state="SHARED"
           fi
 
+          # Determine build actions based on path changes + fingerprint
           case "$state" in
             "PURE_IGNORE")
               echo "Ignoring - no mobile code changes"
               android_final="false"
               ios_final="false"
+              android_build_action="skip"
+              ios_build_action="skip"
               ;;
             "SHARED")
-              echo "Building both platforms"
+              echo "Both platforms affected by changes"
               android_final="true"
               ios_final="true"
+              # Fingerprint check will happen in Android build workflow
+              android_build_action="check_fingerprint"
+              # iOS not using fingerprint optimization yet
+              ios_build_action="full"
               ;;
             "ANDROID_ONLY")
-              echo "Building Android only"
+              echo "Android-only changes"
               android_final="true"
               ios_final="false"
+              ios_build_action="skip"
+              # For platform-specific changes, always do full build (native code likely changed)
+              android_build_action="full"
               ;;
             "IOS_ONLY")
-              echo "Building iOS only"
+              echo "iOS-only changes"
               android_final="false"
               ios_final="true"
+              android_build_action="skip"
+              # iOS not using fingerprint optimization yet
+              ios_build_action="full"
               ;;
           esac
 
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
           echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
+          echo "android_build_action=$android_build_action" >> "${GITHUB_OUTPUT}"
+          echo "ios_build_action=$ios_build_action" >> "${GITHUB_OUTPUT}"
 
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
@@ -188,3 +215,7 @@ jobs:
             builds="false"
           fi
           echo "builds=$builds" >> "${GITHUB_OUTPUT}"
+          
+          echo "Build decisions:"
+          echo "  Android: $android_build_action (build=$android_final)"
+          echo "  iOS: $ios_build_action (build=$ios_final)"
