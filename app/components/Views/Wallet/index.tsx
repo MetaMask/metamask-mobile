@@ -207,8 +207,12 @@ const createStyles = ({ colors }: Theme) =>
       marginTop: 20,
       paddingHorizontal: 16,
     },
-    carouselContainer: {
-      marginBottom: 12,
+    assetsActionsContainer: {
+      marginBottom: 16,
+    },
+    carousel: {
+      marginBottom: 16,
+      overflow: 'hidden', // Allow for smooth height animations
     },
   });
 
@@ -1192,24 +1196,27 @@ const Wallet = ({
           ) : (
             <PortfolioBalance />
           )}
-          <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
-            displaySwapsButton={displaySwapsButton}
-            displayBridgeButton={displayBridgeButton}
-            swapsIsLive={swapsIsLive}
-            goToBridge={goToBridge}
-            goToSwaps={goToSwaps}
-            onReceive={onReceive}
-            onSend={onSend}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-            bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
-            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-          />
-          {isCarouselBannersEnabled && (
-            <Carousel style={styles.carouselContainer} />
-          )}
+          <View style={styles.assetsActionsContainer}>
+            <AssetDetailsActions
+              displayBuyButton={displayBuyButton}
+              displaySwapsButton={displaySwapsButton}
+              displayBridgeButton={displayBridgeButton}
+              swapsIsLive={swapsIsLive}
+              goToBridge={goToBridge}
+              goToSwaps={goToSwaps}
+              onReceive={onReceive}
+              onSend={onSend}
+              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+              bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
+              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+              receiveButtonActionID={
+                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
+              }
+            />
+          </View>
+
+          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
           <WalletTokensTabView
             navigation={navigation}
@@ -1223,7 +1230,8 @@ const Wallet = ({
     ),
     [
       styles.banner,
-      styles.carouselContainer,
+      styles.assetsActionsContainer,
+      styles.carousel,
       styles.wrapper,
       basicFunctionalityEnabled,
       defiEnabled,
