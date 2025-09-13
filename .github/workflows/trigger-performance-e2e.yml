@@ -132,7 +132,7 @@ jobs:
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
-          pattern: *-test-results-*
+          pattern: "*-test-results-*"
           path: ./test-results
           merge-multiple: true
       
