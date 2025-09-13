@@ -23,6 +23,12 @@ permissions:
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
   BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+  MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
+  TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
+  TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
+  TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+  DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
   read-device-matrix:
@@ -51,14 +57,12 @@ jobs:
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     # Only run if BrowserStack URLs are not provided
     if: ${{ !inputs.browserstack_app_url_android }}
-    secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     # Only run if BrowserStack URLs are not provided
     if: ${{ !inputs.browserstack_app_url_ios }}
-    secrets: inherit
 
   run-android-imported-wallet-tests:
     name: Run Android Imported Wallet Tests
@@ -72,9 +76,6 @@ jobs:
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
-    secrets:
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
   run-android-onboarding-tests:
     name: Run Android Onboarding Tests
@@ -88,9 +89,6 @@ jobs:
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
-    secrets:
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
   run-ios-imported-wallet-tests:
     name: Run iOS Imported Wallet Tests
@@ -104,9 +102,6 @@ jobs:
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
-    secrets:
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
   run-ios-onboarding-tests:
     name: Run iOS Onboarding Tests
@@ -120,9 +115,6 @@ jobs:
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
-    secrets:
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
   aggregate-results:
     name: Aggregate All Test Results
