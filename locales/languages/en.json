@@ -388,6 +388,8 @@
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
+    "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
+    "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create new password",
     "confirm_password": "Confirm password",
@@ -413,7 +415,9 @@
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
     "create_password_cta": "Create password",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "password_error": "Passwords don’t match. Try again."
+    "password_error": "Passwords don’t match. Try again.",
+    "marketing_opt_in_description" : "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
+    "loose_password_description" : "If I lose this password, MetaMask can’t reset it."
   },
   "reset_password": {
     "title": "Change password",

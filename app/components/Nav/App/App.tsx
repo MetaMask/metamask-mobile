@@ -1015,9 +1015,7 @@ const App: React.FC = () => {
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
-
   const { isEnabled: checkMetricsEnabled } = useMetrics();
-
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1079,30 +1077,35 @@ const App: React.FC = () => {
             },
           );
 
-          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-            OPTIN_META_METRICS_UI_SEEN,
-          );
+          // Only show metrics optin for SRP users
+          if (!isSeedlessOnboardingLoginFlow) {
+            const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+              OPTIN_META_METRICS_UI_SEEN,
+            );
 
-          if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
-            const resetParams = {
-              routes: [
-                {
-                  name: Routes.ONBOARDING.ROOT_NAV,
-                  params: {
-                    screen: Routes.ONBOARDING.NAV,
+            if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
+              const resetParams = {
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.ROOT_NAV,
                     params: {
-                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      screen: Routes.ONBOARDING.NAV,
+                      params: {
+                        screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      },
                     },
                   },
-                },
-              ],
-            };
-            navigation.reset(resetParams);
-          } else {
-            navigation.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+                ],
+              };
+              navigation.reset(resetParams);
+              return;
+            }
           }
+
+          // Navigate to home for both SRP users (who have seen metrics) and social login users
+          navigation.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
         } else {
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
