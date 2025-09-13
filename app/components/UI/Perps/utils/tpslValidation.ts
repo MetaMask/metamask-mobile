@@ -53,12 +53,12 @@ export const isValidStopLossPrice = (
 };
 
 /**
- * Validates if a stop loss price is beyond the liquidation price
+ * Validates if a stop loss price is within the liquidation price
  * For long positions: stop loss must be ABOVE liquidation price
  * For short positions: stop loss must be BELOW liquidation price
  *
  */
-export const isStopLossBeyondLiquidationPrice = (
+export const isStopLossSafeFromLiquidation = (
   price?: string,
   liquidationPrice?: string,
   direction?: 'long' | 'short',
@@ -105,7 +105,7 @@ export const validateTPSLPrices = (
   if (params.liquidationPrice) {
     isValid =
       isValid &&
-      isStopLossBeyondLiquidationPrice(
+      isStopLossSafeFromLiquidation(
         stopLossPrice,
         params.liquidationPrice,
         params.direction,

@@ -9,7 +9,7 @@ import {
   getStopLossLiquidationErrorDirection,
   getTakeProfitErrorDirection,
   hasTPSLValuesChanged,
-  isStopLossBeyondLiquidationPrice,
+  isStopLossSafeFromLiquidation,
   isValidStopLossPrice,
   isValidTakeProfitPrice,
   safeParseRoEPercentage,
@@ -770,7 +770,7 @@ export function usePerpsTPSLForm(
       : '';
 
   const stopLossLiquidationError =
-    !isStopLossBeyondLiquidationPrice(
+    !isStopLossSafeFromLiquidation(
       stopLossPrice,
       liquidationPrice,
       actualDirection,

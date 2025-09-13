@@ -91,7 +91,7 @@ import {
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import {
   calculateRoEForPrice,
-  isStopLossBeyondLiquidationPrice,
+  isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import ButtonSemantic, {
@@ -771,7 +771,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
-      !isStopLossBeyondLiquidationPrice(
+      !isStopLossSafeFromLiquidation(
         orderForm.stopLossPrice,
         liquidationPrice,
         orderForm.direction,
