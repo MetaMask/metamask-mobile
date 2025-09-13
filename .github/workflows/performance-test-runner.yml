@@ -66,8 +66,8 @@ jobs:
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
-          username: ${{ secrets.BROWSERSTACK_USERNAME }}
-          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          username: ${{ env.BROWSERSTACK_USERNAME }}
+          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
       
       - name: Setup BrowserStack Local
