@@ -27,21 +27,6 @@ on:
         required: true
         type: string
         description: 'Branch name'
-    secrets:
-      BROWSERSTACK_USERNAME:
-        required: true
-      BROWSERSTACK_ACCESS_KEY:
-        required: true
-      MM_TEST_ACCOUNT_SRP:
-        required: true
-      TEST_SRP_1:
-        required: true
-      TEST_SRP_2:
-        required: true
-      TEST_SRP_3:
-        required: true
-      E2E_PASSWORD:
-        required: true
 
 jobs:
   run-tests:
