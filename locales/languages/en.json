@@ -2434,6 +2434,13 @@
     "web_site": "Visit our Website",
     "contact_us": "Contact Us"
   },
+  "support_consent": {
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "consent": "Confirm",
+    "decline": "Don't share",
+    "save_preference": "Save my preference"
+  },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",
     "private_key_title": "Show private key",

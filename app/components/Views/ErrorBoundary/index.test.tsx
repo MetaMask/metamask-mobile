@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -10,6 +10,7 @@ import {
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import getSupportUrl from '../../../util/support';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -31,9 +32,16 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
     )),
 }));
 
+// Mock the support utility
+jest.mock('../../../util/support', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
+  openURL: jest.fn(),
 }));
 
 jest.mock('../../../util/sentry/utils', () => ({
@@ -79,12 +87,12 @@ describe('ErrorBoundary', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
+    const { toJSON } = renderWithProvider(
+      <ErrorBoundary view={'Root'}>
+        <View />
+      </ErrorBoundary>,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -228,22 +236,34 @@ describe('ErrorBoundary', () => {
       fireEvent.press(describeButton);
     });
 
+    // Wait for modal to open and find the text input
     await waitFor(() => {
-      const textInput = getByPlaceholderText(
-        'Sharing details like how we can reproduce the bug will help us fix the problem.',
-      );
-      const submitButton = getByText('Submit');
-      fireEvent.changeText(textInput, 'Test feedback');
-
-      fireEvent.press(submitButton);
-
-      expect(captureSentryFeedback).toHaveBeenCalledWith({
-        sentryId: mockProps.sentryId,
-        comments: 'Test feedback',
-      });
-
-      expect(spyAlert).toHaveBeenCalledWith('Thanks! We’ll take a look soon.');
+      expect(
+        getByPlaceholderText(
+          'Sharing details like how we can reproduce the bug will help us fix the problem.',
+        ),
+      ).toBeTruthy();
     });
+
+    const textInput = getByPlaceholderText(
+      'Sharing details like how we can reproduce the bug will help us fix the problem.',
+    );
+    const submitButton = getByText('Submit');
+
+    fireEvent.changeText(textInput, 'Test feedback');
+
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    expect(captureSentryFeedback).toHaveBeenCalledWith({
+      sentryId: mockProps.sentryId,
+      comments: 'Test feedback',
+    });
+
+    expect(spyAlert).toHaveBeenCalledWith(
+      strings('error_screen.bug_report_thanks'),
+    );
   });
 
   it('renders error message correctly', () => {
@@ -346,6 +366,107 @@ describe('ErrorBoundary', () => {
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [{ name: 'OnboardingRootNav' }],
       });
+    });
+  });
+
+  describe('Support Consent Sheet', () => {
+    it('shows support consent sheet when contact support is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <ErrorBoundary view={'Root'}>
+          <MockThrowComponent />
+        </ErrorBoundary>,
+      );
+
+      const contactSupportButton = getByText(
+        strings('error_screen.contact_support'),
+      );
+      fireEvent.press(contactSupportButton);
+
+      expect(getByText(strings('support_consent.title'))).toBeTruthy();
+    });
+
+    it('consents to share information when consent button is pressed', async () => {
+      (getSupportUrl as jest.Mock).mockResolvedValue(
+        'https://support.metamask.io',
+      );
+
+      const { getByText } = renderWithProvider(
+        <ErrorBoundary view={'Root'}>
+          <MockThrowComponent />
+        </ErrorBoundary>,
+      );
+
+      // Trigger the modal
+      const contactSupportButton = getByText(
+        strings('error_screen.contact_support'),
+      );
+      fireEvent.press(contactSupportButton);
+
+      // Press consent button
+      const consentButton = getByText(strings('support_consent.consent'));
+      await act(async () => {
+        fireEvent.press(consentButton);
+      });
+
+      expect(getSupportUrl).toHaveBeenCalledWith(true);
+    });
+
+    it('declines to share information when decline button is pressed', async () => {
+      (getSupportUrl as jest.Mock).mockResolvedValue(
+        'https://support.metamask.io',
+      );
+
+      const { getByText } = renderWithProvider(
+        <ErrorBoundary view={'Root'}>
+          <MockThrowComponent />
+        </ErrorBoundary>,
+      );
+
+      // Trigger the modal
+      const contactSupportButton = getByText(
+        strings('error_screen.contact_support'),
+      );
+      fireEvent.press(contactSupportButton);
+
+      // Press decline button
+      const declineButton = getByText(strings('support_consent.decline'));
+      await act(async () => {
+        fireEvent.press(declineButton);
+      });
+
+      expect(getSupportUrl).toHaveBeenCalledWith(false);
+    });
+
+    it('falls back to base URL when consent request fails', async () => {
+      (getSupportUrl as jest.Mock).mockRejectedValueOnce(
+        new Error('Network error'),
+      );
+      (getSupportUrl as jest.Mock).mockResolvedValueOnce(
+        'https://support.metamask.io',
+      );
+
+      const { getByText } = renderWithProvider(
+        <ErrorBoundary view={'Root'}>
+          <MockThrowComponent />
+        </ErrorBoundary>,
+      );
+
+      // Trigger the modal
+      const contactSupportButton = getByText(
+        strings('error_screen.contact_support'),
+      );
+      fireEvent.press(contactSupportButton);
+
+      // Press consent button and wait for fallback
+      const consentButton = getByText(strings('support_consent.consent'));
+      await act(async () => {
+        fireEvent.press(consentButton);
+      });
+
+      // Verify getSupportUrl was called twice (once with true, once with false for fallback)
+      expect(getSupportUrl).toHaveBeenCalledTimes(2);
+      expect(getSupportUrl).toHaveBeenNthCalledWith(1, true);
+      expect(getSupportUrl).toHaveBeenNthCalledWith(2, false);
     });
   });
 });

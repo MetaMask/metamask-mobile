@@ -22,6 +22,9 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
+import { useSupportConsent } from '../../../hooks/useSupportConsent';
+import SupportConsentSheet from '../../../UI/SupportConsentSheet';
+import getSupportUrl from '../../../../util/support';
 import { isQa } from '../../../../util/test/utils';
 
 const createStyles = (colors) =>
@@ -100,6 +103,7 @@ export default class AppInformation extends PureComponent {
   state = {
     appInfo: '',
     appVersion: '',
+    showConsentSheet: false,
   };
 
   updateNavBar = () => {
@@ -158,8 +162,7 @@ export default class AppInformation extends PureComponent {
   };
 
   onSupportCenter = () => {
-    const url = 'https://support.metamask.io';
-    this.goTo(url, strings('drawer.metamask_support'));
+    this.openSupportWebPage();
   };
 
   onWebSite = () => {
@@ -168,8 +171,49 @@ export default class AppInformation extends PureComponent {
   };
 
   onContactUs = () => {
-    const url = 'https://support.metamask.io';
-    this.goTo(url, strings('drawer.metamask_support'));
+    this.openSupportWebPage();
+  };
+
+  openSupportWebPage = () => {
+    // For beta builds, bypass consent flow and go directly to beta support
+    if (process.env.METAMASK_BUILD_TYPE === 'beta') {
+      this.goTo(
+        'https://intercom.help/internal-beta-testing/en/',
+        strings('drawer.metamask_support'),
+      );
+      return;
+    }
+
+    // Default behavior for non-beta builds
+    this.setState({ showConsentSheet: true });
+  };
+
+  handleConsent = async () => {
+    try {
+      const supportUrl = await getSupportUrl(true);
+      this.setState({ showConsentSheet: false });
+      this.goTo(supportUrl, strings('drawer.metamask_support'));
+    } catch (error) {
+      console.warn('Error getting support URL with consent:', error);
+      // Fallback to base URL
+      const supportUrl = await getSupportUrl(false);
+      this.setState({ showConsentSheet: false });
+      this.goTo(supportUrl, strings('drawer.metamask_support'));
+    }
+  };
+
+  handleDecline = async () => {
+    try {
+      const supportUrl = await getSupportUrl(false);
+      this.setState({ showConsentSheet: false });
+      this.goTo(supportUrl, strings('drawer.metamask_support'));
+    } catch (error) {
+      console.warn('Error getting support URL without consent:', error);
+      // Fallback to base URL
+      const fallbackUrl = 'https://support.metamask.io';
+      this.setState({ showConsentSheet: false });
+      this.goTo(fallbackUrl, strings('drawer.metamask_support'));
+    }
   };
 
   render = () => {
@@ -177,62 +221,70 @@ export default class AppInformation extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={AboutMetaMaskSelectorsIDs.CONTAINER}
-      >
-        <ScrollView contentContainerStyle={styles.wrapperContent}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={foxImage}
-              style={styles.image}
-              resizeMethod={'auto'}
-            />
-            <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
-            {isQa ? (
-              <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
-              </Text>
-            ) : null}
-          </View>
-          <Text style={styles.title}>{strings('app_information.links')}</Text>
-          <View style={styles.links}>
-            <TouchableOpacity onPress={this.onPrivacyPolicy}>
-              <Text style={styles.link}>
-                {strings('app_information.privacy_policy')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onTermsOfUse}>
-              <Text style={styles.link}>
-                {strings('app_information.terms_of_use')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onAttributions}>
-              <Text style={styles.link}>
-                {strings('app_information.attributions')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.division} />
-          <View style={styles.links}>
-            <TouchableOpacity onPress={this.onSupportCenter}>
-              <Text style={styles.link}>
-                {strings('app_information.support_center')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onWebSite}>
-              <Text style={styles.link}>
-                {strings('app_information.web_site')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onContactUs}>
-              <Text style={styles.link}>
-                {strings('app_information.contact_us')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+      <>
+        <SafeAreaView
+          style={styles.wrapper}
+          testID={AboutMetaMaskSelectorsIDs.CONTAINER}
+        >
+          <ScrollView contentContainerStyle={styles.wrapperContent}>
+            <View style={styles.logoWrapper}>
+              <Image
+                source={foxImage}
+                style={styles.image}
+                resizeMethod={'auto'}
+              />
+              <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
+              {isQa ? (
+                <Text style={styles.branchInfo}>
+                  {`Branch: ${process.env['GIT_BRANCH']}`}
+                </Text>
+              ) : null}
+            </View>
+            <Text style={styles.title}>{strings('app_information.links')}</Text>
+            <View style={styles.links}>
+              <TouchableOpacity onPress={this.onPrivacyPolicy}>
+                <Text style={styles.link}>
+                  {strings('app_information.privacy_policy')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onTermsOfUse}>
+                <Text style={styles.link}>
+                  {strings('app_information.terms_of_use')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onAttributions}>
+                <Text style={styles.link}>
+                  {strings('app_information.attributions')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.division} />
+            <View style={styles.links}>
+              <TouchableOpacity onPress={this.onSupportCenter}>
+                <Text style={styles.link}>
+                  {strings('app_information.support_center')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onWebSite}>
+                <Text style={styles.link}>
+                  {strings('app_information.web_site')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={this.onContactUs}>
+                <Text style={styles.link}>
+                  {strings('app_information.contact_us')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+
+        <SupportConsentSheet
+          isVisible={this.state.showConsentSheet}
+          onConsent={this.handleConsent}
+          onDecline={this.handleDecline}
+        />
+      </>
     );
   };
 }
