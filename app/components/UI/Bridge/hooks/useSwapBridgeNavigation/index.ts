@@ -33,6 +33,7 @@ export enum SwapBridgeNavigationLocation {
   TabBar = 'TabBar',
   TokenDetails = 'TokenDetails',
   Swaps = 'Swaps',
+  Rewards = 'Rewards',
 }
 
 /**

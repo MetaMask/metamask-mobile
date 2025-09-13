@@ -8,21 +8,21 @@ import {
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { usePointsEvents } from '../../hooks/usePointsEvents';
-import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
-import { strings } from '../../../../../../locales/i18n';
+import { usePointsEvents } from '../../../hooks/usePointsEvents';
+import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import { selectRewardsSubscriptionId } from '../../../../../../selectors/rewards';
+import { strings } from '../../../../../../../locales/i18n';
 import { ActivityEventRow } from './ActivityEventRow';
 import {
   selectSeasonId,
   selectSeasonStatusLoading,
-} from '../../../../../reducers/rewards/selectors';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+} from '../../../../../../reducers/rewards/selectors';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
-import MetamaskRewardsActivityEmptyImage from '../../../../../images/metamask-rewards-activity-empty.svg';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { setActiveTab } from '../../../../../actions/rewards';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
+import MetamaskRewardsActivityEmptyImage from '../../../../../../images/metamask-rewards-activity-empty.svg';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import { setActiveTab } from '../../../../../../actions/rewards';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
