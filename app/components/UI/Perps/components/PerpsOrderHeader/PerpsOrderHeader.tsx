@@ -25,7 +25,7 @@ interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
   priceChange: number;
-  orderType: OrderType;
+  orderType?: OrderType;
   direction?: 'long' | 'short';
   onBack?: () => void;
   title?: string;
@@ -108,25 +108,27 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           )}
         </View>
       </View>
-      <TouchableOpacity
-        onPress={handleOrderTypePress}
-        testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
-        disabled={isLoading}
-      >
-        <View style={styles.marketButton}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {orderType === 'market'
-              ? strings('perps.order.market')
-              : strings('perps.order.limit')}
-          </Text>
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Xs}
-            color={IconColor.Default}
-            style={styles.marketButtonIcon}
-          />
-        </View>
-      </TouchableOpacity>
+      {Boolean(orderType) && (
+        <TouchableOpacity
+          onPress={handleOrderTypePress}
+          testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
+          disabled={isLoading}
+        >
+          <View style={styles.marketButton}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {orderType === 'market'
+                ? strings('perps.order.market')
+                : strings('perps.order.limit')}
+            </Text>
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Xs}
+              color={IconColor.Default}
+              style={styles.marketButtonIcon}
+            />
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

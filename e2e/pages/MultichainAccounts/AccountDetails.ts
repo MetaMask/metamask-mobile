@@ -20,6 +20,10 @@ class AccountDetails {
     return Matchers.getElementByID(AccountDetailsIds.WALLET_NAME_LINK);
   }
 
+  get networksLink(): DetoxElement {
+    return Matchers.getElementByID(AccountDetailsIds.NETWORKS_LINK);
+  }
+
   get backButton(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
   }
@@ -65,6 +69,12 @@ class AccountDetails {
   async tapDeleteAccountLink(): Promise<void> {
     await Gestures.waitAndTap(this.deleteAccountLink, {
       elemDescription: 'Delete Account Link in Account Details',
+    });
+  }
+
+  async tapNetworksLink(): Promise<void> {
+    await Gestures.waitAndTap(this.networksLink, {
+      elemDescription: 'Networks Link in Account Details',
     });
   }
 
