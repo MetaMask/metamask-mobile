@@ -27,6 +27,10 @@ on:
         required: true
         type: string
         description: 'Branch name'
+      browserstack_build_name:
+        required: true
+        type: string
+        description: 'Unified BrowserStack build name for all sessions'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -116,7 +120,7 @@ jobs:
             echo "BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.browserstack_app_url }}"
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
-            echo "BROWSERSTACK_BUILD_NAME=${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'Onboarding' || 'Performance' }}-${{ inputs.branch_name }}-Branch"
+            echo "BROWSERSTACK_BUILD_NAME=${{ inputs.browserstack_build_name }}"
             echo "BROWSERSTACK_USERNAME=${{ secrets.BROWSERSTACK_USERNAME }}"
             echo "BROWSERSTACK_ACCESS_KEY=${{ secrets.BROWSERSTACK_ACCESS_KEY }}"
             echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
