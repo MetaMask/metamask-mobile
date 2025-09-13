@@ -73,8 +73,9 @@ export const isStopLossBeyondLiquidationPrice = (
 
   const isLong = direction === 'long';
 
-  const fixedSlPrice = slPriceNum.toFixed(2);
-  const fixedLiquidationPrice = liquidationPriceNum.toFixed(2);
+  // Reasoning: If liquidation price is 50.0001 and the user enters 50 we consider the user's input beyond liquidation price.
+  const fixedSlPrice = parseFloat(slPriceNum.toFixed(2));
+  const fixedLiquidationPrice = parseFloat(liquidationPriceNum.toFixed(2));
 
   return isLong
     ? fixedSlPrice > fixedLiquidationPrice
