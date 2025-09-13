@@ -50,7 +50,6 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         device: ${{ fromJson(inputs.device_matrix) }}
     steps:
