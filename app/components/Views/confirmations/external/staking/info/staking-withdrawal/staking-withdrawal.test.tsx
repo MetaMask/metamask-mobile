@@ -37,6 +37,15 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
+// jest.mock('../../../../hooks/gas/useGasFeeToken');
+
+jest.mock('../../../../hooks/gas/useIsGaslessSupported', () => ({
+  useIsGaslessSupported: jest.fn().mockReturnValue({
+    isSupported: false,
+    isSmartTransaction: false,
+  }),
+}));
+
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));

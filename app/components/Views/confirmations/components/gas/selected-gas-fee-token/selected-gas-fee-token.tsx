@@ -73,7 +73,7 @@ export function SelectedGasFeeToken() {
           size={GasFeeTokenIconSize.Sm}
         />
         <Text>{symbol}</Text>
-        {hasGasFeeTokens && (
+        {hasGasFeeTokens && !hasOnlyFutureNativeToken && (
           <Icon
             testID="selected-gas-fee-token-arrow"
             name={IconName.ArrowDown}
