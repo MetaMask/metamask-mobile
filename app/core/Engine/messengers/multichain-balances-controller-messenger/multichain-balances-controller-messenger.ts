@@ -1,5 +1,6 @@
 import { BaseControllerMessenger } from '../../types';
 import { MultichainBalancesControllerMessenger } from '@metamask/assets-controllers';
+import { AccountActivityServiceBalanceUpdatedEvent } from '@metamask/backend-platform';
 
 /**
  * Get the MultichainBalancesControllerMessenger for the MultichainBalancesController.
@@ -17,6 +18,7 @@ export function getMultichainBalancesControllerMessenger(
       'AccountsController:accountRemoved',
       'AccountsController:accountBalancesUpdated',
       'MultichainAssetsController:accountAssetListUpdated',
+      'AccountActivityService:balanceUpdated',
     ],
     allowedActions: [
       'AccountsController:listMultichainAccounts',

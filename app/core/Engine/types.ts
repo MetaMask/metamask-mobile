@@ -555,6 +555,8 @@ export type Controllers = {
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  BackendWebSocketService: import('./controllers/backend-platform').MobileBackendWebSocketService;
+  AccountActivityService: import('@metamask/backend-platform').AccountActivityService;
 };
 
 /**
@@ -686,7 +688,9 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
-  | 'RewardsController';
+  | 'RewardsController'
+  | 'BackendWebSocketService'
+  | 'AccountActivityService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

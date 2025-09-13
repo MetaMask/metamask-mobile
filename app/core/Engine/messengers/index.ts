@@ -42,6 +42,10 @@ import { getBridgeControllerMessenger } from './bridge-controller-messenger';
 import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
 import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
+import { 
+  getWebSocketServiceMessenger as getBackendWebSocketServiceMessenger,
+  getAccountActivityServiceMessenger
+} from './backend-platform';
 /**
  * The messengers for the controllers that have been.
  */
@@ -164,6 +168,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   RewardsController: {
     getMessenger: getRewardsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  BackendWebSocketService: {
+    getMessenger: getBackendWebSocketServiceMessenger,
+    getInitMessenger: noop,
+  },
+  AccountActivityService: {
+    getMessenger: getAccountActivityServiceMessenger,
     getInitMessenger: noop,
   },
 } as const;
