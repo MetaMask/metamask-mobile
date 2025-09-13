@@ -517,7 +517,15 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1813,7 +1821,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2343,7 +2351,15 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3639,7 +3655,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4169,7 +4185,15 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -5465,7 +5489,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -5995,7 +6019,15 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -7267,7 +7299,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -7797,7 +7829,15 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -9069,7 +9109,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -9599,7 +9639,15 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -10871,7 +10919,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -11401,7 +11449,15 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -12673,7 +12729,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -13203,7 +13259,15 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -14475,7 +14539,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
