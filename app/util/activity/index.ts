@@ -148,6 +148,46 @@ export const filterByAddressAndNetwork = (
   return false;
 };
 
+export const filterByAddress = (
+  tx: TransactionMeta,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tokens: any[],
+  selectedAddress: string,
+  allTransactions?: TransactionMeta[],
+): boolean => {
+  const {
+    id: transactionId,
+    isTransfer,
+    transferInformation,
+    txParams: { from, to },
+  } = tx;
+
+  const isRequiredTransaction = allTransactions?.some((t) =>
+    t.requiredTransactionIds?.includes(transactionId),
+  );
+
+  if (isRequiredTransaction) {
+    return false;
+  }
+
+  if (
+    isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
+    tx.status !== TX_UNAPPROVED
+  ) {
+    return isTransfer
+      ? !!tokens.find(({ address }) =>
+          areAddressesEqual(
+            address,
+            transferInformation?.contractAddress ?? '',
+          ),
+        )
+      : true;
+  }
+
+  return false;
+};
+
 export function isTransactionOnChains(
   transaction: TransactionMeta,
   chainIds: Hex[],
