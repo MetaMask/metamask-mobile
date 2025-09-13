@@ -30,7 +30,11 @@ const AccountListCell = memo(
         <AccountCell
           startAccessory={
             showCheckbox ? (
-              <Checkbox isChecked={isSelected} onPress={handlePress} />
+              <Checkbox
+                isChecked={isSelected}
+                onPress={handlePress}
+                testID={`account-checkbox-${accountGroup.id}`}
+              />
             ) : undefined
           }
           accountGroup={accountGroup}

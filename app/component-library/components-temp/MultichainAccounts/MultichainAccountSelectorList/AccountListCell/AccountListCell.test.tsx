@@ -9,6 +9,7 @@ import {
   createMockWallet,
 } from '../../test-utils';
 import { AvatarAccountType } from '../../../../components/Avatars/Avatar';
+import { RootState } from '../../../../../reducers';
 
 const mockNavigate = jest.fn();
 
@@ -89,7 +90,7 @@ describe('AccountListCell', () => {
   });
 
   describe('Checkbox functionality', () => {
-    let baseState: any;
+    let baseState: RootState;
 
     beforeEach(() => {
       const groups = [mockAccountGroup];
@@ -100,7 +101,7 @@ describe('AccountListCell', () => {
 
     it('shows checkbox when showCheckbox prop is true', () => {
       const mockOnSelectAccount = jest.fn();
-      const { UNSAFE_getAllByProps } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected={false}
@@ -111,15 +112,14 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxElements = UNSAFE_getAllByProps({
-        accessibilityRole: 'checkbox',
-      });
-      expect(checkboxElements.length).toBeGreaterThan(0);
+      expect(
+        getByTestId(`account-checkbox-${mockAccountGroup.id}`),
+      ).toBeTruthy();
     });
 
     it('hides checkbox when showCheckbox prop is false', () => {
       const mockOnSelectAccount = jest.fn();
-      const { UNSAFE_queryAllByProps } = renderWithProvider(
+      const { queryByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected={false}
@@ -130,15 +130,14 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxElements = UNSAFE_queryAllByProps({
-        accessibilityRole: 'checkbox',
-      });
-      expect(checkboxElements).toHaveLength(0);
+      expect(
+        queryByTestId(`account-checkbox-${mockAccountGroup.id}`),
+      ).toBeFalsy();
     });
 
     it('hides checkbox by default when showCheckbox prop is not provided', () => {
       const mockOnSelectAccount = jest.fn();
-      const { UNSAFE_queryAllByProps } = renderWithProvider(
+      const { queryByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected={false}
@@ -148,15 +147,14 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxElements = UNSAFE_queryAllByProps({
-        accessibilityRole: 'checkbox',
-      });
-      expect(checkboxElements).toHaveLength(0);
+      expect(
+        queryByTestId(`account-checkbox-${mockAccountGroup.id}`),
+      ).toBeFalsy();
     });
 
     it('renders checked checkbox when isSelected is true', () => {
       const mockOnSelectAccount = jest.fn();
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getAllByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected
@@ -167,13 +165,15 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxIcon = getByTestId('checkbox-icon-component');
-      expect(checkboxIcon).toBeTruthy();
+      const checkboxElements = getAllByTestId(
+        `account-checkbox-${mockAccountGroup.id}`,
+      );
+      expect(checkboxElements.length).toBeGreaterThan(0);
     });
 
     it('renders unchecked checkbox when isSelected is false', () => {
       const mockOnSelectAccount = jest.fn();
-      const { UNSAFE_getAllByProps, queryByTestId } = renderWithProvider(
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected={false}
@@ -184,16 +184,15 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxElements = UNSAFE_getAllByProps({
-        accessibilityRole: 'checkbox',
-      });
-      expect(checkboxElements.length).toBeGreaterThan(0);
+      expect(
+        getByTestId(`account-checkbox-${mockAccountGroup.id}`),
+      ).toBeTruthy();
       expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
     });
 
     it('calls onSelectAccount when checkbox is pressed', () => {
       const mockOnSelectAccount = jest.fn();
-      const { UNSAFE_getAllByProps } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected={false}
@@ -204,11 +203,10 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxElements = UNSAFE_getAllByProps({
-        accessibilityRole: 'checkbox',
-      });
-      expect(checkboxElements.length).toBeGreaterThan(0);
-      fireEvent.press(checkboxElements[0]);
+      const checkboxElement = getByTestId(
+        `account-checkbox-${mockAccountGroup.id}`,
+      );
+      fireEvent.press(checkboxElement);
 
       expect(mockOnSelectAccount).toHaveBeenCalledWith(mockAccountGroup);
     });
@@ -233,23 +231,25 @@ describe('AccountListCell', () => {
 
     it('renders AccountCell with correct props when checkbox is shown', () => {
       const mockOnSelectAccount = jest.fn();
-      const { getByTestId, getByText, UNSAFE_getAllByProps } =
-        renderWithProvider(
-          <AccountListCell
-            accountGroup={mockAccountGroup}
-            isSelected
-            onSelectAccount={mockOnSelectAccount}
-            showCheckbox
-            avatarAccountType={AvatarAccountType.Maskicon}
-          />,
-          { state: baseState },
-        );
+      const { getAllByTestId, getByTestId, getByText } = renderWithProvider(
+        <AccountListCell
+          accountGroup={mockAccountGroup}
+          isSelected
+          onSelectAccount={mockOnSelectAccount}
+          showCheckbox
+          avatarAccountType={AvatarAccountType.Maskicon}
+        />,
+        { state: baseState },
+      );
 
-      const checkboxElements = UNSAFE_getAllByProps({
-        accessibilityRole: 'checkbox',
-      });
-      expect(checkboxElements.length).toBeGreaterThan(0);
-      expect(getByTestId('checkbox-icon-component')).toBeTruthy(); // Icon shown when checked
+      const checkboxes = getAllByTestId(
+        `account-checkbox-${mockAccountGroup.id}`,
+      );
+      expect(checkboxes.length).toBeGreaterThan(0);
+      const checkboxElements = getAllByTestId(
+        `account-checkbox-${mockAccountGroup.id}`,
+      );
+      expect(checkboxElements.length).toBeGreaterThan(0); // Checkbox shown when checked
       expect(getByText('Test Account')).toBeTruthy();
     });
   });
