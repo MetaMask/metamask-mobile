@@ -84,52 +84,86 @@ jobs:
     if: ${{ !inputs.browserstack_app_url_ios }}
     secrets: inherit
 
-  run-performance-tests:
-    name: Run ${{ matrix.test_type }} Tests on ${{ matrix.platform }} - ${{ matrix.device.name }}
+  run-android-imported-wallet-tests:
+    name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
+    needs: [read-device-matrix, trigger-android-dual-versions]
     if: always() && !failure() && !cancelled()
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
-        include:
-          # Android - Imported Wallet Tests
-          - platform: android
-            device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
-            test_type: imported-wallet
-            browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
-            app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-          # Android - Onboarding Tests
-          - platform: android
-            device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
-            test_type: onboarding
-            browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
-            app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-          # iOS - Imported Wallet Tests
-          - platform: ios
-            device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
-            test_type: imported-wallet
-            browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
-            app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-          # iOS - Onboarding Tests
-          - platform: ios
-            device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
-            test_type: onboarding
-            browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
-            app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
     with:
-      platform: ${{ matrix.platform }}
-      build_type: ${{ matrix.test_type }}
-      device_matrix: ${{ matrix.device }}
-      browserstack_app_url: ${{ matrix.browserstack_app_url }}
-      app_version: ${{ matrix.app_version }}
+      platform: android
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets: inherit
+
+  run-android-onboarding-tests:
+    name: Run Android Onboarding Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-android-dual-versions]
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
+    with:
+      platform: android
+      build_type: onboarding
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets: inherit
+
+  run-ios-imported-wallet-tests:
+    name: Run iOS Imported Wallet Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-ios-dual-versions]
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
+    with:
+      platform: ios
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets: inherit
+
+  run-ios-onboarding-tests:
+    name: Run iOS Onboarding Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-ios-dual-versions]
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
+    with:
+      platform: ios
+      build_type: onboarding
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
     secrets: inherit
 
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
-    needs: [run-performance-tests]
+    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests]
     if: always()
     steps:
       - name: Checkout code
@@ -161,7 +195,7 @@ jobs:
   slack-notification:
     name: Send Slack Notification
     runs-on: ubuntu-latest
-    needs: [run-performance-tests, aggregate-results]
+    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, aggregate-results]
     if: always()
     steps:
       - name: Checkout code
