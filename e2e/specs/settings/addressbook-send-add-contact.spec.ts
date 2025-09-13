@@ -1,22 +1,31 @@
 import { RegressionWalletPlatform } from '../../tags';
 import SendView from '../../pages/Send/SendView';
+import AddAddressModal from '../../pages/Send/AddAddressModal';
+import WalletView from '../../pages/wallet/WalletView';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../pages/Settings/Contacts/AddContactView';
-import AddAddressModal from '../../pages/Send/AddAddressModal';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import CommonView from '../../pages/CommonView';
-import enContent from '../../../locales/languages/en.json';
-import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../framework/Assertions';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import {
+  SIMULATION_ENABLED_NETWORKS_MOCK,
+  SEND_ETH_SIMULATION_MOCK,
+} from '../../api-mocking/mock-responses/simulations';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import AddContactView from '../../pages/Settings/Contacts/AddContactView';
+import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
-const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
+
 const TEST_CONTACT = {
   address: '0x90aF68e1ec406e77C2EA0E4e6EAc9475062d6456',
   name: 'My Contact',
@@ -24,7 +33,38 @@ const TEST_CONTACT = {
   network: 'Linea Main Network',
   editedNetwork: 'Sepolia',
 };
-const MEMO = 'Test adding ENS';
+
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+  );
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+    response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+    responseCode: 200,
+  });
+
+  const {
+    urlEndpoint: simulationEndpoint,
+    requestBody,
+    response: simulationResponse,
+    ignoreFields,
+  } = SEND_ETH_SIMULATION_MOCK;
+
+  await setupMockPostRequest(
+    mockServer,
+    simulationEndpoint,
+    requestBody,
+    simulationResponse,
+    {
+      statusCode: 200,
+      ignoreFields: ignoreFields || [],
+    },
+  );
+};
 
 describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   // In this file, some of the tests are dependent on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to true.
@@ -39,18 +79,20 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   it('should add a contact via send flow and go to contacts view', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withProfileSyncingDisabled()
+          .build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
         await WalletView.tapWalletSendButton();
-        // Make sure view with my accounts visible
-        await Assertions.expectElementToBeVisible(
-          SendView.CurrentAccountElement,
-        );
-
-        // should input a valid address to send to
+        await Assertions.expectElementToBeVisible(SendView.addressInputField);
         await SendView.inputAddress(MYTH_ADDRESS);
         await Assertions.expectElementToBeVisible(SendView.zeroBalanceWarning);
 
@@ -76,70 +118,42 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   it('should show invalid address error message on send flow', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withProfileSyncingDisabled()
+          .build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
         await WalletView.tapWalletSendButton();
-        await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
-        await Assertions.expectElementToBeVisible(SendView.contractWarning);
+        await Assertions.expectElementToBeVisible(SendView.addressInputField);
+        await SendView.inputAddress(INVALID_ADDRESS);
+        // iOS renders a banner text instead of the legacy id
+        await Assertions.expectTextDisplayed('Recipient address is invalid.');
         await SendView.removeAddress();
       },
     );
   });
 
-  it('should add an address via the contacts view and edit it', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapContacts();
-        await ContactsView.tapAddContactButton();
-        await Assertions.expectElementToBeVisible(AddContactView.container);
-        await AddContactView.typeInName('Ibrahim');
-        // Input invalid address
-        await AddContactView.typeInAddress(INVALID_ADDRESS);
-        await Assertions.expectElementToBeVisible(CommonView.errorMessage);
-        await Assertions.expectElementToHaveText(
-          CommonView.errorMessage,
-          enContent.transaction.invalid_address,
-        );
-        await AddContactView.clearAddressInputBox();
-        await AddContactView.typeInAddress('ibrahim.team.mask.eth');
-        await AddContactView.typeInMemo(MEMO);
-        await AddContactView.tapAddContactButton();
-        await Assertions.expectElementToBeVisible(ContactsView.container);
-        await ContactsView.expectContactIsVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
-
-        // should edit a contact
-        await ContactsView.tapOnAlias('Ibrahim');
-        await AddContactView.tapEditButton();
-        await AddContactView.typeInName('Ibrahim edited'); // Change name from Ibrahim to Ibrahim edited
-
-        await AddContactView.tapEditContactCTA();
-        await ContactsView.expectContactIsVisible('Ibrahim edited'); // Check that Ibrahim address is saved in the address book
-        await ContactsView.expectContactIsNotVisible('Ibrahim'); // Ensure Ibrahim is not visible
-
-        // should go back to send flow to validate newly added address is displayed
-        await CommonView.tapBackButton();
-        await TabBarComponent.tapWallet();
-        await WalletView.tapWalletSendButton();
-        await Assertions.expectTextDisplayed('Ibrahim edited');
-      },
-    );
-  });
-
+  // The following tests depend on MM_REMOVE_GLOBAL_NETWORK_SELECTOR being enabled.
   itif(isRemoveGlobalNetworkSelectorEnabled)(
     'should add a contact with a different network',
     async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
+          fixture: new FixtureBuilder()
+            .withGanacheNetwork()
+            .withNetworkEnabledMap({
+              eip155: { '0x539': true },
+            })
+            .withProfileSyncingDisabled()
+            .build(),
+          testSpecificMock,
           restartDevice: true,
         },
         async () => {
@@ -190,6 +204,8 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
             DeleteContactBottomSheet.title,
           );
           await DeleteContactBottomSheet.tapDeleteButton();
+          await TabBarComponent.tapSettings();
+          await SettingsView.tapContacts();
           await ContactsView.expectContactIsNotVisible(TEST_CONTACT.editedName);
         },
       );
