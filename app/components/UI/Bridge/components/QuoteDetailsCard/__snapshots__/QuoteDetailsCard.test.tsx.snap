@@ -315,7 +315,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                     <View
                       style={
                         [
-                          {},
+                          {
+                            "display": "flex",
+                          },
                           undefined,
                         ]
                       }
@@ -323,7 +325,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                       <View
                         style={
                           [
-                            {},
+                            {
+                              "display": "flex",
+                            },
                             {
                               "backgroundColor": "#ffffff",
                               "borderColor": "#b7bbc866",
@@ -413,7 +417,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -551,7 +555,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -687,7 +691,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}
@@ -789,15 +793,13 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 }
                               >
                                 <View
-                                  alignItems="center"
-                                  flexDirection="row"
-                                  gap={4}
                                   style={
                                     [
                                       {
                                         "alignItems": "center",
+                                        "display": "flex",
                                         "flexDirection": "row",
-                                        "gap": 4,
+                                        "gap": 16,
                                       },
                                       undefined,
                                     ]
@@ -829,7 +831,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     >
                                       Slippage
                                     </Text>
-                                    <MetamaskRewardsPointsSvg
+                                    <SvgMock
                                       color="#b7bbc8"
                                       fill="currentColor"
                                       height={16}
@@ -864,7 +866,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   }
                                 >
-                                  <MetamaskRewardsPointsSvg
+                                  <SvgMock
                                     color="#b7bbc8"
                                     fill="currentColor"
                                     height={16}

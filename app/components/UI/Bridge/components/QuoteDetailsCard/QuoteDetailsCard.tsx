@@ -15,12 +15,12 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
-import { Box } from '../../../Box/Box';
 import {
-  FlexDirection,
-  AlignItems,
-  JustifyContent,
-} from '../../../Box/box.types';
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
@@ -32,7 +32,11 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
-import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
+import { useRewardsIconAnimation } from '../../hooks/useRewardsIconAnimation';
+import Rive, { Alignment, Fit } from 'rive-react-native';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
 
 if (
   Platform.OS === 'android' &&
@@ -70,6 +74,14 @@ const QuoteDetailsCard = () => {
     isQuoteLoading,
   });
 
+  // Use custom hook for Rive animation logic
+  const { riveRef } = useRewardsIconAnimation({
+    isRewardsLoading,
+    estimatedPoints,
+    hasRewardsError,
+    shouldShowRewardsRow,
+  });
+
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
@@ -105,6 +117,13 @@ const QuoteDetailsCard = () => {
     parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
   );
 
+  let formattedEstimatedPoints = '';
+  if (hasRewardsError) {
+    formattedEstimatedPoints = strings('bridge.unable_to_load');
+  } else if (estimatedPoints !== null) {
+    formattedEstimatedPoints = intlNumberFormatter.format(estimatedPoints);
+  }
+
   return (
     <Box>
       <Box style={styles.container}>
@@ -135,16 +154,16 @@ const QuoteDetailsCard = () => {
         />
         {activeQuote?.quote.gasIncluded ? (
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            justifyContent={JustifyContent.spaceBetween}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
           >
             <Text variant={TextVariant.BodyMDMedium}>
               {strings('bridge.network_fee')}
             </Text>
             <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
               gap={8}
             >
               <Text
@@ -211,8 +230,8 @@ const QuoteDetailsCard = () => {
           field={{
             label: (
               <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
                 gap={4}
               >
                 <TouchableOpacity
@@ -285,16 +304,21 @@ const QuoteDetailsCard = () => {
             value={{
               label: (
                 <Box
-                  flexDirection={FlexDirection.Row}
-                  alignItems={AlignItems.center}
-                  gap={4}
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Center}
+                  gap={1}
                 >
-                  <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+                  <Rive
+                    ref={riveRef}
+                    source={RewardsIconAnimation}
+                    fit={Fit.FitHeight}
+                    alignment={Alignment.CenterRight}
+                    style={styles.riveIcon}
+                  />
                   {!isRewardsLoading && (
                     <Text variant={TextVariant.BodyMD}>
-                      {hasRewardsError
-                        ? strings('bridge.unable_to_load')
-                        : estimatedPoints?.toString() ?? ''}
+                      {formattedEstimatedPoints}
                     </Text>
                   )}
                 </Box>
