@@ -58,59 +58,69 @@ function extractPlatformAndScenario(filePath) {
   
   console.log(`🔍 Analyzing file path: ${filePath}`);
   
-  // Determine platform and scenario from path - handle various artifact naming patterns
-  if (filePath.includes('android-imported-wallet-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'imported-wallet';
-    scenarioKey = 'ImportedWallet';
-    console.log(`✅ Detected Android imported wallet from path`);
-  } else if (filePath.includes('ios-imported-wallet-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'imported-wallet';
-    scenarioKey = 'ImportedWallet';
-    console.log(`✅ Detected iOS imported wallet from path`);
-  } else if (filePath.includes('android-onboarding-flow-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
-    console.log(`✅ Detected Android onboarding flow from path`);
-  } else if (filePath.includes('ios-onboarding-flow-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
-    console.log(`✅ Detected iOS onboarding flow from path`);
-  } else if (filePath.includes('android-onboarding-test-results') || 
-             filePath.includes('android-test-results-')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
-    console.log(`✅ Detected Android onboarding from path`);
-  } else if (filePath.includes('ios-onboarding-test-results') || 
-             filePath.includes('ios-test-results-')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'onboarding';
-    scenarioKey = 'Onboarding';
-    console.log(`✅ Detected iOS onboarding from path`);
-  } else if (filePath.includes('android-combined-test-results')) {
-    platform = 'android';
-    platformKey = 'Android';
-    scenario = 'combined';
-    scenarioKey = 'Combined';
-    console.log(`✅ Detected Android combined from path`);
-  } else if (filePath.includes('ios-combined-test-results')) {
-    platform = 'ios';
-    platformKey = 'iOS';
-    scenario = 'combined';
-    scenarioKey = 'Combined';
-    console.log(`✅ Detected iOS combined from path`);
+  // Extract the artifact name from the path by looking for the pattern
+  // The artifact name should be in the path like: test-results/artifact-name/reporters/reports/file.json
+  const artifactMatch = pathParts.find(part => part.includes('-test-results-'));
+  
+  if (artifactMatch) {
+    console.log(`🎯 Found artifact match: ${artifactMatch}`);
+    
+    // Determine platform and scenario from artifact name
+    if (artifactMatch.includes('android-imported-wallet-test-results')) {
+      platform = 'android';
+      platformKey = 'Android';
+      scenario = 'imported-wallet';
+      scenarioKey = 'ImportedWallet';
+      console.log(`✅ Detected Android imported wallet from artifact`);
+    } else if (artifactMatch.includes('ios-imported-wallet-test-results')) {
+      platform = 'ios';
+      platformKey = 'iOS';
+      scenario = 'imported-wallet';
+      scenarioKey = 'ImportedWallet';
+      console.log(`✅ Detected iOS imported wallet from artifact`);
+    } else if (artifactMatch.includes('android-onboarding-flow-test-results')) {
+      platform = 'android';
+      platformKey = 'Android';
+      scenario = 'onboarding';
+      scenarioKey = 'Onboarding';
+      console.log(`✅ Detected Android onboarding flow from artifact`);
+    } else if (artifactMatch.includes('ios-onboarding-flow-test-results')) {
+      platform = 'ios';
+      platformKey = 'iOS';
+      scenario = 'onboarding';
+      scenarioKey = 'Onboarding';
+      console.log(`✅ Detected iOS onboarding flow from artifact`);
+    } else if (artifactMatch.includes('android-onboarding-test-results') || 
+               artifactMatch.includes('android-test-results-')) {
+      platform = 'android';
+      platformKey = 'Android';
+      scenario = 'onboarding';
+      scenarioKey = 'Onboarding';
+      console.log(`✅ Detected Android onboarding from artifact`);
+    } else if (artifactMatch.includes('ios-onboarding-test-results') || 
+               artifactMatch.includes('ios-test-results-')) {
+      platform = 'ios';
+      platformKey = 'iOS';
+      scenario = 'onboarding';
+      scenarioKey = 'Onboarding';
+      console.log(`✅ Detected iOS onboarding from artifact`);
+    } else if (artifactMatch.includes('android-combined-test-results')) {
+      platform = 'android';
+      platformKey = 'Android';
+      scenario = 'combined';
+      scenarioKey = 'Combined';
+      console.log(`✅ Detected Android combined from artifact`);
+    } else if (artifactMatch.includes('ios-combined-test-results')) {
+      platform = 'ios';
+      platformKey = 'iOS';
+      scenario = 'combined';
+      scenarioKey = 'Combined';
+      console.log(`✅ Detected iOS combined from artifact`);
+    } else {
+      console.log(`⚠️ Could not detect platform/scenario from artifact: ${artifactMatch}`);
+    }
   } else {
-    console.log(`⚠️ Could not detect platform/scenario from path: ${filePath}`);
+    console.log(`⚠️ Could not find artifact pattern in path: ${filePath}`);
   }
   
   return { platform, platformKey, scenario, scenarioKey };
@@ -402,13 +412,17 @@ function aggregateReports() {
         // Extract platform and scenario info from path
         const { platformKey, scenarioKey } = extractPlatformAndScenario(filePath);
         const deviceKey = extractDeviceInfo(filePath);
+        console.log(`📊 Extracted values: platformKey="${platformKey}", scenarioKey="${scenarioKey}", deviceKey="${deviceKey}"`);
         
         // Initialize structure if it doesn't exist
+        console.log(`🔧 Creating keys: platformKey="${platformKey}", deviceKey="${deviceKey}"`);
         if (!groupedResults[platformKey]) {
           groupedResults[platformKey] = {};
+          console.log(`✅ Created platform key: ${platformKey}`);
         }
         if (!groupedResults[platformKey][deviceKey]) {
           groupedResults[platformKey][deviceKey] = [];
+          console.log(`✅ Created device key: ${deviceKey} under platform ${platformKey}`);
         }
         
         // Process the report data
