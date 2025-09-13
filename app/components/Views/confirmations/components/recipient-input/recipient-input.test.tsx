@@ -110,7 +110,7 @@ describe('RecipientInput', () => {
     const { getByText, getByPlaceholderText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -123,7 +123,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -149,7 +149,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -175,38 +175,12 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
 
     expect(getByText('Paste')).toBeOnTheScreen();
-  });
-
-  it('shows empty input when recipient is selected from list', () => {
-    mockUseSendContext.mockReturnValue({
-      to: '0x123...',
-      updateTo: mockUpdateTo,
-      asset: undefined,
-      chainId: undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fromAccount: {} as any,
-      from: '',
-      maxValueMode: false,
-      updateAsset: jest.fn(),
-      updateValue: jest.fn(),
-      value: undefined,
-    });
-
-    const { getByDisplayValue } = renderWithProvider(
-      <RecipientInput
-        isRecipientSelectedFromList
-        setIsRecipientSelectedFromList={noop}
-        setPastedRecipient={noop}
-      />,
-    );
-
-    expect(() => getByDisplayValue('0x123...')).toThrow();
   });
 
   it('calls requires callbacks when text input changes', () => {
@@ -223,7 +197,7 @@ describe('RecipientInput', () => {
     const { getByPlaceholderText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={mockSetIsRecipientSelectedFromList}
+        resetStateOnInput={mockSetIsRecipientSelectedFromList}
         setPastedRecipient={mockSetPastedRecipient}
       />,
     );
@@ -252,7 +226,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={mockSetIsRecipientSelectedFromList}
+        resetStateOnInput={mockSetIsRecipientSelectedFromList}
         setPastedRecipient={mockSetPastedRecipient}
       />,
     );
@@ -278,7 +252,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -297,7 +271,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -320,7 +294,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -353,7 +327,7 @@ describe('RecipientInput', () => {
     const { getByText } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -384,7 +358,7 @@ describe('RecipientInput', () => {
     const { getByText, rerender } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -394,7 +368,7 @@ describe('RecipientInput', () => {
     rerender(
       <RecipientInput
         isRecipientSelectedFromList
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -405,7 +379,7 @@ describe('RecipientInput', () => {
     const { getByText, rerender } = renderWithProvider(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );
@@ -429,7 +403,7 @@ describe('RecipientInput', () => {
     rerender(
       <RecipientInput
         isRecipientSelectedFromList={false}
-        setIsRecipientSelectedFromList={noop}
+        resetStateOnInput={noop}
         setPastedRecipient={noop}
       />,
     );

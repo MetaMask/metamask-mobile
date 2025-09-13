@@ -18,11 +18,11 @@ import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
   isRecipientSelectedFromList,
-  setIsRecipientSelectedFromList,
+  resetStateOnInput,
   setPastedRecipient,
 }: {
   isRecipientSelectedFromList: boolean;
-  setIsRecipientSelectedFromList: (val: boolean) => void;
+  resetStateOnInput: () => void;
   setPastedRecipient: (recipient?: string) => void;
 }) => {
   const { to, updateTo } = useSendContext();
@@ -31,7 +31,7 @@ export const RecipientInput = ({
     useRecipientSelectionMetrics();
 
   const handlePaste = useCallback(async () => {
-    setIsRecipientSelectedFromList(false);
+    resetStateOnInput();
     try {
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
@@ -54,7 +54,7 @@ export const RecipientInput = ({
     updateTo,
     inputRef,
     setPastedRecipient,
-    setIsRecipientSelectedFromList,
+    resetStateOnInput,
     setRecipientInputMethodPasted,
   ]);
 
@@ -67,13 +67,13 @@ export const RecipientInput = ({
 
   const handleTextChange = useCallback(
     async (toAddress: string) => {
-      setIsRecipientSelectedFromList(false);
+      resetStateOnInput();
       updateTo(toAddress);
       setRecipientInputMethodManual();
       setPastedRecipient(undefined);
     },
     [
-      setIsRecipientSelectedFromList,
+      resetStateOnInput,
       setPastedRecipient,
       setRecipientInputMethodManual,
       updateTo,
@@ -115,7 +115,7 @@ export const RecipientInput = ({
       <TextField
         autoCorrect={false}
         ref={inputRef}
-        value={isRecipientSelectedFromList ? '' : to}
+        value={to}
         onChangeText={handleTextChange}
         spellCheck={false}
         autoComplete="off"
