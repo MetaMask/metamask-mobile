@@ -76,7 +76,7 @@ jobs:
     name: Run Onboarding Tests on All Devices
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
-    if: always() && !failure() && !cancelled()
+    if: always() && needs.read-device-matrix.result == 'success'
     strategy:
       fail-fast: false
       matrix:
@@ -101,7 +101,7 @@ jobs:
     name: Run Imported Wallet Tests on All Devices
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions, run-onboarding-tests]
-    if: always() && !failure() && !cancelled()
+    if: always() && needs.read-device-matrix.result == 'success'
     strategy:
       fail-fast: false
       matrix:
