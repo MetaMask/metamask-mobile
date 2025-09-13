@@ -116,6 +116,7 @@ import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
+import TradeWalletActions from '../../Views/TradeWalletActions';
 import { useRewardsAuth } from '../../UI/Rewards/hooks/useRewardsAuth';
 import ErrorModal from '../../UI/Rewards/components/ErrorModal';
 
@@ -529,9 +530,9 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
-    actions: {
-      tabBarIconKey: TabBarIconKey.Actions,
-      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+    trade: {
+      tabBarIconKey: TabBarIconKey.Trade,
+      rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
     },
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
@@ -636,8 +637,8 @@ const HomeTabs = () => {
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        options={options.actions}
+        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+        options={options.trade}
         component={WalletTabModalFlow}
       />
       <Tab.Screen
