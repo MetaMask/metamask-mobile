@@ -5,6 +5,7 @@ import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
+import Checkbox from '../../../../components/Checkbox';
 
 const AccountListCell = memo(
   ({
@@ -12,6 +13,7 @@ const AccountListCell = memo(
     avatarAccountType,
     isSelected,
     onSelectAccount,
+    showCheckbox = false,
   }: AccountListCellProps) => {
     const { styles } = useStyles(createStyles, {});
 
@@ -26,6 +28,15 @@ const AccountListCell = memo(
         activeOpacity={0.7}
       >
         <AccountCell
+          startAccessory={
+            showCheckbox ? (
+              <Checkbox
+                isChecked={isSelected}
+                onPress={handlePress}
+                testID={`account-checkbox-${accountGroup.id}`}
+              />
+            ) : undefined
+          }
           accountGroup={accountGroup}
           avatarAccountType={avatarAccountType}
           isSelected={isSelected}

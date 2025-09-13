@@ -348,7 +348,7 @@ export const MultichainAccountPermissions = (
         screenTitle={strings('accounts.edit_accounts_title')}
         showDisconnectAllButton
         onUserAction={() => {
-          // TODO: Implement user action handler
+          // Not used in this component.
         }}
         isRenderedAsBottomSheet={false}
       />
