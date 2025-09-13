@@ -1,0 +1,141 @@
+name: Performance Test Runner (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+        description: 'Platform to test (android/ios)'
+      build_type:
+        required: true
+        type: string
+        description: 'Build type (imported-wallet/onboarding)'
+      device_matrix:
+        required: true
+        type: string
+        description: 'JSON string of device matrix'
+      browserstack_app_url:
+        required: true
+        type: string
+        description: 'BrowserStack app URL'
+      app_version:
+        required: true
+        type: string
+        description: 'App version'
+      branch_name:
+        required: true
+        type: string
+        description: 'Branch name'
+    secrets:
+      BROWSERSTACK_USERNAME:
+        required: true
+      BROWSERSTACK_ACCESS_KEY:
+        required: true
+
+jobs:
+  run-tests:
+    name: Run ${{ inputs.build_type }} Tests on ${{ inputs.platform }} - ${{ matrix.device.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        device: ${{ fromJson(inputs.device_matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Restore node_modules cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      
+      - name: Install dependencies (if cache miss)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: yarn setup
+      
+      - name: BrowserStack Env Setup
+        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          username: ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          project-name: ${{ github.repository }}
+      
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ github.run_id }}
+          local-args: --force-local --verbose
+      
+      - name: Wait for BrowserStack Local
+        run: |
+          echo "Waiting for BrowserStack Local to be ready..."
+          sleep 10
+          echo "BrowserStack Local should be ready now"
+      
+      - name: Set Test Environment
+        run: |
+          echo "Setting ${{ inputs.build_type }} test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
+          echo "OS Version: ${{ matrix.device.os_version }}"
+          echo "Platform: ${{ inputs.platform }}"
+          
+          # Validate that we have a BrowserStack URL
+          if [ -z "${{ inputs.browserstack_app_url }}" ]; then
+            echo "❌ Error: No ${{ inputs.platform }} BrowserStack URL available"
+            exit 1
+          fi
+          
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.browserstack_app_url }}"
+            echo "TEST_PLATFORM=${{ inputs.platform }}"
+            echo "QA_APP_VERSION=${{ inputs.app_version }}"
+            echo "BROWSERSTACK_BUILD_NAME=${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'Onboarding' || 'Performance' }}-${{ inputs.branch_name }}-Branch"
+          } >> "$GITHUB_ENV"
+      
+      - name: Run Tests
+        env:
+          BROWSERSTACK_LOCAL: true
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+        run: |
+          echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "OS Version: ${{ matrix.device.os_version }}"
+          echo "Platform: ${{ inputs.platform }}"
+          echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
+          echo "QA App Version: ${{ inputs.app_version }}"
+          
+          # Run the appropriate test command based on build_type flag
+          if [ "${{ inputs.build_type }}" = "onboarding" ]; then
+            yarn run-appwright:${{ inputs.platform }}-onboarding-bs
+          else
+            yarn run-appwright:${{ inputs.platform }}-bs
+          fi
+          
+          echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.platform }}-${{ inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          path: |
+            appwright/test-reports/appwright-report/
+            appwright/reporters/reports
+          if-no-files-found: ignore
+          retention-days: 7

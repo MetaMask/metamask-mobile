@@ -1,7 +1,6 @@
 name: Performance E2E Test Manual WorkFlow
+
 on:
-  schedule:
-    - cron: '0 3 * * 1-6'
   workflow_dispatch:
     inputs:
       description:
@@ -17,380 +16,201 @@ on:
         required: false
         type: string
 
-permissions:
-  contents: read
-  id-token: write
-
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
   BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-  MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
-  TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
-  TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
-  TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
-  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-  DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
-  # =============================================================================
-  # SETUP AND BUILD JOBS
-  # =============================================================================
-  
   read-device-matrix:
     name: Read Device Matrix
     runs-on: ubuntu-latest
     outputs:
-      android_matrix: ${{ steps.matrix.outputs.android }}
-      ios_matrix: ${{ steps.matrix.outputs.ios }}
+      android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
+      ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
       - name: Read device matrix
-        id: matrix
+        id: read-matrix
         run: |
           echo "Reading device matrix from appwright/device-matrix.json"
-          
-          ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-          IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-          
-          {
-            echo "android=$ANDROID_MATRIX"
-            echo "ios=$IOS_MATRIX"
-          } >> "$GITHUB_OUTPUT"
-          
-          echo "Android matrix: $ANDROID_MATRIX"
-          echo "iOS matrix: $IOS_MATRIX"
-          
-          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
-          IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
-          
-          echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
-          
-          if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
-            echo "Error: No devices found in device-matrix.json"
-            exit 1
-          fi
+          android_matrix=$(jq -c '.android' appwright/device-matrix.json)
+          ios_matrix=$(jq -c '.ios' appwright/device-matrix.json)
+          echo "android_matrix=$android_matrix" >> $GITHUB_OUTPUT
+          echo "ios_matrix=$ios_matrix" >> $GITHUB_OUTPUT
+          echo "Android devices: $(echo $android_matrix | jq length)"
+          echo "iOS devices: $(echo $ios_matrix | jq length)"
 
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
+    # Only run if BrowserStack URLs are not provided
+    if: ${{ !inputs.browserstack_app_url_android }}
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
-    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml.yml
-    if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
+    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
+    # Only run if BrowserStack URLs are not provided
+    if: ${{ !inputs.browserstack_app_url_ios }}
     secrets: inherit
 
-  # =============================================================================
-  # PERFORMANCE TEST EXECUTION (Reusable Job Template)
-  # =============================================================================
-  
-  run-performance-tests:
-    name: Run ${{ matrix.test_type }} Tests on ${{ matrix.platform }} - ${{ matrix.device.name }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    needs: [read-device-matrix, trigger-android-dual-versions, trigger-ios-dual-versions]
+  run-android-imported-wallet-tests:
+    name: Run Android Imported Wallet Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-android-dual-versions]
     if: always() && !failure() && !cancelled()
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Android - Imported Wallet Tests
-          - platform: android
-            device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
-            test_type: imported-wallet
-            browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
-            app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-            build_name_suffix: Performance
-            app_url_var: BROWSERSTACK_ANDROID_APP_URL
-            test_command: yarn run-appwright:android-bs
-          # Android - Onboarding Tests
-          - platform: android
-            device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
-            test_type: onboarding
-            browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
-            app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-            build_name_suffix: Onboarding
-            app_url_var: BROWSERSTACK_ANDROID_CLEAN_APP_URL
-            test_command: yarn run-appwright:android-onboarding-bs
-          # iOS - Imported Wallet Tests
-          - platform: ios
-            device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
-            test_type: imported-wallet
-            browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
-            app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-            build_name_suffix: Performance
-            app_url_var: BROWSERSTACK_IOS_APP_URL
-            test_command: yarn run-appwright:ios-bs
-          # iOS - Onboarding Tests
-          - platform: ios
-            device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
-            test_type: onboarding
-            browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
-            app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-            build_name_suffix: Onboarding
-            app_url_var: BROWSERSTACK_IOS_CLEAN_APP_URL
-            test_command: yarn run-appwright:ios-onboarding-bs
-    
+    with:
+      platform: android
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+  run-android-onboarding-tests:
+    name: Run Android Onboarding Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-android-dual-versions]
+    if: always() && !failure() && !cancelled()
+    with:
+      platform: android
+      build_type: onboarding
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+  run-ios-imported-wallet-tests:
+    name: Run iOS Imported Wallet Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-ios-dual-versions]
+    if: always() && !failure() && !cancelled()
+    with:
+      platform: ios
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+  run-ios-onboarding-tests:
+    name: Run iOS Onboarding Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [read-device-matrix, trigger-ios-dual-versions]
+    if: always() && !failure() && !cancelled()
+    with:
+      platform: ios
+      build_type: onboarding
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+    secrets:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+  aggregate-results:
+    name: Aggregate All Test Results
+    runs-on: ubuntu-latest
+    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests]
+    if: always()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Restore node_modules cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-      
-      - name: Install dependencies (if cache miss)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn setup
-      
-      - name: BrowserStack Env Setup
-        uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
-        with:
-          username: ${{ env.BROWSERSTACK_USERNAME }}
-          access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-          project-name: ${{ github.repository }}
-      
-      - name: Setup BrowserStack Local
-        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
-        with:
-          local-testing: start
-          local-identifier: ${{ github.run_id }}
-          local-args: --force-local --verbose
-      
-      - name: Wait for BrowserStack Local
-        run: |
-          echo "Waiting for BrowserStack Local to be ready..."
-          sleep 30
-          echo "BrowserStack Local should be ready now"
-      
-      - name: Set Test Environment
-        run: |
-          echo "Setting ${{ matrix.test_type }} test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
-          echo "OS Version: ${{ matrix.device.os_version }}"
-          echo "Platform: ${{ matrix.platform }}"
-          echo "Test Type: ${{ matrix.test_type }}"
-          
-          # Validate that we have a BrowserStack URL
-          if [ -z "${{ matrix.browserstack_app_url }}" ]; then
-            echo "❌ Error: No ${{ matrix.platform }} BrowserStack URL available"
-            exit 1
-          fi
-          
-          {
-            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
-            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "${{ matrix.app_url_var }}=${{ matrix.browserstack_app_url }}"
-            echo "TEST_PLATFORM=${{ matrix.platform }}"
-            echo "QA_APP_VERSION=${{ matrix.app_version }}"
-            echo "BROWSERSTACK_BUILD_NAME=${{ matrix.platform }}-${{ matrix.build_name_suffix }}-${{ github.ref_name }}-Branch"
-          } >> "$GITHUB_ENV"
-      
-      - name: Run ${{ matrix.test_type }} Tests
-        env:
-          BROWSERSTACK_LOCAL: true
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
-        run: |
-          echo "=== Running ${{ matrix.test_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
-          echo "OS Version: ${{ matrix.device.os_version }}"
-          echo "Platform: ${{ matrix.platform }}"
-          echo "BrowserStack App URL: ${{ matrix.browserstack_app_url }}"
-          echo "QA App Version: ${{ matrix.app_version }}"
-          echo "Test Command: ${{ matrix.test_command }}"
-          
-          # Platform-specific warnings
-          if [ "${{ matrix.platform }}" = "ios" ] && ([ "${{ matrix.device.os_version }}" = "13" ] || [ "${{ matrix.device.os_version }}" = "11" ]); then
-            echo "Warning: iOS ${{ matrix.device.os_version }} may not be supported by MetaMask app"
-          fi
-          
-          # Run the test command
-          ${{ matrix.test_command }}
-          
-          echo "✅ ${{ matrix.test_type }} tests completed for ${{ matrix.platform }} on ${{ matrix.device.name }}"
-      
-      - name: Upload ${{ matrix.test_type }} Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ${{ matrix.platform }}-${{ matrix.test_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
-          path: |
-            appwright/test-reports/appwright-report/
-            appwright/reporters/reports
-          if-no-files-found: ignore
-          retention-days: 7
-
-  # =============================================================================
-  # RESULTS AGGREGATION
-  # =============================================================================
-  
-  aggregate-results:
-    name: Aggregate All Test Results
-    runs-on: ubuntu-latest
-    needs: [run-performance-tests]
-    if: always()
-    
-    steps:
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
-          pattern: '*-test-results-*'
+          pattern: *-test-results-*
+          path: ./test-results
           merge-multiple: true
-          path: ./all-results
-        continue-on-error: true
       
-      - name: Process and Aggregate Results
+      - name: Run aggregation script
         run: |
           echo "Processing all test results..."
-          
-          # Create output directory
-          mkdir -p appwright/aggregated-reports
-          
-          # Run the aggregation script
-          echo "🔄 Running aggregation script..."
-          node scripts/aggregate-performance-reports.mjs || {
-            echo "⚠️ Aggregation script had issues, but continuing"
-          }
-          
-          # List generated files
-          echo "📁 Generated files:"
-          ls -la appwright/aggregated-reports/ || echo "📁 No aggregated reports directory found"
+          echo "Running aggregation script..."
+          node scripts/aggregate-performance-reports.mjs
+          echo "Aggregation completed"
       
       - name: Upload Final Combined Results
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: final-combined-performance-results
           path: |
             appwright/aggregated-reports/
-            appwright/test-reports/appwright-report/
-            appwright/reporters/reports
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 30
 
-  # =============================================================================
-  # SLACK NOTIFICATION
-  # =============================================================================
-  
   slack-notification:
     name: Send Slack Notification
     runs-on: ubuntu-latest
-    needs: [aggregate-results, read-device-matrix]
+    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, aggregate-results]
     if: always()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Generate Test Summary
-        id: test-summary
-        run: |
-          echo "Generating detailed test summary..."
-          
-          # Check if summary.json exists
-          if [ -f "appwright/aggregated-reports/summary.json" ]; then
-            echo "📊 Found summary.json, generating detailed report..."
-            
-            # Read the summary data
-            SUMMARY_DATA=$(cat appwright/aggregated-reports/summary.json)
-            
-            # Extract key metrics
-            TOTAL_TESTS=$(echo "$SUMMARY_DATA" | jq -r '.totalTests // 0')
-            ANDROID_DEVICES=$(echo "$SUMMARY_DATA" | jq -r '.platforms.android // 0')
-            IOS_DEVICES=$(echo "$SUMMARY_DATA" | jq -r '.platforms.ios // 0')
-            ANDROID_TESTS=$(echo "$SUMMARY_DATA" | jq -r '.testsByPlatform.android // 0')
-            IOS_TESTS=$(echo "$SUMMARY_DATA" | jq -r '.testsByPlatform.ios // 0')
-            
-            # Get device details
-            DEVICE_DETAILS=$(echo "$SUMMARY_DATA" | jq -r '.devices[] | "\(.platform): \(.device) (\(.testCount) tests)"' | sort)
-            
-            # Determine overall status
-            AGGREGATE_STATUS="${{ needs.aggregate-results.result }}"
-            if [ "$AGGREGATE_STATUS" = "success" ]; then
-              STATUS_EMOJI="✅"
-              STATUS_TEXT="All tests passed"
-            elif [ "$AGGREGATE_STATUS" = "failure" ]; then
-              STATUS_EMOJI="❌"
-              STATUS_TEXT="Some tests failed"
-            else
-              STATUS_EMOJI="⚠️"
-              STATUS_TEXT="Tests completed with warnings"
-            fi
-            
-            # Create detailed summary
-            SUMMARY="*${STATUS_EMOJI} Performance E2E Tests Results*\n\n"
-            
-            SUMMARY+="*Overall Status:* ${STATUS_TEXT}\n"
-            SUMMARY+="*Total Tests:* ${TOTAL_TESTS}\n"
-            SUMMARY+="*Devices Tested:* ${ANDROID_DEVICES} Android, ${IOS_DEVICES} iOS\n\n"
-            
-            SUMMARY+="*Test Breakdown:*\n"
-            SUMMARY+="• Android: ${ANDROID_TESTS} tests\n"
-            SUMMARY+="• iOS: ${IOS_TESTS} tests\n\n"
-            
-            SUMMARY+="*Device Results:*\n"
-            while IFS= read -r device_result; do
-              if [ -n "$device_result" ]; then
-                SUMMARY+="• ${device_result}\n"
-              fi
-            done <<< "$DEVICE_DETAILS"
-            
-            SUMMARY+="\n*Build Info:*\n"
-            SUMMARY+="• Commit: \`${{ github.sha }}\`\n"
-            SUMMARY+="• Branch: \`${{ github.ref_name }}\`\n"
-            SUMMARY+="• Workflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n"
-            SUMMARY+="• Reports: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download Artifacts> (look for 'final-combined-performance-results')\n"
-            
-          else
-            echo "⚠️ No summary.json found, generating basic report..."
-            
-            # Fallback to basic summary
-            DEVICE_MATRIX=$(cat appwright/device-matrix.json)
-            ANDROID_DEVICES=$(echo "$DEVICE_MATRIX" | jq -r '.android_devices[] | "\(.name) (\(.os_version))"')
-            IOS_DEVICES=$(echo "$DEVICE_MATRIX" | jq -r '.ios_devices[] | "\(.name) (\(.os_version))"')
-            
-            ANDROID_COUNT=$(echo "$ANDROID_DEVICES" | wc -l)
-            IOS_COUNT=$(echo "$IOS_DEVICES" | wc -l)
-            TOTAL_DEVICES=$((ANDROID_COUNT + IOS_COUNT))
-            
-            AGGREGATE_STATUS="${{ needs.aggregate-results.result }}"
-            
-            SUMMARY="*Performance E2E Tests*\n\n"
-            SUMMARY+="*Status:* $AGGREGATE_STATUS\n"
-            SUMMARY+="*Devices:* ${TOTAL_DEVICES} total (${ANDROID_COUNT} Android, ${IOS_COUNT} iOS)\n"
-            SUMMARY+="*Workflow:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n"
-            SUMMARY+="*Reports:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download Artifacts> (look for 'final-combined-performance-results')\n"
-          fi
-          
-          {
-            echo "summary<<EOF"
-            echo "$SUMMARY"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          
-          echo "Test summary generated"
+      - name: Download Aggregated Results
+        uses: actions/download-artifact@v4
+        with:
+          name: final-combined-performance-results
+          path: ./aggregated-reports
       
-      # - name: Send Slack Notification
-      #   uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
-      #   with:
-      #     webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
-      #     webhook-type: incoming-webhook
-      #     payload: |
-      #       {
-      #         "text": "${{ steps.test-summary.outputs.summary }}"
-      #       }
+      - name: Generate Test Summary
+        id: summary
+        run: |
+          if [ -f "aggregated-reports/summary.json" ]; then
+            totalTests=$(jq -r '.totalTests // 0' aggregated-reports/summary.json)
+            androidDevices=$(jq -r '.platforms.android // 0' aggregated-reports/summary.json)
+            iosDevices=$(jq -r '.platforms.ios // 0' aggregated-reports/summary.json)
+            androidTests=$(jq -r '.testsByPlatform.android // 0' aggregated-reports/summary.json)
+            iosTests=$(jq -r '.testsByPlatform.ios // 0' aggregated-reports/summary.json)
+            deviceDetails=$(jq -r '.devices[] | "• \(.platform | ascii_upcase): \(.device) (\(.testCount) tests)"' aggregated-reports/summary.json | tr '\n' '\n')
+            echo "totalTests=$totalTests" >> $GITHUB_OUTPUT
+            echo "androidDevices=$androidDevices" >> $GITHUB_OUTPUT
+            echo "iosDevices=$iosDevices" >> $GITHUB_OUTPUT
+            echo "androidTests=$androidTests" >> $GITHUB_OUTPUT
+            echo "iosTests=$iosTests" >> $GITHUB_OUTPUT
+            echo "deviceDetails<<EOF" >> $GITHUB_OUTPUT
+            echo "$deviceDetails" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "totalTests=0" >> $GITHUB_OUTPUT
+            echo "androidDevices=0" >> $GITHUB_OUTPUT
+            echo "iosDevices=0" >> $GITHUB_OUTPUT
+            echo "androidTests=0" >> $GITHUB_OUTPUT
+            echo "iosTests=0" >> $GITHUB_OUTPUT
+            echo "deviceDetails=No device details available" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚀 Performance E2E Tests Completed",
+              "blocks": [
+                {"type": "header", "text": {"type": "plain_text", "text": "🚀 Performance E2E Tests Completed"}},
+                {"type": "section", "fields": [
+                  {"type": "mrkdwn", "text": "*Status:* ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}"},
+                  {"type": "mrkdwn", "text": "*Total Tests:* ${{ steps.summary.outputs.totalTests }}"},
+                  {"type": "mrkdwn", "text": "*Devices:* ${{ steps.summary.outputs.androidDevices }} Android, ${{ steps.summary.outputs.iosDevices }} iOS"},
+                  {"type": "mrkdwn", "text": "*Tests:* ${{ steps.summary.outputs.androidTests }} Android, ${{ steps.summary.outputs.iosTests }} iOS"}
+                ]},
+                {"type": "section", "text": {"type": "mrkdwn", "text": "*Device Results:*\n${{ steps.summary.outputs.deviceDetails }}"}},
+                {"type": "section", "text": {"type": "mrkdwn", "text": "*Build Info:*\n• Commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>\n• Branch: `${{ github.ref_name }}`\n• Workflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>\n• Reports: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Download Artifacts>"}}
+              ]
+            }
