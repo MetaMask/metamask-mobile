@@ -134,10 +134,21 @@ jobs:
   # PHASE 2: IMPORTED WALLET TESTS (Run After Onboarding Complete)
   # =============================================================================
   
+  wait-for-onboarding-completion:
+    name: Wait for Onboarding Completion
+    runs-on: ubuntu-latest
+    needs: [run-android-onboarding-tests, run-ios-onboarding-tests]
+    if: always()
+    steps:
+      - name: Wait for onboarding tests to complete
+        run: |
+          echo "Onboarding tests have completed (success or failure)"
+          echo "Proceeding with imported wallet tests..."
+  
   run-android-imported-wallet-tests:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions, run-android-onboarding-tests]
+    needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion]
     if: always() && !failure() && !cancelled()
     strategy:
       fail-fast: false
@@ -158,7 +169,7 @@ jobs:
   run-ios-imported-wallet-tests:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions, run-ios-onboarding-tests]
+    needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion]
     if: always() && !failure() && !cancelled()
     strategy:
       fail-fast: false
@@ -179,7 +190,7 @@ jobs:
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
-    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests]
+    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, wait-for-onboarding-completion]
     if: always()
     steps:
       - name: Checkout code
