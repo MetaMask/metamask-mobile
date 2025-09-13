@@ -1,13 +1,8 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import {
-  evmSendStateMock,
-  TOKEN_ADDRESS_MOCK_1,
-} from '../../__mocks__/send.mock';
-import { AssetType } from '../../types/token';
+import { evmSendStateMock } from '../../__mocks__/send.mock';
 import {
   getFiatDisplayValueFn,
   getFiatValueFn,
-  getNativeDisplayValueFn,
   getNativeValueFn,
   useCurrencyConversions,
 } from './useCurrencyConversions';
@@ -116,30 +111,6 @@ describe('getNativeValueFn', () => {
   });
 });
 
-describe('getNativeDisplayValueFn', () => {
-  it('return native value for passed fiat value', () => {
-    expect(
-      getNativeDisplayValueFn({
-        asset: { address: TOKEN_ADDRESS_MOCK_1, symbol: 'ETH' } as AssetType,
-        conversionRate: 1,
-        exchangeRate: 3890.556,
-        amount: '38905.56',
-      }),
-    ).toStrictEqual('ETH 10');
-  });
-
-  it('return 0 if amount is not passed', () => {
-    expect(
-      getNativeDisplayValueFn({
-        asset: { address: TOKEN_ADDRESS_MOCK_1, symbol: 'ETH' } as AssetType,
-        conversionRate: 1,
-        exchangeRate: 3890.556,
-        amount: '',
-      }),
-    ).toStrictEqual('ETH 0');
-  });
-});
-
 describe('useCurrencyConversions', () => {
   it('return conversion functions', () => {
     const { result } = renderHookWithProvider(
@@ -149,7 +120,6 @@ describe('useCurrencyConversions', () => {
     expect(result.current.fiatCurrencySymbol).toBeDefined();
     expect(result.current.getFiatDisplayValue).toBeDefined();
     expect(result.current.getFiatValue).toBeDefined();
-    expect(result.current.getNativeDisplayValue).toBeDefined();
     expect(result.current.getNativeValue).toBeDefined();
   });
 });

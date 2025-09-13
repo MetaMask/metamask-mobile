@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../locales/i18n';
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
 import {
   IconColor,
   IconName,
@@ -21,7 +20,6 @@ import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../types/token';
-import { getFractionLength } from '../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
@@ -29,39 +27,31 @@ import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversio
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
 import { AmountKeyboard } from './amount-keyboard';
+import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
+import { formatToFixedDecimals } from '../../../utils/send';
 
 export const Amount = () => {
   const primaryCurrency = useSelector(selectPrimaryCurrency);
-  const { asset, updateValue } = useSendContext();
+  const { asset, value } = useSendContext();
   const { balance } = useBalance();
   const { amountError } = useAmountValidation();
   const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
-  const {
-    fiatCurrencySymbol,
-    getFiatValue,
-    getFiatDisplayValue,
-    getNativeValue,
-    getNativeDisplayValue,
-  } = useCurrencyConversions();
+  const { fiatCurrencySymbol, getFiatValue, getFiatDisplayValue } =
+    useCurrencyConversions();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const assetSymbol = isNFT
     ? undefined
     : (asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol;
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
-  const { styles, theme } = useStyles(styleSheet, {
-    fiatMode,
-    inputError: Boolean(amountError),
+  const { styles } = useStyles(styleSheet, {
     inputLength: amount.length,
     isNFT,
     symbolLength: assetDisplaySymbol.length,
   });
-  const {
-    setAmountInputMethodManual,
-    setAmountInputTypeFiat,
-    setAmountInputTypeToken,
-  } = useAmountSelectionMetrics();
+  const { setAmountInputTypeFiat, setAmountInputTypeToken } =
+    useAmountSelectionMetrics();
   useRouteParams();
 
   useEffect(() => {
@@ -70,31 +60,10 @@ export const Amount = () => {
 
   const alternateDisplayValue = useMemo(
     () =>
-      fiatMode ? getNativeDisplayValue(amount) : getFiatDisplayValue(amount),
-    [amount, fiatMode, getFiatDisplayValue, getNativeDisplayValue],
-  );
-
-  const updateToNewAmount = useCallback(
-    (amt: string) => {
-      const fractionSize = getFractionLength(amt);
-      if (
-        (fiatMode && fractionSize > 2) ||
-        (!fiatMode && fractionSize > ((asset as AssetType)?.decimals ?? 0))
-      ) {
-        return;
-      }
-      setAmount(amt);
-      updateValue(fiatMode ? getNativeValue(amt) : amt);
-      setAmountInputMethodManual();
-    },
-    [
-      asset,
-      fiatMode,
-      getNativeValue,
-      setAmount,
-      setAmountInputMethodManual,
-      updateValue,
-    ],
+      fiatMode
+        ? formatToFixedDecimals(value ?? '0', 5)
+        : getFiatDisplayValue(amount),
+    [amount, fiatMode, getFiatDisplayValue, value],
   );
 
   const toggleFiatMode = useCallback(() => {
@@ -105,23 +74,26 @@ export const Amount = () => {
       setAmountInputTypeToken();
     }
     setFiatMode(newFiatMode);
-    if (amount !== undefined) {
-      setAmount(newFiatMode ? getFiatValue(amount) : getNativeValue(amount));
+    if (value === undefined || value === '') {
+      setAmount('');
+    } else {
+      setAmount(newFiatMode ? getFiatValue(value) : value);
     }
   }, [
-    amount,
     fiatMode,
     getFiatValue,
-    getNativeValue,
     setAmount,
     setAmountInputTypeFiat,
     setAmountInputTypeToken,
     setFiatMode,
+    value,
   ]);
 
   const balanceUnit =
     assetSymbol ??
     (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
+
+  const defaultValue = fiatMode ? '0.00' : '0';
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -143,42 +115,26 @@ export const Amount = () => {
           </View>
         )}
         <View style={styles.inputSection}>
-          {fiatMode && (
-            <View style={styles.tokenSymbolWrapper}>
-              <Text
-                color={amountError ? TextColor.Error : TextColor.Alternative}
-                numberOfLines={1}
-                style={styles.tokenSymbol}
-                variant={TextVariant.DisplayLG}
-              >
-                {fiatCurrencySymbol}
-              </Text>
-            </View>
-          )}
           <View style={styles.inputWrapper}>
-            <Input
-              cursorColor={theme.colors.primary.default}
-              onChangeText={updateToNewAmount}
-              style={styles.input}
-              testID="send_amount"
-              textAlign={fiatMode ? 'left' : 'right'}
-              textVariant={TextVariant.DisplayLG}
-              value={amount}
-              showSoftInputOnFocus={false}
-            />
+            <Text
+              color={amountError ? TextColor.Error : TextColor.Default}
+              style={styles.inputText}
+              numberOfLines={1}
+              variant={TextVariant.DisplayMD}
+              adjustsFontSizeToFit
+            >
+              {amount?.length ? amount : defaultValue}
+            </Text>
+            <AnimatedCursor />
+            <Text
+              style={styles.inputText}
+              color={amountError ? TextColor.Error : TextColor.Muted}
+              numberOfLines={1}
+              variant={TextVariant.DisplayLG}
+            >
+              {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
+            </Text>
           </View>
-          {!fiatMode && (
-            <View style={styles.tokenSymbolWrapper}>
-              <Text
-                color={amountError ? TextColor.Error : TextColor.Alternative}
-                numberOfLines={1}
-                style={styles.tokenSymbol}
-                variant={TextVariant.DisplayLG}
-              >
-                {assetDisplaySymbol}
-              </Text>
-            </View>
-          )}
         </View>
         {!isNFT && (
           <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
