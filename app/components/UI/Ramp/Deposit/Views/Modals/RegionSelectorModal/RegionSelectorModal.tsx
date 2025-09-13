@@ -22,11 +22,12 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
+import { DepositRegion } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
 import useAnalytics from '../../../../hooks/useAnalytics';
+import { useRegions } from '../../../hooks/useRegions';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -42,6 +43,7 @@ function RegionSelectorModal() {
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
+  const { regions, isLoading, error } = useRegions();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -51,7 +53,7 @@ function RegionSelectorModal() {
 
   const fuseData = useMemo(
     () =>
-      new Fuse(DEPOSIT_REGIONS, {
+      new Fuse(regions, {
         shouldSort: true,
         threshold: 0.2,
         location: 0,
@@ -60,7 +62,7 @@ function RegionSelectorModal() {
         minMatchCharLength: 1,
         keys: ['name'],
       }),
-    [],
+    [regions],
   );
 
   const dataSearchResults = useMemo(() => {
@@ -71,12 +73,12 @@ function RegionSelectorModal() {
       return results || [];
     }
 
-    return [...DEPOSIT_REGIONS].sort((a, b) => {
+    return [...regions].sort((a, b) => {
       if (a.recommended && !b.recommended) return -1;
       if (!a.recommended && b.recommended) return 1;
       return 0;
     });
-  }, [searchString, fuseData]);
+  }, [searchString, fuseData, regions]);
 
   const scrollToTop = useCallback(() => {
     if (listRef?.current) {
@@ -168,18 +170,47 @@ function RegionSelectorModal() {
     ],
   );
 
-  const renderEmptyList = useCallback(
-    () => (
+  const renderEmptyList = useCallback(() => {
+    if (isLoading) {
+      return (
+        <View style={styles.emptyList}>
+          <Text variant={TextVariant.BodyLGMedium}>Loading regions...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.emptyList}>
+          <Text variant={TextVariant.BodyLGMedium}>Error loading regions</Text>
+        </View>
+      );
+    }
+
+    if (searchString && dataSearchResults.length === 0) {
+      return (
+        <View style={styles.emptyList}>
+          <Text variant={TextVariant.BodyLGMedium}>
+            {strings('fiat_on_ramp_aggregator.region.no_region_results', {
+              searchString,
+            })}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
       <View style={styles.emptyList}>
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('fiat_on_ramp_aggregator.region.no_region_results', {
-            searchString,
-          })}
-        </Text>
+        <Text variant={TextVariant.BodyLGMedium}>No regions available</Text>
       </View>
-    ),
-    [searchString, styles.emptyList],
-  );
+    );
+  }, [
+    isLoading,
+    error,
+    searchString,
+    dataSearchResults.length,
+    styles.emptyList,
+  ]);
 
   const handleSearchTextChange = useCallback(
     (text: string) => {

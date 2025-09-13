@@ -28,7 +28,8 @@ import {
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
-import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
+import { DepositRegion } from '../constants';
+import { useDefaultRegion } from '../hooks/useDefaultRegion';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -46,6 +47,7 @@ export interface DepositSDK {
   selectedWalletAddress?: string;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
+  isRegionLoading: boolean;
 }
 
 const isDevelopment =
@@ -97,6 +99,8 @@ export const DepositSDKProvider = ({
     INITIAL_SELECTED_REGION,
   );
 
+  const { defaultRegion, isLoading: isRegionLoading } = useDefaultRegion(sdk);
+
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {
       setGetStarted(getStartedFlag);
@@ -114,26 +118,10 @@ export const DepositSDKProvider = ({
   );
 
   useEffect(() => {
-    async function setRegionByGeolocation() {
-      if (selectedRegion === null) {
-        try {
-          const geo = await DepositSDKNoAuth.getGeolocation();
-          const region = DEPOSIT_REGIONS.find(
-            (r) => r.isoCode === geo?.ipCountryCode,
-          );
-          if (region) {
-            setSelectedRegionCallback(region);
-          } else {
-            setSelectedRegionCallback(DEFAULT_REGION);
-          }
-        } catch (error) {
-          Logger.error(error as Error, 'Error setting region by geolocation:');
-          setSelectedRegionCallback(DEFAULT_REGION);
-        }
-      }
+    if (selectedRegion === null && defaultRegion) {
+      setSelectedRegionCallback(defaultRegion);
     }
-    setRegionByGeolocation();
-  }, [selectedRegion, setSelectedRegionCallback]);
+  }, [selectedRegion, defaultRegion, setSelectedRegionCallback]);
 
   useEffect(() => {
     try {
@@ -239,6 +227,7 @@ export const DepositSDKProvider = ({
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
+      isRegionLoading,
     }),
     [
       sdk,
@@ -254,6 +243,7 @@ export const DepositSDKProvider = ({
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegionCallback,
+      isRegionLoading,
     ],
   );
 
