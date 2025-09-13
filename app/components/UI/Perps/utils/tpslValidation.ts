@@ -17,6 +17,7 @@ interface ValidationParams {
   direction?: 'long' | 'short';
   leverage?: number;
   entryPrice?: number; // For existing positions
+  liquidationPrice?: string;
 }
 
 /**
@@ -52,6 +53,35 @@ export const isValidStopLossPrice = (
 };
 
 /**
+ * Validates if a stop loss price is beyond the liquidation price
+ * For long positions: stop loss must be ABOVE liquidation price
+ * For short positions: stop loss must be BELOW liquidation price
+ *
+ */
+export const isStopLossBeyondLiquidationPrice = (
+  price?: string,
+  liquidationPrice?: string,
+  direction?: 'long' | 'short',
+) => {
+  if (!liquidationPrice || !direction || !price) return true;
+
+  // Clean up string values if necessary ($ or ,)
+  const slPriceNum = parseFloat(price.replace(/[$,]/g, ''));
+  const liquidationPriceNum = parseFloat(liquidationPrice.replace(/[$,]/g, ''));
+
+  if (isNaN(slPriceNum) || isNaN(liquidationPriceNum)) return true;
+
+  const isLong = direction === 'long';
+
+  const fixedSlPrice = slPriceNum.toFixed(2);
+  const fixedLiquidationPrice = liquidationPriceNum.toFixed(2);
+
+  return isLong
+    ? fixedSlPrice > fixedLiquidationPrice
+    : fixedSlPrice < fixedLiquidationPrice;
+};
+
+/**
  * Validates both take profit and stop loss prices
  */
 export const validateTPSLPrices = (
@@ -69,6 +99,16 @@ export const validateTPSLPrices = (
 
   if (stopLossPrice) {
     isValid = isValid && isValidStopLossPrice(stopLossPrice, params);
+  }
+
+  if (params.liquidationPrice) {
+    isValid =
+      isValid &&
+      isStopLossBeyondLiquidationPrice(
+        stopLossPrice,
+        params.liquidationPrice,
+        params.direction,
+      );
   }
 
   return isValid;
@@ -92,6 +132,16 @@ export const getStopLossErrorDirection = (
 ): string => {
   if (!direction) return '';
   return direction === 'long' ? 'below' : 'above';
+};
+
+/**
+ * Gets the direction text for stop loss liquidation error message
+ */
+export const getStopLossLiquidationErrorDirection = (
+  direction?: 'long' | 'short',
+): string => {
+  if (!direction) return '';
+  return direction === 'long' ? 'above' : 'below';
 };
 
 /**

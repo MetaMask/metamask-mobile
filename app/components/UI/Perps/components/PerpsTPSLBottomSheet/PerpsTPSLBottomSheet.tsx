@@ -64,6 +64,7 @@ interface PerpsTPSLBottomSheetProps {
   marginRequired?: string; // For new orders
   orderType?: 'market' | 'limit'; // Order type for new orders
   limitPrice?: string; // Limit price for limit orders
+  liquidationPrice?: string; // Liquidation price for new orders
 }
 
 const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
@@ -80,6 +81,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   leverage: propLeverage,
   orderType,
   limitPrice,
+  liquidationPrice,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -129,6 +131,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     leverage: propLeverage,
     entryPrice: effectiveEntryPrice,
     isVisible,
+    liquidationPrice,
   });
 
   // Extract form state and handlers for easier access
@@ -163,8 +166,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     handleStopLossOff,
   } = tpslForm.buttons;
 
-  const { isValid, hasChanges, takeProfitError, stopLossError } =
-    tpslForm.validation;
+  const {
+    isValid,
+    hasChanges,
+    takeProfitError,
+    stopLossError,
+    stopLossLiquidationError,
+  } = tpslForm.validation;
   const { formattedTakeProfitPercentage, formattedStopLossPercentage } =
     tpslForm.display;
 
@@ -552,9 +560,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           </View>
 
           {/* Error message */}
-          {!isValid && stopLossError && (
+          {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
             <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-              {stopLossError}
+              {stopLossError || stopLossLiquidationError}
             </Text>
           )}
         </View>

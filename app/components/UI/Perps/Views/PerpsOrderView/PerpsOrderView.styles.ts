@@ -75,6 +75,10 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    stopLossLiquidationWarning: {
+      paddingHorizontal: 8,
+      paddingTop: 8,
+    },
     validationContainer: {
       marginBottom: 12,
     },
