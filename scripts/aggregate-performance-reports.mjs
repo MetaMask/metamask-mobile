@@ -323,8 +323,15 @@ function aggregateReports() {
   try {
     console.log('🔍 Looking for performance JSON reports...');
     
+    // Ensure output directory exists
+    const outputDir = 'appwright/aggregated-reports';
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+      console.log(`📁 Created output directory: ${outputDir}`);
+    }
+    
     // Search all results
-    const jsonFiles = findJsonFiles('./all-results');
+    const jsonFiles = findJsonFiles('./test-results');
     console.log(`📊 Found ${jsonFiles.length} JSON report files:`);
     jsonFiles.forEach((file, index) => {
       console.log(`  ${index + 1}. ${file}`);
