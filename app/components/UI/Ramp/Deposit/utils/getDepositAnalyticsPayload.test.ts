@@ -65,9 +65,8 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'eip155:1',
-      currency_destination:
-        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chain_id: 'ethereum',
+      currency_destination: 'USDC',
       currency_source: 'USD',
     });
   });
@@ -98,9 +97,8 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'eip155:1',
-      currency_destination:
-        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chain_id: 'ethereum',
+      currency_destination: 'USDC',
       currency_source: 'USD',
       error_message: 'Payment failed',
     });
@@ -128,9 +126,8 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'eip155:1',
-      currency_destination:
-        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chain_id: 'ethereum',
+      currency_destination: 'USDC',
       currency_source: 'USD',
       error_message: 'transaction_failed',
     });
@@ -166,9 +163,8 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 5.99,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'eip155:1',
-      currency_destination:
-        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chain_id: 'ethereum',
+      currency_destination: 'USDC',
       currency_source: 'USD',
     });
   });
@@ -236,7 +232,7 @@ describe('getDepositAnalyticsPayload', () => {
     expect(params).toBeNull();
   });
 
-  it('returns null when cryptoCurrency mapping is not found', () => {
+  it('returns correct parameters even with unknown crypto currency', () => {
     const orderWithUnknownCrypto = {
       ...mockDepositOrder,
       data: {
@@ -251,8 +247,21 @@ describe('getDepositAnalyticsPayload', () => {
       mockState,
     );
 
-    expect(eventName).toBeNull();
-    expect(params).toBeNull();
+    expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
+    expect(params).toEqual({
+      ramp_type: 'DEPOSIT',
+      amount_source: 100,
+      amount_destination: 0.05,
+      exchange_rate: 2000,
+      gas_fee: 1.25,
+      processing_fee: 1.25,
+      total_fee: 2.5,
+      payment_method_id: 'credit_debit_card',
+      country: 'US',
+      chain_id: 'unknown_network',
+      currency_destination: 'UNKNOWN_CRYPTO',
+      currency_source: 'USD',
+    });
   });
 
   it('handles missing networkFees with default 0 value', () => {
@@ -280,9 +289,8 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'eip155:1',
-      currency_destination:
-        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chain_id: 'ethereum',
+      currency_destination: 'USDC',
       currency_source: 'USD',
     });
   });
@@ -312,9 +320,8 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'eip155:1',
-      currency_destination:
-        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chain_id: 'ethereum',
+      currency_destination: 'USDC',
       currency_source: 'USD',
     });
   });
@@ -344,9 +351,8 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: '',
-      chain_id: 'eip155:1',
-      currency_destination:
-        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chain_id: 'ethereum',
+      currency_destination: 'USDC',
       currency_source: 'USD',
     });
   });

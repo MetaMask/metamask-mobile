@@ -1,0 +1,883 @@
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/Deposit.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.d.ts
+new file mode 100644
+index 0000000..219ced5
+--- /dev/null
++++ b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.d.ts
+@@ -0,0 +1,69 @@
++import { CaipAssetReference, CaipChainId } from '@metamask/utils';
++export interface DepositRegion {
++    isoCode: string;
++    flag: string;
++    name: string;
++    phone: {
++        prefix: string;
++        placeholder: string;
++        template: string;
++    };
++    currency: string;
++    supported: boolean;
++    recommended?: boolean;
++    geolocated?: boolean;
++}
++export declare enum DepositPaymentMethodDuration {
++    instant = "instant",
++    oneToTwoDays = "1_to_2_days"
++}
++export interface DepositPaymentMethod {
++    id: string;
++    name: string;
++    shortName?: string;
++    duration: DepositPaymentMethodDuration;
++    icon: string;
++    iconColor?: {
++        light: string;
++        dark: string;
++    };
++}
++export declare class DepositCryptoCurrency {
++    assetId: CaipAssetReference;
++    name: string;
++    chainId: CaipChainId;
++    decimals: number;
++    iconUrl: string;
++    symbol: string;
++}
++export declare class DepositFiatCurrency {
++    id: string;
++    symbol: string;
++    name: string;
++    decimals: number;
++    denomSymbol: string;
++    limits: {
++        '1': number;
++        '30': number;
++        '365': number;
++    };
++}
++export interface DepositRegionData {
++    payments: DepositPaymentMethod[];
++    cryptoCurrencies: DepositCryptoCurrency[];
++    fiatCurrencies: DepositFiatCurrency[];
++}
++export declare class NativeQuoteTranslation {
++    region: string;
++    paymentMethod: string;
++    cryptoCurrency: string;
++    network: string;
++    fiatCurrency: string;
++}
++export declare class TranslationRequest {
++    regionId?: string;
++    cryptoCurrencyId?: string;
++    chainId?: string;
++    fiatCurrencyId?: string;
++    paymentMethod?: string;
++}
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/Deposit.js b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.js
+new file mode 100644
+index 0000000..9feb7b0
+--- /dev/null
++++ b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.js
+@@ -0,0 +1,20 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.TranslationRequest = exports.NativeQuoteTranslation = exports.DepositFiatCurrency = exports.DepositCryptoCurrency = exports.DepositPaymentMethodDuration = void 0;
++var DepositPaymentMethodDuration;
++(function (DepositPaymentMethodDuration) {
++    DepositPaymentMethodDuration["instant"] = "instant";
++    DepositPaymentMethodDuration["oneToTwoDays"] = "1_to_2_days";
++})(DepositPaymentMethodDuration = exports.DepositPaymentMethodDuration || (exports.DepositPaymentMethodDuration = {}));
++class DepositCryptoCurrency {
++}
++exports.DepositCryptoCurrency = DepositCryptoCurrency;
++class DepositFiatCurrency {
++}
++exports.DepositFiatCurrency = DepositFiatCurrency;
++class NativeQuoteTranslation {
++}
++exports.NativeQuoteTranslation = NativeQuoteTranslation;
++class TranslationRequest {
++}
++exports.TranslationRequest = TranslationRequest;
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
+index 3014bae..9158bf0 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
+@@ -1,5 +1,6 @@
+ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+ import ServicesSignatures from './ServicesSignatures';
++import { DepositCryptoCurrency, DepositRegion, NativeQuoteTranslation, DepositPaymentMethod, TranslationRequest } from './Deposit';
+ export declare const logRequest: (config: AxiosRequestConfig) => void;
+ export declare const logResponse: (response: AxiosResponse) => void;
+ export declare const logError: (error: any) => void;
+@@ -276,7 +277,7 @@ export declare class NativeRampsSdk {
+     }>;
+     verifyUserOtp(email: string, verificationCode: string, stateToken: string): Promise<NativeTransakAccessToken>;
+     getUserDetails(): Promise<NativeTransakUserDetails>;
+-    getBuyQuote(fiatCurrency: string, cryptoCurrency: string, network: string, paymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
++    getBuyQuote(genericFiatCurrency: string, genericCryptoCurrency: string, genericNetwork: string, genericPaymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
+     getIdProofStatus(workFlowRunId: string): Promise<IdProofStatus>;
+     getKycRequirement(quoteId: string): Promise<KycRequirement>;
+     getAdditionalRequirements(quoteId: string): Promise<AdditionalRequirementsResponse>;
+@@ -292,7 +293,7 @@ export declare class NativeRampsSdk {
+     confirmPayment(orderId: string, paymentMethodId: string): Promise<{
+         success: boolean;
+     }>;
+-    getOrder(orderId: string, wallet: string, paymentDetails?: OrderPaymentMethod[]): Promise<DepositOrder>;
++    getOrder(orderId: string, wallet: string, paymentDetails?: OrderPaymentMethod[], abortController?: AbortController): Promise<DepositOrder>;
+     getUserLimits(fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
+     requestOtt(): Promise<OttResponse>;
+     getGeolocation(): Promise<GeolocationResponse>;
+@@ -300,5 +301,9 @@ export declare class NativeRampsSdk {
+     getActiveOrders(): Promise<TransakOrder[]>;
+     getOrdersHistory(limit?: number, skip?: number): Promise<TransakOrder[]>;
+     logout(): Promise<string>;
++    getCountries(abortController?: AbortController): Promise<DepositRegion[]>;
++    getCryptoCurrencies(regionId: string, abortController?: AbortController): Promise<DepositCryptoCurrency[]>;
++    getPaymentMethods(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, abortController?: AbortController): Promise<DepositPaymentMethod[]>;
++    getTransalation(translationRequest: TranslationRequest, abortController?: AbortController): Promise<NativeQuoteTranslation>;
+ }
+ export { ServicesSignatures };
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+index ae9dc66..a0382b6 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+@@ -48,7 +48,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_context, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken;
++var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_regionsApiClient, _NativeRampsSdk_ordersApiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_context, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getBaseRampsUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken, _NativeRampsSdk_makeRegionApiRequest;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.Context = exports.TransakEnvironment = exports.SdkEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
+ const axios_1 = __importStar(require("axios"));
+@@ -56,6 +56,7 @@ const SdkParam_1 = __importDefault(require("./SdkParam"));
+ const ServicesSignatures_1 = __importDefault(require("./ServicesSignatures"));
+ exports.ServicesSignatures = ServicesSignatures_1.default;
+ const package_json_1 = require("../package.json");
++const Deposit_1 = require("./Deposit");
+ const logRequest = (config) => {
+     const { method, url, params, data, headers } = config;
+     console.log('🚀 Request:', {
+@@ -67,6 +68,7 @@ const logRequest = (config) => {
+     });
+ };
+ exports.logRequest = logRequest;
++const depositAction = 'deposit';
+ const logResponse = (response) => {
+     const { status, statusText, data, headers } = response;
+     console.log('✅ Response:', {
+@@ -130,6 +132,16 @@ exports.OrderStatusEnum = {
+     Cancelled: 'CANCELLED',
+     IdExpired: 'ID_EXPIRED',
+ };
++var RampsApiServices;
++(function (RampsApiServices) {
++    RampsApiServices["Regions"] = "regions";
++    RampsApiServices["Orders"] = "orders";
++})(RampsApiServices || (RampsApiServices = {}));
++var RampsApiProviders;
++(function (RampsApiProviders) {
++    RampsApiProviders["TransakNative"] = "transak-native";
++    RampsApiProviders["TransakNativeStaging"] = "transak-native-staging";
++})(RampsApiProviders || (RampsApiProviders = {}));
+ class OrderIdTransformer {
+     static depositOrderIdToTransakOrderId(depositOrderId) {
+         const parts = depositOrderId.split('/');
+@@ -156,6 +168,8 @@ class NativeRampsSdk {
+     constructor(config, environment = SdkEnvironment.Production) {
+         _NativeRampsSdk_instances.add(this);
+         _NativeRampsSdk_apiClient.set(this, void 0);
++        _NativeRampsSdk_regionsApiClient.set(this, void 0);
++        _NativeRampsSdk_ordersApiClient.set(this, void 0);
+         _NativeRampsSdk_config.set(this, void 0);
+         _NativeRampsSdk_environment.set(this, void 0);
+         _NativeRampsSdk_context.set(this, void 0);
+@@ -172,6 +186,22 @@ class NativeRampsSdk {
+                 'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
+             },
+         }), "f");
++        __classPrivateFieldSet(this, _NativeRampsSdk_regionsApiClient, axios_1.default.create({
++            baseURL: __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseRampsUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"), RampsApiServices.Regions),
++            headers: {
++                'Content-Type': 'application/json',
++                Accept: 'application/json',
++                'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            },
++        }), "f");
++        __classPrivateFieldSet(this, _NativeRampsSdk_ordersApiClient, axios_1.default.create({
++            baseURL: __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseRampsUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"), RampsApiServices.Orders),
++            headers: {
++                'Content-Type': 'application/json',
++                Accept: 'application/json',
++                'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            },
++        }), "f");
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_setupInterceptors).call(this);
+     }
+     setAccessToken(accessToken) {
+@@ -237,8 +267,14 @@ class NativeRampsSdk {
+             throw error;
+         }
+     }
+-    async getBuyQuote(fiatCurrency, cryptoCurrency, network, paymentMethod, fiatAmount) {
++    async getBuyQuote(genericFiatCurrency, genericCryptoCurrency, genericNetwork, genericPaymentMethod, fiatAmount) {
+         try {
++            const { fiatCurrency, cryptoCurrency, network, paymentMethod } = await this.getTransalation({
++                cryptoCurrencyId: genericCryptoCurrency,
++                chainId: genericNetwork,
++                fiatCurrencyId: genericFiatCurrency,
++                paymentMethod: genericPaymentMethod,
++            });
+             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/lookup/quotes', {
+                 params: {
+                     fiatCurrency,
+@@ -415,7 +451,7 @@ class NativeRampsSdk {
+             throw error;
+         }
+     }
+-    async getOrder(orderId, wallet, paymentDetails) {
++    async getOrder(orderId, wallet, paymentDetails, abortController) {
+         var _a;
+         let depositOrderId;
+         if (OrderIdTransformer.isDepositOrderId(orderId)) {
+@@ -425,19 +461,12 @@ class NativeRampsSdk {
+             depositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(orderId, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
+         }
+         const transakOrderId = OrderIdTransformer.extractTransakOrderId(depositOrderId);
+-        const STG_API_ORDER_URL = `https://on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/orders/${transakOrderId}`;
+-        const PROD_API_ORDER_URL = `https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${transakOrderId}`;
+-        const API_ORDER_URL = mapSdkEnvironmentToTransakEnvironment(__classPrivateFieldGet(this, _NativeRampsSdk_environment, "f")) ===
+-            TransakEnvironment.Staging
+-            ? STG_API_ORDER_URL
+-            : PROD_API_ORDER_URL;
+         try {
+-            const response = await axios_1.default.get(API_ORDER_URL, {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_ordersApiClient, "f").get(`/orders/${transakOrderId}`, {
+                 params: {
+                     wallet,
+-                    sdk: package_json_1.version,
+-                    context: 'mobile',
+                 },
++                signal: abortController === null || abortController === void 0 ? void 0 : abortController.signal,
+             });
+             const order = Object.assign(Object.assign({}, response.data), { id: depositOrderId, orderType: DepositOrderType.Deposit });
+             if (paymentDetails && paymentDetails.length > 0) {
+@@ -573,8 +602,48 @@ class NativeRampsSdk {
+             throw error;
+         }
+     }
++    async getCountries(abortController) {
++        try {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_regionsApiClient, "f").get('/countries', {
++                signal: abortController === null || abortController === void 0 ? void 0 : abortController.signal,
++            });
++            let geolocatedCountryCode = null;
++            try {
++                const geolocationResponse = await this.getGeolocation();
++                geolocatedCountryCode = geolocationResponse.ipCountryCode;
++            }
++            catch (geolocationError) {
++                console.warn('Geolocation failed:', geolocationError);
++            }
++            const countriesWithGeolocation = response.data.map((region) => (Object.assign(Object.assign({}, region), { geolocated: geolocatedCountryCode
++                    ? region.isoCode === geolocatedCountryCode
++                    : false })));
++            return countriesWithGeolocation;
++        }
++        catch (error) {
++            throw error;
++        }
++    }
++    async getCryptoCurrencies(regionId, abortController) {
++        const regionData = await __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_makeRegionApiRequest).call(this, `/${regionId}/light`, abortController);
++        return regionData === null || regionData === void 0 ? void 0 : regionData.cryptoCurrencies;
++    }
++    async getPaymentMethods(regionId, cryptoCurrencyId, fiatCurrencyId, abortController) {
++        console.log('SDK>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getPaymentMethods');
++        const regionData = await __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_makeRegionApiRequest).call(this, `/${regionId}/light?${new URLSearchParams({
++            cryptoCurrencyId,
++            fiatCurrencyId,
++        }).toString()}`, abortController);
++        return regionData === null || regionData === void 0 ? void 0 : regionData.payments;
++    }
++    async getTransalation(translationRequest, abortController) {
++        const response = await __classPrivateFieldGet(this, _NativeRampsSdk_ordersApiClient, "f").get(`/native/translate?${new URLSearchParams(translationRequest).toString()}`, {
++            signal: abortController === null || abortController === void 0 ? void 0 : abortController.signal,
++        });
++        return response.data;
++    }
+ }
+-_NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(), _NativeRampsSdk_environment = new WeakMap(), _NativeRampsSdk_context = new WeakMap(), _NativeRampsSdk_accessToken = new WeakMap(), _NativeRampsSdk_instances = new WeakSet(), _NativeRampsSdk_setupInterceptors = function _NativeRampsSdk_setupInterceptors() {
++_NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_regionsApiClient = new WeakMap(), _NativeRampsSdk_ordersApiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(), _NativeRampsSdk_environment = new WeakMap(), _NativeRampsSdk_context = new WeakMap(), _NativeRampsSdk_accessToken = new WeakMap(), _NativeRampsSdk_instances = new WeakSet(), _NativeRampsSdk_setupInterceptors = function _NativeRampsSdk_setupInterceptors() {
+     __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.request.use((request) => {
+         var _a, _b, _c;
+         if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
+@@ -596,6 +665,15 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+         }
+         return request;
+     });
++    const addInterceptorsForRampsApi = (request) => {
++        request.params = Object.assign(Object.assign({}, (request.params || {})), { action: depositAction, sdk: this.getVersion(), context: __classPrivateFieldGet(this, _NativeRampsSdk_context, "f") });
++        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
++            (0, exports.logRequest)(request);
++        }
++        return request;
++    };
++    __classPrivateFieldGet(this, _NativeRampsSdk_regionsApiClient, "f").interceptors.request.use(addInterceptorsForRampsApi);
++    __classPrivateFieldGet(this, _NativeRampsSdk_ordersApiClient, "f").interceptors.request.use(addInterceptorsForRampsApi);
+     __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.response.use((response) => {
+         if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
+             (0, exports.logResponse)(response);
+@@ -619,6 +697,31 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+         default:
+             throw new Error(`Invalid environment: ${String(environment)}`);
+     }
++}, _NativeRampsSdk_getBaseRampsUrl = function _NativeRampsSdk_getBaseRampsUrl(environment, service) {
++    let baseURL;
++    let providerId;
++    const cache = service === RampsApiServices.Regions ? '-cache' : '';
++    switch (environment) {
++        case SdkEnvironment.Production:
++            baseURL = `https://on-ramp${cache}.api.cx.metamask.io/`;
++            providerId = RampsApiProviders.TransakNative;
++            break;
++        case SdkEnvironment.Development:
++        case SdkEnvironment.Staging:
++            baseURL = `https://on-ramp${cache}.uat-api.cx.metamask.io`;
++            providerId = RampsApiProviders.TransakNativeStaging;
++            break;
++        default:
++            throw new Error(`Invalid environment: ${String(environment)}`);
++    }
++    switch (service) {
++        case RampsApiServices.Regions:
++            return new URL(`/regions/`, baseURL).toString();
++        case RampsApiServices.Orders:
++            return new URL(`/providers/${providerId}/`, baseURL).toString();
++        default:
++            return baseURL;
++    }
+ }, _NativeRampsSdk_getPaymentWidgetBaseUrl = function _NativeRampsSdk_getPaymentWidgetBaseUrl(environment) {
+     switch (environment) {
+         case TransakEnvironment.Production:
+@@ -645,6 +748,11 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+         });
+         throw error;
+     }
++}, _NativeRampsSdk_makeRegionApiRequest = async function _NativeRampsSdk_makeRegionApiRequest(path, abortController) {
++    const response = await __classPrivateFieldGet(this, _NativeRampsSdk_regionsApiClient, "f").get(path, {
++        signal: abortController === null || abortController === void 0 ? void 0 : abortController.signal,
++    });
++    return response.data;
+ };
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+@@ -731,8 +839,9 @@ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+     __param(2, (0, SdkParam_1.default)({ required: false })),
++    __param(3, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, String, Array]),
++    __metadata("design:paramtypes", [String, String, Array, AbortController]),
+     __metadata("design:returntype", Promise)
+ ], NativeRampsSdk.prototype, "getOrder", null);
+ __decorate([
+@@ -759,4 +868,34 @@ __decorate([
+     __metadata("design:paramtypes", [Number, Number]),
+     __metadata("design:returntype", Promise)
+ ], NativeRampsSdk.prototype, "getOrdersHistory", null);
++__decorate([
++    __param(0, (0, SdkParam_1.default)({ required: false })),
++    __metadata("design:type", Function),
++    __metadata("design:paramtypes", [AbortController]),
++    __metadata("design:returntype", Promise)
++], NativeRampsSdk.prototype, "getCountries", null);
++__decorate([
++    __param(0, (0, SdkParam_1.default)({ required: true })),
++    __param(1, (0, SdkParam_1.default)({ required: false })),
++    __metadata("design:type", Function),
++    __metadata("design:paramtypes", [String, AbortController]),
++    __metadata("design:returntype", Promise)
++], NativeRampsSdk.prototype, "getCryptoCurrencies", null);
++__decorate([
++    __param(0, (0, SdkParam_1.default)({ required: true })),
++    __param(1, (0, SdkParam_1.default)({ required: true })),
++    __param(2, (0, SdkParam_1.default)({ required: true })),
++    __param(3, (0, SdkParam_1.default)({ required: false })),
++    __metadata("design:type", Function),
++    __metadata("design:paramtypes", [String, String, String, AbortController]),
++    __metadata("design:returntype", Promise)
++], NativeRampsSdk.prototype, "getPaymentMethods", null);
++__decorate([
++    __param(0, (0, SdkParam_1.default)({ required: true })),
++    __param(1, (0, SdkParam_1.default)({ required: false })),
++    __metadata("design:type", Function),
++    __metadata("design:paramtypes", [Deposit_1.TranslationRequest,
++        AbortController]),
++    __metadata("design:returntype", Promise)
++], NativeRampsSdk.prototype, "getTransalation", null);
+ exports.NativeRampsSdk = NativeRampsSdk;
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
+index 4683163..ddade05 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
+@@ -51,11 +51,15 @@ vitest_1.vi.mock('axios', async () => {
+     };
+     let sdk;
+     let mockAxiosInstance;
++    let mockOrdersAxios;
++    let mockRegionsAxios;
+     let mockAxios;
+     (0, vitest_1.beforeEach)(() => {
+         vitest_1.vi.clearAllMocks();
+         sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
+         mockAxiosInstance = axios_1.default.create.mock.results[0].value;
++        mockRegionsAxios = axios_1.default.create.mock.results[1].value;
++        mockOrdersAxios = axios_1.default.create.mock.results[2].value;
+         mockAxios = axios_1.default;
+     });
+     (0, vitest_1.afterEach)(() => {
+@@ -73,7 +77,7 @@ vitest_1.vi.mock('axios', async () => {
+         (0, vitest_1.it)('initializes with staging environment', () => {
+             const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Staging);
+             (0, vitest_1.expect)(stagingSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+-            (0, vitest_1.expect)(axios_1.default.create.mock.calls[1][0].baseURL).toContain('api-gateway-stg.transak.com');
++            (0, vitest_1.expect)(axios_1.default.create.mock.calls[3][0].baseURL).toContain('api-gateway-stg.transak.com');
+         });
+         (0, vitest_1.it)('initializes with development environment (maps to Transak staging)', () => {
+             vitest_1.vi.clearAllMocks();
+@@ -367,6 +371,15 @@ vitest_1.vi.mock('axios', async () => {
+             };
+             const mockResponse = { data: { data: mockQuote } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
++            const mockTranslationResponse = {
++                data: {
++                    fiatCurrency: 'USD',
++                    cryptoCurrency: 'ETH',
++                    network: 'ethereum',
++                    paymentMethod: 'credit_card',
++                },
++            };
++            mockOrdersAxios.get.mockResolvedValueOnce(mockTranslationResponse);
+             const result = await sdk.getBuyQuote('USD', 'ETH', 'ethereum', 'credit_card', '100');
+             (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/lookup/quotes', {
+                 params: {
+@@ -435,18 +448,16 @@ vitest_1.vi.mock('axios', async () => {
+             const mockTransakResponse = { data: { data: mockTransakOrder } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockTransakResponse);
+             const mockRampApiResponse = { data: mockDepositOrder };
+-            mockAxios.get.mockResolvedValueOnce(mockRampApiResponse);
++            mockOrdersAxios.get.mockResolvedValueOnce(mockRampApiResponse);
+             const result = await sdk.createOrder(mockQuote, '0x123456789', 'payment-method-123');
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders', {
+                 quoteId: mockQuote.quoteId,
+                 walletAddress: '0x123456789',
+                 paymentInstrumentId: 'payment-method-123',
+             });
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${transakOrderId}`, {
++            (0, vitest_1.expect)(mockOrdersAxios.get).toHaveBeenCalledWith(`/orders/9c473ac4-a8d7-40d1-a10a-f29fa06c3028`, {
+                 params: {
+                     wallet: mockTransakOrder.walletAddress,
+-                    sdk: vitest_1.expect.any(String),
+-                    context: 'mobile',
+                 },
+             });
+             (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockDepositOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: mockTransakOrder.paymentDetails }));
+@@ -460,19 +471,16 @@ vitest_1.vi.mock('axios', async () => {
+                 walletAddress: '0x123456789',
+             };
+             const mockResponse = { data: mockOrder };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
++            mockOrdersAxios.get.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.getOrder(depositOrderId, '0x123456789');
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${transakOrderId}`, {
++            (0, vitest_1.expect)(mockOrdersAxios.get).toHaveBeenCalledWith(`/orders/${transakOrderId}`, {
+                 params: {
+                     wallet: '0x123456789',
+-                    sdk: vitest_1.expect.any(String),
+-                    context: 'mobile',
+                 },
+             });
+             (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: undefined }));
+         });
+         (0, vitest_1.it)('gets order details from staging on-ramp API when using staging environment', async () => {
+-            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Staging);
+             const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+             const depositOrderId = '/providers/transak-native-staging/orders/9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+             const mockOrder = {
+@@ -481,16 +489,14 @@ vitest_1.vi.mock('axios', async () => {
+                 walletAddress: '0xabcdef123',
+             };
+             const mockResponse = { data: mockOrder };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
+-            const result = await stagingSdk.getOrder(depositOrderId, '0xabcdef123');
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/orders/${transakOrderId}`, {
++            mockOrdersAxios.get.mockResolvedValueOnce(mockResponse);
++            const result = await sdk.getOrder(depositOrderId, '0xabcdef123');
++            (0, vitest_1.expect)(mockOrdersAxios.get).toHaveBeenCalledWith(`/orders/${transakOrderId}`, {
+                 params: {
+                     wallet: '0xabcdef123',
+-                    sdk: vitest_1.expect.any(String),
+-                    context: 'mobile',
+                 },
+             });
+-            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: depositOrderId, orderType: 'DEPOSIT' }));
++            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: undefined }));
+         });
+         (0, vitest_1.it)('cancels an order', async () => {
+             const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+@@ -566,7 +572,7 @@ vitest_1.vi.mock('axios', async () => {
+                 data: { data: newOrder },
+             });
+             const mockRampApiResponse = { data: mockDepositOrder };
+-            mockAxios.get.mockResolvedValueOnce(mockRampApiResponse);
++            mockOrdersAxios.get.mockResolvedValueOnce(mockRampApiResponse);
+             vitest_1.vi.spyOn(global, 'setTimeout').mockImplementation((callback) => {
+                 callback();
+                 return 123;
+@@ -583,11 +589,9 @@ vitest_1.vi.mock('axios', async () => {
+                 walletAddress: '0x123456789',
+                 paymentInstrumentId: 'payment-method-123',
+             });
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${newOrderId}`, {
++            (0, vitest_1.expect)(mockOrdersAxios.get).toHaveBeenCalledWith(`/orders/${newOrderId}`, {
+                 params: {
+                     wallet: newOrder.walletAddress,
+-                    sdk: vitest_1.expect.any(String),
+-                    context: 'mobile',
+                 },
+             });
+             (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockDepositOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: newOrder.paymentDetails }));
+@@ -705,8 +709,9 @@ vitest_1.vi.mock('axios', async () => {
+                 walletAddress: '0x123456789',
+             };
+             const mockResponse = { data: mockOrder };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
+             const noTokenSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++            const noTokenMockAxios = axios_1.default.create.mock.results[5].value;
++            noTokenMockAxios.get.mockResolvedValueOnce(mockResponse);
+             const result = await noTokenSdk.getOrder(depositOrderId, '0x123456789');
+             (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: depositOrderId, orderType: 'DEPOSIT' }));
+         });
+@@ -748,7 +753,7 @@ vitest_1.vi.mock('axios', async () => {
+                 walletAddress: '0x123456789',
+             };
+             const mockResponse = { data: mockOrder };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
++            mockOrdersAxios.get.mockResolvedValueOnce(mockResponse);
+             sdk.setAccessToken({
+                 accessToken: 'token-id',
+                 ttl: 3600,
+@@ -771,7 +776,7 @@ vitest_1.vi.mock('axios', async () => {
+                 walletAddress: '0x123456789',
+             };
+             const mockResponse = { data: mockOrder };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
++            mockOrdersAxios.get.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.getOrder(transakOrderId, '0x123456789');
+             (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: expectedDepositOrderId, orderType: 'DEPOSIT', paymentDetails: undefined }));
+         });
+@@ -1046,6 +1051,15 @@ vitest_1.vi.mock('axios', async () => {
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalled();
+         });
+         (0, vitest_1.it)('should handle GET requests with v2 quotes endpoint', async () => {
++            const mockTranslationResponse = {
++                data: {
++                    fiatCurrency: 'USD',
++                    cryptoCurrency: 'ETH',
++                    network: 'ethereum',
++                    paymentMethod: 'credit_card',
++                },
++            };
++            mockOrdersAxios.get.mockResolvedValueOnce(mockTranslationResponse);
+             await sdk.getBuyQuote('USD', 'ETH', 'ethereum', 'credit_card', '100');
+             (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/lookup/quotes', {
+                 params: {
+@@ -1329,6 +1343,149 @@ vitest_1.vi.mock('axios', async () => {
+             (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
+         });
+     });
++    (0, vitest_1.describe)('getCountries', () => {
++        (0, vitest_1.it)('should return all countries with geolocated property', async () => {
++            const mockResponse = {
++                data: [
++                    {
++                        isoCode: 'US',
++                        flag: '🇺🇸',
++                        name: 'United States of America',
++                        phone: {
++                            prefix: '+1',
++                            placeholder: '(555) 123-4567',
++                            template: '(XXX) XXX-XXXX',
++                        },
++                        currency: 'USD',
++                        supported: true,
++                        recommended: true,
++                    },
++                    {
++                        isoCode: 'CA',
++                        flag: '🇨🇦',
++                        name: 'Canada',
++                        phone: {
++                            prefix: '+1',
++                            placeholder: '(555) 123-4567',
++                            template: '(XXX) XXX-XXXX',
++                        },
++                        currency: 'CAD',
++                        supported: true,
++                        recommended: false,
++                    },
++                ],
++            };
++            const mockGeolocationResponse = {
++                ipCountryCode: 'US',
++            };
++            const mockAxiosInstanceForGeo = vitest_1.vi
++                .fn()
++                .mockResolvedValueOnce({ data: mockGeolocationResponse });
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
++                },
++            });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockRegionsAxios);
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockOrdersAxios);
++            const sdkWithMockedGeo = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++            mockRegionsAxios.get.mockResolvedValueOnce(mockResponse);
++            const result = await sdkWithMockedGeo.getCountries();
++            (0, vitest_1.expect)(mockRegionsAxios.get).toHaveBeenCalledWith('/countries', {
++                signal: undefined,
++            });
++            (0, vitest_1.expect)(result).toHaveLength(2);
++            (0, vitest_1.expect)(result[0]).toStrictEqual(Object.assign(Object.assign({}, mockResponse.data[0]), { geolocated: true }));
++            (0, vitest_1.expect)(result[1]).toStrictEqual(Object.assign(Object.assign({}, mockResponse.data[1]), { geolocated: false }));
++        });
++        (0, vitest_1.it)('should handle geolocation failure gracefully', async () => {
++            const mockResponse = {
++                data: [
++                    {
++                        isoCode: 'US',
++                        flag: '🇺🇸',
++                        name: 'United States of America',
++                        phone: {
++                            prefix: '+1',
++                            placeholder: '(555) 123-4567',
++                            template: '(XXX) XXX-XXXX',
++                        },
++                        currency: 'USD',
++                        supported: true,
++                        recommended: true,
++                    },
++                ],
++            };
++            mockRegionsAxios.get.mockResolvedValueOnce(mockResponse);
++            mockAxiosInstance.get.mockRejectedValueOnce(new Error('Geolocation failed'));
++            const result = await sdk.getCountries();
++            (0, vitest_1.expect)(mockRegionsAxios.get).toHaveBeenCalledWith('/countries', {
++                signal: undefined,
++            });
++            (0, vitest_1.expect)(result[0]).toStrictEqual(Object.assign(Object.assign({}, mockResponse.data[0]), { geolocated: false }));
++        });
++    });
++    (0, vitest_1.describe)('getCryptoCurrencies', () => {
++        (0, vitest_1.it)('should return all crypto currencies', async () => {
++            const mockResponse = {
++                data: {
++                    cryptoCurrencies: [
++                        { id: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' },
++                    ],
++                },
++            };
++            mockRegionsAxios.get.mockResolvedValueOnce(mockResponse);
++            const result = await sdk.getCryptoCurrencies('us-ca');
++            (0, vitest_1.expect)(mockRegionsAxios.get).toHaveBeenCalledWith('/us-ca/light', {
++                signal: undefined,
++            });
++            (0, vitest_1.expect)(result).toStrictEqual(mockResponse.data.cryptoCurrencies);
++        });
++    });
++    (0, vitest_1.describe)('getPaymentMethods', () => {
++        (0, vitest_1.it)('should return payments methods for a crypto currency', async () => {
++            const mockResponse = {
++                data: { payments: [{ id: 'debit_credit_card' }] },
++            };
++            mockRegionsAxios.get.mockResolvedValueOnce(mockResponse);
++            const result = await sdk.getPaymentMethods('us-ca', 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 'usd');
++            (0, vitest_1.expect)(mockRegionsAxios.get).toHaveBeenCalledWith('/us-ca/light?cryptoCurrencyId=eip155%3A1%2Ferc20%3A0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&fiatCurrencyId=usd', {
++                signal: undefined,
++            });
++            (0, vitest_1.expect)(result).toStrictEqual(mockResponse.data.payments);
++        });
++    });
++    (0, vitest_1.describe)('getTransalation', () => {
++        (0, vitest_1.it)('should return a quote translation for a crypto, fiat, chain, and payment method', async () => {
++            const mockResponse = {
++                data: {
++                    region: 'US',
++                    paymentMethod: 'credit_debit_card',
++                    cryptoCurrency: 'USDC',
++                    network: 'ethereum',
++                    fiatCurrency: 'USD',
++                },
++            };
++            mockOrdersAxios.get.mockResolvedValueOnce(mockResponse);
++            const result = await sdk.getTransalation({
++                regionId: 'us-ca',
++                cryptoCurrencyId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
++                chainId: 'eip155:1',
++                fiatCurrencyId: 'usd',
++                paymentMethod: 'debit_credit_card',
++            });
++            (0, vitest_1.expect)(mockOrdersAxios.get).toHaveBeenCalledWith('/native/translate?regionId=us-ca&cryptoCurrencyId=eip155%3A1%2Ferc20%3A0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&chainId=eip155%3A1&fiatCurrencyId=usd&paymentMethod=debit_credit_card', {
++                signal: undefined,
++            });
++            (0, vitest_1.expect)(result).toStrictEqual(mockResponse.data);
++        });
++    });
+ });
+ (0, vitest_1.describe)('OrderIdTransformer', () => {
+     (0, vitest_1.describe)('depositOrderIdToTransakOrderId', () => {
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
+index 6fc294a..d97dbe9 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
++++ b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
+@@ -114,6 +114,26 @@ declare const _default: {
+         logout: {
+             parameters: any[];
+         };
++        getCountries: {
++            parameters: {
++                required: boolean;
++            }[];
++        };
++        getCryptoCurrencies: {
++            parameters: {
++                required: boolean;
++            }[];
++        };
++        getPaymentMethods: {
++            parameters: {
++                required: boolean;
++            }[];
++        };
++        getTransalation: {
++            parameters: {
++                required: boolean;
++            }[];
++        };
+     };
+     Object: {};
+ };
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
+index 865ad73..461b25a 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
+@@ -143,6 +143,9 @@ exports.default = {
+                 {
+                     "required": true
+                 },
++                {
++                    "required": false
++                },
+                 {
+                     "required": false
+                 }
+@@ -198,6 +201,49 @@ exports.default = {
+         },
+         "logout": {
+             "parameters": []
++        },
++        "getCountries": {
++            "parameters": [
++                {
++                    "required": false
++                }
++            ]
++        },
++        "getCryptoCurrencies": {
++            "parameters": [
++                {
++                    "required": true
++                },
++                {
++                    "required": false
++                }
++            ]
++        },
++        "getPaymentMethods": {
++            "parameters": [
++                {
++                    "required": true
++                },
++                {
++                    "required": true
++                },
++                {
++                    "required": true
++                },
++                {
++                    "required": false
++                }
++            ]
++        },
++        "getTransalation": {
++            "parameters": [
++                {
++                    "required": true
++                },
++                {
++                    "required": false
++                }
++            ]
+         }
+     },
+     "Object": {}
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/SimpleTest.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/SimpleTest.d.ts
+new file mode 100644
+index 0000000..cb0ff5c
+--- /dev/null
++++ b/node_modules/@consensys/native-ramps-sdk/dist/SimpleTest.d.ts
+@@ -0,0 +1 @@
++export {};
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/SimpleTest.js b/node_modules/@consensys/native-ramps-sdk/dist/SimpleTest.js
+new file mode 100644
+index 0000000..6aa3f1f
+--- /dev/null
++++ b/node_modules/@consensys/native-ramps-sdk/dist/SimpleTest.js
+@@ -0,0 +1,28 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++const NativeRampsSdk_1 = require("./NativeRampsSdk");
++async function main(action) {
++    await action();
++    process.exit(0);
++}
++function log(obj) {
++    console.log(JSON.stringify(obj, undefined, '    '));
++}
++main(async () => {
++    const sdk = new NativeRampsSdk_1.NativeRampsSdk({
++        apiKey: 'test-api-key',
++        context: NativeRampsSdk_1.Context.MobileAndroid,
++    }, NativeRampsSdk_1.SdkEnvironment.Staging);
++    const countries = await sdk.getCountries();
++    const cryptoCurrencies = await sdk.getCryptoCurrencies('us-ca');
++    const paymentMethods = await sdk.getPaymentMethods('us-ca', 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 'usd');
++    const quoteTranslation = await sdk.getTransalation({
++        regionId: 'us-ca',
++        cryptoCurrencyId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
++        chainId: 'eip155:1',
++        fiatCurrencyId: 'usd',
++        paymentMethod: 'debit_credit_card',
++    });
++    const order = await sdk.getOrder('ce15e265-21a5-4dcd-9f77-67fb48b8aecb', '0xB0eA09C34BB257B4935d73C5f3AeD81Cd6a29228');
++    console.log(quoteTranslation);
++});

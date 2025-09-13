@@ -4,7 +4,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
-import { getCryptoCurrencyFromTransakId, hasDepositOrderField } from './index';
+import { hasDepositOrderField } from './index';
 import { AnalyticsEvents } from '../types';
 
 function getDepositAnalyticsPayload(
@@ -30,14 +30,6 @@ function getDepositAnalyticsPayload(
   }
 
   const order = fiatOrder.data;
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(
-    order.cryptoCurrency,
-    order.network,
-  );
-
-  if (!cryptoCurrency) {
-    return [null, null];
-  }
 
   const selectedRegion = fiatOrdersRegionSelectorDeposit(state);
 
@@ -48,8 +40,8 @@ function getDepositAnalyticsPayload(
     exchange_rate: Number(order.exchangeRate),
     payment_method_id: order.paymentMethod,
     country: selectedRegion?.isoCode || '',
-    chain_id: cryptoCurrency.chainId || '',
-    currency_destination: cryptoCurrency.assetId || '',
+    chain_id: order.network || '',
+    currency_destination: order.cryptoCurrency || '',
     currency_source: order.fiatCurrency,
   };
 

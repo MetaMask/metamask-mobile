@@ -10,6 +10,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,8 +25,11 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../../util/navigation/navUtils';
+import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
@@ -30,8 +37,12 @@ import useAnalytics from '../../../../hooks/useAnalytics';
 
 const MAX_REGION_RESULTS = 20;
 
+interface RegionSelectorModalParams {
+  regions: DepositRegion[];
+}
+
 export const createRegionSelectorModalNavigationDetails =
-  createNavigationDetails(
+  createNavigationDetails<RegionSelectorModalParams>(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.REGION_SELECTOR,
   );
@@ -42,16 +53,17 @@ function RegionSelectorModal() {
 
   const { selectedRegion, setSelectedRegion, isAuthenticated } =
     useDepositSDK();
+  const { regions } = useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
-  const { styles } = useStyles(styleSheet, {
+  const { styles, theme } = useStyles(styleSheet, {
     screenHeight,
   });
   const trackEvent = useAnalytics();
 
   const fuseData = useMemo(
     () =>
-      new Fuse(DEPOSIT_REGIONS, {
+      new Fuse(regions || [], {
         shouldSort: true,
         threshold: 0.2,
         location: 0,
@@ -60,10 +72,12 @@ function RegionSelectorModal() {
         minMatchCharLength: 1,
         keys: ['name'],
       }),
-    [],
+    [regions],
   );
 
   const dataSearchResults = useMemo(() => {
+    if (!regions) return [];
+
     if (searchString.length > 0) {
       const results = fuseData
         .search(searchString)
@@ -71,12 +85,12 @@ function RegionSelectorModal() {
       return results || [];
     }
 
-    return [...DEPOSIT_REGIONS].sort((a, b) => {
-      if (a.recommended && !b.recommended) return -1;
-      if (!a.recommended && b.recommended) return 1;
+    return [...regions].sort((a, b) => {
+      if (a.supported && !b.supported) return -1;
+      if (!a.supported && b.supported) return 1;
       return 0;
     });
-  }, [searchString, fuseData]);
+  }, [searchString, fuseData, regions]);
 
   const scrollToTop = useCallback(() => {
     if (listRef?.current) {
@@ -217,7 +231,7 @@ function RegionSelectorModal() {
         data={dataSearchResults}
         renderItem={renderRegionItem}
         extraData={selectedRegion?.isoCode}
-        keyExtractor={(item) => item.isoCode}
+        keyExtractor={(item) => item?.isoCode || 'unknown'}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"

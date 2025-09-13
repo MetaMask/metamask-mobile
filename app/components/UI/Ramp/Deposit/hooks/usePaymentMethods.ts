@@ -1,34 +1,52 @@
-import Device from '../../../../../util/device';
-import {
-  APPLE_PAY_PAYMENT_METHOD,
-  SUPPORTED_PAYMENT_METHODS,
-  REGIONS_BY_PAYMENT_METHODS,
-} from '../constants';
+import { useEffect } from 'react';
 import { useDepositSDK } from '../sdk';
+import { useDepositSdkMethod } from './useDepositSdkMethod';
 
-function usePaymentMethods() {
-  const { selectedRegion } = useDepositSDK();
+export function usePaymentMethods() {
+  const {
+    selectedRegion,
+    selectedCryptoCurrency,
+    setSelectedPaymentMethod,
+    selectedPaymentMethod,
+  } = useDepositSDK();
 
-  let paymentMethods = SUPPORTED_PAYMENT_METHODS;
+  const [
+    { data: paymentMethods, error, isFetching },
+    retryFetchPaymentMethods,
+  ] = useDepositSdkMethod(
+    'getPaymentMethods',
+    selectedRegion?.isoCode,
+    selectedCryptoCurrency?.assetId,
+    selectedRegion?.currency,
+  );
 
-  if (!Device.isIos()) {
-    paymentMethods = paymentMethods.filter(
-      (paymentMethod) => paymentMethod.id !== APPLE_PAY_PAYMENT_METHOD.id,
-    );
-  }
+  useEffect(() => {
+    if (paymentMethods && paymentMethods.length > 0) {
+      let newSelectedPaymentMethod: DepositPaymentMethod | null = null;
 
-  if (selectedRegion) {
-    paymentMethods = paymentMethods.filter((paymentMethod) => {
-      if (REGIONS_BY_PAYMENT_METHODS[paymentMethod.id]) {
-        return REGIONS_BY_PAYMENT_METHODS[paymentMethod.id].includes(
-          selectedRegion?.isoCode,
-        );
+      if (selectedPaymentMethod) {
+        // Find the previously selected payment method in fresh data and reapply it
+        newSelectedPaymentMethod =
+          paymentMethods.find(
+            (method) => method.id === selectedPaymentMethod.id,
+          ) || null;
       }
-      return true;
-    });
-  }
 
-  return paymentMethods;
+      if (!newSelectedPaymentMethod) {
+        // First time or previously selected method no longer available - use first
+        newSelectedPaymentMethod = paymentMethods[0];
+      }
+
+      if (newSelectedPaymentMethod) {
+        setSelectedPaymentMethod(newSelectedPaymentMethod);
+      }
+    }
+  }, [paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod]);
+
+  return {
+    paymentMethods,
+    error,
+    isFetching,
+    retryFetchPaymentMethods,
+  };
 }
-
-export default usePaymentMethods;

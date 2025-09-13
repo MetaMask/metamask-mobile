@@ -1,0 +1,65 @@
+import React, { useRef } from 'react';
+import { View, ScrollView } from 'react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../../../component-library/components/Texts/Text';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../../component-library/components/Icons/Icon';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../../locales/i18n';
+
+export interface ErrorDetailsModalParams {
+  errorMessage: string;
+}
+
+export const createErrorDetailsModalNavigationDetails =
+  createNavigationDetails<ErrorDetailsModalParams>(
+    Routes.DEPOSIT.MODALS.ID,
+    Routes.DEPOSIT.MODALS.ERROR_DETAILS,
+  );
+
+function ErrorDetailsModal() {
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const tw = useTailwind();
+
+  // Get params from navigation
+  const { errorMessage } = useParams<ErrorDetailsModalParams>();
+
+  return (
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
+      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+        <View style={tw.style('flex-row items-center gap-2')}>
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Md}
+            color={IconColor.Error}
+          />
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('deposit.errors.error_details_title')}
+          </Text>
+        </View>
+      </BottomSheetHeader>
+
+      <ScrollView style={tw.style('flex-1 px-4 pb-4')}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          {errorMessage}
+        </Text>
+      </ScrollView>
+    </BottomSheet>
+  );
+}
+
+export default ErrorDetailsModal;

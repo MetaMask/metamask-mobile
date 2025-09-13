@@ -6,11 +6,36 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  WIRE_TRANSFER_PAYMENT_METHOD,
-} from '../../constants';
 import { trace, endTrace } from '../../../../../../util/trace';
+import {
+  createMockSDKReturn,
+  MOCK_USE_REGIONS_ERROR,
+  MOCK_USE_CRYPTOCURRENCIES_ERROR,
+  MOCK_USE_PAYMENT_METHODS_ERROR,
+  MOCK_USE_REGIONS_EMPTY,
+  MOCK_USE_CRYPTOCURRENCIES_EMPTY,
+  MOCK_USE_PAYMENT_METHODS_EMPTY,
+  createMockSDKMethods,
+  createMockNavigation,
+  createMockInteractionManager,
+} from '../../testUtils';
+
+// Mock hooks
+const mockUseRegions = jest.fn();
+const mockUseCryptoCurrencies = jest.fn();
+const mockUsePaymentMethods = jest.fn();
+
+jest.mock('../../hooks/useRegions', () => ({
+  useRegions: () => mockUseRegions(),
+}));
+
+jest.mock('../../hooks/useCryptoCurrencies', () => ({
+  useCryptoCurrencies: () => mockUseCryptoCurrencies(),
+}));
+
+jest.mock('../../hooks/usePaymentMethods', () => ({
+  usePaymentMethods: () => mockUsePaymentMethods(),
+}));
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -18,36 +43,22 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-const mockInteractionManager = {
-  runAfterInteractions: jest.fn((callback) => callback()),
-};
+const mockInteractionManager = createMockInteractionManager();
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockSetNavigationOptions = jest.fn();
-const mockSetParams = jest.fn();
-const mockGetQuote = jest.fn();
-const mockRouteAfterAuthentication = jest.fn();
-const mockNavigateToVerifyIdentity = jest.fn();
+const { mockNavigate, mockGoBack, mockSetNavigationOptions, mockSetParams } =
+  createMockNavigation();
+
+const {
+  mockGetQuote,
+  mockRouteAfterAuthentication,
+  mockNavigateToVerifyIdentity,
+  mockTrackEvent,
+} = createMockSDKMethods();
+
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 const mockUseAccountTokenCompatible = jest.fn();
-const mockTrackEvent = jest.fn();
 const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
-
-const createMockSDKReturn = (overrides = {}) => ({
-  isAuthenticated: false,
-  selectedWalletAddress: '0x123',
-  selectedRegion: {
-    isoCode: 'US',
-    flag: '🇺🇸',
-    name: 'United States',
-    currency: 'USD',
-    supported: true,
-  },
-  setSelectedRegion: jest.fn(),
-  ...overrides,
-});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -71,9 +82,14 @@ jest.mock('../../sdk', () => ({
 }));
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: jest.fn().mockImplementation((config) => {
+  useDepositSdkMethod: jest.fn().mockImplementation((config, ...params) => {
     if (config?.method === 'getBuyQuote' || config === 'getBuyQuote') {
-      return [{ error: null }, mockGetQuote];
+      // Create a wrapper function that calls mockGetQuote with the stored params
+      const wrappedGetQuote = (...customParams) => {
+        const finalParams = customParams.length > 0 ? customParams : params;
+        return mockGetQuote(...finalParams);
+      };
+      return [{ error: null }, wrappedGetQuote];
     }
     return [{ error: null }, jest.fn()];
   }),
@@ -96,10 +112,82 @@ jest.mock('../../hooks/useDepositRouting', () => ({
   })),
 }));
 
-const mockUsePaymentMethods = jest
-  .fn()
-  .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
-jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
+jest.mock('../../hooks/usePaymentMethods', () => ({
+  usePaymentMethods: jest.fn().mockReturnValue({
+    paymentMethods: [
+      {
+        id: 'credit_debit_card',
+        name: 'Credit/Debit Card',
+        iconName: 'card',
+        duration: '2-5 minutes',
+        fees: '3.99% + network fees',
+      },
+      {
+        id: 'debit_card',
+        name: 'Debit Card',
+        iconName: 'card',
+        duration: 'Instant',
+        fees: '3.99% + network fees',
+      },
+    ],
+    error: null,
+    isFetching: false,
+    retryFetchPaymentMethods: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useRegions', () => ({
+  useRegions: jest.fn().mockReturnValue({
+    regions: [
+      {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        currency: 'USD',
+        phone: {
+          prefix: '+1',
+          placeholder: '(555) 123-4567',
+          template: '(###) ###-####',
+        },
+        supported: true,
+      },
+      {
+        isoCode: 'DE',
+        flag: '🇩🇪',
+        name: 'Germany',
+        currency: 'EUR',
+        phone: {
+          prefix: '+49',
+          placeholder: '30 12345678',
+          template: '## ########',
+        },
+        supported: true,
+      },
+    ],
+    error: null,
+    isFetching: false,
+    retryFetchRegions: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useCryptoCurrencies', () => ({
+  useCryptoCurrencies: jest.fn().mockReturnValue({
+    cryptoCurrencies: [
+      {
+        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainId: 'eip155:1',
+        name: 'USD Coin',
+        symbol: 'USDC',
+        decimals: 6,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+      },
+    ],
+    error: null,
+    isFetching: false,
+    retryFetchCryptoCurrencies: jest.fn(),
+  }),
+}));
 
 // Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -137,7 +225,9 @@ function render(Component: React.ComponentType) {
 describe('BuildQuote Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+    const mockSDK = createMockSDKReturn();
+
+    mockUseDepositSDK.mockReturnValue(mockSDK);
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
@@ -166,6 +256,34 @@ describe('BuildQuote Component', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
+        params: {
+          regions: [
+            {
+              isoCode: 'US',
+              flag: '🇺🇸',
+              name: 'United States',
+              currency: 'USD',
+              phone: {
+                prefix: '+1',
+                placeholder: '(555) 123-4567',
+                template: '(###) ###-####',
+              },
+              supported: true,
+            },
+            {
+              isoCode: 'DE',
+              flag: '🇩🇪',
+              name: 'Germany',
+              currency: 'EUR',
+              phone: {
+                prefix: '+49',
+                placeholder: '30 12345678',
+                template: '## ########',
+              },
+              supported: true,
+            },
+          ],
+        },
       });
     });
 
@@ -178,6 +296,12 @@ describe('BuildQuote Component', () => {
             name: 'Germany',
             currency: 'EUR',
             supported: true,
+          },
+          fiatCurrency: {
+            id: 'EUR',
+            name: 'Euro',
+            symbol: '€',
+            emoji: '🇪🇺',
           },
         }),
       );
@@ -208,6 +332,34 @@ describe('BuildQuote Component', () => {
         });
       });
     });
+
+    it('does not open region modal when regions error occurs', () => {
+      mockUseRegions.mockReturnValue(MOCK_USE_REGIONS_ERROR);
+
+      render(BuildQuote);
+      // Find the region selector by the US flag (currently mocked with US data)
+      const regionButton = screen.getByText('🇺🇸').parent;
+      fireEvent.press(regionButton);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
+      });
+    });
+
+    it('does not open region modal when regions array is empty', () => {
+      mockUseRegions.mockReturnValue(MOCK_USE_REGIONS_EMPTY);
+
+      render(BuildQuote);
+      // Find the region selector by the US flag (currently mocked with US data)
+      const regionButton = screen.getByText('🇺🇸').parent;
+      fireEvent.press(regionButton);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: expect.any(Object),
+      });
+    });
   });
 
   describe('Payment Method Selection', () => {
@@ -218,32 +370,52 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
         params: {
-          handleSelectPaymentMethodId: expect.any(Function),
-          selectedPaymentMethodId: 'credit_debit_card',
+          paymentMethods: [
+            {
+              id: 'credit_debit_card',
+              name: 'Credit/Debit Card',
+              iconName: 'card',
+              duration: '2-5 minutes',
+              fees: '3.99% + network fees',
+            },
+            {
+              id: 'debit_card',
+              name: 'Debit Card',
+              iconName: 'card',
+              duration: 'Instant',
+              fees: '3.99% + network fees',
+            },
+          ],
         },
       });
     });
 
-    it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
+    it('does not open payment method modal when payment methods error occurs', () => {
+      mockUsePaymentMethods.mockReturnValue(MOCK_USE_PAYMENT_METHODS_ERROR);
+
       render(BuildQuote);
-      const payWithButton = screen.getByText('Pay with');
-      fireEvent.press(payWithButton);
+      // Payment method selector is now always shown but disabled when error occurs
+      const paymentButton = screen.getByText('Pay with').parent.parent;
+      fireEvent.press(paymentButton);
 
-      act(() =>
-        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId(
-          'credit_debit_card',
-        ),
-      );
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: expect.any(Object),
+      });
+    });
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_PAYMENT_METHOD_SELECTED',
-        {
-          ramp_type: 'DEPOSIT',
-          region: 'US',
-          payment_method_id: 'credit_debit_card',
-          is_authenticated: false,
-        },
-      );
+    it('does not open payment method modal when payment methods array is empty', () => {
+      mockUsePaymentMethods.mockReturnValue(MOCK_USE_PAYMENT_METHODS_EMPTY);
+
+      render(BuildQuote);
+      // Payment method selector is now always shown but disabled when empty
+      const paymentButton = screen.getByText('Pay with').parent.parent;
+      fireEvent.press(paymentButton);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositPaymentMethodSelectorModal',
+        params: expect.any(Object),
+      });
     });
   });
 
@@ -255,32 +427,47 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
         params: {
-          handleSelectAssetId: expect.any(Function),
-          selectedAssetId:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          cryptoCurrencies: [
+            {
+              assetId:
+                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              chainId: 'eip155:1',
+              name: 'USD Coin',
+              symbol: 'USDC',
+              decimals: 6,
+              iconUrl:
+                'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+            },
+          ],
         },
       });
     });
 
-    it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
+    it('does not open token modal when crypto currencies error occurs', () => {
+      mockUseCryptoCurrencies.mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_ERROR);
+
       render(BuildQuote);
-      const tokenButton = screen.getByText('USDC');
+      // Token selector shows USDC (from test data) instead of MUSD
+      const tokenButton = screen.getByText('USDC').parent;
       fireEvent.press(tokenButton);
 
-      act(() =>
-        mockNavigate.mock.calls[0][1].params.handleSelectAssetId(
-          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        ),
-      );
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: expect.any(Object),
+      });
+    });
 
-      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
-        ramp_type: 'DEPOSIT',
-        region: 'US',
-        chain_id: 'eip155:1',
-        currency_destination:
-          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        currency_source: 'USD',
-        is_authenticated: false,
+    it('does not open token modal when crypto currencies array is empty', () => {
+      mockUseCryptoCurrencies.mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_EMPTY);
+
+      render(BuildQuote);
+      // Token selector shows USDC (from test data) instead of MUSD
+      const tokenSelector = screen.getByText('USDC').parent;
+      fireEvent.press(tokenSelector);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: expect.any(Object),
       });
     });
   });
@@ -321,8 +508,8 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockGetQuote).toHaveBeenCalledWith(
           'USD',
-          'USDC',
-          'ethereum',
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          'eip155:1',
           'credit_debit_card',
           '0',
         );
@@ -618,8 +805,8 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockGetQuote).toHaveBeenCalledWith(
           'USD',
-          'USDC',
-          'ethereum',
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          'eip155:1',
           'credit_debit_card',
           '0',
         );

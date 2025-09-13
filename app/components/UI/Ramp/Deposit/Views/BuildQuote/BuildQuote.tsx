@@ -1,10 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex, isHexString } from '@metamask/utils';
 
 import styleSheet from './BuildQuote.styles';
 
@@ -44,9 +42,12 @@ import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import useAnalytics from '../../../hooks/useAnalytics';
-import useSupportedTokens from '../../hooks/useSupportedTokens';
-import usePaymentMethods from '../../hooks/usePaymentMethods';
+import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
+import { useRegions } from '../../hooks/useRegions';
+import { usePaymentMethods } from '../../hooks/usePaymentMethods';
 import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
+import SdkErrorAlert from '../../components/SdkErrorAlert/SdkErrorAlert';
+import TruncatedError from '../../components/TruncatedError/TruncatedError';
 
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
@@ -55,31 +56,14 @@ import { createUnsupportedRegionModalNavigationDetails } from '../Modals/Unsuppo
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
 import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
-import {
-  getTransakCryptoCurrencyId,
-  getTransakFiatCurrencyId,
-  getTransakChainId,
-  getTransakPaymentMethodId,
-  formatCurrency,
-} from '../../utils';
+import { formatCurrency } from '../../utils';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../../../../selectors/networkController';
-import {
-  DepositCryptoCurrency,
-  DepositPaymentMethod,
-  USD_CURRENCY,
-  DepositFiatCurrency,
-  EUR_CURRENCY,
-  DEBIT_CREDIT_PAYMENT_METHOD,
-} from '../../constants';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -100,42 +84,58 @@ const BuildQuote = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
 
-  const chainId = useSelector(selectChainId);
-  const supportedTokens = useSupportedTokens();
-  const paymentMethods = usePaymentMethods();
+  // Waterfall: fetch regions, crypto currencies, and payment methods
+  const {
+    regions,
+    isFetching: isFetchingRegions,
+    error: regionsError,
+    retryFetchRegions,
+  } = useRegions();
+  const {
+    cryptoCurrencies,
+    isFetching: isFetchingCryptos,
+    error: cryptosError,
+    retryFetchCryptoCurrencies,
+  } = useCryptoCurrencies();
+  const {
+    paymentMethods,
+    isFetching: isFetchingPaymentMethods,
+    error: paymentMethodsError,
+    retryFetchPaymentMethods,
+  } = usePaymentMethods();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const hasHandledImmediateRoute = useRef(false);
 
-  const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
-  );
-  const [cryptoCurrency, setCryptoCurrency] = useState<DepositCryptoCurrency>(
-    supportedTokens[0],
-  );
+  const {
+    isAuthenticated,
+    selectedRegion,
+    selectedPaymentMethod,
+    selectedCryptoCurrency,
+  } = useDepositSDK();
 
-  const [fiatCurrency, setFiatCurrency] =
-    useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
-  const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
+  const isAccountTokenCompatible = useAccountTokenCompatible(
+    selectedCryptoCurrency,
+  );
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting({
-      cryptoCurrencyChainId: cryptoCurrency.chainId,
-      paymentMethodId: paymentMethod.id,
+      cryptoCurrencyChainId: selectedCryptoCurrency?.chainId || '',
+      paymentMethodId: selectedPaymentMethod?.id || '',
     });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
-    fiatCurrency.id,
-    cryptoCurrency.assetId,
-    cryptoCurrency.chainId,
-    paymentMethod.id,
+    selectedRegion?.currency || '',
+    selectedCryptoCurrency?.assetId || '',
+    selectedCryptoCurrency?.chainId || '',
+    selectedPaymentMethod?.id || '',
     amount,
   );
 
@@ -144,10 +144,10 @@ const BuildQuote = () => {
     isLoading: isLoadingTokenAmount,
     error: errorLoadingTokenAmount,
   } = useDepositTokenExchange({
-    fiatCurrency,
+    fiatCurrency: selectedRegion?.currency || 'USD',
     fiatAmount: amount,
-    token: cryptoCurrency,
-    tokens: supportedTokens,
+    token: selectedCryptoCurrency,
+    tokens: cryptoCurrencies,
   });
 
   useEffect(() => {
@@ -179,61 +179,17 @@ const BuildQuote = () => {
     });
   }, []);
 
-  useEffect(() => {
-    if (selectedRegion?.currency) {
-      if (selectedRegion.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
-      } else if (selectedRegion.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
-      }
-    }
-  }, [selectedRegion?.currency]);
-
-  useEffect(() => {
-    if (selectedRegion?.isoCode && paymentMethods.length > 0) {
-      const isPaymentMethodSupported = paymentMethods.some(
-        (method) => method.id === paymentMethod.id,
-      );
-
-      if (!isPaymentMethodSupported) {
-        setPaymentMethod(paymentMethods[0]);
-      }
-    }
-  }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
-
-  useEffect(() => {
-    if (supportedTokens.length > 0) {
-      let caipChainId;
-      if (isHexString(chainId)) {
-        caipChainId = toEvmCaipChainId(chainId as Hex);
-      } else {
-        caipChainId = chainId;
-      }
-
-      if (cryptoCurrency.chainId !== caipChainId) {
-        const token = supportedTokens.find(
-          (supportedToken) => supportedToken.chainId === caipChainId,
-        );
-        if (token) {
-          setCryptoCurrency(token);
-          return;
-        }
-      }
-
-      if (
-        !supportedTokens.some(
-          (token) => token.assetId === cryptoCurrency.assetId,
-        )
-      ) {
-        setCryptoCurrency(supportedTokens[0]);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, supportedTokens]);
-
   const handleRegionPress = useCallback(() => {
-    navigation.navigate(...createRegionSelectorModalNavigationDetails());
-  }, [navigation]);
+    if (regionsError || !regions || regions.length === 0) {
+      // Don't open modal if there's an error or no data
+      return;
+    }
+
+    // Normal case: show regions
+    navigation.navigate(
+      ...createRegionSelectorModalNavigationDetails({ regions }),
+    );
+  }, [navigation, regions, regionsError]);
 
   useFocusEffect(
     useCallback(() => {
@@ -254,6 +210,9 @@ const BuildQuote = () => {
   }, [navigation]);
 
   const handleOnPressContinue = useCallback(async () => {
+    if (!selectedCryptoCurrency || !selectedPaymentMethod) {
+      return;
+    }
     if (!isAccountTokenCompatible) {
       handleNavigateToIncompatibleAccountTokenModal();
       return;
@@ -267,8 +226,8 @@ const BuildQuote = () => {
         name: TraceName.DepositContinueFlow,
         tags: {
           amount: amountAsNumber,
-          currency: cryptoCurrency.symbol,
-          paymentMethod: paymentMethod.id,
+          currency: selectedCryptoCurrency?.symbol || '',
+          paymentMethod: selectedPaymentMethod?.id || '',
           authenticated: isAuthenticated,
         },
       });
@@ -278,22 +237,16 @@ const BuildQuote = () => {
       trackEvent('RAMPS_ORDER_PROPOSED', {
         ramp_type: 'DEPOSIT',
         amount_source: amountAsNumber,
-        amount_destination: Number(tokenAmount),
-        payment_method_id: paymentMethod.id,
+        amount_destination: Number(tokenAmount) || 0,
+        payment_method_id: selectedPaymentMethod?.id || '',
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
-        currency_source: fiatCurrency.id,
+        chain_id: selectedCryptoCurrency?.chainId || '',
+        currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_source: selectedRegion?.currency || '',
         is_authenticated: isAuthenticated,
       });
 
-      quote = await getQuote(
-        getTransakFiatCurrencyId(fiatCurrency),
-        getTransakCryptoCurrencyId(cryptoCurrency),
-        getTransakChainId(cryptoCurrency.chainId),
-        getTransakPaymentMethodId(paymentMethod),
-        amount,
-      );
+      quote = await getQuote();
 
       if (!quote) {
         throw new Error(strings('deposit.buildQuote.quoteFetchError'));
@@ -319,12 +272,12 @@ const BuildQuote = () => {
       trackEvent('RAMPS_ORDER_FAILED', {
         ramp_type: 'DEPOSIT',
         amount_source: amountAsNumber,
-        amount_destination: Number(tokenAmount),
-        payment_method_id: paymentMethod.id,
+        amount_destination: Number(tokenAmount) || 0,
+        payment_method_id: selectedPaymentMethod?.id || '',
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
-        currency_source: fiatCurrency.id,
+        chain_id: selectedCryptoCurrency?.chainId || '',
+        currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_source: selectedRegion?.currency || '',
         error_message: 'BuildQuote - Error fetching quote',
         is_authenticated: isAuthenticated,
       });
@@ -358,11 +311,11 @@ const BuildQuote = () => {
             ?.value || 0,
         ),
         total_fee: Number(quote.totalFee || 0),
-        payment_method_id: quote.paymentMethod,
+        payment_method_id: selectedPaymentMethod?.id || '',
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
-        currency_source: quote.fiatCurrency,
+        chain_id: selectedCryptoCurrency?.chainId || '',
+        currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_source: selectedRegion?.currency || '',
       });
 
       await routeAfterAuthentication(quote);
@@ -375,12 +328,12 @@ const BuildQuote = () => {
       trackEvent('RAMPS_ORDER_FAILED', {
         ramp_type: 'DEPOSIT',
         amount_source: quote?.fiatAmount || amountAsNumber,
-        amount_destination: quote?.cryptoAmount || Number(tokenAmount),
-        payment_method_id: quote?.paymentMethod || paymentMethod.id,
+        amount_destination: quote?.cryptoAmount || Number(tokenAmount) || 0,
+        payment_method_id: selectedPaymentMethod?.id || '',
         region: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency.chainId,
-        currency_destination: cryptoCurrency.assetId,
-        currency_source: quote?.fiatCurrency || fiatCurrency.id,
+        chain_id: selectedCryptoCurrency?.chainId || '',
+        currency_destination: selectedCryptoCurrency?.assetId || '',
+        currency_source: selectedRegion?.currency || '',
         error_message: 'BuildQuote - Error handling authentication',
         is_authenticated: isAuthenticated,
       });
@@ -400,13 +353,12 @@ const BuildQuote = () => {
     trackEvent,
     amountAsNumber,
     tokenAmount,
-    paymentMethod,
+    selectedPaymentMethod,
     selectedRegion?.isoCode,
-    cryptoCurrency,
-    fiatCurrency,
+    selectedCryptoCurrency,
+    selectedRegion?.currency,
     isAuthenticated,
     getQuote,
-    amount,
     routeAfterAuthentication,
     navigateToVerifyIdentity,
     shouldRouteImmediately,
@@ -425,247 +377,307 @@ const BuildQuote = () => {
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
     },
-    [],
+    [setAmount, setAmountAsNumber, setError],
   );
 
-  const handleSelectAssetId = useCallback(
-    (assetId: string) => {
-      const selectedToken = supportedTokens.find(
-        (token) => token.assetId === assetId,
-      );
-      if (selectedToken) {
-        trackEvent('RAMPS_TOKEN_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-          chain_id: selectedToken.chainId,
-          currency_destination: selectedToken.assetId,
-          currency_source: fiatCurrency.id,
-          is_authenticated: isAuthenticated,
-        });
-        setCryptoCurrency(selectedToken);
-      }
-      setError(null);
-    },
-    [
-      supportedTokens,
-      trackEvent,
-      selectedRegion?.isoCode,
-      fiatCurrency.id,
-      isAuthenticated,
-    ],
-  );
+  const handleCryptoPress = useCallback(() => {
+    if (cryptosError || !cryptoCurrencies || cryptoCurrencies.length === 0) {
+      // Don't open modal if there's an error or no data
+      return;
+    }
 
-  const handleCryptoPress = useCallback(
-    () =>
-      navigation.navigate(
-        ...createTokenSelectorModalNavigationDetails({
-          selectedAssetId: cryptoCurrency.assetId,
-          handleSelectAssetId,
-        }),
-      ),
-    [cryptoCurrency, navigation, handleSelectAssetId],
-  );
-
-  const handleSelectPaymentMethodId = useCallback(
-    (selectedPaymentMethodId: string) => {
-      const selectedPaymentMethod = paymentMethods.find(
-        (_paymentMethod) => _paymentMethod.id === selectedPaymentMethodId,
-      );
-      if (selectedPaymentMethod) {
-        trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-          payment_method_id: selectedPaymentMethod.id,
-          is_authenticated: isAuthenticated,
-        });
-        setPaymentMethod(selectedPaymentMethod);
-      }
-      setError(null);
-    },
-    [paymentMethods, trackEvent, selectedRegion?.isoCode, isAuthenticated],
-  );
+    // Normal case: show crypto currencies
+    navigation.navigate(
+      ...createTokenSelectorModalNavigationDetails({ cryptoCurrencies }),
+    );
+  }, [navigation, cryptoCurrencies, cryptosError]);
 
   const handlePaymentMethodPress = useCallback(() => {
+    if (paymentMethodsError || !paymentMethods || paymentMethods.length === 0) {
+      // Don't open modal if there's an error or no data
+      return;
+    }
+
+    // Normal case: show payment methods
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
-        selectedPaymentMethodId: paymentMethod.id,
-        handleSelectPaymentMethodId,
+        paymentMethods,
       }),
     );
-  }, [handleSelectPaymentMethodId, navigation, paymentMethod.id]);
+  }, [navigation, paymentMethods, paymentMethodsError]);
 
-  const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;
-  const networkImageSource = getNetworkImageSource({
-    chainId: cryptoCurrency.chainId,
-  });
+  const networkName =
+    allNetworkConfigurations[selectedCryptoCurrency?.chainId ?? '']?.name;
+
+  const networkImageSource = selectedCryptoCurrency?.chainId
+    ? getNetworkImageSource({
+        chainId: selectedCryptoCurrency.chainId,
+      })
+    : null;
 
   useEffect(() => {
-    if (shouldRouteImmediately) {
+    if (shouldRouteImmediately && !hasHandledImmediateRoute.current) {
+      hasHandledImmediateRoute.current = true;
       navigation.setParams({
         shouldRouteImmediately: false,
       });
       handleOnPressContinue();
     }
-  }, [handleOnPressContinue, shouldRouteImmediately, navigation]);
+  }, [shouldRouteImmediately, handleOnPressContinue, navigation]);
 
-  return (
-    <ScreenLayout>
-      <ScreenLayout.Body>
-        <ScreenLayout.Content style={styles.content}>
-          <View style={styles.selectionRow}>
-            <AccountSelector isEvmOnly={false} />
-            <TouchableOpacity
-              style={styles.fiatSelector}
-              onPress={handleRegionPress}
-            >
-              <View style={styles.regionContent}>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>
-                  {selectedRegion?.isoCode}
-                </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Sm}
-                  color={theme.colors.icon.alternative}
-                />
-              </View>
-            </TouchableOpacity>
-          </View>
+  try {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content style={styles.content}>
+            {/* SDK Error Alerts */}
+            <SdkErrorAlert
+              error={regionsError}
+              onRetry={retryFetchRegions}
+              isRetrying={isFetchingRegions}
+              errorType="regions"
+            />
+            <SdkErrorAlert
+              error={cryptosError}
+              onRetry={retryFetchCryptoCurrencies}
+              isRetrying={isFetchingCryptos}
+              errorType="tokens"
+            />
+            <SdkErrorAlert
+              error={paymentMethodsError}
+              onRetry={retryFetchPaymentMethods}
+              isRetrying={isFetchingPaymentMethods}
+              errorType="paymentMethods"
+            />
 
-          <View style={styles.centerGroup}>
-            <View>
-              <Text
-                variant={TextVariant.HeadingLG}
-                style={styles.mainAmount}
-                numberOfLines={1}
-                adjustsFontSizeToFit
+            <View style={styles.selectionRow}>
+              <AccountSelector isEvmOnly={false} />
+              <TouchableOpacity
+                style={styles.fiatSelector}
+                onPress={handleRegionPress}
+                disabled={!!regionsError || !regions || regions.length === 0}
               >
-                {formatCurrency(amountAsNumber, fiatCurrency.id, {
-                  currencyDisplay: 'narrowSymbol',
-                  maximumFractionDigits: 0,
-                })}
-              </Text>
-
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.convertedAmount}
-              >
-                {isLoadingTokenAmount || errorLoadingTokenAmount ? (
-                  ' '
-                ) : (
-                  <>
-                    {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
-                    {cryptoCurrency.symbol}
-                  </>
-                )}
-              </Text>
+                <View style={styles.regionContent}>
+                  {!selectedRegion ? (
+                    <>
+                      <Text variant={TextVariant.BodyMD}>🏳️</Text>
+                      <Text variant={TextVariant.BodyMD}>—</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text variant={TextVariant.BodyMD}>
+                        {selectedRegion?.flag}
+                      </Text>
+                      <Text variant={TextVariant.BodyMD}>
+                        {selectedRegion?.isoCode}
+                      </Text>
+                    </>
+                  )}
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={theme.colors.icon.alternative}
+                  />
+                </View>
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={handleCryptoPress}>
-              <View style={styles.cryptoPill}>
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <BadgeNetwork
-                      name={networkName}
-                      imageSource={networkImageSource}
-                    />
-                  }
+            <View style={styles.centerGroup}>
+              <View>
+                <Text
+                  variant={TextVariant.HeadingLG}
+                  style={styles.mainAmount}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
-                  <AvatarToken
-                    name={cryptoCurrency.name}
-                    imageSource={{ uri: cryptoCurrency.iconUrl }}
-                    size={AvatarSize.Md}
-                  />
-                </BadgeWrapper>
-                <Text variant={TextVariant.HeadingLG}>
-                  {cryptoCurrency.symbol}
+                  {formatCurrency(
+                    amountAsNumber,
+                    selectedRegion?.currency || 'USD',
+                    {
+                      currencyDisplay: 'narrowSymbol',
+                      maximumFractionDigits: 0,
+                    },
+                  )}
                 </Text>
 
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Sm}
-                  color={theme.colors.icon.alternative}
-                />
-              </View>
-            </TouchableOpacity>
-            {error && (
-              <View style={styles.errorContainer}>
                 <Text
                   variant={TextVariant.BodyMD}
-                  color={TextColor.Error}
-                  style={styles.errorText}
+                  color={TextColor.Alternative}
+                  style={styles.convertedAmount}
                 >
-                  {error}
+                  {isLoadingTokenAmount ||
+                  errorLoadingTokenAmount ||
+                  !selectedCryptoCurrency ||
+                  isFetchingCryptos ||
+                  !cryptoCurrencies ||
+                  cryptoCurrencies.length === 0 ? (
+                    ' '
+                  ) : (
+                    <>
+                      {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                      {selectedCryptoCurrency.symbol}
+                    </>
+                  )}
                 </Text>
               </View>
-            )}
-          </View>
 
-          <TouchableOpacity
-            style={styles.paymentMethodBox}
-            onPress={handlePaymentMethodPress}
-          >
-            <ListItem gap={8}>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodyMD}>
-                  {strings('deposit.buildQuote.payWith')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {paymentMethod.name}
-                </Text>
-              </ListItemColumn>
-
-              <ListItemColumn>
-                <TagBase
-                  includesBorder
-                  textProps={{ variant: TextVariant.BodySM }}
-                >
-                  {strings(
-                    `deposit.payment_duration.${paymentMethod.duration}`,
+              <TouchableOpacity
+                onPress={handleCryptoPress}
+                disabled={
+                  !!cryptosError ||
+                  !cryptoCurrencies ||
+                  cryptoCurrencies.length === 0
+                }
+              >
+                <View style={styles.cryptoPill}>
+                  {!selectedCryptoCurrency ? (
+                    <>
+                      <AvatarToken
+                        name="MUSD"
+                        imageSource={{ uri: '' }}
+                        size={AvatarSize.Md}
+                      />
+                      <Text variant={TextVariant.HeadingLG}>MUSD</Text>
+                    </>
+                  ) : (
+                    <>
+                      <BadgeWrapper
+                        badgePosition={BadgePosition.BottomRight}
+                        badgeElement={
+                          networkImageSource ? (
+                            <BadgeNetwork
+                              name={networkName}
+                              imageSource={networkImageSource}
+                            />
+                          ) : null
+                        }
+                      >
+                        <AvatarToken
+                          name={selectedCryptoCurrency?.name || ''}
+                          imageSource={{
+                            uri: selectedCryptoCurrency?.iconUrl || '',
+                          }}
+                          size={AvatarSize.Md}
+                        />
+                      </BadgeWrapper>
+                      <Text variant={TextVariant.HeadingLG}>
+                        {selectedCryptoCurrency?.symbol}
+                      </Text>
+                    </>
                   )}
-                </TagBase>
-              </ListItemColumn>
-              <ListItemColumn>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Md}
-                  color={theme.colors.icon.alternative}
-                />
-              </ListItemColumn>
-            </ListItem>
-          </TouchableOpacity>
 
-          <Keypad
-            value={amount}
-            onChange={handleKeypadChange}
-            currency={fiatCurrency.symbol}
-            decimals={0}
-            periodButtonProps={{
-              isDisabled: true,
-            }}
-          />
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Button
-            size={ButtonSize.Lg}
-            onPress={handleOnPressContinue}
-            label={'Continue'}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            isDisabled={amountAsNumber <= 0 || isLoading}
-            loading={isLoading}
-          />
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
-    </ScreenLayout>
-  );
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Sm}
+                    color={theme.colors.icon.alternative}
+                  />
+                </View>
+              </TouchableOpacity>
+              {error && <TruncatedError error={error} />}
+            </View>
+
+            <TouchableOpacity
+              style={styles.paymentMethodBox}
+              onPress={handlePaymentMethodPress}
+              disabled={
+                !!paymentMethodsError ||
+                !paymentMethods ||
+                paymentMethods.length === 0
+              }
+            >
+              <ListItem gap={8}>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <Text variant={TextVariant.BodyMD}>
+                    {strings('deposit.buildQuote.payWith')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    {selectedPaymentMethod?.name || ' '}
+                  </Text>
+                </ListItemColumn>
+
+                <ListItemColumn>
+                  <TagBase
+                    includesBorder
+                    textProps={{ variant: TextVariant.BodySM }}
+                  >
+                    {strings('deposit.payment_duration.instant')}
+                  </TagBase>
+                </ListItemColumn>
+                <ListItemColumn>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Md}
+                    color={theme.colors.icon.alternative}
+                  />
+                </ListItemColumn>
+              </ListItem>
+            </TouchableOpacity>
+
+            <Keypad
+              value={amount}
+              onChange={handleKeypadChange}
+              currency={selectedRegion?.currency}
+              decimals={0}
+              periodButtonProps={{
+                isDisabled: true,
+              }}
+            />
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <Button
+              size={ButtonSize.Lg}
+              onPress={handleOnPressContinue}
+              label={'Continue'}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+              isDisabled={
+                amountAsNumber <= 0 ||
+                isLoading ||
+                !!regionsError ||
+                !!cryptosError ||
+                !!paymentMethodsError ||
+                !selectedRegion ||
+                !selectedCryptoCurrency ||
+                !selectedPaymentMethod
+              }
+              loading={isLoading}
+            />
+            <Button
+              size={ButtonSize.Md}
+              onPress={clearAllSelections}
+              label={'Clear All Selections'}
+              variant={ButtonVariants.Secondary}
+              width={ButtonWidthTypes.Full}
+              twClassName="mt-4"
+            />
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
+      </ScreenLayout>
+    );
+  } catch (renderError) {
+    console.error('BuildQuote Debug - Error caught in component:', renderError);
+    console.error(
+      'BuildQuote Debug - Error stack:',
+      renderError instanceof Error ? renderError.stack : 'No stack trace',
+    );
+
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+              Error: {error instanceof Error ? error.message : 'Unknown error'}
+            </Text>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 };
 
 export default BuildQuote;

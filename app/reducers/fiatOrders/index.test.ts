@@ -39,6 +39,10 @@ import fiatOrderReducer, {
   fiatOrdersGetStartedDeposit,
   setFiatOrdersRegionAGG,
   setFiatOrdersRegionDeposit,
+  fiatOrdersCryptoCurrencySelectorDeposit,
+  setFiatOrdersCryptoCurrencyDeposit,
+  fiatOrdersPaymentMethodSelectorDeposit,
+  setFiatOrdersPaymentMethodDeposit,
   updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
@@ -449,6 +453,61 @@ describe('fiatOrderReducer', () => {
     expect(stateWithoutSelectedDepositRegion.selectedRegionDeposit).toEqual(
       null,
     );
+  });
+
+  it('should set the selected deposit crypto currency', () => {
+    const testDepositCryptoCurrency = {
+      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chainId: 'eip155:1',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      decimals: 6,
+      iconUrl:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+    };
+    const stateWithSelectedDepositCryptoCurrency = fiatOrderReducer(
+      initialState,
+      setFiatOrdersCryptoCurrencyDeposit(testDepositCryptoCurrency),
+    );
+    const stateWithoutSelectedDepositCryptoCurrency = fiatOrderReducer(
+      stateWithSelectedDepositCryptoCurrency,
+      setFiatOrdersCryptoCurrencyDeposit(null),
+    );
+
+    expect(
+      stateWithSelectedDepositCryptoCurrency.selectedCryptoCurrencyDeposit,
+    ).toEqual(testDepositCryptoCurrency);
+    expect(
+      stateWithoutSelectedDepositCryptoCurrency.selectedCryptoCurrencyDeposit,
+    ).toEqual(null);
+  });
+
+  it('should set the selected deposit payment method', () => {
+    const testDepositPaymentMethod = {
+      id: 'credit_debit_card',
+      name: 'Debit or Credit',
+      iconUrl: 'https://example.com/icon.png',
+      delay: {
+        min: 5,
+        max: 15,
+        unit: 'minutes',
+      },
+    };
+    const stateWithSelectedDepositPaymentMethod = fiatOrderReducer(
+      initialState,
+      setFiatOrdersPaymentMethodDeposit(testDepositPaymentMethod),
+    );
+    const stateWithoutSelectedDepositPaymentMethod = fiatOrderReducer(
+      stateWithSelectedDepositPaymentMethod,
+      setFiatOrdersPaymentMethodDeposit(null),
+    );
+
+    expect(
+      stateWithSelectedDepositPaymentMethod.selectedPaymentMethodDeposit,
+    ).toEqual(testDepositPaymentMethod);
+    expect(
+      stateWithoutSelectedDepositPaymentMethod.selectedPaymentMethodDeposit,
+    ).toEqual(null);
   });
 
   it('should set the selected payment method', () => {
@@ -891,6 +950,73 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersRegionSelectorDeposit(state)).toEqual(null);
+    });
+  });
+
+  describe('fiatOrdersCryptoCurrencySelectorDeposit', () => {
+    it('should return the selected deposit crypto currency', () => {
+      const testDepositCryptoCurrency = {
+        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainId: 'eip155:1',
+        name: 'USD Coin',
+        symbol: 'USDC',
+        decimals: 6,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+      };
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedCryptoCurrencyDeposit: testDepositCryptoCurrency,
+        },
+      });
+
+      expect(fiatOrdersCryptoCurrencySelectorDeposit(state)).toEqual(
+        testDepositCryptoCurrency,
+      );
+    });
+
+    it('should return null when no deposit crypto currency is selected', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedCryptoCurrencyDeposit: null,
+        },
+      });
+
+      expect(fiatOrdersCryptoCurrencySelectorDeposit(state)).toEqual(null);
+    });
+  });
+
+  describe('fiatOrdersPaymentMethodSelectorDeposit', () => {
+    it('should return the selected deposit payment method', () => {
+      const testDepositPaymentMethod = {
+        id: 'credit_debit_card',
+        name: 'Debit or Credit',
+        iconUrl: 'https://example.com/icon.png',
+        delay: {
+          min: 5,
+          max: 15,
+          unit: 'minutes',
+        },
+      };
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedPaymentMethodDeposit: testDepositPaymentMethod,
+        },
+      });
+
+      expect(fiatOrdersPaymentMethodSelectorDeposit(state)).toEqual(
+        testDepositPaymentMethod,
+      );
+    });
+
+    it('should return null when no deposit payment method is selected', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedPaymentMethodDeposit: null,
+        },
+      });
+
+      expect(fiatOrdersPaymentMethodSelectorDeposit(state)).toEqual(null);
     });
   });
 

@@ -26,11 +26,14 @@ function validMethodParams<T extends keyof NativeRampsSdk>(
   const parameters: {
     required: boolean;
   }[] = ServicesSignatures.NativeRampsSdk[method].parameters;
-  return parameters.every(({ required }, index) => {
-    if (!required) return true;
 
-    return params[index] != null;
+  const result = parameters.every(({ required }, index) => {
+    const isValid = !required || params[index] != null;
+
+    return isValid;
   });
+
+  return result;
 }
 
 /**
@@ -143,10 +146,12 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
           const methodParams = abortController
             ? [...queryParams, abortController]
             : queryParams;
+
           // @ts-expect-error spreading params error
           const response = (await sdk[method](...methodParams)) as Awaited<
             ReturnType<NativeRampsSdk[T]>
           >;
+
           setData(response);
           setIsFetching(false);
 
@@ -173,6 +178,7 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
     if (onMount) {
       query();
     }
+
     return () => {
       abortControllerRef.current?.abort();
     };

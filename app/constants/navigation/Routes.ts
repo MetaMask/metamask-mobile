@@ -48,6 +48,7 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
       SSN_INFO: 'SsnInfoModal',
       CONFIGURATION: 'DepositConfigurationModal',
+      ERROR_DETAILS: 'DepositErrorDetailsModal',
     },
   },
   HW: {
