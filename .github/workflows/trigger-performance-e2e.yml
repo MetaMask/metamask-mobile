@@ -101,7 +101,9 @@ jobs:
     with:
       platform: android
       build_type: onboarding
-      device_matrix: ${{ matrix.device }}
+      device_name: ${{ matrix.device.name }}
+      device_os_version: ${{ matrix.device.os_version }}
+      device_category: ${{ matrix.device.category }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
@@ -120,7 +122,9 @@ jobs:
     with:
       platform: ios
       build_type: onboarding
-      device_matrix: ${{ matrix.device }}
+      device_name: ${{ matrix.device.name }}
+      device_os_version: ${{ matrix.device.os_version }}
+      device_category: ${{ matrix.device.category }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
@@ -143,7 +147,9 @@ jobs:
     with:
       platform: android
       build_type: imported-wallet
-      device_matrix: ${{ matrix.device }}
+      device_name: ${{ matrix.device.name }}
+      device_os_version: ${{ matrix.device.os_version }}
+      device_category: ${{ matrix.device.category }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
@@ -162,7 +168,9 @@ jobs:
     with:
       platform: ios
       build_type: imported-wallet
-      device_matrix: ${{ matrix.device }}
+      device_name: ${{ matrix.device.name }}
+      device_os_version: ${{ matrix.device.os_version }}
+      device_category: ${{ matrix.device.category }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
