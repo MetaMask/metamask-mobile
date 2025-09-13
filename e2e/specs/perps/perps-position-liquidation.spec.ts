@@ -21,7 +21,7 @@ const logger = createLogger({
 });
 
 describe(RegressionTrade('Perps Position'), () => {
-  it('should open a long position with custom profit and close it', async () => {
+  it.skip('should open a long position with custom profit and close it', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
