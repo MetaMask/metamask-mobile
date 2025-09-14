@@ -101,21 +101,27 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   // Use the current market price if available, otherwise use entry price
   // For new orders, use initialCurrentPrice
   // For existing positions, prefer live price over initial price over entry price
-  const currentPrice =
+  const spotPrice =
     livePrice ||
     initialCurrentPrice ||
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
 
+  // For display purposes, use limit price for limit orders, otherwise use spot price
+  const currentPrice =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+      ? parseFloat(limitPrice)
+      : spotPrice;
+
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
-  // For market orders or when limit price is not set, use current price
+  // For market orders or when limit price is not set, use spot price
   // Ensure we always have a valid price > 0 for calculations
   const effectiveEntryPrice = position?.entryPrice
     ? parseFloat(position.entryPrice)
     : orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
     ? parseFloat(limitPrice)
-    : currentPrice > 0
-    ? currentPrice
+    : spotPrice > 0
+    ? spotPrice
     : livePrice || initialCurrentPrice || 0;
 
   // Determine direction for tracking events
@@ -305,7 +311,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         <View style={styles.priceInfoContainer}>
           <View style={styles.priceInfoRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.tpsl.current_price')}
+              {orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+                ? strings('perps.order.limit_price')
+                : strings('perps.tpsl.current_price')}
             </Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {currentPrice
