@@ -239,6 +239,8 @@ jobs:
       
       - name: Generate Test Summary
         id: summary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           {
             echo "summary<<EOF"
