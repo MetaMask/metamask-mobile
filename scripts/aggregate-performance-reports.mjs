@@ -118,9 +118,65 @@ function extractPlatformAndScenario(filePath) {
       console.log(`✅ Detected iOS combined from artifact`);
     } else {
       console.log(`⚠️ Could not detect platform/scenario from artifact: ${artifactMatch}`);
+      // Fallback: try to extract from the full path
+      if (filePath.includes('android') && filePath.includes('imported-wallet')) {
+        platform = 'android';
+        platformKey = 'Android';
+        scenario = 'imported-wallet';
+        scenarioKey = 'ImportedWallet';
+        console.log(`✅ Fallback: Detected Android imported wallet from path`);
+      } else if (filePath.includes('android') && filePath.includes('onboarding')) {
+        platform = 'android';
+        platformKey = 'Android';
+        scenario = 'onboarding';
+        scenarioKey = 'Onboarding';
+        console.log(`✅ Fallback: Detected Android onboarding from path`);
+      } else if (filePath.includes('ios') && filePath.includes('imported-wallet')) {
+        platform = 'ios';
+        platformKey = 'iOS';
+        scenario = 'imported-wallet';
+        scenarioKey = 'ImportedWallet';
+        console.log(`✅ Fallback: Detected iOS imported wallet from path`);
+      } else if (filePath.includes('ios') && filePath.includes('onboarding')) {
+        platform = 'ios';
+        platformKey = 'iOS';
+        scenario = 'onboarding';
+        scenarioKey = 'Onboarding';
+        console.log(`✅ Fallback: Detected iOS onboarding from path`);
+      } else {
+        console.log(`❌ Could not determine platform/scenario from path: ${filePath}`);
+      }
     }
   } else {
     console.log(`⚠️ Could not find artifact pattern in path: ${filePath}`);
+    // Fallback: try to extract from the full path
+    if (filePath.includes('android') && filePath.includes('imported-wallet')) {
+      platform = 'android';
+      platformKey = 'Android';
+      scenario = 'imported-wallet';
+      scenarioKey = 'ImportedWallet';
+      console.log(`✅ Fallback: Detected Android imported wallet from path`);
+    } else if (filePath.includes('android') && filePath.includes('onboarding')) {
+      platform = 'android';
+      platformKey = 'Android';
+      scenario = 'onboarding';
+      scenarioKey = 'Onboarding';
+      console.log(`✅ Fallback: Detected Android onboarding from path`);
+    } else if (filePath.includes('ios') && filePath.includes('imported-wallet')) {
+      platform = 'ios';
+      platformKey = 'iOS';
+      scenario = 'imported-wallet';
+      scenarioKey = 'ImportedWallet';
+      console.log(`✅ Fallback: Detected iOS imported wallet from path`);
+    } else if (filePath.includes('ios') && filePath.includes('onboarding')) {
+      platform = 'ios';
+      platformKey = 'iOS';
+      scenario = 'onboarding';
+      scenarioKey = 'Onboarding';
+      console.log(`✅ Fallback: Detected iOS onboarding from path`);
+    } else {
+      console.log(`❌ Could not determine platform/scenario from path: ${filePath}`);
+    }
   }
   
   return { platform, platformKey, scenario, scenarioKey };
