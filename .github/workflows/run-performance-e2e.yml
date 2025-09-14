@@ -1,6 +1,7 @@
-name: Performance E2E Test Manual WorkFlow
-
+name: Build Apps and Run Performance E2E Tests
 on:
+  schedule:
+    - cron: '0 3 * * 1-6'
   workflow_dispatch:
     inputs:
       description:
