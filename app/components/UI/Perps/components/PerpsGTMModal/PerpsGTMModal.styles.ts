@@ -12,7 +12,7 @@ const createStyles = (theme: Theme, isDarkMode: boolean) =>
       alignItems: 'center',
       paddingTop: 32,
     },
-    largeFoxWrapper: {
+    largeImageWrapper: {
       height: 330,
       alignItems: 'center',
     },

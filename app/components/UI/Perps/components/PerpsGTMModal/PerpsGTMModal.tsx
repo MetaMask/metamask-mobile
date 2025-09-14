@@ -102,7 +102,7 @@ const PerpsGTMModal = () => {
               {strings('perps.gtm_content.title_description')}
             </Text>
 
-            <View style={styles.largeFoxWrapper}>
+            <View style={styles.largeImageWrapper}>
               <Image
                 source={Character}
                 style={styles.image}
