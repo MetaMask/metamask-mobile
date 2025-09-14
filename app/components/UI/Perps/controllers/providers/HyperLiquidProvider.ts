@@ -1242,7 +1242,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Currently open orders received:', rawOrders);
 
       // Transform HyperLiquid open orders to abstract Order type using adapter
-      const orders: Order[] = (rawOrders || []).map(adaptOrderFromSDK);
+      const orders: Order[] = (rawOrders || []).map((rawOrder) =>
+        adaptOrderFromSDK(rawOrder),
+      );
 
       return orders;
     } catch (error) {

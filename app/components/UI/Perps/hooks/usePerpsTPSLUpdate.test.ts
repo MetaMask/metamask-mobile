@@ -93,7 +93,7 @@ describe('usePerpsTPSLUpdate', () => {
 
     await act(async () => {
       await result.current.handleUpdateTPSL(
-        position,
+        position.coin,
         takeProfitPrice,
         stopLossPrice,
       );
@@ -114,7 +114,7 @@ describe('usePerpsTPSLUpdate', () => {
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
 
     await act(async () => {
-      await result.current.handleUpdateTPSL(position, '3300', '2700');
+      await result.current.handleUpdateTPSL(position.coin, '3300', '2700');
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
@@ -148,7 +148,7 @@ describe('usePerpsTPSLUpdate', () => {
     });
 
     await act(async () => {
-      await result.current.handleUpdateTPSL(position, '3300', '2700');
+      await result.current.handleUpdateTPSL(position.coin, '3300', '2700');
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
@@ -185,7 +185,7 @@ describe('usePerpsTPSLUpdate', () => {
     mockUpdatePositionTPSL.mockRejectedValue(error);
 
     await act(async () => {
-      await result.current.handleUpdateTPSL(position, '3300', '2700');
+      await result.current.handleUpdateTPSL(position.coin, '3300', '2700');
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
@@ -220,7 +220,11 @@ describe('usePerpsTPSLUpdate', () => {
     mockUpdatePositionTPSL.mockResolvedValue(undefined);
 
     await act(async () => {
-      await result.current.handleUpdateTPSL(position, undefined, undefined);
+      await result.current.handleUpdateTPSL(
+        position.coin,
+        undefined,
+        undefined,
+      );
     });
 
     expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
@@ -240,7 +244,7 @@ describe('usePerpsTPSLUpdate', () => {
     });
 
     await act(async () => {
-      await result.current.handleUpdateTPSL(position, '3300', '2700');
+      await result.current.handleUpdateTPSL(position.coin, '3300', '2700');
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
