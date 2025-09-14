@@ -16,7 +16,7 @@ import Text, {
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Character from 'app/components/UI/Perps/images/character_1.png';
+import Character from '../../../../../images/character_1.png';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { baseStyles } from '../../../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
