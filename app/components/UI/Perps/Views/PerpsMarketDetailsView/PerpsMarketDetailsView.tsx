@@ -11,7 +11,13 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { ScrollView, View, RefreshControl, Linking } from 'react-native';
+import {
+  ScrollView,
+  View,
+  RefreshControl,
+  Linking,
+  Pressable,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -19,11 +25,12 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
-import Text, {
-  TextColor,
+import {
+  ButtonSize as ButtonSizeRNDesignSystem,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -118,6 +125,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
 
+  // TP/SL toggle state
+  const [activeOrderIndex, setActiveOrderIndex] = useState<number>(0);
+
   const [refreshing, setRefreshing] = useState(false);
 
   const account = usePerpsAccount();
@@ -134,6 +144,43 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!ordersData?.length || !market?.symbol) return [];
     return ordersData.filter((order) => order.symbol === market.symbol);
   }, [ordersData, market?.symbol]);
+
+  // Mock TP/SL data for testing (hardcoded) - ETH-USD realistic prices
+  const mockOrdersWithTPSL = useMemo(
+    () => [
+      {
+        orderId: 'mock-order-1',
+        takeProfitPrice: '4650', // Mock TP price - above current range
+        stopLossPrice: '4580', // Mock SL price - below current range
+      },
+      {
+        orderId: 'mock-order-2',
+        takeProfitPrice: '4680', // Different mock TP price - higher
+        stopLossPrice: '4560', // Different mock SL price - lower
+      },
+    ],
+    [],
+  );
+
+  // Get the currently active order's TP/SL data
+  const activeOrderTPSL = useMemo(() => {
+    const activeOrder = mockOrdersWithTPSL[activeOrderIndex];
+    const result = activeOrder
+      ? {
+          takeProfitPrice: activeOrder.takeProfitPrice,
+          stopLossPrice: activeOrder.stopLossPrice,
+        }
+      : null;
+
+    // Debug log for testing
+    // console.log('🎯 Active Order TP/SL:', {
+    //   activeOrderIndex,
+    //   activeOrder: activeOrder?.orderId,
+    //   result
+    // });
+
+    return result;
+  }, [mockOrdersWithTPSL, activeOrderIndex]);
 
   const hasZeroBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0') === 0,
@@ -208,6 +255,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleMoreCandlePeriodsClose = useCallback(() => {
     setIsMoreCandlePeriodsVisible(false);
+  }, []);
+
+  // TP/SL toggle handlers
+  const handleTPSLToggle = useCallback((orderIndex: number) => {
+    setActiveOrderIndex(orderIndex);
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -373,8 +425,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 existingPosition
                   ? {
                       entryPrice: existingPosition.entryPrice,
-                      takeProfitPrice: existingPosition.takeProfitPrice,
-                      stopLossPrice: existingPosition.stopLossPrice,
+                      takeProfitPrice:
+                        activeOrderTPSL?.takeProfitPrice ||
+                        existingPosition.takeProfitPrice,
+                      stopLossPrice:
+                        activeOrderTPSL?.stopLossPrice ||
+                        existingPosition.stopLossPrice,
                       liquidationPrice:
                         existingPosition.liquidationPrice || undefined,
                     }
@@ -390,6 +446,35 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
+
+            {/* TP/SL Toggle Buttons - Always show for testing */}
+            <View style={styles.tpslToggleContainer}>
+              {mockOrdersWithTPSL.map((order, index) => (
+                <Pressable
+                  key={order.orderId}
+                  style={({ pressed }) => [
+                    styles.tpslToggleButton,
+                    activeOrderIndex === index
+                      ? styles.tpslToggleButtonActive
+                      : styles.tpslToggleButtonInactive,
+                    pressed && styles.tpslToggleButtonPressed,
+                  ]}
+                  onPress={() => handleTPSLToggle(index)}
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tpsl-toggle-${index}`}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName={
+                      activeOrderIndex === index
+                        ? 'text-text-default'
+                        : 'text-text-alternative'
+                    }
+                  >
+                    Order {index + 1}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           {/* Market Tabs Section */}

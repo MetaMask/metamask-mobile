@@ -74,4 +74,32 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingTop: 8,
       textAlign: 'left',
     },
+    // TP/SL Toggle Buttons
+    tpslToggleContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 12,
+      paddingHorizontal: 16,
+    },
+    tpslToggleButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+      borderWidth: 1,
+      minWidth: 80,
+      alignItems: 'center',
+    },
+    tpslToggleButtonActive: {
+      backgroundColor: theme.colors.primary.default,
+      borderColor: theme.colors.primary.default,
+    },
+    tpslToggleButtonInactive: {
+      backgroundColor: theme.colors.background.alternative,
+      borderColor: theme.colors.border.muted,
+    },
+    tpslToggleButtonPressed: {
+      opacity: 0.7,
+    },
   });
