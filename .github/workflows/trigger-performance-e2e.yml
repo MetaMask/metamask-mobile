@@ -79,24 +79,6 @@ jobs:
             exit 1
           fi
 
-  trigger-android-dual-versions:
-    name: Trigger Android Dual Versions and Extract BrowserStack URLs
-    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    # Only run if BrowserStack URLs are not provided
-    if: ${{ !inputs.browserstack_app_url_android }}
-    secrets: inherit
-
-  trigger-ios-dual-versions:
-    name: Trigger iOS Dual Versions and Extract BrowserStack URLs
-    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
-    # Only run if BrowserStack URLs are not provided
-    if: ${{ !inputs.browserstack_app_url_ios }}
-    secrets: inherit
-
-  # =============================================================================
-  # PHASE 0: SET UNIFIED BROWSERSTACK BUILD NAMES
-  # =============================================================================
-  
   set-build-names:
     name: Set Unified BrowserStack Build Names
     runs-on: ubuntu-latest
@@ -113,6 +95,21 @@ jobs:
           echo "  Android: Android-Performance-${{ github.ref_name }}-Branch"
           echo "  iOS: iOS-Performance-${{ github.ref_name }}-Branch"
 
+  trigger-android-dual-versions:
+    name: Trigger Android Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
+    # Only run if no Android BrowserStack URLs are provided
+    if: ${{ !inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet }}
+    secrets: inherit
+
+  trigger-ios-dual-versions:
+    name: Trigger iOS Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
+    # Only run if no iOS BrowserStack URLs are provided
+    if: ${{ !inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet }}
+    secrets: inherit
+
+
   # =============================================================================
   # PHASE 1: ONBOARDING TESTS (Run First)
   # =============================================================================
@@ -121,7 +118,7 @@ jobs:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled()
+    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: onboarding
@@ -136,7 +133,7 @@ jobs:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled()
+    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: onboarding
@@ -166,12 +163,12 @@ jobs:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always()
+    if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: imported-wallet
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
@@ -181,12 +178,12 @@ jobs:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always()
+    if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: imported-wallet
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
-      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet}}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ github.ref_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
