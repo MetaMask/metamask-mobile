@@ -413,6 +413,7 @@ describe('HyperLiquidSubscriptionService', () => {
                   { position: { szi: '0' }, coin: 'ETH' }, // Should be filtered out
                 ],
               },
+              openOrders: [], // Add empty openOrders array to prevent undefined error
             });
           }, 0);
           return Promise.resolve({
@@ -423,6 +424,7 @@ describe('HyperLiquidSubscriptionService', () => {
 
       const unsubscribe = service.subscribeToPositions({
         callback: mockCallback,
+        accountId: 'eip155:42161:0x123' as CaipAccountId, // Add accountId like other tests
       });
 
       // Wait for async operations
