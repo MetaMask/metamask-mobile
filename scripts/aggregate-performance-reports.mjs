@@ -326,6 +326,8 @@ function aggregateReports() {
       './test-results',
       './performance-results', 
       './onboarding-results',
+      './',  // Current directory where artifacts are typically extracted
+      './appwright',  // Where artifacts are uploaded from
     ];
     
     const jsonFiles = [];
@@ -366,8 +368,51 @@ function aggregateReports() {
         const reportData = JSON.parse(content);
         console.log(`✅ Successfully parsed JSON data from ${filePath}`);
         
-        // Extract platform, scenario, and device info from file path
-        const { platformKey, scenarioKey, deviceKey } = extractPlatformScenarioAndDevice(filePath);
+        // Extract platform, scenario, and device info from file path or JSON content
+        let platformKey = 'Unknown';
+        let scenarioKey = 'Unknown';
+        let deviceKey = 'Unknown Device';
+        
+        // First try to extract from file path (for artifact folder structure)
+        const pathExtraction = extractPlatformScenarioAndDevice(filePath);
+        
+        if (pathExtraction.platformKey !== 'Unknown') {
+          platformKey = pathExtraction.platformKey;
+          scenarioKey = pathExtraction.scenarioKey;
+          deviceKey = pathExtraction.deviceKey;
+        } else {
+          // Fallback: extract from JSON content and filename
+          if (Array.isArray(reportData) && reportData.length > 0) {
+            const firstReport = reportData[0];
+            
+            if (firstReport.device) {
+              // Determine platform from device name
+              if (firstReport.device.name.includes('iPhone') || firstReport.device.name.includes('iPad')) {
+                platformKey = 'iOS';
+              } else {
+                platformKey = 'Android';
+              }
+              
+              // Create device key from device info
+              deviceKey = `${firstReport.device.name}+${firstReport.device.osVersion}`;
+            }
+            
+            // Determine scenario from test names
+            const hasOnboarding = reportData.some(report => 
+              report.testName && (
+                report.testName.includes('Onboarding') || 
+                report.testName.includes('new wallet') ||
+                report.testName.includes('SRP')
+              )
+            );
+            
+            if (hasOnboarding) {
+              scenarioKey = 'Onboarding';
+            } else {
+              scenarioKey = 'ImportedWallet';
+            }
+          }
+        }
         
         console.log(`📊 Final values: platformKey="${platformKey}", scenarioKey="${scenarioKey}", deviceKey="${deviceKey}"`);
         
