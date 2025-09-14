@@ -65,6 +65,8 @@ export type Position = {
   };
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)
+  takeProfitCount?: number; // Take profit count, how many tps can affect the position
+  stopLossCount?: number; // Stop loss count, how many sls can affect the position
 };
 
 export type AccountState = {

@@ -1257,7 +1257,9 @@
         "margin": "Margin",
         "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close position"
+        "close_position": "Close position",
+        "tpsl_count_multiple": "{{count}} orders",
+        "tpsl_count_single": "{{count}} order"
       },
       "list": {
         "loading": "Loading positions...",
