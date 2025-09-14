@@ -64,7 +64,6 @@ interface PerpsTPSLBottomSheetProps {
   marginRequired?: string; // For new orders
   orderType?: 'market' | 'limit'; // Order type for new orders
   limitPrice?: string; // Limit price for limit orders
-  liquidationPrice?: string; // Liquidation price for new orders
 }
 
 const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
@@ -81,7 +80,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   leverage: propLeverage,
   orderType,
   limitPrice,
-  liquidationPrice,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -120,6 +118,29 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     ? currentPrice
     : livePrice || initialCurrentPrice || 0;
 
+  // Determine direction for tracking events
+  const actualDirection = position
+    ? parseFloat(position.size) > 0
+      ? 'long'
+      : 'short'
+    : direction;
+
+  // Calculate liquidation price for new orders (when there's no existing position)
+  const shouldCalculateLiquidation =
+    !position && currentPrice > 0 && propLeverage && actualDirection && asset;
+  const { liquidationPrice: calculatedLiquidationPrice } =
+    usePerpsLiquidationPrice({
+      entryPrice: shouldCalculateLiquidation ? currentPrice : 0,
+      leverage: shouldCalculateLiquidation ? propLeverage : 0,
+      direction: shouldCalculateLiquidation ? actualDirection : 'long',
+      asset: shouldCalculateLiquidation ? asset : '',
+    });
+
+  // Use position's liquidation price if available, otherwise use calculated price
+  const displayLiquidationPrice =
+    position?.liquidationPrice ||
+    (shouldCalculateLiquidation ? calculatedLiquidationPrice : undefined);
+
   // Use the TPSL form hook for all state management and business logic
   const tpslForm = usePerpsTPSLForm({
     asset,
@@ -131,7 +152,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     leverage: propLeverage,
     entryPrice: effectiveEntryPrice,
     isVisible,
-    liquidationPrice,
+    liquidationPrice: displayLiquidationPrice,
   });
 
   // Extract form state and handlers for easier access
@@ -175,29 +196,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   } = tpslForm.validation;
   const { formattedTakeProfitPercentage, formattedStopLossPercentage } =
     tpslForm.display;
-
-  // Determine direction for tracking events
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
-
-  // Calculate liquidation price for new orders (when there's no existing position)
-  const shouldCalculateLiquidation =
-    !position && currentPrice > 0 && propLeverage && actualDirection && asset;
-  const { liquidationPrice: calculatedLiquidationPrice } =
-    usePerpsLiquidationPrice({
-      entryPrice: shouldCalculateLiquidation ? currentPrice : 0,
-      leverage: shouldCalculateLiquidation ? propLeverage : 0,
-      direction: shouldCalculateLiquidation ? actualDirection : 'long',
-      asset: shouldCalculateLiquidation ? asset : '',
-    });
-
-  // Use position's liquidation price if available, otherwise use calculated price
-  const displayLiquidationPrice =
-    position?.liquidationPrice ||
-    (shouldCalculateLiquidation ? calculatedLiquidationPrice : null);
 
   useEffect(() => {
     if (isVisible) {

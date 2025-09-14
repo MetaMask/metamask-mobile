@@ -1136,7 +1136,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         initialStopLossPrice={orderForm.stopLossPrice}
         orderType={orderForm.type}
         limitPrice={orderForm.limitPrice}
-        liquidationPrice={liquidationPrice}
       />
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
