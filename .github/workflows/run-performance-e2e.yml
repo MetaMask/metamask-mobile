@@ -89,8 +89,8 @@ jobs:
       - name: Set unified build names
         id: set-builds
         run: |
-          echo "android_build_name=Android-Performance-${{ github.ref_name }}-Branch" >> $GITHUB_OUTPUT
-          echo "ios_build_name=iOS-Performance-${{ github.ref_name }}-Branch" >> $GITHUB_OUTPUT
+          echo "android_build_name=Android-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
+          echo "ios_build_name=iOS-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
           echo "✅ Set unified build names:"
           echo "  Android: Android-Performance-${{ github.ref_name }}-Branch"
           echo "  iOS: iOS-Performance-${{ github.ref_name }}-Branch"
@@ -239,9 +239,11 @@ jobs:
       - name: Generate Test Summary
         id: summary
         run: |
-          echo "summary<<EOF" >> $GITHUB_OUTPUT
-          ./scripts/generate-slack-summary.sh aggregated-reports/summary.json >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "summary<<EOF"
+            ./scripts/generate-slack-summary.sh aggregated-reports/summary.json
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a

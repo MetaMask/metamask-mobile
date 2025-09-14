@@ -19,7 +19,9 @@ class CustomReporter {
     const testId = `${test.title}-${projectName}`;
 
     if (this.processedTests.has(testId)) {
-      console.log(`⚠️ Test already processed, skipping: ${test.title} (${projectName})`);
+      console.log(
+        `⚠️ Test already processed, skipping: ${test.title} (${projectName})`,
+      );
       return;
     }
     this.processedTests.add(testId);
@@ -276,7 +278,7 @@ class CustomReporter {
           if (!metricsByDevice[deviceKey]) {
             metricsByDevice[deviceKey] = {
               device: metric.device,
-              metrics: []
+              metrics: [],
             };
           }
           metricsByDevice[deviceKey].metrics.push(metric);
@@ -284,12 +286,18 @@ class CustomReporter {
 
         // Create separate JSON files for each device
         Object.entries(metricsByDevice).forEach(([deviceKey, deviceData]) => {
-          const safeDeviceName = deviceData.device.name.replace(/[^a-zA-Z0-9]/g, '_');
+          const safeDeviceName = deviceData.device.name.replace(
+            /[^a-zA-Z0-9]/g,
+            '_',
+          );
           const jsonPath = path.join(
             reportsDir,
             `performance-metrics-${testName}-${safeDeviceName}-${deviceData.device.osVersion}.json`,
           );
-          fs.writeFileSync(jsonPath, JSON.stringify(deviceData.metrics, null, 2));
+          fs.writeFileSync(
+            jsonPath,
+            JSON.stringify(deviceData.metrics, null, 2),
+          );
           console.log(`✅ Device-specific report saved: ${jsonPath}`);
         });
         // Generate HTML report
