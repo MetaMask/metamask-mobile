@@ -192,14 +192,34 @@ function extractDeviceInfo(filePath) {
   console.log(`🔍 Extracting device info from path: ${filePath}`);
   console.log(`📁 Path parts:`, pathParts);
   
-  const deviceMatch = pathParts.find(part => part.includes('-test-results-'));
+  // Look for any part that contains 'test-results' (more flexible)
+  const deviceMatch = pathParts.find(part => part.includes('test-results'));
   console.log(`🎯 Found device match: ${deviceMatch}`);
+  
+  // If no match with 'test-results', try other patterns
+  if (!deviceMatch) {
+    console.log(`🔍 No 'test-results' found, trying other patterns...`);
+    const alternativeMatch = pathParts.find(part => 
+      part.includes('android-') || part.includes('ios-') || 
+      part.includes('Samsung') || part.includes('iPhone') || part.includes('Google')
+    );
+    console.log(`🎯 Found alternative match: ${alternativeMatch}`);
+    if (alternativeMatch) {
+      // Use the alternative match as device info
+      const result = alternativeMatch.replace(/^(android|ios)-/, '').replace(/-test-results.*$/, '');
+      console.log(`✅ Using alternative match as device: ${result}`);
+      return result;
+    }
+  }
   
   if (deviceMatch) {
     // Extract the part after "-test-results-"
     const testResultsIndex = deviceMatch.indexOf('-test-results-');
     const deviceInfo = deviceMatch.substring(testResultsIndex + '-test-results-'.length);
     console.log(`📱 Raw device info: ${deviceInfo}`);
+    console.log(`🔍 Device match: "${deviceMatch}"`);
+    console.log(`🔍 Test results index: ${testResultsIndex}`);
+    console.log(`🔍 Device info after extraction: "${deviceInfo}"`);
     
     // Handle different patterns:
     // 1. Empty string (e.g., "android-test-results--")
@@ -291,7 +311,6 @@ function createEmptyReport(outputPath) {
   };
   
   fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
-  fs.writeFileSync('appwright/aggregated-reports/performance-results.json', JSON.stringify(emptyReport, null, 2));
   fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(emptyReport, null, 2));
   
   const emptySummary = {
@@ -334,7 +353,6 @@ function createFallbackReport(outputPath, error) {
   
   try {
     fs.writeFileSync(outputPath, JSON.stringify(fallbackReport, null, 2));
-    fs.writeFileSync('appwright/aggregated-reports/performance-results.json', JSON.stringify(fallbackReport, null, 2));
     fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
     fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
       totalTests: 0,
@@ -499,10 +517,6 @@ function aggregateReports() {
     // Write the combined report
     fs.writeFileSync(outputPath, JSON.stringify(groupedResults, null, 2));
     
-    // Create performance-results.json (same structure as combined-performance-report.json)
-    const performanceResultsPath = 'appwright/aggregated-reports/performance-results.json';
-    fs.writeFileSync(performanceResultsPath, JSON.stringify(groupedResults, null, 2));
-    
     // Create aggregated-performance-report.json (same structure as combined-performance-report.json)
     const aggregatedReportPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
     fs.writeFileSync(aggregatedReportPath, JSON.stringify(groupedResults, null, 2));
@@ -513,7 +527,6 @@ function aggregateReports() {
     
     console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
     console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
-    console.log('📋 Performance results saved to: appwright/aggregated-reports/performance-results.json');
     console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
     
   } catch (error) {
