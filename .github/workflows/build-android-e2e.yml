@@ -1,7 +1,6 @@
 # Pure Android E2E build workflow - just builds APKs and uploads artifacts
 # No testing, no unnecessary setup - optimized for speed and efficiency
 
-
 name: Build Android E2E APKs
 
 on:
