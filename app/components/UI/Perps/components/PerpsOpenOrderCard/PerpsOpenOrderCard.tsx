@@ -68,6 +68,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   expanded = false,
   showIcon = false,
   rightAccessory,
+  onSelect,
+  isActiveOnChart = false,
+  activeType,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -126,11 +129,38 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     onCancel?.(order);
   };
 
+  const handleCardPress = () => {
+    // Check if this order has TP/SL data (either explicit or trigger order)
+    const hasTPSL =
+      order.takeProfitPrice ||
+      order.stopLossPrice ||
+      (order.isTrigger &&
+        order.detailedOrderType &&
+        (order.detailedOrderType.toLowerCase().includes('take profit') ||
+          order.detailedOrderType.toLowerCase().includes('stop')));
+
+    if (onSelect && hasTPSL) {
+      DevLogger.log('PerpsOpenOrderCard: Card pressed for TP/SL selection', {
+        orderId: order.orderId,
+        takeProfitPrice: order.takeProfitPrice,
+        stopLossPrice: order.stopLossPrice,
+        price: order.price,
+        detailedOrderType: order.detailedOrderType,
+        isTrigger: order.isTrigger,
+      });
+      onSelect(order.orderId);
+    }
+  };
+
   return (
     <TouchableOpacity
-      style={expanded ? styles.expandedContainer : styles.collapsedContainer}
+      style={[
+        expanded ? styles.expandedContainer : styles.collapsedContainer,
+        isActiveOnChart && styles.activeOnChartContainer,
+      ]}
+      onPress={handleCardPress}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={expanded}
+      disabled={disabled}
     >
       {/* Header - Always shown */}
       <View style={[styles.header, expanded && styles.headerExpanded]}>
@@ -147,6 +177,62 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {order.detailedOrderType || derivedData.direction}
             </Text>
+            {/* Active Chart Indicators - Show TP and/or SL pills */}
+            {isActiveOnChart && (
+              <View style={styles.indicatorContainer}>
+                {/* Show TP indicator if this order is active for TP */}
+                {activeType === 'TP' && (
+                  <View
+                    style={[styles.activeChartIndicator, styles.tpIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Inverse}
+                    >
+                      TP on Chart
+                    </Text>
+                  </View>
+                )}
+                {/* Show SL indicator if this order is active for SL */}
+                {activeType === 'SL' && (
+                  <View
+                    style={[styles.activeChartIndicator, styles.slIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Default}
+                    >
+                      SL on Chart
+                    </Text>
+                  </View>
+                )}
+                {/* Show both indicators if this order has both TP and SL */}
+                {activeType === 'BOTH' && (
+                  <>
+                    <View
+                      style={[styles.activeChartIndicator, styles.tpIndicator]}
+                    >
+                      <Text
+                        variant={TextVariant.BodyXS}
+                        color={TextColor.Inverse}
+                      >
+                        TP on Chart
+                      </Text>
+                    </View>
+                    <View
+                      style={[styles.activeChartIndicator, styles.slIndicator]}
+                    >
+                      <Text
+                        variant={TextVariant.BodyXS}
+                        color={TextColor.Default}
+                      >
+                        SL on Chart
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
             {/* Fill percentage badge with icon */}
             {derivedData.fillPercentage > 0 &&
               derivedData.fillPercentage < 100 && (

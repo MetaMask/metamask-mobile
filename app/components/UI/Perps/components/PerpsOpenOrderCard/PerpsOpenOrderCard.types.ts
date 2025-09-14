@@ -7,6 +7,9 @@ export interface PerpsOpenOrderCardProps {
   expanded?: boolean;
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
+  onSelect?: (orderId: string) => void;
+  isActiveOnChart?: boolean;
+  activeType?: 'TP' | 'SL' | 'BOTH';
 }
 
 export interface OpenOrderCardDerivedData {

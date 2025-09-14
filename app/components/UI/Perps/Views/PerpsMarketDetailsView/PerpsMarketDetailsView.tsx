@@ -11,13 +11,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import {
-  ScrollView,
-  View,
-  RefreshControl,
-  Linking,
-  Pressable,
-} from 'react-native';
+import { ScrollView, View, RefreshControl, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -25,12 +19,11 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import {
-  ButtonSize as ButtonSizeRNDesignSystem,
-  Text,
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import Text, {
+  TextColor,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import { TextColor } from '../../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -125,8 +118,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
 
-  // TP/SL toggle state
-  const [activeOrderIndex, setActiveOrderIndex] = useState<number>(0);
+  // TP/SL order selection state - track TP and SL separately
+  const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
+  const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -145,42 +139,81 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     return ordersData.filter((order) => order.symbol === market.symbol);
   }, [ordersData, market?.symbol]);
 
-  // Mock TP/SL data for testing (hardcoded) - ETH-USD realistic prices
-  const mockOrdersWithTPSL = useMemo(
-    () => [
-      {
-        orderId: 'mock-order-1',
-        takeProfitPrice: '4650', // Mock TP price - above current range
-        stopLossPrice: '4580', // Mock SL price - below current range
-      },
-      {
-        orderId: 'mock-order-2',
-        takeProfitPrice: '4680', // Different mock TP price - higher
-        stopLossPrice: '4560', // Different mock SL price - lower
-      },
-    ],
-    [],
-  );
+  // Filter orders to get only those with TP/SL prices
+  const ordersWithTPSL = useMemo(() => {
+    if (!openOrders?.length) return [];
 
-  // Get the currently active order's TP/SL data
-  const activeOrderTPSL = useMemo(() => {
-    const activeOrder = mockOrdersWithTPSL[activeOrderIndex];
-    const result = activeOrder
-      ? {
-          takeProfitPrice: activeOrder.takeProfitPrice,
-          stopLossPrice: activeOrder.stopLossPrice,
-        }
-      : null;
+    // Filter for TP/SL orders - they can be identified by:
+    // 1. Having takeProfitPrice/stopLossPrice (child orders)
+    // 2. Being trigger orders with detailedOrderType containing "Take Profit" or "Stop"
+    const filtered = openOrders.filter((order) => {
+      // Check for explicit TP/SL prices
+      if (order.takeProfitPrice || order.stopLossPrice) {
+        return true;
+      }
 
-    // Debug log for testing
-    // console.log('🎯 Active Order TP/SL:', {
-    //   activeOrderIndex,
-    //   activeOrder: activeOrder?.orderId,
-    //   result
-    // });
+      // Check for trigger orders that are TP/SL
+      if (order.isTrigger && order.detailedOrderType) {
+        const orderType = order.detailedOrderType.toLowerCase();
+        return orderType.includes('take profit') || orderType.includes('stop');
+      }
+
+      return false;
+    });
+
+    return filtered;
+  }, [openOrders]);
+
+  // Get the currently selected order's TP/SL data
+  const selectedOrderTPSL = useMemo(() => {
+    // Find the active TP order
+    let activeTPOrder = ordersWithTPSL.find(
+      (order) => order.orderId === activeTPOrderId,
+    );
+
+    // Only use default TP if no TP has ever been explicitly selected
+    if (!activeTPOrder && activeTPOrderId === null) {
+      // Default to first TP order if no specific TP is selected
+      activeTPOrder = ordersWithTPSL.find((order) => {
+        if (order.takeProfitPrice) return true;
+        if (
+          order.isTrigger &&
+          order.detailedOrderType?.toLowerCase().includes('take profit')
+        )
+          return true;
+        return false;
+      });
+    }
+
+    // Find the active SL order
+    let activeSLOrder = ordersWithTPSL.find(
+      (order) => order.orderId === activeSLOrderId,
+    );
+
+    // Only use default SL if no SL has ever been explicitly selected
+    if (!activeSLOrder && activeSLOrderId === null) {
+      // Default to first SL order if no specific SL is selected
+      activeSLOrder = ordersWithTPSL.find((order) => {
+        if (order.stopLossPrice) return true;
+        if (
+          order.isTrigger &&
+          order.detailedOrderType?.toLowerCase().includes('stop')
+        )
+          return true;
+        return false;
+      });
+    }
+
+    const result = {
+      takeProfitPrice: activeTPOrder?.takeProfitPrice || activeTPOrder?.price,
+      stopLossPrice: activeSLOrder?.stopLossPrice || activeSLOrder?.price,
+      // Track which orders are being used for highlighting
+      activeTPOrderId: activeTPOrder?.orderId,
+      activeSLOrderId: activeSLOrder?.orderId,
+    };
 
     return result;
-  }, [mockOrdersWithTPSL, activeOrderIndex]);
+  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId]);
 
   const hasZeroBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0') === 0,
@@ -257,10 +290,42 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setIsMoreCandlePeriodsVisible(false);
   }, []);
 
-  // TP/SL toggle handlers
-  const handleTPSLToggle = useCallback((orderIndex: number) => {
-    setActiveOrderIndex(orderIndex);
-  }, []);
+  // Order selection handler for TP/SL chart integration
+  const handleOrderSelect = useCallback(
+    (orderId: string) => {
+      // Find the selected order to determine if it's TP or SL
+      const selectedOrder = ordersWithTPSL.find(
+        (order) => order.orderId === orderId,
+      );
+
+      if (selectedOrder) {
+        // Check if this order has both TP and SL (bracket order)
+        const hasBothTPSL =
+          selectedOrder.takeProfitPrice && selectedOrder.stopLossPrice;
+
+        if (hasBothTPSL) {
+          // This is a bracket order with both TP and SL - set both
+          setActiveTPOrderId(orderId);
+          setActiveSLOrderId(orderId);
+        } else if (selectedOrder.isTrigger && selectedOrder.detailedOrderType) {
+          // Individual trigger order
+          const orderType = selectedOrder.detailedOrderType.toLowerCase();
+          if (orderType.includes('take profit')) {
+            setActiveTPOrderId(orderId);
+          } else if (orderType.includes('stop')) {
+            setActiveSLOrderId(orderId);
+          }
+        } else if (selectedOrder.takeProfitPrice) {
+          // Individual TP order
+          setActiveTPOrderId(orderId);
+        } else if (selectedOrder.stopLossPrice) {
+          // Individual SL order
+          setActiveSLOrderId(orderId);
+        }
+      }
+    },
+    [ordersWithTPSL],
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -426,10 +491,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   ? {
                       entryPrice: existingPosition.entryPrice,
                       takeProfitPrice:
-                        activeOrderTPSL?.takeProfitPrice ||
+                        selectedOrderTPSL?.takeProfitPrice ||
                         existingPosition.takeProfitPrice,
                       stopLossPrice:
-                        activeOrderTPSL?.stopLossPrice ||
+                        selectedOrderTPSL?.stopLossPrice ||
                         existingPosition.stopLossPrice,
                       liquidationPrice:
                         existingPosition.liquidationPrice || undefined,
@@ -446,35 +511,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
-
-            {/* TP/SL Toggle Buttons - Always show for testing */}
-            <View style={styles.tpslToggleContainer}>
-              {mockOrdersWithTPSL.map((order, index) => (
-                <Pressable
-                  key={order.orderId}
-                  style={({ pressed }) => [
-                    styles.tpslToggleButton,
-                    activeOrderIndex === index
-                      ? styles.tpslToggleButtonActive
-                      : styles.tpslToggleButtonInactive,
-                    pressed && styles.tpslToggleButtonPressed,
-                  ]}
-                  onPress={() => handleTPSLToggle(index)}
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tpsl-toggle-${index}`}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName={
-                      activeOrderIndex === index
-                        ? 'text-text-default'
-                        : 'text-text-alternative'
-                    }
-                  >
-                    Order {index + 1}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
           </View>
 
           {/* Market Tabs Section */}
@@ -488,6 +524,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               initialTab={initialTab}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
+              onOrderSelect={handleOrderSelect}
+              activeTPOrderId={selectedOrderTPSL?.activeTPOrderId}
+              activeSLOrderId={selectedOrderTPSL?.activeSLOrderId}
             />
           </View>
 

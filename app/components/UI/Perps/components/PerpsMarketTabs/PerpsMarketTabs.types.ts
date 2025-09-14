@@ -30,4 +30,16 @@ export interface PerpsMarketTabsProps {
    * Funding interval in hours (optional, market-specific)
    */
   fundingIntervalHours?: number;
+  /**
+   * Callback when an order is selected for TP/SL chart integration
+   */
+  onOrderSelect?: (orderId: string) => void;
+  /**
+   * Currently active TP order ID being displayed on chart
+   */
+  activeTPOrderId?: string | null;
+  /**
+   * Currently active SL order ID being displayed on chart
+   */
+  activeSLOrderId?: string | null;
 }

@@ -19,6 +19,33 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 12,
       marginVertical: 4,
     },
+    selectedContainer: {
+      borderWidth: 2,
+      borderColor: colors.primary.default,
+      backgroundColor: colors.primary.muted,
+    },
+    activeOnChartContainer: {
+      // Remove jarring green styling - we'll use a subtle pill instead
+    },
+    indicatorContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 6,
+      gap: 4,
+    },
+    activeChartIndicator: {
+      borderRadius: 16,
+      paddingHorizontal: 8,
+      paddingVertical: 0,
+    },
+    tpIndicator: {
+      backgroundColor: colors.success.default, // Light Green - matches chart TP line color
+    },
+    // eslint-disable-next-line react-native/no-color-literals
+    slIndicator: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+      backgroundColor: '#484848', // Dark Gray - matches chart SL line color
+    },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
