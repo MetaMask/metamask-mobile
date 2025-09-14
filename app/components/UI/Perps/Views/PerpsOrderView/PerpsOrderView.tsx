@@ -97,6 +97,7 @@ import {
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
+import { willFlipPosition } from '../../utils/orderUtils';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -719,7 +720,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
         [PerpsEventProperties.ORDER_SIZE]: positionSize,
       });
 
-      if (!existingPosition && orderForm.type === 'market') {
+      if (
+        ((!existingPosition && orderForm.type === 'market') ||
+          (existingPosition &&
+            willFlipPosition(existingPosition, orderParams))) &&
+        (orderForm.takeProfitPrice || orderForm.stopLossPrice)
+      ) {
         delete orderParams.takeProfitPrice;
         delete orderParams.stopLossPrice;
         await executeOrder(orderParams);

@@ -184,6 +184,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         },
       )}`;
 
+  const positionTakeProfitCount = position.takeProfitCount || 0;
+  const positionStopLossCount = position.stopLossCount || 0;
+
   return (
     <>
       <TouchableOpacity
@@ -300,7 +303,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.take_profit')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.takeProfitCount && position.takeProfitCount > 1 ? (
+                  {positionTakeProfitCount > 1 ? (
                     <TouchableOpacity onPress={handleTpslCountPress}>
                       <Text style={styles.tpslCountPress}>
                         {strings('perps.position.card.tpsl_count_multiple', {
@@ -309,7 +312,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                       </Text>
                     </TouchableOpacity>
                   ) : null}
-                  {position.takeProfitCount && position.takeProfitCount <= 1
+                  {positionTakeProfitCount <= 1
                     ? position.takeProfitPrice
                       ? formatPerpsFiat(position.takeProfitPrice, {
                           ranges: PRICE_RANGES_POSITION_VIEW,
@@ -326,7 +329,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.stop_loss')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.stopLossCount && position.stopLossCount > 1 ? (
+                  {positionStopLossCount > 1 ? (
                     <TouchableOpacity onPress={handleTpslCountPress}>
                       <Text style={styles.tpslCountPress}>
                         {strings('perps.position.card.tpsl_count_multiple', {
@@ -335,7 +338,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                       </Text>
                     </TouchableOpacity>
                   ) : null}
-                  {position.stopLossCount && position.stopLossCount <= 1
+                  {positionStopLossCount <= 1
                     ? position.stopLossPrice
                       ? formatPerpsFiat(position.stopLossPrice, {
                           ranges: PRICE_RANGES_POSITION_VIEW,
