@@ -5,6 +5,10 @@
  * 
  * This script aggregates performance test results from multiple test runs
  * and creates a combined report structure.
+ * 
+ * Handles both:
+ * - Imported Wallet Tests: *-imported-wallet-test-results-*
+ * - Onboarding Tests: *-onboarding-flow-test-results-*
  */
 
 import fs from 'fs';
@@ -45,117 +49,99 @@ function findJsonFiles(dir, jsonFiles = []) {
 }
 
 /**
- * Extract platform and scenario information from file path
+ * Extract platform, scenario, and device information from file path
  * @param {string} filePath - Path to the test result file
- * @returns {Object} Platform and scenario information
+ * @returns {Object} Platform, scenario, and device information
  */
-function extractPlatformAndScenario(filePath) {
+function extractPlatformScenarioAndDevice(filePath) {
   const pathParts = filePath.split('/');
   let platform = 'unknown';
   let platformKey = 'Unknown';
   let scenario = 'unknown';
   let scenarioKey = 'Unknown';
+  let deviceKey = 'Unknown Device';
   
   console.log(`🔍 Analyzing file path: ${filePath}`);
-  
-  // Look for the artifact folder name in the path
-  // Format: test-results/artifact-folder-name/reporters/reports/file.json
-  const artifactFolder = pathParts.find(part => part.includes('-test-results-') || part.includes('-flow-test-results-'));
-  
-  if (artifactFolder) {
-    console.log(`🎯 Found artifact folder: ${artifactFolder}`);
-    
-    // Parse the artifact folder name to extract platform and scenario
-    // Format: platform-scenario-test-results-device-os-version OR platform-scenario-flow-test-results-device-os-version
-    const parts = artifactFolder.split('-');
-    console.log(`🔧 Artifact folder parts:`, parts);
-    
-    if (parts.length >= 3) {
-      // Extract platform (first part)
-      if (parts[0] === 'android') {
-        platform = 'android';
-        platformKey = 'Android';
-        console.log(`✅ Detected Android platform from artifact folder`);
-      } else if (parts[0] === 'ios') {
-        platform = 'ios';
-        platformKey = 'iOS';
-        console.log(`✅ Detected iOS platform from artifact folder`);
-      }
-      
-      // Extract scenario (second part)
-      if (parts[1] === 'imported-wallet') {
-        scenario = 'imported-wallet';
-        scenarioKey = 'ImportedWallet';
-        console.log(`✅ Detected imported wallet scenario from artifact folder`);
-      } else if (parts[1] === 'onboarding') {
-        scenario = 'onboarding';
-        scenarioKey = 'Onboarding';
-        console.log(`✅ Detected onboarding scenario from artifact folder`);
-      }
-    }
-  } else {
-    console.log(`⚠️ Could not find artifact folder pattern in path: ${filePath}`);
-  }
-  
-  console.log(`📊 Final extraction: platform="${platformKey}", scenario="${scenarioKey}"`);
-  return { platform, platformKey, scenario, scenarioKey };
-}
-
-/**
- * Extract device information from file path
- * @param {string} filePath - Path to the test result file
- * @returns {string} Device key in format "DeviceName+OSVersion"
- */
-function extractDeviceInfo(filePath) {
-  const pathParts = filePath.split('/');
-  console.log(`🔍 Extracting device info from path: ${filePath}`);
   console.log(`📁 Path parts:`, pathParts);
   
-  // Look for the artifact folder name in the path
-  // Format: test-results/artifact-folder-name/reporters/reports/file.json
-  const artifactFolder = pathParts.find(part => part.includes('-test-results-') || part.includes('-flow-test-results-'));
+  // Look for platform and scenario indicators in the path
+  const fullPath = filePath.toLowerCase();
   
-  if (artifactFolder) {
-    console.log(`🎯 Found artifact folder: ${artifactFolder}`);
+  // Determine platform and scenario from path patterns
+  if (fullPath.includes('android-imported-wallet-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'imported-wallet';
+    scenarioKey = 'ImportedWallet';
+    console.log(`✅ Detected Android Imported Wallet test`);
+  } else if (fullPath.includes('ios-imported-wallet-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'imported-wallet';
+    scenarioKey = 'ImportedWallet';
+    console.log(`✅ Detected iOS Imported Wallet test`);
+  } else if (fullPath.includes('android-onboarding-flow-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
+    console.log(`✅ Detected Android Onboarding test`);
+  } else if (fullPath.includes('ios-onboarding-flow-test-results')) {
+    platform = 'ios';
+    platformKey = 'iOS';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
+    console.log(`✅ Detected iOS Onboarding test`);
+  } else {
+    console.log(`⚠️ Could not determine platform/scenario from path`);
+    console.log(`🔍 Full path: ${filePath}`);
+  }
+  
+  // Extract device info from path
+  const deviceMatch = pathParts.find(part => 
+    part.includes('-imported-wallet-test-results-') || 
+    part.includes('-onboarding-flow-test-results-')
+  );
+  
+  if (deviceMatch) {
+    console.log(`✅ Found device match: ${deviceMatch}`);
+    const parts = deviceMatch.split('-');
+    console.log(`📝 Device parts:`, parts);
     
-    // Parse the artifact folder name to extract device info
-    // Format: platform-scenario-test-results-device-os-version OR platform-scenario-flow-test-results-device-os-version
-    const parts = artifactFolder.split('-');
-    console.log(`🔧 Artifact folder parts:`, parts);
+    // Handle both imported-wallet and onboarding patterns
+    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion
+    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion
+    let deviceInfoStart = 5; // Skip: android-imported-wallet-test-results (5 parts)
+    if (deviceMatch.includes('-onboarding-flow-test-results-')) {
+      deviceInfoStart = 5; // Skip: android-onboarding-flow-test-results (5 parts)
+    }
     
-    if (parts.length >= 5) {
-      // Extract device name and OS version from the end of the artifact folder
-      // Skip the first 3 parts: platform-scenario-test-results OR platform-scenario-flow-test-results
-      const deviceParts = parts.slice(3);
-      console.log(`📱 Device parts:`, deviceParts);
+    if (parts.length >= deviceInfoStart + 1) {
+      const deviceInfo = parts.slice(deviceInfoStart).join('-');
+      console.log(`📱 Extracted device info: ${deviceInfo}`);
       
+      // Create device key in format "DeviceName+OSVersion"
+      const deviceParts = deviceInfo.split('-');
       if (deviceParts.length >= 2) {
-        // Look for the last part - if it's numeric or contains a dot, it's the version
-        const lastPart = deviceParts[deviceParts.length - 1];
-        if (/^\d+(\.\d+)?$/.test(lastPart)) {
-          // Pattern: "Device-Name-14.0" or "Device-Name-17" -> "Device Name+14.0" or "Device Name+17"
-          const osVersion = lastPart;
-          const deviceName = deviceParts.slice(0, -1).join(' ');
-          const result = `${deviceName}+${osVersion}`;
-          console.log(`✅ Extracted device: ${result}`);
-          return result;
-        } else {
-          // Fallback: use last part as version, rest as device name
-          const osVersion = deviceParts[deviceParts.length - 1];
-          const deviceName = deviceParts.slice(0, -1).join(' ');
-          const result = `${deviceName}+${osVersion}`;
-          console.log(`✅ Extracted device (fallback): ${result}`);
-          return result;
-        }
+        const osVersion = deviceParts[deviceParts.length - 1];
+        const deviceName = deviceParts.slice(0, -1).join(' ');
+        deviceKey = `${deviceName}+${osVersion}`;
+        console.log(`🔑 Created device key: ${deviceKey}`);
+      } else {
+        deviceKey = deviceInfo;
+        console.log(`🔑 Using device info as key: ${deviceKey}`);
       }
     }
   } else {
-    console.log(`⚠️ Could not find artifact folder pattern in path: ${filePath}`);
+    console.log(`⚠️ No device match found in path parts`);
+    console.log(`🔍 Looking for patterns: -imported-wallet-test-results- or -onboarding-flow-test-results-`);
+    console.log(`🔍 Available parts:`, pathParts);
   }
   
-  console.log(`❌ No device match found, using default`);
-  return 'Unknown Device';
+  console.log(`📊 Final extraction: platform="${platformKey}", scenario="${scenarioKey}", device="${deviceKey}"`);
+  return { platform, platformKey, scenario, scenarioKey, deviceKey };
 }
+
 
 /**
  * Process a single test report and clean the data
@@ -335,8 +321,25 @@ function aggregateReports() {
       console.log(`📁 Created output directory: ${outputDir}`);
     }
     
-    // Search all results
-    const jsonFiles = findJsonFiles('./test-results');
+    // Search in multiple directories for different test types
+    const searchDirs = [
+      './test-results',
+      './performance-results', 
+      './onboarding-results',
+    ];
+    
+    const jsonFiles = [];
+    
+    searchDirs.forEach(dir => {
+      if (fs.existsSync(dir)) {
+        console.log(`🔍 Searching in ${dir}...`);
+        const dirFiles = findJsonFiles(dir);
+        jsonFiles.push(...dirFiles);
+      } else {
+        console.log(`⚠️ Directory does not exist: ${dir}`);
+      }
+    });
+    
     console.log(`📊 Found ${jsonFiles.length} JSON report files:`);
     jsonFiles.forEach((file, index) => {
       console.log(`  ${index + 1}. ${file}`);
@@ -363,10 +366,10 @@ function aggregateReports() {
         const reportData = JSON.parse(content);
         console.log(`✅ Successfully parsed JSON data from ${filePath}`);
         
-        // Extract platform and scenario info from path
-        const { platformKey, scenarioKey } = extractPlatformAndScenario(filePath);
-        const deviceKey = extractDeviceInfo(filePath);
-        console.log(`📊 Extracted values: platformKey="${platformKey}", scenarioKey="${scenarioKey}", deviceKey="${deviceKey}"`);
+        // Extract platform, scenario, and device info from file path
+        const { platformKey, scenarioKey, deviceKey } = extractPlatformScenarioAndDevice(filePath);
+        
+        console.log(`📊 Final values: platformKey="${platformKey}", scenarioKey="${scenarioKey}", deviceKey="${deviceKey}"`);
         
         // Initialize structure if it doesn't exist
         console.log(`🔧 Creating keys: platformKey="${platformKey}", deviceKey="${deviceKey}"`);
@@ -418,5 +421,5 @@ function aggregateReports() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   aggregateReports();
 }
-export { aggregateReports, findJsonFiles, extractPlatformAndScenario, extractDeviceInfo, processTestReport };
+export { aggregateReports, findJsonFiles, extractPlatformScenarioAndDevice, processTestReport };
 
