@@ -8,6 +8,7 @@ import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import BackgroundTimer from 'react-native-background-timer';
+import { captureException } from '@sentry/react-native';
 import Device from '../../../../util/device';
 
 // simple wait utility
@@ -406,6 +407,27 @@ class PerpsConnectionManagerClass {
         this.isConnecting = false;
         this.isConnected = false;
         this.isInitialized = false;
+
+        // Capture exception with connection context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'PerpsConnectionManager',
+              action: 'connection_connection',
+              operation: 'connection_management',
+              provider: 'hyperliquid',
+            },
+            extra: {
+              connectionContext: {
+                provider: 'hyperliquid',
+                timestamp: new Date().toISOString(),
+                isTestnet: this.isTestnet,
+              },
+            },
+          },
+        );
+
         // Set error state for UI
         this.setError(
           error instanceof Error ? error : new Error(String(error)),

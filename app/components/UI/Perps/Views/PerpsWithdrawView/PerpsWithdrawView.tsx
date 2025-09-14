@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureException } from '@sentry/react-native';
 
 import {
   Box,
@@ -252,6 +253,11 @@ const PerpsWithdrawView: React.FC = () => {
     navigation.goBack();
 
     // Execute withdrawal asynchronously
+    // Get the correct assetId for USDC on Arbitrum (declare outside try block for error handling)
+    const assetId = isTestnet
+      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+
     try {
       // Execute withdrawal directly using controller
       const controller = Engine.context.PerpsController;
@@ -259,11 +265,6 @@ const PerpsWithdrawView: React.FC = () => {
       // Construct assetId in CAIP format: eip155:{chainId}/erc20:{tokenAddress}/default
       // Convert hex chainId to decimal for CAIP format
       const chainIdDecimal = parseInt(destToken.chainId, 16).toString();
-
-      // Get the correct assetId for USDC on Arbitrum
-      const assetId = isTestnet
-        ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-        : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
 
       DevLogger.log('Initiating withdrawal with params:', {
         amount: withdrawAmountDetailed,
@@ -321,6 +322,27 @@ const PerpsWithdrawView: React.FC = () => {
       endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
       endMeasure(
         PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
+
+      // Capture exception with withdrawal context
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tags: {
+            component: 'PerpsWithdrawView',
+            action: 'financial_withdrawal',
+            operation: 'financial_operations',
+          },
+          extra: {
+            withdrawalContext: {
+              amount: withdrawAmountDetailed,
+              assetId,
+              destination: destToken.address,
+              chainId: destToken.chainId,
+              isTestnet,
+            },
+          },
+        },
       );
 
       // Track withdrawal failed

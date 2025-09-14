@@ -5,7 +5,7 @@ import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import performance from 'react-native-performance';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { setMeasurement } from '@sentry/react-native';
+import { setMeasurement , captureException } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
@@ -162,6 +162,27 @@ export function usePerpsOrderExecution(
             : strings('perps.order.error.unknown');
         setError(errorMessage);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
+
+        // Capture exception with order context
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            component: 'usePerpsOrderExecution',
+            action: 'order_creation',
+            operation: 'order_management',
+          },
+          extra: {
+            orderContext: {
+              coin: orderParams.coin,
+              isBuy: orderParams.isBuy,
+              orderType: orderParams.orderType,
+              size: orderParams.size,
+              price: orderParams.price,
+              leverage: orderParams.leverage,
+              takeProfitPrice: orderParams.takeProfitPrice,
+              stopLossPrice: orderParams.stopLossPrice,
+            },
+          },
+        });
 
         // Track exception with specific event
         track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
