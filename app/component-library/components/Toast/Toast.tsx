@@ -210,7 +210,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     } = options;
 
     const isStartAccessoryValid =
-      Boolean(startAccessory) && React.isValidElement(startAccessory);
+      startAccessory != null && React.isValidElement(startAccessory);
 
     return (
       <>

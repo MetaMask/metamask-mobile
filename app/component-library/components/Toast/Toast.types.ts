@@ -5,7 +5,7 @@ import { ImageSourcePropType } from 'react-native';
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 import { ButtonProps } from '../Buttons/Button/Button.types';
 import { IconName } from '../Icons/Icon';
-import { ReactNode } from 'react';
+import { ReactElement } from 'react';
 
 /**
  * Toast variants.
@@ -41,7 +41,7 @@ interface BaseToastVariants {
   labelOptions: ToastLabelOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
   closeButtonOptions?: ButtonProps;
-  startAccessory?: ReactNode;
+  startAccessory?: ReactElement;
 }
 
 /**
