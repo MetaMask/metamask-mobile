@@ -72,6 +72,8 @@ import Button, {
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
+const USDC_TOKEN_URL =
+  'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
 
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
@@ -121,7 +123,7 @@ const PerpsWithdrawView: React.FC = () => {
     isBelowMinimum,
     hasInsufficientBalance,
     getMinimumAmount,
-  } = useWithdrawValidation({ withdrawAmount });
+  } = useWithdrawValidation({ withdrawAmount: withdrawAmountDetailed });
 
   // Check if inputs are valid
   const hasValidInputs =
@@ -132,17 +134,17 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Get withdrawal quote
   const { formattedQuoteData } = usePerpsWithdrawQuote({
-    amount: withdrawAmount,
+    amount: withdrawAmountDetailed,
   });
 
   // Calculate destination amount (for now, same as withdrawal amount minus fees)
   const destAmount = useMemo(() => {
-    if (!withdrawAmount || !formattedQuoteData?.networkFee) return '';
-    const amount = parseFloat(withdrawAmount) || 0;
+    if (!withdrawAmountDetailed || !formattedQuoteData?.networkFee) return '';
+    const amount = parseFloat(withdrawAmountDetailed) || 0;
     const fee = parseFloat(formattedQuoteData.networkFee.replace('$', '')) || 0;
     const result = Math.max(0, amount - fee);
     return result.toFixed(2);
-  }, [withdrawAmount, formattedQuoteData]);
+  }, [withdrawAmountDetailed, formattedQuoteData]);
 
   // Start measuring screen load time on mount
   useEffect(() => {
@@ -238,7 +240,7 @@ const PerpsWithdrawView: React.FC = () => {
 
     setIsSubmittingTx(true);
     trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
-      amount: withdrawAmount,
+      amount: withdrawAmountDetailed,
     });
 
     // Show processing toast immediately
@@ -334,7 +336,6 @@ const PerpsWithdrawView: React.FC = () => {
     hasValidInputs,
     isSubmittingTx,
     trackEvent,
-    withdrawAmount,
     showToast,
     PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
     navigation,
@@ -482,9 +483,8 @@ const PerpsWithdrawView: React.FC = () => {
             >
               <AvatarToken
                 name={destToken.symbol}
-                imageSource={
-                  destToken.image ? { uri: destToken.image } : undefined
-                }
+                // hardcoding usdc token image url until we support other withdrawal token types
+                imageSource={{ uri: USDC_TOKEN_URL }}
                 size={AvatarSize.Sm}
               />
             </BadgeWrapper>

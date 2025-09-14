@@ -761,7 +761,7 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('Cumulative Funding Display', () => {
-    it('shows white color and minus sign when cumulative funding is zero', () => {
+    it('shows white color and $0.00 when cumulative funding is exactly zero', () => {
       const positionWithZeroFunding = {
         ...mockPosition,
         cumulativeFunding: {
@@ -773,11 +773,42 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithZeroFunding} />);
 
-      // Should show minus sign for zero funding (since 0 >= 0)
-      expect(screen.getByText('-$0.00')).toBeOnTheScreen();
+      // New behavior: near-zero (including exactly zero) shows $0.00 (no sign prefix)
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      expect(screen.queryByText('-$0.00')).toBeNull();
+      expect(screen.queryByText('+$$0.00')).toBeNull();
+    });
 
-      // Should not show plus sign for zero
-      expect(screen.queryByText('+$0.00')).not.toBeOnTheScreen();
+    it('shows $0.00 for very small positive cumulative funding (< $0.005)', () => {
+      const positionWithTinyPositiveFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '0.004',
+          sinceOpen: '0.004',
+          sinceChange: '0.000',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithTinyPositiveFunding} />);
+
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      expect(screen.queryByText('-$0.00')).toBeNull();
+    });
+
+    it('shows $0.00 for very small negative cumulative funding (> -$0.005)', () => {
+      const positionWithTinyNegativeFunding = {
+        ...mockPosition,
+        cumulativeFunding: {
+          allTime: '-0.004',
+          sinceOpen: '-0.004',
+          sinceChange: '0.000',
+        },
+      };
+
+      render(<PerpsPositionCard position={positionWithTinyNegativeFunding} />);
+
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      expect(screen.queryByText('+$$0.00')).toBeNull();
     });
 
     it('shows red color and minus sign for positive cumulative funding (loss)', () => {

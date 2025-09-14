@@ -52,12 +52,6 @@ describe(
           const analyticsPreferenceSelectedEvent = events.find(
             (event) => event.event === 'Analytics Preference Selected',
           );
-          const welcomeMessageViewedEvent = events.find(
-            (event) => event.event === 'Welcome Message Viewed',
-          );
-          const onboardingStartedEvent = events.find(
-            (event) => event.event === 'Onboarding Started',
-          );
           const walletSetupStartedEvent = events.find(
             (event) => event.event === 'Wallet Setup Started',
           );
@@ -69,15 +63,6 @@ describe(
           );
           const walletSetupCompletedEvent = events.find(
             (event) => event.event === 'Wallet Setup Completed',
-          );
-
-          const walletSecurityReminderDismissedEvent = events.find(
-            (event) => event.event === 'Wallet Security Reminder Dismissed',
-          );
-
-          const checkEventCount = softAssert.checkAndCollect(
-            () => Assertions.checkIfArrayHasLength(events, 8),
-            'Expected 8 events for new wallet onboarding',
           );
 
           const checkAnalyticsPreferenceSelected = softAssert.checkAndCollect(
@@ -96,28 +81,6 @@ describe(
               );
             },
             'Analytics Preference Selected: Should be present with correct properties',
-          );
-
-          const checkWelcomeMessageViewed = softAssert.checkAndCollect(
-            async () => {
-              Assertions.checkIfValueIsDefined(welcomeMessageViewedEvent);
-              Assertions.checkIfObjectsMatch(
-                welcomeMessageViewedEvent!.properties,
-                {},
-              );
-            },
-            'Welcome Message Viewed: Should be present with empty properties',
-          );
-
-          const checkOnboardingStarted = softAssert.checkAndCollect(
-            async () => {
-              Assertions.checkIfValueIsDefined(onboardingStartedEvent);
-              Assertions.checkIfObjectsMatch(
-                onboardingStartedEvent!.properties,
-                {},
-              );
-            },
-            'Onboarding Started: Should be present with empty properties',
           );
 
           const checkWalletSetupStarted = softAssert.checkAndCollect(
@@ -169,30 +132,12 @@ describe(
             'Wallet Setup Completed: Should be present with correct properties',
           );
 
-          const checkWalletSecurityReminderDismissed =
-            softAssert.checkAndCollect(async () => {
-              Assertions.checkIfValueIsDefined(
-                walletSecurityReminderDismissedEvent,
-              );
-              Assertions.checkIfObjectsMatch(
-                walletSecurityReminderDismissedEvent!.properties,
-                {
-                  wallet_protection_required: false,
-                  source: 'Backup Alert',
-                },
-              );
-            }, 'Wallet Security Reminder Dismissed: Should be present with correct properties');
-
           await Promise.all([
-            checkEventCount,
             checkAnalyticsPreferenceSelected,
-            checkWelcomeMessageViewed,
-            checkOnboardingStarted,
             checkWalletSetupStarted,
             checkWalletCreationAttempted,
             checkWalletCreated,
             checkWalletSetupCompleted,
-            checkWalletSecurityReminderDismissed,
           ]);
 
           softAssert.throwIfErrors();

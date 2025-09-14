@@ -1276,6 +1276,10 @@ export class Engine {
     const multichainAccountService = controllersByName.MultichainAccountService;
     ///: END:ONLY_INCLUDE_IF
 
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
+    networkEnablementController.init();
+
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -1288,9 +1292,6 @@ export class Engine {
       messenger: multichainRatesControllerMessenger,
       initialState: initialState.RatesController,
     });
-
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
 
     // Set up currency rate sync
     setupCurrencyRateSync(
