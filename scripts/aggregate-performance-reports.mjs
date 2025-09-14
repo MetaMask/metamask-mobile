@@ -58,127 +58,46 @@ function extractPlatformAndScenario(filePath) {
   
   console.log(`🔍 Analyzing file path: ${filePath}`);
   
-  // Extract the artifact name from the path by looking for the pattern
-  // The artifact name should be in the path like: test-results/artifact-name/reporters/reports/file.json
-  const artifactMatch = pathParts.find(part => part.includes('-test-results-'));
+  // Look for the artifact folder name in the path
+  // Format: test-results/artifact-folder-name/reporters/reports/file.json
+  const artifactFolder = pathParts.find(part => part.includes('-test-results-') || part.includes('-flow-test-results-'));
   
-  if (artifactMatch) {
-    console.log(`🎯 Found artifact match: ${artifactMatch}`);
+  if (artifactFolder) {
+    console.log(`🎯 Found artifact folder: ${artifactFolder}`);
     
-    // Determine platform and scenario from artifact name
-    if (artifactMatch.includes('android-imported-wallet-test-results')) {
-      platform = 'android';
-      platformKey = 'Android';
-      scenario = 'imported-wallet';
-      scenarioKey = 'ImportedWallet';
-      console.log(`✅ Detected Android imported wallet from artifact`);
-    } else if (artifactMatch.includes('ios-imported-wallet-test-results')) {
-      platform = 'ios';
-      platformKey = 'iOS';
-      scenario = 'imported-wallet';
-      scenarioKey = 'ImportedWallet';
-      console.log(`✅ Detected iOS imported wallet from artifact`);
-    } else if (artifactMatch.includes('android-onboarding-flow-test-results')) {
-      platform = 'android';
-      platformKey = 'Android';
-      scenario = 'onboarding';
-      scenarioKey = 'Onboarding';
-      console.log(`✅ Detected Android onboarding flow from artifact`);
-    } else if (artifactMatch.includes('ios-onboarding-flow-test-results')) {
-      platform = 'ios';
-      platformKey = 'iOS';
-      scenario = 'onboarding';
-      scenarioKey = 'Onboarding';
-      console.log(`✅ Detected iOS onboarding flow from artifact`);
-    } else if (artifactMatch.includes('android-onboarding-test-results') || 
-               artifactMatch.includes('android-test-results-')) {
-      platform = 'android';
-      platformKey = 'Android';
-      scenario = 'onboarding';
-      scenarioKey = 'Onboarding';
-      console.log(`✅ Detected Android onboarding from artifact`);
-    } else if (artifactMatch.includes('ios-onboarding-test-results') || 
-               artifactMatch.includes('ios-test-results-')) {
-      platform = 'ios';
-      platformKey = 'iOS';
-      scenario = 'onboarding';
-      scenarioKey = 'Onboarding';
-      console.log(`✅ Detected iOS onboarding from artifact`);
-    } else if (artifactMatch.includes('android-combined-test-results')) {
-      platform = 'android';
-      platformKey = 'Android';
-      scenario = 'combined';
-      scenarioKey = 'Combined';
-      console.log(`✅ Detected Android combined from artifact`);
-    } else if (artifactMatch.includes('ios-combined-test-results')) {
-      platform = 'ios';
-      platformKey = 'iOS';
-      scenario = 'combined';
-      scenarioKey = 'Combined';
-      console.log(`✅ Detected iOS combined from artifact`);
-    } else {
-      console.log(`⚠️ Could not detect platform/scenario from artifact: ${artifactMatch}`);
-      // Fallback: try to extract from the full path
-      if (filePath.includes('android') && filePath.includes('imported-wallet')) {
+    // Parse the artifact folder name to extract platform and scenario
+    // Format: platform-scenario-test-results-device-os-version OR platform-scenario-flow-test-results-device-os-version
+    const parts = artifactFolder.split('-');
+    console.log(`🔧 Artifact folder parts:`, parts);
+    
+    if (parts.length >= 3) {
+      // Extract platform (first part)
+      if (parts[0] === 'android') {
         platform = 'android';
         platformKey = 'Android';
-        scenario = 'imported-wallet';
-        scenarioKey = 'ImportedWallet';
-        console.log(`✅ Fallback: Detected Android imported wallet from path`);
-      } else if (filePath.includes('android') && filePath.includes('onboarding')) {
-        platform = 'android';
-        platformKey = 'Android';
-        scenario = 'onboarding';
-        scenarioKey = 'Onboarding';
-        console.log(`✅ Fallback: Detected Android onboarding from path`);
-      } else if (filePath.includes('ios') && filePath.includes('imported-wallet')) {
+        console.log(`✅ Detected Android platform from artifact folder`);
+      } else if (parts[0] === 'ios') {
         platform = 'ios';
         platformKey = 'iOS';
+        console.log(`✅ Detected iOS platform from artifact folder`);
+      }
+      
+      // Extract scenario (second part)
+      if (parts[1] === 'imported-wallet') {
         scenario = 'imported-wallet';
         scenarioKey = 'ImportedWallet';
-        console.log(`✅ Fallback: Detected iOS imported wallet from path`);
-      } else if (filePath.includes('ios') && filePath.includes('onboarding')) {
-        platform = 'ios';
-        platformKey = 'iOS';
+        console.log(`✅ Detected imported wallet scenario from artifact folder`);
+      } else if (parts[1] === 'onboarding') {
         scenario = 'onboarding';
         scenarioKey = 'Onboarding';
-        console.log(`✅ Fallback: Detected iOS onboarding from path`);
-      } else {
-        console.log(`❌ Could not determine platform/scenario from path: ${filePath}`);
+        console.log(`✅ Detected onboarding scenario from artifact folder`);
       }
     }
   } else {
-    console.log(`⚠️ Could not find artifact pattern in path: ${filePath}`);
-    // Fallback: try to extract from the full path
-    if (filePath.includes('android') && filePath.includes('imported-wallet')) {
-      platform = 'android';
-      platformKey = 'Android';
-      scenario = 'imported-wallet';
-      scenarioKey = 'ImportedWallet';
-      console.log(`✅ Fallback: Detected Android imported wallet from path`);
-    } else if (filePath.includes('android') && filePath.includes('onboarding')) {
-      platform = 'android';
-      platformKey = 'Android';
-      scenario = 'onboarding';
-      scenarioKey = 'Onboarding';
-      console.log(`✅ Fallback: Detected Android onboarding from path`);
-    } else if (filePath.includes('ios') && filePath.includes('imported-wallet')) {
-      platform = 'ios';
-      platformKey = 'iOS';
-      scenario = 'imported-wallet';
-      scenarioKey = 'ImportedWallet';
-      console.log(`✅ Fallback: Detected iOS imported wallet from path`);
-    } else if (filePath.includes('ios') && filePath.includes('onboarding')) {
-      platform = 'ios';
-      platformKey = 'iOS';
-      scenario = 'onboarding';
-      scenarioKey = 'Onboarding';
-      console.log(`✅ Fallback: Detected iOS onboarding from path`);
-    } else {
-      console.log(`❌ Could not determine platform/scenario from path: ${filePath}`);
-    }
+    console.log(`⚠️ Could not find artifact folder pattern in path: ${filePath}`);
   }
   
+  console.log(`📊 Final extraction: platform="${platformKey}", scenario="${scenarioKey}"`);
   return { platform, platformKey, scenario, scenarioKey };
 }
 
@@ -192,62 +111,25 @@ function extractDeviceInfo(filePath) {
   console.log(`🔍 Extracting device info from path: ${filePath}`);
   console.log(`📁 Path parts:`, pathParts);
   
-  // Look for any part that contains 'test-results' (more flexible)
-  const deviceMatch = pathParts.find(part => part.includes('test-results'));
-  console.log(`🎯 Found device match: ${deviceMatch}`);
+  // Look for the artifact folder name in the path
+  // Format: test-results/artifact-folder-name/reporters/reports/file.json
+  const artifactFolder = pathParts.find(part => part.includes('-test-results-') || part.includes('-flow-test-results-'));
   
-  // If no match with 'test-results', try other patterns
-  if (!deviceMatch) {
-    console.log(`🔍 No 'test-results' found, trying other patterns...`);
-    const alternativeMatch = pathParts.find(part => 
-      part.includes('android-') || part.includes('ios-') || 
-      part.includes('Samsung') || part.includes('iPhone') || part.includes('Google')
-    );
-    console.log(`🎯 Found alternative match: ${alternativeMatch}`);
-    if (alternativeMatch) {
-      // Use the alternative match as device info
-      const result = alternativeMatch.replace(/^(android|ios)-/, '').replace(/-test-results.*$/, '');
-      console.log(`✅ Using alternative match as device: ${result}`);
-      return result;
-    }
-  }
-  
-  if (deviceMatch) {
-    // Extract the part after "-test-results-"
-    const testResultsIndex = deviceMatch.indexOf('-test-results-');
-    const deviceInfo = deviceMatch.substring(testResultsIndex + '-test-results-'.length);
-    console.log(`📱 Raw device info: ${deviceInfo}`);
-    console.log(`🔍 Device match: "${deviceMatch}"`);
-    console.log(`🔍 Test results index: ${testResultsIndex}`);
-    console.log(`🔍 Device info after extraction: "${deviceInfo}"`);
+  if (artifactFolder) {
+    console.log(`🎯 Found artifact folder: ${artifactFolder}`);
     
-    // Handle different patterns:
-    // 1. Empty string (e.g., "android-test-results--")
-    if (!deviceInfo || deviceInfo === '' || deviceInfo === '-') {
-      console.log(`⚠️ Empty device info, using default`);
-      return 'Unknown Device';
-    }
+    // Parse the artifact folder name to extract device info
+    // Format: platform-scenario-test-results-device-os-version OR platform-scenario-flow-test-results-device-os-version
+    const parts = artifactFolder.split('-');
+    console.log(`🔧 Artifact folder parts:`, parts);
     
-    // 2. Device name with version (e.g., "Google Pixel 8 Pro-14.0", "iPhone 12-17")
-    const deviceParts = deviceInfo.split('-');
-    console.log(`🔧 Device parts:`, deviceParts);
-    
-    if (deviceParts.length >= 2) {
-      // Handle patterns like "Google Pixel 8 Pro-14.0" where we want "Google Pixel 8 Pro+14.0"
-      // or "iPhone 12-17" where we want "iPhone 12+17"
+    if (parts.length >= 5) {
+      // Extract device name and OS version from the end of the artifact folder
+      // Skip the first 3 parts: platform-scenario-test-results OR platform-scenario-flow-test-results
+      const deviceParts = parts.slice(3);
+      console.log(`📱 Device parts:`, deviceParts);
       
-      // Look for the last two parts - if both are numeric, combine them as version
-      if (deviceParts.length >= 3 && 
-          /^\d+$/.test(deviceParts[deviceParts.length - 1]) && 
-          /^\d+$/.test(deviceParts[deviceParts.length - 2])) {
-        // Pattern: "Device-Name-14-2" -> "Device Name+14.2"
-        const majorVersion = deviceParts[deviceParts.length - 2];
-        const minorVersion = deviceParts[deviceParts.length - 1];
-        const deviceName = deviceParts.slice(0, -2).join(' ');
-        const result = `${deviceName}+${majorVersion}.${minorVersion}`;
-        console.log(`✅ Extracted device (major.minor): ${result}`);
-        return result;
-      } else if (deviceParts.length >= 2) {
+      if (deviceParts.length >= 2) {
         // Look for the last part - if it's numeric or contains a dot, it's the version
         const lastPart = deviceParts[deviceParts.length - 1];
         if (/^\d+(\.\d+)?$/.test(lastPart)) {
@@ -255,7 +137,7 @@ function extractDeviceInfo(filePath) {
           const osVersion = lastPart;
           const deviceName = deviceParts.slice(0, -1).join(' ');
           const result = `${deviceName}+${osVersion}`;
-          console.log(`✅ Extracted device (version with dot): ${result}`);
+          console.log(`✅ Extracted device: ${result}`);
           return result;
         } else {
           // Fallback: use last part as version, rest as device name
@@ -267,10 +149,8 @@ function extractDeviceInfo(filePath) {
         }
       }
     }
-    
-    // If we can't parse it properly, return as-is
-    console.log(`⚠️ Could not parse device info, using as-is: ${deviceInfo}`);
-    return deviceInfo;
+  } else {
+    console.log(`⚠️ Could not find artifact folder pattern in path: ${filePath}`);
   }
   
   console.log(`❌ No device match found, using default`);
