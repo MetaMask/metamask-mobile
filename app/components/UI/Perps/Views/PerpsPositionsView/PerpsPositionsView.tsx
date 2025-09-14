@@ -226,7 +226,7 @@ const PerpsPositionsView: React.FC = () => {
           }}
           onConfirm={async (takeProfitPrice, stopLossPrice) => {
             await handleUpdateTPSL(
-              selectedPosition,
+              selectedPosition.coin,
               takeProfitPrice,
               stopLossPrice,
             );

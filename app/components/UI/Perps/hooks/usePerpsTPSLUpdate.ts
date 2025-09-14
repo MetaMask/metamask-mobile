@@ -11,7 +11,6 @@ import { ButtonVariants } from '../../../../component-library/components/Buttons
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { Position } from '../controllers/types';
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -31,7 +30,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
   const handleUpdateTPSL = useCallback(
     async (
-      position: Position,
+      coin: string,
       takeProfitPrice: string | undefined,
       stopLossPrice: string | undefined,
     ) => {
@@ -40,7 +39,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
       try {
         const result = await updatePositionTPSL({
-          coin: position.coin,
+          coin,
           takeProfitPrice,
           stopLossPrice,
         });
@@ -58,7 +57,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
               },
               { label: ' - ', isBold: false },
               {
-                label: position.coin,
+                label: coin,
                 isBold: true,
               },
             ],

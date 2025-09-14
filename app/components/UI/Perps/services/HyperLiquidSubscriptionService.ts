@@ -319,16 +319,26 @@ export class HyperLiquidSubscriptionService {
           // Also extract regular orders for order subscribers
           const orders: Order[] = [];
 
+          const tpCount = data.openOrders.filter(
+            (order) =>
+              order.isTrigger &&
+              order.reduceOnly &&
+              order.orderType?.includes('Take Profit'),
+          ).length;
+          const slCount = data.openOrders.filter(
+            (order) =>
+              order.isTrigger &&
+              order.reduceOnly &&
+              order.orderType?.includes('Stop'),
+          ).length;
           (data.openOrders || []).forEach((order) => {
+            let position: Position | undefined;
             // Process trigger orders for TP/SL
             if (order.triggerPx) {
               const coin = order.coin;
-              const position = positions.find(
+              position = positions.find(
                 (p) =>
-                  p.coin === coin &&
-                  order.reduceOnly &&
-                  Math.abs(parseFloat(p.size)) ===
-                    Math.abs(parseFloat(order.sz)),
+                  p.coin === coin && order.reduceOnly && order.isPositionTpsl,
               );
 
               if (position) {
@@ -367,7 +377,7 @@ export class HyperLiquidSubscriptionService {
             // TP/SL orders are both:
             // 1. Used to populate position TP/SL fields (done above)
             // 2. Shown as separate orders in the orders list (done here)
-            const convertedOrder = adaptOrderFromSDK(order);
+            const convertedOrder = adaptOrderFromSDK(order, position);
             orders.push(convertedOrder);
           });
 
@@ -378,6 +388,8 @@ export class HyperLiquidSubscriptionService {
               ...position,
               takeProfitPrice: tpsl.takeProfitPrice || undefined,
               stopLossPrice: tpsl.stopLossPrice || undefined,
+              takeProfitCount: tpCount,
+              stopLossCount: slCount,
             };
           });
 
