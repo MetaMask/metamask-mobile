@@ -51,6 +51,7 @@ interface PerpsPositionCardProps {
   rightAccessory?: React.ReactNode;
   onPositionUpdate?: () => Promise<void>;
   onTooltipPress?: (contentKey: PerpsTooltipContentKey) => void;
+  onTpslCountPress?: () => void;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -60,6 +61,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   rightAccessory,
   onPositionUpdate,
   onTooltipPress,
+  onTpslCountPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -140,6 +142,25 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     DevLogger.log('PerpsPositionCard: Editing TPSL', { position });
     setSelectedPosition(position);
     setIsTPSLVisible(true);
+  };
+
+  const handleTpslCountPress = async () => {
+    if (isLoading || error) {
+      DevLogger.log(
+        'Failed to redirect to orders tab. Error fetching market data: ',
+        error,
+      );
+      return;
+    }
+
+    if (!marketData) {
+      DevLogger.log('No market data available for navigation');
+      return;
+    }
+
+    if (onTpslCountPress) {
+      onTpslCountPress();
+    }
   };
 
   // Funding cost (cumulative since open) formatting logic
@@ -279,11 +300,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.take_profit')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.takeProfitPrice
-                    ? formatPerpsFiat(position.takeProfitPrice, {
-                        ranges: PRICE_RANGES_POSITION_VIEW,
-                      })
-                    : strings('perps.position.card.not_set')}
+                  {position.takeProfitCount && position.takeProfitCount > 1 ? (
+                    <TouchableOpacity onPress={handleTpslCountPress}>
+                      <Text style={styles.tpslCountPress}>
+                        {strings('perps.position.card.tpsl_count_multiple', {
+                          count: position.takeProfitCount,
+                        })}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {position.takeProfitCount && position.takeProfitCount <= 1
+                    ? position.takeProfitPrice
+                      ? formatPerpsFiat(position.takeProfitPrice, {
+                          ranges: PRICE_RANGES_POSITION_VIEW,
+                        })
+                      : strings('perps.position.card.not_set')
+                    : null}
                 </Text>
               </View>
               <View style={styles.bodyItem}>
@@ -294,11 +326,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   {strings('perps.position.card.stop_loss')}
                 </Text>
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {position.stopLossPrice
-                    ? formatPerpsFiat(position.stopLossPrice, {
-                        ranges: PRICE_RANGES_POSITION_VIEW,
-                      })
-                    : strings('perps.position.card.not_set')}
+                  {position.stopLossCount && position.stopLossCount > 1 ? (
+                    <TouchableOpacity onPress={handleTpslCountPress}>
+                      <Text style={styles.tpslCountPress}>
+                        {strings('perps.position.card.tpsl_count_multiple', {
+                          count: position.stopLossCount,
+                        })}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {position.stopLossCount && position.stopLossCount <= 1
+                    ? position.stopLossPrice
+                      ? formatPerpsFiat(position.stopLossPrice, {
+                          ranges: PRICE_RANGES_POSITION_VIEW,
+                        })
+                      : strings('perps.position.card.not_set')
+                    : null}
                 </Text>
               </View>
               <View style={styles.bodyItem}>
@@ -377,7 +420,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             }}
             onConfirm={async (takeProfitPrice, stopLossPrice) => {
               await handleUpdateTPSL(
-                selectedPosition,
+                selectedPosition.coin,
                 takeProfitPrice,
                 stopLossPrice,
               );

@@ -740,7 +740,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         throw new Error(`No position found for ${coin}`);
       }
 
-      const positionSize = Math.abs(parseFloat(position.size));
+      // const positionSize = Math.abs(parseFloat(position.size));
       const isLong = parseFloat(position.size) > 0;
 
       await this.ensureReady();
@@ -772,8 +772,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         (order) =>
           order.coin === coin &&
           order.reduceOnly === true &&
-          Math.abs(parseFloat(order.sz)) ===
-            Math.abs(parseFloat(position.size)) &&
+          order.isPositionTpsl === true &&
           order.isTrigger === true &&
           (order.orderType.includes('Take Profit') ||
             order.orderType.includes('Stop')),
@@ -829,10 +828,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             price: parseFloat(takeProfitPrice),
             szDecimals: assetInfo.szDecimals,
           }),
-          s: formatHyperLiquidSize({
-            size: positionSize,
-            szDecimals: assetInfo.szDecimals,
-          }),
+          s: '0',
           r: true, // Always reduce-only for position TP
           t: {
             trigger: {
@@ -857,10 +853,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             price: parseFloat(stopLossPrice),
             szDecimals: assetInfo.szDecimals,
           }),
-          s: formatHyperLiquidSize({
-            size: positionSize,
-            szDecimals: assetInfo.szDecimals,
-          }),
+          s: '0',
           r: true, // Always reduce-only for position SL
           t: {
             trigger: {
