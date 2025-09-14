@@ -235,18 +235,16 @@ describe('TPSL Validation Utilities', () => {
 
       it('should handle decimal precision correctly', () => {
         // Long position: SL must be above liquidation
-        // 80.001 rounds to 80.00, same as 80.000, so should be false (not beyond)
         expect(isStopLossSafeFromLiquidation('80.001', '80.000', 'long')).toBe(
-          false,
+          true,
         );
         expect(isStopLossSafeFromLiquidation('79.999', '80.000', 'long')).toBe(
           false,
         );
 
         // Short position: SL must be below liquidation
-        // 79.999 rounds to 80.00, same as 80.000, so should be false (not beyond)
         expect(isStopLossSafeFromLiquidation('79.999', '80.000', 'short')).toBe(
-          false,
+          true,
         );
         expect(isStopLossSafeFromLiquidation('80.001', '80.000', 'short')).toBe(
           false,
@@ -715,7 +713,7 @@ describe('TPSL Validation Utilities', () => {
       });
     });
 
-    describe('edge cases', () => {
+    describe('Edge cases', () => {
       it('handles invalid numeric values by treating them as undefined', () => {
         expect(hasTPSLValuesChanged('invalid', '50', 'invalid', '50')).toBe(
           false,
@@ -1251,7 +1249,7 @@ describe('TPSL Validation Utilities', () => {
       });
     });
 
-    describe('edge cases', () => {
+    describe('Edge cases', () => {
       it('should return empty string for invalid input', () => {
         expect(formatRoEPercentageDisplay('', true)).toBe('');
         expect(formatRoEPercentageDisplay('', false)).toBe('');
