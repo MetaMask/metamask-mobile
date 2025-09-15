@@ -312,7 +312,15 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -954,7 +962,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                           </View>
                         </View>
                       </RCTScrollView>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1279,7 +1287,15 @@ exports[`BridgeView renders 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -1921,7 +1937,7 @@ exports[`BridgeView renders 1`] = `
                           </View>
                         </View>
                       </RCTScrollView>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
