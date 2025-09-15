@@ -26,6 +26,7 @@ import {
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import Device from '../../../util/device';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
@@ -494,6 +495,11 @@ class ChoosePassword extends PureComponent {
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
         this.props.setDataCollectionForMarketing(this.state.isSelected);
+        OAuthLoginService.updateMarketingOptInStatus(
+          this.state.isSelected,
+        ).catch((error) => {
+          Logger.error(error);
+        });
 
         this.props.navigation.reset({
           index: 0,
