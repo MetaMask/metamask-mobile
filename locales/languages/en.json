@@ -39,7 +39,12 @@
       "buy_action": "Buy %{nativeCurrency}"
     },
     "signed_or_submitted": {
+      "title": "Transaction in progress",
       "message": "A previous transaction is still being signed or submitted."
+    },
+    "signed_or_submitted_perps_deposit": {
+      "title": "Deposit in progress",
+      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -56,8 +61,12 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds"
     },
+    "insufficient_pay_token_balance_fees": {
+      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+      "title": "Insufficient funds"
+    },
     "insufficient_pay_token_native": {
-      "message": "Insufficient native funds on payment token chain. Select different token."
+      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
@@ -445,7 +454,10 @@
     "warning_password_cancel_button": "Cancel",
     "changing_password": "Changing password...",
     "changing_password_subtitle": "This shouldn’t take long",
-    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "seedless_change_password_error_modal_title": "Change password failed",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "Import a wallet",
@@ -844,10 +856,10 @@
     "available_balance": "Available balance",
     "margin_used": "Margin Used",
     "gtm_content": {
-      "title": "WE'VE GOT PERPS",
-      "title_description": "Predict price moves with up to 40x leverage.",
+      "title": "PERPS ARE HERE",
+      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
       "not_now": "Not now",
-      "try_now": "Trade perps"
+      "try_now": "Get started"
     },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
@@ -1122,6 +1134,7 @@
       "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
       "margin": "Margin",
+      "includes_pnl":"includes P&L",
       "pnl": "PnL",
       "estimated_pnl": "Estimated PnL",
       "fees": "Fees",
@@ -1161,7 +1174,13 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
-      "usd_label": "($)"
+      "usd_label": "($)",
+      "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
+      "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
+      "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
+      "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
+      "above": "above",
+      "below": "below"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1362,6 +1381,10 @@
       "tp_sl": {
         "title": "Take Profit & Stop Loss",
         "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
+      },
+      "close_position_you_receive": {
+        "title": "Receive amount",
+        "content": "Your receive amount is estimated and may change slightly due to slippage."
       },
       "notifications": {
         "title": "Turn on notifications",
@@ -1638,6 +1661,9 @@
     "banner": {
       "title": "Basic functionality is off",
       "link": "Turn on basic functionality"
+    },
+    "carousel": {
+      "empty_state": "You're all caught up!"
     }
   },
   "asset_details": {
@@ -2496,7 +2522,6 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
-    "fund_button": "Fund",
     "token_marketplace": "Token marketplace",
     "sell_button": "Withdraw",
     "receive_button": "Receive",
@@ -3984,7 +4009,7 @@
     "select_a_quote": "Select a Quote",
     "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
-    "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
+    "select_a_cryptocurrency_description": "Select from the list of tokens available.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
     "search_by_currency": "Search for a currency",
     "update_payment_method": "Update payment method",
@@ -5451,6 +5476,21 @@
     "show_less": "less"
   },
   "multichain_accounts": {
+    "intro": {
+      "title": "Introducing multichain accounts",
+      "section_1_title": "What are multichain accounts?",
+      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_2_title": "Same address, more networks",
+      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+        "view_accounts_button": "View accounts",
+        "learn_more_button": "Learn more"
+      },
+      "learn_more": {
+        "title": "Learn more",
+        "description": "Multichain accounts are now the default. To opt out, turn off basic functionality.",
+        "checkbox_label": "Turn off basic functionality",
+        "confirm_button": "Confirm"
+      },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
     "account_details": {

@@ -78,6 +78,7 @@ export const styleSheet = (params: {
         50,
         getFontSizeForInputLength(inputLength, symbolLength) + 10,
       ),
+      width: '100%',
     },
     inputSection: {
       flexDirection: FlexDirection.Row,

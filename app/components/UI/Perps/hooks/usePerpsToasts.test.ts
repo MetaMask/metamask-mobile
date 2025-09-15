@@ -34,8 +34,20 @@ jest.mock('../../../../util/theme', () => ({
       primary: { default: '#0376C9' },
       background: { default: '#FFFFFF' },
       error: { default: '#D73A49' },
+      accent03: { dark: '#000000', normal: '#FFFFFF' },
+      accent04: { dark: '#000000', normal: '#FFFFFF' },
+      accent01: { dark: '#000000', light: '#FFFFFF' },
     },
   }),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => ({
+  IconSize: {
+    Xl: 'xl',
+  },
+  IconColor: {
+    PrimaryDefault: 'primary-default',
+  },
 }));
 
 jest.mock('../utils/perpsErrorHandler', () => ({
@@ -133,6 +145,9 @@ describe('usePerpsToasts', () => {
           iconName: IconName.Loading,
           hapticsType: NotificationFeedbackType.Warning,
         });
+        expect(config.startAccessory).toBeDefined();
+        expect(config.closeButtonOptions).toBeDefined();
+        expect(config.closeButtonOptions?.label).toBe('Track');
       });
 
       it('returns in progress configuration without processing time', () => {
@@ -172,6 +187,12 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toContainEqual({
           label: 'Withdrawal initiated',
           isBold: true,
+        });
+        expect(config.startAccessory).toBeDefined();
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
         });
       });
 
@@ -232,6 +253,12 @@ describe('usePerpsToasts', () => {
           label: 'Long 0.5 ETH',
           isBold: false,
         });
+        expect(config.startAccessory).toBeDefined();
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
+        });
       });
 
       it('returns market order confirmed configuration', () => {
@@ -279,6 +306,12 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toContainEqual({
           label: 'Cancelling order',
           isBold: true,
+        });
+        expect(config.startAccessory).toBeDefined();
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
         });
       });
 
@@ -332,6 +365,12 @@ describe('usePerpsToasts', () => {
           label: 'long 1.5 ETH',
           isBold: false,
         });
+        expect(config.startAccessory).toBeDefined();
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
+        });
       });
 
       it('returns close full position success configuration', () => {
@@ -364,6 +403,12 @@ describe('usePerpsToasts', () => {
         expect(marketConfig.labelOptions).toContainEqual({
           label: 'Partially closing position',
           isBold: true,
+        });
+        expect(marketConfig.startAccessory).toBeDefined();
+        expect(marketConfig).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
         });
         expect(limitConfig.labelOptions).toContainEqual({
           label: 'Partial close submitted',
@@ -459,6 +504,8 @@ describe('usePerpsToasts', () => {
       expect(inProgressToast.hapticsType).toBe(
         NotificationFeedbackType.Warning,
       );
+      expect(inProgressToast.startAccessory).toBeDefined();
+      expect(inProgressToast.closeButtonOptions).toBeDefined();
       expect(errorToast.hapticsType).toBe(NotificationFeedbackType.Error);
     });
   });

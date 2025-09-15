@@ -39,4 +39,5 @@ export type PerpsTooltipContentKey =
   | 'geo_block'
   | 'estimated_pnl'
   | 'limit_price'
-  | 'tp_sl';
+  | 'tp_sl'
+  | 'close_position_you_receive';

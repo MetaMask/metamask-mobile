@@ -325,7 +325,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text variant={TextVariant.BodySM} color={fundingColor}>
+                <Text variant={TextVariant.BodyMD} color={fundingColor}>
                   {fundingDisplay}
                 </Text>
               </View>
