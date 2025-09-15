@@ -494,14 +494,13 @@ class ChoosePassword extends PureComponent {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-        try {
-          await OAuthLoginService.updateMarketingOptInStatus(
-            this.state.isSelected,
-          );
-        } catch (error) {
-          Logger.error(error);
-        }
         this.props.setDataCollectionForMarketing(this.state.isSelected);
+        OAuthLoginService.updateMarketingOptInStatus(
+          this.state.isSelected,
+        ).catch((error) => {
+          Logger.error(error);
+          this.props.setDataCollectionForMarketing(false);
+        });
 
         this.props.navigation.reset({
           index: 0,

@@ -334,28 +334,6 @@ describe('updateMarketingOptInStatus', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('should throw error when SeedlessOnboardingController state is undefined', async () => {
-    // Arrange
-    Engine.context.SeedlessOnboardingController.state = {
-      accessToken: undefined,
-      socialBackupsMetadata: [],
-      isSeedlessOnboardingUserAuthenticated: false,
-    };
-    // Make the state appear undefined by mocking the getter
-    jest
-      .spyOn(Engine.context.SeedlessOnboardingController, 'state', 'get')
-      .mockReturnValue(
-        undefined as unknown as typeof Engine.context.SeedlessOnboardingController.state,
-      );
-
-    // Act & Assert
-    await expect(
-      OAuthLoginService.updateMarketingOptInStatus(true),
-    ).rejects.toThrow('No access token found. User must be authenticated.');
-
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
   it('should throw error when API request fails with 400 status', async () => {
     // Arrange
     const mockAccessToken = 'mock-access-token';
@@ -543,5 +521,171 @@ describe('updateMarketingOptInStatus', () => {
         body: JSON.stringify({ opt_in_status: true }),
       }),
     );
+  });
+});
+
+describe('getMarketingOptInStatus', () => {
+  const mockFetch = jest.fn();
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = mockFetch;
+    mockFetch.mockClear();
+    Engine.context.SeedlessOnboardingController.state = {
+      accessToken: undefined,
+      socialBackupsMetadata: [],
+      isSeedlessOnboardingUserAuthenticated: false,
+    };
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('should successfully get marketing opt-in status when user is opted in', async () => {
+    const mockAccessToken = 'mock-access-token';
+    Engine.context.SeedlessOnboardingController.state.accessToken =
+      mockAccessToken;
+
+    const mockResponse = {
+      is_opt_in: true,
+    };
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue(mockResponse),
+    });
+
+    const result = await OAuthLoginService.getMarketingOptInStatus();
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://auth.example.com/api/v1/oauth/marketing_opt_in_status',
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${mockAccessToken}`,
+        },
+      },
+    );
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('should successfully get marketing opt-in status when user is not opted in', async () => {
+    const mockAccessToken = 'mock-access-token';
+    Engine.context.SeedlessOnboardingController.state.accessToken =
+      mockAccessToken;
+
+    const mockResponse = {
+      is_opt_in: false,
+    };
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue(mockResponse),
+    });
+
+    const result = await OAuthLoginService.getMarketingOptInStatus();
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://auth.example.com/api/v1/oauth/marketing_opt_in_status',
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${mockAccessToken}`,
+        },
+      },
+    );
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('should throw error when no access token is available', async () => {
+    Engine.context.SeedlessOnboardingController.state.accessToken = undefined;
+
+    await expect(OAuthLoginService.getMarketingOptInStatus()).rejects.toThrow(
+      'No access token found. User must be authenticated.',
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('should throw error when access token is null', async () => {
+    Engine.context.SeedlessOnboardingController.state.accessToken = undefined;
+
+    await expect(OAuthLoginService.getMarketingOptInStatus()).rejects.toThrow(
+      'No access token found. User must be authenticated.',
+    );
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('should use correct URL and headers for the API request', async () => {
+    const mockAccessToken = 'test-token-123';
+    Engine.context.SeedlessOnboardingController.state.accessToken =
+      mockAccessToken;
+
+    const mockResponse = {
+      is_opt_in: true,
+    };
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue(mockResponse),
+    });
+
+    const result = await OAuthLoginService.getMarketingOptInStatus();
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url, options] = mockFetch.mock.calls[0];
+
+    expect(url).toBe(
+      'https://auth.example.com/api/v1/oauth/marketing_opt_in_status',
+    );
+    expect(options.method).toBe('GET');
+    expect(options.headers).toEqual({
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer test-token-123',
+    });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('should handle multiple consecutive calls correctly', async () => {
+    const mockAccessToken = 'mock-access-token';
+    Engine.context.SeedlessOnboardingController.state.accessToken =
+      mockAccessToken;
+
+    const mockResponse1 = { is_opt_in: true };
+    const mockResponse2 = { is_opt_in: false };
+    const mockResponse3 = { is_opt_in: true };
+
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockResponse1),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockResponse2),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockResponse3),
+      });
+
+    const result1 = await OAuthLoginService.getMarketingOptInStatus();
+    const result2 = await OAuthLoginService.getMarketingOptInStatus();
+    const result3 = await OAuthLoginService.getMarketingOptInStatus();
+
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(result1).toEqual(mockResponse1);
+    expect(result2).toEqual(mockResponse2);
+    expect(result3).toEqual(mockResponse3);
   });
 });

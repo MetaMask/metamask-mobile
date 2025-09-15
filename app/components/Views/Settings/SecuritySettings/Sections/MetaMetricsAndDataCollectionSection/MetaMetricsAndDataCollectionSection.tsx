@@ -147,11 +147,9 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     dispatch(setDataCollectionForMarketing(value));
 
     if (isSeedlessOnboardingLoginFlow) {
-      try {
-        await OAuthService.updateMarketingOptInStatus(value);
-      } catch (error) {
+      OAuthService.updateMarketingOptInStatus(value).catch((error) => {
         Logger.error(error as Error);
-      }
+      });
     }
   };
 

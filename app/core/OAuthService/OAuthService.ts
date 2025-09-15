@@ -25,6 +25,10 @@ export interface MarketingOptInRequest {
   opt_in_status: boolean;
 }
 
+export interface MarketingOptInResponse {
+  is_opt_in: boolean;
+}
+
 export interface OAuthServiceConfig {
   authConnectionConfig: {
     [key in SupportedPlatforms]: {
@@ -344,6 +348,37 @@ export class OAuthService {
         }`,
       );
     }
+  };
+
+  getMarketingOptInStatus = async (): Promise<MarketingOptInResponse> => {
+    const accessToken = this.getAccessToken();
+
+    if (!accessToken) {
+      throw new Error('No access token found. User must be authenticated.');
+    }
+
+    const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        `Failed to get marketing opt-in status: ${response.status} - ${
+          errorData.message || response.statusText
+        }`,
+      );
+    }
+
+    const data: MarketingOptInResponse = await response.json();
+    return data;
   };
 }
 
