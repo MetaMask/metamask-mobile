@@ -135,6 +135,24 @@ describe('Confirmations Bridge Utils', () => {
       ]);
     });
 
+    it('returns metrics', async () => {
+      const quotesPromise = getBridgeQuotes([
+        QUOTE_REQUEST_1_MOCK,
+        QUOTE_REQUEST_2_MOCK,
+      ]);
+
+      const quotes = await quotesPromise;
+
+      expect(quotes).toStrictEqual([
+        expect.objectContaining({
+          metrics: { attempts: 1, buffer: 1, latency: 0 },
+        }),
+        expect.objectContaining({
+          metrics: { attempts: 1, buffer: 2, latency: 0 },
+        }),
+      ]);
+    });
+
     it('requests quotes', async () => {
       await getBridgeQuotes([QUOTE_REQUEST_1_MOCK, QUOTE_REQUEST_2_MOCK]);
 

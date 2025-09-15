@@ -1,5 +1,6 @@
-import React, { useCallback, useLayoutEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -33,10 +34,16 @@ import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView, { AnimationObject } from 'lottie-react-native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import Logger from '../../../util/Logger';
+
+import Engine from '../../../core/Engine/Engine';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PopularList } from '../../../util/networks/customNetworks';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { capitalize } from 'lodash';
+import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 
 export const ResetNavigationToHome = CommonActions.reset({
@@ -274,10 +281,153 @@ export const OnboardingSuccess = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
+  const dispatch = useDispatch();
 
   const successFlow = params?.successFlow;
 
   const nextScreen = ResetNavigationToHome;
+
+  useEffect(() => {
+    async function addNetworks() {
+      // List of chainIds to add (as hex strings)
+      const chainIdsToAdd: `0x${string}`[] = [
+        CHAIN_IDS.ARBITRUM,
+        CHAIN_IDS.BSC,
+        CHAIN_IDS.OPTIMISM,
+        CHAIN_IDS.POLYGON,
+      ];
+
+      // Filter the PopularList to get only the specified networks based on chainId
+      const selectedNetworks = PopularList.filter((network) =>
+        chainIdsToAdd.includes(network.chainId),
+      );
+      const {
+        NetworkController,
+        TokenDetectionController,
+        TokenBalancesController,
+        TokenListController,
+        AccountTrackerController,
+        TokenRatesController,
+        CurrencyRateController,
+      } = Engine.context;
+
+      const addedChainIds: `0x${string}`[] = [];
+      const networkClientIds: string[] = [];
+
+      // First, add all networks sequentially
+      for (const network of selectedNetworks) {
+        try {
+          await NetworkController.addNetwork({
+            chainId: network.chainId,
+            blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
+            defaultRpcEndpointIndex: 0,
+            defaultBlockExplorerUrlIndex: 0,
+            name: network.nickname,
+            nativeCurrency: network.ticker,
+            rpcEndpoints: [
+              {
+                url: network.rpcUrl,
+                failoverUrls: network.failoverRpcUrls,
+                name: network.nickname,
+                type: RpcEndpointType.Custom,
+              },
+            ],
+          });
+          addedChainIds.push(network.chainId);
+          // Get network client ID for later batch refresh
+          const networkClientId =
+            await NetworkController.findNetworkClientIdByChainId(
+              network.chainId,
+            );
+          if (networkClientId) {
+            networkClientIds.push(networkClientId);
+          }
+          dispatch(onboardNetworkAction(network.chainId));
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            `Failed to add network ${network.nickname}`,
+          );
+        }
+      }
+
+      // Then perform batch operations on all successfully added networks
+      if (addedChainIds.length > 0) {
+        try {
+          // Batch fetch token lists for all chains
+          await Promise.all(
+            addedChainIds.map((chainId) =>
+              TokenListController.fetchTokenList(chainId).catch((error) =>
+                Logger.error(
+                  error as Error,
+                  `Failed to fetch token list for ${chainId}`,
+                ),
+              ),
+            ),
+          );
+
+          // Batch detect tokens for all chains
+          await TokenDetectionController.detectTokens({
+            chainIds: addedChainIds,
+          });
+
+          // Batch update balances for all chains
+          await Promise.all(
+            addedChainIds.map((chainId) =>
+              TokenBalancesController.updateBalances({
+                chainIds: [chainId],
+              }).catch((error) =>
+                Logger.error(
+                  error as Error,
+                  `Failed to update balances for ${chainId}`,
+                ),
+              ),
+            ),
+          );
+
+          // Batch update currency rates
+          await CurrencyRateController.updateExchangeRate(
+            addedChainIds.map(
+              (chainId) =>
+                selectedNetworks.find((network) => network.chainId === chainId)
+                  ?.ticker || 'ETH',
+            ),
+          );
+
+          // Batch update rates for all chains
+          await Promise.all(
+            addedChainIds.map((chainId) =>
+              TokenRatesController.updateExchangeRatesByChainId([
+                {
+                  chainId,
+                  nativeCurrency:
+                    selectedNetworks.find(
+                      (network) => network.chainId === chainId,
+                    )?.ticker || 'ETH',
+                },
+              ]).catch((error) =>
+                Logger.error(
+                  error as Error,
+                  `Failed to update rates for ${chainId}`,
+                ),
+              ),
+            ),
+          );
+
+          // Batch refresh account tracker for all network clients
+          if (networkClientIds.length > 0) {
+            await AccountTrackerController.refresh(networkClientIds);
+          }
+        } catch (error) {
+          Logger.error(error as Error, 'Failed during batch operations');
+        }
+      }
+    }
+
+    addNetworks().catch((error) => {
+      Logger.error(error, 'Error adding networks');
+    });
+  }, [dispatch]);
 
   return (
     <OnboardingSuccessComponent
