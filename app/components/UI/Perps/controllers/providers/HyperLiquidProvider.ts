@@ -16,6 +16,7 @@ import {
 import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
+  TP_SL_CONFIG,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
@@ -794,8 +795,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         (order) =>
           order.coin === coin &&
           order.reduceOnly === true &&
-          Math.abs(parseFloat(order.sz)) ===
-            Math.abs(parseFloat(position.size)) &&
+          order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
           order.isTrigger === true &&
           (order.orderType.includes('Take Profit') ||
             order.orderType.includes('Stop')),
@@ -842,6 +842,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Build orders array for TP/SL
       const orders: SDKOrderParams[] = [];
 
+      const size = TP_SL_CONFIG.USE_POSITION_BOUND_TPSL
+        ? '0'
+        : formatHyperLiquidSize({
+            size: positionSize,
+            szDecimals: assetInfo.szDecimals,
+          });
       // Take Profit order
       if (takeProfitPrice) {
         const tpOrder: SDKOrderParams = {
@@ -851,10 +857,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             price: parseFloat(takeProfitPrice),
             szDecimals: assetInfo.szDecimals,
           }),
-          s: formatHyperLiquidSize({
-            size: positionSize,
-            szDecimals: assetInfo.szDecimals,
-          }),
+          s: size,
           r: true, // Always reduce-only for position TP
           t: {
             trigger: {
@@ -879,10 +882,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             price: parseFloat(stopLossPrice),
             szDecimals: assetInfo.szDecimals,
           }),
-          s: formatHyperLiquidSize({
-            size: positionSize,
-            szDecimals: assetInfo.szDecimals,
-          }),
+          s: size,
           r: true, // Always reduce-only for position SL
           t: {
             trigger: {
@@ -1267,11 +1267,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const rawOrders = await infoClient.frontendOpenOrders({
         user: userAddress,
       });
+      const positions = await this.getPositions();
 
       DevLogger.log('Currently open orders received:', rawOrders);
 
       // Transform HyperLiquid open orders to abstract Order type using adapter
-      const orders: Order[] = (rawOrders || []).map(adaptOrderFromSDK);
+      const orders: Order[] = (rawOrders || []).map((order) => {
+        const position = positions.find((p) => p.coin === order.coin);
+        return adaptOrderFromSDK(order, position);
+      });
 
       return orders;
     } catch (error) {

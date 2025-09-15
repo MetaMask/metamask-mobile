@@ -300,6 +300,8 @@ describe('PerpsController', () => {
               sinceOpen: '0',
               sinceChange: '0',
             },
+            takeProfitCount: 0,
+            stopLossCount: 0,
           },
         ],
       };
@@ -601,6 +603,8 @@ describe('PerpsController', () => {
             sinceOpen: '5',
             sinceChange: '2',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 

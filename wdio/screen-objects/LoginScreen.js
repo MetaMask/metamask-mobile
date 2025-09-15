@@ -1,8 +1,8 @@
-import Gestures from "../helpers/Gestures";
-import Selectors from "../helpers/Selectors";
-import AppwrightSelectors from "../helpers/AppwrightSelectors";
+import Gestures from '../helpers/Gestures';
+import Selectors from '../helpers/Selectors';
+import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 import { expect as appwrightExpect } from 'appwright';
-import { LoginViewSelectors } from "../../e2e/selectors/wallet/LoginView.selectors";
 
 class LoginScreen {
   get device() {
@@ -18,6 +18,14 @@ class LoginScreen {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
     } else {
       return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.CONTAINER);
+    }
+  }
+
+  get welcomeBackText() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
+    } else {
+      return AppwrightSelectors.getElementByText(this._device, 'Welcome Back!');
     }
   }
 
@@ -43,19 +51,19 @@ class LoginScreen {
     }
   }
 
-  async getPasswordInputElement() {
+  get getPasswordInputElement() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(
         LoginViewSelectors.PASSWORD_INPUT,
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return await AppwrightSelectors.getElementByID(
+        return AppwrightSelectors.getElementByID(
           this._device,
           LoginViewSelectors.PASSWORD_INPUT,
         );
       } else {
-        return await AppwrightSelectors.getElementByID(this._device, "textfield");
+        return AppwrightSelectors.getElementByID(this._device, "textfield");
       }
     }
   }
@@ -63,9 +71,9 @@ class LoginScreen {
   get unlockButton() {
     // TODO: update the component to have a testID property and use that instead of text
     if (!this._device) {
-      return Selectors.getXpathElementByText("Unlock");
+      return Selectors.getXpathElementByText('Unlock');
     } else {
-      return AppwrightSelectors.getElementByText(this._device, "Unlock");
+      return AppwrightSelectors.getElementByText(this._device, 'Unlock');
     }
   }
 
@@ -78,19 +86,28 @@ class LoginScreen {
   }
 
   get rememberMeToggle() {
-    return Selectors.getXpathElementByResourceId(
-      LoginViewSelectors.REMEMBER_ME_SWITCH,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(LoginViewSelectors.REMEMBER_ME_SWITCH);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.REMEMBER_ME_SWITCH);
+    }
   }
 
   async isLoginScreenVisible() {
-    await expect(await this.loginScreen).toBeDisplayed();
+    if (!this._device) {
+      const element = await this.title;
+      await element.waitForDisplayed();
+    } else {
+      const element = await this.title;
+      await appwrightExpect(element).toBeVisible();
+
+    }
   }
 
   async waitForScreenToDisplay() {
     if (!this._device) {
-    const element = await this.loginScreen;
-    await element.waitForDisplayed({ interval: 100 });
+      const element = await this.loginScreen;
+      await element.waitForDisplayed({ interval: 100 });
     } else {
       const element = await this.loginScreen;
       await appwrightExpect(element).toBeVisible({ timeout: 10000 });
@@ -98,17 +115,23 @@ class LoginScreen {
   }
 
   async tapResetWalletButton() {
-    await Gestures.waitAndTap(this.resetWalletButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.resetWalletButton);
+    } else {
+      const element = await this.resetWalletButton;
+      await element.tap();
+    }
   }
 
   async typePassword(password) {
-
+    await this.isLoginScreenVisible();
     if (!this._device) {
-      await this.isLoginScreenVisible();
       await Gestures.typeText(this.passwordInput, password);
     } else {
-      const element = await this.passwordInput;
+      const screenTitle = await this.title
+      const element = await this.getPasswordInputElement;
       await element.fill(password);
+      await screenTitle.tap()
     }
   }
 
@@ -120,7 +143,6 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.tap();
     }
-
   }
 
   async tapTitle() {
@@ -130,11 +152,15 @@ class LoginScreen {
       const element = await this.title;
       await element.tap();
     }
-
   }
 
   async tapRememberMeToggle() {
-    await Gestures.waitAndTap(this.rememberMeToggle);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.rememberMeToggle);
+    } else {
+      const element = await this.rememberMeToggle;
+      await element.tap();
+    }
   }
 }
 

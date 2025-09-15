@@ -10,42 +10,30 @@ import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingShee
 import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
+import { getPasswordForScenario } from './TestConstants.js';
+import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
+import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
 
 /**
  * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
  * @param {Object} device - The device object from Appwright
  */
 export async function dismissSystemDialogs(device) {
-  await device.waitForTimeout(3000);
-
+  if (!AppwrightSelectors.isAndroid(device)) {
+    console.log('system alerts are accepted as expected on android');
+    return;
+  }
   try {
-    // Wait 3 seconds for dialog to appear
-
-    // Try common permission dialog selectors using AppwrightSelectors
-    const dialogSelectors = ['Allow', 'OK', 'Allow Notifications'];
-
-    for (const selector of dialogSelectors) {
-      try {
-        const allowButton = await AppwrightSelectors.getElementByCatchAll(
-          device,
-          selector,
-        );
-        if (allowButton) {
-          await device.tap(allowButton);
-          console.log(`Tapped permission dialog button: ${selector}`);
-          return;
-        }
-      } catch (e) {
-        // Continue to next selector
-      }
-    }
-
-    console.log(
-      'No permission dialog found - autoAcceptAlerts may have handled it',
-    );
+    await AppwrightSelectors.dismissAlert(device);
   } catch (error) {
-    console.debug('Error handling permission dialog:', error.message);
+    // Ignore "no such alert" errors - this is normal when no dialogs are present
+    if (
+      !error.message.includes('no such alert') &&
+      !error.message.includes('modal dialog when one was not open')
+    ) {
+      console.log(`Alert dismissal error: ${error.message}`);
+    }
   }
 }
 
@@ -58,13 +46,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   CreatePasswordScreen.device = device;
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
-  /*await WelcomeScreen.clickGetStartedButton();
-  await TermOfUseScreen.isDisplayed();
 
-  await TermOfUseScreen.tapAgreeCheckBox();
-  await TermOfUseScreen.tapScrollEndButton();
-
-  await TermOfUseScreen.tapAcceptButton();*/
   await OnboardingScreen.isScreenTitleVisible();
 
   await OnboardingScreen.tapHaveAnExistingWallet();
@@ -79,8 +61,12 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await CreatePasswordScreen.isVisible();
 
-  await CreatePasswordScreen.enterPassword('123456789');
-  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.enterPassword(
+    getPasswordForScenario('onboarding'),
+  );
+  await CreatePasswordScreen.reEnterPassword(
+    getPasswordForScenario('onboarding'),
+  );
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
@@ -146,4 +132,32 @@ export async function importSRPFlow(device, srp) {
 
   timers.push(timer, timer2, timer3, timer4);
   return timers;
+}
+
+export async function login(device, scenarioType) {
+  LoginScreen.device = device;
+
+  const password = getPasswordForScenario(scenarioType);
+
+  // Type password and unlock
+  await LoginScreen.typePassword(password);
+  await LoginScreen.tapUnlockButton();
+  await tapPerpsBottomSheetGotItButton(device);
+  // Wait for app to settle after unlock
+  await dismissSystemDialogs(device);
+}
+export async function tapPerpsBottomSheetGotItButton(device) {
+  // Only skip perps onboarding on Android devices
+  if (!AppwrightSelectors.isAndroid(device)) {
+    console.log('Skipping perps onboarding skip - not an Android device');
+    return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
+  }
+
+  console.log('Looking for perps onboarding button...');
+  const button = await AppwrightSelectors.getElementByID(
+    device,
+    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+  );
+  await button.tap();
+  console.log('Perps onboarding dismissed');
 }
