@@ -187,7 +187,7 @@ yarn fingerprint:check
 npx @expo/repack-app \
   --input android/app/build/outputs/apk/prod/release/app-prod-release.apk \
   --output repacked.apk \
-  --bundle dist/_expo/static/js/android/index.js
+  --js-bundle dist/_expo/static/js/android/index.js
 ```
 
 ## Future Improvements
