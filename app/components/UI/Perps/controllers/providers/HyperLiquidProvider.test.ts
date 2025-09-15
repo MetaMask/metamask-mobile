@@ -2607,6 +2607,7 @@ describe('HyperLiquidProvider', () => {
               isTrigger: true,
               orderType: 'Take Profit',
               sz: '0.1',
+              isPositionTpsl: true,
             },
             {
               coin: 'BTC',
@@ -2615,6 +2616,7 @@ describe('HyperLiquidProvider', () => {
               isTrigger: true,
               orderType: 'Stop Loss',
               sz: '0.1',
+              isPositionTpsl: true,
             },
           ]),
           referral: jest.fn().mockResolvedValue({
