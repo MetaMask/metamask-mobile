@@ -36,10 +36,10 @@ exports[`Tab Active State applies active styling when isActive is true 1`] = `
       "alignItems": "center",
       "flexDirection": "row",
       "justifyContent": "center",
-      "paddingBottom": 8,
+      "paddingBottom": 4,
       "paddingLeft": 0,
       "paddingRight": 0,
-      "paddingTop": 8,
+      "paddingTop": 4,
       "position": "relative",
     }
   }
@@ -132,10 +132,10 @@ exports[`Tab Active State applies inactive styling when isActive is false 1`] = 
       "alignItems": "center",
       "flexDirection": "row",
       "justifyContent": "center",
-      "paddingBottom": 8,
+      "paddingBottom": 4,
       "paddingLeft": 0,
       "paddingRight": 0,
-      "paddingTop": 8,
+      "paddingTop": 4,
       "position": "relative",
     }
   }
@@ -228,10 +228,10 @@ exports[`Tab Disabled State applies disabled styling when isDisabled is true 1`]
       "alignItems": "center",
       "flexDirection": "row",
       "justifyContent": "center",
-      "paddingBottom": 8,
+      "paddingBottom": 4,
       "paddingLeft": 0,
       "paddingRight": 0,
-      "paddingTop": 8,
+      "paddingTop": 4,
       "position": "relative",
     }
   }
@@ -324,10 +324,10 @@ exports[`Tab Disabled State shows disabled styling even when marked as active 1`
       "alignItems": "center",
       "flexDirection": "row",
       "justifyContent": "center",
-      "paddingBottom": 8,
+      "paddingBottom": 4,
       "paddingLeft": 0,
       "paddingRight": 0,
-      "paddingTop": 8,
+      "paddingTop": 4,
       "position": "relative",
     }
   }
@@ -420,10 +420,10 @@ exports[`Tab Disabled State shows muted text color when disabled and inactive 1`
       "alignItems": "center",
       "flexDirection": "row",
       "justifyContent": "center",
-      "paddingBottom": 8,
+      "paddingBottom": 4,
       "paddingLeft": 0,
       "paddingRight": 0,
-      "paddingTop": 8,
+      "paddingTop": 4,
       "position": "relative",
     }
   }
@@ -516,10 +516,10 @@ exports[`Tab Rendering renders correctly 1`] = `
       "alignItems": "center",
       "flexDirection": "row",
       "justifyContent": "center",
-      "paddingBottom": 8,
+      "paddingBottom": 4,
       "paddingLeft": 0,
       "paddingRight": 0,
-      "paddingTop": 8,
+      "paddingTop": 4,
       "position": "relative",
     }
   }

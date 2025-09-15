@@ -1,20 +1,20 @@
-import { waitFor } from '@testing-library/react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { waitFor } from '@testing-library/react-native';
+import Routes from '../../constants/navigation/Routes';
+import { RampType } from '../../reducers/fiatOrders/types';
+import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
+import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
+import { handleDeeplink } from './Handlers/handleDeeplink';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
+import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
 import handleRampUrl from './Handlers/handleRampUrl';
+import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
-import { RampType } from '../../reducers/fiatOrders/types';
-import { handleSwapUrl } from './Handlers/handleSwapUrl';
-import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
-import { handlePerpsUrl, handlePerpsAssetUrl } from './Handlers/handlePerpsUrl';
-import Routes from '../../constants/navigation/Routes';
-import FCMService from '../../util/notifications/services/FCMService';
-import { handleDeeplink } from './Handlers/handleDeeplink';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
@@ -183,10 +183,10 @@ describe('DeeplinkManager', () => {
   });
 
   it('should handle perps asset correctly', () => {
-    const assetPath = '/BTC';
-    deeplinkManager._handlePerpsAsset(assetPath);
-    expect(handlePerpsAssetUrl).toHaveBeenCalledWith({
-      assetPath,
+    // Asset URLs now handled through _handlePerps with screen=asset parameter
+    deeplinkManager._handlePerps('perps?screen=asset&symbol=ETH');
+    expect(handlePerpsUrl).toHaveBeenCalledWith({
+      perpsPath: 'perps?screen=asset&symbol=ETH',
     });
   });
 });
