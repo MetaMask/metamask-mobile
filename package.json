@@ -270,7 +270,7 @@
     "@metamask/multichain-network-controller": "^0.10.0",
     "@metamask/multichain-transactions-controller": "^5.0.0",
     "@metamask/network-controller": "^24.1.0",
-    "@metamask/network-enablement-controller": "^1.0.0",
+    "@metamask/network-enablement-controller": "^1.1.0",
     "@metamask/notification-services-controller": "^18.1.0",
     "@metamask/permission-controller": "^11.0.6",
     "@metamask/phishing-controller": "^13.1.0",
