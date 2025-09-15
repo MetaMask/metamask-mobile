@@ -87,9 +87,13 @@ const NetworkMultiSelectList = ({
     (): ProcessedNetwork[] =>
       networks.map((network) => {
         const parsedCaipChainId = parseCaipChainId(network.caipChainId);
-        const chainId = isEvmSelected
-          ? toHex(parsedCaipChainId.reference)
-          : parsedCaipChainId.reference;
+
+        // Only convert to hex for EVM networks, not for Solana or other non-EVM networks
+        const isEvmNetwork = parsedCaipChainId.namespace === 'eip155';
+        const chainId =
+          isEvmSelected && isEvmNetwork
+            ? toHex(parsedCaipChainId.reference)
+            : parsedCaipChainId.reference;
 
         return {
           ...network,
@@ -245,6 +249,7 @@ const NetworkMultiSelectList = ({
 
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
+
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
