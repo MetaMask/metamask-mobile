@@ -372,9 +372,18 @@ export const OnboardingSuccess = () => {
           });
 
           // Batch update balances for all chains
-          await TokenBalancesController.updateBalances({
-            chainIds: addedChainIds,
-          });
+          await Promise.all(
+            addedChainIds.map((chainId) =>
+              TokenBalancesController.updateBalances({
+                chainIds: [chainId],
+              }).catch((error) =>
+                Logger.error(
+                  error as Error,
+                  `Failed to update balances for ${chainId}`,
+                ),
+              ),
+            ),
+          );
 
           // Batch update currency rates
           await CurrencyRateController.updateExchangeRate(
