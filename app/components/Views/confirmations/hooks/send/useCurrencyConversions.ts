@@ -107,7 +107,10 @@ export const useCurrencyConversions = () => {
       return (asset as AssetType)?.fiat?.conversionRate ?? 0;
     }
     if (isEvmAddress(assetAddress)) {
-      return conversionRateEvm ?? 0;
+      if ((asset as AssetType)?.isNative) {
+        return conversionRateEvm ?? 0;
+      }
+      return 1;
     }
     return parseFloat(
       multichainAssetsRates[assetAddress as CaipAssetType]?.rate ?? 0,
