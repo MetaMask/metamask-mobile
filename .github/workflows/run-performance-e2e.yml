@@ -25,6 +25,11 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
+  push:
+    branches:
+      - 'release/*'
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
@@ -42,9 +47,32 @@ env:
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
+  check-metamaskbot-comment:
+    name: Check if Metamaskbot Version Bump
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    if: github.event_name == 'issue_comment'
+    steps:
+      - name: Check if metamaskbot version bump
+        id: check
+        env:
+          COMMENT_USER: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          if [[ "$COMMENT_USER" == "metamaskbot" && "$COMMENT_BODY" =~ "Bump version number" ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+            echo "✅ RC version bump detected from metamaskbot"
+          else
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+            echo "⏭️ Not a valid metamaskbot version bump comment"
+          fi
+
   read-device-matrix:
     name: Read Device Matrix
     runs-on: ubuntu-latest
+    needs: [check-metamaskbot-comment]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true')
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
@@ -83,6 +111,8 @@ jobs:
   set-build-names:
     name: Set Unified BrowserStack Build Names
     runs-on: ubuntu-latest
+    needs: [check-metamaskbot-comment]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true')
     outputs:
       android_build_name: ${{ steps.set-builds.outputs.android_build_name }}
       ios_build_name: ${{ steps.set-builds.outputs.ios_build_name }}
@@ -99,15 +129,15 @@ jobs:
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    # Only run if no Android BrowserStack URLs are provided
-    if: ${{ !inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet }}
+    needs: [check-metamaskbot-comment]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true') && (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
-    # Only run if no iOS BrowserStack URLs are provided
-    if: ${{ !inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet }}
+    needs: [check-metamaskbot-comment]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true') && (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     secrets: inherit
 
 
@@ -118,8 +148,8 @@ jobs:
   run-android-onboarding-tests:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
+    needs: [check-metamaskbot-comment, read-device-matrix, trigger-android-dual-versions, set-build-names]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true') && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: onboarding
@@ -133,8 +163,8 @@ jobs:
   run-ios-onboarding-tests:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
+    needs: [check-metamaskbot-comment, read-device-matrix, trigger-ios-dual-versions, set-build-names]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true') && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: onboarding
@@ -152,8 +182,8 @@ jobs:
   wait-for-onboarding-completion:
     name: Wait for Onboarding Completion
     runs-on: ubuntu-latest
-    needs: [run-android-onboarding-tests, run-ios-onboarding-tests]
-    if: always()
+    needs: [check-metamaskbot-comment, run-android-onboarding-tests, run-ios-onboarding-tests]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true')
     steps:
       - name: Wait for onboarding tests to complete
         run: |
@@ -163,8 +193,8 @@ jobs:
   run-android-imported-wallet-tests:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
+    needs: [check-metamaskbot-comment, read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true') && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: imported-wallet
@@ -178,8 +208,8 @@ jobs:
   run-ios-imported-wallet-tests:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
+    needs: [check-metamaskbot-comment, read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true') && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: imported-wallet
@@ -193,8 +223,8 @@ jobs:
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
-    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, wait-for-onboarding-completion]
-    if: always()
+    needs: [check-metamaskbot-comment, run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, wait-for-onboarding-completion]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -225,8 +255,8 @@ jobs:
   slack-notification:
     name: Send Slack Notification
     runs-on: ubuntu-latest
-    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, aggregate-results]
-    if: always()
+    needs: [check-metamaskbot-comment, run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, aggregate-results]
+    if: always() && (needs.check-metamaskbot-comment.result == 'skipped' || needs.check-metamaskbot-comment.outputs.should-run == 'true')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
