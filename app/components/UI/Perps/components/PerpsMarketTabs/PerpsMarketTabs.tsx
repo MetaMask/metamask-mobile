@@ -450,7 +450,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               expanded
               showIcon
               onTooltipPress={handleTooltipPress}
-              onTpslCountPress={() => handleTabChange('orders')}
+              onTpslCountPress={handleTabChange}
             />
           </View>
         );
