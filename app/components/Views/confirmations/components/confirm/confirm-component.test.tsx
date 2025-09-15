@@ -20,6 +20,8 @@ import { Confirm } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 
+jest.mock('../../hooks/useConfirmActions');
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
     params: {
