@@ -10,7 +10,6 @@ import { OnboardingStep } from '../../../reducers/rewards/types';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
 
 // Mock dependencies
-jest.mock('./hooks/useRewardsAuth');
 jest.mock('./hooks/useGeoRewardsMetadata');
 
 // Mock onboarding step components
@@ -96,14 +95,38 @@ jest.mock('react-redux', () => {
   };
 });
 
-// Mock hooks
-import type { UseRewardsAuthResult } from './hooks/useRewardsAuth';
-const mockUseRewardsAuthResult = jest.fn<UseRewardsAuthResult, []>();
-const mockUseGeoRewardsMetadata = jest.fn();
-
-jest.mock('./hooks/useRewardsAuth', () => ({
-  useRewardsAuth: () => mockUseRewardsAuthResult(),
+// Mock selectors
+jest.mock('../../../selectors/rewards', () => ({
+  selectRewardsActiveAccountHasOptedIn: jest.fn(),
 }));
+
+jest.mock('../../../reducers/rewards/selectors', () => ({
+  selectOnboardingActiveStep: jest.fn(),
+  selectOptinAllowedForGeo: jest.fn(),
+}));
+
+// Import mocked selectors for setup
+import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
+import {
+  selectOnboardingActiveStep,
+  selectOptinAllowedForGeo,
+} from '../../../reducers/rewards/selectors';
+
+const mockSelectRewardsActiveAccountHasOptedIn =
+  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
+    typeof selectRewardsActiveAccountHasOptedIn
+  >;
+const mockSelectOnboardingActiveStep =
+  selectOnboardingActiveStep as jest.MockedFunction<
+    typeof selectOnboardingActiveStep
+  >;
+const mockSelectOptinAllowedForGeo =
+  selectOptinAllowedForGeo as jest.MockedFunction<
+    typeof selectOptinAllowedForGeo
+  >;
+
+// Mock hooks
+const mockUseGeoRewardsMetadata = jest.fn();
 
 jest.mock('./hooks/useGeoRewardsMetadata', () => ({
   useGeoRewardsMetadata: () => mockUseGeoRewardsMetadata(),
@@ -112,19 +135,6 @@ jest.mock('./hooks/useGeoRewardsMetadata', () => ({
 describe('OnboardingNavigator', () => {
   let store: ReturnType<typeof configureStore>;
   const Stack = createStackNavigator();
-
-  // Helper function to create complete mock UseRewardsAuthResult
-  const createMockAuthResult = (
-    overrides: Partial<UseRewardsAuthResult> = {},
-  ): UseRewardsAuthResult => ({
-    hasAccountedOptedIn: false,
-    optin: jest.fn(),
-    subscriptionId: null,
-    optinLoading: false,
-    optinError: null,
-    clearOptinError: jest.fn(),
-    ...overrides,
-  });
 
   // Helper function to create mock store with custom state
   const createMockStore = (rewardsState: unknown = {}) =>
@@ -161,10 +171,10 @@ describe('OnboardingNavigator', () => {
     jest.clearAllMocks();
     store = createMockStore();
 
-    // Default mock implementations
-    mockUseRewardsAuthResult.mockReturnValue(
-      createMockAuthResult({ hasAccountedOptedIn: false }),
-    );
+    // Set default mock return values
+    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+    mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);
+    mockSelectOptinAllowedForGeo.mockReturnValue(true);
     mockUseGeoRewardsMetadata.mockReturnValue(undefined);
   });
 
@@ -182,7 +192,7 @@ describe('OnboardingNavigator', () => {
   describe('Initial route determination', () => {
     it('renders intro step when activeStep is INTRO', async () => {
       // Arrange
-      store = createMockStore({ onboardingActiveStep: OnboardingStep.INTRO });
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.INTRO);
 
       // Act
       const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -195,7 +205,7 @@ describe('OnboardingNavigator', () => {
 
     it('renders step 1 when activeStep is STEP_1', async () => {
       // Arrange
-      store = createMockStore({ onboardingActiveStep: OnboardingStep.STEP_1 });
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_1);
 
       // Act
       const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -208,7 +218,7 @@ describe('OnboardingNavigator', () => {
 
     it('renders step 2 when activeStep is STEP_2', async () => {
       // Arrange
-      store = createMockStore({ onboardingActiveStep: OnboardingStep.STEP_2 });
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
 
       // Act
       const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -221,7 +231,7 @@ describe('OnboardingNavigator', () => {
 
     it('renders step 3 when activeStep is STEP_3', async () => {
       // Arrange
-      store = createMockStore({ onboardingActiveStep: OnboardingStep.STEP_3 });
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_3);
 
       // Act
       const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -234,7 +244,7 @@ describe('OnboardingNavigator', () => {
 
     it('renders step 4 when activeStep is STEP_4', async () => {
       // Arrange
-      store = createMockStore({ onboardingActiveStep: OnboardingStep.STEP_4 });
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_4);
 
       // Act
       const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -247,7 +257,9 @@ describe('OnboardingNavigator', () => {
 
     it('defaults to intro step when activeStep is invalid', async () => {
       // Arrange
-      store = createMockStore({ onboardingActiveStep: 'INVALID_STEP' });
+      mockSelectOnboardingActiveStep.mockReturnValue(
+        'INVALID_STEP' as OnboardingStep,
+      );
 
       // Act
       const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -262,9 +274,7 @@ describe('OnboardingNavigator', () => {
   describe('Navigation logic based on authentication state', () => {
     it('navigates to dashboard when user has opted in', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: true }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
@@ -280,9 +290,7 @@ describe('OnboardingNavigator', () => {
 
     it('does not navigate when user has not opted in', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: false }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
@@ -293,26 +301,9 @@ describe('OnboardingNavigator', () => {
       });
     });
 
-    it('does not navigate when user auth state is pending', async () => {
+    it('does not navigate when user auth state is null', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: 'pending' }),
-      );
-
-      // Act
-      renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
-
-    it('does not navigate when user auth state is error', async () => {
-      // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: 'error' }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
@@ -327,13 +318,9 @@ describe('OnboardingNavigator', () => {
   describe('Geographic restriction handling', () => {
     it('resets to intro step when optin is not allowed for geo', async () => {
       // Arrange
-      store = createMockStore({
-        onboardingActiveStep: OnboardingStep.STEP_2,
-        optinAllowedForGeo: false,
-      });
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: false }),
-      );
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
+      mockSelectOptinAllowedForGeo.mockReturnValue(false);
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
@@ -348,13 +335,9 @@ describe('OnboardingNavigator', () => {
 
     it('does not reset step when optin is allowed for geo', async () => {
       // Arrange
-      store = createMockStore({
-        onboardingActiveStep: OnboardingStep.STEP_2,
-        optinAllowedForGeo: true,
-      });
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: false }),
-      );
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
+      mockSelectOptinAllowedForGeo.mockReturnValue(true);
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
@@ -370,13 +353,9 @@ describe('OnboardingNavigator', () => {
 
     it('prioritizes opted-in navigation over geo restrictions', async () => {
       // Arrange
-      store = createMockStore({
-        onboardingActiveStep: OnboardingStep.STEP_2,
-        optinAllowedForGeo: false,
-      });
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: true }),
-      );
+      mockSelectOnboardingActiveStep.mockReturnValue(OnboardingStep.STEP_2);
+      mockSelectOptinAllowedForGeo.mockReturnValue(false);
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
 
       // Act
       renderWithNavigation(<OnboardingNavigator />);
@@ -400,12 +379,14 @@ describe('OnboardingNavigator', () => {
       expect(mockUseGeoRewardsMetadata).toHaveBeenCalled();
     });
 
-    it('calls useRewardsAuth hook', () => {
+    it('uses selectors for state management', () => {
       // Act
       renderWithNavigation(<OnboardingNavigator />);
 
       // Assert
-      expect(mockUseRewardsAuthResult).toHaveBeenCalled();
+      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
+      expect(mockSelectOnboardingActiveStep).toHaveBeenCalled();
+      expect(mockSelectOptinAllowedForGeo).toHaveBeenCalled();
     });
   });
 
@@ -440,7 +421,9 @@ describe('OnboardingNavigator', () => {
   describe('Edge cases and error handling', () => {
     it('handles undefined activeStep gracefully', async () => {
       // Arrange
-      store = createMockStore({ onboardingActiveStep: undefined });
+      mockSelectOnboardingActiveStep.mockReturnValue(
+        undefined as unknown as OnboardingStep,
+      );
 
       // Act
       const { getByTestId } = renderWithNavigation(<OnboardingNavigator />);
@@ -451,29 +434,10 @@ describe('OnboardingNavigator', () => {
       });
     });
 
-    it('handles null optinAllowedForGeo gracefully', async () => {
+    it('handles auth selector returning undefined gracefully', async () => {
       // Arrange
-      store = createMockStore({ optinAllowedForGeo: null });
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: false }),
-      );
-
-      // Act
-      const component = renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert - Should render without errors
-      expect(component).toBeTruthy();
-    });
-
-    it('handles auth hook returning undefined gracefully', async () => {
-      // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: undefined as unknown as
-            | boolean
-            | 'pending'
-            | 'error',
-        }),
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(
+        undefined as unknown as boolean | null,
       );
 
       // Act

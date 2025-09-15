@@ -19,6 +19,7 @@ import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -142,6 +143,10 @@ jest.mock('@shopify/flash-list', () => {
   };
 });
 
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  selectIsEvmNetworkSelected: jest.fn(),
+}));
+
 // Mock store setup
 const mockStore = createStore(() => ({
   featureFlags: {
@@ -178,7 +183,10 @@ describe('CustomNetworkSelector', () => {
     typeof useNetworksToUse
   >;
   const mockUseSelector = jest.mocked(useSelector);
-
+  const mockSelectIsEvmNetworkSelected =
+    selectIsEvmNetworkSelected as jest.MockedFunction<
+      typeof selectIsEvmNetworkSelected
+    >;
   const mockNetworks: CustomNetworkItem[] = [
     {
       id: 'eip155:137',
@@ -261,8 +269,13 @@ describe('CustomNetworkSelector', () => {
       areAllSolanaNetworksSelected: false,
     });
 
+    mockSelectIsEvmNetworkSelected.mockReturnValue(true);
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectMultichainAccountsState2Enabled) {
+        return true;
+      }
+      if (selector === mockSelectIsEvmNetworkSelected) {
         return true;
       }
       return undefined;
