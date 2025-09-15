@@ -24,6 +24,9 @@ outputs:
   can_repack:
     description: 'Whether repackaging is possible'
     value: ${{ steps.decide.outputs.can_repack }}
+  cache_hit:
+    description: 'Whether a cache hit occurred'
+    value: ${{ steps.decide.outputs.cache_hit }}
 
 runs:
   using: 'composite'
@@ -50,12 +53,19 @@ runs:
       shell: bash
       run: |
         echo "🔍 Fingerprint Build Check for ${{ inputs.platform }}"
-        echo "Input build action: ${{ inputs.build_action }}"
+        echo "============================================"
+        echo "📊 Input Parameters:"
+        echo "  - Build action: ${{ inputs.build_action }}"
+        echo "  - Platform: ${{ inputs.platform }}"
+        echo "  - PR Number: ${{ inputs.pr_number || 'main' }}"
+        echo "  - APK Path: ${{ inputs.apk_path }}"
+        echo ""
         
         if [[ "${{ inputs.build_action }}" == "skip" ]]; then
-          echo "⏭️ Build action is skip"
+          echo "⏭️ Build action is skip - no build required"
           echo "build_method=skip" >> "$GITHUB_OUTPUT"
           echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          echo "cache_hit=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
         
@@ -63,35 +73,88 @@ runs:
           echo "🏗️ Build action is full - native code likely changed"
           echo "build_method=full" >> "$GITHUB_OUTPUT"
           echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          echo "cache_hit=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
         
         if [[ "${{ inputs.build_action }}" == "check_fingerprint" ]]; then
           echo "🔍 Checking fingerprint for potential reuse..."
+          echo ""
+          
+          # Display current and saved fingerprints
+          if [ -f ".app-native-fingerprint" ]; then
+            SAVED_FP=$(cat .app-native-fingerprint)
+            echo "📌 Saved fingerprint: $SAVED_FP"
+          else
+            echo "❌ No saved fingerprint found"
+            echo "build_method=full" >> "$GITHUB_OUTPUT"
+            echo "can_repack=false" >> "$GITHUB_OUTPUT"
+            echo "cache_hit=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          # Generate current fingerprint for comparison
+          CURRENT_FP=$(yarn -s fingerprint:generate 2>/dev/null || echo "")
+          if [ -z "$CURRENT_FP" ]; then
+            echo "❌ Failed to generate current fingerprint"
+            echo "build_method=full" >> "$GITHUB_OUTPUT"
+            echo "can_repack=false" >> "$GITHUB_OUTPUT"
+            echo "cache_hit=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "🔍 Current fingerprint: $CURRENT_FP"
+          echo ""
           
           # Check if fingerprint matches
           if yarn fingerprint:check; then
-            echo "✅ Fingerprint matches! Checking for existing artifacts..."
+            echo "✅ Fingerprints match! Native code unchanged."
+            echo "📦 Checking for existing artifacts..."
             
             # Check if we have cached artifacts
             if [[ "${{ inputs.apk_path }}" != "" && -f "${{ inputs.apk_path }}" ]]; then
-              echo "📦 Found existing artifacts - can repack"
-              echo "build_method=repack" >> "$GITHUB_OUTPUT"
-              echo "can_repack=true" >> "$GITHUB_OUTPUT"
+              # Validate the APK file
+              APK_SIZE=$(stat -f%z "${{ inputs.apk_path }}" 2>/dev/null || stat -c%s "${{ inputs.apk_path }}" 2>/dev/null || echo "0")
+              if [[ $APK_SIZE -gt 1000000 ]]; then  # APK should be at least 1MB
+                echo "✅ Found valid cached APK (size: $APK_SIZE bytes)"
+                echo "🎯 Decision: REPACK - Using cached build with updated JS bundle"
+                echo "build_method=repack" >> "$GITHUB_OUTPUT"
+                echo "can_repack=true" >> "$GITHUB_OUTPUT"
+                echo "cache_hit=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "⚠️ Cached APK appears invalid (size: $APK_SIZE bytes)"
+                echo "🎯 Decision: FULL BUILD - Invalid cached artifacts"
+                echo "build_method=full" >> "$GITHUB_OUTPUT"
+                echo "can_repack=false" >> "$GITHUB_OUTPUT"
+                echo "cache_hit=false" >> "$GITHUB_OUTPUT"
+              fi
             else
-              echo "🔍 No existing artifacts found - need full build"
+              echo "🔍 No cached artifacts found at: ${{ inputs.apk_path }}"
+              echo "🎯 Decision: FULL BUILD - No cached artifacts available"
               echo "build_method=full" >> "$GITHUB_OUTPUT"
               echo "can_repack=false" >> "$GITHUB_OUTPUT"
+              echo "cache_hit=false" >> "$GITHUB_OUTPUT"
             fi
           else
-            echo "🔄 Fingerprint differs - need full build"
+            echo "🔄 Fingerprints differ - native code has changed"
+            echo "  Saved:   $SAVED_FP"
+            echo "  Current: $CURRENT_FP"
+            echo "🎯 Decision: FULL BUILD - Native code changed"
             echo "build_method=full" >> "$GITHUB_OUTPUT"
             echo "can_repack=false" >> "$GITHUB_OUTPUT"
+            echo "cache_hit=false" >> "$GITHUB_OUTPUT"
           fi
         else
           echo "❓ Unknown build action: ${{ inputs.build_action }}"
+          echo "🎯 Decision: FULL BUILD - Unknown action, defaulting to safe option"
           echo "build_method=full" >> "$GITHUB_OUTPUT"
           echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          echo "cache_hit=false" >> "$GITHUB_OUTPUT"
         fi
         
-        echo "Decision: $(cat $GITHUB_OUTPUT | grep build_method | cut -d= -f2)"
+        echo ""
+        echo "============================================"
+        echo "📊 Final Decision Summary:"
+        echo "  - Build Method: $(cat $GITHUB_OUTPUT | grep build_method | cut -d= -f2)"
+        echo "  - Can Repack: $(cat $GITHUB_OUTPUT | grep can_repack | cut -d= -f2)"
+        echo "  - Cache Hit: $(cat $GITHUB_OUTPUT | grep cache_hit | cut -d= -f2)"
+        echo "============================================"

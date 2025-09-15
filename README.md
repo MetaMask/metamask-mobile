@@ -15,6 +15,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
+- [Build Caching](./docs/build-caching.md)
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)

@@ -16,11 +16,20 @@ runs:
   using: 'composite'
   steps:
     - name: Generate and save fingerprint
+      id: fingerprint
       shell: bash
       run: |
         echo "Generating fingerprint for ${{ inputs.platform }}..."
-        yarn fingerprint:generate
-        echo "Fingerprint saved to .app-native-fingerprint"
+        FINGERPRINT=$(yarn -s fingerprint:generate)
+        
+        if [ -z "$FINGERPRINT" ]; then
+          echo "❌ Error: Failed to generate fingerprint"
+          exit 1
+        fi
+        
+        echo "$FINGERPRINT" > .app-native-fingerprint
+        echo "✅ Fingerprint saved: $FINGERPRINT"
+        echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
 
     - name: Cache build artifacts for future reuse
       uses: actions/cache@v4

@@ -120,37 +120,109 @@ jobs:
 
       - name: Update JS and Assets (expo export)
         if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        id: expo-export
         run: |
           echo "🔧 Updating JS and assets with expo export..."
+          echo "Running setup without building native code..."
           yarn setup:github-ci --no-build-ios --no-build-android
+          
+          echo "Exporting JavaScript bundle for Android..."
           yarn expo export --platform android
-          echo "✅ JS and assets exported!"
+          
+          # Verify the bundle was created
+          if [ ! -f "dist/_expo/static/js/android/index.js" ]; then
+            echo "❌ Error: Bundle not found at dist/_expo/static/js/android/index.js"
+            exit 1
+          fi
+          
+          BUNDLE_SIZE=$(stat -f%z "dist/_expo/static/js/android/index.js" 2>/dev/null || stat -c%s "dist/_expo/static/js/android/index.js" 2>/dev/null)
+          echo "✅ JS bundle exported successfully (size: $BUNDLE_SIZE bytes)"
 
       - name: Repackage App Binary using @expo/repack-app
         if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        id: repack-apk
         run: |
           echo "📦 Repackaging Android APK with updated JavaScript bundle..."
+          echo "============================================"
+          
+          # Store original APK info for validation
+          ORIGINAL_APK="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
+          ORIGINAL_SIZE=$(stat -f%z "$ORIGINAL_APK" 2>/dev/null || stat -c%s "$ORIGINAL_APK" 2>/dev/null)
+          echo "📁 Original APK size: $ORIGINAL_SIZE bytes"
+          
+          # Create backup of original APK
+          cp "$ORIGINAL_APK" "${ORIGINAL_APK}.backup"
           
           # Repackage the APK with the exported bundle
           echo "📱 Repackaging APK..."
-          npx @expo/repack-app \
-            --input android/app/build/outputs/apk/prod/release/app-prod-release.apk \
-            --output android/app/build/outputs/apk/prod/release/app-prod-release.apk \
-            --bundle dist/_expo/static/js/android/index.js
+          if ! npx @expo/repack-app \
+            --input "$ORIGINAL_APK" \
+            --output "$ORIGINAL_APK" \
+            --bundle dist/_expo/static/js/android/index.js; then
+            echo "❌ Repackaging failed! Restoring original APK..."
+            mv "${ORIGINAL_APK}.backup" "$ORIGINAL_APK"
+            exit 1
+          fi
           
-          echo "✅ Repackaging complete!"
+          # Validate the repacked APK
+          REPACKED_SIZE=$(stat -f%z "$ORIGINAL_APK" 2>/dev/null || stat -c%s "$ORIGINAL_APK" 2>/dev/null)
+          echo "📐 Repacked APK size: $REPACKED_SIZE bytes"
+          
+          # Basic validation - repacked APK should be similar in size
+          SIZE_DIFF=$((REPACKED_SIZE - ORIGINAL_SIZE))
+          SIZE_DIFF_ABS=${SIZE_DIFF#-}
+          MAX_DIFF=$((ORIGINAL_SIZE / 10))  # Allow up to 10% size difference
+          
+          if [ $SIZE_DIFF_ABS -gt $MAX_DIFF ]; then
+            echo "⚠️ Warning: Significant size difference detected (${SIZE_DIFF} bytes)"
+            echo "This may indicate an issue with repacking."
+          fi
+          
+          # Verify APK is valid using aapt
+          if command -v aapt &> /dev/null; then
+            echo "Validating APK structure..."
+            if ! aapt dump badging "$ORIGINAL_APK" > /dev/null 2>&1; then
+              echo "❌ Error: Repacked APK validation failed!"
+              mv "${ORIGINAL_APK}.backup" "$ORIGINAL_APK"
+              exit 1
+            fi
+            echo "✅ APK structure validated successfully"
+          fi
+          
+          # Clean up backup
+          rm -f "${ORIGINAL_APK}.backup"
+          
+          echo "✅ Repackaging completed successfully!"
+          echo "============================================"
+          echo "🎯 APK ready for E2E testing with updated JS bundle"
 
       - name: Save fingerprint and cache artifacts
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
         uses: ./.github/actions/save-build-fingerprint
         with:
           platform: android
-          artifacts_path: |
-            android/app/build/outputs/apk/prod/release/app-prod-release.apk
-            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
-            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-            sourcemaps/android/index.android.bundle.map
+          artifacts_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           pr_number: ${{ github.event.pull_request.number }}
+      
+      - name: Log Build Performance Metrics
+        if: always()
+        run: |
+          echo "📊 Build Performance Summary"
+          echo "============================"
+          echo "Build Method: ${{ steps.build-decision.outputs.build_method }}"
+          echo "Cache Hit: ${{ steps.build-decision.outputs.cache_hit }}"
+          echo "Can Repack: ${{ steps.build-decision.outputs.can_repack }}"
+          
+          if [[ "${{ steps.build-decision.outputs.build_method }}" == "repack" ]]; then
+            echo "🚀 Optimized build using cached artifacts!"
+            echo "Time saved by avoiding full native build"
+          elif [[ "${{ steps.build-decision.outputs.build_method }}" == "full" ]]; then
+            echo "🏗️ Full native build was required"
+            if [[ "${{ steps.build-decision.outputs.cache_hit }}" == "false" ]]; then
+              echo "Reason: No cache hit or native code changed"
+            fi
+          fi
+          echo "============================"
 
       - name: Upload Android APK
         id: upload-apk
