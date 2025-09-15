@@ -39,7 +39,12 @@
       "buy_action": "Buy %{nativeCurrency}"
     },
     "signed_or_submitted": {
+      "title": "Transaction in progress",
       "message": "A previous transaction is still being signed or submitted."
+    },
+    "signed_or_submitted_perps_deposit": {
+      "title": "Deposit in progress",
+      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -56,8 +61,12 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds"
     },
+    "insufficient_pay_token_balance_fees": {
+      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+      "title": "Insufficient funds"
+    },
     "insufficient_pay_token_native": {
-      "message": "Insufficient native funds on payment token chain. Select different token."
+      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
@@ -379,6 +388,8 @@
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
+    "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
+    "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create new password",
     "confirm_password": "Confirm password",
@@ -404,7 +415,9 @@
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
     "create_password_cta": "Create password",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "password_error": "Passwords don’t match. Try again."
+    "password_error": "Passwords don’t match. Try again.",
+    "marketing_opt_in_description" : "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
+    "loose_password_description" : "If I lose this password, MetaMask can’t reset it."
   },
   "reset_password": {
     "title": "Change password",
@@ -441,7 +454,10 @@
     "warning_password_cancel_button": "Cancel",
     "changing_password": "Changing password...",
     "changing_password_subtitle": "This shouldn’t take long",
-    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "seedless_change_password_error_modal_title": "Change password failed",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "Import a wallet",
@@ -840,10 +856,10 @@
     "available_balance": "Available balance",
     "margin_used": "Margin Used",
     "gtm_content": {
-      "title": "WE'VE GOT PERPS",
-      "title_description": "Predict price moves with up to 40x leverage.",
+      "title": "PERPS ARE HERE",
+      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
       "not_now": "Not now",
-      "try_now": "Trade perps"
+      "try_now": "Get started"
     },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
@@ -1118,6 +1134,7 @@
       "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
       "margin": "Margin",
+      "includes_pnl":"includes P&L",
       "pnl": "PnL",
       "estimated_pnl": "Estimated PnL",
       "fees": "Fees",
@@ -1358,6 +1375,10 @@
       "tp_sl": {
         "title": "Take Profit & Stop Loss",
         "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
+      },
+      "close_position_you_receive": {
+        "title": "Receive amount",
+        "content": "Your receive amount is estimated and may change slightly due to slippage."
       },
       "notifications": {
         "title": "Turn on notifications",
@@ -1634,6 +1655,9 @@
     "banner": {
       "title": "Basic functionality is off",
       "link": "Turn on basic functionality"
+    },
+    "carousel": {
+      "empty_state": "You're all caught up!"
     }
   },
   "asset_details": {
@@ -2492,7 +2516,6 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
-    "fund_button": "Fund",
     "token_marketplace": "Token marketplace",
     "sell_button": "Withdraw",
     "receive_button": "Receive",
@@ -3980,7 +4003,7 @@
     "select_a_quote": "Select a Quote",
     "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
-    "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
+    "select_a_cryptocurrency_description": "Select from the list of tokens available.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
     "search_by_currency": "Search for a currency",
     "update_payment_method": "Update payment method",

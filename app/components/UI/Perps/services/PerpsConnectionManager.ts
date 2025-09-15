@@ -429,6 +429,9 @@ class PerpsConnectionManagerClass {
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
 
+    // Set connecting state immediately to prevent race conditions
+    this.isConnecting = true;
+
     try {
       // Clean up existing connections
       this.cleanupPreloadedSubscriptions();
@@ -441,10 +444,9 @@ class PerpsConnectionManagerClass {
       streamManager.account.clearCache();
       streamManager.marketData.clearCache();
 
-      // Reset state
+      // Reset connection state (but keep isConnecting = true)
       this.isConnected = false;
       this.isInitialized = false;
-      this.isConnecting = false;
       this.hasPreloaded = false;
       // Clear previous errors when starting reconnection attempt
       this.clearError();
@@ -457,9 +459,6 @@ class PerpsConnectionManagerClass {
         ? PERPS_CONSTANTS.RECONNECTION_DELAY_ANDROID_MS
         : PERPS_CONSTANTS.RECONNECTION_DELAY_IOS_MS;
       await wait(reconnectionDelay);
-
-      // Re-establish connection
-      this.isConnecting = true;
 
       // Trigger connection with new account - wrap in try/catch to handle initialization errors
       try {
@@ -486,7 +485,6 @@ class PerpsConnectionManagerClass {
 
       this.isConnected = true;
       this.isInitialized = true;
-      this.isConnecting = false;
       // Clear errors on successful reconnection
       this.clearError();
       DevLogger.log(
@@ -496,7 +494,6 @@ class PerpsConnectionManagerClass {
       // Pre-load subscriptions again with new account
       await this.preloadSubscriptions();
     } catch (error) {
-      this.isConnecting = false;
       this.isConnected = false;
       this.isInitialized = false;
       // Set error state for UI - this is critical for reliability
@@ -506,6 +503,9 @@ class PerpsConnectionManagerClass {
         error,
       );
       throw error;
+    } finally {
+      // Always clear connecting state when done
+      this.isConnecting = false;
     }
   }
 
@@ -692,6 +692,13 @@ class PerpsConnectionManagerClass {
       !this.isDisconnecting &&
       this.connectionRefCount === 0
     );
+  }
+
+  /**
+   * Check if the manager is currently connecting
+   */
+  isCurrentlyConnecting(): boolean {
+    return this.isConnecting;
   }
 }
 

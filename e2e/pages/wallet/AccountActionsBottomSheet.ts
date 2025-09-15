@@ -36,6 +36,12 @@ class AccountActionsBottomSheet {
     );
   }
 
+  get multichainAccountDetails(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_ACCOUNT_DETAILS,
+    );
+  }
+
   async tapEditAccount(): Promise<void> {
     await Gestures.waitAndTap(this.editAccount, {
       elemDescription: 'Edit account button',
@@ -63,6 +69,12 @@ class AccountActionsBottomSheet {
   async tapRenameAccount(): Promise<void> {
     await Gestures.waitAndTap(this.multichainEditName, {
       elemDescription: 'Edit Account Name button in V2 account actions modal',
+    });
+  }
+
+  async tapAccountDetails(): Promise<void> {
+    await Gestures.waitAndTap(this.multichainAccountDetails, {
+      elemDescription: 'Account Details button in V2 account actions modal',
     });
   }
 
