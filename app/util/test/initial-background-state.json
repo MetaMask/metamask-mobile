@@ -23,7 +23,9 @@
       "wallets": {}
     },
     "accountGroupsMetadata": {},
-    "accountWalletsMetadata": {}
+    "accountWalletsMetadata": {},
+    "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+    "isAccountTreeSyncingInProgress": false
   },
   "AddressBookController": {
     "addressBook": {}
