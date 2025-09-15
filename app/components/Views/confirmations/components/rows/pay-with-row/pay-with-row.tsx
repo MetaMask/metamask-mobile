@@ -24,6 +24,10 @@ import I18n, { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -62,9 +66,14 @@ export function PayWithRow() {
           <TokenIcon address={payToken.address} chainId={payToken.chainId} />
         }
         leftPrimary={
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {strings('confirm.label.pay_with')}
-          </Text>
+          <>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {strings('confirm.label.pay_with')}
+            </Text>
+            {canEdit && from && (
+              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+            )}
+          </>
         }
         leftAlternate={
           <Text

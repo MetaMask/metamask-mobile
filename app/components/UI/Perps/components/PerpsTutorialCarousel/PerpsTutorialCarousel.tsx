@@ -1,4 +1,3 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -27,7 +26,6 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsFirstTimeUser,
   usePerpsTrading,
@@ -42,7 +40,6 @@ import { useSelector } from 'react-redux';
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-import { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   INTRO = 'Intro_Perps_v03 2',
@@ -112,7 +109,6 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
 };
 
 const PerpsTutorialCarousel: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -261,7 +257,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     currentTab,
     markTutorialCompleted,
     isEligible,
-    navigation,
+    navigateToConfirmation,
     depositWithConfirmation,
     tutorialScreens.length,
     ensureArbitrumNetworkExists,
