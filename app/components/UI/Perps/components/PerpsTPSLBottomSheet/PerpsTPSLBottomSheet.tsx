@@ -350,6 +350,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         <TouchableOpacity
           style={styles.scrollContent}
           activeOpacity={1}
+          testID="scroll-content"
           onPress={() => {
             if (focusedInput) {
               setFocusedInput(null);
@@ -679,8 +680,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 : formattedStopLossPercentage
             }
             onChange={handleKeypadChange}
-            currency="USD_PERPS"
-            decimals={5}
+            currency={
+              focusedInput === 'takeProfitPercentage' ||
+              focusedInput === 'stopLossPercentage'
+                ? 'USD' // Use USD for percentage inputs to allow decimals
+                : 'USD_PERPS' // Use USD_PERPS for price inputs
+            }
+            decimals={
+              focusedInput === 'takeProfitPercentage' ||
+              focusedInput === 'stopLossPercentage'
+                ? 2 // Allow 2 decimal places for percentages
+                : 5 // Allow 5 decimal places for prices
+            }
           />
         </View>
       )}
