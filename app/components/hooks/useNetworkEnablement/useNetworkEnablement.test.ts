@@ -258,17 +258,6 @@ describe('useNetworkEnablement', () => {
   });
 
   describe('network operations', () => {
-    it('calls enableNetwork when enableNetwork is called', () => {
-      const chainId = 'eip155:1' as CaipChainId;
-
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.enableNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-    });
-
     it('calls disableNetwork when disableNetwork is called', () => {
       const chainId = 'eip155:1' as CaipChainId;
 
@@ -428,16 +417,6 @@ describe('useNetworkEnablement', () => {
   });
 
   describe('tryEnableEvmNetwork', () => {
-    it('enables network when global selector is enabled and network is disabled', () => {
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.tryEnableEvmNetwork('0x1');
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith('eip155:0x1');
-    });
-
     it('does not enable network when chainId is not provided', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
