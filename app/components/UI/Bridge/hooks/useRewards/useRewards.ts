@@ -23,6 +23,15 @@ import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
 import usePrevious from '../../../../hooks/usePrevious';
 
+export const getUsdPricePerToken = (
+  totalFeeAmountUsd: string,
+  feeAmountAtomic: string,
+  feeAssetDecimals: number,
+): string => (
+    (parseFloat(totalFeeAmountUsd) * Math.pow(10, feeAssetDecimals)) /
+    parseFloat(feeAmountAtomic)
+  );
+
 interface UseRewardsParams {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
   isQuoteLoading: boolean;
@@ -93,15 +102,15 @@ export const useRewards = ({
 
     try {
       // Check if rewards feature is enabled
-      const isRewardsEnabled = await Engine.controllerMessenger.call(
-        'RewardsController:isRewardsFeatureEnabled',
-      );
+      // const isRewardsEnabled = await Engine.controllerMessenger.call(
+      //   'RewardsController:isRewardsFeatureEnabled',
+      // );
 
-      if (!isRewardsEnabled) {
-        setEstimatedPoints(null);
-        setIsLoading(false);
-        return;
-      }
+      // if (!isRewardsEnabled) {
+      //   setEstimatedPoints(null);
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       // Format account to CAIP-10
       const caipAccount = formatAccountToCaipAccountId(
@@ -116,16 +125,16 @@ export const useRewards = ({
       }
 
       // Check if account has opted in
-      const hasOptedIn = await Engine.controllerMessenger.call(
-        'RewardsController:getHasAccountOptedIn',
-        caipAccount,
-      );
+      // const hasOptedIn = await Engine.controllerMessenger.call(
+      //   'RewardsController:getHasAccountOptedIn',
+      //   caipAccount,
+      // );
 
-      if (!hasOptedIn) {
-        setEstimatedPoints(null);
-        setIsLoading(false);
-        return;
-      }
+      // if (!hasOptedIn) {
+      //   setEstimatedPoints(null);
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       setShouldShowRewardsRow(true);
 
@@ -151,9 +160,17 @@ export const useRewards = ({
       const feeAsset: EstimateAssetDto = {
         id: activeQuote.quote.feeData.metabridge.asset.assetId,
         amount: activeQuote.quote.feeData.metabridge.amount || '0',
-        ...(activeQuote.quote.priceData?.totalFeeAmountUsd
-          ? { usdPrice: activeQuote.quote.priceData.totalFeeAmountUsd }
-          : {}),
+      };
+
+      const usdPricePerToken = getUsdPricePerToken(
+        activeQuote.quote.priceData?.totalFeeAmountUsd || '0',
+        feeAsset.amount,
+        activeQuote.quote.feeData.metabridge.asset.decimals,
+      );
+
+      const feeAssetWithUsdPrice: EstimateAssetDto = {
+        ...feeAsset,
+        usdPrice: usdPricePerToken.toString(),
       };
 
       // Create estimate request
@@ -164,7 +181,7 @@ export const useRewards = ({
           swapContext: {
             srcAsset,
             destAsset,
-            feeAsset,
+            feeAsset: feeAssetWithUsdPrice,
           },
         },
       };
