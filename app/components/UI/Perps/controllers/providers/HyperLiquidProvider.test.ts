@@ -28,6 +28,7 @@ jest.mock('../../services/HyperLiquidSubscriptionService');
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
+  captureException: jest.fn(),
 }));
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {

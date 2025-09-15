@@ -133,6 +133,12 @@ jest.mock('@metamask/design-system-react-native', () => ({
     Between: 'Between',
   },
   ButtonBase: 'ButtonBase',
+  IconSize: {
+    Xl: 'Xl',
+  },
+  IconColor: {
+    PrimaryDefault: 'PrimaryDefault',
+  },
 }));
 
 // Mock Text component

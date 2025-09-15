@@ -89,7 +89,10 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
-import { calculateRoEForPrice } from '../../utils/tpslValidation';
+import {
+  calculateRoEForPrice,
+  isStopLossSafeFromLiquidation,
+} from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
@@ -374,6 +377,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         );
       },
       onError: (error) => {
+        // Error is already captured in usePerpsOrderExecution hook
+        // No need to capture again here to avoid duplicate Sentry reports
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].creationFailed(
             error,
@@ -766,6 +771,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
           { asset: orderForm.asset },
         );
 
+  const doesStopLossRiskLiquidation = Boolean(
+    orderForm.stopLossPrice &&
+      !isStopLossSafeFromLiquidation(
+        orderForm.stopLossPrice,
+        liquidationPrice,
+        orderForm.direction,
+      ),
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -915,6 +929,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 </ListItem>
               </TouchableOpacity>
             </View>
+            {doesStopLossRiskLiquidation && (
+              <View style={styles.stopLossLiquidationWarning}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings('perps.tpsl.stop_loss_order_view_warning', {
+                    direction:
+                      orderForm.direction === 'long'
+                        ? strings('perps.tpsl.below')
+                        : strings('perps.tpsl.above'),
+                  })}
+                </Text>
+              </View>
+            )}
           </View>
         )}
         {/* Info Section */}
@@ -1077,7 +1103,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onPress={handlePlaceOrder}
             isFullWidth
             size={ButtonSizeRNDesignSystem.Lg}
-            isDisabled={!orderValidation.isValid || isPlacingOrder}
+            isDisabled={
+              !orderValidation.isValid ||
+              isPlacingOrder ||
+              doesStopLossRiskLiquidation
+            }
             isLoading={isPlacingOrder}
             testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
           >

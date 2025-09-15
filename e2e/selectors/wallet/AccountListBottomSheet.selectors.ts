@@ -5,6 +5,7 @@ export const AccountListBottomSheetSelectorsIDs = {
   ACCOUNT_LIST_ADD_BUTTON_ID: 'account-list-add-account-button',
   ACCOUNT_TYPE_LABEL: 'account-type-label',
   ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID: 'account-balance-by-address',
+  CREATE_ACCOUNT: 'create-account',
 };
 
 export const AccountListBottomSheetSelectorsText = {

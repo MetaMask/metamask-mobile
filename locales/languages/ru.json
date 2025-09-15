@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "Отправить",
     "buy_button": "Купить",
-    "fund_button": "Fund",
     "token_marketplace": "Торговая площадка токенов",
     "sell_button": "Withdraw",
     "receive_button": "Получить",

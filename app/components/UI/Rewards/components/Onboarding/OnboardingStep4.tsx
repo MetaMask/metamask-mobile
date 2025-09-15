@@ -6,10 +6,10 @@ import {
   Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useRewardsAuth } from '../../hooks/useRewardsAuth';
+import { useOptin } from '../../hooks/useOptIn';
 import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
 import {
   Box,
@@ -36,13 +36,14 @@ import TextField, {
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL } from './constants';
+import { selectRewardsActiveAccountHasOptedIn } from '../../../../../selectors/rewards';
 
 const OnboardingStep4: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { optin, optinError, optinLoading, hasAccountedOptedIn } =
-    useRewardsAuth();
+  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const { optin, optinError, optinLoading } = useOptin();
   const {
     referralCode,
     setReferralCode: handleReferralCodeChange,
@@ -56,29 +57,18 @@ const OnboardingStep4: React.FC = () => {
 
   const handlePrevious = useCallback(() => {
     // Reset onboarding state so we can jump from step 1 to 5 next time
-    dispatch(setOnboardingActiveStep(OnboardingStep.STEP_3));
-    navigation.navigate(Routes.REWARDS_ONBOARDING_3);
+    dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
+    navigation.navigate(Routes.WALLET_VIEW);
   }, [dispatch, navigation]);
 
   const renderStepInfo = () => (
-    <Box twClassName="flex-grow mt-6" alignItems={BoxAlignItems.Center}>
+    <Box twClassName="flex-grow" alignItems={BoxAlignItems.Center}>
       {/* Opt in error message */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="mt-4 min-h-20">
-        {optinError && (
+      {optinError && (
+        <Box alignItems={BoxAlignItems.Center} twClassName="min-h-20">
           <BannerAlert
             severity={BannerAlertSeverity.Error}
             description={optinError}
-          />
-        )}
-      </Box>
-
-      {hasAccountedOptedIn === true && (
-        <Box alignItems={BoxAlignItems.Center} twClassName="mt-4 min-h-20">
-          <BannerAlert
-            severity={BannerAlertSeverity.Success}
-            description={strings(
-              'rewards.onboarding.step4_success_description',
-            )}
           />
         </Box>
       )}
@@ -154,7 +144,7 @@ const OnboardingStep4: React.FC = () => {
   );
 
   const renderLegalDisclaimer = () => (
-    <Box twClassName="w-full flex-row px-4 mt-2">
+    <Box twClassName="w-full flex-row px-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -211,6 +201,7 @@ const OnboardingStep4: React.FC = () => {
       onPrevious={handlePrevious}
       nextButtonText={strings('rewards.onboarding.step4_confirm')}
       renderStepInfo={renderStepInfo}
+      stepInfoContainerStyle="justify-center"
       enableSwipeGestures={false}
       nextButtonAlternative={renderLegalDisclaimer}
     />

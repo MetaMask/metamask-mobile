@@ -17,6 +17,8 @@ import {
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
   type GetPointsEventsDto,
+  type OptInStatusInputDto,
+  type OptInStatusDto,
   CURRENT_SEASON_ID,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -239,6 +241,22 @@ export class RewardsController extends BaseController<
       'RewardsController:validateReferralCode',
       this.validateReferralCode.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:linkAccountToSubscriptionCandidate',
+      this.linkAccountToSubscriptionCandidate.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getCandidateSubscriptionId',
+      this.getCandidateSubscriptionId.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:optOut',
+      this.optOut.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getOptInStatus',
+      this.getOptInStatus.bind(this),
+    );
   }
 
   /**
@@ -402,11 +420,14 @@ export class RewardsController extends BaseController<
    */
   async #performSilentAuth(
     internalAccount?: InternalAccount | null,
+    shouldBecomeActiveAccount = true,
   ): Promise<string | null> {
     if (!internalAccount) {
-      this.update((state: RewardsControllerState) => {
-        state.activeAccount = null;
-      });
+      if (shouldBecomeActiveAccount) {
+        this.update((state: RewardsControllerState) => {
+          state.activeAccount = null;
+        });
+      }
       return null;
     }
 
@@ -423,7 +444,9 @@ export class RewardsController extends BaseController<
       if (accountState) {
         // Update last authenticated account
         this.update((state: RewardsControllerState) => {
-          state.activeAccount = accountState;
+          if (shouldBecomeActiveAccount) {
+            state.activeAccount = accountState;
+          }
         });
       } else {
         // Update accounts map && last authenticated account
@@ -439,7 +462,9 @@ export class RewardsController extends BaseController<
         this.update((state: RewardsControllerState) => {
           state.accounts[account as CaipAccountId] =
             accountState as RewardsAccountState;
-          state.activeAccount = accountState;
+          if (shouldBecomeActiveAccount) {
+            state.activeAccount = accountState;
+          }
         });
       }
       Logger.log(
@@ -532,7 +557,9 @@ export class RewardsController extends BaseController<
           lastPerpsDiscountRateFetched: null,
         };
         state.accounts[account] = accountState;
-        state.activeAccount = accountState;
+        if (shouldBecomeActiveAccount) {
+          state.activeAccount = accountState;
+        }
 
         if (subscription) {
           state.subscriptions[subscription.id] = subscription;
@@ -628,6 +655,32 @@ export class RewardsController extends BaseController<
     // Right now we'll derive this from either cached map state or perps fee discount api call.
     const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
     return !!perpsDiscountData?.hasOptedIn;
+  }
+
+  /**
+   * Get opt-in status for multiple addresses with feature flag check
+   * @param params - The request parameters containing addresses
+   * @returns Promise<OptInStatusDto> - The opt-in status response
+   */
+  async getOptInStatus(params: OptInStatusInputDto): Promise<OptInStatusDto> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      // Return empty array when feature flag is disabled
+      return { ois: params.addresses.map(() => false) };
+    }
+
+    try {
+      return await this.messagingSystem.call(
+        'RewardsDataService:getOptInStatus',
+        params,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get opt-in status:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
   }
 
   /**
@@ -1068,6 +1121,269 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to validate referral code:',
         error instanceof Error ? error.message : String(error),
       );
+      return false;
+    }
+  }
+
+  /**
+   * Get candidate subscription ID with fallback logic
+   * @returns Promise<string | null> - The subscription ID or null if none found
+   */
+  async getCandidateSubscriptionId(): Promise<string | null> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return null;
+    }
+
+    // First, check if there's an active account with a subscription
+    if (this.state.activeAccount?.subscriptionId) {
+      return this.state.activeAccount.subscriptionId;
+    }
+
+    // Fallback to the first subscription ID from the subscriptions map
+    const subscriptionIds = Object.keys(this.state.subscriptions);
+    if (subscriptionIds.length > 0) {
+      return subscriptionIds[0];
+    }
+
+    // If no subscriptions found, call optinstatus for all internal accounts
+    try {
+      const allAccounts = this.messagingSystem.call(
+        'AccountsController:listMultichainAccounts',
+      );
+
+      if (!allAccounts || allAccounts.length === 0) {
+        return null;
+      }
+
+      // Extract addresses from internal accounts
+      const addresses = allAccounts.map(
+        (account: InternalAccount) => account.address,
+      );
+
+      // Call opt-in status check
+      const optInStatusResponse = await this.messagingSystem.call(
+        'RewardsDataService:getOptInStatus',
+        { addresses },
+      );
+
+      const optedInAccounts =
+        optInStatusResponse?.ois?.filter((ois: boolean) => ois) ?? [];
+
+      Logger.log(
+        'RewardsController: Opted in accounts:',
+        optedInAccounts?.length ?? 0,
+      );
+
+      // Loop through all accounts that have opted in (ois[i] === true)
+      // Only process the first 10 accounts with a 500ms delay between each
+      const maxAccounts = Math.min(10, optedInAccounts.length);
+      for (let i = 0; i < maxAccounts; i++) {
+        const account = allAccounts[i];
+        if (!account) continue;
+        try {
+          const subscriptionId = await this.#performSilentAuth(
+            account,
+            false, // shouldBecomeActiveAccount = false
+          );
+          if (subscriptionId) {
+            return subscriptionId;
+          }
+        } catch (error) {
+          // Continue to next account if this one fails
+          Logger.log(
+            'RewardsController: Silent auth failed for account during candidate search:',
+            account.address,
+            error instanceof Error ? error.message : String(error),
+          );
+        }
+
+        // Add 500ms delay between accounts (except for the last one)
+        if (i < maxAccounts - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get candidate subscription ID:',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
+    return null;
+  }
+
+  /**
+   * Link an account to a subscription via mobile join
+   * @param account - The account to link to the subscription
+   * @returns Promise<boolean> - The updated subscription information
+   */
+  async linkAccountToSubscriptionCandidate(
+    account: InternalAccount,
+  ): Promise<boolean> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log('RewardsController: Rewards feature is disabled');
+      return false;
+    }
+
+    // Check if account is non-EVM (Solana) and throw error
+    if (isSolanaAddress?.(account.address)) {
+      Logger.log(
+        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
+      );
+      return false;
+    }
+
+    // Convert account to CAIP format
+    const caipAccount = this.convertInternalAccountToCaipAccountId(account);
+    if (!caipAccount) {
+      throw new Error('Failed to convert account to CAIP-10 format');
+    }
+
+    // Check if account already has a subscription (short-circuit)
+    const existingAccountState = this.#getAccountState(caipAccount);
+    if (existingAccountState?.subscriptionId) {
+      Logger.log(
+        'RewardsController: Account to link already has subscription',
+        {
+          account: caipAccount,
+          subscriptionId: existingAccountState.subscriptionId,
+        },
+      );
+      const existingSubscription =
+        this.state.subscriptions[existingAccountState.subscriptionId];
+      if (existingSubscription) {
+        return true;
+      }
+    }
+
+    // Get candidate subscription ID using the new method
+    const candidateSubscriptionId = await this.getCandidateSubscriptionId();
+    if (!candidateSubscriptionId) {
+      throw new Error('No valid subscription found to link account to');
+    }
+
+    try {
+      // Generate timestamp and sign the message for mobile join
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signature = await this.#signRewardsMessage(account, timestamp);
+
+      // Call mobile join via messenger
+      const updatedSubscription: SubscriptionDto =
+        await this.messagingSystem.call(
+          'RewardsDataService:mobileJoin',
+          {
+            account: account.address,
+            timestamp,
+            signature: signature as `0x${string}`,
+          },
+          candidateSubscriptionId,
+        );
+
+      // Update store with accounts and subscriptions (but not activeAccount)
+      this.update((state: RewardsControllerState) => {
+        // Update accounts state
+        state.accounts[caipAccount] = {
+          account: caipAccount,
+          hasOptedIn: true, // via linking this is now opted in.
+          subscriptionId: updatedSubscription.id,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        if (state.activeAccount?.account === caipAccount) {
+          state.activeAccount = state.accounts[caipAccount];
+        }
+      });
+
+      Logger.log(
+        'RewardsController: Successfully linked account to subscription',
+        {
+          account: caipAccount,
+          subscriptionId: updatedSubscription.id,
+        },
+      );
+
+      return true;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to link account to subscription',
+        caipAccount,
+        candidateSubscriptionId,
+        error,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Opt out of the rewards program, deleting the subscription and all associated data
+   * @returns Promise<boolean> - True if opt-out was successful, false otherwise
+   */
+  async optOut(): Promise<boolean> {
+    try {
+      // Get the current active account
+      const activeAccount = this.state.activeAccount;
+      if (!activeAccount?.subscriptionId) {
+        Logger.log(
+          'RewardsController: No active account or subscription ID found for opt-out',
+        );
+        return false;
+      }
+
+      const subscriptionId = activeAccount.subscriptionId;
+
+      // Check if subscription exists in our map
+      if (!this.state.subscriptions[subscriptionId]) {
+        Logger.log(
+          'RewardsController: Subscription not found in map',
+          subscriptionId,
+        );
+        return false;
+      }
+
+      // Call the opt-out endpoint
+      const result = await this.messagingSystem.call(
+        'RewardsDataService:optOut',
+        subscriptionId,
+      );
+
+      if (result.success) {
+        const currentActiveAccount = this.state.activeAccount?.account;
+        this.resetState();
+        this.update((state: RewardsControllerState) => {
+          // Set activeAccount with optIn: false if there was an active account
+          if (currentActiveAccount) {
+            state.activeAccount = {
+              account: currentActiveAccount,
+              hasOptedIn: false,
+              subscriptionId: null,
+              lastCheckedAuth: Date.now(),
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            };
+          }
+        });
+
+        // Remove subscription token from secure storage
+        await removeSubscriptionToken(subscriptionId);
+
+        Logger.log(
+          'RewardsController: Successfully opted out of rewards program',
+          subscriptionId,
+        );
+        return true;
+      }
+      Logger.log(
+        'RewardsController: Opt-out request returned false',
+        subscriptionId,
+      );
+      return false;
+    } catch (error) {
+      Logger.log('RewardsController: Failed to opt out', error);
       return false;
     }
   }
