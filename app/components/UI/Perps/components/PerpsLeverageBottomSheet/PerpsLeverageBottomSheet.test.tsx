@@ -506,6 +506,84 @@ describe('PerpsLeverageBottomSheet', () => {
       // Assert - Should cap at 100.0% even for actual liquidation price
       expect(screen.getByText(/100\.0%/)).toBeOnTheScreen();
     });
+
+    it('uses limit price for liquidation calculation when orderType is limit', () => {
+      // Arrange
+      const limitPrice = '2800';
+      const currentPrice = 3000;
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+
+      const propsWithLimitOrder = {
+        ...defaultProps,
+        currentPrice,
+        limitPrice,
+        orderType: 'limit' as const,
+      };
+
+      // Mock the liquidation price hook to track what entry price it receives
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice = jest.fn(() => ({
+        liquidationPrice: '2520.00', // Mock calculated based on limit price
+        isCalculating: false,
+        error: null,
+      }));
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...propsWithLimitOrder} />);
+
+      // Assert - Hook should be called with limit price as entry price
+      expect(
+        mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entryPrice: parseFloat(limitPrice), // Should use limit price, not current price
+          leverage: defaultProps.leverage,
+          direction: defaultProps.direction,
+          asset: defaultProps.asset,
+        }),
+        expect.objectContaining({ debounceMs: 500 }),
+      );
+    });
+
+    it('uses current price for liquidation calculation when orderType is market', () => {
+      // Arrange
+      const limitPrice = '2800';
+      const currentPrice = 3000;
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+
+      const propsWithMarketOrder = {
+        ...defaultProps,
+        currentPrice,
+        limitPrice, // Even if limit price is provided
+        orderType: 'market' as const,
+      };
+
+      // Mock the liquidation price hook to track what entry price it receives
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice = jest.fn(() => ({
+        liquidationPrice: '2700.00', // Mock calculated based on current price
+        isCalculating: false,
+        error: null,
+      }));
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...propsWithMarketOrder} />);
+
+      // Assert - Hook should be called with current price as entry price
+      expect(
+        mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entryPrice: currentPrice, // Should use current price, not limit price
+          leverage: defaultProps.leverage,
+          direction: defaultProps.direction,
+          asset: defaultProps.asset,
+        }),
+        expect.objectContaining({ debounceMs: 500 }),
+      );
+    });
   });
 
   describe('Price Information Display', () => {

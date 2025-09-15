@@ -2,6 +2,7 @@
 export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
+export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 export { usePerpsDepositStatus } from './usePerpsDepositStatus';
@@ -47,6 +48,8 @@ export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
+export { usePerpsTPSLForm } from './usePerpsTPSLForm';
+export { default as usePerpsToasts } from './usePerpsToasts';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

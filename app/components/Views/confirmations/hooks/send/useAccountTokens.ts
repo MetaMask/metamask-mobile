@@ -37,11 +37,14 @@ export function useAccountTokens() {
 
     const assetsWithBalance = filteredAssets.filter((asset) => {
       const haveBalance =
-        asset.fiat?.balance &&
-        new BigNumber(asset.fiat.balance).isGreaterThan(0);
+        (asset.fiat?.balance &&
+          new BigNumber(asset.fiat.balance).isGreaterThan(0)) ||
+        (asset.rawBalance && asset.rawBalance !== '0x0');
 
       const isTestNetAsset =
-        isTestNet(asset.chainId) && asset.rawBalance !== '0x0';
+        isTestNet(asset.chainId) &&
+        asset.rawBalance &&
+        asset.rawBalance !== '0x0';
 
       return haveBalance || isTestNetAsset;
     });

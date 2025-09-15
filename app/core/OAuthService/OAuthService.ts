@@ -63,7 +63,10 @@ export class OAuthService {
 
   #dispatchLogin = () => {
     this.resetOauthState();
-    this.updateLocalState({ loginInProgress: true });
+
+    this.updateLocalState({
+      loginInProgress: true,
+    });
   };
 
   #dispatchPostLogin = (result: HandleOAuthLoginResult) => {

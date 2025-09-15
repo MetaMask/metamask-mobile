@@ -1169,7 +1169,7 @@
       "title": "头寸",
       "card": {
         "entry_price": "Entry price",
-        "funding_cost": "Funding cost",
+        "funding_cost": "Funding",
         "liquidation_price": "Liq. Price",
         "take_profit": "Take profit",
         "stop_loss": "Stop loss",
@@ -1223,7 +1223,7 @@
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
-      "add_funds": "Add Funds",
+      "add_funds": "Add funds",
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
       "orders": "Orders"
@@ -1318,8 +1318,7 @@
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
-      "perps_sandbox_button": "Perps Sandbox"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
     },
     "transactions": {
       "title": "Perps",
@@ -1357,7 +1356,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risks. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -2312,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "返回应用程序",
+    "postNetworkSwitchTitle": "网络已成功切换",
     "description": "请返回应用程序继续使用其服务。"
   },
   "sdk_feedback_modal": {
@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "发送",
     "buy_button": "买入",
-    "fund_button": "Fund",
     "token_marketplace": "代币市场",
     "sell_button": "Withdraw",
     "receive_button": "接收",

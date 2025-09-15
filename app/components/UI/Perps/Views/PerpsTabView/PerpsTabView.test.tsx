@@ -147,6 +147,10 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
   PerpsTabViewSelectorsIDs: {
     START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
   },
+  PerpsPositionsViewSelectorsIDs: {
+    POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
+    POSITION_ITEM: 'perps-positions-item',
+  },
 }));
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
@@ -387,6 +391,107 @@ describe('PerpsTabView', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
       });
+    });
+
+    it('should render Start Trade CTA in orders section when there are orders but no positions', () => {
+      // Given orders exist but no positions
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([
+        { orderId: '123', symbol: 'ETH', size: '1.0', orderType: 'limit' },
+        { orderId: '456', symbol: 'BTC', size: '0.5', orderType: 'market' },
+      ]);
+
+      // When the view is rendered
+      render(<PerpsTabView />);
+
+      // Then Start Trade CTA should be present in the orders section
+      const startNewTradeCTA = screen.getByTestId(
+        'perps-tab-view-start-new-trade-cta',
+      );
+      expect(startNewTradeCTA).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.start_new_trade')),
+      ).toBeOnTheScreen();
+
+      // And orders should be displayed
+      expect(screen.getByText('Orders')).toBeOnTheScreen();
+    });
+
+    it('should NOT render empty state text when there are no positions and no orders', () => {
+      // Given no positions and no orders
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+
+      // When the view is rendered
+      render(<PerpsTabView />);
+
+      // Then empty state text should NOT be present (returns null now)
+      expect(
+        screen.queryByText(strings('perps.position.list.empty_title')),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('perps.position.list.empty_description')),
+      ).not.toBeOnTheScreen();
+
+      // And Start Trade CTA should NOT be present
+      expect(
+        screen.queryByTestId('perps-tab-view-start-new-trade-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('should render Start Trade CTA below positions when positions exist', () => {
+      // Given positions exist
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+
+      // When the view is rendered
+      render(<PerpsTabView />);
+
+      // Then Start Trade CTA should be present below positions
+      const startNewTradeCTA = screen.getByTestId(
+        'perps-tab-view-start-new-trade-cta',
+      );
+      expect(startNewTradeCTA).toBeOnTheScreen();
+
+      // And positions section should be visible
+      expect(screen.getByText('Positions')).toBeOnTheScreen();
+    });
+
+    it('should NOT show Start Trade CTA in orders section when both orders and positions exist', () => {
+      // Given both orders and positions exist
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([
+        { orderId: '123', symbol: 'ETH', size: '1.0', orderType: 'limit' },
+      ]);
+
+      // When the view is rendered
+      render(<PerpsTabView />);
+
+      // Then only one Start Trade CTA should be present (in positions section)
+      const startTradeCTAs = screen.getAllByTestId(
+        'perps-tab-view-start-new-trade-cta',
+      );
+      expect(startTradeCTAs).toHaveLength(1);
+
+      // And both sections should be visible
+      expect(screen.getByText('Orders')).toBeOnTheScreen();
+      expect(screen.getByText('Positions')).toBeOnTheScreen();
     });
 
     it('should have pull-to-refresh functionality configured', async () => {

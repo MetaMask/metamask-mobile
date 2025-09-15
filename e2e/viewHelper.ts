@@ -5,7 +5,6 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -156,16 +155,8 @@ export const importWalletWithRecoveryPhrase = async ({
 }) => {
   // tap on import seed phrase button
 
-  if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(
-      OnboardingCarouselView.container,
-      {
-        description: 'Onboarding Carousel should be visible',
-      },
-    );
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await acceptTermOfUse();
-  }
+  // OnboardingCarousel has been removed from the navigation flow
+  // The app now starts directly with the Onboarding page
 
   await Assertions.expectElementToBeVisible(
     OnboardingView.existingWalletButton,
@@ -241,10 +232,6 @@ export const importWalletWithRecoveryPhrase = async ({
  */
 export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
-
-  // tap on import seed phrase button
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -385,7 +372,6 @@ export const switchToSepoliaNetwork = async () => {
  * @throws {Error} Throws an error if the login view container or password input is not visible.
  */
 export const loginToApp = async (password?: string) => {
-  await device.disableSynchronization(); // Workaround for tokens list hanging after login
   const PASSWORD = password ?? '123123123';
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login View container should be visible',
@@ -399,6 +385,8 @@ export const loginToApp = async (password?: string) => {
   await Assertions.expectElementToBeVisible(WalletView.container, {
     description: 'Wallet container should be visible after login',
   });
+
+  await device.disableSynchronization(); // Workaround for tokens list hanging after login
   try {
     await WalletView.pullToRefreshTokensList();
     logger.debug('Pull-to-refresh completed after login');
