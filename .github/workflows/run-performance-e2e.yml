@@ -56,8 +56,11 @@ jobs:
     steps:
       - name: Check if metamaskbot version bump
         id: check
+        env:
+          COMMENT_USER: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
-          if [[ "${{ github.event.comment.user.login }}" == "metamaskbot" && "${{ github.event.comment.body }}" =~ "Bump version number" ]]; then
+          if [[ "$COMMENT_USER" == "metamaskbot" && "$COMMENT_BODY" =~ "Bump version number" ]]; then
             echo "should-run=true" >> "$GITHUB_OUTPUT"
             echo "✅ RC version bump detected from metamaskbot"
           else
