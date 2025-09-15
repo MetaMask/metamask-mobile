@@ -34,7 +34,7 @@ export const goToAccountDetails = async (account: Account) => {
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(account.index);
 };
 
-export const withMultichainAccountDetailsEnabled = async (
+export const withMultichainAccountDetailsEnabledFixtures = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -59,7 +59,7 @@ export const withMultichainAccountDetailsEnabled = async (
   );
 };
 
-export const withMultichainAccountDetailsV2Enabled = async (
+export const withMultichainAccountDetailsV2EnabledFixtures = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -72,6 +72,7 @@ export const withMultichainAccountDetailsV2Enabled = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+        .ensureMultichainIntroModalSuppressed()
         .build(),
       restartDevice: true,
       testSpecificMock,

@@ -28,7 +28,7 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import Device from '../../../util/device/index.js';
-import { selectEvmChainId } from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -48,6 +48,7 @@ import {
   ITEM_TYPE_NETWORK,
   SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -76,7 +77,8 @@ const NetworkMultiSelectList = ({
   const networkListRef = useRef<any>(null);
   const networksLengthRef = useRef<number>(0);
   const safeAreaInsets = useSafeAreaInsets();
-  const selectedChainId = useSelector(selectEvmChainId);
+  const selectedChainId = useSelector(selectChainId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
 
   const { styles } = useStyles(styleSheet, {});
@@ -85,10 +87,10 @@ const NetworkMultiSelectList = ({
     (): ProcessedNetwork[] =>
       networks.map((network) => {
         const parsedCaipChainId = parseCaipChainId(network.caipChainId);
-        const chainId =
-          parsedCaipChainId.namespace !== 'solana'
-            ? toHex(parsedCaipChainId.reference)
-            : '';
+        const chainId = isEvmSelected
+          ? toHex(parsedCaipChainId.reference)
+          : parsedCaipChainId.reference;
+
         return {
           ...network,
           chainId,
@@ -98,7 +100,7 @@ const NetworkMultiSelectList = ({
           isSelected: areAllNetworksSelected ? false : network.isSelected,
         };
       }),
-    [areAllNetworksSelected, networks],
+    [areAllNetworksSelected, networks, isEvmSelected],
   );
 
   const combinedData: NetworkListItem[] = useMemo(() => {
@@ -111,7 +113,7 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
-    if (selectAllNetworksComponent) {
+    if (selectAllNetworksComponent && isEvmSelected) {
       data.unshift({
         id: SELECT_ALL_NETWORKS_SECTION_ID,
         type: NetworkListItemType.SelectAllNetworksListItem,
@@ -132,7 +134,9 @@ const NetworkMultiSelectList = ({
     processedNetworks,
     additionalNetworksComponent,
     selectAllNetworksComponent,
+    isEvmSelected,
   ]);
+
   const contentContainerStyle = useMemo(
     () => ({
       paddingBottom:
@@ -241,7 +245,6 @@ const NetworkMultiSelectList = ({
 
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
-
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell

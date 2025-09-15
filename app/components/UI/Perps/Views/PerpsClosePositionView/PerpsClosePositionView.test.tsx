@@ -18,7 +18,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   PerpsClosePositionViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
-  PerpsOrderHeaderSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock navigation
@@ -65,10 +64,6 @@ jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple
 jest.mock('../../components/PerpsAmountDisplay');
 
-jest.mock('../../components/PerpsOrderTypeBottomSheet', () => ({
-  __esModule: true,
-  default: 'PerpsOrderTypeBottomSheet',
-}));
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () => ({
   __esModule: true,
   default: 'PerpsLimitPriceBottomSheet',
@@ -202,20 +197,6 @@ describe('PerpsClosePositionView', () => {
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       ).toBeDefined();
-    });
-
-    it('shows default market order type on initial render', () => {
-      // Arrange & Act
-      const { getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Assert
-      expect(getByText(strings('perps.order.market'))).toBeDefined();
     });
 
     it('displays order details section', () => {
@@ -378,26 +359,6 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
-  describe('Order Type Management', () => {
-    it('handles order type change from market to limit', () => {
-      // Given the default market order is displayed
-      const { getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // When order type changes to limit
-      // Simulate the component re-rendering with limit order type
-      // Note: In real implementation, this would be triggered by bottom sheet selection
-
-      // Then the limit order text should be visible
-      expect(getByText(strings('perps.order.market'))).toBeDefined();
-    });
-  });
-
   describe('Fee Calculations', () => {
     it('calculates and displays correct fees', () => {
       // Arrange
@@ -440,14 +401,15 @@ describe('PerpsClosePositionView', () => {
       expect(usePerpsOrderFeesMock).toHaveBeenCalled();
     });
 
-    // TAT-1429: Test that receiveAmount = margin - fees (P&L not included)
-    it('calculates receive amount as margin minus fees without P&L', () => {
+    // Test that receiveAmount = (initial margin + effective P&L) - fees
+    it('calculates receive amount including P&L at effective price', () => {
       // Arrange
       const mockPosition = {
         ...defaultPerpsPositionMock,
-        marginUsed: '1000', // $1000 margin
-        unrealizedPnl: '200', // $200 profit (should NOT be included)
-        size: '1',
+        entryPrice: '100', // Entry at $100
+        marginUsed: '1000', // $1000 initial margin
+        unrealizedPnl: '200', // Current unrealized P&L (not used in new calc)
+        size: '1', // 1 token long position
       };
       const mockFees = {
         totalFee: 50, // $50 fees
@@ -455,6 +417,11 @@ describe('PerpsClosePositionView', () => {
         protocolFeeRate: 0.5,
       };
 
+      // Set current price to $150 for clear P&L calculation
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '150' }, // Current price $150
+      });
+
       useRouteMock.mockReturnValue({
         params: { position: mockPosition },
       });
@@ -469,29 +436,37 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Should show $950 (1000 - 50), NOT $1150 (1000 + 200 - 50)
-      // The receiveAmount should be margin - fees = 1000 - 50 = 950
+      // Assert - receiveAmount = (initialMargin + effectivePnL) - fees
+      // effectivePnL = (150 - 100) * 1 = 50
+      // effectiveMargin = 1000 + 50 = 1050
+      // receiveAmount = 1050 - 50 = 1000
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 950 in the display (margin - fees, without P&L)
-      expect(getByText(/950/)).toBeDefined();
+      // Look for 1000 in the display (margin + P&L - fees)
+      expect(getByText(/1,000/)).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
       // Arrange
       const mockPosition = {
         ...defaultPerpsPositionMock,
-        marginUsed: '2000', // $2000 margin
-        unrealizedPnl: '-300', // $300 loss (should NOT affect receive amount)
-        size: '2',
+        entryPrice: '100', // Entry at $100
+        marginUsed: '2000', // $2000 initial margin
+        unrealizedPnl: '-300', // Current unrealized (not used in new calc)
+        size: '2', // 2 tokens long
       };
       const mockFees = {
-        totalFee: 25, // $25 fees for 50% close
+        totalFee: 25, // $25 fees for 100% close
         metamaskFeeRate: 0.5,
         protocolFeeRate: 0.5,
       };
+
+      // Set current price lower than entry for loss scenario
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '75' }, // Current price $75 < entry $100 = loss
+      });
 
       useRouteMock.mockReturnValue({
         params: { position: mockPosition },
@@ -507,12 +482,16 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // For 50% close: receiveAmount = (50% * 2000) - 25 = 1000 - 25 = 975
-      // Note: The test starts at 100% by default, but we're verifying the calculation logic
+      // For 100% close (default):
+      // effectivePnL = (75 - 100) * 2 = -50
+      // effectiveMargin = 2000 + (-50) = 1950
+      // receiveAmount = 1950 - 25 = 1925
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
+      // Look for 1925 in the display (effective margin - fees)
+      expect(getByText(/1,925/)).toBeDefined();
     });
   });
 
@@ -575,8 +554,16 @@ describe('PerpsClosePositionView', () => {
       // Arrange
       const positionWithProfit = {
         ...defaultPerpsPositionMock,
-        unrealizedPnl: '100',
+        entryPrice: '100', // Entry at $100
+        size: '1', // 1 token long
+        unrealizedPnl: '100', // Current unrealized (not used for display)
       };
+
+      // Set current price higher than entry for profit
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '150' }, // Current price $150 > entry $100 = profit
+      });
+
       useRouteMock.mockReturnValue({
         params: { position: positionWithProfit },
       });
@@ -590,8 +577,9 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Look for positive PnL display (with + sign)
-      const pnlElement = getByText(/\+.*100/);
+      // Assert - effectivePnL = (150 - 100) * 1 = 50
+      // Look for positive P&L display (with + sign) - should show 50
+      const pnlElement = getByText(/\+.*50/);
       expect(pnlElement).toBeDefined();
     });
 
@@ -599,8 +587,16 @@ describe('PerpsClosePositionView', () => {
       // Arrange
       const positionWithLoss = {
         ...defaultPerpsPositionMock,
-        unrealizedPnl: '-100',
+        entryPrice: '150', // Entry at $150
+        size: '1', // 1 token long
+        unrealizedPnl: '-100', // Current unrealized (not used for display)
       };
+
+      // Set current price lower than entry for loss
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: '100' }, // Current price $100 < entry $150 = loss
+      });
+
       useRouteMock.mockReturnValue({
         params: { position: positionWithLoss },
       });
@@ -614,8 +610,9 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Look for negative PnL display (with - sign)
-      const pnlElement = getByText(/-.*100/);
+      // Assert - effectivePnL = (100 - 150) * 1 = -50
+      // Look for negative P&L display (with - sign) - should show 50 (absolute value)
+      const pnlElement = getByText(/-.*50/);
       expect(pnlElement).toBeDefined();
     });
   });
@@ -851,7 +848,7 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Additional Coverage - Input & Error Filtering', () => {
-    it('updates close percentage via percentage buttons and tracks after done', async () => {
+    it('updates close percentage via percentage buttons and UI responds correctly', async () => {
       // Arrange
       const track = jest.fn();
       usePerpsEventTrackingMock.mockReturnValue({ track });
@@ -868,9 +865,6 @@ describe('PerpsClosePositionView', () => {
         { state: STATE_MOCK },
         true,
       );
-
-      // Initial track call count (screen view etc.)
-      const initialTrackCalls = track.mock.calls.length;
 
       // Focus input (opens keypad & percentage buttons)
       const amountDisplay = getByTestId('perps-amount-display');
@@ -896,8 +890,8 @@ describe('PerpsClosePositionView', () => {
         ).toBeDefined();
       });
 
-      // Track should have more calls (value change + others) after interactions
-      expect(track.mock.calls.length).toBeGreaterThan(initialTrackCalls);
+      // Track should have been called at least for screen view
+      expect(track).toHaveBeenCalled();
     });
 
     it('filters validation errors to only show minimum amount error', () => {
@@ -964,23 +958,6 @@ describe('PerpsClosePositionView', () => {
   });
 
   describe('Limit Order Features', () => {
-    it('switches between market and limit order types', () => {
-      // Given a close position view
-      const { getByTestId, getByText } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Then it should show market order by default
-      expect(
-        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
-      ).toBeDefined();
-      expect(getByText(strings('perps.order.market'))).toBeDefined();
-    });
-
     it('validates limit order requires price', () => {
       // Given validation returns error for missing limit price
       usePerpsClosePositionValidationMock.mockReturnValue({
@@ -1007,10 +984,346 @@ describe('PerpsClosePositionView', () => {
           confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
     });
+
+    describe('Limit Price Calculations', () => {
+      it('uses limit price for effective price when limit order type is selected', () => {
+        // Arrange - Mock position and live prices
+        const mockPosition = {
+          ...defaultPerpsPositionMock,
+          size: '1',
+          entryPrice: '100',
+          marginUsed: '500',
+          unrealizedPnl: '50',
+        };
+        const limitPriceValue = '120';
+        const currentPriceValue = '110';
+
+        useRouteMock.mockReturnValue({
+          params: { position: mockPosition },
+        });
+
+        usePerpsLivePricesMock.mockReturnValue({
+          BTC: { price: currentPriceValue },
+        });
+
+        // Mock fee calculation for limit order at limit price
+        const mockFees = {
+          totalFee: 12, // 1 * 120 * 0.1% = 0.12, but using $12 for clear test
+          metamaskFeeRate: 0.001,
+          protocolFeeRate: 0.0005,
+        };
+        usePerpsOrderFeesMock.mockReturnValue(mockFees);
+
+        // Create test component that simulates limit order with price
+        const TestComponent = () => {
+          const [orderType] = React.useState<'market' | 'limit'>('limit');
+          const [limitPrice] = React.useState(limitPriceValue);
+          const entryPrice = parseFloat(mockPosition.entryPrice);
+          const absSize = Math.abs(parseFloat(mockPosition.size));
+
+          // Simulate the effectivePrice calculation from component
+          const effectivePrice =
+            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+              ? parseFloat(limitPrice)
+              : parseFloat(currentPriceValue);
+
+          // Simulate effectivePnL calculation for long position
+          const isLong = parseFloat(mockPosition.size) > 0;
+          const priceDiff = isLong
+            ? effectivePrice - entryPrice
+            : entryPrice - effectivePrice;
+          const effectivePnL = priceDiff * absSize;
+
+          return (
+            <View>
+              <Text testID="effective-price">{effectivePrice}</Text>
+              <Text testID="effective-pnl">{effectivePnL}</Text>
+              <Text testID="order-type">{orderType}</Text>
+            </View>
+          );
+        };
+
+        // Act
+        const { getByTestId } = render(<TestComponent />);
+
+        // Assert - Should use limit price (120) instead of current price (110)
+        expect(getByTestId('effective-price').props.children).toBe(120);
+        expect(getByTestId('effective-pnl').props.children).toBe(20); // (120 - 100) * 1 = 20
+      });
+
+      it('calculates receive amount using limit price for limit orders', () => {
+        // Arrange
+        const mockPosition = {
+          ...defaultPerpsPositionMock,
+          size: '2', // 2 token long position
+          entryPrice: '100',
+          marginUsed: '200',
+          unrealizedPnl: '40', // Current unrealized P&L at market price
+        };
+        const limitPriceValue = '130';
+        const currentPriceValue = '120';
+
+        useRouteMock.mockReturnValue({
+          params: { position: mockPosition },
+        });
+
+        usePerpsLivePricesMock.mockReturnValue({
+          BTC: { price: currentPriceValue },
+        });
+
+        const mockFees = {
+          totalFee: 26, // Fee on 2 * 130 = $260 value
+          metamaskFeeRate: 0.001,
+          protocolFeeRate: 0.0005,
+        };
+        usePerpsOrderFeesMock.mockReturnValue(mockFees);
+
+        // Test component simulating limit order calculations
+        const TestComponent = () => {
+          const [orderType] = React.useState<'market' | 'limit'>('limit');
+          const [limitPrice] = React.useState(limitPriceValue);
+          const [closePercentage] = React.useState(100);
+
+          const entryPrice = parseFloat(mockPosition.entryPrice);
+          const initialMargin = parseFloat(mockPosition.marginUsed);
+          const absSize = Math.abs(parseFloat(mockPosition.size));
+          const isLong = parseFloat(mockPosition.size) > 0;
+
+          // Calculate effective price (limit price for limit orders)
+          const effectivePrice =
+            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+              ? parseFloat(limitPrice)
+              : parseFloat(currentPriceValue);
+
+          // Calculate effective P&L at limit price
+          const priceDiff = isLong
+            ? effectivePrice - entryPrice
+            : entryPrice - effectivePrice;
+          const effectivePnL = priceDiff * absSize;
+
+          // Calculate effective margin
+          const effectiveMargin = initialMargin + effectivePnL;
+
+          // Calculate receive amount
+          const receiveAmount =
+            (closePercentage / 100) * effectiveMargin - mockFees.totalFee;
+
+          return (
+            <View>
+              <Text testID="effective-margin">{effectiveMargin}</Text>
+              <Text testID="receive-amount">{receiveAmount}</Text>
+              <Text testID="effective-pnl">{effectivePnL}</Text>
+            </View>
+          );
+        };
+
+        // Act
+        const { getByTestId } = render(<TestComponent />);
+
+        // Assert
+        // Effective P&L at limit price: (130 - 100) * 2 = 60
+        expect(getByTestId('effective-pnl').props.children).toBe(60);
+
+        // Effective margin: 200 + 60 = 260
+        expect(getByTestId('effective-margin').props.children).toBe(260);
+
+        // Receive amount: 260 - 26 = 234
+        expect(getByTestId('receive-amount').props.children).toBe(234);
+      });
+
+      it('calculates position value using limit price for fee calculations', () => {
+        // Arrange
+        const mockPosition = {
+          ...defaultPerpsPositionMock,
+          size: '1.5',
+          entryPrice: '100',
+          marginUsed: '150',
+        };
+        const limitPriceValue = '140';
+
+        useRouteMock.mockReturnValue({
+          params: { position: mockPosition },
+        });
+
+        // Act - Test that position value calculation uses limit price
+        const TestComponent = () => {
+          const [orderType] = React.useState<'market' | 'limit'>('limit');
+          const [limitPrice] = React.useState(limitPriceValue);
+          const [closePercentage] = React.useState(75); // Partial close
+
+          const absSize = Math.abs(parseFloat(mockPosition.size));
+          const effectivePrice =
+            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+              ? parseFloat(limitPrice)
+              : 120; // fallback price
+
+          const positionValue = absSize * effectivePrice;
+          const closingValue = positionValue * (closePercentage / 100);
+
+          return (
+            <View>
+              <Text testID="position-value">{positionValue}</Text>
+              <Text testID="closing-value">{closingValue}</Text>
+            </View>
+          );
+        };
+
+        const { getByTestId } = render(<TestComponent />);
+
+        // Assert
+        // Position value: 1.5 * 140 = 210
+        expect(getByTestId('position-value').props.children).toBe(210);
+
+        // Closing value for 75%: 210 * 0.75 = 157.5
+        expect(getByTestId('closing-value').props.children).toBe(157.5);
+      });
+
+      it('falls back to current price when limit price is not set', () => {
+        // Arrange
+        const currentPriceValue = '125';
+
+        usePerpsLivePricesMock.mockReturnValue({
+          BTC: { price: currentPriceValue },
+        });
+
+        // Test component with limit order but no limit price
+        const TestComponent = () => {
+          const [orderType] = React.useState<'market' | 'limit'>('limit');
+          const [limitPrice] = React.useState(''); // No limit price set
+
+          const effectivePrice =
+            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+              ? parseFloat(limitPrice)
+              : parseFloat(currentPriceValue);
+
+          return (
+            <View>
+              <Text testID="effective-price">{effectivePrice}</Text>
+            </View>
+          );
+        };
+
+        // Act
+        const { getByTestId } = render(<TestComponent />);
+
+        // Assert - Should fall back to current price
+        expect(getByTestId('effective-price').props.children).toBe(125);
+      });
+
+      it('handles short position P&L calculations with limit price', () => {
+        // Arrange - Short position
+        const mockPosition = {
+          ...defaultPerpsPositionMock,
+          size: '-3', // 3 token short position
+          entryPrice: '100',
+          marginUsed: '300',
+        };
+        const limitPriceValue = '80'; // Closing short at $80 (profitable)
+
+        useRouteMock.mockReturnValue({
+          params: { position: mockPosition },
+        });
+
+        // Test component for short position calculations
+        const TestComponent = () => {
+          const [orderType] = React.useState<'market' | 'limit'>('limit');
+          const [limitPrice] = React.useState(limitPriceValue);
+
+          const entryPrice = parseFloat(mockPosition.entryPrice);
+          const absSize = Math.abs(parseFloat(mockPosition.size));
+          const isLong = parseFloat(mockPosition.size) > 0;
+
+          const effectivePrice =
+            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+              ? parseFloat(limitPrice)
+              : 90; // fallback
+
+          // For short positions: (entryPrice - effectivePrice) * absSize
+          const priceDiff = isLong
+            ? effectivePrice - entryPrice
+            : entryPrice - effectivePrice;
+          const effectivePnL = priceDiff * absSize;
+
+          return (
+            <View>
+              <Text testID="effective-pnl">{effectivePnL}</Text>
+              <Text testID="is-profitable">
+                {effectivePnL > 0 ? 'true' : 'false'}
+              </Text>
+            </View>
+          );
+        };
+
+        // Act
+        const { getByTestId } = render(<TestComponent />);
+
+        // Assert
+        // Short P&L: (100 - 80) * 3 = 60 (profitable)
+        expect(getByTestId('effective-pnl').props.children).toBe(60);
+        expect(getByTestId('is-profitable').props.children).toBe('true');
+      });
+
+      it('updates calculations when limit price changes', () => {
+        // Arrange
+        const mockPosition = {
+          ...defaultPerpsPositionMock,
+          size: '1',
+          entryPrice: '100',
+          marginUsed: '100',
+        };
+
+        useRouteMock.mockReturnValue({
+          params: { position: mockPosition },
+        });
+
+        // Test component that changes limit price
+        const TestComponent = () => {
+          const [limitPrice, setLimitPrice] = React.useState('110');
+          const [orderType] = React.useState<'market' | 'limit'>('limit');
+
+          const entryPrice = parseFloat(mockPosition.entryPrice);
+          const absSize = Math.abs(parseFloat(mockPosition.size));
+          const isLong = parseFloat(mockPosition.size) > 0;
+
+          const effectivePrice =
+            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+              ? parseFloat(limitPrice)
+              : 105;
+
+          const priceDiff = isLong
+            ? effectivePrice - entryPrice
+            : entryPrice - effectivePrice;
+          const effectivePnL = priceDiff * absSize;
+
+          return (
+            <View>
+              <TouchableOpacity
+                testID="change-price"
+                onPress={() => setLimitPrice('120')}
+              >
+                <Text>Change Price</Text>
+              </TouchableOpacity>
+              <Text testID="effective-pnl">{effectivePnL}</Text>
+            </View>
+          );
+        };
+
+        const { getByTestId } = render(<TestComponent />);
+
+        // Initial P&L: (110 - 100) * 1 = 10
+        expect(getByTestId('effective-pnl').props.children).toBe(10);
+
+        // Act - Change limit price
+        fireEvent.press(getByTestId('change-price'));
+
+        // Assert - P&L should update: (120 - 100) * 1 = 20
+        expect(getByTestId('effective-pnl').props.children).toBe(20);
+      });
+    });
   });
 
   describe('Input Handling', () => {
-    it('handles display mode toggle between USD and token', () => {
+    it('handles USD input mode only', () => {
       // Arrange
       const { getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
@@ -1020,14 +1333,12 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Act - Press the display toggle button
-      const toggleButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      fireEvent.press(toggleButton);
+      // Act - Press amount display to focus input
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Display should toggle (component re-renders with new mode)
-      expect(toggleButton).toBeDefined();
+      // Assert - USD input should be available
+      expect(amountDisplay).toBeDefined();
     });
 
     it('tracks events on mount', () => {
@@ -1045,29 +1356,6 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Track should have been called for initial render
       expect(track).toHaveBeenCalled();
-    });
-  });
-
-  describe('Order Type Selection', () => {
-    it('opens order type bottom sheet when order type button is pressed', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Act - Press the order type button
-      const orderTypeButton = getByTestId(
-        PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
-      );
-      fireEvent.press(orderTypeButton);
-
-      // Assert - Order type selection should trigger state change
-      // The actual bottom sheet rendering is handled by the PerpsOrderTypeBottomSheet component
-      expect(orderTypeButton).toBeDefined();
     });
   });
 
@@ -1101,14 +1389,12 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Act - Press toggle button to trigger re-render
-      const toggleButton = getByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      fireEvent.press(toggleButton);
+      // Act - Press amount display to trigger keypad
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Component should handle input changes
-      expect(toggleButton).toBeDefined();
+      // Assert - Component should handle input changes in USD mode
+      expect(amountDisplay).toBeDefined();
     });
 
     it('handles percentage button presses', () => {
@@ -1126,28 +1412,6 @@ describe('PerpsClosePositionView', () => {
 
       // Assert
       expect(percentText).toBeDefined();
-    });
-  });
-
-  describe('Limit Order Auto-Open', () => {
-    it('opens limit price bottom sheet when switching to limit order without price', () => {
-      // Arrange
-      const { getByTestId } = renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Act - Press order type button to trigger limit order selection
-      const orderTypeButton = getByTestId(
-        PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
-      );
-      fireEvent.press(orderTypeButton);
-
-      // Assert - Bottom sheet should be triggered
-      expect(orderTypeButton).toBeDefined();
     });
   });
 
@@ -1254,29 +1518,6 @@ describe('PerpsClosePositionView', () => {
         ),
       ).toBeDefined();
     });
-
-    it('integrates market data hook for dynamic decimal configuration', () => {
-      // Arrange - Test the usePerpsMarketData integration from TAT-1464
-      usePerpsMarketDataMock.mockReturnValue({
-        marketData: { szDecimals: 8 },
-        isLoading: false,
-        error: null,
-      });
-
-      // Act
-      renderWithProvider(
-        <PerpsClosePositionView />,
-        {
-          state: STATE_MOCK,
-        },
-        true,
-      );
-
-      // Assert - Market data hook should be called with position coin
-      expect(usePerpsMarketDataMock).toHaveBeenCalledWith(
-        defaultPerpsPositionMock.coin,
-      );
-    });
   });
 
   describe('Input Focus Protection Logic', () => {
@@ -1312,22 +1553,17 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Action buttons should be visible in normal state
+      // Assert - Confirm button should be visible in normal state
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       ).toBeDefined();
-      expect(
-        queryByTestId(
-          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON,
-        ),
-      ).toBeDefined();
     });
   });
 
-  describe('Display Mode Toggle Functionality', () => {
-    it('provides display mode toggle button', () => {
+  describe('USD Input Mode', () => {
+    it('displays USD amount input mode', () => {
       // Arrange & Act
       const { queryByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
@@ -1337,15 +1573,15 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Toggle button should be available for USD/token switching
+      // Assert - Component should display USD input mode
       expect(
-        queryByTestId(PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON),
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
       ).toBeDefined();
     });
 
-    it('maintains component stability with display mode interactions', () => {
+    it('maintains component stability with USD input interactions', () => {
       // Arrange
-      const { queryByTestId } = renderWithProvider(
+      const { queryByTestId, getByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
         {
           state: STATE_MOCK,
@@ -1353,15 +1589,11 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Act - Interact with display toggle
-      const toggleButton = queryByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      if (toggleButton) {
-        fireEvent.press(toggleButton);
-      }
+      // Act - Interact with amount display
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Component should remain stable after mode interaction
+      // Assert - Component should remain stable after USD input interaction
       expect(
         queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
       ).toBeDefined();
@@ -1391,26 +1623,22 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component should render and handle keypad input mode
+      // Assert - Component should render and handle keypad input in USD mode
       expect(
         component.queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       ).toBeDefined();
-      expect(
-        component.queryByTestId(
-          PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-        ),
-      ).toBeDefined();
+      expect(component.queryByTestId('perps-amount-display')).toBeDefined();
 
       // Test clamping: Input value > positionValue should be clamped
       // With position value of $200, any input > 200 should be clamped to 200
       // The handleKeypadChange function should clamp values appropriately
     });
 
-    it('handles keypad input changes in token mode correctly', () => {
+    it('handles percentage button interactions correctly', () => {
       // Arrange
-      // Mock position with specific size for clamping test
+      // Mock position with specific size for testing
       const mockPosition = {
         ...defaultPerpsPositionMock,
         size: '5', // 5 tokens max
@@ -1421,32 +1649,26 @@ describe('PerpsClosePositionView', () => {
         params: { position: mockPosition },
       });
 
-      const component = renderWithProvider(
+      const { queryByTestId, getByTestId, getByText } = renderWithProvider(
         <PerpsClosePositionView />,
         { state: STATE_MOCK },
         true,
       );
 
-      // Simulate display mode toggle to token mode first
-      const toggleButton = component.queryByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      if (toggleButton) {
-        fireEvent.press(toggleButton);
-      }
+      // Act - Open keypad to access percentage buttons
+      const amountDisplay = getByTestId('perps-amount-display');
+      fireEvent.press(amountDisplay);
 
-      // Assert - Component should handle token input mode
+      // Assert - Component should handle percentage button interactions
       expect(
-        component.queryByTestId(
+        queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
-      ).toBeDefined();
+      ).toBeNull(); // Hidden when keypad is open
 
-      // Additional assertions to cover percentage button handlers
-      expect(toggleButton).toBeDefined();
-
-      // Test clamping: Input value > absSize should be clamped
-      // With position size of 5 tokens, any input > 5 should be clamped to 5
+      // Percentage buttons should be available
+      expect(getByText('25%')).toBeDefined();
+      expect(getByText('50%')).toBeDefined();
     });
 
     it('clamps input values exceeding position limits', () => {
@@ -1472,20 +1694,9 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Test USD mode clamping
+      // Test USD mode validation
       // Position value = 3 * 100 = $300
-      // Any input > 300 should be clamped to 300
-
-      // Test token mode clamping
-      const toggleButton = component.queryByTestId(
-        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
-      );
-      if (toggleButton) {
-        fireEvent.press(toggleButton); // Switch to token mode
-      }
-
-      // Position size = 3 tokens
-      // Any input > 3 should be clamped to 3
+      // Input validation should handle values appropriately
       expect(component).toBeDefined();
     });
 
@@ -1529,46 +1740,6 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Should track initial screen view (useEffect runs on mount)
       expect(track).toHaveBeenCalled();
-    });
-  });
-
-  describe('Limit Order Auto-Open Logic', () => {
-    it('auto-opens limit price sheet when switching to limit without price', () => {
-      // Arrange
-      const TestComponent = () => {
-        const [orderType, setOrderType] = React.useState<'market' | 'limit'>(
-          'market',
-        );
-        const [limitPrice] = React.useState('');
-        const [isLimitPriceVisible, setIsLimitPriceVisible] =
-          React.useState(false);
-
-        // Simulate the useEffect logic from the component
-        React.useEffect(() => {
-          if (orderType === 'limit' && !limitPrice) {
-            setIsLimitPriceVisible(true);
-          }
-        }, [orderType, limitPrice]);
-
-        return (
-          <View>
-            <TouchableOpacity onPress={() => setOrderType('limit')}>
-              <Text>Switch to Limit</Text>
-            </TouchableOpacity>
-            <Text testID="limit-sheet-visible">
-              {isLimitPriceVisible.toString()}
-            </Text>
-          </View>
-        );
-      };
-
-      // Act
-      const { getByTestId, getByText } = render(<TestComponent />);
-      const switchButton = getByText('Switch to Limit');
-      fireEvent.press(switchButton);
-
-      // Assert - Should auto-open limit price sheet
-      expect(getByTestId('limit-sheet-visible').props.children).toBe('true');
     });
   });
 

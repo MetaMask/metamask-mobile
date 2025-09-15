@@ -15,7 +15,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
@@ -29,6 +28,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     onClose,
     contentKey,
     testID = PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP,
+    buttonConfig: buttonConfigProps,
     data,
   }) => {
     const { styles } = useStyles(createStyles, {});
@@ -75,7 +75,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       [],
     );
 
-    const footerButtons = useMemo<ButtonProps[]>(
+    const buttonConfigDefault = useMemo(
       () => [
         {
           label: buttonLabel,
@@ -86,6 +86,11 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         },
       ],
       [buttonLabel, handleGotItPress],
+    );
+
+    const footerButtons = useMemo(
+      () => buttonConfigProps || buttonConfigDefault,
+      [buttonConfigProps, buttonConfigDefault],
     );
 
     // Only render when visible and title is defined
