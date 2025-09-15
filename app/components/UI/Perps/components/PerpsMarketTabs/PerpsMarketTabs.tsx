@@ -10,6 +10,7 @@ import Icon, {
 import { View, Modal, TouchableOpacity, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
+import { captureException } from '@sentry/react-native';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
@@ -243,6 +244,29 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         }
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
+
+        // Capture exception with order context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'PerpsMarketTabs',
+              action: 'order_cancellation',
+              operation: 'order_management',
+            },
+            extra: {
+              orderContext: {
+                orderId: orderToCancel.orderId,
+                symbol: orderToCancel.symbol,
+                side: orderToCancel.side,
+                orderType: orderToCancel.orderType,
+                size: orderToCancel.size,
+                price: orderToCancel.price,
+                reduceOnly: orderToCancel.reduceOnly,
+              },
+            },
+          },
+        );
       }
     },
     [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
