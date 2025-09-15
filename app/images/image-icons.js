@@ -41,7 +41,9 @@ import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
 import XDC from './xdc.png';
 import AAVE from './aave-token-round.png';
-import TRON from './tron-logo.svg';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import TRON from './tron-logo.png';
+///: END:ONLY_INCLUDE_IF(tron)
 
 export default {
   PALM,
@@ -65,10 +67,14 @@ export default {
   SOLANA,
   FOX_LOGO,
   BTC,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
   'BTC-SIGNET': BTC_SIGNET,
+  ///: END:ONLY_INCLUDE_IF
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRP: XRPLEVM_TOKEN,

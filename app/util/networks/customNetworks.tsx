@@ -155,8 +155,14 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
       return require('../../images/bitcoin-testnet-logo.png');
     case BtcScope.Signet:
       return require('../../images/bitcoin-signet-logo.svg');
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     case TrxScope.Mainnet:
-      return require('../../images/tron-logo.svg');
+      return require('../../images/tron-logo.png');
+    case TrxScope.Nile:
+      return require('../../images/tron-logo.png');
+    case TrxScope.Shasta:
+      return require('../../images/tron-logo.png');
+    ///: END:ONLY_INCLUDE_IF(tron)
     default:
       return undefined;
   }

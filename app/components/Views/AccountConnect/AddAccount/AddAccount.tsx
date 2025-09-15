@@ -15,7 +15,12 @@ import { useStyles } from '../../../hooks/useStyles';
 import styleSheet from './AddAccount.styles';
 import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { CaipChainId } from '@metamask/utils';
-import { SolScope, TrxScope } from '@metamask/keyring-api';
+import {
+  SolScope,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  TrxScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import Icon, {
   IconName,
   IconSize,
@@ -92,6 +97,9 @@ const AddAccountSelection = ({ onBack, onCreateAccount }: AddAccountProps) => {
               </Text>
             </Box>
           </TouchableWithoutFeedback>
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          }
           <TouchableWithoutFeedback
             onPress={() => {
               onCreateAccount(WalletClientType.Tron, TrxScope.Mainnet);
@@ -115,6 +123,9 @@ const AddAccountSelection = ({ onBack, onCreateAccount }: AddAccountProps) => {
               </Text>
             </Box>
           </TouchableWithoutFeedback>
+          {
+            ///: END:ONLY_INCLUDE_IF
+          }
         </Box>
       </Box>
     </SafeAreaView>
