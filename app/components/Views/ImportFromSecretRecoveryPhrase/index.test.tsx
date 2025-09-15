@@ -1247,7 +1247,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
   describe('Create password UI', () => {
     it('renders create password UI', async () => {
-      const { getByText } = await renderCreatePasswordUI();
+      const { getByText, getByTestId } = await renderCreatePasswordUI();
 
       await waitFor(() => {
         expect(
@@ -1257,7 +1257,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           getByText(strings('import_from_seed.metamask_password_description')),
         ).toBeOnTheScreen();
         expect(
-          getByText(strings('import_from_seed.create_new_password')),
+          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
         ).toBeOnTheScreen();
         expect(
           getByText(strings('import_from_seed.confirm_password')),
@@ -1478,7 +1478,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('error message is shown when passcode is not set', async () => {
-      const { getByText, getByPlaceholderText, getByTestId } =
+      const { getByPlaceholderText, getByTestId } =
         await renderCreatePasswordUI();
 
       const passwordInput = getByPlaceholderText(
@@ -1506,8 +1506,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .mockRejectedValueOnce(new Error('Error: Passcode not set.'));
 
       // Try to import
-      const confirmButton = getByText(
-        strings('import_from_seed.create_password_cta'),
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
       fireEvent.press(confirmButton);
 
@@ -1573,7 +1573,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         // Mock second call in handleRejectedOsBiometricPrompt
         .mockResolvedValueOnce();
 
-      const { getByTestId, getByPlaceholderText, getByText } =
+      const { getByTestId, getByPlaceholderText } =
         await renderCreatePasswordUI();
 
       const passwordInput = getByPlaceholderText(
@@ -1585,8 +1585,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
-      const confirmButton = getByText(
-        strings('import_from_seed.create_password_cta'),
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
@@ -1630,7 +1630,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         // Mock second call in handleRejectedOsBiometricPrompt: this should also fail
         .mockRejectedValueOnce(new Error('Wallet creation failed'));
 
-      const { getByTestId, getByPlaceholderText, getByText } =
+      const { getByTestId, getByPlaceholderText } =
         await renderCreatePasswordUI();
 
       const passwordInput = getByPlaceholderText(
@@ -1642,8 +1642,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
-      const confirmButton = getByText(
-        strings('import_from_seed.create_password_cta'),
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');

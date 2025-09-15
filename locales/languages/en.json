@@ -491,7 +491,7 @@
     "srp": "Secret Recovery Phrase",
     "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "Learn more",
-    "create_password_cta": "Create password",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Continue with Flow",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
