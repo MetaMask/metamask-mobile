@@ -45,6 +45,9 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   initialTab,
   nextFundingTime,
   fundingIntervalHours,
+  onOrderSelect,
+  activeTPOrderId,
+  activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -485,15 +488,35 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               </View>
             ) : (
               <>
-                {sortedUnfilledOrders.map((order) => (
-                  <PerpsOpenOrderCard
-                    key={order.orderId}
-                    order={order}
-                    expanded
-                    showIcon
-                    onCancel={handleOrderCancel}
-                  />
-                ))}
+                {sortedUnfilledOrders.map((order) => {
+                  // Determine if this order is currently active on the chart
+                  const isActiveTP = activeTPOrderId === order.orderId;
+                  const isActiveSL = activeSLOrderId === order.orderId;
+                  const isActive = isActiveTP || isActiveSL;
+
+                  // Determine active type - if both TP and SL are from same order, show 'BOTH'
+                  let activeType: 'TP' | 'SL' | 'BOTH' | undefined;
+                  if (isActiveTP && isActiveSL) {
+                    activeType = 'BOTH';
+                  } else if (isActiveTP) {
+                    activeType = 'TP';
+                  } else if (isActiveSL) {
+                    activeType = 'SL';
+                  }
+
+                  return (
+                    <PerpsOpenOrderCard
+                      key={order.orderId}
+                      order={order}
+                      expanded
+                      showIcon
+                      onCancel={handleOrderCancel}
+                      onSelect={onOrderSelect}
+                      isActiveOnChart={isActive}
+                      activeType={activeType}
+                    />
+                  );
+                })}
               </>
             )}
           </View>
