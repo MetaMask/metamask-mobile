@@ -46,7 +46,7 @@ export default defineConfig({
     {
       name: 'browserstack-android',
       testMatch: '**/tests/performance/*.spec.js',
-      testIgnore: '**/tests/performance/scenario{2,3}.spec.js',
+      testIgnore: '**/tests/performance/scenario{2,3,10}.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -60,7 +60,7 @@ export default defineConfig({
     {
       name: 'browserstack-ios',
       testMatch: '**/tests/performance/*.spec.js',
-      testIgnore: '**/tests/performance/scenario{2,3}.spec.js',
+      testIgnore: '**/tests/performance/scenario{2,3,10}.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -73,7 +73,7 @@ export default defineConfig({
     },
     {
       name: 'android-onboarding',
-      testMatch: '**/tests/performance/scenario{2,3}.spec.js',
+      testMatch: '**/tests/performance/scenario{2,3,10}.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -86,7 +86,7 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding',
-      testMatch: '**/tests/performance/scenario{2,3}.spec.js',
+      testMatch: '**/tests/performance/scenario{2,3,10}.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
