@@ -178,7 +178,7 @@ jobs:
           SIZE_DIFF_ABS=${SIZE_DIFF#-}
           MAX_DIFF=$((ORIGINAL_SIZE / 10))  # Allow up to 10% size difference
           
-          if [ $SIZE_DIFF_ABS -gt $MAX_DIFF ]; then
+          if [ "$SIZE_DIFF_ABS" -gt "$MAX_DIFF" ]; then
             echo "⚠️ Warning: Significant size difference detected (${SIZE_DIFF} bytes)"
             echo "This may indicate an issue with repacking."
           fi

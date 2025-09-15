@@ -203,18 +203,21 @@ jobs:
               ;;
           esac
 
-          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
-          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
-          echo "android_build_action=$android_build_action" >> "${GITHUB_OUTPUT}"
-          echo "ios_build_action=$ios_build_action" >> "${GITHUB_OUTPUT}"
-
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
             builds="true"
           else
             builds="false"
           fi
-          echo "builds=$builds" >> "${GITHUB_OUTPUT}"
+
+          # Write all outputs in a single grouped redirect
+          {
+            echo "android_final=$android_final"
+            echo "ios_final=$ios_final"
+            echo "android_build_action=$android_build_action"
+            echo "ios_build_action=$ios_build_action"
+            echo "builds=$builds"
+          } >> "${GITHUB_OUTPUT}"
           
           echo "Build decisions:"
           echo "  Android: $android_build_action (build=$android_final)"
