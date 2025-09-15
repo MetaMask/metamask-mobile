@@ -445,7 +445,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
-                  // keyboardType="numeric"
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('takeProfitPrice')}
                   onBlur={handleInputBlur}
@@ -477,7 +476,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   }}
                   placeholder={strings('perps.tpsl.profit_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
-                  keyboardType="numeric"
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('takeProfitPercentage')}
                   onBlur={handleInputBlur}
@@ -570,7 +568,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   }}
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
-                  // keyboardType="numeric"
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('stopLossPrice')}
                   onBlur={handleInputBlur}
@@ -602,7 +599,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   }}
                   placeholder={strings('perps.tpsl.loss_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
-                  // keyboardType="numeric"
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('stopLossPercentage')}
                   onBlur={handleInputBlur}
