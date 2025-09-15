@@ -41,6 +41,8 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   INTRO = 'Intro_Perps_v03 2',
@@ -124,6 +126,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const hasTrackedStarted = useRef(false);
   const tutorialStartTime = useRef(Date.now());
   const continueDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const { navigateToConfirmation } = useConfirmNavigation();
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -226,9 +229,7 @@ const PerpsTutorialCarousel: React.FC = () => {
         // Navigate immediately to confirmations screen for instant UI response
         // Note: When from deeplink, user will go through deposit flow
         // and should return to markets after completion
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        });
+        navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
         // Initialize deposit in the background without blocking
         depositWithConfirmation().catch((error) => {

@@ -29,6 +29,17 @@ import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PerpsDepositSkeleton } from '../../external/perps-temp/components/deposit-skeleton';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
+
+export enum ConfirmationLoader {
+  Default = 'default',
+  PerpsDeposit = 'perpsDeposit',
+}
+
+export interface ConfirmationParams {
+  loader?: ConfirmationLoader;
+}
 
 const ConfirmWrapped = ({
   styles,
@@ -143,15 +154,25 @@ export const Confirm = ({ route }: ConfirmProps) => {
 
 function Loader() {
   const { styles } = useStyles(styleSheet, { isFullScreenConfirmation: true });
+  const params = useParams<ConfirmationParams>();
+  const loader = params?.loader ?? ConfirmationLoader.Default;
+
+  if (loader === ConfirmationLoader.PerpsDeposit) {
+    return (
+      <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+        >
+          <PerpsDepositSkeleton />
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-      >
-        <PerpsDepositSkeleton />
-      </ScrollView>
+    <View style={styles.spinnerContainer}>
+      <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
 }
