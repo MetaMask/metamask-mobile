@@ -13,7 +13,7 @@ import { RampType } from '../../reducers/fiatOrders/types';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import Routes from '../../constants/navigation/Routes';
 import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
-import { handlePerpsUrl, handlePerpsAssetUrl } from './Handlers/handlePerpsUrl';
+import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
 import { store } from '../../store';
 import NavigationService from '../NavigationService';
 import branch from 'react-native-branch';
@@ -125,12 +125,6 @@ class DeeplinkManager {
   _handlePerps(perpsPath: string) {
     handlePerpsUrl({
       perpsPath,
-    });
-  }
-
-  _handlePerpsAsset(assetPath: string) {
-    handlePerpsAssetUrl({
-      assetPath,
     });
   }
 
