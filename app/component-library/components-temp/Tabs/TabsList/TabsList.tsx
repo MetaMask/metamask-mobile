@@ -158,10 +158,22 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const panGesture = useMemo(
       () =>
         Gesture.Pan()
+          .activeOffsetX([-10, 10]) // Only activate for horizontal movements
+          .failOffsetY([-5, 5]) // Fail if vertical movement is too small (allow scrolling)
           .onEnd((event) => {
-            const { translationX, velocityX } = event;
+            const { translationX, translationY, velocityX, velocityY } = event;
             const swipeThreshold = 50; // Minimum distance to trigger swipe
             const velocityThreshold = 500; // Minimum velocity to trigger swipe
+
+            // Only process if the gesture is primarily horizontal
+            const isHorizontalGesture =
+              Math.abs(translationX) > Math.abs(translationY);
+            const isHorizontalVelocity =
+              Math.abs(velocityX) > Math.abs(velocityY);
+
+            if (!isHorizontalGesture && !isHorizontalVelocity) {
+              return; // Let vertical scrolling pass through
+            }
 
             // Determine swipe direction based on translation and velocity
             const isSwipeLeft =
