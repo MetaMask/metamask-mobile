@@ -167,4 +167,12 @@ export const createStyles = (colors: Theme['colors']) =>
       backgroundColor: colors.background.alternative,
       borderRadius: 8,
     },
+    keypadContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: colors.background.default,
+    },
+    scrollContent: {
+      flex: 1,
+    },
   });
