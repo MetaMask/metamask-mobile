@@ -717,9 +717,9 @@ describe('useRewards', () => {
 });
 
 describe('getUsdPricePerToken', () => {
-  it.only('should calculate the USD price per token', () => {
+  it('should calculate the USD price per token', () => {
     expect(getUsdPricePerToken('39.39425', '8750000000000000', 18)).toBe(
-      4502.2,
+      '4502.2',
     );
   });
 });
