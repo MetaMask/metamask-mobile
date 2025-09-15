@@ -11,7 +11,11 @@ import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { parseCaipChainId, CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce } from 'lodash';
@@ -87,9 +91,10 @@ const NetworkMultiSelectList = ({
     (): ProcessedNetwork[] =>
       networks.map((network) => {
         const parsedCaipChainId = parseCaipChainId(network.caipChainId);
-        const chainId = isEvmSelected
-          ? toHex(parsedCaipChainId.reference)
-          : parsedCaipChainId.reference;
+        const chainId =
+          parsedCaipChainId.namespace === KnownCaipNamespace.Eip155
+            ? toHex(parsedCaipChainId.reference)
+            : parsedCaipChainId.reference;
 
         return {
           ...network,
@@ -100,7 +105,7 @@ const NetworkMultiSelectList = ({
           isSelected: areAllNetworksSelected ? false : network.isSelected,
         };
       }),
-    [areAllNetworksSelected, networks, isEvmSelected],
+    [areAllNetworksSelected, networks],
   );
 
   const combinedData: NetworkListItem[] = useMemo(() => {
