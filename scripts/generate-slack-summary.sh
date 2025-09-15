@@ -17,7 +17,6 @@ if [ -f "$SUMMARY_FILE" ]; then
     
     # Determine test results status by checking job statuses via GitHub API
     if [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_RUN_ID" ]; then
-        echo "Checking job statuses via GitHub API..."
         
         # Get all job statuses
         jobStatuses=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
