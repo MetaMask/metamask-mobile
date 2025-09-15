@@ -4,6 +4,7 @@ import {
   getRewardsControllerDefaultState,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
+import { deriveStateFromMetadata } from '@metamask/base-controller';
 import type {
   RewardsAccountState,
   RewardsControllerState,
@@ -3019,6 +3020,61 @@ describe('RewardsController', () => {
         'RewardsDataService:getOptInStatus',
         largeParams,
       );
+    });
+  });
+
+  describe('metadata', () => {
+    it('includes expected state in debug snapshots', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'anonymous',
+        ),
+      ).toMatchInlineSnapshot(`{}`);
+    });
+
+    it('includes expected state in state logs', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'includeInStateLogs',
+        ),
+      ).toMatchInlineSnapshot(`{}`);
+    });
+
+    it('persists expected state', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'persist',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+        }
+      `);
+    });
+
+    it('exposes expected state to UI', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'usedInUi',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "seasons": {},
+        }
+      `);
     });
   });
 });

@@ -61,12 +61,42 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
  * State metadata for the RewardsController
  */
 const metadata = {
-  activeAccount: { persist: true, anonymous: false },
-  accounts: { persist: true, anonymous: false },
-  subscriptions: { persist: true, anonymous: false },
-  seasons: { persist: true, anonymous: false },
-  subscriptionReferralDetails: { persist: true, anonymous: false },
-  seasonStatuses: { persist: true, anonymous: false },
+  activeAccount: {
+    includeInStateLogs: false,
+    persist: true,
+    anonymous: false,
+    usedInUi: false,
+  },
+  accounts: {
+    includeInStateLogs: false,
+    persist: true,
+    anonymous: false,
+    usedInUi: false,
+  },
+  subscriptions: {
+    includeInStateLogs: false,
+    persist: true,
+    anonymous: false,
+    usedInUi: false,
+  },
+  seasons: {
+    includeInStateLogs: false,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  subscriptionReferralDetails: {
+    includeInStateLogs: false,
+    persist: true,
+    anonymous: false,
+    usedInUi: false,
+  },
+  seasonStatuses: {
+    includeInStateLogs: false,
+    persist: true,
+    anonymous: false,
+    usedInUi: false,
+  },
 };
 /**
  * Get the default state for the RewardsController
