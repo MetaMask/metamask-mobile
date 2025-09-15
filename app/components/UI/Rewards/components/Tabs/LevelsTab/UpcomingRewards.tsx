@@ -38,46 +38,43 @@ interface RewardItemProps {
 export const RewardItem: React.FC<RewardItemProps> = ({
   reward,
   isLast = false,
-}) => {
-  const { brandColors } = useTheme();
-  return (
+}) => (
+  <Box
+    twClassName={`flex-row items-center py-3 px-4 gap-4 ${
+      !isLast ? 'border-b border-muted' : ''
+    }`}
+  >
+    {/* Reward Icon */}
     <Box
-      twClassName={`flex-row items-center py-3 px-4 gap-4 ${
-        !isLast ? 'border-b border-muted' : ''
-      }`}
+      twClassName={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
+      testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
     >
-      {/* Reward Icon */}
-      <Box
-        twClassName={`h-12 w-12 rounded-full bg-[${brandColors.grey700}] items-center justify-center`}
-        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
-      >
-        <Icon
-          name={getIconName(reward.iconName)}
-          size={IconSize.Lg}
-          twClassName="text-icon-alternative"
-        />
-      </Box>
-
-      {/* Reward Info */}
-      <Box twClassName="flex-1">
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-text-default mb-1"
-          testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
-        >
-          {reward.name}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-text-alternative"
-          testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}
-        >
-          {reward.shortDescription}
-        </Text>
-      </Box>
+      <Icon
+        name={getIconName(reward.iconName)}
+        size={IconSize.Lg}
+        twClassName="text-icon-alternative"
+      />
     </Box>
-  );
-};
+
+    {/* Reward Info */}
+    <Box twClassName="flex-1">
+      <Text
+        variant={TextVariant.BodyMd}
+        twClassName="text-text-default mb-1"
+        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
+      >
+        {reward.name}
+      </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        twClassName="text-text-alternative"
+        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}
+      >
+        {reward.shortDescription}
+      </Text>
+    </Box>
+  </Box>
+);
 const TierAccordion: React.FC<TierAccordionProps> = ({
   tier,
   isExpanded,
@@ -126,7 +123,11 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
   return (
     <Box>
       <Box
-        twClassName={`flex-row items-center bg-[${brandColors.grey700}] py-2 px-4`}
+        twClassName={`flex-row items-center bg-[${
+          themeAppearance === AppThemeKey.light
+            ? brandColors.grey100
+            : brandColors.grey700
+        }] py-2 px-4`}
       >
         {/* Tier Image */}
         <Box twClassName="mr-4" testID={REWARDS_VIEW_SELECTORS.TIER_IMAGE}>
@@ -138,7 +139,11 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
             />
           ) : (
             <Box
-              twClassName={`h-12 w-12 rounded-full bg-[${brandColors.grey700}] items-center justify-center`}
+              twClassName={`h-12 w-12 rounded-full bg-[${
+                themeAppearance === AppThemeKey.light
+                  ? brandColors.grey100
+                  : brandColors.grey700
+              }] items-center justify-center`}
             >
               <Icon
                 name={IconName.Star}
