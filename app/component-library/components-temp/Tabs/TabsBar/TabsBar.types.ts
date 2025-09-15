@@ -30,4 +30,8 @@ export interface TabsBarProps extends BoxProps {
    * Callback when a tab is selected
    */
   onTabPress: (index: number) => void;
+  /**
+   * Test ID for the component
+   */
+  testID?: string;
 }

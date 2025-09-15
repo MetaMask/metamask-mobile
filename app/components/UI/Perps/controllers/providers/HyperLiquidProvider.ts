@@ -3,6 +3,7 @@ import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { captureException } from '@sentry/react-native';
 import {
   BUILDER_FEE_CONFIG,
   FEE_RATES,
@@ -725,6 +726,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
         positions = await this.getPositions();
       } catch (error) {
         DevLogger.log('Error getting positions:', error);
+
+        // Capture exception with data context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'HyperLiquidProvider',
+              action: 'data_fetch',
+              operation: 'data_management',
+              dataType: 'positions',
+            },
+            extra: {
+              dataContext: {
+                dataType: 'positions',
+                timestamp: new Date().toISOString(),
+                method: 'updatePositionTPSL',
+              },
+            },
+          },
+        );
+
         // If it's a WebSocket error, try to provide a more helpful message
         if (error instanceof Error && error.message.includes('WebSocket')) {
           throw new Error(

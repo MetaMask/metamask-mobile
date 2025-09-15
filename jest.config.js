@@ -65,6 +65,8 @@ const config = {
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
     '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
+    '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
+      '<rootDir>/app/__mocks__/spinnerMock.js',
   },
   // Disable jest cache
   cache: false,
