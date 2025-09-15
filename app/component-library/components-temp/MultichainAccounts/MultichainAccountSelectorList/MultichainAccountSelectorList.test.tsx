@@ -782,7 +782,7 @@ describe('MultichainAccountSelectorList', () => {
       ]);
       const mockState = createMockState([wallet1], internalAccounts);
 
-      const { getAllByTestId, getByTestId } = renderWithProvider(
+      const { getAllByTestId } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1]}
@@ -910,7 +910,7 @@ describe('MultichainAccountSelectorList', () => {
       ]);
       const mockState = createMockState([wallet1], internalAccounts);
 
-      const { getAllByTestId, getByTestId } = renderWithProvider(
+      const { getAllByTestId } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1, account3]}

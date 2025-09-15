@@ -154,7 +154,7 @@ describe('AccountListCell', () => {
 
     it('renders checked checkbox when isSelected is true', () => {
       const mockOnSelectAccount = jest.fn();
-      const { getByTestId, getAllByTestId } = renderWithProvider(
+      const { getAllByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected
@@ -231,7 +231,7 @@ describe('AccountListCell', () => {
 
     it('renders AccountCell with correct props when checkbox is shown', () => {
       const mockOnSelectAccount = jest.fn();
-      const { getAllByTestId, getByTestId, getByText } = renderWithProvider(
+      const { getAllByTestId, getByText } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected
