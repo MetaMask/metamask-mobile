@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
 import Text, {
   TextVariant,
   TextColor,
@@ -10,6 +16,7 @@ import Icon, {
 import { View, Modal, TouchableOpacity, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
+import { captureException } from '@sentry/react-native';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
@@ -39,6 +46,10 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   initialTab,
   nextFundingTime,
   fundingIntervalHours,
+  onOrderSelect,
+  onOrderCancelled,
+  activeTPOrderId,
+  activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -49,6 +60,49 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+
+  const sortedUnfilledOrders = useMemo(() => {
+    // Pre-compute current price to avoid repeated calculations
+    const currentPrice = marketStats.currentPrice || 0;
+
+    // Pre-compute order metadata for efficient sorting
+    const ordersWithMetadata = unfilledOrders.map((order) => {
+      const orderType = order.detailedOrderType || order.orderType || 'Unknown';
+      const triggerPrice = parseFloat(
+        order.takeProfitPrice || order.stopLossPrice || order.price || '0',
+      );
+
+      // Calculate execution priority (distance to current price)
+      const executionPriority =
+        triggerPrice === 0 || currentPrice === 0
+          ? Infinity
+          : Math.abs(triggerPrice - currentPrice);
+
+      return {
+        order,
+        orderType,
+        executionPriority,
+      };
+    });
+
+    // Sort with pre-computed metadata
+    return ordersWithMetadata
+      .sort((a, b) => {
+        // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
+        if (a.orderType !== b.orderType) {
+          return a.orderType.localeCompare(b.orderType);
+        }
+
+        // Secondary sort: by execution priority within same detailedOrderType
+        if (a.executionPriority !== b.executionPriority) {
+          return a.executionPriority - b.executionPriority;
+        }
+
+        // Final tiebreaker: order ID
+        return a.order.orderId.localeCompare(b.order.orderId);
+      })
+      .map((item) => item.order);
+  }, [unfilledOrders, marketStats.currentPrice]);
 
   // Fade in animation when loading completes
   useEffect(() => {
@@ -227,6 +281,9 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               PerpsToastOptions.orderManagement.limit.cancellationSuccess,
             );
           }
+
+          // Notify parent component that order was cancelled to update chart
+          onOrderCancelled?.(orderToCancel.orderId);
           return;
         }
 
@@ -243,9 +300,37 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         }
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
+
+        // Capture exception with order context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'PerpsMarketTabs',
+              action: 'order_cancellation',
+              operation: 'order_management',
+            },
+            extra: {
+              orderContext: {
+                orderId: orderToCancel.orderId,
+                symbol: orderToCancel.symbol,
+                side: orderToCancel.side,
+                orderType: orderToCancel.orderType,
+                size: orderToCancel.size,
+                price: orderToCancel.price,
+                reduceOnly: orderToCancel.reduceOnly,
+              },
+            },
+          },
+        );
       }
     },
-    [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
+    [
+      PerpsToastOptions.orderManagement.limit,
+      position?.size,
+      showToast,
+      onOrderCancelled,
+    ],
   );
 
   const renderTooltipModal = useCallback(() => {
@@ -365,6 +450,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               expanded
               showIcon
               onTooltipPress={handleTooltipPress}
+              onTpslCountPress={handleTabChange}
             />
           </View>
         );
@@ -414,15 +500,35 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               </View>
             ) : (
               <>
-                {unfilledOrders.map((order) => (
-                  <PerpsOpenOrderCard
-                    key={order.orderId}
-                    order={order}
-                    expanded
-                    showIcon
-                    onCancel={handleOrderCancel}
-                  />
-                ))}
+                {sortedUnfilledOrders.map((order) => {
+                  // Determine if this order is currently active on the chart
+                  const isActiveTP = activeTPOrderId === order.orderId;
+                  const isActiveSL = activeSLOrderId === order.orderId;
+                  const isActive = isActiveTP || isActiveSL;
+
+                  // Determine active type - if both TP and SL are from same order, show 'BOTH'
+                  let activeType: 'TP' | 'SL' | 'BOTH' | undefined;
+                  if (isActiveTP && isActiveSL) {
+                    activeType = 'BOTH';
+                  } else if (isActiveTP) {
+                    activeType = 'TP';
+                  } else if (isActiveSL) {
+                    activeType = 'SL';
+                  }
+
+                  return (
+                    <PerpsOpenOrderCard
+                      key={order.orderId}
+                      order={order}
+                      expanded
+                      showIcon
+                      onCancel={handleOrderCancel}
+                      onSelect={onOrderSelect}
+                      isActiveOnChart={isActive}
+                      activeType={activeType}
+                    />
+                  );
+                })}
               </>
             )}
           </View>
