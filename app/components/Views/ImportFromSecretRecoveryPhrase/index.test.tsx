@@ -1269,7 +1269,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByText, getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
 
       await act(async () => {
@@ -1323,10 +1323,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByText, getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
       const confirmPasswordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
@@ -1477,10 +1477,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
       const confirmPasswordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
 
       // Enter valid passwords
@@ -1516,10 +1516,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
       const confirmPasswordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
       // Enter valid passwords
       fireEvent.changeText(passwordInput, 'StrongPass123!');
@@ -1570,10 +1570,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
       const confirmPasswordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
@@ -1626,10 +1626,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
       const confirmPasswordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
@@ -1781,10 +1781,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
       const confirmPasswordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
@@ -1828,10 +1828,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const { getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
       const confirmPasswordInput = getByTestId(
-        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
