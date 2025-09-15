@@ -10,6 +10,7 @@ import Icon, {
 import { View, Modal, TouchableOpacity, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
+import { captureException } from '@sentry/react-native';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
@@ -64,6 +65,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
 
+    // Always show statistics tab
+    dynamicTabs.push({
+      id: 'statistics',
+      label: strings('perps.market.statistics'),
+    });
+
     // Only show position tab if there's a position
     if (position) {
       dynamicTabs.push({
@@ -79,12 +86,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         label: strings('perps.market.orders'),
       });
     }
-
-    // Always show statistics tab
-    dynamicTabs.push({
-      id: 'statistics',
-      label: strings('perps.market.statistics'),
-    });
 
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
@@ -243,6 +244,29 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         }
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
+
+        // Capture exception with order context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'PerpsMarketTabs',
+              action: 'order_cancellation',
+              operation: 'order_management',
+            },
+            extra: {
+              orderContext: {
+                orderId: orderToCancel.orderId,
+                symbol: orderToCancel.symbol,
+                side: orderToCancel.side,
+                orderType: orderToCancel.orderType,
+                size: orderToCancel.size,
+                price: orderToCancel.price,
+                reduceOnly: orderToCancel.reduceOnly,
+              },
+            },
+          },
+        );
       }
     },
     [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
@@ -338,7 +362,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             testID={getTabTestId(tab.id)}
           >
             <Text
-              variant={TextVariant.BodyMDBold}
+              variant={TextVariant.BodyMD}
               color={isActive ? TextColor.Default : TextColor.Muted}
             >
               {tab.label}
@@ -364,6 +388,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               position={position}
               expanded
               showIcon
+              onTooltipPress={handleTooltipPress}
             />
           </View>
         );

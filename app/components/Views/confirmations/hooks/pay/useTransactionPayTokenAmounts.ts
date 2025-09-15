@@ -54,17 +54,10 @@ export function useTransactionPayTokenAmounts({
 
     return values
       .filter((value) => {
-        const { address: currentAddress } = value;
         const hasBalance = value.balanceFiat > value.amountFiat;
 
         const isSameTokenSelected =
           address.toLowerCase() === value.address.toLowerCase();
-
-        const hasOtherTokenWithoutBalance = values.some(
-          (v) =>
-            v.address.toLowerCase() !== currentAddress.toLowerCase() &&
-            v.balanceFiat < v.amountFiat,
-        );
 
         if (value.skipIfBalance && hasBalance) {
           log('Skipping token due to sufficient balance', value.address);
@@ -74,14 +67,6 @@ export function useTransactionPayTokenAmounts({
         if (isSameTokenSelected && hasBalance) {
           log(
             'Skipping token due to sufficient balance and matching pay token',
-            value.address,
-          );
-          return false;
-        }
-
-        if (hasBalance && hasOtherTokenWithoutBalance) {
-          log(
-            'Skipping token due to sufficient balance and other token without balance',
             value.address,
           );
           return false;
@@ -97,9 +82,15 @@ export function useTransactionPayTokenAmounts({
         const amountHuman = amountHumanValue.toString(10);
         const amountRaw = amountHumanValue.shiftedBy(decimals).toFixed(0);
 
+        const amountHumanOriginal = new BigNumber(value.amountFiat)
+          .div(tokenFiatRate)
+          .toString(10);
+
         return {
           address: value.address,
+          allowUnderMinimum: value.allowUnderMinimum,
           amountHuman,
+          amountHumanOriginal,
           amountRaw,
           targetAmountRaw: value.amountRaw,
         };

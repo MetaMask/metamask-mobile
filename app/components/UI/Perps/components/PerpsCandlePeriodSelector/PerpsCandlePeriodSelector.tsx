@@ -3,8 +3,13 @@ import { Pressable } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import { CandlePeriod } from '../../constants/chartConfig';
+import { CandlePeriod, CANDLE_PERIODS } from '../../constants/chartConfig';
 import { getPerpsCandlePeriodSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { styleSheet } from './PerpsCandlePeriodSelector.styles';
 
 // Default candle periods with preset values
@@ -14,6 +19,14 @@ const DEFAULT_CANDLE_PERIODS = [
   { label: '5min', value: CandlePeriod.FIVE_MINUTES },
   { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
 ] as const;
+
+// Helper function to get the display label for a candle period
+const getCandlePeriodLabel = (period: CandlePeriod | string): string => {
+  const candlePeriod = CANDLE_PERIODS.find(
+    (p) => p.value.toLowerCase() === period.toLowerCase(),
+  );
+  return candlePeriod?.label || period;
+};
 
 interface PerpsCandlePeriodSelectorProps {
   selectedPeriod: CandlePeriod | string;
@@ -64,12 +77,9 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
           >
             <Text
               variant={TextVariant.BodySm}
-              style={[
-                styles.periodText,
-                isSelected
-                  ? styles.periodTextSelected
-                  : styles.periodTextUnselected,
-              ]}
+              twClassName={
+                isSelected ? 'text-text-default' : 'text-text-alternative'
+              }
             >
               {period.label}
             </Text>
@@ -100,8 +110,15 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
               : styles.moreTextUnselected,
           ]}
         >
-          {strings('perps.chart.candle_period_selector.show_more')}
+          {isMorePeriodSelected
+            ? getCandlePeriodLabel(selectedPeriod)
+            : strings('perps.chart.candle_period_selector.show_more')}
         </Text>
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Xs}
+          color={IconColor.Alternative}
+        />
       </Pressable>
     </Box>
   );
