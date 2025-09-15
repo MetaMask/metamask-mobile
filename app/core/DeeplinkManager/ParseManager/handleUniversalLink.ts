@@ -201,9 +201,6 @@ async function handleUniversalLink({
   ) {
     const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handlePerps(perpsPath);
-  } else if (action === SUPPORTED_ACTIONS.PERPS_ASSET) {
-    const assetPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePerpsAsset(assetPath);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;

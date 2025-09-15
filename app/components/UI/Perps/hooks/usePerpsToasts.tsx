@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ToastOptions,
@@ -16,6 +16,12 @@ import { handlePerpsError } from '../utils/perpsErrorHandler';
 import { OrderDirection } from '../types';
 import { formatDurationForDisplay } from '../utils/time';
 import { formatPerpsFiat } from '../utils/formatUtils';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import {
+  IconSize as ReactNativeDsIconSize,
+  IconColor as ReactNativeDsIconColor,
+} from '@metamask/design-system-react-native';
+import { View, StyleSheet } from 'react-native';
 
 export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
@@ -156,9 +162,17 @@ const getPerpsToastLabels = (primary: string, secondary?: string) => {
 };
 
 const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
-  // TODO: Determine if necessary or if it causes persistent toasts.
   hasNoTimeout: false,
 };
+
+const toastStyles = StyleSheet.create({
+  spinnerContainer: {
+    paddingRight: 12,
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 const usePerpsToasts = (): {
   showToast: (config: PerpsToastOptions) => void;
@@ -186,6 +200,14 @@ const usePerpsToasts = (): {
         iconColor: theme.colors.accent04.dark,
         backgroundColor: theme.colors.accent04.normal,
         hapticsType: NotificationFeedbackType.Warning,
+        startAccessory: (
+          <View style={toastStyles.spinnerContainer}>
+            <Spinner
+              color={ReactNativeDsIconColor.PrimaryDefault}
+              spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
+            />
+          </View>
+        ),
       },
       info: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),

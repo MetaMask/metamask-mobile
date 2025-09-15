@@ -168,6 +168,7 @@ export function formatToFixedDecimals(
   value: string,
   decimalsToShow = 5,
   formatSmallValue = true,
+  trimTrailingZero = true,
 ) {
   if (value) {
     const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
@@ -189,9 +190,11 @@ export function formatToFixedDecimals(
       return `< ${1 / Math.pow(10, decimals)}`;
     }
 
-    return `${intPart}.${fracPart}`
-      .replace(/\.?[0]+$/, '')
-      .replace(/\.?[.]+$/, '');
+    let newValue = `${intPart}.${fracPart}`;
+    if (trimTrailingZero) {
+      newValue = newValue.replace(/\.?[0]+$/, '');
+    }
+    return newValue.replace(/\.?[.]+$/, '');
   }
   return '0';
 }
@@ -261,6 +264,7 @@ export const convertCurrency = (
   conversionRate: number,
   decimals?: number,
   targetDecimals?: number,
+  trimTrailingZero: boolean = false,
 ) => {
   let sourceDecimalValue = parseInt(decimals?.toString() ?? '0', 10);
   const targetDecimalValue = parseInt(targetDecimals?.toString() ?? '0', 10);
@@ -282,6 +286,7 @@ export const convertCurrency = (
     fromBNWithDecimals(convertedValue, sourceDecimalValue),
     targetDecimalValue,
     false,
+    trimTrailingZero,
   );
 };
 
@@ -318,4 +323,17 @@ export const getFractionLength = (value: string) => {
   const result = value.replace(/^-/, '').split('.');
   const fracPart = result[1] ?? '';
   return fracPart.length;
+};
+
+export const addLeadingZeroIfNeeded = (value?: string) => {
+  if (!value) {
+    return value;
+  }
+  const result = value.replace(/^-/u, '').split('.');
+  const wholePart = result[0];
+  const fracPart = result[1] ?? '';
+  if (!wholePart.length) {
+    return `0.${fracPart}`;
+  }
+  return value;
 };

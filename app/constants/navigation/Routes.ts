@@ -67,6 +67,7 @@ const Routes = {
   TRANSACTION_DETAILS: 'TransactionDetails',
   REWARDS_VIEW: 'RewardsView',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
+  REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
@@ -93,7 +94,7 @@ const Routes = {
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
-    REWARDS_ERROR_MODAL: 'RewardsErrorModal',
+    REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
