@@ -96,7 +96,7 @@ export function PayWithRowSkeleton() {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Box>
+    <Box testID="pay-with-row-skeleton">
       <ListItem
         icon={<Skeleton height={38} width={38} style={styles.skeletonCircle} />}
         leftPrimary={

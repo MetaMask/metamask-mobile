@@ -212,7 +212,7 @@ export function EditAmountSkeleton({
   });
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="edit-amount-skeleton">
       <View style={styles.primaryContainer}>
         <View style={styles.inputContainer}>
           <Skeleton height={70} width={80} />

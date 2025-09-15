@@ -44,7 +44,8 @@ export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
   const payTokenFiatRate = fiatRates[0];
   const assetFiatRate = fiatRates[1];
 
-  if (!payTokenFiatRate || !assetFiatRate) return <PayTokenAmountSkeleton />;
+  if (!payToken || !payTokenFiatRate || !assetFiatRate)
+    return <PayTokenAmountSkeleton />;
 
   const assetToPayTokenRate = new BigNumber(assetFiatRate).dividedBy(
     payTokenFiatRate,
@@ -67,5 +68,9 @@ export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
 
 export function PayTokenAmountSkeleton() {
   const { styles } = useStyles(styleSheet, {});
-  return <Skeleton height={30} width={90} style={styles.skeleton} />;
+  return (
+    <View testID="pay-token-amount-skeleton">
+      <Skeleton height={30} width={90} style={styles.skeleton} />
+    </View>
+  );
 }
