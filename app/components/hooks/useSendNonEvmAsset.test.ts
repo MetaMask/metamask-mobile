@@ -21,6 +21,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../Views/confirmations/utils/send');
 
+const RemoteFeatureFlagControllerState = {
+  RemoteFeatureFlagController: {
+    remoteFeatureFlags: {
+      sendRedesign: {
+        enabled: false,
+      },
+    },
+  },
+};
+
 const mockedSendMultichainTransaction =
   sendMultichainTransaction as jest.MockedFunction<
     typeof sendMultichainTransaction
@@ -74,6 +84,7 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
@@ -103,6 +114,7 @@ describe('useSendNonEvmAsset', () => {
                 accounts: {},
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
@@ -266,6 +278,7 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
