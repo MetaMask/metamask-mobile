@@ -1,42 +1,41 @@
 # Temporary workflow to monitor iOS builds and E2E tests
-# DISABLED - This workflow is commented out to prevent it from running
 
-# name: TEMPORARY iOS Workflow
+name: TEMPORARY iOS Workflow
 
-# on:
-#   push:
-#     branches: [main]
-#   pull_request:
+on:
+  push:
+    branches: [main]
+  pull_request:
 
-#   schedule:
-#     - cron: '0 2-6 * * *'
+  schedule:
+    - cron: '0 2-6 * * *'
 
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref }}
-#   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
-# jobs:
-#   needs_e2e_build:
-#     name: "Detect Mobile Build Changes"
-#     if: ${{ github.event_name != 'merge_group' }}
-#     uses: ./.github/workflows/needs-e2e-build.yml
+jobs:
+  needs_e2e_build:
+    name: "Detect Mobile Build Changes"
+    if: ${{ github.event_name != 'merge_group' }}
+    uses: ./.github/workflows/needs-e2e-build.yml
 
-#   build-ios-apps:
-#     name: "Build iOS Apps"
-#     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
-#     permissions:
-#       contents: read
-#       id-token: write
-#     needs: [needs_e2e_build]
-#     uses: ./.github/workflows/build-ios-e2e.yml
-#     secrets: inherit
+  build-ios-apps:
+    name: "Build iOS Apps"
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
   
-#   e2e-smoke-tests-ios:
-#     name: "iOS E2E Smoke Tests"
-#     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
-#     permissions:
-#       contents: read
-#       id-token: write
-#     needs: [needs_e2e_build, build-ios-apps]
-#     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
-#     secrets: inherit
+  e2e-smoke-tests-ios:
+    name: "iOS E2E Smoke Tests"
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-ios-apps]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    secrets: inherit
