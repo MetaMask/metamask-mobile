@@ -778,6 +778,10 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockResolvedValue(undefined);
     mockMetricsIsEnabled.mockReturnValueOnce(true);
 
+    jest
+      .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+      .mockResolvedValue(undefined);
+
     const props: ChoosePasswordProps = {
       ...defaultProps,
       route: {
@@ -791,10 +795,6 @@ describe('ChoosePassword', () => {
       navigation: mockNavigation,
     };
     const component = renderWithProviders(<ChoosePassword {...props} />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
 
     const passwordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
