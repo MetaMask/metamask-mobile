@@ -351,7 +351,10 @@ export class BackgroundBridge extends EventEmitter {
     });
 
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('timed out fetching net_version')), GET_DEPRECATED_NETWORK_VERSION_TIMEOUT);
+      setTimeout(
+        () => reject(new Error('timed out fetching net_version')),
+        GET_DEPRECATED_NETWORK_VERSION_TIMEOUT,
+      );
     });
 
     try {

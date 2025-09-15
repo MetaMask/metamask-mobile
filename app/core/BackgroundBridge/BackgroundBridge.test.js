@@ -678,7 +678,7 @@ describe('BackgroundBridge', () => {
       bridge.deprecatedNetworkVersions[networkClientId] = 1;
 
       const result = await bridge.getDeprecatedNetworkVersion({
-        networkClient: { provider: {}},
+        networkClient: { provider: {} },
         networkClientId,
       });
 
@@ -711,7 +711,7 @@ describe('BackgroundBridge', () => {
 
       mockSendAsync.mockImplementation((request, callback) => {
         expect(request).toEqual({ method: 'net_version' });
-        callback(null, 100)
+        callback(null, 100);
       });
 
       const result = await bridge.getDeprecatedNetworkVersion({
@@ -726,7 +726,7 @@ describe('BackgroundBridge', () => {
       expect(mockSendAsync).toHaveBeenCalledTimes(2);
       expect(mockSendAsync).toHaveBeenCalledWith(
         { method: 'net_version' },
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -738,7 +738,7 @@ describe('BackgroundBridge', () => {
 
       mockSendAsync.mockImplementation((request, callback) => {
         expect(request).toEqual({ method: 'net_version' });
-        callback(networkError)
+        callback(networkError);
       });
 
       const result = await bridge.getDeprecatedNetworkVersion({
@@ -754,7 +754,6 @@ describe('BackgroundBridge', () => {
       const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const networkClientId = 'test-network-id';
-
 
       mockSendAsync.mockImplementation((request, _callback) => {
         expect(request).toEqual({ method: 'net_version' });
@@ -775,15 +774,14 @@ describe('BackgroundBridge', () => {
       const bridge = setupBackgroundBridge(url);
       const networkClientId = 'test-network-id';
 
-
       const mockSendAsyncDeferredPromise = createDeferredPromise();
 
       mockSendAsync.mockImplementation((request, callback) => {
         expect(request).toEqual({ method: 'net_version' });
         // return result after the timeout
         setTimeout(() => {
-          callback(null, 100)
-          mockSendAsyncDeferredPromise.resolve()
+          callback(null, 100);
+          mockSendAsyncDeferredPromise.resolve();
         }, 5500);
       });
 
