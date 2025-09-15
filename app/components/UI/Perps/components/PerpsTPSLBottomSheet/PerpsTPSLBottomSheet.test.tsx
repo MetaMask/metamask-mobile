@@ -369,6 +369,8 @@ describe('PerpsTPSLBottomSheet', () => {
       sinceOpen: '8.00',
       sinceChange: '3.00',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {
