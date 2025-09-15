@@ -273,10 +273,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       }
     };
 
-    getUserAuthPreferences().finally(() => {
-      // force default choice to true
-      updateBiometryChoice(true);
-    });
+    getUserAuthPreferences();
   }, [route?.params?.locked, refreshAuthPref]);
 
   const handleVaultCorruption = async () => {
@@ -666,7 +663,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     fieldRef.current?.blur();
   };
 
-  // force default switch to true for disabled biometric
+  // show biometric switch to true even if biometric is disabled
   const shouldRenderBiometricLogin = biometryType;
 
   const renderSwitch = () => {
