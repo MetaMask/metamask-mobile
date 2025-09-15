@@ -38,8 +38,12 @@ export const Amount = () => {
   const { amountError } = useAmountValidation();
   const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
-  const { fiatCurrencySymbol, getFiatValue, getFiatDisplayValue } =
-    useCurrencyConversions();
+  const {
+    fiatConversionRate,
+    fiatCurrencySymbol,
+    getFiatValue,
+    getFiatDisplayValue,
+  } = useCurrencyConversions();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const assetSymbol = isNFT
     ? undefined
@@ -136,7 +140,7 @@ export const Amount = () => {
             </Text>
           </View>
         </View>
-        {!isNFT && (
+        {!isNFT && fiatConversionRate !== 0 && (
           <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
             <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
             <ButtonIcon
