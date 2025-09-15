@@ -10,7 +10,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('43114'),
       rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-      nickname: 'Avalanche C-Chain',
+      nickname: 'Avalanche',
       ticker: 'AVAX',
     },
   },

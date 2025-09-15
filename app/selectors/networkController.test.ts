@@ -552,7 +552,7 @@ describe('networkSelectors', () => {
                 '0xa86a': {
                   chainId: '0xa86a',
                   nativeCurrency: 'AVAX',
-                  name: 'Avalanche C-Chain',
+                  name: 'Avalanche',
                   rpcEndpoints: [
                     {
                       networkClientId: 'avalanche',

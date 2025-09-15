@@ -703,8 +703,8 @@ class FixtureBuilder {
             {
               active: true,
               chainId: 43114,
-              chainName: 'Avalanche C-Chain Mainnet',
-              shortName: 'Avalanche C-Chain',
+              chainName: 'Avalanche Mainnet',
+              shortName: 'Avalanche',
               nativeTokenSupported: true,
             },
             {
@@ -1147,7 +1147,7 @@ class FixtureBuilder {
       CHAIN_IDS.BSC, // BNB Smart Chain
       CHAIN_IDS.OPTIMISM, // Optimism
       CHAIN_IDS.ARBITRUM, // Arbitrum One
-      CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
+      CHAIN_IDS.AVALANCHE, // Avalanche
       CHAIN_IDS.BASE, // Base
       CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
       CHAIN_IDS.SEI, // Sei Mainnet

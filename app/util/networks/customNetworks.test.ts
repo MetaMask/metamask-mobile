@@ -9,7 +9,7 @@ import { CaipChainId } from '@metamask/utils';
 describe('popularNetwork', () => {
   it('should have correct chainIds for all popular network', () => {
     const expectedChainIds: { [key: string]: string } = {
-      'Avalanche C-Chain': toHex('43114'),
+      Avalanche: toHex('43114'),
       'Arbitrum One': toHex('42161'),
       'BNB Smart Chain Mainnet': toHex('56'),
       Base: toHex('8453'),

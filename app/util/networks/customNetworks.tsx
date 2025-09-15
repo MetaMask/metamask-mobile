@@ -33,7 +33,7 @@ export function getFailoverUrlsForInfuraNetwork(
 export const PopularList = [
   {
     chainId: toHex('43114'),
-    nickname: 'Avalanche C-Chain',
+    nickname: 'Avalanche',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: getFailoverUrlsForInfuraNetwork('avalanche-mainnet'),
     ticker: 'AVAX',

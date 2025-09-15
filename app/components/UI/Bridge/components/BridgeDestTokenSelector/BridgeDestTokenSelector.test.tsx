@@ -113,14 +113,14 @@ describe('getNetworkName', () => {
   });
 
   it('returns nickname from PopularList when network not in configurations', () => {
-    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Avalanche C-Chain');
+    expect(result).toBe('Avalanche');
   });
 
   it('returns nickname from PopularList for Arbitrum One', () => {
@@ -179,7 +179,7 @@ describe('getNetworkName', () => {
   });
 
   it('prioritizes network configurations over PopularList', () => {
-    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration

@@ -64,7 +64,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
-        const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
+        const AVAX_NETWORK_NAME = 'Avalanche';
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
         const avax = WalletView.tokenInWallet('AVAX');

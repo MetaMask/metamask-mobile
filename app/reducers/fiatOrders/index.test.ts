@@ -218,7 +218,7 @@ const networks: AggregatorNetwork[] = [
   {
     active: true,
     chainId: '43114',
-    chainName: 'Avalanche C-Chain Mainnet',
+    chainName: 'Avalanche Mainnet',
     shortName: 'Avalanche',
     nativeTokenSupported: true,
   },
