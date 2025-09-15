@@ -295,15 +295,12 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             {order.isTrigger && order.reduceOnly && (
               <View style={[styles.bodyItem, styles.bodyItemReduceOnly]}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.order.reduce_only')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.order.yes')}
                 </Text>
               </View>
