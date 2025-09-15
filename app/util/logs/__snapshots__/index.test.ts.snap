@@ -238,7 +238,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "blockExplorerUrls": [],
             "chainId": "0x2105",
             "defaultRpcEndpointIndex": 0,
-            "name": "Base Mainnet",
+            "name": "Base",
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
@@ -886,7 +886,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "blockExplorerUrls": [],
             "chainId": "0x2105",
             "defaultRpcEndpointIndex": 0,
-            "name": "Base Mainnet",
+            "name": "Base",
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {

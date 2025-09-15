@@ -156,7 +156,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x2105",
         "defaultRpcEndpointIndex": 0,
-        "name": "Base Mainnet",
+        "name": "Base",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
