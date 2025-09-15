@@ -1263,7 +1263,9 @@
         "margin": "Margin",
         "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close position"
+        "close_position": "Close position",
+        "tpsl_count_multiple": "{{count}} orders",
+        "tpsl_count_single": "{{count}} order"
       },
       "list": {
         "loading": "Loading positions...",
@@ -1391,7 +1393,13 @@
         "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",
         "turn_on_button": "Turn on"
       },
-      "got_it_button": "Got it"
+      "got_it_button": "Got it",
+      "tpsl_count_warning": {
+        "title": "Multiple TP/SL orders are active",
+        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
+        "view_orders_button": "View orders",
+        "got_it_button": "Got it"
+      }
     },
     "connection": {
       "failed": "Connection Failed",
