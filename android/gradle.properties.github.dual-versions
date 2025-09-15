@@ -1,5 +1,5 @@
-# GitHub Actions-specific Gradle settings
-# High-performance settings for 64GB/16CPU runners
+# Dual Versions Build Gradle Properties
+# Optimized for BrowserStack testing with ARM architectures
 
 # JVM configuration - high-performance for GitHub Actions
 org.gradle.jvmargs=-Xmx32g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=32m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat
@@ -30,12 +30,9 @@ android.enableJetifier=true
 # Enable AAPT2 PNG crunching
 android.enablePngCrunchInReleaseBuilds=true
 
-# TODO: favour arch options here over cli options
-# replace them
-# Use this property to specify which architecture you want to build.
-# You can also override it from the CLI using
-# ./gradlew <task> -PreactNativeArchitectures=x86_64
-reactNativeArchitectures=x86_64
+# Architecture for BrowserStack builds - use ARM architectures for real devices
+# This overrides the environment variable approach
+reactNativeArchitectures=armeabi-v7a,arm64-v8a
 
 # Use this property to enable support to the new architecture.
 # This will allow you to use TurboModules and the Fabric render in
@@ -53,4 +50,4 @@ hermesEnabled=true
 android.disableResourceValidation=true
 
 # Use legacy packaging to compress native libraries in the resulting APK.
-expo.useLegacyPackaging=false 
+expo.useLegacyPackaging=false
