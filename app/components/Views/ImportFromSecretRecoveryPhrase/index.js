@@ -1000,7 +1000,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 {strings('import_from_seed.create_new_password')}
               </Label>
               <TextField
-                placeholder={strings('import_from_seed.enter_strong_password')}
                 size={TextFieldSize.Lg}
                 value={password}
                 onChangeText={onPasswordChange}
@@ -1028,7 +1027,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 }
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               />
-              {Boolean(password) && password.length < MIN_PASSWORD_LENGTH && (
+              {(!password || password.length < MIN_PASSWORD_LENGTH) && (
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -1069,7 +1068,6 @@ const ImportFromSecretRecoveryPhrase = ({
               </Label>
               <TextField
                 ref={confirmPasswordInput}
-                placeholder={strings('import_from_seed.re_enter_password')}
                 size={TextFieldSize.Lg}
                 onChangeText={onPasswordConfirmChange}
                 secureTextEntry={showPasswordIndex.includes(1)}
