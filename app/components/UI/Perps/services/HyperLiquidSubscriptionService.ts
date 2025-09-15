@@ -333,7 +333,7 @@ export class HyperLiquidSubscriptionService {
 
           (data.openOrders || []).forEach((order) => {
             let position: Position | undefined;
-
+            let positionForCoin: Position | undefined;
             const matchPositionToTpsl = (p: Position) => {
               if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
                 return (
@@ -348,6 +348,7 @@ export class HyperLiquidSubscriptionService {
                 Math.abs(parseFloat(order.sz)) >= Math.abs(parseFloat(p.size))
               );
             };
+            const matchPositionToCoin = (p: Position) => p.coin === order.coin;
             // Process trigger orders for TP/SL
             if (order.triggerPx) {
               const isTakeProfit = order.orderType?.includes('Take Profit');
@@ -366,7 +367,7 @@ export class HyperLiquidSubscriptionService {
               });
               const coin = order.coin;
               position = positions.find(matchPositionToTpsl);
-
+              positionForCoin = positions.find(matchPositionToCoin);
               if (position) {
                 const existing = tpslMap.get(coin) || {};
                 const isLong = parseFloat(position.size) > 0;
@@ -403,7 +404,10 @@ export class HyperLiquidSubscriptionService {
             // TP/SL orders are both:
             // 1. Used to populate position TP/SL fields (done above)
             // 2. Shown as separate orders in the orders list (done here)
-            const convertedOrder = adaptOrderFromSDK(order, position);
+            const convertedOrder = adaptOrderFromSDK(
+              order,
+              position || positionForCoin,
+            );
             orders.push(convertedOrder);
           });
 
