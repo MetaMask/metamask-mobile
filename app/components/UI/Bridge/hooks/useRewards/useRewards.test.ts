@@ -1,7 +1,7 @@
 import '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
-import { useRewards } from './useRewards';
+import { getUsdPricePerToken, useRewards } from './useRewards';
 import Engine from '../../../../../core/Engine';
 import { waitFor } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
@@ -713,5 +713,13 @@ describe('useRewards', () => {
 
       expect(result.current.isLoading).toBe(true);
     });
+  });
+});
+
+describe('getUsdPricePerToken', () => {
+  it.only('should calculate the USD price per token', () => {
+    expect(getUsdPricePerToken('39.39425', '8750000000000000', 18)).toBe(
+      4502.2,
+    );
   });
 });
