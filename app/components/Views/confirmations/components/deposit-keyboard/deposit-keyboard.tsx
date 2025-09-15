@@ -128,16 +128,12 @@ export function DepositKeyboardSkeleton() {
 }
 
 function DepositKeyboardSkeletonRow({ count = 3 }) {
+  const { styles } = useStyles(styleSheet, {});
+
   return (
     <Keypad.Row>
       {[...Array(count)].map((_, index) => (
-        <Skeleton
-          key={index}
-          height={40}
-          width={'100%'}
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={{ borderRadius: 10, flex: 1 }}
-        />
+        <Skeleton key={index} style={styles.skeletonButton} />
       ))}
     </Keypad.Row>
   );

@@ -11,6 +11,7 @@ import { ConfirmationMetricsState } from '../../../../../../core/redux/slices/co
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 
 jest.mock('../../../hooks/pay/useTransactionTotalFiat');
+jest.mock('../../../../../../component-library/components/Skeleton');
 
 const TOTAL_FIAT_MOCK = '$123.456';
 

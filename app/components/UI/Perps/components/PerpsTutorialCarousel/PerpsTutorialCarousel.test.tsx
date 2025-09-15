@@ -332,9 +332,12 @@ describe('PerpsTutorialCarousel', () => {
       });
 
       // Should navigate to add funds screen and initialize deposit
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, expect.objectContaining({
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      }));
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
       expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
   });
