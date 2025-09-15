@@ -331,6 +331,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [ordersWithTPSL],
   );
 
+  // Handle order cancellation to update chart
+  const handleOrderCancelled = useCallback(
+    (cancelledOrderId: string) => {
+      // If the cancelled order was the active TP order, clear it
+      if (activeTPOrderId === cancelledOrderId) {
+        setActiveTPOrderId(null);
+      }
+
+      // If the cancelled order was the active SL order, clear it
+      if (activeSLOrderId === cancelledOrderId) {
+        setActiveSLOrderId(null);
+      }
+    },
+    [activeTPOrderId, activeSLOrderId],
+  );
+
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
@@ -514,6 +530,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               onOrderSelect={handleOrderSelect}
+              onOrderCancelled={handleOrderCancelled}
               activeTPOrderId={selectedOrderTPSL?.activeTPOrderId}
               activeSLOrderId={selectedOrderTPSL?.activeSLOrderId}
             />

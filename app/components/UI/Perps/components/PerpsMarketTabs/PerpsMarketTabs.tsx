@@ -46,6 +46,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   nextFundingTime,
   fundingIntervalHours,
   onOrderSelect,
+  onOrderCancelled,
   activeTPOrderId,
   activeSLOrderId,
 }) => {
@@ -300,6 +301,9 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               PerpsToastOptions.orderManagement.limit.cancellationSuccess,
             );
           }
+
+          // Notify parent component that order was cancelled to update chart
+          onOrderCancelled?.(orderToCancel.orderId);
           return;
         }
 
@@ -318,7 +322,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         DevLogger.log('Failed to cancel order:', error);
       }
     },
-    [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
+    [
+      PerpsToastOptions.orderManagement.limit,
+      position?.size,
+      showToast,
+      onOrderCancelled,
+    ],
   );
 
   const renderTooltipModal = useCallback(() => {

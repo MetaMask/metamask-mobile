@@ -35,6 +35,10 @@ export interface PerpsMarketTabsProps {
    */
   onOrderSelect?: (orderId: string) => void;
   /**
+   * Callback when an order is cancelled to update chart
+   */
+  onOrderCancelled?: (orderId: string) => void;
+  /**
    * ID of the currently active TP order shown on chart
    */
   activeTPOrderId?: string | null;
