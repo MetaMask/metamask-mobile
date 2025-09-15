@@ -24,6 +24,13 @@ import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
 import usePrevious from '../../../../hooks/usePrevious';
 
+/**
+ *
+ * @param totalFeeAmountUsd - The total fee amount in USD
+ * @param feeAmountAtomic - The fee amount in atomic units
+ * @param feeAssetDecimals - The decimals of the fee asset
+ * @returns The USD price per token
+ */
 export const getUsdPricePerToken = (
   totalFeeAmountUsd: string,
   feeAmountAtomic: string,
