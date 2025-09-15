@@ -3,6 +3,8 @@ ignores:
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
   - 'webpack-cli'
+  # Used in CI workflow for repacking APKs with updated JS bundle
+  - '@expo/repack-app'
   - '@react-native-community/datetimepicker'
   - '@react-native-community/slider'
   - 'patch-package'

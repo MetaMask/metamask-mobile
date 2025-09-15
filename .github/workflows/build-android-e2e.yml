@@ -160,7 +160,7 @@ jobs:
           
           # Repackage the APK with the exported bundle
           echo "📱 Repackaging APK..."
-          if ! npx @expo/repack-app \
+          if ! npx --yes @expo/repack-app \
             --input "$ORIGINAL_APK" \
             --output "$ORIGINAL_APK" \
             --bundle dist/_expo/static/js/android/index.js; then
