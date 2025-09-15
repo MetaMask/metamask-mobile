@@ -95,7 +95,6 @@ import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
-import { captureException } from '@sentry/react-native';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -375,26 +374,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         );
       },
       onError: (error) => {
-        // Capture error in Sentry for debugging
-        const errorToCapture = new Error(error);
-        captureException(errorToCapture, {
-          tags: {
-            component: 'PerpsOrderView',
-            action: 'orderCreation',
-            orderType: orderForm.type,
-            asset: orderForm.asset,
-            direction: orderForm.direction,
-          },
-          extra: {
-            orderForm: {
-              asset: orderForm.asset,
-              direction: orderForm.direction,
-              amount: orderForm.amount,
-              leverage: orderForm.leverage,
-              type: orderForm.type,
-            },
-          },
-        });
+        // Error is already captured in usePerpsOrderExecution hook
+        // No need to capture again here to avoid duplicate Sentry reports
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].creationFailed(
             error,
