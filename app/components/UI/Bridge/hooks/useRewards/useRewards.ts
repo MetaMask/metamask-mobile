@@ -27,10 +27,9 @@ export const getUsdPricePerToken = (
   totalFeeAmountUsd: string,
   feeAmountAtomic: string,
   feeAssetDecimals: number,
-): string => (
-    (parseFloat(totalFeeAmountUsd) * Math.pow(10, feeAssetDecimals)) /
-    parseFloat(feeAmountAtomic)
-  );
+): number =>
+  (parseFloat(totalFeeAmountUsd) * Math.pow(10, feeAssetDecimals)) /
+  parseFloat(feeAmountAtomic);
 
 interface UseRewardsParams {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
