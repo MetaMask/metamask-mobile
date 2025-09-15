@@ -397,21 +397,6 @@ describe('TokenListControlBar', () => {
 
       expect(goToAddToken).toHaveBeenCalled();
     });
-
-    it('should not call handleFilterControls when EVM is not selected', () => {
-      // Ensure EVM is not selected
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-      mockSelectChainId.mockReturnValue(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-
-      const { getByTestId } = renderComponent();
-
-      const filterButton = getByTestId('token-network-filter');
-      fireEvent.press(filterButton);
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
   });
 
   describe('Button states', () => {

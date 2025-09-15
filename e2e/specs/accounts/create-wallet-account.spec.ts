@@ -3,7 +3,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
-import { withMultichainAccountDetailsV2Enabled } from '../multichain-accounts/common';
+import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import AddressList from '../../pages/MultichainAccounts/AddressList';
 
@@ -12,7 +12,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
   const LAST = 2;
 
   it('should be able to add a new account and verify it is working', async () => {
-    await withMultichainAccountDetailsV2Enabled(async () => {
+    await withMultichainAccountDetailsV2EnabledFixtures(async () => {
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,
         {
@@ -21,7 +21,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       );
       await AccountListBottomSheet.tapCreateAccount(FIRST);
 
-      const visibleAccounts = ['Account 1', 'Account 2', 'Account 3'];
+      const visibleAccounts = ['Account 1', 'Account 2', 'Account 5']; // Other account exist from fixture, next is Account 5
       for (const accountName of visibleAccounts) {
         await Assertions.expectElementToBeVisible(
           AccountListBottomSheet.getAccountElementByAccountNameV2(accountName),

@@ -6,7 +6,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AssetType } from '../../types/token';
 import { sendMultichainTransactionForReview } from '../../utils/multichain-snaps';
-import { submitEvmTransaction } from '../../utils/send';
+import { addLeadingZeroIfNeeded, submitEvmTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
@@ -50,7 +50,7 @@ export const useSendActions = () => {
             toAddress: toAddress as string,
             assetId: ((asset as AssetType)?.assetId ??
               asset?.address) as CaipAssetType,
-            amount: value as string,
+            amount: addLeadingZeroIfNeeded(value) as string,
           },
         );
         navigation.navigate(Routes.WALLET_VIEW);
