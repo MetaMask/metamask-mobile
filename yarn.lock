@@ -4854,19 +4854,17 @@
     "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@0.12.1-preview-236bab4a":
-  version "0.12.1-preview-236bab4a"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/account-tree-controller/-/account-tree-controller-0.12.1-preview-236bab4a.tgz#bfe2b2888d748edc200f84dcaa976ea2467c928c"
-  integrity sha512-LVZUy6K/BvOOOIcV6C3PEk6f1G3B2I+525CpU7ot4FGQLRtzHvcMsdRbDTQmMTwYgq53JKe0Pky6VzKKc0TH4A==
-"@metamask/account-tree-controller@^0.13.1":
-  version "0.13.1"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.13.1.tgz#9e0adcf8bd707e521cde4aa89d7bc59f3fa3daf1"
-  integrity sha512-MHLbaXy5SOsX0LumNQIyxM4lhKbcm6xtCx3ruJUMrB2y6bOV9YSYQ/IVAq1sToD0/WvnVAfV3Mqk+FZe33XPKw==
+"@metamask/account-tree-controller@^0.15.1":
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.15.1.tgz#4878641b934bb0bebd785b97fbc7df541b49947f"
+  integrity sha512-Jc0Lg4huCzNxI0we445FOVeraQYK9EppUqnhq7Mnbb2vDA+I5TSaOKp/BV/wJVCXIs9rmpep00pNwvGhQOaFYg==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
+    fast-deep-equal "^3.1.3"
     lodash "^4.17.21"
 
 "@metamask/accounts-controller@^33.1.0":
@@ -5309,7 +5307,7 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^16.0.0", "@metamask/eth-snap-keyring@^16.1.0":
+"@metamask/eth-snap-keyring@^16.0.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-16.1.0.tgz#2a4d54367ed8a329fb91d1d3200c82f4dd36423b"
   integrity sha512-JnR14wPksYja+e/3RbEYWxFNukO/yIpmR0hmIiogNj6VWJTQd0F/E8G/5J+0jdyX2ZYtNpzGtJj0vZaNi3wq/w==
@@ -5658,21 +5656,22 @@
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.7.0.tgz#ee4173dd9f2751ab1dabbea91748fb3915731d9c"
-  integrity sha512-vHjznP2cX5foqSp6nlBICkd9MQifYjWRgkzYvEnRXXiuE4PqpvbihLcbnJTdedU1/tF1qi/0eLWtrWfYBsFVPA==
+"@metamask/multichain-account-service@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.8.0.tgz#b90f9e0146298f430298656aa4d1ae75aed5dd18"
+  integrity sha512-w5ZnwJTQEbcCE8L88+J5DCZ0H4MTwIIxGqfNDltmefVF8l66TJ7pEuouAdJS3CjMsfBL/pKvW0M+2vn/gecu2g==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
-    "@metamask/eth-snap-keyring" "^16.1.0"
-    "@metamask/keyring-api" "^20.1.0"
-    "@metamask/keyring-internal-api" "^8.1.0"
-    "@metamask/keyring-snap-client" "^7.0.0"
+    "@metamask/eth-snap-keyring" "^17.0.0"
+    "@metamask/keyring-api" "^21.0.0"
+    "@metamask/keyring-internal-api" "^9.0.0"
+    "@metamask/keyring-snap-client" "^8.0.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.4.2"
+    async-mutex "^0.5.0"
 
 "@metamask/multichain-api-client@^0.6.5":
   version "0.6.5"
@@ -5919,12 +5918,12 @@
   dependencies:
     "@metamask/snaps-sdk" "^9.3.0"
 
-"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@24.0.0-preview-236bab4a":
-  version "24.0.0-preview-236bab4a"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-24.0.0-preview-236bab4a.tgz#ad87c4201f74cf3e5ff0aed48ca715c02755a9da"
-  integrity sha512-bF+8S4q78VlfH1gtGAAJDQmXGDYBvP4OioFg9iOyeGldsFj4/FyQLYBX4lIGdQ0IAPI8PkHrWTsE5yFNoguGYQ==
+"@metamask/profile-sync-controller@^25.0.0":
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-25.0.0.tgz#aa275348b56b68296129becdb32d68fea8b32a47"
+  integrity sha512-4bQsp/ECAczG+UJUT0/LVcg2pW9Agb81H4/gbSrAv06WRHISlN+FjeL3oQsjwK7y54n5OnA4U3uT4h1/Pu9lCg==
   dependencies:
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     "@noble/ciphers" "^1.3.0"
