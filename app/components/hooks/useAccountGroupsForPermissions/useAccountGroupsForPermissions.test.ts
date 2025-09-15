@@ -645,14 +645,21 @@ describe('useAccountGroupsForPermissions', () => {
         requestedNamespacesWithoutWallet,
       );
 
-      // Then connected account IDs should include accounts for both chains
-      expect(result.current.existingConnectedCaipAccountIds).toContain(
+      // Then updated connected account IDs should include accounts for both chains
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
         `eip155:1:${mockEvmAccount1.address}`,
       );
-      expect(result.current.existingConnectedCaipAccountIds).toContain(
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
         `eip155:137:${mockEvmAccount1.address}`,
       );
       expect(result.current.connectedAccountGroups).toHaveLength(1);
+      // Should indicate that new chains were requested
+      expect(result.current.hasNewChainsRequested).toBe(true);
+      // existingConnectedCaipAccountIds should contain the requested chain IDs
+      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+        'eip155:1',
+        'eip155:137',
+      ]);
     });
 
     it('does not update connected CAIP account IDs when no new chains are requested', () => {
@@ -670,10 +677,16 @@ describe('useAccountGroupsForPermissions', () => {
         requestedNamespacesWithoutWallet,
       );
 
-      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+      expect(result.current.updatedCaipAccountIdsToConnect).toEqual([
         `eip155:1:${mockEvmAccount1.address}`,
       ]);
       expect(result.current.connectedAccountGroups).toHaveLength(1);
+      // Should indicate that no new chains were requested
+      expect(result.current.hasNewChainsRequested).toBe(false);
+      // existingConnectedCaipAccountIds should contain the requested chain IDs
+      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+        'eip155:1',
+      ]);
     });
 
     it('handles multiple new chains with existing permissions', () => {
@@ -696,8 +709,7 @@ describe('useAccountGroupsForPermissions', () => {
         requestedNamespacesWithoutWallet,
       );
 
-      const connectedAccountIds =
-        result.current.existingConnectedCaipAccountIds;
+      const connectedAccountIds = result.current.updatedCaipAccountIdsToConnect;
       expect(connectedAccountIds).toContain(
         `eip155:1:${mockEvmAccount1.address}`,
       );
@@ -716,6 +728,14 @@ describe('useAccountGroupsForPermissions', () => {
       expect(connectedAccountIds).toContain(
         `eip155:10:${mockEvmAccount2.address}`,
       );
+      // Should indicate that new chains were requested
+      expect(result.current.hasNewChainsRequested).toBe(true);
+      // existingConnectedCaipAccountIds should contain the requested chain IDs
+      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+        'eip155:1',
+        'eip155:137',
+        'eip155:10',
+      ]);
     });
 
     it('handles new non-EVM chains with existing EVM permissions', () => {
@@ -735,10 +755,138 @@ describe('useAccountGroupsForPermissions', () => {
         requestedNamespacesWithoutWallet,
       );
 
-      expect(result.current.existingConnectedCaipAccountIds).toContain(
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
         `${MOCK_SOLANA_CHAIN_ID}:${mockSolAccount1.address}`,
       );
       expect(result.current.connectedAccountGroups).toHaveLength(1);
+      // Should indicate that new chains were requested
+      expect(result.current.hasNewChainsRequested).toBe(true);
+      // existingConnectedCaipAccountIds should contain the requested chain IDs
+      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+        MOCK_SOLANA_CHAIN_ID,
+      ]);
+    });
+
+    it('handles mixed existing and new chains correctly', () => {
+      const mixedPermission: Caip25CaveatValue = {
+        requiredScopes: {
+          'eip155:1': {
+            accounts: [`eip155:1:${mockEvmAccount1.address}` as CaipAccountId],
+          },
+          [MOCK_SOLANA_CHAIN_ID]: {
+            accounts: [
+              `${MOCK_SOLANA_CHAIN_ID}:${mockSolAccount1.address}` as CaipAccountId,
+            ],
+          },
+        },
+        optionalScopes: {},
+        sessionProperties: {},
+        isMultichainOrigin: false,
+      };
+
+      const requestedCaipAccountIds: CaipAccountId[] = [];
+      const requestedCaipChainIds: CaipChainId[] = [
+        'eip155:1' as CaipChainId,
+        'eip155:137' as CaipChainId,
+      ];
+      const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+      const { result } = renderHookWithStore(
+        mixedPermission,
+        requestedCaipAccountIds,
+        requestedCaipChainIds,
+        requestedNamespacesWithoutWallet,
+      );
+
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
+        `eip155:1:${mockEvmAccount1.address}`,
+      );
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
+        `eip155:137:${mockEvmAccount1.address}`,
+      );
+      expect(result.current.updatedCaipAccountIdsToConnect).not.toContain(
+        `${MOCK_SOLANA_CHAIN_ID}:${mockSolAccount1.address}`,
+      );
+      // Should indicate that new chains were requested (eip155:137 is new)
+      expect(result.current.hasNewChainsRequested).toBe(true);
+      // existingConnectedCaipAccountIds should contain the requested chain IDs
+      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+        'eip155:1',
+        'eip155:137',
+      ]);
+    });
+
+    it('handles empty connected groups when requesting new chains', () => {
+      const emptyPermission = createEmptyPermission();
+      const requestedCaipAccountIds: CaipAccountId[] = [];
+      const requestedCaipChainIds: CaipChainId[] = [
+        'eip155:1' as CaipChainId,
+        'eip155:137' as CaipChainId,
+      ];
+      const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+      const { result } = renderHookWithStore(
+        emptyPermission,
+        requestedCaipAccountIds,
+        requestedCaipChainIds,
+        requestedNamespacesWithoutWallet,
+      );
+
+      expect(result.current.updatedCaipAccountIdsToConnect).toEqual([]);
+      expect(result.current.connectedAccountGroups).toEqual([]);
+      expect(result.current.supportedAccountGroups).toHaveLength(2);
+      // Should indicate that new chains were requested (all chains are new when no existing permissions)
+      expect(result.current.hasNewChainsRequested).toBe(true);
+      // existingConnectedCaipAccountIds should contain the requested chain IDs
+      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+        'eip155:1',
+        'eip155:137',
+      ]);
+    });
+
+    it('prioritizes account groups with requested account IDs when new chains are requested', () => {
+      const existingPermission = createPermissionWithEvmAccounts([
+        mockEvmAccount1.address,
+        mockEvmAccount2.address,
+      ]);
+      const requestedCaipAccountIds: CaipAccountId[] = [
+        `eip155:1:${mockEvmAccount2.address}` as CaipAccountId,
+      ];
+      const requestedCaipChainIds: CaipChainId[] = [
+        'eip155:1' as CaipChainId,
+        'eip155:137' as CaipChainId,
+      ];
+      const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+      const { result } = renderHookWithStore(
+        existingPermission,
+        requestedCaipAccountIds,
+        requestedCaipChainIds,
+        requestedNamespacesWithoutWallet,
+      );
+
+      expect(result.current.connectedAccountGroups).toHaveLength(2);
+      expect(result.current.connectedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
+
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
+        `eip155:1:${mockEvmAccount1.address}`,
+      );
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
+        `eip155:137:${mockEvmAccount1.address}`,
+      );
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
+        `eip155:1:${mockEvmAccount2.address}`,
+      );
+      expect(result.current.updatedCaipAccountIdsToConnect).toContain(
+        `eip155:137:${mockEvmAccount2.address}`,
+      );
+      // Should indicate that new chains were requested
+      expect(result.current.hasNewChainsRequested).toBe(true);
+      // existingConnectedCaipAccountIds should contain the requested chain IDs
+      expect(result.current.existingConnectedCaipAccountIds).toEqual([
+        'eip155:1',
+        'eip155:137',
+      ]);
     });
   });
 });

@@ -196,6 +196,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     connectedAccountGroups,
     supportedAccountGroups,
     existingConnectedCaipAccountIds,
+    updatedCaipAccountIdsToConnect,
+    hasNewChainsRequested,
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
     requestedCaipAccountIds,
@@ -227,7 +229,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     if (connectedAccountGroups.length > 0) {
       return {
         suggestedAccountGroups: connectedAccountGroups,
-        suggestedCaipAccountIds: existingConnectedCaipAccountIds,
+        suggestedCaipAccountIds: hasNewChainsRequested
+          ? updatedCaipAccountIdsToConnect
+          : existingConnectedCaipAccountIds,
       };
     }
 
@@ -253,6 +257,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     supportedAccountGroups,
     requestedCaipChainIdsWithDefaultSelectedChainIds,
     existingConnectedCaipAccountIds,
+    hasNewChainsRequested,
+    updatedCaipAccountIdsToConnect,
   ]);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<

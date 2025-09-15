@@ -166,7 +166,7 @@ export const useAccountGroupsForPermissions = (
       }
     });
 
-    const updatedConnectedCaipIds = newChainsRequested
+    const updatedCaipAccountIdsToConnect = newChainsRequested
       ? getCaip25AccountFromAccountGroupAndScope(
           [...priorityConnectedGroups, ...connectedAccountGroups],
           requestedCaipChainIds,
@@ -182,7 +182,8 @@ export const useAccountGroupsForPermissions = (
         ...priorityConnectedGroups,
         ...connectedAccountGroups,
       ],
-      connectedCaipAccountIds: updatedConnectedCaipIds,
+      connectedCaipAccountIds: connectedAccountIds,
+      updatedCaipAccountIdsToConnect,
     };
   }, [
     existingPermission,
@@ -200,5 +201,9 @@ export const useAccountGroupsForPermissions = (
     supportedAccountGroups: result.supportedAccountGroups,
     /** CAIP account IDs that are already connected via existing permissions */
     existingConnectedCaipAccountIds: result.connectedCaipAccountIds,
+    /** CAIP account IDs that should be connected */
+    updatedCaipAccountIdsToConnect: result.updatedCaipAccountIdsToConnect,
+    /** Whether new chains are requested for existing account groups */
+    hasNewChainsRequested: newChainsRequested,
   };
 };
