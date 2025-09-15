@@ -115,7 +115,7 @@ export const LEVERAGE_SLIDER_CONFIG = {
 } as const;
 
 export const TP_SL_CONFIG = {
-  USE_POSITION_BOUND_TPSL: false,
+  USE_POSITION_BOUND_TPSL: true,
 } as const;
 
 /**
