@@ -13,6 +13,7 @@ import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
 import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
+import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -37,12 +38,18 @@ export const selectSelectedNonEvmNetworkChainId = createDeepEqualSelector(
  * @returns An object where the keys are chain IDs and the values are network configurations.
  */
 export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
-  [selectMultichainNetworkControllerState, selectIsSolanaTestnetEnabled],
+  [
+    selectMultichainNetworkControllerState,
+    selectIsSolanaTestnetEnabled,
+    selectIsBitcoinTestnetEnabled,
+  ],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
     isSolanaTestnetEnabled: Json,
+    isBitcoinTestnetEnabled: Json,
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
+    const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -106,8 +113,9 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       BtcScope.Mainnet,
-      BtcScope.Testnet,
-      BtcScope.Signet,
+      ...(!isBitcoinTestnetEnabledBoolean
+        ? [BtcScope.Testnet, BtcScope.Signet]
+        : []),
       ///: END:ONLY_INCLUDE_IF
       SolScope.Mainnet,
       ...(isSolanaTestnetEnabledBoolean ? [SolScope.Devnet] : []),
