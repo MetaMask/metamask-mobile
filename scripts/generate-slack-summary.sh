@@ -87,6 +87,8 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="*Build Info:*\n"
     SUMMARY+="• Commit Hash: \`$GITHUB_SHA\`\n"
     SUMMARY+="---------------\n\n"
+    SUMMARY+="• Branch: \`$GITHUB_REF_NAME\`\n"
+    SUMMARY+="---------------\n\n"
     SUMMARY+="<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|View Full Results>"
     
     echo "$SUMMARY"
