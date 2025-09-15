@@ -32,6 +32,7 @@ jest.mock('../../../core/Engine', () => ({
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
     },
   },
 }));
@@ -74,6 +75,7 @@ const mockNetworkEnablementController = {
   isNetworkEnabled: jest.fn(),
   hasOneEnabledNetwork: jest.fn(),
   enableAllPopularNetworks: jest.fn(),
+  enableNetworkInNamespace: jest.fn(),
 };
 
 describe('useNetworkEnablement', () => {
