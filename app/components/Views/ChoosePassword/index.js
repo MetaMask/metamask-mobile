@@ -499,7 +499,7 @@ class ChoosePassword extends PureComponent {
           this.state.isSelected,
         ).catch((error) => {
           Logger.error(error);
-          this.props.setDataCollectionForMarketing(false);
+          this.props.setDataCollectionForMarketing(this.state.isSelected);
         });
 
         this.props.navigation.reset({
