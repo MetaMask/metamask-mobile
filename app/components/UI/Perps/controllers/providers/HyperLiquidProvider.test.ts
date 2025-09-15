@@ -2570,6 +2570,12 @@ describe('HyperLiquidProvider', () => {
       });
 
       it('should handle canceling existing TP/SL orders', async () => {
+        // Set up asset mapping for BTC
+        Object.defineProperty(provider, 'coinToAssetId', {
+          value: new Map([['BTC', 0]]),
+          writable: true,
+        });
+
         // Mock position exists
         mockClientService.getInfoClient = jest.fn().mockReturnValue({
           clearinghouseState: jest.fn().mockResolvedValue({
@@ -2608,6 +2614,7 @@ describe('HyperLiquidProvider', () => {
               isTrigger: true,
               orderType: 'Take Profit',
               sz: '0.1',
+              isPositionTpsl: true,
             },
             {
               coin: 'BTC',
@@ -2616,6 +2623,7 @@ describe('HyperLiquidProvider', () => {
               isTrigger: true,
               orderType: 'Stop Loss',
               sz: '0.1',
+              isPositionTpsl: true,
             },
           ]),
           referral: jest.fn().mockResolvedValue({

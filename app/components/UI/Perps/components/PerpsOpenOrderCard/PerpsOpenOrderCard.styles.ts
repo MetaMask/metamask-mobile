@@ -104,6 +104,33 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 4,
       marginRight: 4,
     },
+
+    // Chart activity indicator styles
+    indicatorContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 6,
+      gap: 4,
+    },
+    activeChartIndicator: {
+      borderRadius: 16,
+      paddingHorizontal: 8,
+      paddingVertical: 0,
+    },
+    // eslint-disable-next-line react-native/no-color-literals
+    tpIndicator: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+      backgroundColor: '#BAF24A', // Light Green - matches chart TP line color
+    },
+    // eslint-disable-next-line react-native/no-color-literals
+    slIndicator: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+      backgroundColor: '#484848', // Dark Gray - matches chart SL line color
+    },
+    activeChartText: {
+      fontSize: 8,
+      fontWeight: '600',
+    },
   });
 };
 

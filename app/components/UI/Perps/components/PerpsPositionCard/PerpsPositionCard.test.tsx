@@ -173,6 +173,8 @@ describe('PerpsPositionCard', () => {
       sinceOpen: '5.00',
       sinceChange: '2.00',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   const mockTheme = {
