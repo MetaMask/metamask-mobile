@@ -147,8 +147,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
-  const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
-    useState(false);
+
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
@@ -195,6 +194,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       navigation.goBack();
     }
     return false;
+  };
+
+  const updateBiometryChoice = async (newBiometryChoice: boolean) => {
+    await updateAuthTypeStorageFlags(newBiometryChoice);
+    setBiometryChoice(newBiometryChoice);
   };
 
   useEffect(() => {
@@ -255,7 +259,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         setBiometryChoice(
           !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
         );
-        setBiometryPreviouslyDisabled(!!passcodePreviouslyDisabled);
       } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
         setHasBiometricCredentials(false);
         setRememberMe(true);
@@ -266,12 +269,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         setHasBiometricCredentials(
           authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
         );
-        setBiometryPreviouslyDisabled(!!previouslyDisabled);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
       }
     };
 
-    getUserAuthPreferences();
+    getUserAuthPreferences().finally(() => {
+      // force default choice to true
+      updateBiometryChoice(true);
+    });
   }, [route?.params?.locked, refreshAuthPref]);
 
   const handleVaultCorruption = async () => {
@@ -316,11 +321,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       setError(strings('login.invalid_password'));
     }
-  };
-
-  const updateBiometryChoice = async (newBiometryChoice: boolean) => {
-    await updateAuthTypeStorageFlags(newBiometryChoice);
-    setBiometryChoice(newBiometryChoice);
   };
 
   const navigateToHome = async () => {
@@ -584,8 +584,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
       // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
-        true,
-        true,
+        biometryChoice,
+        rememberMe,
       );
       if (isComingFromOauthOnboarding) {
         authType.oauth2Login = true;
@@ -666,8 +666,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     fieldRef.current?.blur();
   };
 
-  const shouldRenderBiometricLogin =
-    biometryType && !biometryPreviouslyDisabled ? biometryType : null;
+  // force default switch to true for disabled biometric
+  const shouldRenderBiometricLogin = biometryType;
 
   const renderSwitch = () => {
     const handleUpdateRememberMe = (rememberMeChoice: boolean) => {

@@ -654,6 +654,8 @@ class ResetPassword extends PureComponent {
     try {
       // Just try
       await this.tryExportSeedPhrase(password);
+
+      this.updateBiometryChoice(true);
       this.setState({
         password: null,
         originalPassword: password,

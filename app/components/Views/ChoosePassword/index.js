@@ -450,7 +450,7 @@ class ChoosePassword extends PureComponent {
       // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
         true,
-        true,
+        false,
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
