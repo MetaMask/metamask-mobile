@@ -8,7 +8,10 @@ import {
   NetworkState,
   RpcEndpointType,
 } from '@metamask/network-controller';
-import { NON_EVM_TESTNET_IDS , MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import {
+  NON_EVM_TESTNET_IDS,
+  MultichainNetworkConfiguration,
+} from '@metamask/multichain-network-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
@@ -269,8 +272,11 @@ export const selectCustomNetworkConfigurationsByCaipChainId = createSelector(
   (networkConfigurationsByChainId) =>
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
-        !POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
-        !NON_EVM_TESTNET_IDS.includes(networkConfiguration.caipChainId),
+        (networkConfiguration.chainId.startsWith('0x') &&
+          !POPULAR_NETWORK_CHAIN_IDS.has(
+            networkConfiguration.chainId as Hex,
+          )) ||
+        NON_EVM_TESTNET_IDS.includes(networkConfiguration.caipChainId),
     ),
 );
 
@@ -279,8 +285,9 @@ export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
   (networkConfigurationsByChainId) =>
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
-        POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
-        NON_EVM_TESTNET_IDS.includes(networkConfiguration.caipChainId),
+        (POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
+          networkConfiguration.caipChainId.startsWith('solana:')) &&
+        !NON_EVM_TESTNET_IDS.includes(networkConfiguration.caipChainId),
     ),
 );
 
