@@ -66,6 +66,15 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     }
 
     autoSignIn();
+    const fetchMarketingStatus = async () => {
+      try {
+        const data = await OAuthService.getMarketingOptInStatus();
+        dispatch(setDataCollectionForMarketing(data.is_opt_in));
+      } catch (err) {
+        Logger.error(err as Error);
+      }
+    };
+    fetchMarketingStatus();
     setAnalyticsEnabled(isEnabled());
   }, [
     setAnalyticsEnabled,
@@ -145,12 +154,17 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       }
     }
 
-    const previousMarketingState = value;
+    // Store the previous state to revert if API fails
+    const previousMarketingState = !value;
+
+    // Update client state optimistically
     dispatch(setDataCollectionForMarketing(value));
 
+    // Sync with server, revert client state if API fails
     if (isSeedlessOnboardingLoginFlow) {
       OAuthService.updateMarketingOptInStatus(value).catch((error) => {
         Logger.error(error as Error);
+        // Revert client state back to previous value if API fails
         dispatch(setDataCollectionForMarketing(previousMarketingState));
       });
     }
