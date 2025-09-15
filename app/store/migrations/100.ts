@@ -25,12 +25,12 @@ export const CHAINS_TO_RENAME: {
   },
   {
     id: NETWORK_CHAIN_ID.AVALANCHE,
-    fromName: 'Avalanche Network C-Chain',
+    fromName: 'Avalanche C-Chain',
     toName: 'Avalanche',
   },
   {
     id: NETWORK_CHAIN_ID.BSC,
-    fromName: 'Binance Smart Chain',
+    fromName: 'BNB Smart Chain Mainnet',
     toName: 'BNB Chain',
   },
   {
@@ -50,7 +50,7 @@ export const CHAINS_TO_RENAME: {
   },
   {
     id: NETWORK_CHAIN_ID.ZKSYNC_ERA,
-    fromName: 'zkSync Era Mainnet',
+    fromName: 'zkSync Mainnet',
     toName: 'zkSync Era',
   },
 ];
