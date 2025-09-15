@@ -460,7 +460,6 @@ class CustomReporter {
         fs.writeFileSync(reportPath, html);
 
         console.log(`\n✅ Performance report generated: ${reportPath}`);
-        console.log(`✅ Performance metrics saved: ${jsonPath}`);
       }
       // CSV Export - Steps Performance Report
       // CSV Export - One table per scenario with steps and times
