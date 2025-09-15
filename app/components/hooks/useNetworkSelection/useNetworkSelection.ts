@@ -127,7 +127,7 @@ export const useNetworkSelection = ({
         try {
           await MultichainNetworkController.setActiveNetwork(chainId);
         } catch (error) {
-          // Handle error silently for now
+          console.warn(`Error setting active network: ${error}`);
         }
       }
       if (isMultichainAccountsState2Enabled && chainId !== SolScope.Mainnet) {
