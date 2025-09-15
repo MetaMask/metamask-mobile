@@ -39,6 +39,7 @@ export enum ConfirmationLoader {
 
 export interface ConfirmationParams {
   loader?: ConfirmationLoader;
+  maxValueMode?: boolean;
 }
 
 const ConfirmWrapped = ({
@@ -159,7 +160,7 @@ function Loader() {
 
   if (loader === ConfirmationLoader.PerpsDeposit) {
     return (
-      <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
+      <View style={styles.flatContainer} testID="confirm-loader-perps-deposit">
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
@@ -171,7 +172,7 @@ function Loader() {
   }
 
   return (
-    <View style={styles.spinnerContainer}>
+    <View style={styles.spinnerContainer} testID="confirm-loader-default">
       <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
