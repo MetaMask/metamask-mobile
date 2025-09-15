@@ -36,7 +36,6 @@ export const getUsdPricePerToken = (
     new BigNumber(10).pow(feeAssetDecimals),
   );
 
-  // Calculate: (totalFeeAmountUsd * 10^decimals) / feeAmountAtomic
   return totalFeeUsd.dividedBy(feeAmountBN).toString();
 };
 
@@ -110,15 +109,15 @@ export const useRewards = ({
 
     try {
       // Check if rewards feature is enabled
-      // const isRewardsEnabled = await Engine.controllerMessenger.call(
-      //   'RewardsController:isRewardsFeatureEnabled',
-      // );
+      const isRewardsEnabled = await Engine.controllerMessenger.call(
+        'RewardsController:isRewardsFeatureEnabled',
+      );
 
-      // if (!isRewardsEnabled) {
-      //   setEstimatedPoints(null);
-      //   setIsLoading(false);
-      //   return;
-      // }
+      if (!isRewardsEnabled) {
+        setEstimatedPoints(null);
+        setIsLoading(false);
+        return;
+      }
 
       // Format account to CAIP-10
       const caipAccount = formatAccountToCaipAccountId(
@@ -133,16 +132,16 @@ export const useRewards = ({
       }
 
       // Check if account has opted in
-      // const hasOptedIn = await Engine.controllerMessenger.call(
-      //   'RewardsController:getHasAccountOptedIn',
-      //   caipAccount,
-      // );
+      const hasOptedIn = await Engine.controllerMessenger.call(
+        'RewardsController:getHasAccountOptedIn',
+        caipAccount,
+      );
 
-      // if (!hasOptedIn) {
-      //   setEstimatedPoints(null);
-      //   setIsLoading(false);
-      //   return;
-      // }
+      if (!hasOptedIn) {
+        setEstimatedPoints(null);
+        setIsLoading(false);
+        return;
+      }
 
       setShouldShowRewardsRow(true);
 
