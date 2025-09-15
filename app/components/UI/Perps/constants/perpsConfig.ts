@@ -114,6 +114,10 @@ export const LEVERAGE_SLIDER_CONFIG = {
   MAX_LEVERAGE_MEDIUM_THRESHOLD: 50,
 } as const;
 
+export const TP_SL_CONFIG = {
+  USE_POSITION_BOUND_TPSL: false,
+} as const;
+
 /**
  * Limit price configuration
  * Controls preset percentages and behavior for limit orders

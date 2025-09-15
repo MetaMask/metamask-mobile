@@ -37,6 +37,7 @@ import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
+import { TP_SL_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions
@@ -313,42 +314,67 @@ export class HyperLiquidSubscriptionService {
           // Extract TP/SL from openOrders for positions
           const tpslMap = new Map<
             string,
-            { takeProfitPrice?: string; stopLossPrice?: string }
+            {
+              takeProfitPrice?: string;
+              stopLossPrice?: string;
+            }
+          >();
+
+          const tpslCountMap = new Map<
+            string,
+            {
+              takeProfitCount?: number;
+              stopLossCount?: number;
+            }
           >();
 
           // Also extract regular orders for order subscribers
           const orders: Order[] = [];
 
-          const tpCount = data.openOrders.filter(
-            (order) =>
-              order.isTrigger &&
-              order.reduceOnly &&
-              order.orderType?.includes('Take Profit'),
-          ).length;
-          const slCount = data.openOrders.filter(
-            (order) =>
-              order.isTrigger &&
-              order.reduceOnly &&
-              order.orderType?.includes('Stop'),
-          ).length;
           (data.openOrders || []).forEach((order) => {
             let position: Position | undefined;
+
+            const matchPositionToTpsl = (p: Position) => {
+              if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
+                return (
+                  p.coin === order.coin &&
+                  order.reduceOnly &&
+                  order.isPositionTpsl
+                );
+              }
+
+              return (
+                p.coin === order.coin &&
+                Math.abs(parseFloat(order.sz)) >= Math.abs(parseFloat(p.size))
+              );
+            };
             // Process trigger orders for TP/SL
             if (order.triggerPx) {
+              const isTakeProfit = order.orderType?.includes('Take Profit');
+              const isStop = order.orderType?.includes('Stop');
+              const currentTakeProfitCount =
+                tpslCountMap.get(order.coin)?.takeProfitCount || 0;
+              const currentStopLossCount =
+                tpslCountMap.get(order.coin)?.stopLossCount || 0;
+              tpslCountMap.set(order.coin, {
+                takeProfitCount: isTakeProfit
+                  ? currentTakeProfitCount + 1
+                  : currentTakeProfitCount,
+                stopLossCount: isStop
+                  ? currentStopLossCount + 1
+                  : currentStopLossCount,
+              });
               const coin = order.coin;
-              position = positions.find(
-                (p) =>
-                  p.coin === coin && order.reduceOnly && order.isPositionTpsl,
-              );
+              position = positions.find(matchPositionToTpsl);
 
               if (position) {
                 const existing = tpslMap.get(coin) || {};
                 const isLong = parseFloat(position.size) > 0;
 
                 // Determine if it's TP or SL based on order type
-                if (order.orderType?.includes('Take Profit')) {
+                if (isTakeProfit) {
                   existing.takeProfitPrice = order.triggerPx;
-                } else if (order.orderType?.includes('Stop')) {
+                } else if (isStop) {
                   existing.stopLossPrice = order.triggerPx;
                 } else {
                   // Fallback: determine based on trigger price vs entry price
@@ -384,12 +410,13 @@ export class HyperLiquidSubscriptionService {
           // Merge positions with TP/SL data, ensuring fields are always present
           const positionsWithTPSL = positions.map((position) => {
             const tpsl = tpslMap.get(position.coin) || {};
+            const tpslCount = tpslCountMap.get(position.coin) || {};
             return {
               ...position,
               takeProfitPrice: tpsl.takeProfitPrice || undefined,
               stopLossPrice: tpsl.stopLossPrice || undefined,
-              takeProfitCount: tpCount,
-              stopLossCount: slCount,
+              takeProfitCount: tpslCount.takeProfitCount || 0,
+              stopLossCount: tpslCount.stopLossCount || 0,
             };
           });
 

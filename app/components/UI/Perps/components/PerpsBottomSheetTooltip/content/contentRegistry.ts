@@ -1,4 +1,5 @@
 import FeesTooltipContent from './FeesTooltipContent';
+import TPSLCountWarningTooltipContent from './TPSLCountWarningTooltipContent';
 import WithdrawalFeesTooltipContent from './WithdrawalFeesTooltipContent';
 import { ContentRegistry } from './types';
 
@@ -27,4 +28,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   limit_price: undefined,
   tp_sl: undefined,
   close_position_you_receive: undefined,
+  tpsl_count_warning: TPSLCountWarningTooltipContent,
 };

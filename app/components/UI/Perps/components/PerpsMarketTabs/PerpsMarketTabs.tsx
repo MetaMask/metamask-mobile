@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
 import Text, {
   TextVariant,
   TextColor,
@@ -49,6 +55,70 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+
+  const sortedUnfilledOrders = useMemo(
+    () =>
+      unfilledOrders.sort((a, b) => {
+        // Sort orders by detailedOrderType first, then by execution priority within each type
+        // This groups orders like "Take Profit Limit", "Stop Limit", "Limit", etc. together
+
+        // Get current market price for trigger calculations
+        const currentPrice = marketStats.currentPrice || 0;
+
+        // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
+        const typeA = a.detailedOrderType || a.orderType || 'Unknown';
+        const typeB = b.detailedOrderType || b.orderType || 'Unknown';
+
+        if (typeA !== typeB) {
+          return typeA.localeCompare(typeB);
+        }
+
+        // Secondary sort: within same detailedOrderType, sort by execution priority
+        // Helper function to determine if order is long or short direction
+        const getOrderDirectionForSort = (order: Order): 'long' | 'short' => {
+          if (position) {
+            const positionSize = parseFloat(position.size);
+            if (order.reduceOnly) {
+              // Reduce-only orders go opposite to position direction
+              return positionSize > 0 ? 'short' : 'long';
+            }
+          }
+          // For new positions or non-reduce-only orders
+          return order.side === 'buy' ? 'long' : 'short';
+        };
+
+        // Helper function to calculate execution priority based on trigger price
+        const getExecutionPriority = (order: Order): number => {
+          // Get the trigger price for this order
+          const triggerPrice = parseFloat(
+            order.takeProfitPrice || order.stopLossPrice || order.price || '0',
+          );
+          if (triggerPrice === 0 || currentPrice === 0) return Infinity;
+
+          const orderDirection = getOrderDirectionForSort(order);
+
+          // For all order types, calculate distance to trigger based on order direction
+          if (orderDirection === 'long') {
+            // Long orders: closer to current price = higher priority
+            return Math.abs(triggerPrice - currentPrice);
+          }
+          // Short orders: closer to current price = higher priority
+          return Math.abs(triggerPrice - currentPrice);
+        };
+
+        // Sort by execution priority within the same detailedOrderType
+        const priorityA = getExecutionPriority(a);
+        const priorityB = getExecutionPriority(b);
+
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+
+        // Final tiebreaker: order ID
+        return a.orderId.localeCompare(b.orderId);
+      }),
+    [unfilledOrders, marketStats.currentPrice, position],
+  );
 
   // Fade in animation when loading completes
   useEffect(() => {
@@ -415,7 +485,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               </View>
             ) : (
               <>
-                {unfilledOrders.map((order) => (
+                {sortedUnfilledOrders.map((order) => (
                   <PerpsOpenOrderCard
                     key={order.orderId}
                     order={order}
