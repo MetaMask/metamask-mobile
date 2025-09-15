@@ -113,7 +113,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       BtcScope.Mainnet,
-      ...(!isBitcoinTestnetEnabledBoolean
+      ...(isBitcoinTestnetEnabledBoolean
         ? [BtcScope.Testnet, BtcScope.Signet]
         : []),
       ///: END:ONLY_INCLUDE_IF
