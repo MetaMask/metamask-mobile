@@ -113,6 +113,34 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Defines a Perps profile for E2E mocks.
+   * The value is stored in the PerpsController state so that the mocks can read it.
+   * @param profile Profile, e.g.: 'no-funds', 'default'.
+   * @returns {FixtureBuilder}
+   */
+  withPerpsProfile(profile: string) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      // Field only for E2E; read by the mocks mixin
+      mockProfile: profile,
+    });
+    return this;
+  }
+
+  /**
+   * Forces the Perps first-time flag in the initial state.
+   * @param firstTime true to show tutorial; false to mark as seen.
+   */
+  withPerpsFirstTimeUser(firstTime: boolean) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      isFirstTimeUser: {
+        testnet: firstTime,
+        mainnet: firstTime,
+      },
+    });
+    return this;
+  }
+
   withSolanaFeatureSheetDisplayed() {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};
@@ -520,6 +548,12 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
+            PerpsController: {
+              isFirstTimeUser: {
+                testnet: false,
+                mainnet: false,
+              },
+            },
             NetworkEnablementController: {},
           },
         },
@@ -551,7 +585,7 @@ class FixtureBuilder {
           searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
-          useBlockieIcon: true,
+          avatarAccountType: 'Maskicon', // Must match the enum in AvatarAccountType form app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types.ts
           hideZeroBalanceTokens: false,
           basicFunctionalityEnabled: true,
         },
@@ -2060,6 +2094,16 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.NetworkEnablementController,
       stateToMerge,
     );
+
+    return this;
+  }
+
+  withCleanBannerState() {
+    merge(this.fixture.state, {
+      banners: {
+        dismissedBanners: [],
+      },
+    });
 
     return this;
   }

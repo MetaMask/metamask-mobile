@@ -1,15 +1,40 @@
 import { ControllerGetStateAction } from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
 }
 
-export interface SubscriptionDto {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionDto = {
   id: string;
   referralCode: string;
-  [key: string]: string;
+  accounts: {
+    address: string;
+    chainId: number;
+  }[];
+};
+
+export interface GenerateChallengeDto {
+  address: string;
+}
+
+export interface ChallengeResponseDto {
+  id: string;
+  message: string;
+  domain?: string;
+  address?: string;
+  issuedAt?: string;
+  expirationTime?: string;
+  nonce?: string;
+}
+
+export interface LoginDto {
+  challengeId: string;
+  signature: string;
+  referralCode?: string;
 }
 
 export interface EstimateAssetDto {
@@ -95,7 +120,170 @@ export interface EstimatePointsContextDto {
  * Type of point earning activity. Swap is for swaps and bridges. PERPS is for perps activities.
  * @example 'SWAP'
  */
-export type PointsEventEarnType = 'SWAP' | 'PERPS';
+export type PointsEventEarnType =
+  | 'SWAP'
+  | 'PERPS'
+  | 'REFERRAL'
+  | 'SIGN_UP_BONUS'
+  | 'LOYALTY_BONUS'
+  | 'ONE_TIME_BONUS';
+
+export interface GetPointsEventsDto {
+  seasonId: string;
+  subscriptionId: string;
+  cursor: string | null;
+}
+
+/**
+ * Paginated list of points events
+ */
+export interface PaginatedPointsEventsDto {
+  has_more: boolean;
+  cursor: string | null;
+  total_results: number;
+  results: PointsEventDto[];
+}
+
+/**
+ * Asset information for events
+ */
+export interface EventAssetDto {
+  /**
+   * Amount of the token as a string
+   * @example '1000000000000000000'
+   */
+  amount: string;
+
+  /**
+   * CAIP-19 asset type
+   * @example 'eip155:1/slip44:60'
+   */
+  type: string;
+
+  /**
+   * Decimals of the token
+   * @example 18
+   */
+  decimals: number;
+
+  /**
+   * Name of the token
+   * @example 'Ethereum'
+   */
+  name?: string;
+
+  /**
+   * Symbol of the token
+   * @example 'ETH'
+   */
+  symbol?: string;
+
+  /**
+   * Icon URL of the token
+   * @example 'https://example.com/icon.png'
+   */
+  iconUrl?: string;
+}
+
+/**
+ * Swap event payload
+ */
+export interface SwapEventPayload {
+  /**
+   * Source asset details
+   */
+  srcAsset: EventAssetDto;
+
+  /**
+   * Destination asset details
+   */
+  destAsset?: EventAssetDto;
+
+  /**
+   * Transaction hash
+   * @example '0x.......'
+   */
+  txHash?: string;
+}
+
+/**
+ * PERPS event payload
+ */
+export interface PerpsEventPayload {
+  /**
+   * Type of the PERPS event
+   * @example 'OPEN_POSITION'
+   */
+  type: 'OPEN_POSITION' | 'CLOSE_POSITION' | 'TAKE_PROFIT' | 'STOP_LOSS';
+
+  /**
+   * Direction of the position
+   * @example 'LONG'
+   */
+  direction?: 'LONG' | 'SHORT';
+
+  /**
+   * Asset information
+   */
+  asset: EventAssetDto;
+}
+
+/**
+ * Base points event interface
+ */
+interface BasePointsEventDto {
+  /**
+   * ID of the point earning activity
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  id: string;
+
+  /**
+   * Timestamp of the point earning activity
+   * @example '2021-01-01T00:00:00.000Z'
+   */
+  timestamp: Date;
+
+  /**
+   * Value of the point earning activity
+   * @example 100
+   */
+  value: number;
+
+  /**
+   * Bonus of the point earning activity
+   * @example {}
+   */
+  bonus: {
+    bips?: number | null;
+    bonuses?: string[] | null;
+  } | null;
+
+  /**
+   * Account address of the point earning activity
+   * @example '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+   */
+  accountAddress: string | null;
+}
+
+/**
+ * Points event with discriminated union for payloads
+ */
+export type PointsEventDto = BasePointsEventDto &
+  (
+    | {
+        type: 'SWAP';
+        payload: SwapEventPayload | null;
+      }
+    | {
+        type: 'PERPS';
+        payload: PerpsEventPayload | null;
+      }
+    | {
+        type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
+        payload: null;
+      }
+  );
 
 export interface EstimatePointsDto {
   /**
@@ -205,16 +393,17 @@ export type SeasonStatusState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
-  hasOptedIn: boolean;
+  hasOptedIn?: boolean;
   subscriptionId: string | null;
-  lastAuthTime: number;
+  lastCheckedAuth: number;
+  lastCheckedAuthError: boolean;
   perpsFeeDiscount: number | null;
   lastPerpsDiscountRateFetched: number | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
-  lastAuthenticatedAccount: RewardsAccountState | null;
+  activeAccount: RewardsAccountState | null;
   accounts: { [account: CaipAccountId]: RewardsAccountState };
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
@@ -239,6 +428,14 @@ export interface Patch {
   op: 'replace' | 'add' | 'remove';
   path: string[];
   value?: unknown;
+}
+
+/**
+ * Action for updating state with opt-in response
+ */
+export interface RewardsControllerOptInAction {
+  type: 'RewardsController:optIn';
+  handler: (account: InternalAccount, referralCode?: string) => Promise<void>;
 }
 
 /**
@@ -268,11 +465,33 @@ export interface PerpsDiscountData {
 }
 
 /**
+ * Geo rewards metadata containing location and support info
+ */
+export interface GeoRewardsMetadata {
+  /**
+   * The geographic location string (e.g., 'US', 'CA-ON', 'FR')
+   */
+  geoLocation: string;
+  /**
+   * Whether the location is allowed for opt-in
+   */
+  optinAllowedForGeo: boolean;
+}
+
+/**
  * Action for getting whether the account (caip-10 format) has opted in
  */
 export interface RewardsControllerGetHasAccountOptedInAction {
   type: 'RewardsController:getHasAccountOptedIn';
   handler: (account: CaipAccountId) => Promise<boolean>;
+}
+
+/**
+ * Action for getting points events for a given season
+ */
+export interface RewardsControllerGetPointsEventsAction {
+  type: 'RewardsController:getPointsEvents';
+  handler: (params: GetPointsEventsDto) => Promise<PaginatedPointsEventsDto>;
 }
 
 /**
@@ -321,13 +540,44 @@ export interface RewardsControllerGetReferralDetailsAction {
 }
 
 /**
+ * Action for logging out a user
+ */
+export interface RewardsControllerLogoutAction {
+  type: 'RewardsController:logout';
+  handler: () => Promise<void>;
+}
+
+/**
+ * Action for getting geo rewards metadata
+ */
+export interface RewardsControllerGetGeoRewardsMetadataAction {
+  type: 'RewardsController:getGeoRewardsMetadata';
+  handler: () => Promise<GeoRewardsMetadata>;
+}
+
+/**
+ * Action for validating referral codes
+ */
+export interface RewardsControllerValidateReferralCodeAction {
+  type: 'RewardsController:validateReferralCode';
+  handler: (code: string) => Promise<boolean>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
   | ControllerGetStateAction<'RewardsController', RewardsControllerState>
   | RewardsControllerGetHasAccountOptedInAction
+  | RewardsControllerGetPointsEventsAction
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction
   | RewardsControllerGetSeasonStatusAction
-  | RewardsControllerGetReferralDetailsAction;
+  | RewardsControllerGetReferralDetailsAction
+  | RewardsControllerOptInAction
+  | RewardsControllerLogoutAction
+  | RewardsControllerGetGeoRewardsMetadataAction
+  | RewardsControllerValidateReferralCodeAction;
+
+export const CURRENT_SEASON_ID = 'current';

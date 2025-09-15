@@ -4,7 +4,6 @@ import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
 import { SwapsViewSelectorsIDs } from '../../e2e/selectors/swaps/SwapsView.selectors';
-import { QuoteViewSelectorText as BridgeQuotesSelectorText } from '../../e2e/selectors/Bridge/QuoteView.selectors';
 
 class SwapScreen {
   get device() {
@@ -47,7 +46,7 @@ class SwapScreen {
     else{
       const element = await this.quoteDisplayed; // bridge swap view shows on 
       await appwrightExpect(element).toBeVisible({ timeout: 10000 });
-      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, BridgeQuotesSelectorText.FEE_DISCLAIMER);
+      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, QuoteViewSelectorText.FEE_DISCLAIMER);
       await appwrightExpect(mmFee).toBeVisible({ timeout: 10000 });
     }
 

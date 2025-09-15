@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import DestinationAccountSelector from './index';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 
 // Test-specific state type for mock selectors
 interface MockState {
@@ -155,25 +156,32 @@ jest.mock('../../../../../selectors/bridge', () => ({
 // Mock the account tree controller selectors
 jest.mock(
   '../../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectAccountGroups: (state: MockState) =>
-      state.engine?.backgroundState?.AccountTreeController?.accountTree
-        ?.accountGroups
-        ? Object.values(
-            state.engine.backgroundState.AccountTreeController.accountTree
-              .accountGroups,
-          )
-        : [],
-    selectSelectedAccountGroup: (state: MockState) => {
-      const selectedId =
+  () => {
+    const actual = jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    );
+
+    return {
+      ...actual,
+      selectAccountGroups: (state: MockState) =>
         state.engine?.backgroundState?.AccountTreeController?.accountTree
-          ?.selectedAccountGroupId;
-      const accountGroups =
-        state.engine?.backgroundState?.AccountTreeController?.accountTree
-          ?.accountGroups;
-      return selectedId && accountGroups ? accountGroups[selectedId] : null;
-    },
-  }),
+          ?.accountGroups
+          ? Object.values(
+              state.engine.backgroundState.AccountTreeController.accountTree
+                .accountGroups,
+            )
+          : [],
+      selectSelectedAccountGroup: (state: MockState) => {
+        const selectedId =
+          state.engine?.backgroundState?.AccountTreeController?.accountTree
+            ?.selectedAccountGroupId;
+        const accountGroups =
+          state.engine?.backgroundState?.AccountTreeController?.accountTree
+            ?.accountGroups;
+        return selectedId && accountGroups ? accountGroups[selectedId] : null;
+      },
+    };
+  },
 );
 
 // Mock the feature flag selector
@@ -208,7 +216,7 @@ describe('DestinationAccountSelector', () => {
         destAddress: '0x1234567890123456789012345678901234567890',
       },
       settings: {
-        useBlockieIcon: false,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       ...storeState,
     });
@@ -247,7 +255,7 @@ describe('DestinationAccountSelector', () => {
   it('uses blockie icon when blockie setting is enabled', () => {
     const { getByTestId } = renderComponent({
       settings: {
-        useBlockieIcon: true,
+        avatarAccountType: AvatarAccountType.Blockies,
       },
     });
     const avatar = getByTestId('cellbase-avatar');

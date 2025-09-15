@@ -72,7 +72,7 @@ export const PERPS_CHART_CONFIG = {
     MIN: 10, // Minimum candles to display (zoomed in)
     DEFAULT: 45, // Default candles to display
     MAX: 250, // Maximum candles to display (zoomed out)
-    TOTAL: 2000, // Total candles to load in memory
+    TOTAL: 500, // Total candles to load in memory (reduced for better performance)
   },
   // Default candle period settings
   DEFAULT_CANDLE_PERIOD: CandlePeriod.THREE_MINUTES,
@@ -176,7 +176,6 @@ export const CANDLE_PERIODS = [
   { label: '1d', value: CandlePeriod.ONE_DAY },
   { label: '2d', value: CandlePeriod.THREE_DAYS },
   { label: '7d', value: CandlePeriod.ONE_WEEK },
-  { label: '30d', value: CandlePeriod.ONE_MONTH },
 ] as const;
 
 /**
@@ -275,7 +274,7 @@ export const calculateCandleCount = (
   // Calculate number of candles needed
   const candleCount = Math.ceil(durationInMinutes / periodInMinutes);
 
-  // Cap at 2000 candles max for memory management
+  // Cap at 500 candles max for memory management
   // Allow minimum of 10 candles for basic functionality
   return Math.min(
     Math.max(candleCount, 10),

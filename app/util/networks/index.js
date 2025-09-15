@@ -662,7 +662,8 @@ export const isPerDappSelectedNetworkEnabled = () => true;
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isRemoveGlobalNetworkSelectorEnabled = () => true;
+export const isRemoveGlobalNetworkSelectorEnabled = () =>
+  process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {
@@ -671,6 +672,16 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
   [ChainId['monad-testnet']]: 'Monad Testnet',
   [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HyperEVM',
+};
+
+// Whitelisted symbols for specific chain IDs to prevent showing warnings on Network Settings.
+export const WHITELIST_SYMBOL = {
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HYPE',
+};
+
+export const WHITELIST_NETWORK_RPC_URL = {
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz',
 };
 
 /**
@@ -686,3 +697,55 @@ export const WHILELIST_NETWORK_NAME = {
  */
 export const isValidNetworkName = (chainId, networkName, nickname) =>
   networkName === nickname || WHILELIST_NETWORK_NAME[chainId] === nickname;
+
+/**
+ * Checks if the symbol is whitelisted for the given chain ID.
+ * This function allows for specific symbols for certain chain IDs.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @param {string} symbol - The symbol to check.
+ * @returns {boolean} - Whether the symbol is whitelisted for the given chain ID.
+ */
+export const isWhitelistedSymbol = (chainId, symbol) => {
+  if (!chainId || !symbol) {
+    return false;
+  }
+
+  return WHITELIST_SYMBOL[chainId]?.toLowerCase() === symbol.toLowerCase();
+};
+
+/**
+ * Checks if the RPC URL is whitelisted for the given chain ID.
+ * This function allows for specific RPC URLs for certain chain IDs.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @param {string} rpcUrl - The RPC URL to check.
+ * @returns {boolean} - Whether the RPC URL is whitelisted for the given chain ID.
+ */
+export const isWhitelistedRpcUrl = (chainId, rpcUrl) => {
+  if (!chainId || !rpcUrl) {
+    return false;
+  }
+
+  return (
+    WHITELIST_NETWORK_RPC_URL[chainId]?.toLowerCase() === rpcUrl.toLowerCase()
+  );
+};
+
+/**
+ * Checks if the network name is whitelisted for the given chain ID.
+ * This function allows for specific network names for certain chain IDs.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @param {string} networkName - The network name to check.
+ * @returns {boolean} - Whether the network name is whitelisted for the given chain ID.
+ */
+export const isWhitelistedNetworkName = (chainId, networkName) => {
+  if (!chainId || !networkName) {
+    return false;
+  }
+
+  return (
+    WHILELIST_NETWORK_NAME[chainId]?.toLowerCase() === networkName.toLowerCase()
+  );
+};

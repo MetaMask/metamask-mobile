@@ -7,21 +7,39 @@ import type {
   EstimatedPointsDto,
   GetPerpsDiscountDto,
   PerpsDiscountData,
+  LoginDto,
   SeasonStatusDto,
+  GenerateChallengeDto,
+  ChallengeResponseDto,
   SubscriptionReferralDetailsDto,
+  PaginatedPointsEventsDto,
+  GetPointsEventsDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
+import Logger from '../../../../../util/Logger';
+import { successfulFetch } from '@metamask/controller-utils';
 
 const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
+// Geolocation URLs for different environments
+const GEOLOCATION_URLS = {
+  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+};
+
 // Auth endpoint action types
 
 export interface RewardsDataServiceLoginAction {
   type: `${typeof SERVICE_NAME}:login`;
   handler: RewardsDataService['login'];
+}
+
+export interface RewardsDataServiceGetPointsEventsAction {
+  type: `${typeof SERVICE_NAME}:getPointsEvents`;
+  handler: RewardsDataService['getPointsEvents'];
 }
 
 export interface RewardsDataServiceEstimatePointsAction {
@@ -32,6 +50,20 @@ export interface RewardsDataServiceEstimatePointsAction {
 export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
+}
+export interface RewardsDataServiceOptinAction {
+  type: `${typeof SERVICE_NAME}:optin`;
+  handler: RewardsDataService['optin'];
+}
+
+export interface RewardsDataServiceLogoutAction {
+  type: `${typeof SERVICE_NAME}:logout`;
+  handler: RewardsDataService['logout'];
+}
+
+export interface RewardsDataServiceGenerateChallengeAction {
+  type: `${typeof SERVICE_NAME}:generateChallenge`;
+  handler: RewardsDataService['generateChallenge'];
 }
 
 export interface RewardsDataServiceGetSeasonStatusAction {
@@ -44,12 +76,28 @@ export interface RewardsDataServiceGetReferralDetailsAction {
   handler: RewardsDataService['getReferralDetails'];
 }
 
+export interface RewardsDataServiceFetchGeoLocationAction {
+  type: `${typeof SERVICE_NAME}:fetchGeoLocation`;
+  handler: RewardsDataService['fetchGeoLocation'];
+}
+
+export interface RewardsDataServiceValidateReferralCodeAction {
+  type: `${typeof SERVICE_NAME}:validateReferralCode`;
+  handler: RewardsDataService['validateReferralCode'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
+  | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
-  | RewardsDataServiceGetReferralDetailsAction;
+  | RewardsDataServiceGetReferralDetailsAction
+  | RewardsDataServiceOptinAction
+  | RewardsDataServiceLogoutAction
+  | RewardsDataServiceGenerateChallengeAction
+  | RewardsDataServiceFetchGeoLocationAction
+  | RewardsDataServiceValidateReferralCodeAction;
 
 type AllowedActions = never;
 
@@ -98,6 +146,10 @@ export class RewardsDataService {
       this.login.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPointsEvents`,
+      this.getPointsEvents.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
       this.estimatePoints.bind(this),
     );
@@ -106,12 +158,32 @@ export class RewardsDataService {
       this.getPerpsDiscount.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optin`,
+      this.optin.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:logout`,
+      this.logout.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:generateChallenge`,
+      this.generateChallenge.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonStatus`,
       this.getSeasonStatus.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getReferralDetails`,
       this.getReferralDetails.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:fetchGeoLocation`,
+      this.fetchGeoLocation.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:validateReferralCode`,
+      this.validateReferralCode.bind(this),
     );
   }
 
@@ -218,6 +290,34 @@ export class RewardsDataService {
   }
 
   /**
+   * Get a list of points events for the season
+   * @param params - The request parameters containing
+   * @returns The list of points events DTO.
+   */
+  async getPointsEvents(
+    params: GetPointsEventsDto,
+  ): Promise<PaginatedPointsEventsDto> {
+    const { seasonId, subscriptionId, cursor } = params;
+
+    let url = `/seasons/${seasonId}/points-events`;
+    if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
+
+    const response = await this.makeRequest(
+      url,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get points events failed: ${response.status}`);
+    }
+
+    return (await response.json()) as PaginatedPointsEventsDto;
+  }
+
+  /**
    * Estimate points for a given activity.
    * @param body - The estimate points request body.
    * @returns The estimated points response DTO.
@@ -286,6 +386,62 @@ export class RewardsDataService {
   }
 
   /**
+   * Generate a challenge for authentication.
+   * @param body - The challenge request body containing the address.
+   * @returns The challenge response DTO.
+   */
+  async generateChallenge(
+    body: GenerateChallengeDto,
+  ): Promise<ChallengeResponseDto> {
+    const response = await this.makeRequest('/auth/challenge/generate', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Generate challenge failed: ${response.status}`);
+    }
+
+    return (await response.json()) as ChallengeResponseDto;
+  }
+
+  /**
+   * Perform optin (login) via challenge and signature.
+   * @param body - The login request body containing challengeId, signature, and optional referralCode.
+   * @returns The login response DTO.
+   */
+  async optin(body: LoginDto): Promise<LoginResponseDto> {
+    const response = await this.makeRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Optin failed: ${response.status}`);
+    }
+
+    return (await response.json()) as LoginResponseDto;
+  }
+
+  /**
+   * Perform logout for the current authenticated session.
+   * @param subscriptionId - The subscription ID to use for the authenticated request.
+   * @returns Promise that resolves when logout is complete.
+   */
+  async logout(subscriptionId?: string): Promise<void> {
+    const response = await this.makeRequest(
+      '/auth/logout',
+      {
+        method: 'POST',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Logout failed: ${response.status}`);
+    }
+  }
+
+  /**
    * Get season status for a specific season.
    * @param seasonId - The ID of the season to get status for.
    * @param subscriptionId - The subscription ID for authentication.
@@ -346,5 +502,50 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SubscriptionReferralDetailsDto;
+  }
+
+  /**
+   * Fetch geolocation information from MetaMask's geolocation service.
+   * Returns location in Country or Country-Region format (e.g., 'US', 'CA-ON', 'FR').
+   * @returns Promise<string> - The geolocation string or 'UNKNOWN' on failure.
+   */
+  async fetchGeoLocation(): Promise<string> {
+    let location = 'UNKNOWN';
+
+    try {
+      const environment = AppConstants.IS_DEV ? 'DEV' : 'PROD';
+      const response = await successfulFetch(GEOLOCATION_URLS[environment]);
+
+      if (!response.ok) {
+        return location;
+      }
+      location = await response?.text();
+      return location;
+    } catch (e) {
+      Logger.log('RewardsDataService: Failed to fetch geoloaction', e);
+      return location;
+    }
+  }
+
+  /**
+   * Validate a referral code.
+   * @param code - The referral code to validate.
+   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
+   */
+  async validateReferralCode(code: string): Promise<{ valid: boolean }> {
+    const response = await this.makeRequest(
+      `/referral/validate?code=${encodeURIComponent(code)}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to validate referral code. Please try again shortly.`,
+      );
+    }
+
+    return (await response.json()) as { valid: boolean };
   }
 }
