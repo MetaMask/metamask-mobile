@@ -1,7 +1,4 @@
 import React, { ReactNode } from 'react';
-import AnimatedSpinner, {
-  SpinnerSize,
-} from '../../../../../UI/AnimatedSpinner';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -44,8 +41,8 @@ export function BridgeFeeRow() {
   if (isQuotesLoading) {
     return (
       <>
-        <SkeletonRow />
-        <SkeletonRow />
+        <SkeletonRow testId="bridge-fee-row-skeleton" />
+        <SkeletonRow testId="metamask-fee-row-skeleton" />
       </>
     );
   }
@@ -57,18 +54,10 @@ export function BridgeFeeRow() {
         tooltip={getTooltip(type)}
         tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
       >
-        {isQuotesLoading ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
-          <Text>{totalTransactionFeeFormatted}</Text>
-        )}
+        <Text>{totalTransactionFeeFormatted}</Text>
       </InfoRow>
       <InfoRow label={strings('confirm.label.metamask_fee')}>
-        {isQuotesLoading ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
-          <Text>{fiatFormatter(new BigNumber(0))}</Text>
-        )}
+        <Text>{fiatFormatter(new BigNumber(0))}</Text>
       </InfoRow>
     </>
   );

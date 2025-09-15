@@ -9,7 +9,11 @@ import { Skeleton } from '../../../../../../component-library/components/Skeleto
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './skeleton-row.styles';
 
-export function SkeletonRow() {
+export interface SkeletonRowProps {
+  testId?: string;
+}
+
+export function SkeletonRow({ testId }: SkeletonRowProps) {
   const { styles } = useStyles(styleSheet, {});
 
   return (
@@ -18,6 +22,7 @@ export function SkeletonRow() {
       justifyContent={JustifyContent.spaceBetween}
       alignItems={AlignItems.center}
       style={styles.container}
+      testID={testId}
     >
       <Skeleton width={150} height={22} style={styles.skeleton} />
       <Skeleton width={100} height={22} style={styles.skeleton} />

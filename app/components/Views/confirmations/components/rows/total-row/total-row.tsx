@@ -22,7 +22,7 @@ export function TotalRow() {
   );
 
   if (isQuotesLoading) {
-    return <SkeletonRow />;
+    return <SkeletonRow testId="total-row-skeleton" />;
   }
 
   return (
