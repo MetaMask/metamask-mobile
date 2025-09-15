@@ -44,3 +44,31 @@ index ae19ca9..93fb576 100644
      /**
       * Enables all popular networks and Solana mainnet.
       *
+diff --git a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts
+index f46abd3..0147f3a 100644
+--- a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts
++++ b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts
+@@ -83,6 +83,23 @@ export declare class NetworkEnablementController extends BaseController<typeof c
+      * - A CAIP-2 chain ID (e.g., 'eip155:1' for Ethereum mainnet, 'solana:mainnet' for Solana)
+      */
+     enableNetwork(chainId: Hex | CaipChainId): void;
++    /**
++     * Enables a network for the user within a specific namespace.
++     *
++     * This method accepts either a Hex chain ID (for EVM networks) or a CAIP-2 chain ID
++     * (for any blockchain network) and enables it within the specified namespace.
++     * The method validates that the chainId belongs to the specified namespace for safety.
++     *
++     * Before enabling the target network, this method disables all other networks
++     * in the same namespace to ensure exclusive behavior within the namespace.
++     *
++     * @param chainId - The chain ID of the network to enable. Can be either:
++     * - A Hex string (e.g., '0x1' for Ethereum mainnet) for EVM networks
++     * - A CAIP-2 chain ID (e.g., 'eip155:1' for Ethereum mainnet, 'solana:mainnet' for Solana)
++     * @param namespace - The CAIP namespace where the network should be enabled
++     * @throws Error if the chainId's derived namespace doesn't match the provided namespace
++     */
++    enableNetworkInNamespace(chainId: Hex | CaipChainId, namespace: CaipNamespace): void;
+     /**
+      * Enables all popular networks and Solana mainnet.
+      *

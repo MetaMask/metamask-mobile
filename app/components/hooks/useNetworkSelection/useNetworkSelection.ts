@@ -15,6 +15,7 @@ import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../select
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
@@ -68,6 +69,10 @@ export const useNetworkSelection = ({
     selectPopularNetworkConfigurationsByCaipChainId,
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const internalAccounts = useSelector(selectInternalAccounts);
+  ///: END:ONLY_INCLUDE_IF
+
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
@@ -97,6 +102,16 @@ export const useNetworkSelection = ({
       ),
     [currentEnabledNetworks, popularNetworkChainIds],
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const bitcoinInternalAccounts = useMemo(
+    () =>
+      internalAccounts.filter((account) =>
+        account.type.includes(KnownCaipNamespace.Bip122),
+      ),
+    [internalAccounts],
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
@@ -141,6 +156,9 @@ export const useNetworkSelection = ({
       MultichainNetworkController,
       isMultichainAccountsState2Enabled,
       NetworkController,
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      bitcoinInternalAccounts,
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
     ],
   );
 
@@ -189,6 +207,9 @@ export const useNetworkSelection = ({
       isMultichainAccountsState2Enabled,
       MultichainNetworkController,
       NetworkController,
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      bitcoinInternalAccounts,
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
     ],
   );
 
