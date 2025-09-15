@@ -633,10 +633,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "transactions": [],
       },
       "UserStorageController": {
-        "hasAccountSyncingSyncedAtLeastOnce": false,
         "isAccountSyncingEnabled": true,
-        "isAccountSyncingInProgress": false,
-        "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
         "isContactSyncingEnabled": true,
@@ -1263,10 +1260,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "transactions": [],
       },
       "UserStorageController": {
-        "hasAccountSyncingSyncedAtLeastOnce": false,
         "isAccountSyncingEnabled": true,
-        "isAccountSyncingInProgress": false,
-        "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
         "isContactSyncingEnabled": true,
