@@ -110,7 +110,7 @@ export const DEFAULT_MOCKS = {
           sendBundle: false,
         },
         '1329': {
-          name: 'Sei Mainnet',
+          name: 'Sei',
           group: 'sei',
           chainID: 1329,
           nativeCurrency: {

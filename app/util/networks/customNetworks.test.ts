@@ -17,7 +17,7 @@ describe('popularNetwork', () => {
       Palm: toHex('11297108109'),
       'Polygon Mainnet': toHex('137'),
       'zkSync Mainnet': toHex('324'),
-      'Sei Mainnet': toHex('1329'),
+      Sei: toHex('1329'),
     };
 
     PopularList.forEach((rpc) => {

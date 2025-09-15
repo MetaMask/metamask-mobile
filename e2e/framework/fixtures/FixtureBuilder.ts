@@ -1150,7 +1150,7 @@ class FixtureBuilder {
       CHAIN_IDS.AVALANCHE, // Avalanche
       CHAIN_IDS.BASE, // Base
       CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
-      CHAIN_IDS.SEI, // Sei Mainnet
+      CHAIN_IDS.SEI, // Sei
     ];
 
     // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER

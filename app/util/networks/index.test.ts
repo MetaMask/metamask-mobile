@@ -826,7 +826,7 @@ describe('network-utils', () => {
       },
       {
         chainId: NETWORKS_CHAIN_ID.SEI,
-        name: 'Sei Mainnet',
+        name: 'Sei',
         nickname: WHILELIST_NETWORK_NAME[NETWORKS_CHAIN_ID.SEI],
       },
     ])(
@@ -980,7 +980,7 @@ describe('network-utils', () => {
         { chainId: ChainId['linea-mainnet'], networkName: 'Linea Mainnet' },
         { chainId: ChainId['megaeth-testnet'], networkName: 'Mega Testnet' },
         { chainId: ChainId['monad-testnet'], networkName: 'Monad Testnet' },
-        { chainId: NETWORKS_CHAIN_ID.SEI, networkName: 'Sei Mainnet' },
+        { chainId: NETWORKS_CHAIN_ID.SEI, networkName: 'Sei' },
         { chainId: NETWORKS_CHAIN_ID.HYPER_EVM, networkName: 'HyperEVM' },
       ];
 
