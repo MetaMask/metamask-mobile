@@ -32,7 +32,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
+import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -93,7 +93,7 @@ class AuthenticationService {
     },
   ): Promise<void> {
     if (options.clearAccountTreePersistedMetadataAndSyncingState) {
-      AccountTreeInitService.clearPersistedMetadataAndSyncingState();
+      AccountTreeInitService.clearState();
     }
     await AccountTreeInitService.initializeAccountTree();
     const { MultichainAccountService } = Engine.context;
@@ -223,9 +223,7 @@ class AuthenticationService {
     entropySource?: EntropySourceId,
   ): Promise<void> => {
     await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAndCreateAccounts(
-        entropySource ?? this.getPrimaryEntropySourceId(),
-      );
+      await discoverAccounts(entropySource ?? this.getPrimaryEntropySourceId());
     });
   };
 

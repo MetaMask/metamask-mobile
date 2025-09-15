@@ -22,7 +22,7 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
-import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
+import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
 
@@ -137,7 +137,7 @@ export async function importNewSecretRecoveryPhrase(
   if (isMultichainAccountsState2Enabled()) {
     // Use try/catch here, add `addDiscoveredAccounts` also handles errors gracefully.
     try {
-      discoveredAccountsCount = await discoverAndCreateAccounts(newKeyring.id);
+      discoveredAccountsCount = await discoverAccounts(newKeyring.id);
     } catch (error) {
       captureException(
         new Error(`Unable to discover and create accounts: ${error}`),
