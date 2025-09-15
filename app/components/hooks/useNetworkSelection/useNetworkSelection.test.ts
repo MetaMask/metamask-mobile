@@ -201,7 +201,6 @@ describe('useNetworkSelection', () => {
       expect(result.current).toHaveProperty('selectPopularNetwork');
       expect(result.current).toHaveProperty('selectNetwork');
       expect(result.current).toHaveProperty('deselectAll');
-      expect(result.current).toHaveProperty('resetCustomNetworks');
       expect(result.current).toHaveProperty('customNetworksToReset');
     });
 
@@ -214,7 +213,6 @@ describe('useNetworkSelection', () => {
       expect(typeof result.current.selectPopularNetwork).toBe('function');
       expect(typeof result.current.selectNetwork).toBe('function');
       expect(typeof result.current.deselectAll).toBe('function');
-      expect(typeof result.current.resetCustomNetworks).toBe('function');
     });
 
     it('calculates customNetworksToReset correctly', () => {
@@ -457,63 +455,6 @@ describe('useNetworkSelection', () => {
 
       expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:137');
       expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:13881');
-    });
-  });
-
-  describe('resetCustomNetworks', () => {
-    it('disables all custom networks when no excludeChainId is provided', () => {
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-      result.current.resetCustomNetworks();
-
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:13881');
-    });
-
-    it('disables custom networks except the excluded one', () => {
-      const excludeChainId = 'eip155:13881' as CaipChainId;
-
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-      result.current.resetCustomNetworks(excludeChainId);
-
-      expect(mockDisableNetwork).not.toHaveBeenCalled();
-    });
-
-    it('does nothing when no custom networks exist', () => {
-      mockUseNetworkEnablement.mockReturnValue({
-        namespace: 'eip155',
-        enabledNetworksByNamespace: {
-          eip155: {
-            '0x1': true,
-            '0x89': false,
-          },
-        },
-        enabledNetworksForCurrentNamespace: {
-          '0x1': true,
-          '0x89': false,
-        },
-        networkEnablementController: {
-          enableNetwork: jest.fn(),
-          disableNetwork: jest.fn(),
-        } as unknown as ReturnType<
-          typeof useNetworkEnablement
-        >['networkEnablementController'],
-        enableNetwork: mockEnableNetwork,
-        disableNetwork: mockDisableNetwork,
-        enableAllPopularNetworks: mockEnableAllPopularNetworks,
-        isNetworkEnabled: jest.fn(),
-        hasOneEnabledNetwork: false,
-        tryEnableEvmNetwork: jest.fn(),
-      });
-
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-      result.current.resetCustomNetworks();
-
-      expect(mockDisableNetwork).not.toHaveBeenCalled();
     });
   });
 
@@ -765,7 +706,6 @@ describe('useNetworkSelection', () => {
 
       await result.current.selectPopularNetwork(solanaMainnet);
 
-      // Should call disableNetwork for custom networks (resetCustomNetworks)
       expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:13881');
       expect(mockDisableNetwork).not.toHaveBeenCalledWith(solanaMainnet);
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
@@ -912,7 +852,6 @@ describe('useNetworkSelection', () => {
         selectPopularNetwork: expect.any(Function),
         selectNetwork: expect.any(Function),
         deselectAll: expect.any(Function),
-        resetCustomNetworks: expect.any(Function),
         customNetworksToReset: ['eip155:13881'],
         selectAllPopularNetworks: expect.any(Function),
       });

@@ -123,7 +123,6 @@ export const useNetworkSelection = ({
   const selectPopularNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
       await enableNetwork(chainId);
-      // await resetCustomNetworks();
       if (isMultichainAccountsState2Enabled && chainId === SolScope.Mainnet) {
         try {
           await MultichainNetworkController.setActiveNetwork(chainId);
