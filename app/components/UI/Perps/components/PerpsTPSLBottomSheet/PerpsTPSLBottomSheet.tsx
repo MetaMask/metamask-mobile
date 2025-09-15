@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -180,6 +181,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     handleTakeProfitPercentageChange,
     handleStopLossPriceChange,
     handleStopLossPercentageChange,
+    handleTakeProfitPriceBlur,
+    handleTakeProfitPercentageBlur,
+    handleStopLossPriceBlur,
+    handleStopLossPercentageBlur,
   } = tpslForm.handlers;
 
   const {
@@ -294,8 +299,25 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   }, []);
 
   const handleInputBlur = useCallback(() => {
+    // Call the appropriate original blur handler based on which input was focused
+    if (focusedInput === 'takeProfitPrice') {
+      handleTakeProfitPriceBlur();
+    } else if (focusedInput === 'takeProfitPercentage') {
+      handleTakeProfitPercentageBlur();
+    } else if (focusedInput === 'stopLossPrice') {
+      handleStopLossPriceBlur();
+    } else if (focusedInput === 'stopLossPercentage') {
+      handleStopLossPercentageBlur();
+    }
+
     setFocusedInput(null);
-  }, []);
+  }, [
+    focusedInput,
+    handleTakeProfitPriceBlur,
+    handleTakeProfitPercentageBlur,
+    handleStopLossPriceBlur,
+    handleStopLossPercentageBlur,
+  ]);
 
   // Show overlay if updating
   const showOverlay = isUpdating;
@@ -311,7 +333,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       onClose={handleClose}
       testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          style: {
+            paddingRight: Platform.OS === 'android' ? 24 : 0,
+          },
+        }}
+      >
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.tpsl.title')}
         </Text>
@@ -447,7 +476,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('takeProfitPrice')}
-                  onBlur={handleInputBlur}
+                  onBlur={() => {
+                    handleTakeProfitPriceBlur();
+                    handleInputBlur();
+                  }}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
@@ -478,7 +510,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('takeProfitPercentage')}
-                  onBlur={handleInputBlur}
+                  onBlur={() => {
+                    handleTakeProfitPercentageBlur();
+                    handleInputBlur();
+                  }}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
@@ -570,7 +605,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('stopLossPrice')}
-                  onBlur={handleInputBlur}
+                  onBlur={() => {
+                    handleStopLossPriceBlur();
+                    handleInputBlur();
+                  }}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
@@ -601,7 +639,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
                   onFocus={() => handleInputFocus('stopLossPercentage')}
-                  onBlur={handleInputBlur}
+                  onBlur={() => {
+                    handleStopLossPercentageBlur();
+                    handleInputBlur();
+                  }}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
