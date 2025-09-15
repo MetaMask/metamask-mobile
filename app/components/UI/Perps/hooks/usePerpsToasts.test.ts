@@ -379,40 +379,118 @@ describe('usePerpsToasts', () => {
           result.current.PerpsToastOptions.positionManagement.closePosition
             .marketClose.full.closeFullPositionSuccess;
 
-        expect(config.labelOptions).toContainEqual({
-          label: 'Position closed',
-          isBold: true,
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
         });
+        expect(config.labelOptions).toEqual([
+          { label: 'Position closed', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Funds are available to trade', isBold: false },
+        ]);
       });
 
-      it('returns partial position close configurations', () => {
+      it('returns close full position failed configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
-        const marketConfig =
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .marketClose.full.closeFullPositionFailed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to close position', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your position is still active', isBold: false },
+        ]);
+      });
+
+      it('returns partial position close in progress configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
           result.current.PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionInProgress(
             'short',
             '-0.5',
             'BTC',
           );
-        const limitConfig =
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'Partially closing position',
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'short 0.5 BTC',
+          isBold: false,
+        });
+        expect(config.startAccessory).toBeDefined();
+      });
+
+      it('returns partial position close success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .marketClose.partial.closePartialPositionSuccess;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Position partially closed', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Funds are available to trade', isBold: false },
+        ]);
+      });
+
+      it('returns partial position close failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .marketClose.partial.closePartialPositionFailed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to partially close position', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your position is still active', isBold: false },
+        ]);
+      });
+
+      it('returns limit close partial position submitted configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
           result.current.PerpsToastOptions.positionManagement.closePosition.limitClose.partial.partialPositionCloseSubmitted(
             'long',
             '1.0',
             'ETH',
           );
 
-        expect(marketConfig.labelOptions).toContainEqual({
-          label: 'Partially closing position',
-          isBold: true,
-        });
-        expect(marketConfig.startAccessory).toBeDefined();
-        expect(marketConfig).toMatchObject({
+        expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
         });
-        expect(limitConfig.labelOptions).toContainEqual({
+        expect(config.labelOptions).toContainEqual({
           label: 'Partial close submitted',
           isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'long 1 ETH',
+          isBold: false,
         });
       });
     });

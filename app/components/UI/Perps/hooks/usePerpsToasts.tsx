@@ -94,6 +94,7 @@ export interface PerpsToastOptionsConfig {
             assetSymbol: string,
           ) => PerpsToastOptions;
           closeFullPositionSuccess: PerpsToastOptions;
+          closeFullPositionFailed: PerpsToastOptions;
         };
         partial: {
           closePartialPositionInProgress: (
@@ -101,6 +102,8 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          closePartialPositionSuccess: PerpsToastOptions;
+          closePartialPositionFailed: PerpsToastOptions;
         };
       };
       limitClose: {
@@ -531,6 +534,13 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.funds_are_available_to_trade'),
                 ),
               },
+              closeFullPositionFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.failed_to_close_position'),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
             },
             partial: {
               closePartialPositionInProgress: (
@@ -560,6 +570,22 @@ const usePerpsToasts = (): {
                     subtext,
                   ),
                 };
+              },
+              closePartialPositionSuccess: {
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.position_partially_closed'),
+                  strings('perps.close_position.funds_are_available_to_trade'),
+                ),
+              },
+              closePartialPositionFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.failed_to_partially_close_position',
+                  ),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
               },
             },
           },
