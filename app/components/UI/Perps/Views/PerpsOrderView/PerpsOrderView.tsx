@@ -377,6 +377,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         );
       },
       onError: (error) => {
+        // Error is already captured in usePerpsOrderExecution hook
+        // No need to capture again here to avoid duplicate Sentry reports
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].creationFailed(
             error,
