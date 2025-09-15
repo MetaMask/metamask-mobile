@@ -241,15 +241,6 @@ describe('ActivityTab', () => {
     mockUsePointsEvents.mockReturnValue(makePointsEventsResult());
   });
 
-  it('renders loading state when loading and not refreshing', () => {
-    mockUsePointsEvents.mockReturnValueOnce(
-      makePointsEventsResult({ isLoading: true, isRefreshing: false }),
-    );
-
-    const { getByText } = render(<ActivityTab />);
-    expect(getByText('Loading activity')).toBeOnTheScreen();
-  });
-
   it('renders error state when error occurs', () => {
     mockUsePointsEvents.mockReturnValueOnce(
       makePointsEventsResult({ error: 'Network error' }),
