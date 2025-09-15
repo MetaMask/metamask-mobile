@@ -422,7 +422,9 @@ class PerpsConnectionManagerClass {
               connectionContext: {
                 provider: 'hyperliquid',
                 timestamp: new Date().toISOString(),
-                isTestnet: this.isTestnet,
+                isTestnet:
+                  Engine.context.PerpsController?.getCurrentNetwork?.() ===
+                  'testnet',
               },
             },
           },
