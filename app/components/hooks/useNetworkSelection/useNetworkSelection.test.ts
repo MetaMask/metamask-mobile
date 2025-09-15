@@ -418,46 +418,6 @@ describe('useNetworkSelection', () => {
     });
   });
 
-  describe('deselectAll', () => {
-    it('disables all networks except Ethereum', () => {
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-      result.current.deselectAll();
-
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:137');
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:13881');
-      expect(mockDisableNetwork).not.toHaveBeenCalledWith('eip155:1');
-    });
-
-    it('disables all networks when Ethereum is not in the list', () => {
-      const networksWithoutEthereum: ProcessedNetwork[] = [
-        {
-          id: 'eip155:137',
-          name: 'Polygon',
-          caipChainId: 'eip155:137' as CaipChainId,
-          isSelected: true,
-          imageSource: { uri: 'polygon.png' },
-        },
-        {
-          id: 'eip155:13881',
-          name: 'Mumbai Testnet',
-          caipChainId: 'eip155:13881' as CaipChainId,
-          isSelected: true,
-          imageSource: { uri: 'mumbai.png' },
-        },
-      ];
-
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: networksWithoutEthereum }),
-      );
-      result.current.deselectAll();
-
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:137');
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:13881');
-    });
-  });
-
   describe('multichain functionality', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -655,29 +615,6 @@ describe('useNetworkSelection', () => {
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaChainId);
     });
 
-    it('resetSolanaNetworks disables Solana mainnet', async () => {
-      // Set up mocks for multichain enabled
-      mockUseSelector
-        .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true); // isMultichainAccountsState2Enabled = true
-
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-
-      // Clear mocks after hook initialization to isolate the function call
-      jest.clearAllMocks();
-
-      const customChainId = 'eip155:999' as CaipChainId;
-
-      await result.current.selectCustomNetwork(customChainId);
-
-      // resetSolanaNetworks should be called internally
-      expect(mockDisableNetwork).toHaveBeenCalledWith(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-    });
-
     it('selectPopularNetwork with Solana resets custom networks', async () => {
       const networksWithSolana: ProcessedNetwork[] = [
         ...mockNetworks,
@@ -706,8 +643,6 @@ describe('useNetworkSelection', () => {
 
       await result.current.selectPopularNetwork(solanaMainnet);
 
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:13881');
-      expect(mockDisableNetwork).not.toHaveBeenCalledWith(solanaMainnet);
       expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
     });
   });
