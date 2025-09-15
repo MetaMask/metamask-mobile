@@ -4184,4 +4184,61 @@ describe('HyperLiquidProvider', () => {
       ).not.toHaveBeenCalled();
     });
   });
+
+  describe('Additional Coverage Tests', () => {
+    it('should handle getUserFills with empty response', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFills: jest.fn().mockResolvedValue(null),
+      });
+
+      const result = await provider.getOrderFills();
+      expect(result).toEqual([]);
+    });
+
+    it('should handle getOrders with empty response', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        historicalOrders: jest.fn().mockResolvedValue(null),
+      });
+
+      const result = await provider.getOrders();
+      expect(result).toEqual([]);
+    });
+
+    it('should handle getFunding with empty response', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userFunding: jest.fn().mockResolvedValue(null),
+      });
+
+      const result = await provider.getFunding();
+      expect(result).toEqual([]);
+    });
+
+    it('should handle validateWithdrawal returning true', async () => {
+      const params = {
+        amount: '100',
+        destination: '0x123' as Hex,
+        assetId: 'eip155:1/native' as CaipAssetId,
+      };
+
+      const result = await provider.validateWithdrawal(params);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should handle clearFeeCache with specific user', () => {
+      const userAddress = '0x123';
+      provider.clearFeeCache(userAddress);
+      // Method should complete without error
+    });
+
+    it('should handle private method getUserVolume edge case', async () => {
+      // Access private method for edge case testing
+      interface ProviderWithPrivateMethods {
+        isFeeCacheValid(userAddress: string): boolean;
+      }
+      const testableProvider =
+        provider as unknown as ProviderWithPrivateMethods;
+      const result = testableProvider.isFeeCacheValid('0xnonexistent');
+      expect(result).toBe(false);
+    });
+  });
 });
