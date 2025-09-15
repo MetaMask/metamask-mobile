@@ -224,7 +224,15 @@ class AuthenticationService {
     if (isMultichainAccountsState2Enabled()) {
       // We just re-run the same discovery here. Each wallets know their highest group index and restart
       // the discovery from there, thus acting as a "retry".
-      await this.attemptMultichainAccountWalletDiscovery();
+      const allKeyringMetadata =
+        Engine.context.KeyringController.state.keyrings;
+      for (const keyringMetadata of allKeyringMetadata) {
+        if (keyringMetadata.type === KeyringTypes.hd) {
+          await this.attemptMultichainAccountWalletDiscovery(
+            keyringMetadata.metadata.id,
+          );
+        }
+      }
     } else {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
@@ -800,7 +808,9 @@ class AuthenticationService {
           // discover multichain accounts from imported srp
           if (isMultichainAccountsState2Enabled()) {
             // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
+            await this.attemptMultichainAccountWalletDiscovery(
+              keyringMetadata.id,
+            );
           } else {
             this.addMultichainAccounts([keyringMetadata]);
           }
@@ -1039,12 +1049,7 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        if (isMultichainAccountsState2Enabled()) {
-          for (const { id } of keyringMetadataList) {
-            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(id);
-          }
-        } else {
+        if (!isMultichainAccountsState2Enabled()) {
           this.addMultichainAccounts(keyringMetadataList);
         }
 
