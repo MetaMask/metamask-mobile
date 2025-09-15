@@ -86,7 +86,7 @@ const initialState = {
             name: 'Ethereum Mainnet',
           },
           '0x56': {
-            name: 'Binance Smart Chain',
+            name: 'BNB Chain',
           },
         },
       },

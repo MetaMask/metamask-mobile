@@ -274,7 +274,7 @@ describe('AssetOverview', () => {
       chainId: '0x38',
       logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
       symbol: 'BNB',
-      name: 'Binance smart chain',
+      name: 'BNB Chain',
       isETH: false,
       nativeCurrency: 'BNB',
       hasBalanceError: false,
@@ -304,7 +304,7 @@ describe('AssetOverview', () => {
                 ...mockNetworkState({
                   chainId: '0x38',
                   id: 'bsc',
-                  nickname: 'Binance Smart Chain',
+                  nickname: 'BNB Chain',
                   ticker: 'BNB',
                   blockExplorerUrl: 'https://bscscan.com',
                 }),

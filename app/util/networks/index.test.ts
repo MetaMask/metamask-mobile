@@ -209,7 +209,7 @@ describe('network-utils', () => {
         blockExplorerUrls: [],
         chainId: '0x38',
         defaultRpcEndpointIndex: 0,
-        name: 'Binance Smart Chain',
+        name: 'BNB Chain',
         nativeCurrency: 'BNB',
         rpcEndpoints: [
           {

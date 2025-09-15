@@ -20,7 +20,7 @@ export enum FIAT_ORDER_STATES {
 
 export const FORMATTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
-  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.BSC]: 'BNB Chain',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.AVAXCCHAIN]: 'Avalanche',
   [NETWORKS_CHAIN_ID.CELO]: 'Celo',

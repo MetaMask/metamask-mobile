@@ -70,7 +70,7 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
     await Assertions.expectElementToBeVisible(WalletView.container);
   });
 
-  it('should deep link to Binance Smart Chain & show a network not found error message', async () => {
+  it('should deep link to BNB Chain & show a network not found error message', async () => {
     await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
     await TestHelpers.delay(3000);
     await Assertions.expectTextDisplayed(networkNotFoundText);

@@ -49,7 +49,7 @@ describe('NetworkAssetLogo Component', () => {
 
   it('renders TokenIcon with ticker for non-mainnet chainId', () => {
     const props = {
-      chainId: '0x38', // Binance Smart Chain
+      chainId: '0x38', // BNB Chain
       ticker: 'BNB',
       style: { width: 40, height: 40 },
       big: false,
