@@ -12,6 +12,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import rewardsPlaceholder from '../../../../../../images/rewards/rewards-placeholder.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RewardItem } from './UpcomingRewards';
+import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 interface UnlockedRewardItemProps {
   reward: RewardDto;
@@ -60,7 +61,10 @@ const UnlockedRewards: React.FC = () => {
 
   if (!unlockedRewards.length) {
     return (
-      <Box twClassName="py-4">
+      <Box
+        twClassName="py-4"
+        testID={REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS_EMPTY}
+      >
         {/* Section Title */}
         <Box twClassName="mb-4">
           <Text variant={TextVariant.HeadingMd}>
@@ -83,7 +87,7 @@ const UnlockedRewards: React.FC = () => {
   }
 
   return (
-    <Box twClassName="py-4">
+    <Box twClassName="py-4" testID={REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS}>
       {/* Section Title */}
       <Box twClassName="mb-4">
         <Text variant={TextVariant.HeadingMd}>

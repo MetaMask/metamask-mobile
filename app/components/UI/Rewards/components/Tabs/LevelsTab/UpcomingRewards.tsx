@@ -49,6 +49,7 @@ export const RewardItem: React.FC<RewardItemProps> = ({
       {/* Reward Icon */}
       <Box
         twClassName={`h-12 w-12 rounded-full bg-[${brandColors.grey700}] items-center justify-center`}
+        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
       >
         <Icon
           name={getIconName(reward.iconName)}
@@ -59,10 +60,18 @@ export const RewardItem: React.FC<RewardItemProps> = ({
 
       {/* Reward Info */}
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} twClassName="text-text-default mb-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="text-text-default mb-1"
+          testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
+        >
           {reward.name}
         </Text>
-        <Text variant={TextVariant.BodySm} twClassName="text-text-alternative">
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="text-text-alternative"
+          testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}
+        >
           {reward.shortDescription}
         </Text>
       </Box>

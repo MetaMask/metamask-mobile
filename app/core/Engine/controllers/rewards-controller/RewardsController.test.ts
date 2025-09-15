@@ -4,13 +4,14 @@ import {
   getRewardsControllerDefaultState,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import type {
-  RewardsAccountState,
-  RewardsControllerState,
-  SeasonStatusState,
-  SeasonTierDto,
-  SeasonDtoState,
-  SubscriptionReferralDetailsState,
+import {
+  RewardClaimStatus,
+  type RewardsAccountState,
+  type RewardsControllerState,
+  type SeasonStatusState,
+  type SeasonTierDto,
+  type SeasonDtoState,
+  type SubscriptionReferralDetailsState,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 
@@ -957,6 +958,7 @@ describe('RewardsController', () => {
         subscriptionReferralDetails: {},
         seasonStatuses: {},
         activeBoosts: {},
+        unlockedRewards: {},
       });
     });
   });

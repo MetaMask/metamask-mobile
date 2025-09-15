@@ -18,5 +18,10 @@ export const REWARDS_VIEW_SELECTORS = {
   TIER_NAME: 'rewards-view-tier-name',
   TIER_POINTS_NEEDED: 'rewards-view-tier-points-needed',
   TIER_REWARDS: 'rewards-view-tier-rewards',
+  TIER_REWARD_ICON: 'rewards-view-tier-reward-icon',
+  TIER_REWARD_NAME: 'rewards-view-tier-reward-name',
+  TIER_REWARD_DESCRIPTION: 'rewards-view-tier-reward-description',
+  UNLOCKED_REWARDS: 'rewards-view-unlocked-rewards',
+  UNLOCKED_REWARDS_EMPTY: 'rewards-view-unlocked-rewards-empty',
   NOT_OPTED_IN_OVERLAY: 'rewards-view-not-opted-in-overlay',
 } as const;
