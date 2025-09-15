@@ -8,19 +8,19 @@ import {
 } from '../../../../../UI/Box/box.types';
 
 export const getFontSizeForInputLength = (contentLength: number) => {
-  if (contentLength < 10) {
+  if (contentLength <= 10) {
     return 60;
   }
-  if (contentLength < 12) {
+  if (contentLength <= 12) {
     return 48;
   }
-  if (contentLength < 18) {
+  if (contentLength <= 18) {
     return 32;
   }
-  if (contentLength < 24) {
+  if (contentLength <= 24) {
     return 24;
   }
-  if (contentLength < 32) {
+  if (contentLength <= 32) {
     return 18;
   }
   return 12;
@@ -29,14 +29,13 @@ export const getFontSizeForInputLength = (contentLength: number) => {
 export const styleSheet = (params: {
   theme: Theme;
   vars: {
-    inputLength: number;
+    contentLength: number;
     isNFT: boolean;
-    symbolLength: number;
   };
 }) => {
   const {
     theme,
-    vars: { inputLength, isNFT, symbolLength },
+    vars: { contentLength, isNFT },
   } = params;
   return StyleSheet.create({
     balanceSection: {
@@ -65,7 +64,7 @@ export const styleSheet = (params: {
       width: '100%',
     },
     inputText: {
-      fontSize: getFontSizeForInputLength(symbolLength + inputLength),
+      fontSize: getFontSizeForInputLength(contentLength),
       lineHeight: 75,
       fontWeight: '500',
     },

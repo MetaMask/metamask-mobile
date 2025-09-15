@@ -117,6 +117,7 @@ describe('useCurrencyConversions', () => {
       () => useCurrencyConversions(),
       mockState,
     );
+    expect(result.current.conversionSupportedForAsset).toBeDefined();
     expect(result.current.fiatCurrencySymbol).toBeDefined();
     expect(result.current.getFiatDisplayValue).toBeDefined();
     expect(result.current.getFiatValue).toBeDefined();

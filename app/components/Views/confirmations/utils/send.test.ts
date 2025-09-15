@@ -213,6 +213,11 @@ describe('formatToFixedDecimals', () => {
   it('remove trailing zeros', () => {
     expect(formatToFixedDecimals('1.0000')).toEqual('1');
   });
+  it('does not remove trailing zeros if trimTrailingZero is false', () => {
+    expect(formatToFixedDecimals('1.0000', 2, undefined, false)).toEqual(
+      '1.00',
+    );
+  });
   it('return `0` if value is equivalent to 0', () => {
     expect(formatToFixedDecimals('0.0000')).toEqual('0');
   });

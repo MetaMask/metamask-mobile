@@ -18,6 +18,7 @@ import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmount
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { SendContextProvider } from '../../../context/send-context';
 import { Amount } from './amount';
+import { getFontSizeForInputLength } from './amount.styles';
 
 jest.mock('../../../hooks/send/useCurrencyConversions');
 
@@ -134,6 +135,13 @@ describe('Amount', () => {
     expect(getByTestId('send_amount')).toBeTruthy();
   });
 
+  it('display default value of amount as placeholder', () => {
+    const { getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    fireEvent.press(getByTestId('fiat_toggle'));
+    expect(getByTestId('send_amount').children[0]).toEqual('0.00');
+  });
+
   it('asset passed in nav params should be used if present', () => {
     mockUseRoute.mockReturnValue({
       params: {
@@ -238,7 +246,15 @@ describe('Amount', () => {
     expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
   });
 
-  it('fiatmode is not avaialble for NFT', () => {
+  it('fiatmode toggling is not avaialble is conversion rate is not available for asset', () => {
+    mockUseCurrencyConversion.mockReturnValue({
+      conversionSupportedForAsset: false,
+      fiatCurrencySymbol: 'USD',
+      getFiatValue: '4500',
+      getFiatDisplayValue: () => '$ 4500.00',
+      getNativeValue: () => '1',
+    } as unknown as ReturnType<typeof useCurrencyConversions>);
+
     mockUseRoute.mockReturnValue({
       params: {
         asset: MOCK_NFT1155,
@@ -540,4 +556,16 @@ describe('Amount', () => {
   //   fireEvent.press(getByText('Continue'));
   //   expect(mockCaptureAmountSelected).toHaveBeenCalled();
   // });
+});
+
+describe('getFontSizeForInputLength', () => {
+  it('renders correct font size using input and symbol length', () => {
+    expect(getFontSizeForInputLength(1)).toEqual(60);
+    expect(getFontSizeForInputLength(10)).toEqual(60);
+    expect(getFontSizeForInputLength(12)).toEqual(48);
+    expect(getFontSizeForInputLength(18)).toEqual(32);
+    expect(getFontSizeForInputLength(24)).toEqual(24);
+    expect(getFontSizeForInputLength(32)).toEqual(18);
+    expect(getFontSizeForInputLength(40)).toEqual(12);
+  });
 });

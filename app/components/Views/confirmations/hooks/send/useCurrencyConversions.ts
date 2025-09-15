@@ -1,4 +1,5 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
+import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -148,7 +149,10 @@ export const useCurrencyConversions = () => {
   );
 
   return {
-    conversionSupportedForAsset: conversionRate * (exchangeRate ?? 0) !== 0,
+    conversionSupportedForAsset:
+      conversionRate * (exchangeRate ?? 0) !== 0 &&
+      asset?.standard !== ERC1155 &&
+      asset?.standard !== ERC721,
     fiatCurrencySymbol: currentCurrency?.toUpperCase(),
     getFiatDisplayValue,
     getFiatValue,

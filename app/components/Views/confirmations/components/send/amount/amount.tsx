@@ -20,6 +20,7 @@ import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../types/token';
+import { formatToFixedDecimals } from '../../../utils/send';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
@@ -29,7 +30,6 @@ import { useSendContext } from '../../../context/send-context';
 import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
-import { formatToFixedDecimals } from '../../../utils/send';
 
 export const Amount = () => {
   const primaryCurrency = useSelector(selectPrimaryCurrency);
@@ -50,9 +50,8 @@ export const Amount = () => {
     : (asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol;
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles } = useStyles(styleSheet, {
-    inputLength: amount.length,
+    contentLength: amount.length + assetDisplaySymbol.length,
     isNFT,
-    symbolLength: assetDisplaySymbol.length,
   });
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
@@ -148,7 +147,7 @@ export const Amount = () => {
             </Text>
           </View>
         </View>
-        {!isNFT && conversionSupportedForAsset && (
+        {conversionSupportedForAsset && (
           <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
             <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
             <ButtonIcon
