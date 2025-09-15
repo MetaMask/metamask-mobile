@@ -216,7 +216,10 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
-import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
+import {
+  getFailoverUrlsForInfuraNetwork,
+  NETWORK_CHAIN_ID,
+} from '../../util/networks/customNetworks';
 import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
@@ -383,6 +386,32 @@ export class Engine {
         ChainId['base-mainnet']
       ].rpcEndpoints[0].failoverUrls =
         getFailoverUrlsForInfuraNetwork('base-mainnet');
+
+      // Update network names to match migration 178 for new users
+      const chainsToRename = [
+        {
+          id: NETWORK_CHAIN_ID.MAINNET,
+          name: 'Ethereum',
+        },
+        {
+          id: NETWORK_CHAIN_ID.BASE,
+          name: 'Base',
+        },
+        {
+          id: NETWORK_CHAIN_ID.LINEA_MAINNET,
+          name: 'Linea',
+        },
+      ];
+
+      for (const chain of chainsToRename) {
+        if (
+          initialNetworkControllerState.networkConfigurationsByChainId[chain.id]
+        ) {
+          initialNetworkControllerState.networkConfigurationsByChainId[
+            chain.id
+          ].name = chain.name;
+        }
+      }
     }
 
     const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;

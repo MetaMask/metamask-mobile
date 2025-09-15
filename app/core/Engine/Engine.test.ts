@@ -709,4 +709,20 @@ describe('Engine', () => {
       expect.anything(),
     );
   });
+
+  it('ensures network names are updated for new users', () => {
+    // Create a state without NetworkController to simulate first-time setup
+    const initState = { ...backgroundState };
+    delete (initState as Partial<EngineState>).NetworkController;
+
+    const engine = Engine.init(initState);
+
+    const networkState = engine.context.NetworkController.state;
+    const networks = networkState.networkConfigurationsByChainId;
+
+    // Verify that network names have been updated for new users
+    expect(networks['0x1'].name).toBe('Ethereum');
+    expect(networks['0x2105'].name).toBe('Base');
+    expect(networks['0xe708'].name).toBe('Linea');
+  });
 });
