@@ -1300,8 +1300,10 @@ describe('PerpsTPSLBottomSheet', () => {
       // Assert
       expect(screen.getByTestId('keypad')).toBeOnTheScreen();
       expect(screen.getByTestId('keypad-value')).toHaveTextContent('25.50');
-      expect(screen.getByTestId('keypad-currency')).toHaveTextContent('USD');
-      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('2');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
     });
 
     it('shows keypad when stop loss price input is focused', () => {
@@ -1358,8 +1360,10 @@ describe('PerpsTPSLBottomSheet', () => {
       // Assert
       expect(screen.getByTestId('keypad')).toBeOnTheScreen();
       expect(screen.getByTestId('keypad-value')).toHaveTextContent('15.75');
-      expect(screen.getByTestId('keypad-currency')).toHaveTextContent('USD');
-      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('2');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
     });
 
     it('hides keypad when input loses focus', () => {
@@ -1556,7 +1560,7 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
     });
 
-    it('configures keypad with correct currency and decimals for percentage inputs', () => {
+    it('configures keypad with correct currency and decimals for all inputs', () => {
       // Arrange
       mockUsePerpsTPSLForm.mockReturnValue({
         ...defaultMockReturn,
@@ -1580,8 +1584,10 @@ describe('PerpsTPSLBottomSheet', () => {
       fireEvent(takeProfitPercentInput, 'focus');
 
       // Assert
-      expect(screen.getByTestId('keypad-currency')).toHaveTextContent('USD');
-      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('2');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
     });
   });
 

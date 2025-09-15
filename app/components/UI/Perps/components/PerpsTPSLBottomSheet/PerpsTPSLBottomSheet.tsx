@@ -680,18 +680,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 : formattedStopLossPercentage
             }
             onChange={handleKeypadChange}
-            currency={
-              focusedInput === 'takeProfitPercentage' ||
-              focusedInput === 'stopLossPercentage'
-                ? 'USD' // Use USD for percentage inputs to allow decimals
-                : 'USD_PERPS' // Use USD_PERPS for price inputs
-            }
-            decimals={
-              focusedInput === 'takeProfitPercentage' ||
-              focusedInput === 'stopLossPercentage'
-                ? 2 // Allow 2 decimal places for percentages
-                : 5 // Allow 5 decimal places for prices
-            }
+            // USD_PERPS is not a real currency - it's a custom configuration
+            // that allows 5 decimal places for crypto prices, overriding the
+            // default USD configuration which only allows 2 decimal places.
+            currency="USD_PERPS"
+            decimals={5}
           />
         </View>
       )}
