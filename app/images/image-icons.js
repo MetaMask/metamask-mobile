@@ -40,6 +40,7 @@ import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
 import AAVE from './aave-token-round.png';
+import CREDITCOIN from './creditcoin.png';
 
 export default {
   PALM,
@@ -86,4 +87,5 @@ export default {
   OMNI: OMNI_TOKEN,
   HL,
   FRAX,
+  CREDITCOIN,
 };
