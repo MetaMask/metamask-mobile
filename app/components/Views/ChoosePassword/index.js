@@ -40,7 +40,6 @@ import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-  USE_TERMS,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
