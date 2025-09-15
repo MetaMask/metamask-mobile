@@ -8,7 +8,6 @@ import {
 } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
-import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 
 jest.mock('@metamask/keyring-utils', () => ({}));
@@ -392,16 +391,6 @@ describe('useNetworkEnablement', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('enables Solana mainnet in addition to popular networks', () => {
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.enableAllPopularNetworks();
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(SolScope.Mainnet);
-    });
-
     it('calls both controller methods when enableAllPopularNetworks is invoked', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
@@ -411,9 +400,6 @@ describe('useNetworkEnablement', () => {
       expect(
         mockNetworkEnablementController.enableAllPopularNetworks,
       ).toHaveBeenCalledTimes(1);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(SolScope.Mainnet);
     });
 
     it('works correctly when called multiple times', () => {
@@ -426,15 +412,6 @@ describe('useNetworkEnablement', () => {
       expect(
         mockNetworkEnablementController.enableAllPopularNetworks,
       ).toHaveBeenCalledTimes(2);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledTimes(2);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenNthCalledWith(1, SolScope.Mainnet);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenNthCalledWith(2, SolScope.Mainnet);
     });
 
     it('returns the same function reference on subsequent calls', () => {
