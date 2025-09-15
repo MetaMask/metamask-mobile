@@ -16,6 +16,7 @@ const log = createProjectLogger('transaction-pay');
 
 export interface TransactionToken {
   address: Hex;
+  allowUnderMinimum: boolean;
   amountRaw: string;
   amountHuman: string;
   balanceRaw: string;
@@ -28,7 +29,9 @@ export interface TransactionToken {
  * Determine what tokens are required by the transaction.
  * Necessary for MetaMask Pay to generate suitable bridge or swap transactions.
  */
-export function useTransactionRequiredTokens() {
+export function useTransactionRequiredTokens({
+  log: isLoggingEnabled,
+}: { log?: boolean } = {}): TransactionToken[] {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
 
@@ -41,8 +44,9 @@ export function useTransactionRequiredTokens() {
   );
 
   useEffect(() => {
+    if (!isLoggingEnabled) return;
     log('Required tokens', result);
-  }, [result]);
+  }, [isLoggingEnabled, result]);
 
   return result;
 }
@@ -75,6 +79,7 @@ function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
     return {
       ...calculateAmountProperties(transferAmount, balanceProperties.decimals),
       ...balanceProperties,
+      allowUnderMinimum: false,
       skipIfBalance: false,
     };
   }, [balanceProperties, to, transferAmount]);
@@ -116,6 +121,7 @@ function useGasToken(chainId: Hex): TransactionToken | undefined {
     return {
       ...calculateAmountProperties(amountRawHex, balanceProperties.decimals),
       ...balanceProperties,
+      allowUnderMinimum: true,
       skipIfBalance: true,
     };
   }, [amountRawHex, balanceProperties]);

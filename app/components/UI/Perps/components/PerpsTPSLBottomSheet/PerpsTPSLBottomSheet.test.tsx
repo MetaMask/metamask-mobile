@@ -161,6 +161,7 @@ const defaultMockReturn = {
     hasChanges: false,
     takeProfitError: '',
     stopLossError: '',
+    stopLossLiquidationError: '',
   },
   display: {
     formattedTakeProfitPercentage: '',
@@ -179,6 +180,25 @@ jest.mock('../../utils/formatUtils', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
   }),
+  formatPerpsFiat: jest.fn((value) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
+  }),
+  PRICE_RANGES_POSITION_VIEW: [
+    {
+      condition: (v: number) => v >= 1,
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+      threshold: 1,
+    },
+    {
+      condition: (v: number) => v < 1,
+      minimumDecimals: 2,
+      maximumDecimals: 7,
+      significantDigits: 4,
+      threshold: 0.0000001,
+    },
+  ],
 }));
 
 // Mock strings
@@ -836,6 +856,112 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Note: The actual button disable behavior depends on the component implementation
       // This test ensures the component handles validation error state without crashing
+    });
+
+    it('displays stop loss liquidation error for long orders', () => {
+      // Arrange - Mock form state with stop loss liquidation error for long position
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_long'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss liquidation error for short orders', () => {
+      // Arrange - Mock form state with stop loss liquidation error for short position
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_short',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="short" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_short'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss error when both stopLossError and stopLossLiquidationError are present', () => {
+      // Arrange - Mock form state with both stop loss errors (stopLossError takes precedence in current implementation)
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: 'perps.order.validation.invalid_stop_loss',
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss error should be displayed (takes precedence in current implementation)
+      expect(
+        screen.getByText('perps.order.validation.invalid_stop_loss'),
+      ).toBeOnTheScreen();
+      // Liquidation error should not be displayed when regular stop loss error is present
+      expect(
+        screen.queryByText('perps.order.validation.stop_loss_liquidation_long'),
+      ).toBeNull();
+    });
+
+    it('displays regular stop loss error when only stopLossError is present', () => {
+      // Arrange - Mock form state with only regular stop loss error
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: 'perps.order.validation.invalid_stop_loss',
+          stopLossLiquidationError: '', // No liquidation error
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // Assert - Regular stop loss error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.invalid_stop_loss'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss liquidation error when only stopLossLiquidationError is present', () => {
+      // Arrange - Mock form state with only liquidation error
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: '', // No regular stop loss error
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_long'),
+      ).toBeOnTheScreen();
     });
   });
 

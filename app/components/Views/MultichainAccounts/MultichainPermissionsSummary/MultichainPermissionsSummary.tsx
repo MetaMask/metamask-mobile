@@ -33,7 +33,6 @@ import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
-import { USER_INTENT } from '../../../../constants/permissions';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -61,8 +60,6 @@ import Badge, {
 } from '../../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
@@ -80,8 +77,7 @@ export interface MultichainPermissionsSummaryProps {
   onBack?: () => void;
   onCancel?: () => void;
   onConfirm?: () => void;
-  onCreateAccount?: (clientType: WalletClientType, scope: SolScope) => void;
-  onUserAction?: React.Dispatch<React.SetStateAction<USER_INTENT>>;
+  onRevokeAll?: () => void;
   onAddNetwork?: () => void;
   showActionButtons?: boolean;
   isAlreadyConnected?: boolean;
@@ -99,7 +95,6 @@ export interface MultichainPermissionsSummaryProps {
   tabIndex?: number;
   showPermissionsOnly?: boolean;
   showAccountsOnly?: boolean;
-  promptToCreateSolanaAccount?: boolean;
 }
 
 const MultichainPermissionsSummary = ({
@@ -110,9 +105,10 @@ const MultichainPermissionsSummary = ({
   onBack,
   onCancel,
   onConfirm,
+  onRevokeAll,
   showActionButtons = true,
   isAlreadyConnected = true,
-  isDisconnectAllShown = true,
+  isDisconnectAllShown = false,
   isNetworkSwitch = false,
   isNonDappNetworkSwitch = false,
   selectedAccountGroupIds = [],
@@ -293,9 +289,16 @@ const MultichainPermissionsSummary = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
-    navigate('PermissionsManager');
-  }, [hostname, navigate]);
+    if (onRevokeAll) {
+      // Use custom revoke handler if provided
+      await onRevokeAll();
+    } else {
+      // Fall back to default behavior
+      await Engine.context.PermissionController.hasPermissions(hostname);
+      await Engine.context.PermissionController.revokeAllPermissions(hostname);
+      navigation.navigate(Routes.BROWSER.HOME);
+    }
+  }, [onRevokeAll, hostname, navigation]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     trace({ name: TraceName.DisconnectAllAccountPermissions });

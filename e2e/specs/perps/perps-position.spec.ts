@@ -11,7 +11,6 @@ import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
-import helpers from '../../helpers';
 
 // E2E environment setup - mocks auto-configure via isE2E flag
 
@@ -41,8 +40,6 @@ describe(RegressionTrade('Perps Position'), () => {
 
         await WalletActionsBottomSheet.tapPerpsButton();
 
-        // Disable synchronization to timer
-        await device.disableSynchronization();
         await PerpsMarketListView.tapFirstMarketRowItem();
         await PerpsMarketDetailsView.tapLongButton();
         await PerpsOrderView.tapTakeProfitButton();
@@ -54,9 +51,9 @@ describe(RegressionTrade('Perps Position'), () => {
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
-        // Use Page Object scroll on market details screen
-        await PerpsMarketDetailsView.scrollToBottom();
-        await helpers.delay(3000);
+        // Wait for screen ready and assert Close Position availability
+        await PerpsMarketDetailsView.waitForScreenReady();
+        await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
         await PerpsView.tapClosePositionButton();
 

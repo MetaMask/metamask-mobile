@@ -13,12 +13,15 @@ import { fireEvent } from '@testing-library/react-native';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { StatusTypes } from '@metamask/bridge-controller';
+import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 const mockNavigate = jest.fn();
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
+jest.mock('../../../../../../selectors/bridgeStatusController');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -31,6 +34,7 @@ const REQUIRED_TRANSACTION_ID_MOCK = '123-456';
 const REQUIRED_TRANSACTION_ID_2_MOCK = '789-012';
 const SYMBOL_MOCK = 'TST1';
 const SYMBOL_2_MOCK = 'TST2';
+const BATCH_ID_MOCK = '0x123';
 
 const TRANSACTION_META_MOCK = {
   id: transactionIdMock,
@@ -61,8 +65,13 @@ const BLOCK_EXPLORER_TITLE_MOCK = 'Test Title';
 describe('TransactionDetailsSummary', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
   const useBridgeTxHistoryDataMock = jest.mocked(useBridgeTxHistoryData);
+
   const useMultichainBlockExplorerTxUrlMock = jest.mocked(
     useMultichainBlockExplorerTxUrl,
+  );
+
+  const selectBridgeHistoryForAccountMock = jest.mocked(
+    selectBridgeHistoryForAccount,
   );
 
   beforeEach(() => {
@@ -94,6 +103,8 @@ describe('TransactionDetailsSummary', () => {
       explorerTxUrl: BLOCK_EXPLORER_URL_MOCK,
       explorerName: BLOCK_EXPLORER_TITLE_MOCK,
     } as ReturnType<typeof useMultichainBlockExplorerTxUrl>);
+
+    selectBridgeHistoryForAccountMock.mockReturnValue({});
   });
 
   it('renders perps deposit line title', () => {
@@ -122,6 +133,74 @@ describe('TransactionDetailsSummary', () => {
           targetSymbol: SYMBOL_2_MOCK,
         }),
       ),
+    ).toBeDefined();
+  });
+
+  it('renders bridge approval line title', () => {
+    selectBridgeHistoryForAccountMock.mockReturnValue({
+      test: {
+        approvalTxId: TRANSACTION_META_MOCK.id,
+        quote: {
+          srcAsset: { symbol: SYMBOL_MOCK },
+        },
+      } as BridgeHistoryItem,
+    });
+
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.bridgeApproval },
+      ],
+    });
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_approval', {
+          approveSymbol: SYMBOL_MOCK,
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders swap approval line title', () => {
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.swapApproval },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.swap_approval')),
+    ).toBeDefined();
+  });
+
+  it('renders swap line title', () => {
+    const { getByText } = render({
+      transactions: [{ ...TRANSACTION_META_MOCK, type: TransactionType.swap }],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.swap')),
+    ).toBeDefined();
+  });
+
+  it('renders default line title', () => {
+    selectBridgeHistoryForAccountMock.mockReturnValue({
+      test: {
+        approvalTxId: TRANSACTION_META_MOCK.id,
+        quote: {
+          srcAsset: { symbol: SYMBOL_MOCK },
+        },
+      } as BridgeHistoryItem,
+    });
+
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.contractInteraction },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.default')),
     ).toBeDefined();
   });
 
@@ -165,10 +244,6 @@ describe('TransactionDetailsSummary', () => {
       transactions: [
         {
           ...TRANSACTION_META_MOCK,
-          type: TransactionType.simpleSend,
-        },
-        {
-          ...TRANSACTION_META_MOCK,
           id: REQUIRED_TRANSACTION_ID_MOCK,
           type: TransactionType.perpsDeposit,
         },
@@ -191,6 +266,40 @@ describe('TransactionDetailsSummary', () => {
           targetSymbol: SYMBOL_2_MOCK,
         }),
       ),
+    ).toBeDefined();
+  });
+
+  it('renders lines for batch transactions', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        id: transactionIdMock,
+        batchId: BATCH_ID_MOCK,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render({
+      transactions: [
+        {
+          ...TRANSACTION_META_MOCK,
+          id: REQUIRED_TRANSACTION_ID_MOCK,
+          batchId: BATCH_ID_MOCK,
+          type: TransactionType.perpsDeposit,
+        },
+        {
+          ...TRANSACTION_META_MOCK,
+          id: REQUIRED_TRANSACTION_ID_2_MOCK,
+          batchId: BATCH_ID_MOCK,
+          type: TransactionType.swap,
+        },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.perps_deposit')),
+    ).toBeDefined();
+
+    expect(
+      getByText(strings('transaction_details.summary_title.swap')),
     ).toBeDefined();
   });
 
