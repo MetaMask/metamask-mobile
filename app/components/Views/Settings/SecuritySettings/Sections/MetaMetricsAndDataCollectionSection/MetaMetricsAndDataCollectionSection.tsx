@@ -144,11 +144,14 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         addMarketingConsentToTraits(value);
       }
     }
+
+    const previousMarketingState = value;
     dispatch(setDataCollectionForMarketing(value));
 
     if (isSeedlessOnboardingLoginFlow) {
       OAuthService.updateMarketingOptInStatus(value).catch((error) => {
         Logger.error(error as Error);
+        dispatch(setDataCollectionForMarketing(previousMarketingState));
       });
     }
   };
