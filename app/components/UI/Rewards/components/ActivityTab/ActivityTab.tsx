@@ -32,7 +32,7 @@ const LoadingFooter: React.FC = () => (
 
 const ItemSeparator: React.FC = () => <Box twClassName="h-6" />;
 
-const IntermediateState: React.FC<{ message: string; isError?: boolean }> = ({
+const IntermediateState: React.FC<{ message?: string; isError?: boolean }> = ({
   message,
   isError = false,
 }) => (
@@ -41,12 +41,8 @@ const IntermediateState: React.FC<{ message: string; isError?: boolean }> = ({
       <Skeleton height="100%" width="100%" className="absolute left-0 top-0" />
     )}
 
-    {isError ? (
+    {isError && (
       <BannerAlert severity={BannerAlertSeverity.Error} description={message} />
-    ) : (
-      <Text variant={TextVariant.BodyMd} twClassName="text-alternative z-10">
-        {message}
-      </Text>
     )}
   </Box>
 );
@@ -119,7 +115,7 @@ export const ActivityTab: React.FC = () => {
   };
 
   if ((isLoading || seasonStatusLoading) && !isRefreshing) {
-    return <IntermediateState message={strings('rewards.loading_activity')} />;
+    return <IntermediateState />;
   }
 
   if (error) {

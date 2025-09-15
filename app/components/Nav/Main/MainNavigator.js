@@ -116,8 +116,9 @@ import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
-import { useRewardsAuth } from '../../UI/Rewards/hooks/useRewardsAuth';
-import ErrorModal from '../../UI/Rewards/components/ErrorModal';
+import { useOptin } from '../../UI/Rewards/hooks/useOptIn';
+import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -262,8 +263,8 @@ const RewardsModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
     <Stack.Screen
-      name={Routes.MODAL.REWARDS_ERROR_MODAL}
-      component={ErrorModal}
+      name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+      component={RewardsBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -503,8 +504,6 @@ const HomeTabs = () => {
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
-  const { hasAccountedOptedIn } = useRewardsAuth();
-
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
     return ChainId[providerConfig.type];
@@ -606,7 +605,10 @@ const HomeTabs = () => {
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
     // Hide tab bar for rewards onboarding splash screen
-    if (currentRoute.name === Routes.REWARDS_VIEW && !hasAccountedOptedIn) {
+    if (
+      currentRoute.name?.startsWith('REWARDS_ONBOARDING') &&
+      !isRewardsEnabled
+    ) {
       return null;
     }
 

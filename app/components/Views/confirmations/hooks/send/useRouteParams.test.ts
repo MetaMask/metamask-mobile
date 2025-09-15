@@ -89,12 +89,12 @@ describe('useRouteParams', () => {
     const asset = {
       id: '123',
       address: 'dummy_address',
-      chainId: 'summy_chainId',
+      chainId: 'dummy_chainId',
     };
     const assetToken = {
       id: '123',
       address: 'dummy_address',
-      chainId: 'summy_chainId',
+      chainId: 'dummy_chainId',
     };
     mockUseParams.mockReturnValue({ asset });
     const mockUpdateAsset = jest.fn();

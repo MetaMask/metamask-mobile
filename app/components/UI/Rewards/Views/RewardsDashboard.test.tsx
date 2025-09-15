@@ -74,7 +74,6 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.tab_levels_title': 'Levels',
       'rewards.tab_activity_title': 'Activity',
       'rewards.not_implemented': 'Not implemented yet',
-      'rewards.not_opted_in_to_rewards': 'Not opted in to rewards',
     };
     return translations[key] || key;
   }),
@@ -295,28 +294,6 @@ describe('RewardsDashboard', () => {
       expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTENT)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
-    });
-
-    it('should render not opted in overlay when user has no subscription', () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-      mockSelectSeasonId.mockReturnValue(CURRENT_SEASON_ID);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectSeasonId) return CURRENT_SEASON_ID;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId, getByText } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.NOT_OPTED_IN_OVERLAY),
-      ).toBeTruthy();
-      expect(getByText('Not opted in to rewards')).toBeTruthy();
     });
 
     it('should not render overlay when user has subscription', () => {

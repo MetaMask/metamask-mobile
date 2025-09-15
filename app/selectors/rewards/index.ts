@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../../reducers';
-import { CaipAccountId } from '@metamask/utils';
+
 /**
  *
  * @param state - Root redux state
@@ -10,21 +10,29 @@ export const selectRewardsControllerState = (state: RootState) =>
   state.engine.backgroundState.RewardsController;
 
 /**
- * A memoized selector that returns the rewards subscription id
+ * A memoized selector that returns the rewards subscription id,
+ * falling back to candidateSubscriptionId if not 'pending' or 'error'
  */
 export const selectRewardsSubscriptionId = createSelector(
-  selectRewardsControllerState,
-  (rewardsControllerState): string | null =>
-    rewardsControllerState.activeAccount?.subscriptionId ?? null,
-);
-
-/**
- * A memoized selector that returns the rewards active account id
- */
-export const selectRewardsActiveAccountId = createSelector(
-  selectRewardsControllerState,
-  (rewardsControllerState): CaipAccountId | null =>
-    rewardsControllerState.activeAccount?.account ?? null,
+  [
+    selectRewardsControllerState,
+    (state: RootState) => state.rewards.candidateSubscriptionId,
+  ],
+  (rewardsControllerState, candidateSubscriptionId): string | null => {
+    const subscriptionId =
+      rewardsControllerState.activeAccount?.subscriptionId ?? null;
+    if (subscriptionId) {
+      return subscriptionId;
+    }
+    if (
+      candidateSubscriptionId &&
+      candidateSubscriptionId !== 'pending' &&
+      candidateSubscriptionId !== 'error'
+    ) {
+      return candidateSubscriptionId;
+    }
+    return null;
+  },
 );
 
 export const selectRewardsActiveAccountHasOptedIn = createSelector(
@@ -32,3 +40,6 @@ export const selectRewardsActiveAccountHasOptedIn = createSelector(
   (rewardsControllerState): boolean | null =>
     rewardsControllerState.activeAccount?.hasOptedIn ?? null,
 );
+
+export const selectHideUnlinkedAccountsBanner = (state: RootState): boolean =>
+  state.rewards.hideUnlinkedAccountsBanner;
