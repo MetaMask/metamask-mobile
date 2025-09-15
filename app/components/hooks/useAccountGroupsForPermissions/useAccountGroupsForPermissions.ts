@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import {
   Caip25CaveatValue,
+  getAllScopesFromCaip25CaveatValue,
   getCaipAccountIdsFromCaip25CaveatValue,
   isInternalAccountInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
@@ -9,6 +10,7 @@ import { useMemo } from 'react';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
 import { hasChainIdSupport, hasNamespaceSupport } from './utils';
 import { selectAccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
+import { getCaip25AccountFromAccountGroupAndScope } from '../../../util/multichain/getCaip25AccountFromAccountGroupAndScope';
 
 /**
  * Checks if an account group has any connected accounts
@@ -117,6 +119,12 @@ export const useAccountGroupsForPermissions = (
 ) => {
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
 
+  const existingChainsConnected =
+    getAllScopesFromCaip25CaveatValue(existingPermission);
+  const newChainsRequested = requestedCaipChainIds.some(
+    (chainId) => !existingChainsConnected.includes(chainId),
+  );
+
   const result = useMemo(() => {
     const connectedAccountIds =
       getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
@@ -158,6 +166,13 @@ export const useAccountGroupsForPermissions = (
       }
     });
 
+    const updatedConnectedCaipIds = newChainsRequested
+      ? getCaip25AccountFromAccountGroupAndScope(
+          [...priorityConnectedGroups, ...connectedAccountGroups],
+          requestedCaipChainIds,
+        )
+      : connectedAccountIds;
+
     return {
       supportedAccountGroups: [
         ...prioritySupportedGroups,
@@ -167,7 +182,7 @@ export const useAccountGroupsForPermissions = (
         ...priorityConnectedGroups,
         ...connectedAccountGroups,
       ],
-      connectedCaipAccountIds: connectedAccountIds,
+      connectedCaipAccountIds: updatedConnectedCaipIds,
     };
   }, [
     existingPermission,
@@ -175,6 +190,7 @@ export const useAccountGroupsForPermissions = (
     requestedCaipAccountIds,
     requestedCaipChainIds,
     requestedNamespacesWithoutWallet,
+    newChainsRequested,
   ]);
 
   return {
