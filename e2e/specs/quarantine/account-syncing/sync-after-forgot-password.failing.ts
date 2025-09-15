@@ -2,23 +2,23 @@ import {
   CreateNewWallet,
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions';
+} from '../../../viewHelper.ts';
+import WalletView from '../../../pages/wallet/WalletView.ts';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.ts';
+import Assertions from '../../../framework/Assertions.ts';
 import { RegressionIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
-import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
-import { defaultGanacheOptions } from '../../../framework/Constants';
-import SettingsView from '../../../pages/Settings/SettingsView';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import LoginView from '../../../pages/wallet/LoginView';
-import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView';
-import { createUserStorageController } from '../utils/mocks.ts';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures.ts';
+import { UserStorageMockttpController } from '../../identity/utils/user-storage/userStorageMockttpController.ts';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.ts';
+import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.ts';
+import { defaultGanacheOptions } from '../../../framework/Constants.ts';
+import SettingsView from '../../../pages/Settings/SettingsView.ts';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
+import LoginView from '../../../pages/wallet/LoginView.ts';
+import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
+import { createUserStorageController } from '../../identity/utils/mocks.ts';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
 
 describe(RegressionIdentity('Account syncing - Forgot Password Flow'), () => {
   let sharedUserStorageController: UserStorageMockttpController;

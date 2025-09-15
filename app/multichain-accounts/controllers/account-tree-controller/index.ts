@@ -24,7 +24,6 @@ export const accountTreeControllerInit: ControllerInitFunction<
     state: accountTreeControllerState,
     config: {
       backupAndSync: {
-        enableDebugLogging: true,
         onBackupAndSyncEvent: (event) => {
           // Handle backup and sync events here, e.g., logging or tracking.
           // eslint-disable-next-line no-console

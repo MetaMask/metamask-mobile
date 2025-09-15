@@ -1,23 +1,23 @@
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp } from '../../../viewHelper.ts';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions';
+import WalletView from '../../../pages/wallet/WalletView.ts';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.ts';
+import Assertions from '../../../framework/Assertions.ts';
 import { RegressionIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
-import { arrangeTestUtils } from '../utils/helpers.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures.ts';
+import { arrangeTestUtils } from '../../identity/utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+} from '../../identity/utils/user-storage/userStorageMockttpController.ts';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.ts';
 import { goToImportSrp, inputSrp } from '../../multisrp/utils.ts';
-import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
-import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants.ts';
-import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import { createUserStorageController } from '../utils/mocks.ts';
+import ImportSrpView from '../../../pages/importSrp/ImportSrpView.ts';
+import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../../identity/utils/constants.ts';
+import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.ts';
+import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
+import { createUserStorageController } from '../../identity/utils/mocks.ts';
 
 describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;

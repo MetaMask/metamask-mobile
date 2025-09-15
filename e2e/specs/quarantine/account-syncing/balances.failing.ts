@@ -1,25 +1,25 @@
 import {
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions';
+} from '../../../viewHelper.ts';
+import WalletView from '../../../pages/wallet/WalletView.ts';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.ts';
+import Assertions from '../../../framework/Assertions.ts';
 import { RegressionIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
-import { arrangeTestUtils } from '../utils/helpers.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures.ts';
+import { arrangeTestUtils } from '../../identity/utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+} from '../../identity/utils/user-storage/userStorageMockttpController.ts';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.ts';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { defaultGanacheOptions } from '../../../framework/Constants';
-import { createUserStorageController } from '../utils/mocks.ts';
+} from '../../../framework/fixtures/FixtureBuilder.ts';
+import { defaultGanacheOptions } from '../../../framework/Constants.ts';
+import { createUserStorageController } from '../../identity/utils/mocks.ts';
 
 describe(RegressionIdentity('Account syncing - Accounts with Balances'), () => {
   let sharedUserStorageController: UserStorageMockttpController;

@@ -8,10 +8,10 @@ export class AccountTreeInitService {
     AccountTreeController.init();
   };
 
-  clearPersistedMetadataAndSyncingState = async (): Promise<void> => {
+  clearState = async (): Promise<void> => {
     const { AccountTreeController } = Engine.context;
 
-    AccountTreeController.clearPersistedMetadataAndSyncingState();
+    AccountTreeController.clearState();
   };
 }
 
