@@ -140,18 +140,24 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [ordersData, market?.symbol]);
 
   // Filter orders that have TP/SL data for chart integration
-  const ordersWithTPSL = useMemo(() => openOrders.filter((order) => {
-      // Check if order has TP/SL prices directly
-      if (order.takeProfitPrice || order.stopLossPrice) return true;
+  const ordersWithTPSL = useMemo(
+    () =>
+      openOrders.filter((order) => {
+        // Check if order has TP/SL prices directly
+        if (order.takeProfitPrice || order.stopLossPrice) return true;
 
-      // Check if it's a trigger order (TP/SL orders are stored as trigger orders)
-      if (order.isTrigger && order.detailedOrderType) {
-        const orderType = order.detailedOrderType.toLowerCase();
-        return orderType.includes('take profit') || orderType.includes('stop');
-      }
+        // Check if it's a trigger order (TP/SL orders are stored as trigger orders)
+        if (order.isTrigger && order.detailedOrderType) {
+          const orderType = order.detailedOrderType.toLowerCase();
+          return (
+            orderType.includes('take profit') || orderType.includes('stop')
+          );
+        }
 
-      return false;
-    }), [openOrders]);
+        return false;
+      }),
+    [openOrders],
+  );
 
   // Determine which TP/SL lines to show on the chart
   const selectedOrderTPSL = useMemo(() => {
