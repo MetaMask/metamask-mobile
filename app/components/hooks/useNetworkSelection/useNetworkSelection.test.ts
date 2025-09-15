@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { ImageSourcePropType } from 'react-native';
 import {
   CaipChainId,
   Hex,
@@ -951,6 +952,128 @@ describe('useNetworkSelection', () => {
     });
   });
 
+  describe('deselectAll function', () => {
+    it('disables all networks except Ethereum mainnet', () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      result.current.deselectAll();
+
+      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:137');
+      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:13881');
+      expect(mockDisableNetwork).not.toHaveBeenCalledWith('eip155:1');
+      expect(mockDisableNetwork).toHaveBeenCalledTimes(2);
+    });
+
+    it('handles empty networks array gracefully', () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: [] }),
+      );
+
+      result.current.deselectAll();
+
+      expect(mockDisableNetwork).not.toHaveBeenCalled();
+    });
+
+    it('handles networks with only Ethereum mainnet', () => {
+      const ethOnlyNetworks: ProcessedNetwork[] = [
+        {
+          id: 'eip155:1',
+          name: 'Ethereum Mainnet',
+          caipChainId: 'eip155:1' as CaipChainId,
+          isSelected: true,
+          imageSource: { uri: 'ethereum.png' },
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: ethOnlyNetworks }),
+      );
+
+      result.current.deselectAll();
+
+      expect(mockDisableNetwork).not.toHaveBeenCalled();
+    });
+
+    it('preserves Ethereum mainnet among multiple networks', () => {
+      const networksWithMultipleChains: ProcessedNetwork[] = [
+        {
+          id: 'eip155:1',
+          name: 'Ethereum Mainnet',
+          caipChainId: 'eip155:1' as CaipChainId,
+          isSelected: true,
+          imageSource: { uri: 'ethereum.png' },
+        },
+        {
+          id: 'solana:mainnet',
+          name: 'Solana Mainnet',
+          caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
+          isSelected: true,
+          imageSource: { uri: 'solana.png' },
+        },
+        {
+          id: 'bip122:mainnet',
+          name: 'Bitcoin Mainnet',
+          caipChainId: 'bip122:000000000019d6689c085ae165831e93' as CaipChainId,
+          isSelected: true,
+          imageSource: { uri: 'bitcoin.png' },
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: networksWithMultipleChains }),
+      );
+
+      result.current.deselectAll();
+
+      expect(mockDisableNetwork).toHaveBeenCalledWith(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      expect(mockDisableNetwork).toHaveBeenCalledWith(
+        'bip122:000000000019d6689c085ae165831e93',
+      );
+      expect(mockDisableNetwork).not.toHaveBeenCalledWith('eip155:1');
+    });
+
+    it('handles networks with duplicate Ethereum mainnet entries', () => {
+      const networksWithDuplicates: ProcessedNetwork[] = [
+        {
+          id: 'eip155:1-first',
+          name: 'Ethereum Mainnet',
+          caipChainId: 'eip155:1' as CaipChainId,
+          isSelected: true,
+          imageSource: { uri: 'ethereum.png' },
+        },
+        {
+          id: 'eip155:1-second',
+          name: 'Ethereum Mainnet Copy',
+          caipChainId: 'eip155:1' as CaipChainId,
+          isSelected: true,
+          imageSource: { uri: 'ethereum.png' },
+        },
+        {
+          id: 'eip155:137',
+          name: 'Polygon',
+          caipChainId: 'eip155:137' as CaipChainId,
+          isSelected: false,
+          imageSource: { uri: 'polygon.png' },
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: networksWithDuplicates }),
+      );
+
+      result.current.deselectAll();
+
+      // Should only disable non-Ethereum networks
+      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:137');
+      expect(mockDisableNetwork).not.toHaveBeenCalledWith('eip155:1');
+      expect(mockDisableNetwork).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Bitcoin network handling', () => {
     const bitcoinMainnet =
       'bip122:000000000019d6689c085ae165831e93' as CaipChainId;
@@ -1066,6 +1189,748 @@ describe('useNetworkSelection', () => {
         mockBitcoinAccount.address,
       );
       expect(mockEnableNetwork).toHaveBeenCalledWith(bitcoinMainnet);
+    });
+  });
+
+  describe('error handling and edge cases', () => {
+    describe('callback error handling', () => {
+      it('handles callback errors in selectCustomNetwork gracefully', async () => {
+        const customChainId = 'eip155:999' as CaipChainId;
+        const mockCallback = jest.fn().mockImplementation(() => {
+          throw new Error('Callback error');
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        // Should not throw when callback throws
+        await expect(
+          result.current.selectCustomNetwork(customChainId, mockCallback),
+        ).rejects.toThrow('Callback error');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(customChainId);
+        expect(mockCallback).toHaveBeenCalled();
+      });
+
+      it('handles callback errors in selectPopularNetwork gracefully', async () => {
+        const popularChainId = 'eip155:1' as CaipChainId;
+        const mockCallback = jest.fn().mockImplementation(() => {
+          throw new Error('Callback error');
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        // Should not throw when callback throws
+        await expect(
+          result.current.selectPopularNetwork(popularChainId, mockCallback),
+        ).rejects.toThrow('Callback error');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(popularChainId);
+        expect(mockCallback).toHaveBeenCalled();
+      });
+
+      it('handles callback errors in selectAllPopularNetworks gracefully', async () => {
+        const mockCallback = jest.fn().mockImplementation(() => {
+          throw new Error('Callback error');
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        // Should not throw when callback throws
+        await expect(
+          result.current.selectAllPopularNetworks(mockCallback),
+        ).rejects.toThrow('Callback error');
+
+        expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+        expect(mockCallback).toHaveBeenCalled();
+      });
+    });
+
+    describe('Engine.setSelectedAddress error handling', () => {
+      it('handles Engine.setSelectedAddress errors in Bitcoin network selection', async () => {
+        const bitcoinMainnet =
+          'bip122:000000000019d6689c085ae165831e93' as CaipChainId;
+        const mockBitcoinAccount = {
+          address: '0xbitcoinAddress',
+          type: 'bip122:p2wpkh',
+          scopes: [bitcoinMainnet],
+        };
+
+        mockUseSelector.mockImplementation((selector) => {
+          if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+            return [
+              {
+                caipChainId: bitcoinMainnet,
+                chainId: 'btc-mainnet',
+                name: 'Bitcoin Mainnet',
+              },
+            ];
+          }
+          if (selector === selectInternalAccounts) {
+            return [mockBitcoinAccount];
+          }
+          return false;
+        });
+
+        // Mock Engine.setSelectedAddress to throw
+        const setSelectedAddressSpy = jest
+          .spyOn(Engine, 'setSelectedAddress')
+          .mockImplementation(() => {
+            throw new Error('Failed to set address');
+          });
+
+        (isCaipChainId as unknown as jest.Mock).mockReturnValue(true);
+        (parseCaipChainId as jest.Mock).mockReturnValue({
+          namespace: 'bip122',
+          reference: '000000000019d6689c085ae165831e93',
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        // Should throw when Engine.setSelectedAddress fails
+        await expect(
+          result.current.selectCustomNetwork(bitcoinMainnet),
+        ).rejects.toThrow('Failed to set address');
+
+        expect(setSelectedAddressSpy).toHaveBeenCalledWith(
+          mockBitcoinAccount.address,
+        );
+        // enableNetwork should not be called if setSelectedAddress fails
+        expect(mockEnableNetwork).not.toHaveBeenCalled();
+
+        setSelectedAddressSpy.mockRestore();
+      });
+    });
+
+    describe('network enablement failures', () => {
+      it('handles enableNetwork failures in selectCustomNetwork', async () => {
+        const customChainId = 'eip155:999' as CaipChainId;
+        mockEnableNetwork.mockRejectedValue(new Error('Network enable failed'));
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectCustomNetwork(customChainId),
+        ).rejects.toThrow('Network enable failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(customChainId);
+      });
+
+      it('handles enableNetwork failures in selectPopularNetwork', async () => {
+        const popularChainId = 'eip155:1' as CaipChainId;
+        mockEnableNetwork.mockRejectedValue(new Error('Network enable failed'));
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectPopularNetwork(popularChainId),
+        ).rejects.toThrow('Network enable failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(popularChainId);
+      });
+
+      it('handles enableAllPopularNetworks failures', async () => {
+        mockEnableAllPopularNetworks.mockRejectedValue(
+          new Error('Enable all failed'),
+        );
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(result.current.selectAllPopularNetworks()).rejects.toThrow(
+          'Enable all failed',
+        );
+
+        expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+      });
+    });
+
+    describe('MultichainNetworkController error scenarios', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        // Enable multichain for these tests
+        mockUseSelector.mockImplementation((selector) => {
+          if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+            return mockPopularNetworkConfigurations;
+          }
+          if (selector === selectMultichainAccountsState2Enabled) {
+            return true; // isMultichainAccountsState2Enabled = true
+          }
+          if (selector === selectInternalAccounts) {
+            return [];
+          }
+          return undefined;
+        });
+
+        // Setup engine context mocks
+        Engine.context.MultichainNetworkController.setActiveNetwork =
+          mockSetActiveNetwork;
+        Engine.context.NetworkController.findNetworkClientIdByChainId =
+          mockFindNetworkClientIdByChainId;
+      });
+
+      it('handles MultichainNetworkController.setActiveNetwork failures for custom networks', async () => {
+        const customChainId = 'eip155:999' as CaipChainId;
+        mockSetActiveNetwork.mockRejectedValue(
+          new Error('SetActiveNetwork failed'),
+        );
+        mockFindNetworkClientIdByChainId.mockReturnValue('client-id-999');
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectCustomNetwork(customChainId),
+        ).rejects.toThrow('SetActiveNetwork failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(customChainId);
+        expect(mockSetActiveNetwork).toHaveBeenCalledWith('client-id-999');
+      });
+
+      it('handles NetworkController.findNetworkClientIdByChainId failures', async () => {
+        const customChainId = 'eip155:999' as CaipChainId;
+        mockFindNetworkClientIdByChainId.mockImplementation(() => {
+          throw new Error('Find client ID failed');
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectCustomNetwork(customChainId),
+        ).rejects.toThrow('Find client ID failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(customChainId);
+        expect(mockFindNetworkClientIdByChainId).toHaveBeenCalled();
+      });
+
+      it('handles non-EVM network setActiveNetwork failures for popular networks', async () => {
+        const evmChainId = 'eip155:1' as CaipChainId;
+        mockSetActiveNetwork.mockRejectedValue(
+          new Error('SetActiveNetwork failed'),
+        );
+        mockFindNetworkClientIdByChainId.mockReturnValue('client-id-1');
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        await expect(
+          result.current.selectPopularNetwork(evmChainId),
+        ).rejects.toThrow('SetActiveNetwork failed');
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(evmChainId);
+        expect(mockSetActiveNetwork).toHaveBeenCalledWith('client-id-1');
+      });
+    });
+  });
+
+  describe('network state edge cases', () => {
+    it('handles networks with malformed caipChainId gracefully', () => {
+      const malformedNetworks: ProcessedNetwork[] = [
+        {
+          id: 'malformed',
+          name: 'Malformed Network',
+          caipChainId: 'invalid-format' as CaipChainId,
+          isSelected: false,
+          imageSource: { uri: 'malformed.png' },
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: malformedNetworks }),
+      );
+
+      // Should not throw when initializing with malformed networks
+      expect(result.current.customNetworksToReset).toBeDefined();
+      expect(Array.isArray(result.current.customNetworksToReset)).toBe(true);
+    });
+
+    it('handles empty enabled networks state', () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        namespace: 'eip155',
+        enabledNetworksByNamespace: {},
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
+        } as unknown as ReturnType<
+          typeof useNetworkEnablement
+        >['networkEnablementController'],
+        enableNetwork: mockEnableNetwork,
+        disableNetwork: mockDisableNetwork,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: mockEnableAllPopularNetworks,
+        tryEnableEvmNetwork: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      expect(result.current.customNetworksToReset).toEqual([]);
+    });
+
+    it('handles undefined enabled networks for namespace', () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        namespace: 'eip155',
+        enabledNetworksByNamespace: {
+          eip155: undefined,
+        } as unknown as ReturnType<
+          typeof useNetworkEnablement
+        >['enabledNetworksByNamespace'],
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
+        } as unknown as ReturnType<
+          typeof useNetworkEnablement
+        >['networkEnablementController'],
+        enableNetwork: mockEnableNetwork,
+        disableNetwork: mockDisableNetwork,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: mockEnableAllPopularNetworks,
+        tryEnableEvmNetwork: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      expect(result.current.customNetworksToReset).toEqual([]);
+    });
+
+    it('handles networks with undefined imageSource', () => {
+      const networksWithUndefinedImages: ProcessedNetwork[] = [
+        {
+          id: 'eip155:1',
+          name: 'Ethereum Mainnet',
+          caipChainId: 'eip155:1' as CaipChainId,
+          isSelected: true,
+          imageSource: undefined as unknown as ImageSourcePropType,
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: networksWithUndefinedImages }),
+      );
+
+      // Should not throw when networks have undefined imageSource
+      expect(typeof result.current.selectNetwork).toBe('function');
+      expect(typeof result.current.deselectAll).toBe('function');
+    });
+  });
+
+  describe('concurrent operations', () => {
+    it('handles multiple concurrent selectNetwork calls', async () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      const chainId1 = 'eip155:1' as CaipChainId;
+      const chainId2 = 'eip155:137' as CaipChainId;
+
+      // Simulate concurrent calls
+      const promise1 = result.current.selectPopularNetwork(chainId1);
+      const promise2 = result.current.selectPopularNetwork(chainId2);
+
+      await Promise.all([promise1, promise2]);
+
+      expect(mockEnableNetwork).toHaveBeenCalledWith(chainId1);
+      expect(mockEnableNetwork).toHaveBeenCalledWith(chainId2);
+      expect(mockEnableNetwork).toHaveBeenCalledTimes(2);
+    });
+
+    it('handles mixed network type selection concurrently', async () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      const popularChainId = 'eip155:1' as CaipChainId;
+      const customChainId = 'eip155:999' as CaipChainId;
+
+      // Simulate concurrent calls of different types
+      const promise1 = result.current.selectPopularNetwork(popularChainId);
+      const promise2 = result.current.selectCustomNetwork(customChainId);
+
+      await Promise.all([promise1, promise2]);
+
+      expect(mockEnableNetwork).toHaveBeenCalledWith(popularChainId);
+      expect(mockEnableNetwork).toHaveBeenCalledWith(customChainId);
+      expect(mockEnableNetwork).toHaveBeenCalledTimes(2);
+    });
+
+    it('handles concurrent selectAllPopularNetworks calls', async () => {
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+
+      // Simulate concurrent calls
+      const promise1 = result.current.selectAllPopularNetworks();
+      const promise2 = result.current.selectAllPopularNetworks();
+
+      await Promise.all([promise1, promise2]);
+
+      expect(mockEnableAllPopularNetworks).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('additional input validation and edge cases', () => {
+    describe('selectNetwork input handling', () => {
+      it('handles empty string input gracefully', () => {
+        jest.clearAllMocks();
+
+        // Mock isCaipChainId to return false for empty string, then formatChainIdToCaip to fail
+        (isCaipChainId as unknown as jest.Mock).mockImplementation((value) => value !== '');
+
+        mockFormatChainIdToCaip.mockImplementation((value) => {
+          if (value === '') {
+            throw new Error('Invalid CAIP format');
+          }
+          return `eip155:${value}` as CaipChainId;
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        // Empty string should trigger error handling
+        result.current.selectNetwork('' as CaipChainId);
+
+        // Should have attempted error handling
+        expect(consoleSpy).toHaveBeenCalled();
+
+        consoleSpy.mockRestore();
+      });
+
+      it('handles null input gracefully', () => {
+        jest.clearAllMocks();
+
+        // Mock isCaipChainId to return false for null, then formatChainIdToCaip to fail
+        (isCaipChainId as unknown as jest.Mock).mockImplementation((value) =>
+           value !== 'null' // String(null) = 'null'
+        );
+
+        mockFormatChainIdToCaip.mockImplementation((value) => {
+          if (value === null) {
+            throw new Error('Invalid CAIP format');
+          }
+          return `eip155:${value}` as CaipChainId;
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        // Null should trigger error handling
+        result.current.selectNetwork(null as never);
+
+        expect(consoleSpy).toHaveBeenCalled();
+
+        consoleSpy.mockRestore();
+      });
+
+      it('handles undefined input gracefully', () => {
+        jest.clearAllMocks();
+
+        // Mock isCaipChainId to return false for undefined, then formatChainIdToCaip to fail
+        (isCaipChainId as unknown as jest.Mock).mockImplementation((value) =>
+           value !== 'undefined' // String(undefined) = 'undefined'
+        );
+
+        mockFormatChainIdToCaip.mockImplementation((value) => {
+          if (value === undefined) {
+            throw new Error('Invalid CAIP format');
+          }
+          return `eip155:${value}` as CaipChainId;
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        // Undefined should trigger error handling
+        result.current.selectNetwork(undefined as never);
+
+        expect(consoleSpy).toHaveBeenCalled();
+
+        consoleSpy.mockRestore();
+      });
+
+      it('handles very large hex numbers', () => {
+        jest.clearAllMocks();
+
+        const largeHex = '0xffffffffffffffffffffffffffffffff' as Hex;
+
+        // Set up fresh mock implementation for this test
+        (isCaipChainId as unknown as jest.Mock).mockReturnValue(false);
+        mockFormatChainIdToCaip.mockImplementation((value) => {
+          if (value === largeHex) {
+            return 'eip155:ffffffffffffffffffffffffffffffff' as CaipChainId;
+          }
+          return `eip155:${value}` as CaipChainId;
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        result.current.selectNetwork(largeHex);
+
+        expect(mockFormatChainIdToCaip).toHaveBeenCalledWith(largeHex);
+        expect(mockEnableNetwork).toHaveBeenCalledWith(
+          'eip155:ffffffffffffffffffffffffffffffff',
+        );
+      });
+
+      it('handles CAIP chain IDs with special characters in reference', () => {
+        const specialChainId = 'eip155:mainnet-fork_123' as CaipChainId;
+        (isCaipChainId as unknown as jest.Mock).mockReturnValue(true);
+        (parseCaipChainId as jest.Mock).mockReturnValue({
+          namespace: 'eip155',
+          reference: 'mainnet-fork_123',
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        result.current.selectNetwork(specialChainId);
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(specialChainId);
+      });
+    });
+
+    describe('popular network detection edge cases', () => {
+      it('handles case sensitivity in CAIP chain ID namespace', () => {
+        const chainId = 'EIP155:1' as CaipChainId; // Uppercase namespace
+        (isCaipChainId as unknown as jest.Mock).mockReturnValue(true);
+        (parseCaipChainId as jest.Mock).mockReturnValue({
+          namespace: 'EIP155', // Uppercase
+          reference: '1',
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        result.current.selectNetwork(chainId);
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(chainId);
+      });
+
+      it('treats unknown namespace as popular network', () => {
+        const unknownNamespaceChainId = 'cosmos:cosmoshub-4' as CaipChainId;
+        (isCaipChainId as unknown as jest.Mock).mockReturnValue(true);
+        (parseCaipChainId as jest.Mock).mockReturnValue({
+          namespace: 'cosmos',
+          reference: 'cosmoshub-4',
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        result.current.selectNetwork(unknownNamespaceChainId);
+
+        expect(mockEnableNetwork).toHaveBeenCalledWith(unknownNamespaceChainId);
+      });
+    });
+
+    describe('memoization and performance', () => {
+      it('memoizes popularNetworkChainIds correctly', () => {
+        const { result, rerender } = renderHook(
+          (props) => useNetworkSelection(props),
+          {
+            initialProps: { networks: mockNetworks },
+          },
+        );
+
+        const firstCall = result.current.customNetworksToReset;
+
+        // Rerender with same props should return same memoized result
+        rerender({ networks: mockNetworks });
+
+        const secondCall = result.current.customNetworksToReset;
+        expect(firstCall).toBe(secondCall); // Same reference due to memoization
+      });
+
+      it('recalculates when popularNetworkConfigurations change', () => {
+        const { result, rerender } = renderHook(
+          (props) => useNetworkSelection(props),
+          {
+            initialProps: { networks: mockNetworks },
+          },
+        );
+
+        const firstResult = result.current.customNetworksToReset;
+
+        // Change popular network configurations
+        const newPopularConfigs = [
+          ...mockPopularNetworkConfigurations,
+          {
+            caipChainId: 'eip155:13881' as CaipChainId,
+            chainId: '0x13881',
+            name: 'Mumbai Testnet',
+          },
+        ];
+
+        mockUseSelector.mockImplementation((selector) => {
+          if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+            return newPopularConfigs;
+          }
+          if (selector === selectMultichainAccountsState2Enabled) {
+            return false;
+          }
+          if (selector === selectInternalAccounts) {
+            return [];
+          }
+          return undefined;
+        });
+
+        rerender({ networks: mockNetworks });
+
+        const secondResult = result.current.customNetworksToReset;
+        expect(firstResult).not.toBe(secondResult); // Different reference due to dependency change
+      });
+    });
+
+    describe('NavigationService integration', () => {
+      it('handles NavigationService navigation failures gracefully', async () => {
+        const bitcoinMainnet =
+          'bip122:000000000019d6689c085ae165831e93' as CaipChainId;
+
+        // Mock no Bitcoin account exists
+        mockUseSelector.mockImplementation((selector) => {
+          if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+            return [
+              {
+                caipChainId: bitcoinMainnet,
+                chainId: 'btc-mainnet',
+                name: 'Bitcoin Mainnet',
+              },
+            ];
+          }
+          if (selector === selectMultichainAccountsState2Enabled) {
+            return false;
+          }
+          if (selector === selectInternalAccounts) {
+            return []; // No Bitcoin accounts
+          }
+          return undefined;
+        });
+
+        // Mock NavigationService to throw
+        const mockNavigate = jest.fn().mockImplementation(() => {
+          throw new Error('Navigation failed');
+        });
+        (NavigationService.navigation.navigate as jest.Mock) = mockNavigate;
+
+        (isCaipChainId as unknown as jest.Mock).mockReturnValue(true);
+        (parseCaipChainId as jest.Mock).mockReturnValue({
+          namespace: 'bip122',
+          reference: '000000000019d6689c085ae165831e93',
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        // Should throw when navigation fails
+        await expect(
+          result.current.selectCustomNetwork(bitcoinMainnet),
+        ).rejects.toThrow('Navigation failed');
+
+        expect(mockNavigate).toHaveBeenCalled();
+        expect(mockEnableNetwork).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('type safety and boundary conditions', () => {
+      it('handles maximum safe integer in chain ID', () => {
+        jest.clearAllMocks();
+
+        const maxSafeInt = Number.MAX_SAFE_INTEGER;
+        const maxSafeIntHex = `0x${maxSafeInt.toString(16)}` as Hex;
+
+        // Set up fresh mock implementation for this test
+        (isCaipChainId as unknown as jest.Mock).mockReturnValue(false);
+        mockFormatChainIdToCaip.mockImplementation((value) => {
+          if (value === maxSafeIntHex) {
+            return `eip155:${maxSafeInt.toString(16)}` as CaipChainId;
+          }
+          return `eip155:${value}` as CaipChainId;
+        });
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mockNetworks }),
+        );
+
+        result.current.selectNetwork(maxSafeIntHex);
+
+        expect(mockFormatChainIdToCaip).toHaveBeenCalledWith(maxSafeIntHex);
+        expect(mockEnableNetwork).toHaveBeenCalled();
+      });
+
+      it('handles networks array with mixed valid and invalid entries', () => {
+        const mixedNetworks: ProcessedNetwork[] = [
+          {
+            id: 'valid-1',
+            name: 'Valid Network',
+            caipChainId: 'eip155:1' as CaipChainId,
+            isSelected: true,
+            imageSource: { uri: 'valid.png' },
+          },
+          {
+            id: '',
+            name: '',
+            caipChainId: '' as CaipChainId,
+            isSelected: false,
+            imageSource: { uri: '' },
+          },
+          {
+            id: 'valid-2',
+            name: 'Another Valid Network',
+            caipChainId: 'eip155:137' as CaipChainId,
+            isSelected: true,
+            imageSource: { uri: 'valid2.png' },
+          },
+        ];
+
+        const { result } = renderHook(() =>
+          useNetworkSelection({ networks: mixedNetworks }),
+        );
+
+        // Should handle mixed array gracefully
+        expect(result.current.customNetworksToReset).toBeDefined();
+        expect(Array.isArray(result.current.customNetworksToReset)).toBe(true);
+
+        // Should still allow operations on valid entries
+        result.current.deselectAll();
+        expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:137');
+      });
     });
   });
 });
