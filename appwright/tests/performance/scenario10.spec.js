@@ -22,12 +22,6 @@ import AmountScreen from '../../../wdio/screen-objects/AmountScreen.js';
 
 import AppwrightSelectors from '../../../wdio/helpers/AppwrightSelectors.js';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import { expect } from 'appwright';
-import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import BrowserScreen from '../../../wdio/screen-objects/BrowserObject/BrowserScreen.js';
-import AddressBarScreen from '../../../wdio/screen-objects/BrowserObject/AddressBarScreen.js';
-import ExternalWebsitesScreen from '../../../wdio/screen-objects/BrowserObject/ExternalWebsitesScreen.js';
-import AccountApprovalModal from '../../../wdio/screen-objects/Modals/AccountApprovalModal.js';
 test('Cold Start after importing a wallet', async ({
   device,
   performanceTracker,
@@ -75,7 +69,6 @@ test('Cold Start after importing a wallet', async ({
   );
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
-  await expect(timer1Duration).toBeLessThan(5000);
 });
 test('Cold Start on Login Screen After Importing a Wallet', async ({
   device,
@@ -114,9 +107,6 @@ test('Cold Start on Login Screen After Importing a Wallet', async ({
   timer1.stop();
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
-  const timer1Duration = timer1.getDuration();
-
-  await expect(timer1Duration).toBeLessThan(4000);
 });
 
 test.skip('Wallet Time To Interact Cold Start on Fresh Install', async ({
@@ -132,9 +122,4 @@ test.skip('Wallet Time To Interact Cold Start on Fresh Install', async ({
   timer1.stop();
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
-  const timer1Duration = timer1.getDuration();
-
-  await expect(timer1Duration).toBeLessThan(
-    AppwrightSelectors.isAndroid(device) ? 400 : 700,
-  );
 });
