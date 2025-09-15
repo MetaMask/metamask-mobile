@@ -43,49 +43,55 @@ export default async (maxAccounts: number = MAX, index: number = 0) => {
     return;
   }
 
-  const { KeyringController } = Engine.context;
-  const ethQuery = getGlobalEthQuery();
+  try {
+    const { KeyringController } = Engine.context;
+    const ethQuery = getGlobalEthQuery();
 
-  trace({
-    name: TraceName.EvmDiscoverAccounts,
-    op: TraceOperation.DiscoverAccounts,
-    tags: getTraceTags(store.getState()),
-  });
+    trace({
+      name: TraceName.EvmDiscoverAccounts,
+      op: TraceOperation.DiscoverAccounts,
+      tags: getTraceTags(store.getState()),
+    });
 
-  await KeyringController.withKeyring(
-    { type: ExtendedKeyringTypes.hd, index },
-    async ({ keyring }) => {
-      for (let i = 0; i < maxAccounts; i++) {
-        // TODO: Maybe refactor this and re-use the same function for HD account creation
-        // to have tracing in one single place?
-        trace({
-          name: TraceName.CreateHdAccount,
-          op: TraceOperation.CreateAccount,
-          tags: {
-            ...getTraceTags(store.getState()),
-            discovery: true,
-          },
-        });
-        const [newAccount] = await keyring.addAccounts(1);
-        endTrace({
-          name: TraceName.CreateHdAccount,
-        });
+    await KeyringController.withKeyring(
+      { type: ExtendedKeyringTypes.hd, index },
+      async ({ keyring }) => {
+        for (let i = 0; i < maxAccounts; i++) {
+          // TODO: Maybe refactor this and re-use the same function for HD account creation
+          // to have tracing in one single place?
+          trace({
+            name: TraceName.CreateHdAccount,
+            op: TraceOperation.CreateAccount,
+            tags: {
+              ...getTraceTags(store.getState()),
+              discovery: true,
+            },
+          });
+          const [newAccount] = await keyring.addAccounts(1);
+          endTrace({
+            name: TraceName.CreateHdAccount,
+          });
 
-        let newAccountBalance = ZERO_BALANCE;
-        try {
-          newAccountBalance = await getBalance(newAccount, ethQuery);
-        } catch (error) {
-          // Errors are gracefully handled so that `withKeyring`
-          // will not rollback the primary keyring, and accounts
-          // created in previous loop iterations will remain in place.
+          let newAccountBalance = ZERO_BALANCE;
+          try {
+            newAccountBalance = await getBalance(newAccount, ethQuery);
+          } catch (error) {
+            // Errors are gracefully handled so that `withKeyring`
+            // will not rollback the primary keyring, and accounts
+            // created in previous loop iterations will remain in place.
+          }
+
+          if (newAccountBalance === ZERO_BALANCE) {
+            // remove extra zero balance account we just added and break the loop
+            keyring.removeAccount?.(newAccount);
+            break;
+          }
         }
-
-        if (newAccountBalance === ZERO_BALANCE) {
-          // remove extra zero balance account we just added and break the loop
-          keyring.removeAccount?.(newAccount);
-          break;
-        }
-      }
-    },
-  );
+      },
+    );
+  } finally {
+    endTrace({
+      name: TraceName.EvmDiscoverAccounts,
+    });
+  }
 };
