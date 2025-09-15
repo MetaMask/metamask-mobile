@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { BigNumber } from 'bignumber.js';
 import Engine from '../../../../../core/Engine';
 import {
   EstimatePointsDto,
@@ -27,9 +28,17 @@ export const getUsdPricePerToken = (
   totalFeeAmountUsd: string,
   feeAmountAtomic: string,
   feeAssetDecimals: number,
-): number =>
-  (parseFloat(totalFeeAmountUsd) * Math.pow(10, feeAssetDecimals)) /
-  parseFloat(feeAmountAtomic);
+): string => {
+  // Use BigNumber for precision-safe arithmetic
+  const totalFeeUsd = new BigNumber(totalFeeAmountUsd);
+  const feeAmountAtomicBN = new BigNumber(feeAmountAtomic);
+  const feeAmountBN = feeAmountAtomicBN.div(
+    new BigNumber(10).pow(feeAssetDecimals),
+  );
+
+  // Calculate: (totalFeeAmountUsd * 10^decimals) / feeAmountAtomic
+  return totalFeeUsd.dividedBy(feeAmountBN).toString();
+};
 
 interface UseRewardsParams {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -169,7 +178,7 @@ export const useRewards = ({
 
       const feeAssetWithUsdPrice: EstimateAssetDto = {
         ...feeAsset,
-        usdPrice: usdPricePerToken.toString(),
+        usdPrice: usdPricePerToken,
       };
 
       // Create estimate request
