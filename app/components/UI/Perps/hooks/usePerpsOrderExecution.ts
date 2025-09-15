@@ -5,7 +5,7 @@ import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import performance from 'react-native-performance';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { setMeasurement , captureException } from '@sentry/react-native';
+import { setMeasurement, captureException } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
