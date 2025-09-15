@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
@@ -68,6 +68,7 @@ describe('PerpsOpenOrderCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
 
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
@@ -80,6 +81,10 @@ describe('PerpsOpenOrderCard', () => {
       }
       return undefined;
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('Component Rendering', () => {
@@ -248,6 +253,11 @@ describe('PerpsOpenOrderCard', () => {
         screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
       );
 
+      // Advance timers to handle debounce
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
       expect(mockOnCancel).toHaveBeenCalledWith(mockOrder);
     });
 
@@ -305,6 +315,11 @@ describe('PerpsOpenOrderCard', () => {
         screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
       );
 
+      // Advance timers to handle debounce
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
       // Assert - Geo block tooltip should be shown
       expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
       // Assert - onCancel should not be called
@@ -336,6 +351,11 @@ describe('PerpsOpenOrderCard', () => {
       fireEvent.press(
         screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
       );
+
+      // Advance timers to handle debounce
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
 
       // Verify modal is shown
       expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
@@ -595,9 +615,7 @@ describe('PerpsOpenOrderCard', () => {
         );
       }).not.toThrow();
     });
-  });
 
-  describe('Additional Coverage Tests', () => {
     it('handles order without takeProfitPrice and stopLossPrice', () => {
       const orderWithoutTPSL: Order = {
         ...mockOrder,

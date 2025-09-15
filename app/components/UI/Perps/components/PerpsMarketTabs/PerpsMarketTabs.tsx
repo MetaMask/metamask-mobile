@@ -56,6 +56,14 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
 
+  // Track order cancellation requests in progress to prevent duplicate requests
+  const orderWithInProgressCancellation = useRef<{ [key: string]: boolean }>(
+    {},
+  );
+
+  const [isAnyOrderBeingCancelled, setIsAnyOrderBeingCancelled] =
+    useState(false);
+
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [selectedTooltip, setSelectedTooltip] =
@@ -246,7 +254,16 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const handleOrderCancel = useCallback(
     async (orderToCancel: Order) => {
       try {
+        // Prevent duplicate cancellation requests for the same orderId
+        if (orderWithInProgressCancellation.current[orderToCancel.orderId]) {
+          return;
+        }
+
+        setIsAnyOrderBeingCancelled(true);
+        orderWithInProgressCancellation.current[orderToCancel.orderId] = true;
+
         DevLogger.log('Canceling order:', orderToCancel.orderId);
+
         const controller = Engine.context.PerpsController;
 
         const orderDirection = getOrderDirection(
@@ -267,6 +284,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           coin: orderToCancel.symbol,
         });
 
+        // Order cancellation successful
         if (result.success) {
           if (orderToCancel.reduceOnly) {
             // Distinction is important since reduce-only orders don't require margin.
@@ -284,12 +302,10 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
           // Notify parent component that order was cancelled to update chart
           onOrderCancelled?.(orderToCancel.orderId);
-          return;
         }
-
         // Open order cancellation failed
-        // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
-        if (orderToCancel.reduceOnly) {
+        else if (orderToCancel.reduceOnly) {
+          // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
           showToast(
             PerpsToastOptions.orderManagement.limit.reduceOnlyClose
               .cancellationFailed,
@@ -323,6 +339,10 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             },
           },
         );
+      } finally {
+        // Remove to allow retry
+        delete orderWithInProgressCancellation.current[orderToCancel.orderId];
+        setIsAnyOrderBeingCancelled(false);
       }
     },
     [
@@ -526,6 +546,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
                       onSelect={onOrderSelect}
                       isActiveOnChart={isActive}
                       activeType={activeType}
+                      disabled={isAnyOrderBeingCancelled}
                     />
                   );
                 })}

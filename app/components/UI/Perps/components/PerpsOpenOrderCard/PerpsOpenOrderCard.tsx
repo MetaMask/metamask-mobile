@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
@@ -35,6 +35,7 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { debounce } from 'lodash';
 
 /**
  * PerpsOpenOrderCard Component
@@ -78,9 +79,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     useState(false);
   const isEligible = useSelector(selectPerpsEligibility);
 
-  // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
-    // For reduce-only orders (TP/SL), show them as closing positions
     let direction: OpenOrderCardDerivedData['direction'];
     if (order.reduceOnly || order.isTrigger) {
       // This is a TP/SL order closing a position
@@ -109,31 +108,42 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       sizeInUSD,
       fillPercentage,
     };
-  }, [order]);
+  }, [
+    order.reduceOnly,
+    order.isTrigger,
+    order.side,
+    order.originalSize,
+    order.price,
+    order.filledSize,
+  ]);
+
+  const debouncedHandleCancelPress = useMemo(
+    () =>
+      debounce(() => {
+        if (!isEligible) {
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+
+        DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
+          orderId: order.orderId,
+        });
+
+        onCancel?.(order);
+      }, 200),
+    [isEligible, onCancel, order],
+  );
+
+  const handleCardPress = useCallback(() => {
+    if (onSelect && !disabled) {
+      onSelect(order.orderId);
+    }
+  }, [onSelect, disabled, order.orderId]);
 
   // Early return for non-open orders - this component only handles open orders
   if (order.status !== 'open') {
     return null;
   }
-
-  const handleCancelPress = () => {
-    if (!isEligible) {
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-
-    DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
-      orderId: order.orderId,
-    });
-
-    onCancel?.(order);
-  };
-
-  const handleCardPress = () => {
-    if (onSelect && !disabled) {
-      onSelect(order.orderId);
-    }
-  };
 
   return (
     <TouchableOpacity
@@ -168,6 +178,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                       variant={TextVariant.BodyXS}
                       color={TextColor.Inverse}
                     >
+                      {/* TODO: Localize */}
                       TP on Chart
                     </Text>
                   </View>
@@ -180,6 +191,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                       variant={TextVariant.BodyXS}
                       color={TextColor.Default}
                     >
+                      {/* TODO: Localize */}
                       SL on Chart
                     </Text>
                   </View>
@@ -308,8 +320,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={strings('perps.order.cancel_order')}
-            onPress={handleCancelPress}
-            disabled={disabled}
+            onPress={debouncedHandleCancelPress}
+            isDisabled={disabled}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
@@ -328,5 +340,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     </TouchableOpacity>
   );
 };
+
+PerpsOpenOrderCard.displayName = 'PerpsOpenOrderCard';
 
 export default PerpsOpenOrderCard;
