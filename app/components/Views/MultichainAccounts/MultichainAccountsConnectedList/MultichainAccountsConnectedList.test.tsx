@@ -1,12 +1,3 @@
-const mockSetSelectedAccountGroup = jest.fn();
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AccountTreeController: {
-      setSelectedAccountGroup: mockSetSelectedAccountGroup,
-    },
-  },
-}));
-
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
@@ -23,6 +14,15 @@ import {
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
+const mockSetSelectedAccountGroup = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      setSelectedAccountGroup: (id: string) => mockSetSelectedAccountGroup(id),
+    },
+  },
+}));
+
 jest.mock('../../../../selectors/assets/balances', () => {
   const actual = jest.requireActual('../../../../selectors/assets/balances');
   return {
@@ -35,6 +35,10 @@ jest.mock('../../../../selectors/assets/balances', () => {
     }),
   };
 });
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -97,8 +101,7 @@ const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
 
 describe('MultichainAccountsConnectedList', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockSetSelectedAccountGroup.mockClear();
+    jest.resetAllMocks();
   });
 
   it('renders component with different account group configurations', () => {
