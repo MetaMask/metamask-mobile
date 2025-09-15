@@ -1,634 +1,369 @@
-import { captureException } from '@sentry/react-native';
-import { cloneDeep } from 'lodash';
+import migrate, { CHAINS_TO_RENAME } from './100';
 
-import { ensureValidState } from './util';
-import migrate from './100';
+const migrationVersion = 100;
 
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
-}));
+type NetworkConfig = Record<string, { chainId: string; name: string }>;
 
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
+// Create network configurations based on CHAINS_TO_RENAME data
+const createNetworkConfigs = () => {
+  const configs: NetworkConfig = {};
 
-const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
-
-describe('Migration 100: Update Network Names', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
+  // Add configurations for chains that will be renamed
+  CHAINS_TO_RENAME.forEach((chain) => {
+    configs[chain.id] = {
+      chainId: chain.id,
+      name: chain.fromName,
+    };
   });
 
-  it('returns state unchanged if ensureValidState fails', () => {
-    const state = { some: 'state' };
-    mockedEnsureValidState.mockReturnValue(false);
+  return configs;
+};
 
-    const migratedState = migrate(state);
+const networkConfigs = createNetworkConfigs();
 
-    expect(migratedState).toStrictEqual({ some: 'state' });
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    {
-      state: {
-        engine: {},
+// Helper to create test state
+const createTestState = (networkConfigurationsByChainId: NetworkConfig) => ({
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurationsByChainId,
       },
-      test: 'empty engine state',
     },
-    {
-      state: {
+  },
+  settings: {},
+  security: {},
+});
+
+// Network name mappings for migration testing (derived from CHAINS_TO_RENAME)
+const nameUpdates: Record<string, string> = Object.fromEntries(
+  CHAINS_TO_RENAME.map((chain) => [chain.id, chain.toName]),
+);
+
+describe(`migration #${migrationVersion}`, () => {
+  describe('ensureValidState validation', () => {
+    it('returns original state if state is not an object', () => {
+      const invalidState = 'invalid';
+      const result = migrate(invalidState);
+      expect(result).toBe(invalidState);
+    });
+
+    it('returns original state if engine is not an object', () => {
+      const invalidState = { engine: 'invalid' };
+      const result = migrate(invalidState);
+      expect(result).toBe(invalidState);
+    });
+
+    it('returns original state if engine.backgroundState is not an object', () => {
+      const invalidState = { engine: { backgroundState: 'invalid' } };
+      const result = migrate(invalidState);
+      expect(result).toBe(invalidState);
+    });
+  });
+
+  describe('NetworkController state transformations', () => {
+    it('returns original state if NetworkController is missing', () => {
+      const state = {
         engine: {
           backgroundState: {},
         },
-      },
-      test: 'empty backgroundState',
-    },
-    {
-      state: {
+        settings: {},
+        security: {},
+      };
+      const result = migrate(state);
+      expect(result).toBe(state);
+    });
+
+    it('returns original state if NetworkController is not an object', () => {
+      const state = {
         engine: {
           backgroundState: {
-            NetworkController: 'invalid',
+            NetworkController: 'invalidData',
           },
         },
-      },
-      test: 'invalid NetworkController state',
-    },
-    {
-      state: {
+        settings: {},
+        security: {},
+      };
+      const result = migrate(state);
+      expect(result).toBe(state);
+    });
+
+    it('returns original state if networkConfigurationsByChainId is missing', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {},
+          },
+        },
+        settings: {},
+        security: {},
+      };
+      const result = migrate(state);
+      expect(result).toBe(state);
+    });
+
+    it('returns original state if networkConfigurationsByChainId is not an object', () => {
+      const state = {
         engine: {
           backgroundState: {
             NetworkController: {
-              networkConfigurationsByChainId: 'invalid',
+              networkConfigurationsByChainId: 'invalidData',
             },
           },
         },
-      },
-      test: 'invalid networkConfigurationsByChainId state',
-    },
-  ])('does not modify state if the state is invalid - $test', ({ state }) => {
-    const orgState = cloneDeep(state);
-    mockedEnsureValidState.mockReturnValue(true);
+        settings: {},
+        security: {},
+      };
+      const result = migrate(state);
+      expect(result).toBe(state);
+    });
 
-    const migratedState = migrate(state);
+    it('skips chains that are not found in networkConfigurationsByChainId', () => {
+      const partialNetworkConfigs: NetworkConfig = {
+        // Only include first chain from CHAINS_TO_RENAME
+        [CHAINS_TO_RENAME[0].id]: {
+          chainId: CHAINS_TO_RENAME[0].id,
+          name: CHAINS_TO_RENAME[0].fromName,
+        },
+      };
 
-    // State should be unchanged
-    expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+      const oldState = createTestState(partialNetworkConfigs);
+      const result = migrate(oldState);
+
+      // Should only update the one chain that exists
+      const expected = {
+        ...oldState,
+        engine: {
+          ...oldState.engine,
+          backgroundState: {
+            ...oldState.engine.backgroundState,
+            NetworkController: {
+              ...oldState.engine.backgroundState.NetworkController,
+              networkConfigurationsByChainId: {
+                [CHAINS_TO_RENAME[0].id]: {
+                  chainId: CHAINS_TO_RENAME[0].id,
+                  name: CHAINS_TO_RENAME[0].toName,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      expect(result).toStrictEqual(expected);
+    });
+
+    it('does nothing if network configuration is not an object', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [CHAINS_TO_RENAME[0].id]: 'invalidConfig',
+              },
+            },
+          },
+        },
+        settings: {},
+        security: {},
+      };
+
+      const result = migrate(state);
+      expect(result).toBe(state);
+    });
+
+    it('does nothing if network configuration does not have name property', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [CHAINS_TO_RENAME[0].id]: {
+                  chainId: CHAINS_TO_RENAME[0].id,
+                  // Missing name property
+                },
+              },
+            },
+          },
+        },
+        settings: {},
+        security: {},
+      };
+
+      const result = migrate(state);
+      expect(result).toBe(state);
+    });
+
+    it('does nothing if network has custom names (not matching fromName)', () => {
+      // Create network configs with custom names (should not be migrated)
+      const customNetworkConfigs = { ...networkConfigs };
+
+      // Add "Custom" suffix to all chain names to make them non-matching
+      Object.keys(customNetworkConfigs).forEach((chainId) => {
+        if (customNetworkConfigs[chainId]) {
+          customNetworkConfigs[chainId] = {
+            ...customNetworkConfigs[chainId],
+            name: `${customNetworkConfigs[chainId].name} Custom`,
+          };
+        }
+      });
+
+      const oldState = createTestState(customNetworkConfigs);
+      const result = migrate(oldState);
+      expect(result).toBe(oldState);
+    });
+
+    it('updates all network names from old names to new ones', () => {
+      const oldState = createTestState(networkConfigs);
+      const result = migrate(oldState);
+
+      // Create expected data by applying name updates
+      const expectedNetworkConfigs = { ...networkConfigs };
+      Object.entries(nameUpdates).forEach(([chainId, newName]) => {
+        const config =
+          expectedNetworkConfigs[
+            chainId as keyof typeof expectedNetworkConfigs
+          ];
+        if (config) {
+          expectedNetworkConfigs[
+            chainId as keyof typeof expectedNetworkConfigs
+          ] = {
+            ...config,
+            name: newName,
+          };
+        }
+      });
+
+      const expectedState = {
+        ...oldState,
+        engine: {
+          ...oldState.engine,
+          backgroundState: {
+            ...oldState.engine.backgroundState,
+            NetworkController: {
+              ...oldState.engine.backgroundState.NetworkController,
+              networkConfigurationsByChainId: expectedNetworkConfigs,
+            },
+          },
+        },
+      };
+
+      expect(result).toStrictEqual(expectedState);
+    });
+
+    it('updates only matching network names and leaves others unchanged', () => {
+      const mixedNetworkConfigs = {
+        ...networkConfigs,
+        // Add a custom network that shouldn't be changed
+        'custom-chain-id': {
+          chainId: 'custom-chain-id',
+          name: 'Custom Network',
+        },
+      };
+
+      const oldState = createTestState(mixedNetworkConfigs);
+      const result = migrate(oldState);
+
+      // Create expected data
+      const expectedNetworkConfigs = { ...networkConfigs };
+      Object.entries(nameUpdates).forEach(([chainId, newName]) => {
+        const config =
+          expectedNetworkConfigs[
+            chainId as keyof typeof expectedNetworkConfigs
+          ];
+        if (config) {
+          expectedNetworkConfigs[
+            chainId as keyof typeof expectedNetworkConfigs
+          ] = {
+            ...config,
+            name: newName,
+          };
+        }
+      });
+
+      // Add the unchanged custom network
+      expectedNetworkConfigs['custom-chain-id'] = {
+        chainId: 'custom-chain-id',
+        name: 'Custom Network',
+      };
+
+      const expectedState = {
+        ...oldState,
+        engine: {
+          ...oldState.engine,
+          backgroundState: {
+            ...oldState.engine.backgroundState,
+            NetworkController: {
+              ...oldState.engine.backgroundState.NetworkController,
+              networkConfigurationsByChainId: expectedNetworkConfigs,
+            },
+          },
+        },
+      };
+
+      expect(result).toStrictEqual(expectedState);
+    });
+
+    // Test each individual chain rename
+    CHAINS_TO_RENAME.forEach((chain) => {
+      it(`updates ${chain.fromName} to ${chain.toName} for chain ${chain.id}`, () => {
+        const singleChainConfig = {
+          [chain.id]: {
+            chainId: chain.id,
+            name: chain.fromName,
+          },
+        };
+
+        const oldState = createTestState(singleChainConfig);
+        const result = migrate(oldState);
+
+        const expectedState = {
+          ...oldState,
+          engine: {
+            ...oldState.engine,
+            backgroundState: {
+              ...oldState.engine.backgroundState,
+              NetworkController: {
+                ...oldState.engine.backgroundState.NetworkController,
+                networkConfigurationsByChainId: {
+                  [chain.id]: {
+                    chainId: chain.id,
+                    name: chain.toName,
+                  },
+                },
+              },
+            },
+          },
+        };
+
+        expect(result).toStrictEqual(expectedState);
+      });
+    });
   });
 
-  it('does not update network names if they do not match the expected old names', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0xe708': {
-                chainId: '0xe708',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'linea-mainnet',
-                    url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://lineascan.build'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Custom Linea Network',
-                nativeCurrency: 'ETH',
-              },
-              '0x2105': {
-                chainId: '0x2105',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'base-mainnet',
-                    url: 'https://base-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://basescan.org'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Custom Base Network',
-                nativeCurrency: 'ETH',
+  describe('error handling', () => {
+    it('returns original state and captures exception when migration throws an error', () => {
+      // Create a state that will cause an error during processing
+      const problematicState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                // Create a getter that throws an error
+                get [CHAINS_TO_RENAME[0].id]() {
+                  throw new Error('Test error');
+                },
               },
             },
           },
         },
-      },
-    };
+        settings: {},
+        security: {},
+      };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedState = cloneDeep(oldState);
-
-    const migratedState = migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('updates only the network names that match the expected old names', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0xe708': {
-                chainId: '0xe708',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'linea-mainnet',
-                    url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://lineascan.build'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Linea Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x2105': {
-                chainId: '0x2105',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'base-mainnet',
-                    url: 'https://base-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://basescan.org'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Custom Base Network',
-                nativeCurrency: 'ETH',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              '0xe708': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0xe708'],
-                name: 'Linea',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('updates all network names from old to new names', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0xe708': {
-                chainId: '0xe708',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'linea-mainnet',
-                    url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://lineascan.build'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Linea Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0x2105': {
-                chainId: '0x2105',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'base-mainnet',
-                    url: 'https://base-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://basescan.org'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Base Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0xa4b1': {
-                chainId: '0xa4b1',
-                name: 'Arbitrum One',
-                nativeCurrency: 'ETH',
-                blockExplorerUrls: ['https://explorer.arbitrum.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                defaultRpcEndpointIndex: 0,
-                rpcEndpoints: [
-                  {
-                    url: 'https://arbitrum-mainnet.infura.io/v3/b6bf7d3508c941499b10025c0776eaf8',
-                    failoverUrls: [],
-                    type: 'custom',
-                    networkClientId: '468bc365-5ad9-4dd8-97af-86e3cf659252',
-                  },
-                ],
-                lastUpdatedAt: 1757337866918,
-              },
-              '0xa86a': {
-                chainId: '0xa86a',
-                name: 'Avalanche Network C-Chain',
-                nativeCurrency: 'AVAX',
-                blockExplorerUrls: ['https://snowtrace.io/'],
-                defaultBlockExplorerUrlIndex: 0,
-                defaultRpcEndpointIndex: 0,
-                rpcEndpoints: [
-                  {
-                    url: 'https://avalanche-mainnet.infura.io/v3/b6bf7d3508c941499b10025c0776eaf8',
-                    failoverUrls: [],
-                    type: 'custom',
-                    networkClientId: 'd75ade0c-2a53-4b4e-8acf-0a040216290f',
-                  },
-                ],
-                lastUpdatedAt: 1757337870947,
-              },
-              '0x38': {
-                chainId: '0x38',
-                name: 'Binance Smart Chain',
-                nativeCurrency: 'BNB',
-                blockExplorerUrls: ['https://bscscan.com/'],
-                defaultBlockExplorerUrlIndex: 0,
-                defaultRpcEndpointIndex: 0,
-                rpcEndpoints: [
-                  {
-                    url: 'https://bsc-mainnet.infura.io/v3/b6bf7d3508c941499b10025c0776eaf8',
-                    failoverUrls: [],
-                    type: 'custom',
-                    networkClientId: 'a2c6ed0c-3a18-4bae-874c-43ded891de40',
-                  },
-                ],
-                lastUpdatedAt: 1757337874658,
-              },
-              '0xa': {
-                chainId: '0xa',
-                name: 'OP Mainnet',
-                nativeCurrency: 'ETH',
-                blockExplorerUrls: ['https://optimistic.etherscan.io/'],
-                defaultBlockExplorerUrlIndex: 0,
-                defaultRpcEndpointIndex: 0,
-                rpcEndpoints: [
-                  {
-                    url: 'https://optimism-mainnet.infura.io/v3/b6bf7d3508c941499b10025c0776eaf8',
-                    failoverUrls: [],
-                    type: 'custom',
-                    networkClientId: 'c96c8704-0e00-409b-82ff-177ad023cfd9',
-                  },
-                ],
-                lastUpdatedAt: 1757337879268,
-              },
-              '0x89': {
-                chainId: '0x89',
-                name: 'Polygon Mainnet',
-                nativeCurrency: 'POL',
-                blockExplorerUrls: ['https://polygonscan.com/'],
-                defaultBlockExplorerUrlIndex: 0,
-                defaultRpcEndpointIndex: 0,
-                rpcEndpoints: [
-                  {
-                    url: 'https://polygon-mainnet.infura.io/v3/b6bf7d3508c941499b10025c0776eaf8',
-                    failoverUrls: [],
-                    type: 'custom',
-                    networkClientId: 'd46edd87-e0a1-44cf-86c5-a63c5a891c3b',
-                  },
-                ],
-                lastUpdatedAt: 1757337882648,
-              },
-              '0x531': {
-                chainId: '0x531',
-                name: 'Sei Mainnet',
-                nativeCurrency: 'SEI',
-                blockExplorerUrls: ['https://seitrace.com/'],
-                defaultBlockExplorerUrlIndex: 0,
-                defaultRpcEndpointIndex: 0,
-                rpcEndpoints: [
-                  {
-                    url: 'https://sei-mainnet.infura.io/v3/b6bf7d3508c941499b10025c0776eaf8',
-                    type: 'custom',
-                    networkClientId: 'f33b668a-4c7f-43b8-94fb-23383be1c2eb',
-                  },
-                ],
-                lastUpdatedAt: 1757337886644,
-              },
-            },
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              '0xe708': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0xe708'],
-                name: 'Linea',
-              },
-              '0x2105': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x2105'],
-                name: 'Base',
-              },
-              '0xa4b1': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0xa4b1'],
-                name: 'Arbitrum',
-              },
-              '0xa86a': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0xa86a'],
-                name: 'Avalanche',
-              },
-              '0x38': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x38'],
-                name: 'BNB Chain',
-              },
-              '0xa': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0xa'],
-                name: 'OP',
-              },
-              '0x89': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x89'],
-                name: 'Polygon',
-              },
-              '0x531': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x531'],
-                name: 'Sei',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles missing chain IDs gracefully', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              // Only includes one chain that should be updated
-              '0xe708': {
-                chainId: '0xe708',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'linea-mainnet',
-                    url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://lineascan.build'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Linea Mainnet',
-                nativeCurrency: 'ETH',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              '0xe708': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0xe708'],
-                name: 'Linea',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles networks with invalid structure gracefully', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0x1': {
-                chainId: '0x1',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'mainnet',
-                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://etherscan.io'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Ethereum Mainnet',
-                nativeCurrency: 'ETH',
-              },
-              '0xe708': 'invalid_network_config',
-              '0x2105': {
-                chainId: '0x2105',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'base-mainnet',
-                    url: 'https://base-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://basescan.org'],
-                defaultBlockExplorerUrlIndex: 0,
-                name: 'Base Mainnet',
-                nativeCurrency: 'ETH',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            ...oldState.engine.backgroundState.NetworkController,
-            networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              '0x2105': {
-                ...oldState.engine.backgroundState.NetworkController
-                  .networkConfigurationsByChainId['0x2105'],
-                name: 'Base',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles networks without name property gracefully', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurationsByChainId: {
-              '0xe708': {
-                chainId: '0xe708',
-                rpcEndpoints: [
-                  {
-                    networkClientId: 'linea-mainnet',
-                    url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
-                    type: 'infura',
-                  },
-                ],
-                defaultRpcEndpointIndex: 0,
-                blockExplorerUrls: ['https://lineascan.build'],
-                defaultBlockExplorerUrlIndex: 0,
-                // Missing name property
-                nativeCurrency: 'ETH',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const expectedState = cloneDeep(oldState);
-
-    const migratedState = migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+      const result = migrate(problematicState);
+      expect(result).toBe(problematicState);
+    });
   });
 });

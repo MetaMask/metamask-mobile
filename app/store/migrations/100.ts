@@ -1,10 +1,9 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 
-const CHAINS_TO_RENAME: {
+export const CHAINS_TO_RENAME: {
   readonly id: string;
   readonly fromName: string;
   readonly toName: string;
@@ -49,6 +48,11 @@ const CHAINS_TO_RENAME: {
     fromName: 'Sei Mainnet',
     toName: 'Sei',
   },
+  {
+    id: NETWORK_CHAIN_ID.ZKSYNC_ERA,
+    fromName: 'zkSync Era Mainnet',
+    toName: 'zkSync Era',
+  },
 ];
 
 /**
@@ -66,47 +70,46 @@ export default function migrate(state: unknown): unknown {
   }
 
   try {
-    CHAINS_TO_RENAME.forEach((chain) => {
-      // We only update the network name if it exists in the state
-      // and matches the expected chain ID and name.
-      if (
+    // Validate if the NetworkController state exists and has the expected structure.
+    if (
+      !(
         hasProperty(state, 'engine') &&
         hasProperty(state.engine, 'backgroundState') &&
         hasProperty(state.engine.backgroundState, 'NetworkController') &&
         isObject(state.engine.backgroundState.NetworkController) &&
-        isObject(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId,
-        ) &&
         hasProperty(
-          state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId,
-          chain.id,
+          state.engine.backgroundState.NetworkController,
+          'networkConfigurationsByChainId',
         ) &&
         isObject(
           state.engine.backgroundState.NetworkController
-            .networkConfigurationsByChainId[chain.id],
+            .networkConfigurationsByChainId,
         )
-      ) {
-        // Update the network name if it matches the expected name
-        if (
-          hasProperty(
-            state.engine.backgroundState.NetworkController
-              .networkConfigurationsByChainId[chain.id] as NetworkConfiguration,
-            'name',
-          ) &&
-          (
-            state.engine.backgroundState.NetworkController
-              .networkConfigurationsByChainId[chain.id] as NetworkConfiguration
-          ).name === chain.fromName
-        ) {
-          (
-            state.engine.backgroundState.NetworkController
-              .networkConfigurationsByChainId[chain.id] as NetworkConfiguration
-          ).name = chain.toName;
-        }
+      )
+    ) {
+      return state;
+    }
+
+    for (const chain of CHAINS_TO_RENAME) {
+      const networkConfigsByChainId =
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId;
+
+      // If the chain ID is not found, skip it.
+      if (!hasProperty(networkConfigsByChainId, chain.id)) {
+        continue;
       }
-    });
+
+      // If the network configuration for the chain is not found, skip it.
+      const networkConfigsForChain = networkConfigsByChainId[chain.id];
+      if (
+        isObject(networkConfigsForChain) &&
+        hasProperty(networkConfigsForChain, 'name') &&
+        networkConfigsForChain.name === chain.fromName
+      ) {
+        networkConfigsForChain.name = chain.toName;
+      }
+    }
 
     return state;
   } catch (error) {

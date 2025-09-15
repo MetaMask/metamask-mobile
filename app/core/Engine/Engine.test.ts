@@ -725,4 +725,59 @@ describe('Engine', () => {
     expect(networks['0x2105'].name).toBe('Base');
     expect(networks['0xe708'].name).toBe('Linea');
   });
+
+  it('updates network names for new users (Linea and Base)', () => {
+    // Arrange - Create a state without NetworkController to simulate new user
+    const initState = { ...backgroundState };
+    delete (initState as Partial<EngineState>).NetworkController;
+
+    // Act - Initialize engine which should trigger network name updates
+    const engine = Engine.init(initState);
+    const networkState = engine.context.NetworkController.state;
+
+    // Assert - Linea network name is updated to 'Linea'
+    expect(networkState.networkConfigurationsByChainId['0xe708'].name).toBe(
+      'Linea',
+    );
+
+    // Assert - Base network name is updated to 'Base'
+    expect(networkState.networkConfigurationsByChainId['0x2105'].name).toBe(
+      'Base',
+    );
+  });
+
+  it('does not update network names for existing users', () => {
+    // Arrange - Create state with existing NetworkController that has original names
+    const initState = {
+      ...backgroundState,
+      NetworkController: mockNetworkState(
+        {
+          chainId: '0x1',
+          nickname: 'Ethereum Mainnet',
+        },
+        {
+          chainId: '0xe708',
+          nickname: 'Linea Mainnet', // Original name from API
+        },
+        {
+          chainId: '0x2105',
+          nickname: 'Base Mainnet', // Original name from API
+        },
+      ),
+    };
+
+    // Act - Initialize engine with existing NetworkController state
+    const engine = Engine.init(initState);
+    const networkState = engine.context.NetworkController.state;
+
+    // Assert - Linea network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0xe708'].name).toBe(
+      'Linea Mainnet',
+    );
+
+    // Assert - Base network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0x2105'].name).toBe(
+      'Base Mainnet',
+    );
+  });
 });
