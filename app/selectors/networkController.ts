@@ -287,8 +287,6 @@ export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
         (POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
-          networkConfiguration.caipChainId === SolScope.Mainnet ||
-          networkConfiguration.caipChainId === BtcScope.Mainnet) &&
         !NON_EVM_TESTNET_IDS.includes(networkConfiguration.caipChainId),
     ),
 );
