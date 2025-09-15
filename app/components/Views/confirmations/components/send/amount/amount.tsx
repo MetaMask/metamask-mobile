@@ -39,7 +39,7 @@ export const Amount = () => {
   const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
-    fiatConversionRate,
+    conversionSupportedForAsset,
     fiatCurrencySymbol,
     getFiatValue,
     getFiatDisplayValue,
@@ -65,9 +65,9 @@ export const Amount = () => {
   const alternateDisplayValue = useMemo(
     () =>
       fiatMode
-        ? formatToFixedDecimals(value ?? '0', 5)
+        ? `${formatToFixedDecimals(value ?? '0', 5)} ${assetSymbol}`
         : getFiatDisplayValue(amount),
-    [amount, fiatMode, getFiatDisplayValue, value],
+    [amount, assetSymbol, fiatMode, getFiatDisplayValue, value],
   );
 
   const toggleFiatMode = useCallback(() => {
@@ -98,6 +98,13 @@ export const Amount = () => {
     (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
 
   const defaultValue = fiatMode ? '0.00' : '0';
+  let textColor = TextColor.Default;
+  if (amountError) {
+    textColor = TextColor.Error;
+  }
+  if (!amount.length) {
+    textColor = TextColor.Muted;
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -121,11 +128,12 @@ export const Amount = () => {
         <View style={styles.inputSection}>
           <View style={styles.inputWrapper}>
             <Text
-              color={amountError ? TextColor.Error : TextColor.Default}
+              color={textColor}
               style={styles.inputText}
               numberOfLines={1}
               variant={TextVariant.DisplayMD}
               adjustsFontSizeToFit
+              testID="send_amount"
             >
               {amount?.length ? amount : defaultValue}
             </Text>
@@ -140,7 +148,7 @@ export const Amount = () => {
             </Text>
           </View>
         </View>
-        {!isNFT && fiatConversionRate !== 0 && (
+        {!isNFT && conversionSupportedForAsset && (
           <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
             <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
             <ButtonIcon

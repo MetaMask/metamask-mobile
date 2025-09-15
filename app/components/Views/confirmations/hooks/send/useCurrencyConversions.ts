@@ -148,7 +148,7 @@ export const useCurrencyConversions = () => {
   );
 
   return {
-    fiatConversionRate: conversionRate * (exchangeRate ?? 0),
+    conversionSupportedForAsset: conversionRate * (exchangeRate ?? 0) !== 0,
     fiatCurrencySymbol: currentCurrency?.toUpperCase(),
     getFiatDisplayValue,
     getFiatValue,

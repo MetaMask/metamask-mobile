@@ -1,6 +1,6 @@
 import React from 'react';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
-import { act, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
 import renderWithProvider, {
@@ -14,8 +14,12 @@ import {
   evmSendStateMock,
   solanaSendStateMock,
 } from '../../../__mocks__/send.mock';
+import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
+import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { SendContextProvider } from '../../../context/send-context';
 import { Amount } from './amount';
+
+jest.mock('../../../hooks/send/useCurrencyConversions');
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -24,6 +28,15 @@ jest.mock('../../../../../../core/Engine', () => ({
     },
     AssetsContractController: {
       getERC721AssetSymbol: () => Promise.resolve(undefined),
+    },
+    CurrencyRateController: {
+      currentCurrency: 'usd',
+      currencyRates: {
+        ETH: {
+          conversionRate: 2000,
+          conversionDate: Date.now(),
+        },
+      },
     },
   },
 }));
@@ -70,9 +83,8 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
-import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
-import { getFontSizeForInputLength } from './amount.styles';
 const mockedUseAmountSelectionMetrics = jest.mocked(useAmountSelectionMetrics);
+const mockUseCurrencyConversion = jest.mocked(useCurrencyConversions);
 
 const renderComponent = (mockState?: ProviderValues['state']) => {
   const state = mockState
@@ -104,6 +116,13 @@ describe('Amount', () => {
         },
       },
     } as RouteProp<ParamListBase, string>);
+    mockUseCurrencyConversion.mockReturnValue({
+      conversionSupportedForAsset: true,
+      fiatCurrencySymbol: 'USD',
+      getFiatValue: '4500',
+      getFiatDisplayValue: () => '$ 4500.00',
+      getNativeValue: () => '1',
+    } as unknown as ReturnType<typeof useCurrencyConversions>);
   });
 
   afterEach(() => {
@@ -143,25 +162,30 @@ describe('Amount', () => {
       },
     } as RouteProp<ParamListBase, string>);
 
-    const { getByText, getByTestId } = renderComponent();
-    act(() => {
-      fireEvent.changeText(getByTestId('send_amount'), '1');
-    });
-    expect(getByText('$ 3890')).toBeTruthy();
+    const { getByRole, getByText } = renderComponent();
+    fireEvent.press(getByRole('button', { name: '1' }));
+    expect(getByText('$ 4500.00')).toBeTruthy();
   });
 
   it('display fiat conversion of amount entered for solana asset', () => {
+    mockUseCurrencyConversion.mockReturnValue({
+      conversionSupportedForAsset: true,
+      fiatConversionRate: 10,
+      fiatCurrencySymbol: 'USD',
+      getFiatValue: '250',
+      getFiatDisplayValue: () => '$ 250.00',
+      getNativeValue: () => '1',
+    } as unknown as ReturnType<typeof useCurrencyConversions>);
+
     mockUseRoute.mockReturnValue({
       params: {
         asset: SOLANA_ASSET,
       },
     } as RouteProp<ParamListBase, string>);
 
-    const { getByText, getByTestId } = renderComponent(solanaSendStateMock);
-    act(() => {
-      fireEvent.changeText(getByTestId('send_amount'), '1');
-    });
-    expect(getByText('$ 175')).toBeTruthy();
+    const { getByRole, getByText } = renderComponent();
+    fireEvent.press(getByRole('button', { name: '1' }));
+    expect(getByText('$ 250.00')).toBeTruthy();
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', () => {
@@ -178,12 +202,10 @@ describe('Amount', () => {
       },
     } as RouteProp<ParamListBase, string>);
 
-    const { getByText, getByTestId } = renderComponent();
-    act(() => {
-      fireEvent.press(getByTestId('fiat_toggle'));
-      fireEvent.changeText(getByTestId('send_amount'), '7780');
-    });
-    expect(getByText('ETH 2')).toBeTruthy();
+    const { getByRole, getByText, getByTestId } = renderComponent();
+    fireEvent.press(getByTestId('fiat_toggle'));
+    fireEvent.press(getByRole('button', { name: '5' }));
+    expect(getByText('1 ETH')).toBeTruthy();
   });
 
   it('calls metrics methods on changing fiat mode', () => {
@@ -210,13 +232,9 @@ describe('Amount', () => {
     } as RouteProp<ParamListBase, string>);
 
     const { getByTestId } = renderComponent();
-    act(() => {
-      fireEvent.press(getByTestId('fiat_toggle'));
-    });
+    fireEvent.press(getByTestId('fiat_toggle'));
     expect(mockSetAmountInputTypeFiat).toHaveBeenCalled();
-    act(() => {
-      fireEvent.press(getByTestId('fiat_toggle'));
-    });
+    fireEvent.press(getByTestId('fiat_toggle'));
     expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
   });
 
@@ -295,10 +313,8 @@ describe('Amount', () => {
       },
     } as RouteProp<ParamListBase, string>);
 
-    const { getByTestId, queryByText } = renderComponent(solanaSendStateMock);
-    act(() => {
-      fireEvent.changeText(getByTestId('send_amount'), '1');
-    });
+    const { getByRole, queryByText } = renderComponent();
+    fireEvent.press(getByRole('button', { name: '1' }));
     expect(queryByText('25%')).toBeNull();
     expect(queryByText('50%')).toBeNull();
     expect(queryByText('75%')).toBeNull();
@@ -341,10 +357,8 @@ describe('Amount', () => {
       },
     } as RouteProp<ParamListBase, string>);
 
-    const { getByText, getByTestId } = renderComponent();
-    act(() => {
-      fireEvent.changeText(getByTestId('send_amount'), '100');
-    });
+    const { getByRole, getByText } = renderComponent();
+    fireEvent.press(getByRole('button', { name: '9' }));
     expect(getByText('Insufficient funds')).toBeTruthy();
   });
 
@@ -526,26 +540,4 @@ describe('Amount', () => {
   //   fireEvent.press(getByText('Continue'));
   //   expect(mockCaptureAmountSelected).toHaveBeenCalled();
   // });
-});
-
-describe('getFontSizeForInputLength', () => {
-  it('renders correct font size using input and symbol length', () => {
-    expect(getFontSizeForInputLength(1, 1)).toEqual(60);
-    expect(getFontSizeForInputLength(5, 1)).toEqual(48);
-    expect(getFontSizeForInputLength(1, 6)).toEqual(48);
-    expect(getFontSizeForInputLength(5, 6)).toEqual(48);
-    expect(getFontSizeForInputLength(6, 6)).toEqual(32);
-    expect(getFontSizeForInputLength(5, 7)).toEqual(32);
-    expect(getFontSizeForInputLength(6, 7)).toEqual(32);
-    expect(getFontSizeForInputLength(9, 7)).toEqual(24);
-    expect(getFontSizeForInputLength(6, 9)).toEqual(24);
-    expect(getFontSizeForInputLength(9, 9)).toEqual(24);
-    expect(getFontSizeForInputLength(12, 9)).toEqual(18);
-    expect(getFontSizeForInputLength(9, 12)).toEqual(18);
-    expect(getFontSizeForInputLength(12, 12)).toEqual(18);
-    expect(getFontSizeForInputLength(16, 12)).toEqual(12);
-    expect(getFontSizeForInputLength(12, 16)).toEqual(12);
-    expect(getFontSizeForInputLength(16, 16)).toEqual(12);
-    expect(getFontSizeForInputLength(18, 18)).toEqual(12);
-  });
 });
