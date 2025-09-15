@@ -843,9 +843,6 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.password')}
                   </Label>
                   <TextField
-                    placeholder={strings(
-                      'import_from_seed.enter_strong_password',
-                    )}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}
@@ -871,17 +868,16 @@ class ChoosePassword extends PureComponent {
                       />
                     }
                   />
-                  {Boolean(password) &&
-                    password.length < MIN_PASSWORD_LENGTH && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('choose_password.must_be_at_least', {
-                          number: MIN_PASSWORD_LENGTH,
-                        })}
-                      </Text>
-                    )}
+                  {(!password || password.length < MIN_PASSWORD_LENGTH) && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  )}
                   {Boolean(password) &&
                     password.length >= MIN_PASSWORD_LENGTH && (
                       <Text
@@ -914,7 +910,6 @@ class ChoosePassword extends PureComponent {
                   </Label>
                   <TextField
                     ref={this.confirmPasswordInput}
-                    placeholder={strings('import_from_seed.re_enter_password')}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}
