@@ -1,5 +1,10 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  BackHandler,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -15,13 +20,11 @@ import { ConfirmationContextProvider } from '../../context/confirmation-context'
 import { LedgerContextProvider } from '../../context/ledger-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
-import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
-import { getNavbar } from '../UI/navbar/navbar';
 import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
@@ -76,39 +79,50 @@ interface ConfirmProps {
 export const Confirm = ({ route }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-
-  const { styles, theme } = useStyles(styleSheet, { isFullScreenConfirmation });
-
-  useEffect(() => {
-    if (!isRedesignedEnabled) {
-      navigation.setOptions({
-        // Intentionally empty title to avoid flicker
-        ...getNavbar({ title: '', theme, onReject }),
-        headerShown: true,
-      });
-    }
-  }, [isRedesignedEnabled, theme, onReject, navigation]);
+  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
 
   useEffect(() => {
-    if (isFullScreenConfirmation) {
-      // Keep this navigation option to prevent Android navigation flickering
-      navigation.setOptions({
-        headerShown: true,
-      });
-    }
-  }, [onReject, isFullScreenConfirmation, navigation]);
+    if (approvalRequest) {
+      const options = {
+        headerShown: false,
+        // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
+        gestureEnabled: true,
+      };
 
-  if (!isRedesignedEnabled) {
+      if (isFullScreenConfirmation) {
+        // If the confirmation is full screen, we need to show the header
+        options.headerShown = true;
+      }
+      navigation.setOptions(options);
+    }
+  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+
+  useEffect(() => {
+    if (!approvalRequest) {
+      const backHandlerSubscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        // Do nothing if back button is pressed for Android in case of no approvalRequest (loading state)
+        () => undefined,
+      );
+
+      return () => {
+        backHandlerSubscription.remove();
+      };
+    }
+  }, [approvalRequest]);
+
+  // Show spinner if there is no approvalRequest
+  if (!approvalRequest) {
     return (
-      <View style={styles.spinnerContainer}>
+      <View style={styles.spinnerContainer} testID="spinner">
         <AnimatedSpinner size={SpinnerSize.MD} />
       </View>
     );
   }
 
+  // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
     return (
       <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>

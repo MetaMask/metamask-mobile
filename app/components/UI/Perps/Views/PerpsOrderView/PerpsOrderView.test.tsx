@@ -68,6 +68,42 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+// Mock i18n strings
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+    const translations: Record<string, string> = {
+      'perps.order.leverage': 'Leverage',
+      'perps.order.limit_price': 'Limit price',
+      'perps.order.tp_sl': 'TP/SL',
+      'perps.order.margin': 'Margin',
+      'perps.order.liquidation_price': 'Liquidation price',
+      'perps.order.fees': 'Fees',
+      'perps.order.off': 'off',
+      'perps.order.button.long': 'Long {{asset}}',
+      'perps.order.button.short': 'Short {{asset}}',
+      'perps.order.validation.insufficient_funds': 'Insufficient funds',
+      'perps.deposit.max_button': 'Max',
+      'perps.deposit.done_button': 'Done',
+      'perps.errors.orderValidation.sizePositive':
+        'Size must be a positive number',
+      'perps.tpsl.stop_loss_order_view_warning':
+        'Stop loss is {{direction}} liquidation price',
+      'perps.tpsl.below': 'below',
+      'perps.tpsl.above': 'above',
+    };
+
+    if (params && translations[key]) {
+      let result = translations[key];
+      Object.entries(params).forEach(([paramKey, paramValue]) => {
+        result = result.replace(`{{${paramKey}}}`, String(paramValue));
+      });
+      return result;
+    }
+
+    return translations[key] || key;
+  }),
+}));
+
 // Mock the context
 jest.mock('../../contexts/PerpsOrderContext', () => {
   const actual = jest.requireActual('../../contexts/PerpsOrderContext');
@@ -1193,6 +1229,333 @@ describe('PerpsOrderView', () => {
       );
       expect(placeOrderButton).toBeDefined();
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeFalsy();
+    });
+  });
+
+  describe('Stop loss liquidation warning', () => {
+    it('shows liquidation warning for long position with stop loss below liquidation price', async () => {
+      // Mock order context with risky stop loss for long position
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: '2800', // Stop loss below liquidation price (risky)
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.033',
+        },
+      });
+
+      // Mock liquidation price higher than stop loss
+      (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+        liquidationPrice: '2850.00', // Higher than stop loss (2800)
+        isCalculating: false,
+        error: null,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for component to render - calculate expected RoE:
+      // Long SL at 2800 vs current price 3000: (3000-2800)/3000 * 10 * 100 = 67%
+      await waitFor(() => {
+        expect(screen.getByText('TP off, SL 67%')).toBeDefined();
+      });
+
+      // Verify the warning message is displayed
+      expect(
+        screen.getByText('Stop loss is below liquidation price'),
+      ).toBeDefined();
+    });
+
+    it('shows liquidation warning for short position with stop loss above liquidation price', async () => {
+      // Mock order context with risky stop loss for short position
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: 'short',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: '3200', // Stop loss above liquidation price (risky for short)
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.033',
+        },
+      });
+
+      // Mock liquidation price lower than stop loss
+      (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+        liquidationPrice: '3150.00', // Lower than stop loss (3200)
+        isCalculating: false,
+        error: null,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for component to render - calculate expected RoE:
+      // Short SL at 3200 vs current price 3000: (3200-3000)/3000 * 10 * 100 = 67%
+      await waitFor(() => {
+        expect(screen.getByText('TP off, SL 67%')).toBeDefined();
+      });
+
+      // Verify the warning message is displayed with "above" for short positions
+      expect(
+        screen.getByText('Stop loss is above liquidation price'),
+      ).toBeDefined();
+    });
+
+    it('does not show liquidation warning when stop loss is safe for long position', async () => {
+      // Mock order context with safe stop loss for long position
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: '2900', // Stop loss above liquidation price (safe)
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.033',
+        },
+      });
+
+      // Mock liquidation price lower than stop loss
+      (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+        liquidationPrice: '2850.00', // Lower than stop loss (2900)
+        isCalculating: false,
+        error: null,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for component to render - calculate expected RoE:
+      // Long SL at 2900 vs current price 3000: (3000-2900)/3000 * 10 * 100 = 33%
+      await waitFor(() => {
+        expect(screen.getByText('TP off, SL 33%')).toBeDefined();
+      });
+
+      // Verify the warning message is NOT displayed
+      expect(
+        screen.queryByText('Stop loss is below liquidation price'),
+      ).toBeNull();
+      expect(
+        screen.queryByText('Stop loss is above liquidation price'),
+      ).toBeNull();
+    });
+
+    it('does not show liquidation warning when stop loss is safe for short position', async () => {
+      // Mock order context with safe stop loss for short position
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: 'short',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: '3100', // Stop loss below liquidation price (safe for short)
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.033',
+        },
+      });
+
+      // Mock liquidation price higher than stop loss
+      (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+        liquidationPrice: '3150.00', // Higher than stop loss (3100)
+        isCalculating: false,
+        error: null,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for component to render - calculate expected RoE:
+      // Short SL at 3100 vs current price 3000: (3100-3000)/3000 * 10 * 100 = 33%
+      await waitFor(() => {
+        expect(screen.getByText('TP off, SL 33%')).toBeDefined();
+      });
+
+      // Verify the warning message is NOT displayed
+      expect(
+        screen.queryByText('Stop loss is below liquidation price'),
+      ).toBeNull();
+      expect(
+        screen.queryByText('Stop loss is above liquidation price'),
+      ).toBeNull();
+    });
+
+    it('does not show liquidation warning when no stop loss is set', async () => {
+      // Mock order context without stop loss
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined, // No stop loss set
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.033',
+        },
+      });
+
+      // Mock liquidation price
+      (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+        liquidationPrice: '2850.00',
+        isCalculating: false,
+        error: null,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for component to render
+      await waitFor(() => {
+        expect(screen.getByText('TP off, SL off')).toBeDefined();
+      });
+
+      // Verify the warning message is NOT displayed
+      expect(
+        screen.queryByText('Stop loss is below liquidation price'),
+      ).toBeNull();
+      expect(
+        screen.queryByText('Stop loss is above liquidation price'),
+      ).toBeNull();
+    });
+
+    it('disables place order button when stop loss risks liquidation', async () => {
+      // Mock order context with risky stop loss
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: '2800', // Risky stop loss
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.033',
+        },
+      });
+
+      // Mock liquidation price higher than stop loss
+      (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+        liquidationPrice: '2850.00',
+        isCalculating: false,
+        error: null,
+      });
+
+      // Mock valid order validation (other validations pass)
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+
+      // Mock order execution not placing
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Wait for component to render
+      await waitFor(() => {
+        expect(
+          screen.getByText('Stop loss is below liquidation price'),
+        ).toBeDefined();
+      });
+
+      // Find the place order button
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+
+      // Verify the button is disabled due to liquidation risk
+      expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
     });
   });
 
