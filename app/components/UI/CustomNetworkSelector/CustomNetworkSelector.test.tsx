@@ -106,10 +106,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../selectors/preferencesController', () => ({
-  selectUseBlockieIcon: jest.fn(),
-}));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   Provider: jest.requireActual('react-redux').Provider,
