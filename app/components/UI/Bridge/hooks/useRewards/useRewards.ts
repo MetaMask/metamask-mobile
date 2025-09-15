@@ -35,15 +35,27 @@ export const getUsdPricePerToken = (
   totalFeeAmountUsd: string,
   feeAmountAtomic: string,
   feeAssetDecimals: number,
-): string => {
-  // Use BigNumber for precision-safe arithmetic
-  const totalFeeUsd = new BigNumber(totalFeeAmountUsd);
-  const feeAmountAtomicBN = new BigNumber(feeAmountAtomic);
-  const feeAmountBN = feeAmountAtomicBN.div(
-    new BigNumber(10).pow(feeAssetDecimals),
-  );
+): string | undefined => {
+  try {
+    // Use BigNumber for precision-safe arithmetic
+    const totalFeeUsd = new BigNumber(totalFeeAmountUsd);
+    const feeAmountAtomicBN = new BigNumber(feeAmountAtomic);
+    const feeAmountBN = feeAmountAtomicBN.div(
+      new BigNumber(10).pow(feeAssetDecimals),
+    );
 
-  return totalFeeUsd.dividedBy(feeAmountBN).toString();
+    if (totalFeeUsd.isZero() || feeAmountBN.isZero()) {
+      return undefined;
+    }
+
+    return totalFeeUsd.dividedBy(feeAmountBN).toString();
+  } catch (error) {
+    console.error(
+      error as Error,
+      'useRewards: Error calculating USD price per token',
+    );
+    return undefined;
+  }
 };
 
 interface UseRewardsParams {
@@ -184,7 +196,7 @@ export const useRewards = ({
 
       const feeAssetWithUsdPrice: EstimateAssetDto = {
         ...feeAsset,
-        usdPrice: usdPricePerToken,
+        ...(usdPricePerToken ? { usdPrice: usdPricePerToken } : {}),
       };
 
       // Create estimate request

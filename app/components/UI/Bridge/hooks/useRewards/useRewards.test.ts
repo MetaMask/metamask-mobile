@@ -722,4 +722,16 @@ describe('getUsdPricePerToken', () => {
       '4502.2',
     );
   });
+
+  it('should return 0 when the total fee amount is 0', () => {
+    expect(getUsdPricePerToken('0', '8750000000000000', 18)).toBe(undefined);
+  });
+
+  it('should return undefined when the fee amount is 0', () => {
+    expect(getUsdPricePerToken('39.39425', '0', 18)).toBe(undefined);
+  });
+
+  it('should return undefined when the total fee amount is 0 and the fee amount is 0', () => {
+    expect(getUsdPricePerToken('0', '0', 18)).toBe(undefined);
+  });
 });
