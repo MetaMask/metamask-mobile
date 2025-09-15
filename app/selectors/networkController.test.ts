@@ -17,7 +17,7 @@ import {
   selectIsAllPopularNetworks,
 } from './networkController';
 import { RootState } from '../reducers';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 
 describe('networkSelectors', () => {
@@ -370,14 +370,25 @@ describe('networkSelectors', () => {
             MultichainNetworkController: {
               ...mockState.engine.backgroundState.MultichainNetworkController,
               multichainNetworkConfigurationsByChainId: {
-                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                [SolScope.Mainnet]: {
                   // Solana Mainnet - popular
-                  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  chainId: SolScope.Mainnet,
                   nativeCurrency: 'SOL',
                   name: 'Solana Mainnet',
                   rpcEndpoints: [],
                   ticker: 'SOL',
                   decimals: 5,
+                  imageSource: 1,
+                  isTestnet: false,
+                },
+                [BtcScope.Mainnet]: {
+                  // Bitcoin Mainnet - popular
+                  chainId: BtcScope.Mainnet,
+                  nativeCurrency: 'BTC',
+                  name: 'Bitcoin Mainnet',
+                  rpcEndpoints: [],
+                  ticker: 'BTC',
+                  decimals: 8,
                   imageSource: 1,
                   isTestnet: false,
                 },
@@ -403,8 +414,8 @@ describe('networkSelectors', () => {
       );
 
       // Should include only popular networks that aren't testnets
-      // This includes: mainnet, linea, and solana mainnet
-      expect(result.length).toBeGreaterThanOrEqual(3); // mainnet, linea, and solana mainnet
+      // This includes: mainnet, linea, solana mainnet, and bitcoin mainnet
+      expect(result.length).toBeGreaterThanOrEqual(4); // mainnet, linea, solana mainnet, and bitcoin mainnet
 
       // Popular networks are included
       expect(result.map((n) => n.chainId)).toEqual(
@@ -418,9 +429,9 @@ describe('networkSelectors', () => {
       expect(result.map((n) => n.chainId)).not.toContain('0x12345');
       expect(result.map((n) => n.chainId)).not.toContain('0x67890');
 
-      expect(result.map((n) => n.caipChainId)).toContain(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
+      // Check non-EVM mainnet networks are included
+      expect(result.map((n) => n.caipChainId)).toContain(SolScope.Mainnet);
+      expect(result.map((n) => n.caipChainId)).toContain(BtcScope.Mainnet);
       expect(result.map((n) => n.chainId)).not.toContain(
         'bip122:000000000933ea01ad0ee984209779ba',
       );
