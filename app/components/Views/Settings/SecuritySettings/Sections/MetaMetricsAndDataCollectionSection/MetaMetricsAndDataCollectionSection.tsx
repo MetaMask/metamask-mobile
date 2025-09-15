@@ -74,7 +74,10 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         Logger.error(err as Error);
       }
     };
-    fetchMarketingStatus();
+
+    if (isSeedlessOnboardingLoginFlow) {
+      fetchMarketingStatus();
+    }
     setAnalyticsEnabled(isEnabled());
   }, [
     setAnalyticsEnabled,
@@ -83,6 +86,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     autoSignIn,
     isBasicFunctionalityEnabled,
     dispatch,
+    isSeedlessOnboardingLoginFlow,
   ]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {

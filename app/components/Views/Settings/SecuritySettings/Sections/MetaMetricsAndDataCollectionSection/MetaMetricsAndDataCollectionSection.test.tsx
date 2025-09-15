@@ -593,8 +593,9 @@ describe('MetaMetricsAndDataCollectionSection', () => {
   });
 
   describe('Marketing opt-in status fetch on mount', () => {
-    it('updates Redux state with API value when API resolves', async () => {
+    it('updates Redux state with API value when API resolves for social login users', async () => {
       mockGetMarketingOptInStatus.mockResolvedValue({ is_opt_in: true });
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
 
       const { findByTestId, store } = renderScreen(
         MetaMetricsAndDataCollectionSection,
@@ -607,13 +608,33 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       );
 
       await waitFor(() => {
+        expect(mockGetMarketingOptInStatus).toHaveBeenCalledTimes(1);
         expect(store.getState().security.dataCollectionForMarketing).toBe(true);
       });
     });
 
-    it('logs error when API call fails', async () => {
+    it('does not call API for non-social login users', async () => {
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+
+      const { findByTestId } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingFalse },
+      );
+
+      await findByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+
+      await waitFor(() => {
+        expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
+      });
+    });
+
+    it('logs error when API call fails for social login users', async () => {
       const error = new Error('Network error');
       mockGetMarketingOptInStatus.mockRejectedValue(error);
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
 
       const { findByTestId } = renderScreen(
         MetaMetricsAndDataCollectionSection,
