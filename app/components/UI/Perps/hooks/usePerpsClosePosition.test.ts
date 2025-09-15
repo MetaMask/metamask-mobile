@@ -75,6 +75,8 @@ describe('usePerpsClosePosition', () => {
       sinceOpen: '5',
       sinceChange: '2',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {

@@ -64,10 +64,13 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   order,
   onCancel,
+  onSelect,
   disabled = false,
   expanded = false,
   showIcon = false,
   rightAccessory,
+  isActiveOnChart = false,
+  activeType,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -126,11 +129,18 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     onCancel?.(order);
   };
 
+  const handleCardPress = () => {
+    if (onSelect && !disabled) {
+      onSelect(order.orderId);
+    }
+  };
+
   return (
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={expanded}
+      disabled={disabled}
+      onPress={handleCardPress}
     >
       {/* Header - Always shown */}
       <View style={[styles.header, expanded && styles.headerExpanded]}>
@@ -147,6 +157,35 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {order.detailedOrderType || derivedData.direction}
             </Text>
+            {/* Chart activity indicators */}
+            {isActiveOnChart && (
+              <View style={styles.indicatorContainer}>
+                {activeType === 'TP' || activeType === 'BOTH' ? (
+                  <View
+                    style={[styles.activeChartIndicator, styles.tpIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Inverse}
+                    >
+                      TP on Chart
+                    </Text>
+                  </View>
+                ) : null}
+                {activeType === 'SL' || activeType === 'BOTH' ? (
+                  <View
+                    style={[styles.activeChartIndicator, styles.slIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Default}
+                    >
+                      SL on Chart
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            )}
             {/* Fill percentage badge with icon */}
             {derivedData.fillPercentage > 0 &&
               derivedData.fillPercentage < 100 && (
