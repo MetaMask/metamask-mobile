@@ -449,7 +449,7 @@ enum EVENT_NAME {
   IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
-  //Notifications
+  // Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
@@ -460,6 +460,10 @@ enum EVENT_NAME {
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
   NOTIFICATION_STORAGE_KEY_DELETED = 'Notification Storage Key Deleted',
+
+  // Push Notifications
+  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
+  PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
@@ -546,7 +550,6 @@ enum EVENT_NAME {
   PERPS_TRADING_SCREEN_VIEWED = 'Perp Trading Screen Viewed',
   PERPS_ORDER_TYPE_VIEWED = 'Perp Order Type Viewed',
   PERPS_ORDER_TYPE_SELECTED = 'Perp Order Type Selected',
-  PERPS_ORDER_SIZE_CHANGED = 'Perp Order Size Changed',
   PERPS_LEVERAGE_SCREEN_VIEWED = 'Perp Leverage Screen Viewed',
   PERPS_LEVERAGE_CHANGED = 'Perp Leverage Changed',
   PERPS_TRADE_TRANSACTION_INITIATED = 'Perp Trade Transaction Initiated',
@@ -558,17 +561,12 @@ enum EVENT_NAME {
   // Close Position Flow
   PERPS_HOMESCREEN_TAB_VIEWED = 'Perp Homescreen Tab Viewed',
   PERPS_POSITION_CLOSE_SCREEN_VIEWED = 'Perp Position Close Screen Viewed',
-  PERPS_POSITION_CLOSE_VALUE_CHANGED = 'Perp Position Close Value Changed',
-  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_INITIATED = 'Perp Position Close Initiated',
   PERPS_POSITION_CLOSE_SUBMITTED = 'Perp Position Close Submitted',
+  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_EXECUTED = 'Perp Position Close Executed',
   PERPS_POSITION_CLOSE_PARTIALLY_FILLED = 'Perp Position Close Partially filled',
   PERPS_POSITION_CLOSE_FAILED = 'Perp Position Close Failed',
-
-  // Push Notifications Flow
-  PERPS_PUSH_NOTIFICATION_RECEIVED = 'Perp Push Notification Received',
-  PERPS_PUSH_NOTIFICATION_CLICKED = 'Perp Push Notification Clicked',
 
   // Risk Management Flow
   PERPS_STOP_LOSS_SET = 'Stop Loss Set',
@@ -1137,6 +1135,13 @@ const events = {
   NOTIFICATION_STORAGE_KEY_DELETED: generateOpt(
     EVENT_NAME.NOTIFICATION_STORAGE_KEY_DELETED,
   ),
+
+  // Push Notifications Flow
+  PUSH_NOTIFICATION_RECEIVED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
+  ),
+  PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
@@ -1406,7 +1411,6 @@ const events = {
   ),
   PERPS_ORDER_TYPE_VIEWED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_VIEWED),
   PERPS_ORDER_TYPE_SELECTED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_SELECTED),
-  PERPS_ORDER_SIZE_CHANGED: generateOpt(EVENT_NAME.PERPS_ORDER_SIZE_CHANGED),
   PERPS_LEVERAGE_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.PERPS_LEVERAGE_SCREEN_VIEWED,
   ),
@@ -1434,9 +1438,6 @@ const events = {
   PERPS_POSITION_CLOSE_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
   ),
-  PERPS_POSITION_CLOSE_VALUE_CHANGED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_VALUE_CHANGED,
-  ),
   PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
   ),
@@ -1454,14 +1455,6 @@ const events = {
   ),
   PERPS_POSITION_CLOSE_FAILED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_FAILED,
-  ),
-
-  // Push Notifications Flow (2 events)
-  PERPS_PUSH_NOTIFICATION_RECEIVED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_RECEIVED,
-  ),
-  PERPS_PUSH_NOTIFICATION_CLICKED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_CLICKED,
   ),
 
   // Risk Management Flow (5 events)

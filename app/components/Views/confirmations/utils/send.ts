@@ -1,5 +1,5 @@
 import BN from 'bnjs4';
-import { BNToHex, toHex } from '@metamask/controller-utils';
+import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -20,7 +20,7 @@ import {
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
@@ -138,10 +138,37 @@ export const submitEvmTransaction = async ({
   });
 };
 
+export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
+  const decimalValue = parseInt(decimals?.toString(), 10);
+  const multiplier = new BN(10).pow(new BN(decimalValue));
+
+  const comps = tokenValue.split('.');
+
+  let whole = comps[0],
+    fraction = comps[1];
+  if (!whole) {
+    whole = '0';
+  }
+  if (!fraction) {
+    fraction = '';
+  }
+  if (fraction.length > decimalValue) {
+    fraction = fraction.slice(0, decimalValue);
+  } else {
+    fraction = fraction.padEnd(decimalValue, '0');
+  }
+
+  const wholeBN = new BN(whole);
+  const fractionBN = new BN(fraction);
+  const tokenMinimal = wholeBN.mul(multiplier).add(fractionBN);
+  return new BN(tokenMinimal.toString(10), 10);
+}
+
 export function formatToFixedDecimals(
   value: string,
   decimalsToShow = 5,
   formatSmallValue = true,
+  trimTrailingZero = true,
 ) {
   if (value) {
     const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
@@ -163,9 +190,11 @@ export function formatToFixedDecimals(
       return `< ${1 / Math.pow(10, decimals)}`;
     }
 
-    return `${intPart}.${fracPart}`
-      .replace(/\.?[0]+$/, '')
-      .replace(/\.?[.]+$/, '');
+    let newValue = `${intPart}.${fracPart}`;
+    if (trimTrailingZero) {
+      newValue = newValue.replace(/\.?[0]+$/, '');
+    }
+    return newValue.replace(/\.?[.]+$/, '');
   }
   return '0';
 }
@@ -235,6 +264,7 @@ export const convertCurrency = (
   conversionRate: number,
   decimals?: number,
   targetDecimals?: number,
+  trimTrailingZero: boolean = false,
 ) => {
   let sourceDecimalValue = parseInt(decimals?.toString() ?? '0', 10);
   const targetDecimalValue = parseInt(targetDecimals?.toString() ?? '0', 10);
@@ -256,6 +286,7 @@ export const convertCurrency = (
     fromBNWithDecimals(convertedValue, sourceDecimalValue),
     targetDecimalValue,
     false,
+    trimTrailingZero,
   );
 };
 
@@ -286,4 +317,23 @@ export const getConfusableCharacterInfo = (
     };
   }
   return {};
+};
+
+export const getFractionLength = (value: string) => {
+  const result = value.replace(/^-/, '').split('.');
+  const fracPart = result[1] ?? '';
+  return fracPart.length;
+};
+
+export const addLeadingZeroIfNeeded = (value?: string) => {
+  if (!value) {
+    return value;
+  }
+  const result = value.replace(/^-/u, '').split('.');
+  const wholePart = result[0];
+  const fracPart = result[1] ?? '';
+  if (!wholePart.length) {
+    return `0.${fracPart}`;
+  }
+  return value;
 };

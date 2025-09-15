@@ -6,6 +6,18 @@ export const PERPS_CONSTANTS = {
   WEBSOCKET_TIMEOUT: 5000, // 5 seconds
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
   BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
+  CONNECTION_TIMEOUT_MS: 10_000, // 10 seconds timeout for connection and position loading states
+
+  // Connection timing constants
+  CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
+  RECONNECTION_CLEANUP_DELAY_MS: 200, // Platform-agnostic delay to ensure cleanup is complete
+  RECONNECTION_DELAY_ANDROID_MS: 300, // Android-specific reconnection delay for better reliability on slower devices
+  RECONNECTION_DELAY_IOS_MS: 100, // iOS-specific reconnection delay for optimal performance
+
+  // Connection manager timing constants
+  BALANCE_UPDATE_THROTTLE_MS: 15000, // Update at most every 15 seconds to reduce state updates in PerpsConnectionManager
+  INITIAL_DATA_DELAY_MS: 100, // Delay to allow initial data to load after connection establishment
+
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
   FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
@@ -88,12 +100,6 @@ export const PERFORMANCE_CONFIG = {
 } as const;
 
 /**
- * Perps notifications feature flag (temporary hard-coded flag)
- * This flag controls whether the perps notifications feature logic is enabled
- */
-export const PERPS_NOTIFICATIONS_FEATURE_ENABLED = false;
-
-/**
  * Leverage slider UI configuration
  * Controls the visual and interactive aspects of the leverage slider
  */
@@ -106,6 +112,10 @@ export const LEVERAGE_SLIDER_CONFIG = {
   // Thresholds for determining tick step size
   MAX_LEVERAGE_LOW_THRESHOLD: 20,
   MAX_LEVERAGE_MEDIUM_THRESHOLD: 50,
+} as const;
+
+export const TP_SL_CONFIG = {
+  USE_POSITION_BOUND_TPSL: true,
 } as const;
 
 /**

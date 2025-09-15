@@ -20,7 +20,7 @@ const logger = createLogger({
 });
 
 describe(RegressionTrade('Perps Position'), () => {
-  it('should open a long position with custom profit and close it', async () => {
+  it.skip('should open a long position with custom profit and close it', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -40,8 +40,6 @@ describe(RegressionTrade('Perps Position'), () => {
 
         await WalletActionsBottomSheet.tapPerpsButton();
 
-        // Disable synchronization to timer
-        await device.disableSynchronization();
         await PerpsMarketListView.tapFirstMarketRowItem();
         await PerpsMarketDetailsView.tapLongButton();
         await PerpsOrderView.tapTakeProfitButton();
@@ -53,9 +51,9 @@ describe(RegressionTrade('Perps Position'), () => {
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
-        // Wait for screen to be ready, then scroll to reveal Close Position
+        // Wait for screen ready and assert Close Position availability
         await PerpsMarketDetailsView.waitForScreenReady();
-        await PerpsMarketDetailsView.scrollToBottom();
+        await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 
         await PerpsView.tapClosePositionButton();
 

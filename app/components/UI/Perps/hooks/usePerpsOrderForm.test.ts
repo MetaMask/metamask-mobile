@@ -78,6 +78,47 @@ describe('usePerpsOrderForm', () => {
         TRADING_DEFAULTS.amount.testnet.toString(),
       );
     });
+
+    it('should set amount to maxPossibleAmount when available balance times leverage is less than default amount', () => {
+      // Arrange - Set low available balance
+      mockUsePerpsAccount.mockReturnValue({
+        availableBalance: '2', // $2 available balance
+        totalBalance: '2',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '2',
+      });
+
+      // Act
+      const { result } = renderHook(() => usePerpsOrderForm());
+
+      // Assert
+      // With $2 balance and 3x leverage = $6 max amount, which is less than $10 default
+      // Should use the max possible amount ($6) instead of the default ($10)
+      expect(result.current.orderForm.amount).toBe('6');
+    });
+
+    it('should use default amount when available balance times leverage is greater than default amount', () => {
+      // Arrange - Set sufficient available balance
+      mockUsePerpsAccount.mockReturnValue({
+        availableBalance: '5', // $5 available balance
+        totalBalance: '5',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '5',
+      });
+
+      // Act
+      const { result } = renderHook(() => usePerpsOrderForm());
+
+      // Assert
+      // With $5 balance and 3x leverage = $15 max amount, which is greater than $10 default
+      expect(result.current.orderForm.amount).toBe(
+        TRADING_DEFAULTS.amount.mainnet.toString(),
+      );
+    });
   });
 
   describe('form updates', () => {

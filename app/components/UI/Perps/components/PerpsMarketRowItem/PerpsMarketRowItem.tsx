@@ -1,24 +1,25 @@
 import React, { useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
+import { TouchableOpacity, View } from 'react-native';
+import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
-import styleSheet from './PerpsMarketRowItem.styles';
-import PerpsTokenLogo from '../PerpsTokenLogo';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { useStyles } from '../../../../../component-library/hooks';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { PerpsMarketData } from '../../controllers/types';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import {
-  formatPrice,
   formatPercentage,
+  formatPerpsFiat,
   formatPnl,
   formatVolume,
+  PRICE_RANGES_DETAILED_VIEW,
 } from '../../utils/formatUtils';
-import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import styleSheet from './PerpsMarketRowItem.styles';
+import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -38,13 +39,17 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
 
     // Parse and format the price with exactly 2 decimals for consistency
     const currentPrice = parseFloat(livePrice.price);
-    const formattedPrice = formatPrice(currentPrice, {
+
+    const formattedPrice = formatPerpsFiat(currentPrice, {
+      ranges: PRICE_RANGES_DETAILED_VIEW,
+    });
+    const comparisonPrice = formatPerpsFiat(currentPrice, {
       minimumDecimals: 2,
       maximumDecimals: 2,
     });
 
     // Only update if price actually changed
-    if (formattedPrice === market.price) {
+    if (comparisonPrice === market.price) {
       return market;
     }
 
@@ -143,7 +148,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             color={isPositiveChange ? TextColor.Success : TextColor.Error}
             style={styles.priceChange}
           >
-            {displayMarket.change24h} ({displayMarket.change24hPercent})
+            {displayMarket.change24hPercent}
           </Text>
         </View>
       </View>
