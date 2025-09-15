@@ -57,3 +57,9 @@ export const selectOptinAllowedForGeoLoading = (state: RootState) =>
 
 export const selectReferralDetailsLoading = (state: RootState) =>
   state.rewards.referralDetailsLoading;
+
+export const selectCandidateSubscriptionId = (state: RootState) =>
+  state.rewards.candidateSubscriptionId;
+
+export const selectHideUnlinkedAccountsBanner = (state: RootState) =>
+  state.rewards.hideUnlinkedAccountsBanner;

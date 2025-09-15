@@ -12,16 +12,16 @@ import OnboardingStep1 from './components/Onboarding/OnboardingStep1';
 import OnboardingStep2 from './components/Onboarding/OnboardingStep2';
 import OnboardingStep3 from './components/Onboarding/OnboardingStep3';
 import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
-import { useRewardsAuth } from './hooks/useRewardsAuth';
 import { useNavigation } from '@react-navigation/native';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
-  const { hasAccountedOptedIn } = useRewardsAuth();
+  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);

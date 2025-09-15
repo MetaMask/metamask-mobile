@@ -46,7 +46,6 @@ describe('handleUniversalLinks', () => {
   const mockHandleSwap = jest.fn();
   const mockHandleCreateAccount = jest.fn();
   const mockHandlePerps = jest.fn();
-  const mockHandlePerpsAsset = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -68,7 +67,6 @@ describe('handleUniversalLinks', () => {
     _handleSwap: mockHandleSwap,
     _handleCreateAccount: mockHandleCreateAccount,
     _handlePerps: mockHandlePerps,
-    _handlePerpsAsset: mockHandlePerpsAsset,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -485,30 +483,6 @@ describe('handleUniversalLinks', () => {
     });
   });
 
-  describe('ACTIONS.PERPS_ASSET', () => {
-    it('calls _handlePerpsAsset when action is PERPS_ASSET', async () => {
-      const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}/BTC`;
-      const perpsAssetUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: perpsAssetUrl,
-        pathname: `/${ACTIONS.PERPS_ASSET}/BTC`,
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: perpsAssetUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: perpsAssetUrl,
-        source: 'test-source',
-      });
-
-      expect(handled).toHaveBeenCalled();
-      expect(mockHandlePerpsAsset).toHaveBeenCalledWith('/BTC');
-    });
-  });
-
   describe('ACTIONS.WC', () => {
     const testCases = [
       {
@@ -714,7 +688,6 @@ describe('handleUniversalLinks', () => {
 
         expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
         expect(handled).toHaveBeenCalled();
-        expect(mockHandlePerpsAsset).toHaveBeenCalled();
       },
     );
 

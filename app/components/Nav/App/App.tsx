@@ -106,10 +106,6 @@ import TooltipModal from '../../../components/Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
-import Engine from '../../../core/Engine';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { RpcEndpointType } from '@metamask/network-controller';
 import {
   endTrace,
   trace,
@@ -157,6 +153,7 @@ import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/Mult
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
+import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -843,6 +840,7 @@ const ModalSmartAccountOptIn = () => (
 
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
     <>
@@ -996,6 +994,7 @@ const AppFlow = () => {
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
+          options={emptyNavHeaderOptions}
           component={ModalConfirmationRequest}
         />
         <Stack.Screen
@@ -1024,9 +1023,7 @@ const App: React.FC = () => {
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
-
   const { isEnabled: checkMetricsEnabled } = useMetrics();
-
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1088,30 +1085,35 @@ const App: React.FC = () => {
             },
           );
 
-          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-            OPTIN_META_METRICS_UI_SEEN,
-          );
+          // Only show metrics optin for SRP users
+          if (!isSeedlessOnboardingLoginFlow) {
+            const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+              OPTIN_META_METRICS_UI_SEEN,
+            );
 
-          if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
-            const resetParams = {
-              routes: [
-                {
-                  name: Routes.ONBOARDING.ROOT_NAV,
-                  params: {
-                    screen: Routes.ONBOARDING.NAV,
+            if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
+              const resetParams = {
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.ROOT_NAV,
                     params: {
-                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      screen: Routes.ONBOARDING.NAV,
+                      params: {
+                        screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      },
                     },
                   },
-                },
-              ],
-            };
-            navigation.reset(resetParams);
-          } else {
-            navigation.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+                ],
+              };
+              navigation.reset(resetParams);
+              return;
+            }
           }
+
+          // Navigate to home for both SRP users (who have seen metrics) and social login users
+          navigation.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
         } else {
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
@@ -1155,47 +1157,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     async function startApp() {
-      if (!existingUser) {
-        // List of chainIds to add (as hex strings)
-        const chainIdsToAdd: `0x${string}`[] = [
-          CHAIN_IDS.ARBITRUM,
-          CHAIN_IDS.BASE,
-          CHAIN_IDS.BSC,
-          CHAIN_IDS.OPTIMISM,
-          CHAIN_IDS.POLYGON,
-        ];
-
-        // Filter the PopularList to get only the specified networks based on chainId
-        const selectedNetworks = PopularList.filter((network) =>
-          chainIdsToAdd.includes(network.chainId),
-        );
-        const { NetworkController } = Engine.context;
-
-        // Loop through each selected network and call NetworkController.addNetwork
-        for (const network of selectedNetworks) {
-          try {
-            await NetworkController.addNetwork({
-              chainId: network.chainId,
-              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
-              defaultRpcEndpointIndex: 0,
-              defaultBlockExplorerUrlIndex: 0,
-              name: network.nickname,
-              nativeCurrency: network.ticker,
-              rpcEndpoints: [
-                {
-                  url: network.rpcUrl,
-                  failoverUrls: network.failoverRpcUrls,
-                  name: network.nickname,
-                  type: RpcEndpointType.Custom,
-                },
-              ],
-            });
-          } catch (error) {
-            Logger.error(error as Error);
-          }
-        }
-      }
-
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
