@@ -12,6 +12,7 @@ import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
 import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
+import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -25,33 +26,39 @@ const clearStackNavigatorOptions = {
 };
 
 // Regular Stack for Screens
-const StakeScreenStack = () => (
-  <StakeSDKProvider>
-    <Stack.Navigator headerMode="screen">
-      <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
-      <Stack.Screen
-        name={Routes.STAKING.UNSTAKE}
-        component={EarnWithdrawInputView}
-      />
-      <Stack.Screen
-        name={Routes.STAKING.STAKE_CONFIRMATION}
-        component={StakeConfirmationView}
-      />
-      <Stack.Screen
-        name={Routes.STAKING.UNSTAKE_CONFIRMATION}
-        component={UnstakeConfirmationView}
-      />
-      <Stack.Screen
-        name={Routes.STAKING.EARNINGS_HISTORY}
-        component={StakeEarningsHistoryView}
-      />
-      <Stack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-        component={Confirm}
-      />
-    </Stack.Navigator>
-  </StakeSDKProvider>
-);
+const StakeScreenStack = () => {
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  return (
+    <StakeSDKProvider>
+      <Stack.Navigator headerMode="screen">
+        <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
+        <Stack.Screen
+          name={Routes.STAKING.UNSTAKE}
+          component={EarnWithdrawInputView}
+        />
+        <Stack.Screen
+          name={Routes.STAKING.STAKE_CONFIRMATION}
+          component={StakeConfirmationView}
+        />
+        <Stack.Screen
+          name={Routes.STAKING.UNSTAKE_CONFIRMATION}
+          component={UnstakeConfirmationView}
+        />
+        <Stack.Screen
+          name={Routes.STAKING.EARNINGS_HISTORY}
+          component={StakeEarningsHistoryView}
+        />
+        <Stack.Screen
+          name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+          // Intentionally getting empty title and empty back to avoid flicker before rendering Confirm
+          options={emptyNavHeaderOptions}
+          component={Confirm}
+        />
+      </Stack.Navigator>
+    </StakeSDKProvider>
+  );
+};
 
 // Modal Stack for Modals
 const StakeModalStack = () => (
