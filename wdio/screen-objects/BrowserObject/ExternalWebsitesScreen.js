@@ -160,6 +160,8 @@ class ExternalWebsitesScreen {
       await expect(await this.testDappTitle).toBeDisplayed();
     } else {
       await expectAppwright(await this.testDappTitle).toBeVisible({ timeout: 10000 });
+      const useMetamaskButton = await AppwrightSelectors.getElementByText(this._device, 'USE METAMASK');
+      await expectAppwright(useMetamaskButton).toBeVisible({ timeout: 10000 });
     }
   }
 
