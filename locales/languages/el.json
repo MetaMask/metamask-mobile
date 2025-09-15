@@ -2411,7 +2411,6 @@
   "asset_overview": {
     "send_button": "Αποστολή",
     "buy_button": "Αγορά",
-    "fund_button": "Fund",
     "token_marketplace": "Χώρος αγοράς των tokens",
     "sell_button": "Withdraw",
     "receive_button": "Λήψη",
