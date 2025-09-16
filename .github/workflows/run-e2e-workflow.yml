@@ -46,6 +46,7 @@ jobs:
       PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
+      PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       GITHUB_CI: 'true'
       SPLIT_NUMBER: ${{ inputs.split_number }}
