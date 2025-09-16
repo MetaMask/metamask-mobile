@@ -712,7 +712,8 @@
       "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
       "ganache>@trufflesuite/uws-js-unofficial>bufferutil": false,
       "appwright>@empiricalrun/llm>sharp": false,
-      "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false
+      "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false,
+      "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false
     }
   },
   "packageManager": "yarn@3.8.7",
