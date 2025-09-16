@@ -34,6 +34,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
@@ -41,7 +42,7 @@ import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
-import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -140,7 +141,10 @@ const CustomNetworkSelector = ({
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER}
+      style={styles.container}
+    >
       <FlashList
         data={networksToUse}
         renderItem={renderNetworkItem}

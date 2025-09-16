@@ -74,14 +74,14 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             await WalletView.tapTokenNetworkFilter();
             await Assertions.expectElementToBeVisible(
-              NetworkManager.popularNetworksTab,
+              NetworkManager.popularNetworksContainer,
             );
             console.log('Network list became visible');
 
             const startTime = Date.now();
             await NetworkManager.tapNetwork('Polygon Mainnet');
             await Assertions.expectElementToNotBeVisible(
-              NetworkManager.popularNetworksTab,
+              NetworkManager.popularNetworksContainer,
             );
             const endTime = Date.now();
             console.log('Network switched and list is not visible');
