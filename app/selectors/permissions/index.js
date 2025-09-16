@@ -34,7 +34,10 @@ export const getAuthorizedScopes = (origin) =>
     const subject = subjects[origin];
 
     if (!subject) {
-      return undefined;
+      return {
+        requiredScopes: {},
+        optionalScopes: {},
+      };
     }
 
     const caveats =
