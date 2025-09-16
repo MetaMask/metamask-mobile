@@ -315,13 +315,17 @@ export function usePerpsOrderFees({
 
   // Fetch fees from provider (includes breakdown) and rewards data
   useEffect(() => {
+    let isComponentMounted = true;
+
     const fetchFees = async () => {
       try {
         setIsLoadingFees(true);
         setError(null);
 
-        // Get fee breakdown from the active provider
+        // Get fee breakdown from the active provider - this is the core fee calculation
         const result = await calculateFees({ orderType, isMaker, amount });
+
+        if (!isComponentMounted) return;
 
         // Provider returns complete breakdown
         setProtocolFeeRate(result.protocolFeeRate);
@@ -332,141 +336,200 @@ export function usePerpsOrderFees({
 
         // Only fetch rewards data if feature flag is enabled
         if (rewardsEnabled) {
-          // Get user address for rewards API calls
-          const userAddress = getUserAddress();
+          try {
+            // Get user address for rewards API calls
+            const userAddress = getUserAddress();
 
-          // Development-only simulation for testing fee discount UI
-          // Amount "41": Triggers 20% fee discount to test discount display
-          const shouldSimulateFeeDiscount =
-            __DEV__ &&
-            parseFloat(amount) ===
-              DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
+            // Development-only simulation for testing fee discount UI
+            // Amount "41": Triggers 20% fee discount to test discount display
+            const shouldSimulateFeeDiscount =
+              __DEV__ &&
+              parseFloat(amount) ===
+                DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
 
-          let discountData: { discountPercentage?: number; tier?: string } = {};
+            let discountData: { discountPercentage?: number; tier?: string } =
+              {};
 
-          if (shouldSimulateFeeDiscount) {
-            // Simulate 20% fee discount for development testing
-            discountData = {
-              discountPercentage: 20,
-              tier: 'tier-4-5',
-            };
-          } else {
-            // First fetch fee discount to know the actual fee rate
-            discountData = userAddress
-              ? await fetchFeeDiscount(userAddress)
-              : {};
-          }
+            if (shouldSimulateFeeDiscount) {
+              // Simulate 20% fee discount for development testing
+              discountData = {
+                discountPercentage: 20,
+                tier: 'tier-4-5',
+              };
+            } else {
+              // First fetch fee discount to know the actual fee rate
+              discountData = userAddress
+                ? await fetchFeeDiscount(userAddress)
+                : {};
+            }
 
-          // Apply fee discount if available
-          if (discountData.discountPercentage !== undefined) {
-            const discount = discountData.discountPercentage / 100;
-            adjustedMetamaskRate = result.metamaskFeeRate * (1 - discount);
-            setFeeDiscountPercentage(discountData.discountPercentage);
-            setRewardsTier(discountData.tier);
-          } else {
-            adjustedMetamaskRate = result.metamaskFeeRate;
-            setFeeDiscountPercentage(undefined);
-            setRewardsTier(undefined);
-          }
+            if (!isComponentMounted) return;
 
-          // Now estimate points using the ACTUAL discounted fee
-          if (userAddress && amount && parseFloat(amount) > 0) {
-            const amountNum = parseFloat(amount);
-            // Calculate the actual fee that will be charged (after discount)
-            const actualFeeUSD = amountNum * adjustedMetamaskRate;
+            // Apply fee discount if available
+            if (discountData.discountPercentage !== undefined) {
+              const discount = discountData.discountPercentage / 100;
+              adjustedMetamaskRate = result.metamaskFeeRate * (1 - discount);
+              setFeeDiscountPercentage(discountData.discountPercentage);
+              setRewardsTier(discountData.tier);
+            } else {
+              adjustedMetamaskRate = result.metamaskFeeRate;
+              setFeeDiscountPercentage(undefined);
+              setRewardsTier(undefined);
+            }
 
-            DevLogger.log('Rewards: Calculating points with discounted fee', {
-              originalRate: result.metamaskFeeRate,
-              discountPercentage: discountData.discountPercentage,
-              adjustedRate: adjustedMetamaskRate,
-              amount: amountNum,
-              actualFeeUSD,
-            });
+            // Now estimate points using the ACTUAL discounted fee
+            if (userAddress && amount && parseFloat(amount) > 0) {
+              const amountNum = parseFloat(amount);
+              // Calculate the actual fee that will be charged (after discount)
+              const actualFeeUSD = amountNum * adjustedMetamaskRate;
 
-            // Check if we have valid cached points calculation data
-            const now = Date.now();
-            const cacheValid =
-              pointsCalculationCache &&
-              pointsCalculationCache.address === userAddress &&
-              now - pointsCalculationCache.timestamp <
-                pointsCalculationCache.ttl &&
-              pointsCalculationCache.basePointsPerDollar > 0;
-
-            if (cacheValid && pointsCalculationCache) {
-              // Calculate points locally using cached base rate and bonus
-              const basePoints =
-                actualFeeUSD * pointsCalculationCache.basePointsPerDollar;
-              const bonusMultiplier =
-                1 + (pointsCalculationCache.bonusBips ?? 0) / 10000;
-              const estimatedPointsValue = Math.round(
-                basePoints * bonusMultiplier,
-              );
-
-              DevLogger.log('Rewards: Calculating points locally with cache', {
+              DevLogger.log('Rewards: Calculating points with discounted fee', {
+                originalRate: result.metamaskFeeRate,
+                discountPercentage: discountData.discountPercentage,
+                adjustedRate: adjustedMetamaskRate,
+                amount: amountNum,
                 actualFeeUSD,
-                basePointsPerDollar: pointsCalculationCache.basePointsPerDollar,
-                bonusBips: pointsCalculationCache.bonusBips,
-                bonusMultiplier,
-                estimatedPoints: estimatedPointsValue,
-                cacheAge:
-                  Math.round((now - pointsCalculationCache.timestamp) / 1000) +
-                  's',
               });
 
-              setEstimatedPoints(estimatedPointsValue);
-              setBonusBips(pointsCalculationCache.bonusBips);
-            } else {
-              // Fetch from API and derive the base rate for future calculations
-              const pointsData = await estimatePoints(
-                userAddress,
-                amount,
-                coin,
-                isClosing,
-                actualFeeUSD,
-              );
+              // Check if we have valid cached points calculation data
+              const now = Date.now();
+              const cacheValid =
+                pointsCalculationCache &&
+                pointsCalculationCache.address === userAddress &&
+                now - pointsCalculationCache.timestamp <
+                  pointsCalculationCache.ttl &&
+                pointsCalculationCache.basePointsPerDollar > 0 &&
+                isFinite(pointsCalculationCache.basePointsPerDollar);
 
-              if (
-                pointsData?.pointsEstimate !== undefined &&
-                actualFeeUSD > 0
-              ) {
-                setEstimatedPoints(pointsData.pointsEstimate);
-                setBonusBips(pointsData.bonusBips);
+              if (cacheValid && pointsCalculationCache) {
+                // Calculate points locally using cached base rate and bonus
+                const basePoints =
+                  actualFeeUSD * pointsCalculationCache.basePointsPerDollar;
+                const bonusMultiplier =
+                  1 + (pointsCalculationCache.bonusBips ?? 0) / 10000;
+                const estimatedPointsValue = Math.round(
+                  basePoints * bonusMultiplier,
+                );
 
-                // Calculate the base points rate per dollar
-                // Formula: points = feeUSD * baseRate * (1 + bonusBips/10000)
-                // So: baseRate = points / (feeUSD * (1 + bonusBips/10000))
-                const bonusMultiplier = 1 + (pointsData.bonusBips ?? 0) / 10000;
-                const basePointsPerDollar =
-                  pointsData.pointsEstimate / (actualFeeUSD * bonusMultiplier);
-
-                // Cache the calculation parameters for future use
-                pointsCalculationCache = {
-                  address: userAddress,
-                  bonusBips: pointsData.bonusBips,
-                  basePointsPerDollar,
-                  timestamp: now,
-                  ttl: 30 * 60 * 1000, // Cache for 30 minutes
-                };
-
-                DevLogger.log('Rewards: Cached points calculation parameters', {
-                  address: userAddress,
-                  bonusBips: pointsData.bonusBips,
-                  basePointsPerDollar,
-                  derivedFrom: {
-                    pointsEstimate: pointsData.pointsEstimate,
-                    feeUSD: actualFeeUSD,
+                DevLogger.log(
+                  'Rewards: Calculating points locally with cache',
+                  {
+                    actualFeeUSD,
+                    basePointsPerDollar:
+                      pointsCalculationCache.basePointsPerDollar,
+                    bonusBips: pointsCalculationCache.bonusBips,
                     bonusMultiplier,
+                    estimatedPoints: estimatedPointsValue,
+                    cacheAge:
+                      Math.round(
+                        (now - pointsCalculationCache.timestamp) / 1000,
+                      ) + 's',
                   },
-                  cacheExpiry: new Date(now + 30 * 60 * 1000).toISOString(),
-                });
+                );
+
+                if (isComponentMounted) {
+                  setEstimatedPoints(estimatedPointsValue);
+                  setBonusBips(pointsCalculationCache.bonusBips);
+                }
               } else {
-                setEstimatedPoints(undefined);
-                setBonusBips(undefined);
+                try {
+                  // Fetch from API and derive the base rate for future calculations
+                  const pointsData = await estimatePoints(
+                    userAddress,
+                    amount,
+                    coin,
+                    isClosing,
+                    actualFeeUSD,
+                  );
+
+                  if (!isComponentMounted) return;
+
+                  if (
+                    pointsData?.pointsEstimate !== undefined &&
+                    actualFeeUSD > 0
+                  ) {
+                    setEstimatedPoints(pointsData.pointsEstimate);
+                    setBonusBips(pointsData.bonusBips);
+
+                    // Calculate the base points rate per dollar
+                    // Formula: points = feeUSD * baseRate * (1 + bonusBips/10000)
+                    // So: baseRate = points / (feeUSD * (1 + bonusBips/10000))
+                    const bonusMultiplier =
+                      1 + (pointsData.bonusBips ?? 0) / 10000;
+                    const denominator = actualFeeUSD * bonusMultiplier;
+                    const basePointsPerDollar =
+                      denominator > 0
+                        ? pointsData.pointsEstimate / denominator
+                        : 0;
+
+                    // Only cache finite values
+                    if (isFinite(basePointsPerDollar)) {
+                      // Cache the calculation parameters for future use
+                      pointsCalculationCache = {
+                        address: userAddress,
+                        bonusBips: pointsData.bonusBips,
+                        basePointsPerDollar,
+                        timestamp: now,
+                        ttl: 30 * 60 * 1000, // Cache for 30 minutes
+                      };
+
+                      DevLogger.log(
+                        'Rewards: Cached points calculation parameters',
+                        {
+                          address: userAddress,
+                          bonusBips: pointsData.bonusBips,
+                          basePointsPerDollar,
+                          derivedFrom: {
+                            pointsEstimate: pointsData.pointsEstimate,
+                            feeUSD: actualFeeUSD,
+                            bonusMultiplier,
+                          },
+                          cacheExpiry: new Date(
+                            now + 30 * 60 * 1000,
+                          ).toISOString(),
+                        },
+                      );
+                    }
+                  } else {
+                    setEstimatedPoints(undefined);
+                    setBonusBips(undefined);
+                  }
+                } catch (pointsError) {
+                  // Points estimation failed, but don't affect core fees
+                  DevLogger.log('Rewards: Points estimation failed', {
+                    error:
+                      pointsError instanceof Error
+                        ? pointsError.message
+                        : String(pointsError),
+                    userAddress,
+                    amount,
+                  });
+                  if (isComponentMounted) {
+                    setEstimatedPoints(undefined);
+                    setBonusBips(undefined);
+                  }
+                }
               }
+            } else {
+              setEstimatedPoints(undefined);
+              setBonusBips(undefined);
             }
-          } else {
-            setEstimatedPoints(undefined);
-            setBonusBips(undefined);
+          } catch (rewardsError) {
+            // Rewards API failed, but don't affect core fees
+            DevLogger.log('Rewards: Fee discount fetch failed', {
+              error:
+                rewardsError instanceof Error
+                  ? rewardsError.message
+                  : String(rewardsError),
+            });
+            if (isComponentMounted) {
+              // Clear rewards data but keep original fee rate
+              adjustedMetamaskRate = result.metamaskFeeRate;
+              setFeeDiscountPercentage(undefined);
+              setRewardsTier(undefined);
+              setEstimatedPoints(undefined);
+              setBonusBips(undefined);
+            }
           }
         } else {
           // Feature flag disabled - clear all rewards data
@@ -476,25 +539,38 @@ export function usePerpsOrderFees({
           setBonusBips(undefined);
         }
 
-        setMetamaskFeeRate(adjustedMetamaskRate);
-        setTotalFeeRate(result.protocolFeeRate + adjustedMetamaskRate);
+        if (isComponentMounted) {
+          setMetamaskFeeRate(adjustedMetamaskRate);
+          setTotalFeeRate(result.protocolFeeRate + adjustedMetamaskRate);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch fees');
-        // Reset all rates on error
-        setProtocolFeeRate(0);
-        setMetamaskFeeRate(0);
-        setOriginalMetamaskFeeRate(0);
-        setTotalFeeRate(0);
-        setFeeDiscountPercentage(undefined);
-        setRewardsTier(undefined);
-        setEstimatedPoints(undefined);
-        setBonusBips(undefined);
+        // Core fee calculation failed - this is a critical error
+        if (isComponentMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch fees');
+          // Reset only core fee rates on core calculation error
+          setProtocolFeeRate(0);
+          setMetamaskFeeRate(0);
+          setOriginalMetamaskFeeRate(0);
+          setTotalFeeRate(0);
+          // Also clear rewards data since we can't calculate discounts without base rates
+          setFeeDiscountPercentage(undefined);
+          setRewardsTier(undefined);
+          setEstimatedPoints(undefined);
+          setBonusBips(undefined);
+        }
       } finally {
-        setIsLoadingFees(false);
+        if (isComponentMounted) {
+          setIsLoadingFees(false);
+        }
       }
     };
 
     fetchFees();
+
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isComponentMounted = false;
+    };
   }, [
     orderType,
     isMaker,
