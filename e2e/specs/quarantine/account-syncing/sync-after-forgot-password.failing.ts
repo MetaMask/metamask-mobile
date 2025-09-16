@@ -6,10 +6,10 @@ import {
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { RegressionIdentity } from '../../../tags.js';
+import { RegressionIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
-import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
+import { UserStorageMockttpController } from '../../identity/utils/user-storage/userStorageMockttpController';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { defaultGanacheOptions } from '../../../framework/Constants';
@@ -17,7 +17,7 @@ import SettingsView from '../../../pages/Settings/SettingsView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import LoginView from '../../../pages/wallet/LoginView';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView';
-import { createUserStorageController } from '../utils/mocks.ts';
+import { createUserStorageController } from '../../identity/utils/mocks';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 
 describe(RegressionIdentity('Account syncing - Forgot Password Flow'), () => {
