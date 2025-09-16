@@ -81,7 +81,7 @@ if [[ "$IS_PR_CONTEXT" == "true" ]]; then
             MERGE_BASE="$BASE_REF"
         fi
 
-        # Build a set of changed spec files in the PR compared to main
+        # Build a list of changed spec files in the PR compared to main
         declare -a changed_specs
         while IFS= read -r line; do
             # Filter to spec files under e2e/specs
@@ -90,20 +90,34 @@ if [[ "$IS_PR_CONTEXT" == "true" ]]; then
             fi
         done < <(git diff --name-only "$MERGE_BASE"...HEAD || true)
 
-        # Map of new spec files (not present on main)
-        declare -A new_spec_set
+        # List of new spec files (not present on main)
+        declare -a new_specs
         for f in "${changed_specs[@]}"; do
             if ! git cat-file -e "$BASE_REF:$f" 2>/dev/null; then
-                new_spec_set["$f"]=1
+                new_specs+=("$f")
             fi
         done
 
+        # Helper to check if a value is contained within an array
+        is_in_array() {
+            local needle="$1"; shift
+            local element
+            for element in "$@"; do
+                if [[ "$element" == "$needle" ]]; then
+                    return 0
+                fi
+            done
+            return 1
+        }
+
         # Augment split_files with duplicates for new tests
-        if (( ${#new_spec_set[@]} > 0 )); then
+        if (( ${#new_specs[@]} > 0 )); then
             declare -a augmented_files
             for f in "${split_files[@]}"; do
                 augmented_files+=("$f")
-                if [[ -n "${new_spec_set[$f]:-}" ]]; then
+                # Normalize path by stripping leading './' for comparison with git diff outputs
+                f_norm="${f#./}"
+                if is_in_array "$f_norm" "${new_specs[@]}"; then
                     dir="${f%/*}"
                     base="$(basename "$f")"
                     name="${base%.spec.ts}"
