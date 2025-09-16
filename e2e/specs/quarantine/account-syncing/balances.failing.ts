@@ -1,25 +1,25 @@
 import {
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper.ts';
-import WalletView from '../../../pages/wallet/WalletView.ts';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.ts';
-import Assertions from '../../../framework/Assertions.ts';
-import { RegressionIdentity } from '../../../tags.js';
+} from '../../../viewHelper';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
+import { RegressionIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures.ts';
-import { arrangeTestUtils } from '../../identity/utils/helpers.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
+import { arrangeTestUtils } from '../../identity/utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../../identity/utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.ts';
+} from '../../identity/utils/user-storage/userStorageMockttpController';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder.ts';
-import { defaultGanacheOptions } from '../../../framework/Constants.ts';
-import { createUserStorageController } from '../../identity/utils/mocks.ts';
+} from '../../../framework/fixtures/FixtureBuilder';
+import { defaultGanacheOptions } from '../../../framework/Constants';
+import { createUserStorageController } from '../../identity/utils/mocks';
 
 describe(RegressionIdentity('Account syncing - Accounts with Balances'), () => {
   let sharedUserStorageController: UserStorageMockttpController;

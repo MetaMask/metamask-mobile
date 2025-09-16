@@ -137,6 +137,7 @@ export async function importNewSecretRecoveryPhrase(
   if (isMultichainAccountsState2Enabled()) {
     // Use try/catch here, add `addDiscoveredAccounts` also handles errors gracefully.
     try {
+      await Engine.context.AccountTreeController.syncWithUserStorage();
       discoveredAccountsCount = await discoverAccounts(newKeyring.id);
     } catch (error) {
       captureException(

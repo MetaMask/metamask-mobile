@@ -87,12 +87,12 @@ class AuthenticationService {
 
   private async dispatchLogin(
     options: {
-      clearAccountTreePersistedMetadataAndSyncingState: boolean;
+      clearAccountTreeState: boolean;
     } = {
-      clearAccountTreePersistedMetadataAndSyncingState: false,
+      clearAccountTreeState: false,
     },
   ): Promise<void> {
-    if (options.clearAccountTreePersistedMetadataAndSyncingState) {
+    if (options.clearAccountTreeState) {
       AccountTreeInitService.clearState();
     }
     await AccountTreeInitService.initializeAccountTree();
@@ -500,7 +500,7 @@ class AuthenticationService {
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
       await this.dispatchLogin({
-        clearAccountTreePersistedMetadataAndSyncingState: true,
+        clearAccountTreeState: true,
       });
       this.authData = authData;
       // TODO: Replace "any" with type
@@ -535,7 +535,7 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin({
-        clearAccountTreePersistedMetadataAndSyncingState: true,
+        clearAccountTreeState: true,
       });
       this.authData = authData;
       // TODO: Replace "any" with type

@@ -4,6 +4,8 @@ import {
 } from '@metamask/account-tree-controller';
 import type { ControllerInitFunction } from '../../../core/Engine/types';
 import { trace } from '../../../util/trace';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 /**
  * Initialize the AccountTreeController.
@@ -23,15 +25,19 @@ export const accountTreeControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: accountTreeControllerState,
     config: {
-      backupAndSync: {
-        onBackupAndSyncEvent: (event) => {
-          // Handle backup and sync events here, e.g., logging or tracking.
-          // eslint-disable-next-line no-console
-          console.log('Backup and Sync Event:', event);
-        },
-      },
       // @ts-expect-error Controller uses string for names rather than enum
       trace,
+      backupAndSync: {
+        onBackupAndSyncEvent: (event) => {
+          MetaMetrics.getInstance().trackEvent(
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+            )
+              .addProperties(event)
+              .build(),
+          );
+        },
+      },
     },
   });
 

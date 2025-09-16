@@ -1,22 +1,22 @@
-import { loginToApp } from '../../../viewHelper.ts';
-import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.ts';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.ts';
-import Assertions from '../../../framework/Assertions.ts';
-import { SmokeIdentity } from '../../../tags.js';
+import { loginToApp } from '../../../viewHelper';
+import TestHelpers from '../../../helpers';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures.ts';
-import { arrangeTestUtils } from '../../identity/utils/helpers.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
+import { arrangeTestUtils } from '../../identity/utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../../identity/utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.ts';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
-import SettingsView from '../../../pages/Settings/SettingsView.ts';
-import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.ts';
-import CommonView from '../../../pages/CommonView.ts';
-import { createUserStorageController } from '../../identity/utils/mocks.ts';
+} from '../../identity/utils/user-storage/userStorageMockttpController';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import SettingsView from '../../../pages/Settings/SettingsView';
+import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
+import CommonView from '../../../pages/CommonView';
+import { createUserStorageController } from '../../identity/utils/mocks';
 
 describe(SmokeIdentity('Account syncing - Setting'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
