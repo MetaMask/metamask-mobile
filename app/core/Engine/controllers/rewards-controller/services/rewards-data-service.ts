@@ -122,18 +122,12 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction;
 
-type AllowedActions = never;
-
-export type RewardsDataServiceEvents = never;
-
-type AllowedEvents = never;
-
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
   RewardsDataServiceActions,
-  RewardsDataServiceEvents,
-  AllowedActions['type'],
-  AllowedEvents['type']
+  never,
+  never['type'],
+  never['type']
 >;
 
 /**
@@ -254,7 +248,7 @@ export class RewardsDataService {
       if (subscriptionId) {
         const tokenResult = await getSubscriptionToken(subscriptionId);
         if (tokenResult.success && tokenResult.token) {
-          headers['rewards-api-key'] = tokenResult.token;
+          headers['rewards-access-token'] = tokenResult.token;
         }
       }
     } catch (error) {
