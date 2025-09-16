@@ -19,6 +19,11 @@ runs:
       id: fingerprint
       shell: bash
       run: |
+        # Set environment variables from inputs
+        INPUT_PLATFORM="${{ inputs.platform }}"
+        INPUT_ARTIFACTS_PATH="${{ inputs.artifacts_path }}"
+        INPUT_PR_NUMBER="${{ inputs.pr_number }}"
+
         echo "Generating fingerprint for $INPUT_PLATFORM..."
         FINGERPRINT=$(yarn -s fingerprint:generate)
         

@@ -52,6 +52,12 @@ runs:
       id: decide
       shell: bash
       run: |
+        # Set environment variables from inputs
+        INPUT_PLATFORM="${{ inputs.platform }}"
+        INPUT_BUILD_ACTION="${{ inputs.build_action }}"
+        INPUT_ARTIFACT_PATH="${{ inputs.artifact_path }}"
+        INPUT_PR_NUMBER="${{ inputs.pr_number }}"
+
         echo "🔍 Fingerprint Build Check for $INPUT_PLATFORM"
         echo "============================================"
         echo "📊 Input Parameters:"
