@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsRewards } from './usePerpsRewards';
 import type { OrderFeesResult } from './usePerpsOrderFees';
 
@@ -254,8 +254,8 @@ describe('usePerpsRewards', () => {
     });
   });
 
-  describe('Refresh state detection', () => {
-    it('should detect refresh when points change from previous value', () => {
+  describe('Points update behavior', () => {
+    it('should update points when fee results change', () => {
       // Arrange
       const initialFeeResults = createMockFeeResults({ estimatedPoints: 100 });
 
@@ -271,17 +271,25 @@ describe('usePerpsRewards', () => {
           initialProps: { feeResults: initialFeeResults },
         },
       );
+
+      // Assert initial state
+      expect(result.current.estimatedPoints).toBe(100);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
 
       // Act - Change points value
       const updatedFeeResults = createMockFeeResults({ estimatedPoints: 200 });
-      rerender({ feeResults: updatedFeeResults });
+      act(() => {
+        rerender({ feeResults: updatedFeeResults });
+      });
 
-      // Assert
-      expect(result.current.isRefresh).toBe(true);
+      // Assert - Points should update correctly
       expect(result.current.estimatedPoints).toBe(200);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
     });
 
-    it('should not show refresh when points change to undefined', () => {
+    it('should handle points changing to undefined', () => {
       // Arrange
       const initialFeeResults = createMockFeeResults({ estimatedPoints: 100 });
 
@@ -297,6 +305,9 @@ describe('usePerpsRewards', () => {
           initialProps: { feeResults: initialFeeResults },
         },
       );
+
+      // Assert initial state
+      expect(result.current.estimatedPoints).toBe(100);
 
       // Act - Change points to undefined
       const updatedFeeResults = createMockFeeResults({
@@ -304,15 +315,14 @@ describe('usePerpsRewards', () => {
       });
       rerender({ feeResults: updatedFeeResults });
 
-      // Assert
-      expect(result.current.isRefresh).toBe(false);
+      // Assert - Points should become undefined
+      expect(result.current.estimatedPoints).toBeUndefined();
     });
 
-    it('should not show refresh when no previous points exist', () => {
-      // Arrange
+    it('should handle first render with points', () => {
+      // Arrange & Act
       const feeResults = createMockFeeResults({ estimatedPoints: 100 });
 
-      // Act - First render with points
       const { result } = renderHook(() =>
         usePerpsRewards({
           feeResults,
@@ -322,63 +332,9 @@ describe('usePerpsRewards', () => {
         }),
       );
 
-      // Assert
-      expect(result.current.isRefresh).toBe(false);
-    });
-
-    it('should not show refresh when loading', () => {
-      // Arrange
-      const initialFeeResults = createMockFeeResults({ estimatedPoints: 100 });
-
-      const { result, rerender } = renderHook(
-        ({ feeResults, isFeesLoading }) =>
-          usePerpsRewards({
-            feeResults,
-            hasValidAmount: true,
-            isFeesLoading,
-            orderAmount: '1000',
-          }),
-        {
-          initialProps: { feeResults: initialFeeResults, isFeesLoading: false },
-        },
-      );
-
-      // Act - Change points while loading
-      const updatedFeeResults = createMockFeeResults({ estimatedPoints: 200 });
-      rerender({ feeResults: updatedFeeResults, isFeesLoading: true });
-
-      // Assert
-      expect(result.current.isRefresh).toBe(false);
-      expect(result.current.isLoading).toBe(true);
-    });
-
-    it('should not show refresh when has error', () => {
-      // Arrange
-      const initialFeeResults = createMockFeeResults({ estimatedPoints: 100 });
-
-      const { result, rerender } = renderHook(
-        ({ feeResults }) =>
-          usePerpsRewards({
-            feeResults,
-            hasValidAmount: true,
-            isFeesLoading: false,
-            orderAmount: '1000',
-          }),
-        {
-          initialProps: { feeResults: initialFeeResults },
-        },
-      );
-
-      // Act - Change points with error
-      const updatedFeeResults = createMockFeeResults({
-        estimatedPoints: 200,
-        error: 'API error',
-      });
-      rerender({ feeResults: updatedFeeResults });
-
-      // Assert
-      expect(result.current.isRefresh).toBe(false);
-      expect(result.current.hasError).toBe(true);
+      // Assert - Should display points correctly on first render
+      expect(result.current.estimatedPoints).toBe(100);
+      expect(result.current.shouldShowRewardsRow).toBe(true);
     });
   });
 

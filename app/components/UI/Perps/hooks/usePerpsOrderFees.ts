@@ -15,7 +15,6 @@ import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 let feeDiscountCache: {
   address: string;
   discountPercentage: number | undefined;
-  tier: string | undefined;
   timestamp: number;
   ttl: number;
 } | null = null;
@@ -55,8 +54,6 @@ export interface OrderFeesResult {
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
   bonusBips?: number;
-  /** User's rewards tier (e.g., 'tier-4-5' for 5bps discount) */
-  rewardsTier?: string;
 }
 
 interface UsePerpsOrderFeesParams {
@@ -157,12 +154,10 @@ export function usePerpsOrderFees({
         DevLogger.log('Rewards: Using cached fee discount', {
           address,
           discountPercentage: feeDiscountCache.discountPercentage,
-          tier: feeDiscountCache.tier,
           cacheAge: Math.round((now - feeDiscountCache.timestamp) / 1000) + 's',
         });
         return {
           discountPercentage: feeDiscountCache.discountPercentage,
-          tier: feeDiscountCache.tier,
         };
       }
 
@@ -187,28 +182,15 @@ export function usePerpsOrderFees({
           discountPercentage,
         });
 
-        // Map discount percentage to approximate tier for logging
-        let tier: string;
-        if (!discountPercentage || discountPercentage === 0) {
-          tier = 'none';
-        } else if (discountPercentage < 30) {
-          tier = 'tier-1-3';
-        } else if (discountPercentage < 60) {
-          tier = 'tier-4-5';
-        } else {
-          tier = 'tier-6-7';
-        }
-
         // Cache the discount for 30 minutes
         feeDiscountCache = {
           address,
           discountPercentage,
-          tier,
           timestamp: Date.now(),
           ttl: 30 * 60 * 1000, // 30 minutes
         };
 
-        return { discountPercentage, tier };
+        return { discountPercentage };
       } catch (error) {
         DevLogger.log('Rewards: Error fetching fee discount via controller', {
           error: error instanceof Error ? error.message : String(error),
@@ -309,7 +291,6 @@ export function usePerpsOrderFees({
   const [feeDiscountPercentage, setFeeDiscountPercentage] = useState<
     number | undefined
   >();
-  const [rewardsTier, setRewardsTier] = useState<string | undefined>();
   const [estimatedPoints, setEstimatedPoints] = useState<number | undefined>();
   const [bonusBips, setBonusBips] = useState<number | undefined>();
 
@@ -347,14 +328,12 @@ export function usePerpsOrderFees({
               parseFloat(amount) ===
                 DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
 
-            let discountData: { discountPercentage?: number; tier?: string } =
-              {};
+            let discountData: { discountPercentage?: number } = {};
 
             if (shouldSimulateFeeDiscount) {
               // Simulate 20% fee discount for development testing
               discountData = {
                 discountPercentage: 20,
-                tier: 'tier-4-5',
               };
             } else {
               // First fetch fee discount to know the actual fee rate
@@ -370,11 +349,9 @@ export function usePerpsOrderFees({
               const discount = discountData.discountPercentage / 100;
               adjustedMetamaskRate = result.metamaskFeeRate * (1 - discount);
               setFeeDiscountPercentage(discountData.discountPercentage);
-              setRewardsTier(discountData.tier);
             } else {
               adjustedMetamaskRate = result.metamaskFeeRate;
               setFeeDiscountPercentage(undefined);
-              setRewardsTier(undefined);
             }
 
             // Now estimate points using the ACTUAL discounted fee
@@ -526,7 +503,6 @@ export function usePerpsOrderFees({
               // Clear rewards data but keep original fee rate
               adjustedMetamaskRate = result.metamaskFeeRate;
               setFeeDiscountPercentage(undefined);
-              setRewardsTier(undefined);
               setEstimatedPoints(undefined);
               setBonusBips(undefined);
             }
@@ -534,7 +510,6 @@ export function usePerpsOrderFees({
         } else {
           // Feature flag disabled - clear all rewards data
           setFeeDiscountPercentage(undefined);
-          setRewardsTier(undefined);
           setEstimatedPoints(undefined);
           setBonusBips(undefined);
         }
@@ -554,7 +529,6 @@ export function usePerpsOrderFees({
           setTotalFeeRate(0);
           // Also clear rewards data since we can't calculate discounts without base rates
           setFeeDiscountPercentage(undefined);
-          setRewardsTier(undefined);
           setEstimatedPoints(undefined);
           setBonusBips(undefined);
         }
@@ -605,7 +579,6 @@ export function usePerpsOrderFees({
       feeDiscountPercentage,
       estimatedPoints,
       bonusBips,
-      rewardsTier,
     };
   }, [
     amount,
@@ -618,7 +591,6 @@ export function usePerpsOrderFees({
     feeDiscountPercentage,
     estimatedPoints,
     bonusBips,
-    rewardsTier,
   ]);
 }
 

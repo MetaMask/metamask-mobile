@@ -14,6 +14,9 @@ jest.mock('../../../../../component-library/hooks/useStyles', () => ({
           muted: '#6A737D',
           default: '#24292E',
         },
+        primary: {
+          default: '#037DD6',
+        },
       },
     },
   })),
@@ -133,7 +136,7 @@ describe('FoxIcon', () => {
       const { getByTestId } = render(<FoxIcon iconColor={IconColor.Primary} />);
 
       const xmlContent = getByTestId('fox-icon-xml').props.children;
-      expect(xmlContent).toContain('fill="#24292E"'); // Primary color fallback to default in mock
+      expect(xmlContent).toContain('fill="#037DD6"'); // Primary color from mock
     });
 
     it('memoizes SVG XML to prevent unnecessary regeneration', () => {

@@ -42,23 +42,15 @@ describe('RewardPointsDisplay', () => {
 
   it('renders error state correctly', () => {
     const { getByText } = render(
-      <RewardPointsDisplay
-        shouldShow
-        hasError
-        estimatedPoints={100}
-      />,
+      <RewardPointsDisplay shouldShow hasError estimatedPoints={100} />,
       { wrapper: NavigationWrapper },
     );
-    expect(getByText('Couldn\'t load')).toBeTruthy();
+    expect(getByText("Couldn't load")).toBeTruthy();
   });
 
   it('renders loaded state with points and discount tag', () => {
     const { getByText } = render(
-      <RewardPointsDisplay
-        shouldShow
-        estimatedPoints={1344}
-        bonusBips={150}
-      />,
+      <RewardPointsDisplay shouldShow estimatedPoints={1344} bonusBips={150} />,
       { wrapper: NavigationWrapper },
     );
 
@@ -68,16 +60,11 @@ describe('RewardPointsDisplay', () => {
 
   it('renders loading state without points display', () => {
     const { queryByText } = render(
-      <RewardPointsDisplay
-        shouldShow
-        isLoading
-        estimatedPoints={1000}
-      />,
+      <RewardPointsDisplay shouldShow isLoading estimatedPoints={1000} />,
       { wrapper: NavigationWrapper },
     );
 
     // Points should not be visible when loading
     expect(queryByText('1,000')).toBeNull();
   });
-
 });
