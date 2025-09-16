@@ -12,11 +12,7 @@ import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { isTestNet } from '../../util/networks';
 import { useMemo } from 'react';
 import { selectEVMEnabledNetworks } from '../../selectors/networkEnablementController';
-import {
-  hexToBigInt,
-  toHexadecimal,
-  weiToFiatNumber,
-} from '../../util/number/bigInt';
+import { hexToBigInt, toHexadecimal, weiToFiatNumber } from '../../util/number';
 
 interface TokenFiatBalancesCrossChains {
   chainId: string;

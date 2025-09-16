@@ -22,7 +22,7 @@ import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineN
 import { generateTransferData } from '../../../../util/transactions';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
-import { toWei } from '../../../../util/number/legacy';
+import { toWei, BNToHex, hexToBN } from '../../../../util/number/legacy';
 import { isNativeToken } from '../utils/generic';
 
 const captureSendStartedEvent = (location: string) => {
