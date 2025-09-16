@@ -128,23 +128,6 @@ pipelines:
         depends_on:
         - set_main_target_workflow
         abort_on_fail: true
-      build_ios_main_e2e:
-        depends_on:
-        - pr_check_build_cache
-        abort_on_fail: true
-        run_if:
-          expression: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      build_android_main_e2e:
-        depends_on:
-        - pr_check_build_cache
-        abort_on_fail: true
-        run_if:
-          expression: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
-      build_ios_main_e2e_gns_disabled:
-        abort_on_fail: true
-        run_if:
-          expression: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      notify_success: {}
       bump_version_code:
         depends_on:
         - pr_check_build_cache
@@ -3769,13 +3752,13 @@ app:
       VERSION_NAME: 7.56.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2374
+      VERSION_NUMBER: 2349
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.56.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2374
+      FLASK_VERSION_NUMBER: 2349
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
