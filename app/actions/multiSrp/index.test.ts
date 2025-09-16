@@ -31,6 +31,7 @@ const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 const mockRemoveAccount = jest.fn();
+const mockSyncAccountTreeWithUserStorage = jest.fn();
 
 // Mock for seedless onboarding
 const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
@@ -123,6 +124,9 @@ jest.mock('../../core/Engine', () => ({
         keyringId: string,
       ) => mockAddNewSecretData(seed, type, keyringId),
     },
+    AccountTreeController: {
+      syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
+    },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
@@ -196,6 +200,7 @@ describe('MultiSRP Actions', () => {
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
       expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
@@ -218,6 +223,7 @@ describe('MultiSRP Actions', () => {
       const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
       // Assert
+      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
       expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
