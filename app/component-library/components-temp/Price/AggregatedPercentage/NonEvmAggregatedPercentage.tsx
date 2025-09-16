@@ -3,6 +3,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SensitiveText from '../../../../component-library/components/Texts/SensitiveText';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -35,7 +36,7 @@ const NonEvmAggregatedPercentage = ({
   privacyMode?: boolean;
 }) => {
   const { styles } = useStyles(styleSheet, {});
-
+  const tw = useTailwind();
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const account = useSelector(selectSelectedInternalAccount);
@@ -138,7 +139,7 @@ const NonEvmAggregatedPercentage = ({
         color={percentageTextColor}
         variant={TextVariant.BodyMDMedium}
         testID={FORMATTED_PERCENTAGE_TEST_ID}
-        style={{ paddingLeft: 1 }}
+        style={tw`pl-1`}
       >
         {formattedPercentage}
       </SensitiveText>
