@@ -1,7 +1,5 @@
 import { test } from 'appwright';
 
-import { PerformanceTracker } from '../../../reporters/PerformanceTracker.js';
-
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 

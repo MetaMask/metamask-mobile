@@ -46,11 +46,11 @@ export default class AppwrightSelectors {
   }
 
   static async terminateApp(device) {
-    return await device.webDriverClient.terminateApp(this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask.qa');
+    return await device.webDriverClient.terminateApp(this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask');
   }
 
   static async activateApp(device) {
-    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask.qa'; 
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask'; 
     return await device.webDriverClient.activateApp(packageId);
   }
 

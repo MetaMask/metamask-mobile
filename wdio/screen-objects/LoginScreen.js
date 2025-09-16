@@ -124,8 +124,8 @@ class LoginScreen {
   }
 
   async typePassword(password) {
-    await this.isLoginScreenVisible();
     if (!this._device) {
+      await this.isLoginScreenVisible();
       await Gestures.typeText(this.passwordInput, password);
     } else {
       const screenTitle = await this.title
