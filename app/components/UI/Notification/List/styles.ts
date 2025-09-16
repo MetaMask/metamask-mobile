@@ -69,10 +69,6 @@ export const createStyles = ({ colors }: Theme) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    TabWrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
     list: { flexGrow: 1, paddingBottom: 100 },
     fox: {
       width: 20,
