@@ -347,7 +347,7 @@ function aggregateReports() {
       console.log(`  ${index + 1}. ${file}`);
     });
     
-    const outputPath = 'appwright/aggregated-reports/combined-performance-report.json';
+    const outputPath = 'appwright/aggregated-reports/performance-results.json';
     
     if (jsonFiles.length === 0) {
       createEmptyReport(outputPath);
@@ -445,7 +445,7 @@ function aggregateReports() {
     // Write the combined report
     fs.writeFileSync(outputPath, JSON.stringify(groupedResults, null, 2));
     
-    // Create aggregated-performance-report.json (same structure as combined-performance-report.json)
+    // Create aggregated-performance-report.json (same structure as performance-results.json)
     const aggregatedReportPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
     fs.writeFileSync(aggregatedReportPath, JSON.stringify(groupedResults, null, 2));
     
@@ -458,7 +458,7 @@ function aggregateReports() {
     console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
     
   } catch (error) {
-    createFallbackReport('appwright/aggregated-reports/combined-performance-report.json', error);
+    createFallbackReport('appwright/aggregated-reports/performance-results.json', error);
   }
 }
 
