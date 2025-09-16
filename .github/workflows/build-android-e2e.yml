@@ -77,14 +77,8 @@ jobs:
           FINGERPRINT=$(yarn -s fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: $FINGERPRINT"
-
-      - name: Restore fingerprint cache
-        uses: actions/cache@v4
-        with:
-          path: .app-native-fingerprint
-          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            fingerprint-android-${{ github.event.pull_request.number || 'main' }}-
+          # Save fingerprint to file for the build check
+          echo "$FINGERPRINT" > .app-native-fingerprint
 
       - name: Restore previous build artifacts
         if: ${{ inputs.build_action == 'check_fingerprint' }}
@@ -166,27 +160,13 @@ jobs:
           APK="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
           npx --yes @expo/repack-app --input "$APK" --output "$APK" --bundle dist/_expo/static/js/android/index.js
 
-      # Save fingerprint and cache artifacts
-      - name: Generate and save fingerprint
-        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
-        id: save-fingerprint
-        shell: bash
-        run: |
-          ./scripts/save-build-fingerprint.sh "android"
-
+      # Cache artifacts only (no fingerprint file caching)
       - name: Cache build artifacts for future reuse
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
         uses: actions/cache@v4
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          key: android-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ steps.save-fingerprint.outputs.fingerprint || steps.generate-fingerprint.outputs.fingerprint }}
-
-      - name: Save fingerprint cache
-        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
-        uses: actions/cache@v4
-        with:
-          path: .app-native-fingerprint
-          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ steps.save-fingerprint.outputs.fingerprint || steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
       
       - name: Log Build Metrics
         if: always()

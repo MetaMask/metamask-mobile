@@ -40,26 +40,11 @@ case "$BUILD_ACTION" in
         set_outputs "full" "false" "false"
         ;;
     "check_fingerprint")
-        if [[ ! -f ".app-native-fingerprint" ]]; then
-            set_outputs "full" "false" "false"
-            exit 0
-        fi
-        
-        SAVED_FP=$(cat .app-native-fingerprint)
-        CURRENT_FP=$(yarn -s fingerprint:generate 2>/dev/null || echo "")
-        
-        if [[ -z "$CURRENT_FP" ]]; then
-            set_outputs "full" "false" "false"
-            exit 0
-        fi
-        
-        if yarn fingerprint:check; then
-            if check_artifact "$ARTIFACT_PATH"; then
-                set_outputs "repack" "true" "true"
-            else
-                set_outputs "full" "false" "false"
-            fi
+        if check_artifact "$ARTIFACT_PATH"; then
+            echo "Found cached artifacts for current fingerprint"
+            set_outputs "repack" "true" "true"
         else
+            echo "No cached artifacts found for current fingerprint"
             set_outputs "full" "false" "false"
         fi
         ;;
