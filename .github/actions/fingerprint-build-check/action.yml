@@ -173,6 +173,7 @@ runs:
                 echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
                 echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
               fi
+            fi
           else
             echo "🔄 Fingerprints differ - native code has changed"
             echo "  Saved:   $SAVED_FP"
