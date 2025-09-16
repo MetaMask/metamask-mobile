@@ -13,6 +13,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { NavigationProviderProps } from './types';
+import { colors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
 
@@ -22,7 +23,6 @@ const Stack = createStackNavigator();
 const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
-  const { colors } = useTheme();
   const dispatch = useDispatch();
   const hasInitialized = useRef(false);
 
@@ -60,7 +60,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   return (
     <NavigationContainer
       // TODO: Check if other color properties are needed
-      theme={{ colors: { background: colors.background.default } } as Theme}
+      theme={{ colors: { background: colors.transparent } } as Theme}
       onReady={onReady}
       ref={setNavigationRef}
     >

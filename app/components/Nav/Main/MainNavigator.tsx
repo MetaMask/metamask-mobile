@@ -88,7 +88,7 @@ import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../Views/AccountPermissions/AccountPermissions.types';
-import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { StakeScreenStack, StakeModalStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
@@ -671,7 +671,8 @@ const MainNavigator = () => {
       {/* Modal Routes */}
       {BridgeModalStack()}
       {EarnModalStack()}
-      {StakeModalStack()}
+      {/* This can be flattened in RN V7 with the use of layouts */}
+      <Stack.Screen name="StakeModalStack" component={StakeModalStack} />
       {isPerpsEnabled ? PerpsModalStack() : null}
       <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
         <Stack.Screen

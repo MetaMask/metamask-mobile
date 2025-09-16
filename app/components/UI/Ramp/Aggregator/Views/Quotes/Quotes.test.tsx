@@ -17,7 +17,7 @@ import {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
 
-import Quotes, { QuotesParams } from './Quotes';
+import Quotes from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
@@ -30,6 +30,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { RampType, Region } from '../../types';
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 import { endTrace, TraceName } from '../../../../../../util/trace';
+import { QuotesParams } from './Quotes.types';
 
 function render(Component: React.ComponentType) {
   return renderScreen(

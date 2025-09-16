@@ -37,7 +37,10 @@ const StakingCta = ({
       name: TraceName.EarnFaq,
       data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
     });
-    navigate(Routes.STAKING.MODALS.LEARN_MORE, { chainId });
+    navigate('StakeModalStack', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: { chainId },
+    });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
         .addProperties({

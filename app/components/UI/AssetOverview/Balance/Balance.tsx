@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import {
   CaipAssetId,
@@ -184,8 +184,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       navigation.navigate('AssetStack', {
         screen: 'AssetDetails',
         params: {
-          address: asset.address,
-          chainId: asset.chainId,
+          address: asset.address as Hex,
+          chainId: asset.chainId as Hex,
         },
       }),
     [asset.address, asset.chainId, asset.isNative, navigation],

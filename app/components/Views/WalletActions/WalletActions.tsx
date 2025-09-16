@@ -72,14 +72,17 @@ const WalletActions = () => {
 
   const onEarn = useCallback(async () => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.STAKING.MODALS.EARN_TOKEN_LIST, {
-        tokenFilter: {
-          includeNativeTokens: true,
-          includeStakingTokens: false,
-          includeLendingTokens: true,
-          includeReceiptTokens: false,
+      navigate('StakeModalStack', {
+        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+        params: {
+          tokenFilter: {
+            includeNativeTokens: true,
+            includeStakingTokens: false,
+            includeLendingTokens: true,
+            includeReceiptTokens: false,
+          },
+          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
         },
-        onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
       });
     });
 

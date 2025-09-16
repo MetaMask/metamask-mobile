@@ -1,4 +1,3 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
@@ -41,28 +40,12 @@ const StakeScreenStack = () => (
 // Modal Stack for Modals
 const StakeModalStack = () => (
   <StakeSDKProvider>
-    <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
-      <Stack.Screen
-        name={'LearnMore'}
-        component={PoolStakingLearnMoreModal}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={'MaxInput'}
-        component={MaxInputModal}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={'GasImpact'}
-        component={GasImpactModal}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={'EarnTokenList'}
-        component={EarnTokenList}
-        options={{ headerShown: false }}
-      />
-    </Stack.Group>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name={'LearnMore'} component={PoolStakingLearnMoreModal} />
+      <Stack.Screen name={'MaxInput'} component={MaxInputModal} />
+      <Stack.Screen name={'GasImpact'} component={GasImpactModal} />
+      <Stack.Screen name={'EarnTokenList'} component={EarnTokenList} />
+    </Stack.Navigator>
   </StakeSDKProvider>
 );
 

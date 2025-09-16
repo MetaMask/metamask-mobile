@@ -65,7 +65,10 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
       name: TraceName.EarnFaq,
       data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
     });
-    navigate(Routes.STAKING.MODALS.LEARN_MORE, { chainId: asset.chainId });
+    navigate('StakeModalStack', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: { chainId: asset.chainId },
+    });
   };
 
   if (!isStakingSupportedChain || !hasEarnPooledStakes) return <></>;

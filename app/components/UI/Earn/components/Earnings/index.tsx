@@ -75,7 +75,10 @@ const EarningsContent = ({ asset }: EarningsProps) => {
         { asset: outputToken },
       );
     } else if (experienceType === EARN_EXPERIENCES.POOLED_STAKING) {
-      navigate(Routes.STAKING.MODALS.LEARN_MORE, { chainId: asset?.chainId });
+      navigate('StakeModalStack', {
+        screen: Routes.STAKING.MODALS.LEARN_MORE,
+        params: { chainId: asset?.chainId },
+      });
     }
   };
 

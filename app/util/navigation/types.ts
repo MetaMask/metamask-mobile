@@ -611,6 +611,7 @@ export type RootParamList = {
   DeFiProtocolPositionDetails: DeFiProtocolPositionDetailsParams;
   CardRoutes: undefined;
   StakeScreens: undefined;
+  StakeModalStack: undefined;
 
   // Tab Navigator Screens
   WalletTabHome: undefined;

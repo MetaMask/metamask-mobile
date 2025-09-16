@@ -179,8 +179,9 @@ const EarnInputView = ({ route }: EarnInputViewProps) => {
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
-      navigation.navigate(Routes.STAKING.MODALS.LEARN_MORE, {
-        chainId: earnToken?.chainId,
+      navigation.navigate('StakeModalStack', {
+        screen: Routes.STAKING.MODALS.LEARN_MORE,
+        params: { chainId: earnToken?.chainId },
       });
     }
 
@@ -445,16 +446,18 @@ const EarnInputView = ({ route }: EarnInputViewProps) => {
           })
           .build(),
       );
-
-      navigation.navigate(Routes.STAKING.MODALS.GAS_IMPACT, {
-        amountWei: amountTokenMinimalUnit.toString(),
-        amountFiat: amountFiatNumber,
-        annualRewardsToken,
-        annualRewardsFiat,
-        annualRewardRate,
-        estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
-        estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
-        chainId: earnToken?.chainId,
+      navigation.navigate('StakeModalStack', {
+        screen: Routes.STAKING.MODALS.GAS_IMPACT,
+        params: {
+          amountWei: amountTokenMinimalUnit.toString(),
+          amountFiat: amountFiatNumber,
+          annualRewardsToken,
+          annualRewardsFiat,
+          annualRewardRate,
+          estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
+          estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
+          chainId: earnToken?.chainId,
+        },
       });
       return;
     }
@@ -567,8 +570,9 @@ const EarnInputView = ({ route }: EarnInputViewProps) => {
     lastQuickAmountButtonPressed.current = 'MAX';
 
     if (!isStablecoinLendingEnabled || token.isETH) {
-      navigation.navigate(Routes.STAKING.MODALS.MAX_INPUT, {
-        handleMaxPress: handleMax,
+      navigation.navigate('StakeModalStack', {
+        screen: Routes.STAKING.MODALS.MAX_INPUT,
+        params: { handleMaxPress: handleMax },
       });
     } else {
       handleMax();
