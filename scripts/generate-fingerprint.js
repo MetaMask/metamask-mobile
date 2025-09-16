@@ -1,8 +1,8 @@
-const { createFingerprintAsync } = require("@expo/fingerprint");
+const { createFingerprintAsync } = require('@expo/fingerprint');
 
 async function generateFingerprint() {
   try {
-    const { hash } = await createFingerprintAsync(process.cwd(), { mode: "prebuild" });
+    const { hash } = await createFingerprintAsync(process.cwd(), { mode: 'prebuild' });
     // Only output the hash to stdout, no console.log or extra output
     process.stdout.write(hash);
   } catch (error) {

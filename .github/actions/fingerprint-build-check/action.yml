@@ -81,9 +81,7 @@ runs:
           echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
           echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
           exit 0
-        fi
-
-        if [[ "$INPUT_BUILD_ACTION" == "full" ]]; then
+        elif [[ "$INPUT_BUILD_ACTION" == "full" ]]; then
           echo "🏗️ Build action is full - native code likely changed"
           BUILD_METHOD="full"
           CAN_REPACK="false"
@@ -92,9 +90,7 @@ runs:
           echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
           echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
           exit 0
-        fi
-
-        if [[ "$INPUT_BUILD_ACTION" == "check_fingerprint" ]]; then
+        elif [[ "$INPUT_BUILD_ACTION" == "check_fingerprint" ]]; then
           echo "🔍 Checking fingerprint for potential reuse..."
           echo ""
           
