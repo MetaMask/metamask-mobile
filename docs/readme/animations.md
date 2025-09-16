@@ -59,11 +59,7 @@ Read more about troubleshooting [here](https://airbnb.io/lottie/#/react-native?i
 
 ## Rive
 
-> **Experimental**: Rive is a new implementation in the mobile app. Its capabilities and usage is still being explored. Please consult with your team before using it in production.
->
-> **!! USE AT YOUR OWN RISK !!**
-
-According to the Lottie [website](https://lottiefiles.com/what-is-lottie): A Lottie is a JSON-based animation file format. Originally, Lottie files were created in Adobe After Effects through the [Bodymovin](https://aescripts.com/bodymovin/) plugin. As the ecosystem matured over the years, support was added for other tools such as Figma and Lottie Creator. Read more [here](https://lottiefiles.com/lottie-creator).
+Rive is a design and animation application for building interactive, real-time motion graphics for apps, websites, and games. It allows designers to create animated characters, UI components, and other dynamic content that can respond to user input and data. Key features include a state machine for managing complex interactions without code, open-source runtimes for broad compatibility, and a runtime-focused editor with a familiar interface similar to Figma and Illustrator.
 
 ### Usage
 
