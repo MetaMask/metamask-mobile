@@ -45,8 +45,44 @@ export default class AppwrightSelectors {
     return device.webDriverClient.capabilities.platformName === 'android' || device.webDriverClient.capabilities.platformName === 'Android';
   }
 
-  static async terminateApp(device) {
-    return await device.webDriverClient.terminateApp(this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask');
+  static async terminateApp(device, maxRetries = 3) {
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await device.webDriverClient.terminateApp(packageId);
+        
+        // Wait a bit to ensure the app has time to fully close
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Verify the app is actually terminated by trying to get its state
+        try {
+          const appState = await device.webDriverClient.queryAppState(packageId);
+          if (appState === 1) { // 1 means app is not running
+            console.log(`App terminated successfully on attempt ${attempt}`);
+            return true;
+          }
+        } catch (error) {
+          // If queryAppState fails, assume app is terminated
+          console.log(`App likely terminated on attempt ${attempt}`);
+          return true;
+        }
+        
+        console.log(`App still running after attempt ${attempt}, retrying...`);
+      } catch (error) {
+        console.log(`Terminate attempt ${attempt} failed:`, error.message);
+        
+        if (attempt === maxRetries) {
+          console.log(`Failed to terminate app after ${maxRetries} attempts`);
+          throw error;
+        }
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    return false;
   }
 
   static async activateApp(device) {
