@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { hasProperty } from '@metamask/utils';
 
-const DEFAULT_REWARDS_ENABLED = true; // TODO: REVERT BEFORE COMMIT - Enabled for testing rewards integration
+const DEFAULT_REWARDS_ENABLED = false;
 export const FEATURE_FLAG_NAME = 'rewards';
 
 export const selectRewardsEnabledFlag = createSelector(
