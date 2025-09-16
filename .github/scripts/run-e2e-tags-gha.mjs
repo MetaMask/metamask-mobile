@@ -3,6 +3,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 
+// Run E2E tests by tag, optionally split across runners.
+// If certain spec files were ADDED or MODIFIED in the PR, duplicate them per split
+// (base + two retries) to detect flakiness. Duplication is done per split so
+// runners do not interfere with each other.
+
 const BASE_DIR = './e2e/specs';
 const CHANGED_FILES_DIR = 'changed-files';
 
@@ -11,11 +16,13 @@ function readEnv(name, defaultValue = undefined) {
   return value === undefined || value === '' ? defaultValue : value;
 }
 
+// True for Detox test specs that are not quarantined
 function isSpecFile(filePath) {
   return (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
     !filePath.split(path.sep).includes('quarantine');
 }
 
+// Synchronous generator to recursively walk a directory
 function* walk(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
@@ -28,6 +35,7 @@ function* walk(dir) {
   }
 }
 
+// Find all spec files that contain the provided tag string
 function findMatchingFiles(baseDir, tag) {
   const resolvedBase = path.resolve(baseDir);
   const results = [];
@@ -35,7 +43,7 @@ function findMatchingFiles(baseDir, tag) {
     if (!isSpecFile(filePath)) continue;
     const content = fs.readFileSync(filePath, 'utf8');
     if (content.includes(tag)) {
-      // Return relative paths similar to the bash script output
+      // Return repo-relative paths similar to the bash script output
       results.push(path.relative(process.cwd(), filePath));
     }
   }
@@ -47,6 +55,7 @@ function ceilDiv(a, b) {
   return Math.floor((a + b - 1) / b);
 }
 
+// Group key for a spec, removing any -retry-N suffix so base and retries stay together
 function getGroupKey(filePath) {
   // Normalize and strip -retry-N suffix before .spec.ext
   const normalized = normalizePathForCompare(filePath);
@@ -57,6 +66,7 @@ function getGroupKey(filePath) {
   return `${base}.spec.${ext}`;
 }
 
+// Extract retry index from a filename; base files are index 0
 function getRetryIndex(filePath) {
   const normalized = normalizePathForCompare(filePath);
   const m = normalized.match(/-retry-(\d+)\.spec\.(ts|js)$/);
@@ -65,6 +75,7 @@ function getRetryIndex(filePath) {
   return Number.isFinite(n) ? n : 0;
 }
 
+// Group files by base spec and sort within group as base, retry-1, retry-2
 function groupFilesByBase(files) {
   const map = new Map();
   for (const f of files) {
@@ -72,7 +83,7 @@ function groupFilesByBase(files) {
     if (!map.has(key)) map.set(key, []);
     map.get(key).push(f);
   }
-  // Sort groups by key for stable order; within group, sort by filename
+  // Sort groups by key for stable order; within group, sort by base/reties order
   const keys = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
   return keys.map((k) =>
     map
@@ -86,6 +97,7 @@ function groupFilesByBase(files) {
   );
 }
 
+// Split by groups so a base and its retries land on the same runner
 function computeSplitFromGroups(files, splitNumber, totalSplits) {
   const groups = groupFilesByBase(files);
   const totalGroups = groups.length;
@@ -97,6 +109,7 @@ function computeSplitFromGroups(files, splitNumber, totalSplits) {
   return selectedGroups.flat();
 }
 
+// Spawn a yarn script with inherited stdio
 function runYarn(scriptName, args, extraEnv = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn('yarn', [scriptName, ...args], {
@@ -111,6 +124,7 @@ function runYarn(scriptName, args, extraEnv = {}) {
   });
 }
 
+// Read the PR changed files JSON written by git-diff-default-branch.mjs
 function readChangedFilesJson() {
   try {
     const jsonPath = path.resolve(CHANGED_FILES_DIR, 'changed-files.json');
@@ -124,6 +138,7 @@ function readChangedFilesJson() {
   }
 }
 
+// Read the PR body/labels text (used to detect skip-e2e-quality-gate)
 function readPrBodyText() {
   try {
     const txtPath = path.resolve(CHANGED_FILES_DIR, 'pr-body.txt');
@@ -134,6 +149,7 @@ function readPrBodyText() {
   }
 }
 
+// Filter only ADDED/MODIFIED spec files from the PR changed files list
 function getChangedSpecFiles(nodes) {
   const results = new Set();
   for (const node of nodes || []) {
@@ -148,6 +164,7 @@ function getChangedSpecFiles(nodes) {
   return results;
 }
 
+// Derive the retry filename for a given spec: base -> base-retry-N
 function computeRetryFilePath(originalPath, retryIndex) {
   // originalPath must end with .spec.ts or .spec.js
   const match = originalPath.match(/^(.*)\.spec\.(ts|js)$/);
@@ -157,6 +174,7 @@ function computeRetryFilePath(originalPath, retryIndex) {
   return `${base}-retry-${retryIndex}.spec.${ext}`;
 }
 
+// Create two retry copies of a given spec if not already present
 function duplicateSpecFile(originalPath) {
   try {
     const srcPath = path.resolve(originalPath);
@@ -179,6 +197,7 @@ function duplicateSpecFile(originalPath) {
   }
 }
 
+// Normalize a path (repo-relative) for comparisons
 function normalizePathForCompare(p) {
   // Ensure relative to CWD, normalized separators
   const rel = path.isAbsolute(p) ? path.relative(process.cwd(), p) : p;
@@ -186,6 +205,7 @@ function normalizePathForCompare(p) {
 }
 
 async function main() {
+  // 1) Read inputs
   const testSuiteTag = readEnv('TEST_SUITE_TAG');
   if (!testSuiteTag) {
     console.error('❌ Error: TEST_SUITE_TAG is required');
@@ -203,6 +223,7 @@ async function main() {
     process.exit(1);
   }
 
+  // 2) Find all specs that include the tag
   let allMatches = findMatchingFiles(BASE_DIR, testSuiteTag);
   if (allMatches.length === 0) {
     console.error(`❌ No test files found containing pattern: ${testSuiteTag}`);
@@ -211,36 +232,56 @@ async function main() {
 
   console.log(`\n📋 Found ${allMatches.length} matching test files in total`);
 
-  // Flaky test detector and duplication
+  // 3) Compute split BEFORE duplication so each runner only duplicates its own files
+  const splitFiles = computeSplitFromGroups(allMatches, splitNumber, totalSplits);
+
+  // 4) Flaky test detector and duplication (per-split only)
   const prBodyText = readPrBodyText();
   const skipQualityGate = prBodyText.includes('skip-e2e-quality-gate');
+  let runFiles = [...splitFiles];
   if (!skipQualityGate) {
     const nodes = readChangedFilesJson();
     const changedSpecs = getChangedSpecFiles(nodes);
     if (changedSpecs.size > 0) {
-      const matchSet = new Set(allMatches.map(normalizePathForCompare));
+      const selectedSet = new Set(splitFiles.map(normalizePathForCompare));
+      const duplicatedSet = new Set();
       for (const changed of changedSpecs) {
         const normalized = normalizePathForCompare(changed);
-        if (matchSet.has(normalized)) {
+        if (selectedSet.has(normalized)) {
           duplicateSpecFile(normalized);
+          duplicatedSet.add(normalized);
         }
       }
-      // Recompute matches to include the duplicated files
-      allMatches = findMatchingFiles(BASE_DIR, testSuiteTag);
-      console.log(`\n🧪 After duplication, total matching files: ${allMatches.length}`);
+      if (duplicatedSet.size > 0) {
+        // Build final ordered run list: base, retry-1, retry-2 for duplicated files
+        const expanded = [];
+        for (const f of splitFiles) {
+          const nf = normalizePathForCompare(f);
+          if (duplicatedSet.has(nf)) {
+            expanded.push(f);
+            const r1 = computeRetryFilePath(nf, 1);
+            const r2 = computeRetryFilePath(nf, 2);
+            if (r1) expanded.push(r1);
+            if (r2) expanded.push(r2);
+          } else {
+            expanded.push(f);
+          }
+        }
+        runFiles = expanded;
+        console.log(`\n🧪 After duplication (per split), total selected files: ${runFiles.length}`);
+      }
     }
   } else {
     console.log('⏭️  skip-e2e-quality-gate detected; skipping flaky duplication');
   }
 
-  const splitFiles = computeSplitFromGroups(allMatches, splitNumber, totalSplits);
-
-  console.log(`\n🔍 Running ${splitFiles.length} tests for split ${splitNumber} of ${totalSplits}:`);
-  for (const f of splitFiles) {
+  // 5) Log and run the selected specs for this split
+  console.log(`\n🔍 Running ${runFiles.length} tests for split ${splitNumber} of ${totalSplits}:`);
+  for (const f of runFiles) {
     console.log(`  - ${f}`);
   }
 
-  if (splitFiles.length === 0) {
+  if (runFiles.length === 0) {
     console.log('⚠️ No test files for this split');
     process.exit(0);
   }
@@ -252,7 +293,7 @@ async function main() {
   const IS_IOS = PLATFORM === 'ios';
 
   const extraEnv = { IGNORE_BOXLOGS_DEVELOPMENT: 'true' };
-  const args = [...splitFiles];
+  const args = [...runFiles];
 
   try {
     if (IS_IOS) {
