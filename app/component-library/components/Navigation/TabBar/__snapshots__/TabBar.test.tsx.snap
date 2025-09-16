@@ -112,6 +112,7 @@ exports[`TabBar renders correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -122,6 +123,8 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -217,6 +220,7 @@ exports[`TabBar renders correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -227,6 +231,8 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -322,6 +328,7 @@ exports[`TabBar renders correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -332,6 +339,8 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -427,6 +436,7 @@ exports[`TabBar renders correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -437,6 +447,8 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -532,6 +544,7 @@ exports[`TabBar renders correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -542,6 +555,8 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >

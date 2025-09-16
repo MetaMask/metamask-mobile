@@ -102,6 +102,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -113,6 +114,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
                 "lineHeight": 22,
                 "marginTop": 2,
                 "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -211,6 +213,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -222,6 +225,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
                 "lineHeight": 22,
                 "marginTop": 2,
                 "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -320,6 +324,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -331,6 +336,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
                 "lineHeight": 22,
                 "marginTop": 2,
                 "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -429,6 +435,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -440,6 +447,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
                 "lineHeight": 22,
                 "marginTop": 2,
                 "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -538,6 +546,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            ellipsizeMode="tail"
             numberOfLines={1}
             style={
               {
@@ -549,6 +558,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
                 "lineHeight": 22,
                 "marginTop": 2,
                 "textAlign": "center",
+                "width": "100%",
               }
             }
           >
