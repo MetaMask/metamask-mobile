@@ -7,7 +7,7 @@ import {
   TransactionEnvelopeType,
   TransactionParams,
 } from '@metamask/transaction-controller';
-import { addHexPrefix, safeBNToHex } from '../number';
+import { addHexPrefix, safeBNToHex } from '../number/legacy';
 import { safeToChecksumAddress } from '../address';
 
 export function buildTransactionParams({
