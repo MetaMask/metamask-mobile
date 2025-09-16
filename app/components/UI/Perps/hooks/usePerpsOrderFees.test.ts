@@ -1,7 +1,7 @@
 /* eslint-disable react/no-children-prop */
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { usePerpsTrading } from './usePerpsTrading';
 import {
@@ -38,18 +38,13 @@ jest.mock('../../../../core/Engine', () => ({
 // Mock Redux store and selectors
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn((selector) => {
-    // Mock selectRewardsEnabledFlag
-    if (selector.toString().includes('selectRewardsEnabledFlag')) {
-      return true;
-    }
-    return undefined;
-  }),
+  useSelector: jest.fn(),
 }));
 
 const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
   typeof usePerpsTrading
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Test wrapper with Redux Provider
 const createWrapper = () => {
@@ -74,6 +69,13 @@ describe('usePerpsOrderFees', () => {
     jest.clearAllMocks();
     // Reset controller messenger mock
     mockControllerMessenger.call.mockReset();
+    // Set default rewards enabled
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector.toString().includes('selectRewardsEnabledFlag')) {
+        return true;
+      }
+      return undefined;
+    });
     mockUsePerpsTrading.mockReturnValue({
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
@@ -982,6 +984,613 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       expect(result.current.protocolFee).toBe(0.45);
       expect(result.current.metamaskFee).toBe(0.45);
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('Rewards Integration - Fee Discounts', () => {
+    beforeEach(() => {
+      clearRewardsCaches();
+      jest.clearAllMocks();
+    });
+
+    it('should apply fee discount from RewardsController', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045, // 0.045% protocol + 1% MetaMask
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Mock 20% fee discount
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:getPerpsDiscountForAccount') {
+          return Promise.resolve(20); // 20% discount
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert
+      expect(result.current.originalMetamaskFeeRate).toBe(0.01);
+      expect(result.current.feeDiscountPercentage).toBe(20);
+      expect(result.current.metamaskFeeRate).toBe(0.008); // 1% * (1 - 0.20) = 0.8%
+      expect(result.current.metamaskFee).toBe(800); // 100000 * 0.008
+      expect(result.current.totalFee).toBe(845); // 45 + 800
+    });
+
+    it('should cache fee discount for subsequent calls', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:getPerpsDiscountForAccount') {
+          return Promise.resolve(15); // 15% discount
+        }
+        return Promise.resolve();
+      });
+
+      // Act - First call
+      const { result, rerender } = renderHook(
+        ({ amount }) =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount,
+            isMaker: false,
+          }),
+        {
+          initialProps: { amount: '100000' },
+          wrapper: createWrapper(),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Clear mock call count and rerender with different amount
+      mockControllerMessenger.call.mockClear();
+      rerender({ amount: '200000' });
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Fee discount should be cached (RewardsController not called again)
+      expect(mockControllerMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsController:getPerpsDiscountForAccount',
+        expect.any(String),
+      );
+      expect(result.current.feeDiscountPercentage).toBe(15);
+    });
+
+    it('should handle no fee discount available', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:getPerpsDiscountForAccount') {
+          return Promise.resolve(undefined); // No discount
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert
+      expect(result.current.originalMetamaskFeeRate).toBe(0.01);
+      expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.metamaskFeeRate).toBe(0.01); // No discount applied
+    });
+
+    it('should handle rewards disabled flag', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Mock rewards disabled
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectRewardsEnabledFlag')) {
+          return false; // Rewards disabled
+        }
+        return undefined;
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - No rewards calls should be made
+      expect(mockControllerMessenger.call).not.toHaveBeenCalled();
+      expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.estimatedPoints).toBeUndefined();
+      expect(result.current.bonusBips).toBeUndefined();
+    });
+  });
+
+  describe('Rewards Integration - Points Estimation', () => {
+    beforeEach(() => {
+      clearRewardsCaches();
+      jest.clearAllMocks();
+      // Re-enable rewards for these tests (default is already true from main beforeEach)
+    });
+
+    it('should estimate points for trade', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:getPerpsDiscountForAccount') {
+          return Promise.resolve(0);
+        }
+        if (method === 'RewardsController:estimatePoints') {
+          return Promise.resolve({
+            pointsEstimate: 250,
+            bonusBips: 500, // 5% bonus
+          });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            coin: 'ETH',
+            isClosing: false,
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert
+      expect(mockControllerMessenger.call).toHaveBeenCalledWith(
+        'RewardsController:estimatePoints',
+        expect.objectContaining({
+          activityType: 'PERPS',
+          account: expect.stringContaining('eip155:42161:'),
+          activityContext: {
+            perpsContext: {
+              type: 'OPEN_POSITION',
+              usdFeeValue: '1000', // 100000 * 0.01 = 1000
+              coin: 'ETH',
+            },
+          },
+        }),
+      );
+      expect(result.current.estimatedPoints).toBe(250);
+      expect(result.current.bonusBips).toBe(500);
+    });
+
+    it('should handle closing position correctly', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:estimatePoints') {
+          return Promise.resolve({
+            pointsEstimate: 150,
+            bonusBips: 300,
+          });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '50000',
+            coin: 'BTC',
+            isClosing: true, // Closing position
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert
+      expect(mockControllerMessenger.call).toHaveBeenCalledWith(
+        'RewardsController:estimatePoints',
+        expect.objectContaining({
+          activityContext: {
+            perpsContext: {
+              type: 'CLOSE_POSITION',
+              coin: 'BTC',
+            },
+          },
+        }),
+      );
+      expect(result.current.estimatedPoints).toBe(150);
+    });
+
+    it('should cache points calculation parameters', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:estimatePoints') {
+          return Promise.resolve({
+            pointsEstimate: 100,
+            bonusBips: 200, // 2% bonus
+          });
+        }
+        return Promise.resolve();
+      });
+
+      // Act - First call
+      const { result, rerender } = renderHook(
+        ({ amount }) =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount,
+            coin: 'ETH',
+            isMaker: false,
+          }),
+        {
+          initialProps: { amount: '100000' },
+          wrapper: createWrapper(),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.estimatedPoints).toBe(100);
+
+      // Clear and rerender with different amount - should use cache for calculation
+      mockControllerMessenger.call.mockClear();
+      rerender({ amount: '200000' });
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Should use cached parameters to calculate points locally
+      expect(mockControllerMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsController:estimatePoints',
+        expect.any(Object),
+      );
+      expect(result.current.estimatedPoints).toBeGreaterThan(100); // Should be higher due to larger amount
+    });
+
+    it('should skip points estimation for zero amounts', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0,
+        feeAmount: 0,
+        protocolFeeRate: 0,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '0',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Points estimation should not be called for zero amounts
+      expect(mockControllerMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsController:estimatePoints',
+        expect.any(Object),
+      );
+      expect(result.current.estimatedPoints).toBeUndefined();
+    });
+
+    it('should handle points estimation failure gracefully', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method === 'RewardsController:estimatePoints') {
+          return Promise.reject(new Error('Points estimation failed'));
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Fee calculation should still work, points just unavailable
+      expect(result.current.totalFee).toBe(1045);
+      expect(result.current.estimatedPoints).toBeUndefined();
+      expect(result.current.error).toBeNull(); // Non-blocking error
+    });
+  });
+
+  describe('Development Mode Features', () => {
+    const originalDev = __DEV__;
+
+    beforeEach(() => {
+      clearRewardsCaches();
+      jest.clearAllMocks();
+      // Mock development environment
+      (global as unknown as { __DEV__: boolean }).__DEV__ = true;
+    });
+
+    afterEach(() => {
+      (global as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
+    });
+
+    it('should simulate fee discount in development mode', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Use the development simulation trigger amount
+      const simulationAmount = '41'; // Matches DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: simulationAmount,
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Should simulate 20% discount without calling rewards API
+      expect(result.current.feeDiscountPercentage).toBe(20);
+      expect(result.current.metamaskFeeRate).toBe(0.008); // 1% * 0.8 = 0.8%
+      expect(mockControllerMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsController:getPerpsDiscountForAccount',
+        expect.any(String),
+      );
+    });
+  });
+
+  describe('Address Handling', () => {
+    beforeEach(() => {
+      clearRewardsCaches();
+      jest.clearAllMocks();
+    });
+
+    it('should handle missing user address gracefully', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Mock no EVM account available
+      mockAccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [],
+      );
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Core fees should work, but no rewards integration
+      expect(result.current.totalFee).toBe(1045);
+      expect(result.current.feeDiscountPercentage).toBeUndefined();
+      expect(result.current.estimatedPoints).toBeUndefined();
+      expect(mockControllerMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('should handle account controller error gracefully', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Mock AccountTreeController throwing error
+      mockAccountTreeController.getAccountsFromSelectedAccountGroup.mockImplementation(
+        () => {
+          throw new Error('Account access error');
+        },
+      );
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Should handle gracefully
+      expect(result.current.totalFee).toBe(1045);
+      expect(result.current.error).toBeNull(); // Non-blocking error
+    });
+
+    it('should format CAIP account ID correctly', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.01045,
+        feeAmount: 1045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.01,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      const testAddress = '0x1234567890123456789012345678901234567890';
+      mockAccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            type: 'eip155:1',
+            address: testAddress,
+          },
+        ],
+      );
+
+      mockControllerMessenger.call.mockImplementation(
+        (method: string, ...args) => {
+          if (method === 'RewardsController:getPerpsDiscountForAccount') {
+            // Verify CAIP account ID format
+            expect(args[0]).toBe(`eip155:42161:${testAddress}`);
+            return Promise.resolve(10);
+          }
+          return Promise.resolve();
+        },
+      );
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Mock implementation verifies the CAIP format
+      expect(result.current.feeDiscountPercentage).toBe(10);
     });
   });
 });
