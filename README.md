@@ -25,6 +25,8 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
+- [E2E Testing Segment Events](./docs/testing/e2e/segment-events.md)
+- [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)
 
 ## Getting started
 

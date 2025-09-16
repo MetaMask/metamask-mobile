@@ -50,7 +50,7 @@ describe('RewardsDataService', () => {
     mockFetch = jest.fn();
     mockGetSubscriptionToken.mockResolvedValue({
       success: true,
-      token: 'test-bearer-token',
+      token: 'test-access-token',
     });
 
     service = new RewardsDataService({
@@ -216,7 +216,7 @@ describe('RewardsDataService', () => {
           headers: {
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           },
           signal: expect.any(AbortSignal),
@@ -289,7 +289,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -315,7 +315,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -533,7 +533,7 @@ describe('RewardsDataService', () => {
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
             'rewards-client-id': 'mobile-7.50.1',
-            // Should not include rewards-api-key header
+            // Should not include rewards-access-token header
           },
         }),
       );
@@ -606,7 +606,7 @@ describe('RewardsDataService', () => {
           headers: {
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           },
           signal: expect.any(AbortSignal),
@@ -645,7 +645,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -690,7 +690,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -725,7 +725,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -740,7 +740,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -782,7 +782,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -799,7 +799,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1059,7 +1059,7 @@ describe('RewardsDataService', () => {
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
         success: true,
-        token: 'test-bearer-token',
+        token: 'test-access-token',
       });
     });
 
@@ -1081,7 +1081,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -1104,7 +1104,7 @@ describe('RewardsDataService', () => {
         expect.objectContaining({
           method: 'POST',
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1154,7 +1154,7 @@ describe('RewardsDataService', () => {
         'https://api.rewards.test/auth/logout',
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1658,7 +1658,7 @@ describe('RewardsDataService', () => {
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
         success: true,
-        token: 'test-bearer-token',
+        token: 'test-access-token',
       });
     });
 
@@ -1683,7 +1683,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -1707,7 +1707,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -1819,7 +1819,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1844,7 +1844,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
