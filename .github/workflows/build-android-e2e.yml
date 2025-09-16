@@ -155,7 +155,10 @@ jobs:
         run: |
           yarn setup:github-ci --no-build-ios --no-build-android
           yarn expo export --platform android
-          [ ! -f "dist/_expo/static/js/android/index.js" ] && exit 1 || true
+          if [ ! -f "dist/_expo/static/js/android/index.js" ]; then
+            echo "Bundle not found"
+            exit 1
+          fi
 
       - name: Repackage APK
         if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
