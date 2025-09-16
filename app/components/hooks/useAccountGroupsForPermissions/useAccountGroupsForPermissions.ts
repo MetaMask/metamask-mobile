@@ -167,9 +167,14 @@ export const useAccountGroupsForPermissions = (
     });
 
     const updatedCaipAccountIdsToConnect = newChainsRequested
-      ? getCaip25AccountFromAccountGroupAndScope(
-          [...priorityConnectedGroups, ...connectedAccountGroups],
-          requestedCaipChainIds,
+      ? Array.from(
+          new Set([
+            ...requestedCaipAccountIds,
+            ...getCaip25AccountFromAccountGroupAndScope(
+              [...priorityConnectedGroups, ...connectedAccountGroups],
+              requestedCaipChainIds,
+            ),
+          ]),
         )
       : connectedAccountIds;
 
