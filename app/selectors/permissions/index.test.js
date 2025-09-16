@@ -99,7 +99,10 @@ describe('PermissionController selectors', () => {
       };
 
       const selected = getAuthorizedScopes('foo.bar')(state);
-      expect(selected).toBeUndefined();
+      expect(selected).toStrictEqual({
+        requiredScopes: {},
+        optionalScopes: {},
+      });
     });
 
     it('returns undefined for subject without CAIP-25 permissions', () => {
