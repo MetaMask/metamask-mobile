@@ -169,6 +169,12 @@ jobs:
 
           echo "✅ iOS environment cleaned"
 
+      - name: Download changed files artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: changed-files
+          path: changed-files/
+
       - name: Run E2E tests
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -201,7 +207,7 @@ jobs:
             # Always use the splitting script (handles both split and non-split cases)
             echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
 
-            ./scripts/run-e2e-tags-gha.sh
+            node .github/scripts/run-e2e-tags-gha.mjs
             
             echo "✅ Test execution completed"
         env:

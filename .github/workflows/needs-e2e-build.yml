@@ -39,6 +39,17 @@ jobs:
           # Specifying `ref` ensures that the head commit is checked out directly.
           ref: ${{ env.HEAD_COMMIT_HASH }}
 
+      - name: Get changed files with git diff
+        run: node .github/scripts/git-diff-default-branch.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Upload changed files artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changed-files
+          path: ./changed-files/
+
       - name: Check skip commit tag
         id: skip-tag
         run: |
