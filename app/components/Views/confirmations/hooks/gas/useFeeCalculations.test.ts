@@ -1,10 +1,11 @@
+import { Hex } from '@metamask/utils';
 import { cloneDeep } from 'lodash';
-
-import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
-import { useFeeCalculations } from './useFeeCalculations';
-
+import { decimalToHex } from '../../../../../util/conversions';
 import { isTestNet } from '../../../../../util/networks';
+import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { useFeeCalculations } from './useFeeCalculations';
+import { toHex } from '@metamask/controller-utils';
 
 jest.mock('../../../../../util/networks', () => ({
   isTestNet: jest.fn().mockReturnValue(false),
@@ -158,5 +159,85 @@ describe('useFeeCalculations', () => {
     expect(result.current.estimatedFeeFiatPrecise).toBe('0.338');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c23d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
+  });
+
+  it('returns fee calculations when gasUsed is present', () => {
+    const clonedStateWithGasUsed = cloneDeep(stakingDepositConfirmationState);
+    const gasUsed = toHex(35000);
+    clonedStateWithGasUsed.engine.backgroundState.TransactionController.transactions[0].gasUsed =
+      gasUsed;
+
+    const transactionMetaWithLayer1GasFee =
+      clonedStateWithGasUsed.engine.backgroundState.TransactionController
+        .transactions[0];
+
+    const { result } = renderHookWithProvider(
+      () => useFeeCalculations(transactionMetaWithLayer1GasFee),
+      {
+        state: clonedStateWithGasUsed,
+      },
+    );
+
+    expect(result.current).toMatchInlineSnapshot(`
+{
+  "calculateGasEstimate": [Function],
+  "estimatedFeeFiat": "$0.16",
+  "estimatedFeeFiatPrecise": "0.164",
+  "estimatedFeeNative": "0",
+  "maxFeeFiat": "$0.86",
+  "maxFeeNative": "0.0002",
+  "maxFeeNativeHex": "0xda088e7816a0",
+  "maxFeeNativePrecise": "0.00024 ETH",
+  "preciseNativeFeeInHex": "0x298d09489800",
+}
+`);
+  });
+
+  describe('Max fee', () => {
+    it('EIP-1559 transaction', () => {
+      const clonedState = cloneDeep(stakingDepositConfirmationState);
+      const transactionMetaWithLayer1GasFee =
+        clonedState.engine.backgroundState.TransactionController
+          .transactions[0];
+
+      const { result } = renderHookWithProvider(
+        () => useFeeCalculations(transactionMetaWithLayer1GasFee),
+        {
+          state: clonedState,
+        },
+      );
+
+      expect(result.current.maxFeeFiat).toBe('$0.86');
+      expect(result.current.maxFeeNative).toBe('0.0002');
+      expect(result.current.maxFeeNativePrecise).toBe('0.00024 ETH');
+      expect(result.current.maxFeeNativeHex).toBe('0xda088e7816a0');
+      expect(result.current.calculateGasEstimate).toBeDefined();
+    });
+
+    it('EIP-1559 transaction with layer1GasFee', () => {
+      const clonedStateWithLayer1GasFee = cloneDeep(
+        stakingDepositConfirmationState,
+      );
+      // Add a layer1GasFee to the transactionMeta
+      const layer1GasFee = decimalToHex(4096); // '0x1000' in hex
+      clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController.transactions[0].layer1GasFee =
+        layer1GasFee as Hex;
+      const transactionMetaWithLayer1GasFee =
+        clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController
+          .transactions[0];
+
+      const { result } = renderHookWithProvider(
+        () => useFeeCalculations(transactionMetaWithLayer1GasFee),
+        {
+          state: clonedStateWithLayer1GasFee,
+        },
+      );
+
+      expect(result.current.maxFeeFiat).toBe('$0.86');
+      expect(result.current.maxFeeNative).toBe('0.0002');
+      expect(result.current.maxFeeNativePrecise).toBe('0.00024 ETH');
+      expect(result.current.maxFeeNativeHex).toBe('0xda088e7826a0'); // visually 0x1000 more than the test above
+      expect(result.current.calculateGasEstimate).toBeDefined();
+    });
   });
 });

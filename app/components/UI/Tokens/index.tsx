@@ -19,11 +19,13 @@ import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
 import { selectSortedTokenKeys } from '../../../selectors/tokenList';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -55,7 +57,15 @@ const Tokens = memo(() => {
 
   const styles = createStyles(colors);
 
-  const sortedTokenKeys = useSelector(selectSortedTokenKeys);
+  // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const sortedTokenKeys = useSelector(
+    isMultichainAccountsState2Enabled
+      ? selectSortedAssetsBySelectedAccountGroup
+      : selectSortedTokenKeys,
+  );
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {

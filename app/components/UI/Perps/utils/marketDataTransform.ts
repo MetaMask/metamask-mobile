@@ -1,12 +1,13 @@
-import type { PerpsMarketData } from '../controllers/types';
 import type {
-  PerpsUniverse,
-  PerpsAssetCtx,
   AllMids,
+  PerpsAssetCtx,
+  PerpsUniverse,
   PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsMarketData } from '../controllers/types';
 import { formatVolume } from './formatUtils';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
  * HyperLiquid-specific market data structure
@@ -62,28 +63,52 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
-    // Extract funding time data if available
+    // Get current funding rate from assetCtx - this is the actual current funding rate
+    let fundingRate: number | undefined;
+
+    if (assetCtx && 'funding' in assetCtx) {
+      fundingRate = parseFloat(assetCtx.funding);
+    }
+
+    // Get timing info and predicted funding from predictedFundings
     let nextFundingTime: number | undefined;
     let fundingIntervalHours: number | undefined;
+    let predictedFundingRate: number | undefined;
 
     if (predictedFundings) {
-      // Find the funding data for this specific symbol
       const fundingData = predictedFundings.find(
         ([assetSymbol]) => assetSymbol === symbol,
       );
-      // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-      if (fundingData && fundingData[1] && fundingData[1].length > 0) {
-        // Get the first exchange's funding data (usually HyperLiquid itself)
-        // Safely check if the first element is an array with at least 2 elements
-        const firstExchange = fundingData[1][0];
-        if (Array.isArray(firstExchange) && firstExchange.length >= 2) {
-          const exchangeData = firstExchange[1];
-          if (exchangeData) {
-            nextFundingTime = exchangeData.nextFundingTime;
-            fundingIntervalHours = exchangeData.fundingIntervalHours;
+      if (
+        fundingData?.[1] &&
+        Array.isArray(fundingData[1]) &&
+        fundingData[1].length > 0
+      ) {
+        // Look specifically for HlPerp exchange (HyperLiquid's own perp)
+        const hlPerpExchange = fundingData[1].find(
+          (exchange) => Array.isArray(exchange) && exchange[0] === 'HlPerp',
+        );
+
+        if (hlPerpExchange?.[1]) {
+          nextFundingTime = hlPerpExchange[1].nextFundingTime;
+          fundingIntervalHours = hlPerpExchange[1].fundingIntervalHours;
+          predictedFundingRate = parseFloat(hlPerpExchange[1].fundingRate);
+        } else if (fundingData[1].length > 0) {
+          // Fallback to first exchange if HlPerp not found
+          const firstExchange = fundingData[1][0];
+          if (Array.isArray(firstExchange) && firstExchange[1]) {
+            nextFundingTime = firstExchange[1].nextFundingTime;
+            fundingIntervalHours = firstExchange[1].fundingIntervalHours;
           }
         }
       }
+    }
+
+    // Use current funding rate from assetCtx, not predicted
+    // The predicted rate is for the next funding period
+    if (!fundingRate && predictedFundingRate !== undefined) {
+      // Only use predicted as fallback if current is not available
+      fundingRate = predictedFundingRate;
     }
 
     return {
@@ -100,6 +125,7 @@ export function transformMarketData(
         : formatVolume(volume),
       nextFundingTime,
       fundingIntervalHours,
+      fundingRate,
     };
   });
 }
@@ -114,7 +140,7 @@ export function formatPrice(price: number): string {
   const absPrice = Math.abs(price);
 
   if (absPrice >= 1000) {
-    return new Intl.NumberFormat('en-US', {
+    return getIntlNumberFormatter('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
@@ -122,7 +148,7 @@ export function formatPrice(price: number): string {
     }).format(price);
   }
   if (absPrice >= 1) {
-    return new Intl.NumberFormat('en-US', {
+    return getIntlNumberFormatter('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
@@ -130,14 +156,14 @@ export function formatPrice(price: number): string {
     }).format(price);
   }
   if (absPrice >= 0.01) {
-    return new Intl.NumberFormat('en-US', {
+    return getIntlNumberFormatter('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 4,
       maximumFractionDigits: 4,
     }).format(price);
   }
-  return new Intl.NumberFormat('en-US', {
+  return getIntlNumberFormatter('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 6,
@@ -157,7 +183,7 @@ export function formatChange(change: number): string {
   const absChange = Math.abs(change);
   const decimalPlaces = absChange >= 1 ? 2 : absChange >= 0.01 ? 4 : 6;
 
-  const formatted = new Intl.NumberFormat('en-US', {
+  const formatted = getIntlNumberFormatter('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: decimalPlaces,
@@ -174,7 +200,7 @@ export function formatPercentage(percent: number): string {
   if (isNaN(percent) || !isFinite(percent)) return '0.00%';
   if (percent === 0) return '0.00%';
 
-  const formatted = new Intl.NumberFormat('en-US', {
+  const formatted = getIntlNumberFormatter('en-US', {
     style: 'percent',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

@@ -53,6 +53,7 @@ describe('getBridgeTxActivityTitle', () => {
         },
         srcTokenAmount: '1000000000000000000',
         destTokenAmount: '2000000000000000000',
+        minDestTokenAmount: '1900000000000000000',
         feeData: {
           metabridge: {
             amount: '0',
@@ -118,6 +119,7 @@ describe('getBridgeTxActivityTitle', () => {
         },
         srcTokenAmount: '1000000000000000000',
         destTokenAmount: '2000000000000000000',
+        minDestTokenAmount: '1900000000000000000',
         feeData: {
           metabridge: {
             amount: '0',
@@ -182,6 +184,7 @@ describe('getBridgeTxActivityTitle', () => {
         },
         srcTokenAmount: '1000000000000000000',
         destTokenAmount: '2000000000000000000',
+        minDestTokenAmount: '1900000000000000000',
         feeData: {
           metabridge: {
             amount: '0',
@@ -328,6 +331,7 @@ describe('decodeSwapsTx', () => {
               metadata: {},
             },
             destTokenAmount: '1967600601227999',
+            minDestTokenAmount: '1872000581163199',
             walletAddress: '0xC5FE6EF47965741f6f7A4734Bf784bf3ae3f2452',
             destWalletAddress: '0xC5FE6EF47965741f6f7A4734Bf784bf3ae3f2452',
             feeData: {
@@ -495,6 +499,7 @@ describe('decodeBridgeTx', () => {
             },
             destChainId: 10,
             destTokenAmount: '991000653973560',
+            minDestTokenAmount: '941450621125082',
             destAsset: {
               address: '0x0000000000000000000000000000000000000000',
               chainId: 10,
@@ -680,6 +685,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
       },
       srcTokenAmount: '1000000000000000000',
       destTokenAmount: '2000000000000000000',
+      minDestTokenAmount: '1900000000000000000',
       feeData: {
         metabridge: {
           amount: '0',

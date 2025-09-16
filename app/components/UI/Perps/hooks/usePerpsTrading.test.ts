@@ -247,6 +247,8 @@ describe('usePerpsTrading', () => {
             sinceOpen: '10',
             sinceChange: '5',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 

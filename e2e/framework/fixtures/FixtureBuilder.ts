@@ -29,6 +29,7 @@ import {
   MOCK_ENTROPY_SOURCE_2,
   MOCK_ENTROPY_SOURCE_3,
 } from '../../../app/util/test/keyringControllerTestUtils';
+import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -109,6 +110,46 @@ class FixtureBuilder {
       this.fixture.asyncState = {};
     }
     this.fixture.asyncState['@MetaMask:solanaFeatureModalShownV2'] = 'true';
+    return this;
+  }
+
+  /**
+   * Ensures that the multichain accounts intro modal is suppressed by setting the appropriate flag.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  ensureMultichainIntroModalSuppressed() {
+    if (!this.fixture?.state?.user) {
+      this.fixture.state.user = {};
+    }
+    this.fixture.state.user.multichainAccountsIntroModalSeen = true;
+    return this;
+  }
+
+  /**
+   * Defines a Perps profile for E2E mocks.
+   * The value is stored in the PerpsController state so that the mocks can read it.
+   * @param profile Profile, e.g.: 'no-funds', 'default'.
+   * @returns {FixtureBuilder}
+   */
+  withPerpsProfile(profile: string) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      // Field only for E2E; read by the mocks mixin
+      mockProfile: profile,
+    });
+    return this;
+  }
+
+  /**
+   * Forces the Perps first-time flag in the initial state.
+   * @param firstTime true to show tutorial; false to mark as seen.
+   */
+  withPerpsFirstTimeUser(firstTime: boolean) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, {
+      isFirstTimeUser: {
+        testnet: firstTime,
+        mainnet: firstTime,
+      },
+    });
     return this;
   }
 
@@ -519,6 +560,13 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
+            PerpsController: {
+              isFirstTimeUser: {
+                testnet: false,
+                mainnet: false,
+              },
+            },
+            NetworkEnablementController: {},
           },
         },
         privacy: {
@@ -549,7 +597,7 @@ class FixtureBuilder {
           searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
-          useBlockieIcon: true,
+          avatarAccountType: 'Maskicon', // Must match the enum in AvatarAccountType form app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types.ts
           hideZeroBalanceTokens: false,
           basicFunctionalityEnabled: true,
         },
@@ -2050,6 +2098,31 @@ class FixtureBuilder {
       vault:
         '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
     });
+    return this;
+  }
+
+  withNetworkEnabledMap(
+    data: NetworkEnablementControllerState['enabledNetworkMap'],
+  ) {
+    const stateToMerge: NetworkEnablementControllerState = {
+      enabledNetworkMap: data,
+    };
+
+    merge(
+      this.fixture.state.engine.backgroundState.NetworkEnablementController,
+      stateToMerge,
+    );
+
+    return this;
+  }
+
+  withCleanBannerState() {
+    merge(this.fixture.state, {
+      banners: {
+        dismissedBanners: [],
+      },
+    });
+
     return this;
   }
 

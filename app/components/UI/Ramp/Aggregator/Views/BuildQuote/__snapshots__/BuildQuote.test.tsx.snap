@@ -152,7 +152,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -197,7 +197,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -818,7 +818,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -863,7 +863,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -1484,7 +1484,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -1529,7 +1529,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -2149,7 +2149,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -2194,7 +2194,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -3089,7 +3089,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -3134,7 +3134,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -3294,7 +3294,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={30}
+              handlerTag={32}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3754,7 +3754,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -3799,7 +3799,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -3959,7 +3959,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={29}
+              handlerTag={31}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4694,7 +4694,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -4739,7 +4739,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -4899,7 +4899,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={28}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5359,7 +5359,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -5404,7 +5404,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -5564,7 +5564,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={25}
+              handlerTag={27}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8039,7 +8039,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -8084,7 +8084,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -8244,7 +8244,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={24}
+              handlerTag={26}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8979,7 +8979,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -9024,7 +9024,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -9644,7 +9644,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -9689,7 +9689,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -10584,7 +10584,7 @@ exports[`BuildQuote View renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -10629,7 +10629,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -13310,7 +13310,7 @@ exports[`BuildQuote View renders correctly 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -13355,7 +13355,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -16014,7 +16014,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -16059,7 +16059,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -16679,7 +16679,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -16724,7 +16724,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </TouchableOpacity>

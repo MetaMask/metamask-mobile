@@ -5,6 +5,30 @@ import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
 import type { Order } from '../../controllers/types';
 
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+// Mock PerpsBottomSheetTooltip
+jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
+  __esModule: true,
+  default: ({ onClose, testID }: { onClose: () => void; testID: string }) => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity testID={testID} onPress={onClose}>
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
+    );
+  },
+}));
+
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
@@ -44,6 +68,18 @@ describe('PerpsOpenOrderCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   describe('Component Rendering', () => {
@@ -187,7 +223,19 @@ describe('PerpsOpenOrderCard', () => {
   });
 
   describe('User Interactions', () => {
-    it('calls onCancel when cancel button is pressed', () => {
+    it('calls onCancel when cancel button is pressed and user is eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
       render(
         <PerpsOpenOrderCard
           order={mockOrder}
@@ -229,6 +277,74 @@ describe('PerpsOpenOrderCard', () => {
       );
       // Check that the button has disabled prop
       expect(cancelButton.props.disabled).toBe(true);
+    });
+
+    it('shows geo block modal when cancel button is pressed and user is not eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onCancel={mockOnCancel}
+          expanded
+        />,
+      );
+
+      // Press cancel button
+      fireEvent.press(
+        screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - onCancel should not be called
+      expect(mockOnCancel).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onCancel={mockOnCancel}
+          expanded
+        />,
+      );
+
+      // Press cancel button to show geo block modal
+      fireEvent.press(
+        screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      // Verify modal is shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      // Press the geo block tooltip to close it
+      fireEvent.press(screen.getByText('Geo Block Tooltip'));
+
+      // Assert - Geo block tooltip should be closed
+      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
     });
   });
 
@@ -336,6 +452,200 @@ describe('PerpsOpenOrderCard', () => {
       const { toJSON } = render(<PerpsOpenOrderCard order={canceledOrder} />);
 
       expect(toJSON()).toBeNull();
+    });
+  });
+
+  describe('Additional Coverage Tests', () => {
+    const mockOnSelect = jest.fn();
+
+    beforeEach(() => {
+      mockOnSelect.mockClear();
+    });
+
+    it('calls onSelect when card is pressed and not disabled', () => {
+      render(<PerpsOpenOrderCard order={mockOrder} onSelect={mockOnSelect} />);
+
+      fireEvent.press(screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CARD));
+
+      expect(mockOnSelect).toHaveBeenCalledWith(mockOrder.orderId);
+    });
+
+    it('does not call onSelect when card is pressed and disabled', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onSelect={mockOnSelect}
+          disabled
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CARD));
+
+      expect(mockOnSelect).not.toHaveBeenCalled();
+    });
+
+    it('renders chart activity indicators for TP', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart
+          activeType="TP"
+        />,
+      );
+
+      expect(screen.getByText('TP on Chart')).toBeOnTheScreen();
+    });
+
+    it('renders chart activity indicators for SL', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart
+          activeType="SL"
+        />,
+      );
+
+      expect(screen.getByText('SL on Chart')).toBeOnTheScreen();
+    });
+
+    it('renders chart activity indicators for BOTH', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart
+          activeType="BOTH"
+        />,
+      );
+
+      expect(screen.getByText('TP on Chart')).toBeOnTheScreen();
+      expect(screen.getByText('SL on Chart')).toBeOnTheScreen();
+    });
+
+    it('handles reduce-only sell order direction (Close Long)', () => {
+      const reduceOnlySellOrder = {
+        ...mockOrder,
+        side: 'sell' as const,
+        reduceOnly: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={reduceOnlySellOrder} />);
+
+      expect(screen.getByText('Close Long')).toBeOnTheScreen();
+    });
+
+    it('handles reduce-only buy order direction (Close Short)', () => {
+      const reduceOnlyBuyOrder = {
+        ...mockOrder,
+        side: 'buy' as const,
+        reduceOnly: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={reduceOnlyBuyOrder} />);
+
+      expect(screen.getByText('Close Short')).toBeOnTheScreen();
+    });
+
+    it('handles trigger order direction for sell (Close Long)', () => {
+      const triggerSellOrder = {
+        ...mockOrder,
+        side: 'sell' as const,
+        isTrigger: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={triggerSellOrder} />);
+
+      expect(screen.getByText('Close Long')).toBeOnTheScreen();
+    });
+
+    it('handles trigger order direction for buy (Close Short)', () => {
+      const triggerBuyOrder = {
+        ...mockOrder,
+        side: 'buy' as const,
+        isTrigger: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={triggerBuyOrder} />);
+
+      expect(screen.getByText('Close Short')).toBeOnTheScreen();
+    });
+
+    it('does not render chart indicators when isActiveOnChart is false', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart={false}
+          activeType="TP"
+        />,
+      );
+
+      expect(screen.queryByText('TP on Chart')).not.toBeOnTheScreen();
+    });
+
+    it('does not call onSelect when onSelect is not provided', () => {
+      render(<PerpsOpenOrderCard order={mockOrder} />);
+
+      // Should not throw when card is pressed without onSelect handler
+      expect(() => {
+        fireEvent.press(
+          screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CARD),
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('Additional Coverage Tests', () => {
+    it('handles order without takeProfitPrice and stopLossPrice', () => {
+      const orderWithoutTPSL: Order = {
+        ...mockOrder,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={orderWithoutTPSL} expanded />);
+
+      expect(screen.getByText('Limit Order')).toBeOnTheScreen();
+    });
+
+    it('handles trigger order', () => {
+      const triggerOrder: Order = {
+        ...mockOrder,
+        isTrigger: true,
+        detailedOrderType: 'Stop Market',
+      };
+
+      render(<PerpsOpenOrderCard order={triggerOrder} />);
+
+      expect(screen.getByText('Stop Market')).toBeOnTheScreen();
+    });
+
+    it('handles reduce-only order', () => {
+      const reduceOnlyOrder: Order = {
+        ...mockOrder,
+        reduceOnly: true,
+      };
+
+      render(<PerpsOpenOrderCard order={reduceOnlyOrder} />);
+
+      expect(screen.getByText('Limit Order')).toBeOnTheScreen();
+    });
+
+    it('handles order with right accessory', () => {
+      const RightAccessory = () => (
+        <Text testID="right-accessory">Accessory</Text>
+      );
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          rightAccessory={<RightAccessory />}
+        />,
+      );
+
+      expect(screen.getByTestId('right-accessory')).toBeOnTheScreen();
     });
   });
 });
