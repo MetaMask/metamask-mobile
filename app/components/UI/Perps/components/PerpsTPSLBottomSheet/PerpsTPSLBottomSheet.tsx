@@ -188,9 +188,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     handleTakeProfitPercentageChange,
     handleStopLossPriceChange,
     handleStopLossPercentageChange,
+    handleTakeProfitPriceFocus,
     handleTakeProfitPriceBlur,
+    handleTakeProfitPercentageFocus,
     handleTakeProfitPercentageBlur,
+    handleStopLossPriceFocus,
     handleStopLossPriceBlur,
+    handleStopLossPercentageFocus,
     handleStopLossPercentageBlur,
   } = tpslForm.handlers;
 
@@ -309,9 +313,33 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     ],
   );
 
-  const handleInputFocus = useCallback((inputType: string) => {
-    setFocusedInput(inputType);
-  }, []);
+  const handleInputFocus = useCallback(
+    (inputType: string) => {
+      setFocusedInput(inputType);
+
+      // Call the appropriate original focus handler
+      switch (inputType) {
+        case 'takeProfitPrice':
+          handleTakeProfitPriceFocus();
+          break;
+        case 'takeProfitPercentage':
+          handleTakeProfitPercentageFocus();
+          break;
+        case 'stopLossPrice':
+          handleStopLossPriceFocus();
+          break;
+        case 'stopLossPercentage':
+          handleStopLossPercentageFocus();
+          break;
+      }
+    },
+    [
+      handleTakeProfitPriceFocus,
+      handleTakeProfitPercentageFocus,
+      handleStopLossPriceFocus,
+      handleStopLossPercentageFocus,
+    ],
+  );
 
   const handleInputBlur = useCallback(() => {
     // Call the appropriate original blur handler based on which input was focused
