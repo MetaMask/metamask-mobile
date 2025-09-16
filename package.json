@@ -123,7 +123,7 @@
     "update-changelog": "./scripts/auto-changelog.sh",
     "changeset-changelog": "wrap () { node ./scripts/generate-rc-commits.js \"$@\" && ./scripts/changelog-csv.sh }; wrap ",
     "prestorybook": "rnstl",
-    "deduplicate": "yarn yarn-deduplicate && yarn install",
+    "deduplicate": "yarn dedupe && yarn install --immutable",
     "patch:tx": "./scripts/patch-transaction-controller.sh",
     "patch:approval": "./scripts/patch-approval-controller.sh",
     "storybook-generate": "sb-rn-get-stories",
@@ -581,7 +581,6 @@
     "fs-extra": "^10.1.0",
     "ganache": "^7.9.2",
     "husky": "^9.1.7",
-    "improved-yarn-audit": "^3.0.0",
     "jest": "^29.7.0",
     "jest-junit": "^15.0.0",
     "jetifier": "2.0.0",
@@ -618,8 +617,7 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
-    "xml2js": "^0.5.0",
-    "yarn-deduplicate": "^6.0.2"
+    "xml2js": "^0.5.0"
   },
   "config": {
     "react-native-storybook-loader": {
