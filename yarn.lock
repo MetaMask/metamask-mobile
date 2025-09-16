@@ -6687,22 +6687,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^0.13.1":
-  version: 0.13.1
-  resolution: "@metamask/account-tree-controller@npm:0.13.1"
+"@metamask/account-tree-controller@npm:^0.15.1":
+  version: 0.15.1
+  resolution: "@metamask/account-tree-controller@npm:0.15.1"
   dependencies:
     "@metamask/base-controller": ^8.3.0
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.4.2
+    fast-deep-equal: ^3.1.3
     lodash: ^4.17.21
   peerDependencies:
-    "@metamask/account-api": ^0.9.0
+    "@metamask/account-api": ^0.12.0
     "@metamask/accounts-controller": ^33.0.0
     "@metamask/keyring-controller": ^23.0.0
+    "@metamask/multichain-account-service": ^0.8.0
+    "@metamask/profile-sync-controller": ^25.0.0
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 947496219ea838e1447f571259ff4359e5483aab68439d61b6a93091c6376f6db93d3985243903ffc7a5769c01eb70c263ddf1802c48d90d3bdea3dcd755c8f0
+  checksum: f6c999e9672230c8f3a0e5566adfdb219e906fa07527c339a1e086d5a8c725316797838733004c77d97a836188f917fa1b2dedf7927d3fdb87def3cdd9f0166f
   languageName: node
   linkType: hard
 
@@ -7294,7 +7299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-snap-keyring@npm:^16.0.0, @metamask/eth-snap-keyring@npm:^16.1.0":
+"@metamask/eth-snap-keyring@npm:^16.0.0":
   version: 16.1.0
   resolution: "@metamask/eth-snap-keyring@npm:16.1.0"
   dependencies:
@@ -7749,28 +7754,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@metamask/multichain-account-service@npm:0.7.0"
+"@metamask/multichain-account-service@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@metamask/multichain-account-service@npm:0.8.0"
   dependencies:
     "@metamask/base-controller": ^8.3.0
-    "@metamask/eth-snap-keyring": ^16.1.0
-    "@metamask/keyring-api": ^20.1.0
-    "@metamask/keyring-internal-api": ^8.1.0
-    "@metamask/keyring-snap-client": ^7.0.0
+    "@metamask/eth-snap-keyring": ^17.0.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/keyring-internal-api": ^9.0.0
+    "@metamask/keyring-snap-client": ^8.0.0
     "@metamask/keyring-utils": ^3.1.0
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
     "@metamask/superstruct": ^3.1.0
     "@metamask/utils": ^11.4.2
+    async-mutex: ^0.5.0
   peerDependencies:
-    "@metamask/account-api": ^0.9.0
+    "@metamask/account-api": ^0.12.0
     "@metamask/accounts-controller": ^33.0.0
     "@metamask/keyring-controller": ^23.0.0
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 7ddaab5d98a54afad7097e2291ec8ad09df2001be36e1ed52ff00b3da062f6110f1b4e20055831243b0f71d9ce38ace71cb7f34b3de7fbe7672e1ee19ceef82f
+  checksum: 54e8525cd9cfdf51811aadefbe21cf2c44fab2d3b11d13cdacbf72c3947c4d97b7c740dc7b1987cfa9184689734e657db9692c04f0e6a3286c9cffa5868233db
   languageName: node
   linkType: hard
 
@@ -8091,25 +8097,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^23.0.0":
-  version: 23.0.0
-  resolution: "@metamask/profile-sync-controller@npm:23.0.0"
+"@metamask/profile-sync-controller@npm:^25.0.0":
+  version: 25.0.0
+  resolution: "@metamask/profile-sync-controller@npm:25.0.0"
   dependencies:
-    "@metamask/base-controller": ^8.0.1
+    "@metamask/base-controller": ^8.3.0
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
-    "@noble/ciphers": ^0.5.2
-    "@noble/hashes": ^1.4.0
+    "@noble/ciphers": ^1.3.0
+    "@noble/hashes": ^1.8.0
     immer: ^9.0.6
     loglevel: ^1.8.1
     siwe: ^2.3.2
   peerDependencies:
-    "@metamask/accounts-controller": ^32.0.0
-    "@metamask/keyring-controller": ^22.0.0
+    "@metamask/address-book-controller": ^6.1.1
+    "@metamask/keyring-controller": ^23.0.0
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 6fd4818b818fc42fc7e8485978d00f899d5bbb58a1f2631c467d6025c149b7212c63d90a43776f617553bf6f10c5d1d393e499f9f87a062643d6de8efa111291
+  checksum: ed0dabe3c2634801fe25e82384c1893868088705f9dded05eb14be646583ecfa5ed18a71d73408bbfe50fa19fee7f389e8ddcd931d9ad88a2d8f9f2c49ddec0d
   languageName: node
   linkType: hard
 
@@ -8897,13 +8903,6 @@ __metadata:
   version: 1.3.0
   resolution: "@noble/ciphers@npm:1.3.0"
   checksum: 19722c35475df9bc78db60d261d0b5ef8a6d722561efc2135453f943eaa421b492195dc666e3e4df2b755bca3739e04f04b9c660198559f5dd05d3cfbf1b9e92
-  languageName: node
-  linkType: hard
-
-"@noble/ciphers@npm:^0.5.2":
-  version: 0.5.3
-  resolution: "@noble/ciphers@npm:0.5.3"
-  checksum: c5ed5d7d43b054c2051b3e0e220353cc9d31fa8d17b82cfb753d87f922e4e1e69b73ca5273a9cc457023f83d96d1d9a51678d2f6d4e58ca039d1111a62856d19
   languageName: node
   linkType: hard
 
@@ -34019,7 +34018,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": ^0.0.2
     "@ledgerhq/react-native-hw-transport-ble": ^6.34.1
     "@metamask/account-api": ^0.9.0
-    "@metamask/account-tree-controller": ^0.13.1
+    "@metamask/account-tree-controller": ^0.15.1
     "@metamask/accounts-controller": ^33.1.0
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
@@ -34069,7 +34068,7 @@ __metadata:
     "@metamask/mobile-provider": ^3.0.0
     "@metamask/mobile-wallet-protocol-core": ^0.1.0
     "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.0
-    "@metamask/multichain-account-service": ^0.7.0
+    "@metamask/multichain-account-service": ^0.8.0
     "@metamask/multichain-api-client": ^0.6.5
     "@metamask/multichain-api-middleware": ^1.0.0
     "@metamask/multichain-network-controller": ^0.10.0
@@ -34084,7 +34083,7 @@ __metadata:
     "@metamask/ppom-validator": 0.36.0
     "@metamask/preferences-controller": ^18.4.0
     "@metamask/preinstalled-example-snap": ^0.7.1
-    "@metamask/profile-sync-controller": ^23.0.0
+    "@metamask/profile-sync-controller": ^25.0.0
     "@metamask/providers": ^18.3.1
     "@metamask/react-native-acm": ^1.0.1
     "@metamask/react-native-actionsheet": 2.4.2

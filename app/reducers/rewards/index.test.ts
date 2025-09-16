@@ -12,6 +12,9 @@ import rewardsReducer, {
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
   setHideUnlinkedAccountsBanner,
+  setActiveBoosts,
+  setActiveBoostsLoading,
+  setActiveBoostsError,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -47,6 +50,11 @@ describe('rewardsReducer', () => {
     optinAllowedForGeo: false,
     optinAllowedForGeoLoading: false,
     hideUnlinkedAccountsBanner: false,
+
+    // Points Boost state
+    activeBoosts: null,
+    activeBoostsLoading: false,
+    activeBoostsError: false,
   };
 
   it('should return the initial state', () => {
@@ -937,6 +945,21 @@ describe('rewardsReducer', () => {
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
           hideUnlinkedAccountsBanner: true,
+          activeBoosts: [
+            {
+              id: 'boost-1',
+              name: 'Test Boost 1',
+              icon: {
+                lightModeUrl: 'light1.png',
+                darkModeUrl: 'dark1.png',
+              },
+              boostBips: 1000,
+              seasonLong: true,
+              backgroundColor: '#FF0000',
+            },
+          ],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
         };
         const action = resetRewardsState();
 
@@ -968,6 +991,9 @@ describe('rewardsReducer', () => {
             optinAllowedForGeo: false,
             optinAllowedForGeoLoading: false,
             hideUnlinkedAccountsBanner: false,
+            activeBoosts: null,
+            activeBoostsLoading: false,
+            activeBoostsError: false,
           }),
         );
       });
@@ -1003,6 +1029,21 @@ describe('rewardsReducer', () => {
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
           hideUnlinkedAccountsBanner: true, // This should be preserved
+          activeBoosts: [
+            {
+              id: 'boost-1',
+              name: 'Test Boost 1',
+              icon: {
+                lightModeUrl: 'light1.png',
+                darkModeUrl: 'dark1.png',
+              },
+              boostBips: 1000,
+              seasonLong: true,
+              backgroundColor: '#FF0000',
+            },
+          ],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
         };
         const rehydrateAction = {
           type: 'persist/REHYDRATE',
@@ -1039,6 +1080,9 @@ describe('rewardsReducer', () => {
             optinAllowedForGeo: false, // Reset to initial
             optinAllowedForGeoLoading: false, // Reset to initial
             hideUnlinkedAccountsBanner: true, // Only this should be preserved
+            activeBoosts: null,
+            activeBoostsLoading: false,
+            activeBoostsError: false,
           }),
         );
       });
@@ -1133,6 +1177,275 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state).toEqual(initialState);
       });
+    });
+  });
+
+  describe('setActiveBoosts', () => {
+    it('should set active boosts array', () => {
+      // Arrange
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost 1',
+          icon: {
+            lightModeUrl: 'light1.png',
+            darkModeUrl: 'dark1.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+        {
+          id: 'boost-2',
+          name: 'Test Boost 2',
+          icon: {
+            lightModeUrl: 'light2.png',
+            darkModeUrl: 'dark2.png',
+          },
+          boostBips: 500,
+          seasonLong: false,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-31'),
+          backgroundColor: '#00FF00',
+        },
+      ];
+      const action = setActiveBoosts(mockBoosts);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.activeBoosts).toEqual(mockBoosts);
+      expect(state.activeBoosts).toHaveLength(2);
+      expect(state.activeBoosts?.[0]?.id).toBe('boost-1');
+      expect(state.activeBoosts?.[1]?.seasonLong).toBe(false);
+    });
+
+    it('should replace existing active boosts', () => {
+      // Arrange
+      const existingBoosts = [
+        {
+          id: 'old-boost',
+          name: 'Old Boost',
+          icon: { lightModeUrl: 'old.png', darkModeUrl: 'old.png' },
+          boostBips: 100,
+          seasonLong: true,
+          backgroundColor: '#000000',
+        },
+      ];
+      const stateWithBoosts = {
+        ...initialState,
+        activeBoosts: existingBoosts,
+      };
+      const newBoosts = [
+        {
+          id: 'new-boost',
+          name: 'New Boost',
+          icon: { lightModeUrl: 'new.png', darkModeUrl: 'new.png' },
+          boostBips: 2000,
+          seasonLong: false,
+          backgroundColor: '#FFFFFF',
+        },
+      ];
+      const action = setActiveBoosts(newBoosts);
+
+      // Act
+      const state = rewardsReducer(stateWithBoosts, action);
+
+      // Assert
+      expect(state.activeBoosts).toEqual(newBoosts);
+      expect(state.activeBoosts).toHaveLength(1);
+      expect(state.activeBoosts?.[0]?.id).toBe('new-boost');
+    });
+
+    it('should set empty array when no boosts provided', () => {
+      // Arrange
+      const stateWithBoosts = {
+        ...initialState,
+        activeBoosts: [
+          {
+            id: 'existing-boost',
+            name: 'Existing',
+            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
+            boostBips: 500,
+            seasonLong: true,
+            backgroundColor: '#123456',
+          },
+        ],
+      };
+      const action = setActiveBoosts([]);
+
+      // Act
+      const state = rewardsReducer(stateWithBoosts, action);
+
+      // Assert
+      expect(state.activeBoosts).toEqual([]);
+      expect(state.activeBoosts).toHaveLength(0);
+    });
+
+    it('should reset activeBoostsError to false when setting active boosts', () => {
+      // Arrange
+      const stateWithError = {
+        ...initialState,
+        activeBoostsError: true,
+      };
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost',
+          icon: {
+            lightModeUrl: 'light.png',
+            darkModeUrl: 'dark.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+      ];
+      const action = setActiveBoosts(mockBoosts);
+
+      // Act
+      const state = rewardsReducer(stateWithError, action);
+
+      // Assert
+      expect(state.activeBoosts).toEqual(mockBoosts);
+      expect(state.activeBoostsError).toBe(false); // Should be reset when successful
+    });
+  });
+
+  describe('setActiveBoostsLoading', () => {
+    it('should set activeBoostsLoading to true', () => {
+      // Arrange
+      const action = setActiveBoostsLoading(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(true);
+    });
+
+    it('should set activeBoostsLoading to false', () => {
+      // Arrange
+      const stateWithLoading = {
+        ...initialState,
+        activeBoostsLoading: true,
+      };
+      const action = setActiveBoostsLoading(false);
+
+      // Act
+      const state = rewardsReducer(stateWithLoading, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(false);
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        activeTab: 'activity' as const,
+        referralCode: 'TEST123',
+        activeBoosts: [
+          {
+            id: 'test-boost',
+            name: 'Test',
+            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
+            boostBips: 1000,
+            seasonLong: true,
+            backgroundColor: '#FF0000',
+          },
+        ],
+      };
+      const action = setActiveBoostsLoading(true);
+
+      // Act
+      const state = rewardsReducer(stateWithData, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(true);
+      expect(state.activeTab).toBe('activity');
+      expect(state.referralCode).toBe('TEST123');
+      expect(state.activeBoosts).toEqual(stateWithData.activeBoosts);
+    });
+  });
+
+  describe('setActiveBoostsError', () => {
+    it('should set activeBoostsError to true', () => {
+      // Arrange
+      const action = setActiveBoostsError(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.activeBoostsError).toBe(true);
+    });
+
+    it('should set activeBoostsError to false', () => {
+      // Arrange
+      const stateWithError = {
+        ...initialState,
+        activeBoostsError: true,
+      };
+      const action = setActiveBoostsError(false);
+
+      // Act
+      const state = rewardsReducer(stateWithError, action);
+
+      // Assert
+      expect(state.activeBoostsError).toBe(false);
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        activeTab: 'activity' as const,
+        referralCode: 'TEST123',
+        activeBoosts: [
+          {
+            id: 'test-boost',
+            name: 'Test',
+            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
+            boostBips: 1000,
+            seasonLong: true,
+            backgroundColor: '#FF0000',
+          },
+        ],
+        activeBoostsLoading: true,
+      };
+      const action = setActiveBoostsError(true);
+
+      // Act
+      const state = rewardsReducer(stateWithData, action);
+
+      // Assert
+      expect(state.activeBoostsError).toBe(true);
+      expect(state.activeTab).toBe('activity');
+      expect(state.referralCode).toBe('TEST123');
+      expect(state.activeBoosts).toEqual(stateWithData.activeBoosts);
+      expect(state.activeBoostsLoading).toBe(true); // Should remain unchanged
+    });
+
+    it('should handle multiple error state changes', () => {
+      // Arrange
+      let currentState = initialState;
+
+      // Act & Assert - Set error to true
+      let action = setActiveBoostsError(true);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.activeBoostsError).toBe(true);
+
+      // Act & Assert - Set error back to false
+      action = setActiveBoostsError(false);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.activeBoostsError).toBe(false);
+
+      // Act & Assert - Set error to true again
+      action = setActiveBoostsError(true);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.activeBoostsError).toBe(true);
     });
   });
 });
