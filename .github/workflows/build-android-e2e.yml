@@ -166,7 +166,7 @@ jobs:
           BUNDLE="${{ steps.update-js.outputs.bundle_path }}"
           [ -f "$APK" ] || { echo "APK not found"; exit 1; }
           [ -f "$BUNDLE" ] || { echo "Bundle not found: $BUNDLE"; exit 1; }
-          npx --yes @expo/repack-app --input "$APK" --output "$APK" --bundle "$BUNDLE"
+          yarn repack --platform android --input "$APK" --bundle "$BUNDLE"
 
       # Cache artifacts only (no fingerprint file caching)
       - name: Cache build artifacts for future reuse
