@@ -121,7 +121,6 @@ import { backupVault } from '../BackupVault';
 import { Hex, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 import {
@@ -1532,6 +1531,7 @@ export class Engine {
       NotificationServicesPushController: notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
+      //@ts-expect-error - this is a temporary fix to test yarn v3
       PPOMController: new PPOMController({
         chainId: getGlobalChainId(networkController),
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
@@ -1551,12 +1551,6 @@ export class Engine {
         provider:
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           networkController.getProviderAndBlockTracker().provider as any,
-        ppomProvider: {
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          PPOM: PPOM as any,
-          ppomInit,
-        },
         storageBackend: new RNFSStorageBackend('PPOMDB'),
         securityAlertsEnabled:
           initialState.PreferencesController?.securityAlertsEnabled ?? false,
