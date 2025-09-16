@@ -9,6 +9,9 @@
 		<item name="android:navigationBarColor">@color/navBar</item>
 		<item name="android:windowLightStatusBar">@bool/useLightStatusBar</item>
 		<item name="android:textColor">@color/themeInverse</item>
+		<!-- Fixed font sizes to prevent user font scaling -->
+		<item name="android:textSize">14sp</item>
+		<item name="android:fontScale">1.0</item>
 	</style>
 
 	<style name="SplashTheme" parent="Theme.AppCompat.Light">

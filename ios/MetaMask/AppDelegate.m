@@ -13,6 +13,11 @@
 {
   self.moduleName = @"MetaMask";
   [FIRApp configure];
+  
+  // Remove Dynamic Type change notifications globally to prevent font scaling
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:UIContentSizeCategoryDidChangeNotification object:nil];
+  NSLog(@"Dynamic Type notifications have been disabled globally.");
+  
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
   NSString *foxCode;
