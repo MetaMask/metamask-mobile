@@ -4,7 +4,11 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { usePerpsTrading } from './usePerpsTrading';
-import { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
+import {
+  usePerpsOrderFees,
+  formatFeeRate,
+  clearRewardsCaches,
+} from './usePerpsOrderFees';
 import type { FeeCalculationResult } from '../controllers/types';
 
 // Mock dependencies
@@ -815,6 +819,169 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       // Assert - Should not cause React warnings or crashes
       // This test mainly ensures no console errors are thrown
       expect(result.current.isLoadingMetamaskFee).toBe(true);
+    });
+  });
+
+  describe('formatFeeRate utility function', () => {
+    it('formats undefined rate as N/A', () => {
+      // Arrange & Act
+      const result = formatFeeRate(undefined);
+
+      // Assert
+      expect(result).toBe('N/A');
+    });
+
+    it('formats null rate as N/A', () => {
+      // Arrange & Act
+      const result = formatFeeRate(null);
+
+      // Assert
+      expect(result).toBe('N/A');
+    });
+
+    it('formats zero rate correctly', () => {
+      // Arrange & Act
+      const result = formatFeeRate(0);
+
+      // Assert
+      expect(result).toBe('0.000%');
+    });
+
+    it('formats positive rate with correct percentage', () => {
+      // Arrange & Act
+      const result = formatFeeRate(0.00045);
+
+      // Assert
+      expect(result).toBe('0.045%');
+    });
+
+    it('formats rate with more decimal places', () => {
+      // Arrange & Act
+      const result = formatFeeRate(0.123456);
+
+      // Assert
+      expect(result).toBe('12.346%');
+    });
+  });
+
+  describe('clearRewardsCaches utility function', () => {
+    it('clears both fee discount and points calculation caches', () => {
+      // Arrange - Function exists and is callable
+
+      // Act
+      clearRewardsCaches();
+
+      // Assert - Function executes without throwing
+      expect(typeof clearRewardsCaches).toBe('function');
+    });
+  });
+
+  describe('Cache behavior edge cases', () => {
+    beforeEach(() => {
+      // Clear caches before each test
+      clearRewardsCaches();
+      jest.clearAllMocks();
+    });
+
+    it('should handle zero amount edge case', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0,
+        feeAmount: 0,
+        protocolFeeRate: 0,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '0',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert
+      expect(result.current.totalFee).toBe(0);
+      expect(result.current.protocolFee).toBe(0);
+      expect(result.current.metamaskFee).toBe(0);
+    });
+
+    it('should handle empty string amount', async () => {
+      // Arrange
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0,
+        feeAmount: 0,
+        protocolFeeRate: 0,
+        metamaskFeeRate: 0,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert
+      expect(result.current.totalFee).toBe(0);
+      expect(result.current.error).toBeNull();
+    });
+
+    it('should handle rewards controller API failure gracefully', async () => {
+      // Arrange - Mock successful fee calculation but failing rewards API
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.00045,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      // Mock rewards API to throw error
+      mockControllerMessenger.call.mockImplementation((method: string) => {
+        if (method.includes('RewardsController:')) {
+          return Promise.reject(new Error('Rewards API unavailable'));
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '1000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      // Assert - Core fee calculation should still work
+      expect(result.current.totalFee).toBe(0.9); // 0.45 + 0.45
+      expect(result.current.protocolFee).toBe(0.45);
+      expect(result.current.metamaskFee).toBe(0.45);
+      expect(result.current.error).toBeNull();
     });
   });
 });

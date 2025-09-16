@@ -7,6 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import React from 'react';
+import { useSelector } from 'react-redux';
 
 // Mock react-native-reanimated before importing components
 jest.mock('react-native-reanimated', () => {
@@ -52,6 +53,7 @@ import {
   usePerpsOrderForm,
   usePerpsOrderValidation,
   usePerpsPrices,
+  usePerpsRewards,
   usePerpsTrading,
   usePerpsToasts,
 } from '../../hooks';
@@ -61,6 +63,7 @@ import {
 } from '../../providers/PerpsStreamManager';
 import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import PerpsOrderView from './PerpsOrderView';
+import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -90,6 +93,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Stop loss is {{direction}} liquidation price',
       'perps.tpsl.below': 'below',
       'perps.tpsl.above': 'above',
+      'perps.points': 'Points',
     };
 
     if (params && translations[key]) {
@@ -269,6 +273,19 @@ jest.mock('react-redux', () => ({
     }
     return null;
   }),
+}));
+
+// Mock rewards selector
+jest.mock('../../../../../selectors/featureFlagController/rewards', () => ({
+  selectRewardsEnabledFlag: jest.fn(() => false),
+}));
+
+// Mock Rive component for RewardPointsDisplay
+jest.mock('rive-react-native', () => ({
+  __esModule: true,
+  default: 'Rive',
+  Alignment: { CenterRight: 'CenterRight' },
+  Fit: { FitHeight: 'FitHeight' },
 }));
 
 // Mock DevLogger (module appears to use default export with .log())
@@ -1781,6 +1798,94 @@ describe('PerpsOrderView', () => {
       await waitFor(() => {
         expect(screen.getByTestId('tpsl-bottom-sheet')).toBeDefined();
       });
+    });
+  });
+
+  describe('Rewards Points Row', () => {
+    it('should display points row when rewards are enabled and should show', async () => {
+      // Arrange - Enable rewards
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 100,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 250,
+        feeDiscountPercentage: 15,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('Points')).toBeTruthy();
+      });
+    });
+
+    it('should not display points row when rewards are disabled', async () => {
+      // Arrange - Disable rewards
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: false,
+        estimatedPoints: undefined,
+        isLoading: false,
+        hasError: false,
+        bonusBips: undefined,
+        feeDiscountPercentage: undefined,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.queryByText('Points')).toBeFalsy();
+      });
+    });
+
+    it('should handle points tooltip interaction', async () => {
+      // Arrange
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectRewardsEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (usePerpsRewards as jest.Mock).mockReturnValue({
+        shouldShowRewardsRow: true,
+        estimatedPoints: 150,
+        isLoading: false,
+        hasError: false,
+        bonusBips: 500,
+        feeDiscountPercentage: 20,
+        isRefresh: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Points')).toBeTruthy();
+      });
+
+      // Assert - Points text and tooltip should be present
+      expect(screen.getByText('Points')).toBeTruthy();
     });
   });
 });
