@@ -11,6 +11,7 @@ import {
   createMockAccountGroup,
   createMockInternalAccount,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -103,7 +104,7 @@ describe('AccountGroupDetails', () => {
 
   const mockState = {
     settings: {
-      useBlockieIcon: false,
+      avatarAccountType: AvatarAccountType.Maskicon,
     },
     user: {
       seedphraseBackedUp: false,
@@ -299,6 +300,7 @@ describe('AccountGroupDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(expect.any(String), {
       groupId: mockAccountGroup.id,
       title: `Addresses / ${mockAccountGroup.metadata.name}`,
+      onLoad: expect.any(Function),
     });
   });
 
@@ -314,5 +316,22 @@ describe('AccountGroupDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith('SmartAccountDetails', {
       account: expect.any(Object),
     });
+  });
+
+  it('navigates to edit account name when account name is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+    const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
+    fireEvent.press(accountNameLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'EditMultichainAccountName',
+        params: { accountGroup: mockAccountGroup },
+      },
+    );
   });
 });

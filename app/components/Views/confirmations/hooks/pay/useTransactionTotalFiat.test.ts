@@ -61,66 +61,12 @@ describe('useTransactionTotalFiat', () => {
     } as ReturnType<typeof useFeeCalculations>);
   });
 
-  it('includes quotes cost', () => {
-    const { result } = runHook({
-      quotes: [
-        {
-          sentAmount: {
-            valueInCurrency: '12.34',
-          },
-          totalMaxNetworkFee: {
-            valueInCurrency: '23.45',
-          },
-        },
-        {
-          sentAmount: {
-            valueInCurrency: '34.56',
-          },
-          totalMaxNetworkFee: {
-            valueInCurrency: '45.67',
-          },
-        },
-      ] as TransactionBridgeQuote[],
-    });
-
-    expect(result.current).toStrictEqual(
-      expect.objectContaining({
-        value: '116.02',
-        formatted: '$116.02',
-      }),
-    );
-  });
-
-  it('includes balance cost', () => {
+  it('returns total', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [
         {
           address: ADDRESS_MOCK,
-          amountFiat: 12.34,
-        },
-        {
-          address: ADDRESS_2_MOCK,
-          amountFiat: 23.45,
-        },
-      ],
-    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
-
-    const { result } = runHook();
-
-    expect(result.current).toStrictEqual(
-      expect.objectContaining({
-        value: '35.79',
-        formatted: '$35.79',
-      }),
-    );
-  });
-
-  it('ignores balance cost if matching quote', () => {
-    useTransactionRequiredFiatMock.mockReturnValue({
-      values: [
-        {
-          address: ADDRESS_MOCK,
-          amountFiat: 1000,
+          amountFiat: 10,
         },
         {
           address: ADDRESS_2_MOCK,
@@ -135,8 +81,11 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '30',
           },
-          totalMaxNetworkFee: {
+          totalNetworkFee: {
             valueInCurrency: '40',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '12.89',
           },
           quote: {
             destAsset: {
@@ -149,39 +98,70 @@ describe('useTransactionTotalFiat', () => {
 
     expect(result.current).toStrictEqual(
       expect.objectContaining({
-        value: '90',
-        formatted: '$90',
+        total: '95',
+        totalFormatted: '$95',
       }),
     );
   });
 
-  it('returns total gas cost', () => {
+  it('returns total estimated native cost', () => {
     const { result } = runHook({
       quotes: [
         {
-          totalMaxNetworkFee: {
+          totalNetworkFee: {
             valueInCurrency: '1.23',
           },
         },
         {
-          totalMaxNetworkFee: {
+          totalNetworkFee: {
             valueInCurrency: '4.56',
           },
         },
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current.totalGasFormatted).toBe('$13.68');
+    expect(result.current.totalNativeEstimatedFormatted).toBe('$13.68');
   });
 
-  it('returns quote network fee', () => {
+  it('returns total estimated network fee', () => {
     const { result } = runHook({
       quotes: [
         {
           sentAmount: {
             valueInCurrency: '100',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalNetworkFee: {
+            valueInCurrency: '1.23',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalNetworkFee: {
+            valueInCurrency: '2.34',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.totalNetworkFeeEstimatedFormatted).toBe('$3.57');
+  });
+
+  it('returns total max network fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -192,7 +172,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '60',
           },
           totalMaxNetworkFee: {
@@ -202,17 +182,17 @@ describe('useTransactionTotalFiat', () => {
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current.quoteNetworkFee).toBe('3.57');
+    expect(result.current.totalNetworkFeeMaxFormatted).toBe('$3.57');
   });
 
-  it('returns bridge fee', () => {
+  it('returns total bridge fee', () => {
     const { result } = runHook({
       quotes: [
         {
           sentAmount: {
             valueInCurrency: '100',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -223,7 +203,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '60',
           },
           totalMaxNetworkFee: {
@@ -233,6 +213,37 @@ describe('useTransactionTotalFiat', () => {
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current.bridgeFeeFormatted).toBe('$30');
+    expect(result.current.totalBridgeFeeFormatted).toBe('$30');
+  });
+
+  it('returns total transaction fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalNetworkFee: {
+            valueInCurrency: '1',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalNetworkFee: {
+            valueInCurrency: '2',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.totalTransactionFeeFormatted).toBe('$40.89');
   });
 });

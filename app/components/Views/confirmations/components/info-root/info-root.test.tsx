@@ -29,8 +29,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/gas/useGasFeeToken');
 
-jest.mock('../../hooks/useTokenAsset');
-
 jest.mock(
   '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({

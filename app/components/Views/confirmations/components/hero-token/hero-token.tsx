@@ -1,14 +1,13 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectTransactionState } from '../../../../../reducers/transaction';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
+import { useMaxValueMode } from '../../hooks/useMaxValueMode';
 import { useTokenAsset } from '../../hooks/useTokenAsset';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { Hero } from '../UI/hero';
@@ -27,9 +26,16 @@ const AssetAmount = ({
   const isUnknownToken = displayName === strings('token.unknown');
 
   return (
-    <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+    <Text
+      // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+      // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+      style={styles.assetAmountText}
+      variant={TextVariant.HeadingLG}
+    >
       {amount}{' '}
       <Text
+        // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+        // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
         style={isUnknownToken && styles.assetTextUnknown}
         variant={TextVariant.HeadingLG}
       >
@@ -45,8 +51,7 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
   });
-
-  const { maxValueMode } = useSelector(selectTransactionState);
+  const { maxValueMode } = useMaxValueMode();
 
   const { amountPrecise, amount, fiat, isNative } = useTokenAmount({
     amountWei,

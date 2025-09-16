@@ -65,6 +65,8 @@ export type Position = {
   };
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)
+  takeProfitCount: number; // Take profit count, how many tps can affect the position
+  stopLossCount: number; // Stop loss count, how many sls can affect the position
 };
 
 export type AccountState = {
@@ -153,6 +155,10 @@ export interface PerpsMarketData {
    * Funding interval in hours (optional, market-specific)
    */
   fundingIntervalHours?: number;
+  /**
+   * Current funding rate as decimal (optional, from predictedFundings API)
+   */
+  fundingRate?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -264,6 +270,14 @@ export interface LiveDataConfig {
   priceThrottleMs?: number; // ms between price updates (default: 2000)
   positionThrottleMs?: number; // ms between position updates (default: 5000)
   maxUpdatesPerSecond?: number; // hard limit to prevent UI blocking
+}
+
+export interface PerpsControllerConfig {
+  /**
+   * Fallback blocked regions to use when RemoteFeatureFlagController fails to fetch.
+   * The fallback is set by default if defined and replaced with remote block list once available.
+   */
+  fallbackBlockedRegions?: string[];
 }
 
 export interface PriceUpdate {

@@ -15,13 +15,11 @@ import {
 } from '../../../hooks/gas/useGasFeeToken';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { Hex } from '@metamask/utils';
-import { useTokenAsset } from '../../../hooks/useTokenAsset';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/transaction-controller');
 jest.mock('../../../hooks/useNetworkInfo');
 jest.mock('../../../hooks/gas/useGasFeeToken');
-jest.mock('../../../hooks/useTokenAsset');
 
 const WETH_TOKEN_ADDRESS = '0x1234567890123456789012345678901234567894';
 
@@ -79,14 +77,6 @@ describe('GasFeeTokenModal', () => {
   const mockUpdateSelectedGasFeeToken = jest.mocked(updateSelectedGasFeeToken);
   const mockUseSelectedGasFeeToken = jest.mocked(useSelectedGasFeeToken);
   const mockUseGasFeeToken = jest.mocked(useGasFeeToken);
-  jest.mocked(useTokenAsset).mockReturnValue({
-    asset: {
-      chainId: '1',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-    },
-  } as ReturnType<typeof useTokenAsset>);
 
   const mockOnClose = jest.fn();
 

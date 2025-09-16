@@ -47,6 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -115,6 +116,9 @@ import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
+import { useOptin } from '../../UI/Rewards/hooks/useOptIn';
+import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -251,9 +255,19 @@ const RewardsHome = () => {
   if (!isRewardsEnabled) {
     return null;
   }
-  // TODO: Return RewardsNavigator
-  return null;
+
+  return <RewardsNavigator />;
 };
+
+const RewardsModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+      component={RewardsBottomSheetModal}
+    />
+  </Stack.Navigator>
+);
 
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
@@ -479,6 +493,10 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
+const UnmountOnBlurComponent = (children) => (
+  <UnmountOnBlur>{children}</UnmountOnBlur>
+);
+
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
@@ -585,6 +603,15 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
+    const currentRoute = state.routes[state.index];
+    // Hide tab bar for rewards onboarding splash screen
+    if (
+      currentRoute.name?.startsWith('REWARDS_ONBOARDING') &&
+      !isRewardsEnabled
+    ) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar
@@ -625,15 +652,15 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
-          component={RewardsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          component={RewardsModalFlow}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (
         <Tab.Screen
           name={Routes.SETTINGS_VIEW}
           options={options.settings}
           component={SettingsFlow}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       )}
     </Tab.Navigator>
@@ -803,7 +830,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -944,7 +971,13 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.ROOT}
+            component={PerpsScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}

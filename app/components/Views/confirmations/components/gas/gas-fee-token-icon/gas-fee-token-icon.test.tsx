@@ -4,17 +4,19 @@ import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { GasFeeTokenIcon } from './gas-fee-token-icon';
 import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
-import { useTokenAsset } from '../../../hooks/useTokenAsset';
+import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/useNetworkInfo');
-jest.mock('../../../hooks/useTokenAsset', () => ({
-  useTokenAsset: jest.fn().mockReturnValue({ asset: { logo: 'logo.png' } }),
+jest.mock('../../../hooks/tokens/useTokenWithBalance', () => ({
+  useTokenWithBalance: jest
+    .fn()
+    .mockReturnValue({ asset: { logo: 'logo.png' } }),
 }));
 
 describe('GasFeeTokenIcon', () => {
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
-  const mockUseTokenAsset = jest.mocked(useTokenAsset);
+  const mockUseTokenWithBalance = jest.mocked(useTokenWithBalance);
 
   beforeEach(() => {
     mockUseNetworkInfo.mockReturnValue({
@@ -46,10 +48,10 @@ describe('GasFeeTokenIcon', () => {
   });
 
   it('renders native icon when asset is not found', () => {
-    mockUseTokenAsset.mockReturnValue({
+    mockUseTokenWithBalance.mockReturnValue({
       asset: undefined,
       displayName: undefined,
-    } as unknown as ReturnType<typeof useTokenAsset>);
+    } as unknown as ReturnType<typeof mockUseTokenWithBalance>);
 
     const { getByTestId } = renderWithProvider(
       <GasFeeTokenIcon tokenAddress={NATIVE_TOKEN_ADDRESS} />,

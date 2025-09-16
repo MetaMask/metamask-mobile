@@ -367,8 +367,9 @@ exports[`AssetOverview should render correctly 1`] = `
         {
           "flexDirection": "row",
           "gap": 8,
+          "paddingBottom": 0,
           "paddingHorizontal": 16,
-          "paddingVertical": 20,
+          "paddingTop": 24,
           "width": "100%",
         }
       }
@@ -377,6 +378,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -436,7 +438,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 false,
               ]
             }
-            testID="token-fund-button"
+            testID="token-buy-button"
           >
             <View
               style={
@@ -450,7 +452,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Money"
+                name="AttachMoney"
                 style={
                   {
                     "height": 20,
@@ -465,6 +467,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -474,7 +477,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   }
                 }
               >
-                Fund
+                Buy
               </Text>
             </View>
           </View>
@@ -484,6 +487,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -572,6 +576,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -591,6 +596,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -679,6 +685,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -698,6 +705,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -786,6 +794,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -805,6 +814,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -893,6 +903,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1521,8 +1532,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
         {
           "flexDirection": "row",
           "gap": 8,
+          "paddingBottom": 0,
           "paddingHorizontal": 16,
-          "paddingVertical": 20,
+          "paddingTop": 24,
           "width": "100%",
         }
       }
@@ -1531,6 +1543,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1590,7 +1603,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 false,
               ]
             }
-            testID="token-fund-button"
+            testID="token-buy-button"
           >
             <View
               style={
@@ -1604,7 +1617,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Money"
+                name="AttachMoney"
                 style={
                   {
                     "height": 20,
@@ -1619,6 +1632,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1628,7 +1642,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   }
                 }
               >
-                Fund
+                Buy
               </Text>
             </View>
           </View>
@@ -1638,6 +1652,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1726,6 +1741,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1745,6 +1761,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1833,6 +1850,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1852,6 +1870,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -1940,6 +1959,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1959,6 +1979,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -2047,6 +2068,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2711,8 +2733,9 @@ exports[`AssetOverview should render native balances when non evm network is sel
         {
           "flexDirection": "row",
           "gap": 8,
+          "paddingBottom": 0,
           "paddingHorizontal": 16,
-          "paddingVertical": 20,
+          "paddingTop": 24,
           "width": "100%",
         }
       }
@@ -2721,6 +2744,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -2780,7 +2804,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 false,
               ]
             }
-            testID="token-fund-button"
+            testID="token-buy-button"
           >
             <View
               style={
@@ -2794,7 +2818,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Money"
+                name="AttachMoney"
                 style={
                   {
                     "height": 20,
@@ -2809,6 +2833,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2818,7 +2843,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   }
                 }
               >
-                Fund
+                Buy
               </Text>
             </View>
           </View>
@@ -2828,6 +2853,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -2916,6 +2942,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2935,6 +2962,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -3023,6 +3051,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -3042,6 +3071,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -3130,6 +3160,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -3149,6 +3180,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         style={
           {
             "flex": 1,
+            "overflow": "hidden",
           }
         }
       >
@@ -3237,6 +3269,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 style={
                   {
                     "color": "#121314",
+                    "flexShrink": 0,
                     "fontFamily": "Geist Medium",
                     "fontSize": 14,
                     "letterSpacing": 0,

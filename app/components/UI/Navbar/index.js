@@ -748,40 +748,6 @@ export function getTransparentOnboardingNavbarOptions(
 }
 
 /**
- * Function that returns a Carousel navigation options for our onboarding screens.
- *
- * @returns {Object} - Corresponding navbar options containing headerTitle
- * @param {string} currentTabColor - The color of the current tab
- */
-export function getOnboardingCarouselNavbarOptions(currentTabColor) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: currentTabColor,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    metamaskName: {
-      width: 70,
-      height: 35,
-    },
-  });
-  return {
-    headerTitle: () => (
-      <View style={styles.metamaskNameTransparentWrapper}>
-        <Image
-          source={metamask_name}
-          style={innerStyles.metamaskName}
-          resizeMethod={'auto'}
-        />
-      </View>
-    ),
-    headerLeft: () => <View />,
-    headerRight: () => <View />,
-    headerStyle: innerStyles.headerStyle,
-  };
-}
-
-/**
  * Function that returns a transparent navigation options for our onboarding screens.
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
@@ -1006,6 +972,9 @@ export function getWalletNavbarOptions(
       left: 12,
       right: 12,
     },
+    accountPickerStyle: {
+      marginRight: 16,
+    },
   });
 
   const onScanSuccess = (data, content) => {
@@ -1115,11 +1084,7 @@ export function getWalletNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
-        variant={
-          isFeatureFlagEnabled
-            ? HeaderBaseVariant.Display
-            : HeaderBaseVariant.Compact
-        }
+        variant={HeaderBaseVariant.Display}
         style={innerStyles.headerContainer}
         startAccessory={
           !isFeatureFlagEnabled && (
@@ -1205,15 +1170,11 @@ export function getWalletNavbarOptions(
           ref={accountActionsRef}
           accountName={accountName}
           onPress={() => {
-            trace({
-              name: TraceName.AccountList,
-              tags: getTraceTags(store.getState()),
-              op: TraceOperation.AccountList,
-            });
             navigation.navigate(...createAccountSelectorNavDetails({}));
           }}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
           hitSlop={innerStyles.touchAreaSlop}
+          style={innerStyles.accountPickerStyle}
         />
       </HeaderBase>
     ),
@@ -2090,7 +2051,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title = 'Buy', showBack = true, showCancel = true } = {},
+  { title, showBack = true, showCancel = true, showNetwork = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -2119,9 +2080,17 @@ export function getFiatOnRampAggNavbar(
 
   const navigationCancelText = strings('navigation.cancel');
 
+  const disableNetwork = !showNetwork;
+  const showSelectedNetwork = showNetwork;
+
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={showSelectedNetwork}
+        translate={false}
+      />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;
@@ -2202,12 +2171,20 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   };
 };
 
-export const getSettingsNavigationOptions = (title, themeColors) => {
+export const getSettingsNavigationOptions = (
+  title,
+  themeColors,
+  navigation,
+  isRewardsEnabled = false,
+) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
+    },
+    accessories: {
+      marginHorizontal: 8,
     },
   });
   return {
@@ -2220,6 +2197,16 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
         {title}
       </MorphText>
     ),
+    headerRight: () =>
+      isRewardsEnabled ? (
+        <ButtonIcon
+          size={ButtonIconSize.Lg}
+          iconName={IconName.Close}
+          onPress={() => navigation && navigation.goBack()}
+          style={innerStyles.accessories}
+          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+        />
+      ) : null,
     ...innerStyles,
   };
 };

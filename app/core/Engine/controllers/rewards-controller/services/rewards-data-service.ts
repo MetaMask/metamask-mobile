@@ -7,19 +7,44 @@ import type {
   EstimatedPointsDto,
   GetPerpsDiscountDto,
   PerpsDiscountData,
+  LoginDto,
+  SeasonStatusDto,
+  GenerateChallengeDto,
+  ChallengeResponseDto,
+  SubscriptionReferralDetailsDto,
+  PaginatedPointsEventsDto,
+  GetPointsEventsDto,
+  MobileLoginDto,
+  SubscriptionDto,
+  OptInStatusInputDto,
+  OptInStatusDto,
+  OptOutDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
+import Logger from '../../../../../util/Logger';
+import { successfulFetch } from '@metamask/controller-utils';
 
 const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
+// Geolocation URLs for different environments
+const GEOLOCATION_URLS = {
+  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+};
+
 // Auth endpoint action types
 
 export interface RewardsDataServiceLoginAction {
   type: `${typeof SERVICE_NAME}:login`;
   handler: RewardsDataService['login'];
+}
+
+export interface RewardsDataServiceGetPointsEventsAction {
+  type: `${typeof SERVICE_NAME}:getPointsEvents`;
+  handler: RewardsDataService['getPointsEvents'];
 }
 
 export interface RewardsDataServiceEstimatePointsAction {
@@ -31,11 +56,71 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
+export interface RewardsDataServiceOptinAction {
+  type: `${typeof SERVICE_NAME}:optin`;
+  handler: RewardsDataService['optin'];
+}
+
+export interface RewardsDataServiceLogoutAction {
+  type: `${typeof SERVICE_NAME}:logout`;
+  handler: RewardsDataService['logout'];
+}
+
+export interface RewardsDataServiceGenerateChallengeAction {
+  type: `${typeof SERVICE_NAME}:generateChallenge`;
+  handler: RewardsDataService['generateChallenge'];
+}
+
+export interface RewardsDataServiceGetSeasonStatusAction {
+  type: `${typeof SERVICE_NAME}:getSeasonStatus`;
+  handler: RewardsDataService['getSeasonStatus'];
+}
+
+export interface RewardsDataServiceGetReferralDetailsAction {
+  type: `${typeof SERVICE_NAME}:getReferralDetails`;
+  handler: RewardsDataService['getReferralDetails'];
+}
+
+export interface RewardsDataServiceFetchGeoLocationAction {
+  type: `${typeof SERVICE_NAME}:fetchGeoLocation`;
+  handler: RewardsDataService['fetchGeoLocation'];
+}
+
+export interface RewardsDataServiceValidateReferralCodeAction {
+  type: `${typeof SERVICE_NAME}:validateReferralCode`;
+  handler: RewardsDataService['validateReferralCode'];
+}
+
+export interface RewardsDataServiceMobileJoinAction {
+  type: `${typeof SERVICE_NAME}:mobileJoin`;
+  handler: RewardsDataService['mobileJoin'];
+}
+
+export interface RewardsDataServiceGetOptInStatusAction {
+  type: `${typeof SERVICE_NAME}:getOptInStatus`;
+  handler: RewardsDataService['getOptInStatus'];
+}
+
+export interface RewardsDataServiceOptOutAction {
+  type: `${typeof SERVICE_NAME}:optOut`;
+  handler: RewardsDataService['optOut'];
+}
 
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
+  | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction;
+  | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceGetSeasonStatusAction
+  | RewardsDataServiceGetReferralDetailsAction
+  | RewardsDataServiceOptinAction
+  | RewardsDataServiceLogoutAction
+  | RewardsDataServiceGenerateChallengeAction
+  | RewardsDataServiceFetchGeoLocationAction
+  | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceMobileJoinAction
+  | RewardsDataServiceGetOptInStatusAction
+  | RewardsDataServiceOptOutAction;
 
 type AllowedActions = never;
 
@@ -61,22 +146,31 @@ export class RewardsDataService {
 
   readonly #appType: 'mobile' | 'extension';
 
+  readonly #locale: string;
+
   constructor({
     messenger,
     fetch: fetchFunction,
     appType = 'mobile',
+    locale = 'en-US',
   }: {
     messenger: RewardsDataServiceMessenger;
     fetch: typeof fetch;
     appType?: 'mobile' | 'extension';
+    locale?: string;
   }) {
     this.#messenger = messenger;
     this.#fetch = fetchFunction;
     this.#appType = appType;
+    this.#locale = locale;
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
       this.login.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPointsEvents`,
+      this.getPointsEvents.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
@@ -85,6 +179,46 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsDiscount`,
       this.getPerpsDiscount.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optin`,
+      this.optin.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:logout`,
+      this.logout.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:generateChallenge`,
+      this.generateChallenge.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSeasonStatus`,
+      this.getSeasonStatus.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getReferralDetails`,
+      this.getReferralDetails.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:fetchGeoLocation`,
+      this.fetchGeoLocation.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:validateReferralCode`,
+      this.validateReferralCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:mobileJoin`,
+      this.mobileJoin.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOptInStatus`,
+      this.getOptInStatus.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optOut`,
+      this.optOut.bind(this),
     );
   }
 
@@ -126,6 +260,11 @@ export class RewardsDataService {
     } catch (error) {
       // Continue without bearer token if retrieval fails
       console.warn('Failed to retrieve bearer token:', error);
+    }
+
+    // Add locale header for internationalization
+    if (this.#locale) {
+      headers['Accept-Language'] = this.#locale;
     }
 
     const url = `${AppConstants.REWARDS_API_URL}${endpoint}`;
@@ -183,6 +322,34 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as LoginResponseDto;
+  }
+
+  /**
+   * Get a list of points events for the season
+   * @param params - The request parameters containing
+   * @returns The list of points events DTO.
+   */
+  async getPointsEvents(
+    params: GetPointsEventsDto,
+  ): Promise<PaginatedPointsEventsDto> {
+    const { seasonId, subscriptionId, cursor } = params;
+
+    let url = `/seasons/${seasonId}/points-events`;
+    if (cursor) url += `?cursor=${encodeURIComponent(cursor)}`;
+
+    const response = await this.makeRequest(
+      url,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get points events failed: ${response.status}`);
+    }
+
+    return (await response.json()) as PaginatedPointsEventsDto;
   }
 
   /**
@@ -251,5 +418,242 @@ export class RewardsDataService {
       hasOptedIn: optInStatus === 1,
       discount,
     };
+  }
+
+  /**
+   * Generate a challenge for authentication.
+   * @param body - The challenge request body containing the address.
+   * @returns The challenge response DTO.
+   */
+  async generateChallenge(
+    body: GenerateChallengeDto,
+  ): Promise<ChallengeResponseDto> {
+    const response = await this.makeRequest('/auth/challenge/generate', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Generate challenge failed: ${response.status}`);
+    }
+
+    return (await response.json()) as ChallengeResponseDto;
+  }
+
+  /**
+   * Perform optin (login) via challenge and signature.
+   * @param body - The login request body containing challengeId, signature, and optional referralCode.
+   * @returns The login response DTO.
+   */
+  async optin(body: LoginDto): Promise<LoginResponseDto> {
+    const response = await this.makeRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Optin failed: ${response.status}`);
+    }
+
+    return (await response.json()) as LoginResponseDto;
+  }
+
+  /**
+   * Perform logout for the current authenticated session.
+   * @param subscriptionId - The subscription ID to use for the authenticated request.
+   * @returns Promise that resolves when logout is complete.
+   */
+  async logout(subscriptionId?: string): Promise<void> {
+    const response = await this.makeRequest(
+      '/auth/logout',
+      {
+        method: 'POST',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Logout failed: ${response.status}`);
+    }
+  }
+
+  /**
+   * Get season status for a specific season.
+   * @param seasonId - The ID of the season to get status for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The season status DTO.
+   */
+  async getSeasonStatus(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<SeasonStatusDto> {
+    const response = await this.makeRequest(
+      `/seasons/${seasonId}/status`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get season status failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Convert date strings to Date objects
+    if (data.balance?.updatedAt) {
+      data.balance.updatedAt = new Date(data.balance.updatedAt);
+    }
+    if (data.season) {
+      if (data.season.startDate) {
+        data.season.startDate = new Date(data.season.startDate);
+      }
+      if (data.season.endDate) {
+        data.season.endDate = new Date(data.season.endDate);
+      }
+    }
+
+    return data as SeasonStatusDto;
+  }
+
+  /**
+   * Get referral details for a specific subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The referral details DTO.
+   */
+  async getReferralDetails(
+    subscriptionId: string,
+  ): Promise<SubscriptionReferralDetailsDto> {
+    const response = await this.makeRequest(
+      '/subscriptions/referral-details',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get referral details failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SubscriptionReferralDetailsDto;
+  }
+
+  /**
+   * Fetch geolocation information from MetaMask's geolocation service.
+   * Returns location in Country or Country-Region format (e.g., 'US', 'CA-ON', 'FR').
+   * @returns Promise<string> - The geolocation string or 'UNKNOWN' on failure.
+   */
+  async fetchGeoLocation(): Promise<string> {
+    let location = 'UNKNOWN';
+
+    try {
+      const environment = AppConstants.IS_DEV ? 'DEV' : 'PROD';
+      const response = await successfulFetch(GEOLOCATION_URLS[environment]);
+
+      if (!response.ok) {
+        return location;
+      }
+      location = await response?.text();
+      return location;
+    } catch (e) {
+      Logger.log('RewardsDataService: Failed to fetch geoloaction', e);
+      return location;
+    }
+  }
+
+  /**
+   * Validate a referral code.
+   * @param code - The referral code to validate.
+   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
+   */
+  async validateReferralCode(code: string): Promise<{ valid: boolean }> {
+    const response = await this.makeRequest(
+      `/referral/validate?code=${encodeURIComponent(code)}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to validate referral code. Please try again shortly.`,
+      );
+    }
+
+    return (await response.json()) as { valid: boolean };
+  }
+
+  /**
+   * Join an account to a subscription via mobile login.
+   * @param body - The mobile login request body containing account, timestamp, and signature.
+   * @param subscriptionId - The subscription ID to join the account to.
+   * @returns Promise<SubscriptionDto> - The updated subscription information.
+   */
+  async mobileJoin(
+    body: MobileLoginDto,
+    subscriptionId: string,
+  ): Promise<SubscriptionDto> {
+    const response = await this.makeRequest(
+      '/wr/subscriptions/mobile-join',
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Mobile join failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SubscriptionDto;
+  }
+
+  /**
+   * Get opt-in status for multiple addresses.
+   * @param body - The request body containing addresses to check.
+   * @returns Promise<OptInStatusDto> - The opt-in status for each address.
+   */
+  async getOptInStatus(body: OptInStatusInputDto): Promise<OptInStatusDto> {
+    // Validate input
+    if (!body.addresses || body.addresses.length === 0) {
+      throw new Error('Addresses are required');
+    }
+    if (body.addresses.length > 500) {
+      throw new Error('Addresses must be less than 500');
+    }
+
+    const response = await this.makeRequest('/public/rewards/ois', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Get opt-in status failed: ${response.status}`);
+    }
+
+    return (await response.json()) as OptInStatusDto;
+  }
+
+  /**
+   * Opt-out and delete the subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Promise<OptOutDto> - The opt-out response.
+   */
+  async optOut(subscriptionId: string): Promise<OptOutDto> {
+    const response = await this.makeRequest(
+      '/wr/subscriptions/opt-out',
+      {
+        method: 'POST',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Opt-out failed: ${response.status}`);
+    }
+
+    return (await response.json()) as OptOutDto;
   }
 }
