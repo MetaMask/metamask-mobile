@@ -1,31 +1,75 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { context, getOctokit } from '@actions/github';
-import * as core from '@actions/core';
 
-// Get PR number from GitHub Actions environment variables
-const PR_NUMBER = context.payload.pull_request?.number;
+// Resolve repo context and PR number from GitHub Actions environment
+function getEventPayload() {
+  try {
+    const eventPath = process.env.GITHUB_EVENT_PATH;
+    if (!eventPath || !fs.existsSync(eventPath)) return {};
+    const raw = fs.readFileSync(eventPath, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+const EVENT = getEventPayload();
+const REPOSITORY = process.env.GITHUB_REPOSITORY || '';
+const [OWNER, REPO] = REPOSITORY.split('/');
+const PR_NUMBER = EVENT?.pull_request?.number || process.env.PR_NUMBER;
 
 const CHANGED_FILES_DIR = 'changed-files';
 
-const octokit = getOctokit(process.env.GITHUB_TOKEN || '');
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 
 /**
  * Get JSON info about the given pull request using Octokit
  *
  * @returns {Promise<object|null>} PR information from GitHub
  */
-async function getPrInfo() {
-  if (!PR_NUMBER) {
-    return null;
+async function githubGraphql(query, variables = {}) {
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'metamask-mobile-ci',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!res.ok) throw new Error(`GraphQL request failed: ${res.status} ${res.statusText}`);
+  const data = await res.json();
+  if (data.errors) {
+    const msg = Array.isArray(data.errors) ? data.errors.map((e) => e.message).join('; ') : String(data.errors);
+    throw new Error(`GraphQL errors: ${msg}`);
   }
+  return data.data;
+}
 
-  const { owner, repo } = context.repo;
-
-  return (
-    await octokit.request(`GET /repos/${owner}/${repo}/pulls/${PR_NUMBER}`)
-  ).data;
+async function getPrInfo() {
+  if (!PR_NUMBER || !OWNER || !REPO) return null;
+  const data = await githubGraphql(
+    `query($owner:String!, $repo:String!, $number:Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $number) {
+          baseRefName
+          body
+          labels(first: 100) { nodes { name } }
+        }
+      }
+    }`,
+    { owner: OWNER, repo: REPO, number: Number(PR_NUMBER) },
+  );
+  const pr = data?.repository?.pullRequest;
+  if (!pr) return null;
+  return {
+    base: { ref: pr.baseRefName },
+    body: pr.body,
+    labels: pr.labels?.nodes || [],
+  };
 }
 
 /**
@@ -34,25 +78,31 @@ async function getPrInfo() {
  * @returns {Promise<Array>} List of files changed in the PR
  */
 async function getPrFilesChanged() {
-  const { owner, repo } = context.repo;
-
-  const response = await octokit.graphql({
-    query: `
-        {
-          repository(owner: "${owner}", name: "${repo}") {
-            pullRequest(number: ${PR_NUMBER}) {
-              files(first: 100) {
-                nodes {
-                  changeType
-                  path,
-                }
-              }
+  if (!PR_NUMBER || !OWNER || !REPO) return [];
+  let hasNextPage = true;
+  let endCursor = null;
+  const nodes = [];
+  while (hasNextPage) {
+    const data = await githubGraphql(
+      `query($owner:String!, $repo:String!, $number:Int!, $after:String) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $number) {
+            files(first: 100, after: $after) {
+              nodes { changeType path }
+              pageInfo { hasNextPage endCursor }
             }
           }
-        }`,
-  });
-
-  return response.repository.pullRequest.files.nodes;
+        }
+      }`,
+      { owner: OWNER, repo: REPO, number: Number(PR_NUMBER), after: endCursor },
+    );
+    const files = data?.repository?.pullRequest?.files;
+    if (!files) break;
+    nodes.push(...(files.nodes || []));
+    hasNextPage = Boolean(files.pageInfo?.hasNextPage);
+    endCursor = files.pageInfo?.endCursor || null;
+  }
+  return nodes;
 }
 
 function writePrBodyAndInfoToFile(prInfo) {
@@ -62,14 +112,14 @@ function writePrBodyAndInfoToFile(prInfo) {
     prInfo.base?.ref
   }}\n${(prInfo.body || '').trim()}`;
   fs.writeFileSync(prBodyPath, updatedPrBody);
-  core.info(`PR body and info saved to ${prBodyPath}`);
+  console.log(`PR body and info saved to ${prBodyPath}`);
 }
 
 function writeEmptyGitDiff() {
-  core.info('Not a PR, skipping git diff');
+  console.log('Not a PR, skipping git diff');
   const outputPath = path.resolve(CHANGED_FILES_DIR, 'changed-files.json');
   fs.writeFileSync(outputPath, '[]');
-  core.info(`Empty git diff results saved to ${outputPath}`);
+  console.log(`Empty git diff results saved to ${outputPath}`);
 }
 
 /**
@@ -82,7 +132,7 @@ async function storeGitDiffOutputAndPrBody() {
     // Create the directory
     fs.mkdirSync(CHANGED_FILES_DIR, { recursive: true });
 
-    core.info(`Determining whether to run git diff...`);
+    console.log(`Determining whether to run git diff...`);
     if (!PR_NUMBER) {
       writeEmptyGitDiff();
       return;
@@ -97,20 +147,21 @@ async function storeGitDiffOutputAndPrBody() {
     }
     // We perform git diff even if the PR base is not main or skip-e2e-quality-gate label is applied
     // because we rely on the git diff results for other jobs
-    core.info('Attempting to get git diff...');
+    console.log('Attempting to get git diff...');
     const diffOutput = JSON.stringify(await getPrFilesChanged());
-    core.info(diffOutput);
+    console.log(diffOutput);
 
     // Store the output of git diff
     const outputPath = path.resolve(CHANGED_FILES_DIR, 'changed-files.json');
     fs.writeFileSync(outputPath, diffOutput);
-    core.info(`Git diff results saved to ${outputPath}`);
+    console.log(`Git diff results saved to ${outputPath}`);
 
     writePrBodyAndInfoToFile(prInfo);
 
-    core.info('success');
+    console.log('success');
   } catch (error) {
-    core.setFailed(`Failed to process git diff: ${error?.message || error}`);
+    console.error(`Failed to process git diff: ${error?.message || error}`);
+    process.exit(1);
   }
 }
 
