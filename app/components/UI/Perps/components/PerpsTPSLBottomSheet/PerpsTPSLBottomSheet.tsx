@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -90,6 +89,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  // Refs for TextInput components to programmatically blur them
+  const takeProfitPriceRef = useRef<TextInput>(null);
+  const takeProfitPercentageRef = useRef<TextInput>(null);
+  const stopLossPriceRef = useRef<TextInput>(null);
+  const stopLossPercentageRef = useRef<TextInput>(null);
 
   const { track } = usePerpsEventTracking();
 
@@ -319,6 +324,30 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     handleStopLossPercentageBlur,
   ]);
 
+  const dismissKeypad = useCallback(() => {
+    // Blur all inputs to ensure none remain focused
+    if (focusedInput === 'takeProfitPrice') {
+      handleTakeProfitPriceBlur();
+      takeProfitPriceRef.current?.blur();
+    } else if (focusedInput === 'takeProfitPercentage') {
+      handleTakeProfitPercentageBlur();
+      takeProfitPercentageRef.current?.blur();
+    } else if (focusedInput === 'stopLossPrice') {
+      handleStopLossPriceBlur();
+      stopLossPriceRef.current?.blur();
+    } else if (focusedInput === 'stopLossPercentage') {
+      handleStopLossPercentageBlur();
+      stopLossPercentageRef.current?.blur();
+    }
+    setFocusedInput(null);
+  }, [
+    focusedInput,
+    handleTakeProfitPriceBlur,
+    handleTakeProfitPercentageBlur,
+    handleStopLossPriceBlur,
+    handleStopLossPercentageBlur,
+  ]);
+
   // Show overlay if updating
   const showOverlay = isUpdating;
 
@@ -333,14 +362,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       onClose={handleClose}
       testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
     >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          style: {
-            paddingRight: Platform.OS === 'android' ? 24 : 0,
-          },
-        }}
-      >
+      <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.tpsl.title')}
         </Text>
@@ -351,11 +373,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           style={styles.scrollContent}
           activeOpacity={1}
           testID="scroll-content"
-          onPress={() => {
-            if (focusedInput) {
-              setFocusedInput(null);
-            }
-          }}
         >
           {showOverlay && (
             <View style={styles.overlay}>
@@ -466,6 +483,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
               >
                 <TextInput
+                  ref={takeProfitPriceRef}
                   style={styles.input}
                   value={takeProfitPrice}
                   onChangeText={(text) => {
@@ -476,7 +494,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  onFocus={() => handleInputFocus('takeProfitPrice')}
+                  editable={!focusedInput || focusedInput === 'takeProfitPrice'}
+                  onFocus={() => {
+                    if (!focusedInput || focusedInput === 'takeProfitPrice') {
+                      handleInputFocus('takeProfitPrice');
+                    }
+                  }}
                   onBlur={() => {
                     handleTakeProfitPriceBlur();
                     handleInputBlur();
@@ -500,6 +523,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
               >
                 <TextInput
+                  ref={takeProfitPercentageRef}
                   style={styles.input}
                   value={formattedTakeProfitPercentage}
                   onChangeText={(text) => {
@@ -510,7 +534,17 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.profit_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  onFocus={() => handleInputFocus('takeProfitPercentage')}
+                  editable={
+                    !focusedInput || focusedInput === 'takeProfitPercentage'
+                  }
+                  onFocus={() => {
+                    if (
+                      !focusedInput ||
+                      focusedInput === 'takeProfitPercentage'
+                    ) {
+                      handleInputFocus('takeProfitPercentage');
+                    }
+                  }}
                   onBlur={() => {
                     handleTakeProfitPercentageBlur();
                     handleInputBlur();
@@ -595,6 +629,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
               >
                 <TextInput
+                  ref={stopLossPriceRef}
                   style={styles.input}
                   value={stopLossPrice}
                   onChangeText={(text) => {
@@ -605,7 +640,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  onFocus={() => handleInputFocus('stopLossPrice')}
+                  editable={!focusedInput || focusedInput === 'stopLossPrice'}
+                  onFocus={() => {
+                    if (!focusedInput || focusedInput === 'stopLossPrice') {
+                      handleInputFocus('stopLossPrice');
+                    }
+                  }}
                   onBlur={() => {
                     handleStopLossPriceBlur();
                     handleInputBlur();
@@ -629,6 +669,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
               >
                 <TextInput
+                  ref={stopLossPercentageRef}
                   style={styles.input}
                   value={formattedStopLossPercentage}
                   onChangeText={(text) => {
@@ -639,7 +680,17 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.loss_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  onFocus={() => handleInputFocus('stopLossPercentage')}
+                  editable={
+                    !focusedInput || focusedInput === 'stopLossPercentage'
+                  }
+                  onFocus={() => {
+                    if (
+                      !focusedInput ||
+                      focusedInput === 'stopLossPercentage'
+                    ) {
+                      handleInputFocus('stopLossPercentage');
+                    }
+                  }}
                   onBlur={() => {
                     handleStopLossPercentageBlur();
                     handleInputBlur();
@@ -689,20 +740,33 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         </View>
       )}
 
-      <BottomSheetFooter
-        buttonPropsArray={[
-          {
-            label: isUpdating
-              ? strings('perps.tpsl.updating')
-              : strings('perps.tpsl.set'),
-            variant: ButtonVariants.Primary,
-            size: ButtonSize.Lg,
-            onPress: handleConfirm,
-            isDisabled: confirmDisabled,
-            loading: isUpdating,
-          },
-        ]}
-      />
+      {!focusedInput ? (
+        <BottomSheetFooter
+          buttonPropsArray={[
+            {
+              label: isUpdating
+                ? strings('perps.tpsl.updating')
+                : strings('perps.tpsl.set'),
+              variant: ButtonVariants.Primary,
+              size: ButtonSize.Lg,
+              onPress: handleConfirm,
+              isDisabled: confirmDisabled,
+              loading: isUpdating,
+            },
+          ]}
+        />
+      ) : (
+        <BottomSheetFooter
+          buttonPropsArray={[
+            {
+              label: strings('perps.tpsl.dismiss_tpsl_keypad'),
+              variant: ButtonVariants.Primary,
+              size: ButtonSize.Lg,
+              onPress: dismissKeypad,
+            },
+          ]}
+        />
+      )}
     </BottomSheet>
   );
 };
