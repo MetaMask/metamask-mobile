@@ -21,6 +21,7 @@ import {
 } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
+import usePrevious from '../../../../hooks/usePrevious';
 
 interface UseRewardsParams {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -62,6 +63,7 @@ export const useRewards = ({
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
   const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const prevRequestId = usePrevious(activeQuote?.quote?.requestId);
 
   // Selectors
   const sourceToken = useSelector(selectSourceToken);
@@ -190,11 +192,14 @@ export const useRewards = ({
 
   // Estimate points when dependencies change
   useEffect(() => {
-    estimatePoints();
+    if (prevRequestId !== activeQuote?.quote?.requestId) {
+      estimatePoints();
+    }
   }, [
     estimatePoints,
     // Only re-estimate when quote changes (not during loading)
     activeQuote?.quote?.requestId,
+    prevRequestId,
   ]);
 
   return {
