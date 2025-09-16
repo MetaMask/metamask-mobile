@@ -30,6 +30,8 @@ export const selectBalanceUpdatedAt = (state: RootState) =>
 export const selectSeasonStatusLoading = (state: RootState) =>
   state.rewards.seasonStatusLoading;
 
+export const selectSeasonId = (state: RootState) => state.rewards.seasonId;
+
 export const selectSeasonName = (state: RootState) => state.rewards.seasonName;
 
 export const selectSeasonStartDate = (state: RootState) =>
@@ -55,3 +57,18 @@ export const selectOptinAllowedForGeoLoading = (state: RootState) =>
 
 export const selectReferralDetailsLoading = (state: RootState) =>
   state.rewards.referralDetailsLoading;
+
+export const selectCandidateSubscriptionId = (state: RootState) =>
+  state.rewards.candidateSubscriptionId;
+
+export const selectHideUnlinkedAccountsBanner = (state: RootState) =>
+  state.rewards.hideUnlinkedAccountsBanner;
+
+export const selectActiveBoosts = (state: RootState) =>
+  state.rewards.activeBoosts;
+
+export const selectActiveBoostsLoading = (state: RootState) =>
+  state.rewards.activeBoostsLoading;
+
+export const selectActiveBoostsError = (state: RootState) =>
+  state.rewards.activeBoostsError;

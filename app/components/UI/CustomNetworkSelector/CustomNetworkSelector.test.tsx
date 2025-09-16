@@ -19,6 +19,7 @@ import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -106,10 +107,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../selectors/preferencesController', () => ({
-  selectUseBlockieIcon: jest.fn(),
-}));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   Provider: jest.requireActual('react-redux').Provider,
@@ -145,6 +142,10 @@ jest.mock('@shopify/flash-list', () => {
     ListRenderItem: jest.fn(),
   };
 });
+
+jest.mock('../../../selectors/multichainNetworkController', () => ({
+  selectIsEvmNetworkSelected: jest.fn(),
+}));
 
 // Mock store setup
 const mockStore = createStore(() => ({
@@ -182,7 +183,10 @@ describe('CustomNetworkSelector', () => {
     typeof useNetworksToUse
   >;
   const mockUseSelector = jest.mocked(useSelector);
-
+  const mockSelectIsEvmNetworkSelected =
+    selectIsEvmNetworkSelected as jest.MockedFunction<
+      typeof selectIsEvmNetworkSelected
+    >;
   const mockNetworks: CustomNetworkItem[] = [
     {
       id: 'eip155:137',
@@ -240,7 +244,6 @@ describe('CustomNetworkSelector', () => {
       selectNetwork: jest.fn(),
       deselectAll: jest.fn(),
       selectAllPopularNetworks: jest.fn(),
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
 
@@ -266,8 +269,13 @@ describe('CustomNetworkSelector', () => {
       areAllSolanaNetworksSelected: false,
     });
 
+    mockSelectIsEvmNetworkSelected.mockReturnValue(true);
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectMultichainAccountsState2Enabled) {
+        return true;
+      }
+      if (selector === mockSelectIsEvmNetworkSelected) {
         return true;
       }
       return undefined;
@@ -379,7 +387,6 @@ describe('CustomNetworkSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
     });

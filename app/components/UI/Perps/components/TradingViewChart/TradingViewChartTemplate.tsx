@@ -51,6 +51,126 @@ export const createTradingViewChartTemplate = (
         window.visibleCandleCount = 45; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
         
+        // Smart timestamp formatter using TradingView's native tickMarkType with fallback
+        window.formatTimestamp = function(time, tickMarkType, isCrosshair = false) {
+            const date = new Date(time * 1000);
+            const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            if (isCrosshair) {
+                // Crosshair labels: always show full date and time for precision
+                return date.toLocaleString('en-US', { 
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: userTimezone
+                });
+            } else {
+                // Debug logging to see what tickMarkType we're getting
+                console.log('📊 TradingView: tickMarkType =', tickMarkType, 'for time =', time);
+                
+                // Use TradingView's native tickMarkType if available
+                if (tickMarkType) {
+                    switch (tickMarkType) {
+                        case 'Year':
+                            return date.getFullYear().toString();
+                        case 'Month':
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                        case 'DayOfMonth':
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                        case 'Hour':
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                        case 'Minute':
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                        case 'Second':
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                    }
+                }
+                
+                // Fallback: Use our own logic based on visible range
+                if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
+                    const visibleRange = window.chart.timeScale().getVisibleRange();
+                    if (visibleRange) {
+                        const startDate = new Date(visibleRange.from * 1000);
+                        const endDate = new Date(visibleRange.to * 1000);
+                        
+                        // Calculate the time span in hours
+                        const timeSpanHours = (visibleRange.to - visibleRange.from) / 3600;
+                        
+                        console.log('📊 TradingView: Fallback logic - timeSpanHours =', timeSpanHours, 'from', startDate.toISOString(), 'to', endDate.toISOString());
+                        
+                        if (timeSpanHours <= 24) {
+                            // Less than 24 hours: show time only
+                            console.log('📊 TradingView: Using time format (≤24h)');
+                            return date.toLocaleString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: userTimezone
+                            });
+                        } else if (timeSpanHours <= 24 * 7) {
+                            // Less than a week: show date only
+                            console.log('📊 TradingView: Using date format (≤1 week)');
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                        } else if (timeSpanHours <= 24 * 30) {
+                            // Less than a month: show date only
+                            console.log('📊 TradingView: Using date format (≤1 month)');
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                day: 'numeric',
+                                timeZone: userTimezone
+                            });
+                        } else {
+                            // More than a month: show month only
+                            console.log('📊 TradingView: Using month format (>1 month)');
+                            return date.toLocaleString('en-US', { 
+                                month: 'short',
+                                timeZone: userTimezone
+                            });
+                        }
+                    }
+                }
+                
+                // Final fallback: show date and time
+                return date.toLocaleString('en-US', { 
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: userTimezone
+                });
+            }
+        };
+        
         // Zoom limits - consistent with chart configuration
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
@@ -164,15 +284,7 @@ export const createTradingViewChartTemplate = (
                         },
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
-                            const date = new Date(time * 1000);
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                            });
+                            return window.formatTimestamp(time, null, true);
                         }
                     },
                     grid: {
@@ -191,10 +303,12 @@ export const createTradingViewChartTemplate = (
                             },
                             mouseWheel: false, // Disable mouse wheel zoom (mobile app)
                             pinch: true, // Enable pinch zoom on mobile
+                            pressedMouseMove: false, // Enable drag scroll for direct touch control
+                            horzTouchDrag: false, // Enable horizontal touch drag
                         },
                         handleScroll: {
                             mouseWheel: false, // Disable mouse wheel scroll (mobile app)
-                            pressedMouseMove: false, // Enable drag scroll for direct touch control
+                            pressedMouseMove: true, // Enable drag scroll for direct touch control
                             horzTouchDrag: true, // Enable horizontal touch drag
                             vertTouchDrag: false, // Disable vertical touch drag
                             // Optimize for direct press-and-drag responsiveness
@@ -210,17 +324,9 @@ export const createTradingViewChartTemplate = (
                         lockVisibleTimeRangeOnResize: false, // Don't lock on resize
                         rightBarStaysOnScroll: false, // Don't auto-follow latest data during scroll
                         uniformDistribution: false, // Allow natural time distribution
-                        // Format time with date in user's local timezone
-                        tickMarkFormatter: (time) => {
-                            const date = new Date(time * 1000);
-                            return date.toLocaleString('en-US', { 
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: false,
-                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use user's local timezone
-                            });
+                        // Format time with smart conditional formatting using TradingView's native tickMarkType
+                        tickMarkFormatter: (time, tickMarkType) => {
+                            return window.formatTimestamp(time, tickMarkType, false);
                         },
                     },
                     rightPriceScale: {
@@ -264,12 +370,12 @@ export const createTradingViewChartTemplate = (
             }
             // Create new candlestick series with performance optimizations
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
-                upColor: '#BAF24A',
-                downColor: '#FF7584',
+                upColor: '${theme.colors.success.default}',
+                downColor: '${theme.colors.error.default}',
                 borderVisible: false,
-                wickUpColor: '#BAF24A',
-                wickDownColor: '#FF7584',
-                priceLineColor: '#FFF',
+                wickUpColor: '${theme.colors.success.default}',
+                wickDownColor: '${theme.colors.error.default}',
+                priceLineColor: '${theme.colors.icon.alternative}',
                 priceLineWidth: 1,
                 lastValueVisible: false,
                 // Use native PriceLineSource for better price line handling
@@ -568,10 +674,19 @@ export const createTradingViewChartTemplate = (
                 const firstTime = visibleData[0].time;
                 const lastTime = visibleData[visibleData.length - 1].time;
                 
+                // Calculate the time interval between candles for padding
+                const timeInterval = visibleData.length > 1 
+                    ? visibleData[1].time - visibleData[0].time 
+                    : 60; // Default to 1 minute if only one candle
+                
+                // Add padding to ensure the latest candle is fully visible
+                // Add half a candle period to the end to ensure latest candle is visible
+                const paddedLastTime = lastTime + (timeInterval / 2);
+                
                 try {
                     window.chart.timeScale().setVisibleRange({
                         from: firstTime,
-                        to: lastTime,
+                        to: paddedLastTime,
                     });
                 } catch (error) {
                     console.error('TradingView: Error setting visible range:', error);
@@ -779,6 +894,61 @@ export const createTradingViewChartTemplate = (
                             window.visibleCandleCount = window.ZOOM_LIMITS.DEFAULT_CANDLES;
                             window.applyZoom(window.ZOOM_LIMITS.DEFAULT_CANDLES, true); // Force reset
                             console.log('📊 TradingView: Reset to default state - 45 candles');
+                        }
+                        break;
+                    case 'ZOOM_TO_LATEST_CANDLE':
+                        // Zoom to show the latest candles when period changes
+                        if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
+                            const candleCount = message.candleCount || window.visibleCandleCount;
+                            window.applyZoom(candleCount, true); // Force zoom to latest
+                            console.log('📊 TradingView: Zoomed to latest', candleCount, 'candles');
+                        }
+                        break;
+                    case 'CLEAR_TPSL_LINES':
+                        // Clear all TPSL lines except current price line
+                        if (window.candlestickSeries) {
+                            // Remove entry price line
+                            if (window.priceLines.entryPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.entryPrice);
+                                    window.priceLines.entryPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing entry line:', error);
+                                }
+                            }
+                            
+                            // Remove take profit line
+                            if (window.priceLines.takeProfitPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.takeProfitPrice);
+                                    window.priceLines.takeProfitPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing take profit line:', error);
+                                }
+                            }
+                            
+                            // Remove stop loss line
+                            if (window.priceLines.stopLossPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.stopLossPrice);
+                                    window.priceLines.stopLossPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing stop loss line:', error);
+                                }
+                            }
+                            
+                            // Remove liquidation line
+                            if (window.priceLines.liquidationPrice) {
+                                try {
+                                    window.candlestickSeries.removePriceLine(window.priceLines.liquidationPrice);
+                                    window.priceLines.liquidationPrice = null;
+                                } catch (error) {
+                                    console.error('TradingView: Error removing liquidation line:', error);
+                                }
+                            }
+                            
+                            // Note: currentPrice line is intentionally preserved
+                            console.log('📊 TradingView: Cleared TPSL lines (preserved current price line)');
                         }
                         break;
                     case 'UPDATE_INTERVAL':

@@ -32,7 +32,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
+import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -70,6 +70,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 
 /**
@@ -84,7 +85,16 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private async dispatchLogin(): Promise<void> {
+  private async dispatchLogin(
+    options: {
+      clearAccountTreeState: boolean;
+    } = {
+      clearAccountTreeState: false,
+    },
+  ): Promise<void> {
+    if (options.clearAccountTreeState) {
+      AccountTreeInitService.clearState();
+    }
     await AccountTreeInitService.initializeAccountTree();
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
@@ -124,8 +134,10 @@ class AuthenticationService {
 
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
-      SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
-        Logger.error(err, 'Failed to revoke refresh token');
+
+      // renew refresh token
+      renewSeedlessControllerRefreshTokens(password).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
       });
     }
     password = this.wipeSensitiveData();
@@ -211,9 +223,7 @@ class AuthenticationService {
     entropySource?: EntropySourceId,
   ): Promise<void> => {
     await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAndCreateAccounts(
-        entropySource ?? this.getPrimaryEntropySourceId(),
-      );
+      await discoverAccounts(entropySource ?? this.getPrimaryEntropySourceId());
     });
   };
 
@@ -489,7 +499,9 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -522,7 +534,9 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -672,12 +686,8 @@ class AuthenticationService {
       await KeyringController.setLocked();
     }
     // async check seedless password outdated skip cache when app lock
-    this.checkIsSeedlessPasswordOutdated(true).catch((err: Error) => {
-      Logger.error(
-        err,
-        'Error in lockApp: checking seedless password outdated',
-      );
-    });
+    // the function swallowed the error
+    this.checkIsSeedlessPasswordOutdated(true);
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
@@ -806,7 +816,10 @@ class AuthenticationService {
             this.addMultichainAccounts([keyringMetadata]);
           }
         } else {
-          Logger.error(new Error('Unknown secret type'), secret.type);
+          Logger.error(
+            new Error('SeedlessOnboardingController: Unknown secret type'),
+            secret.type,
+          );
         }
       }
     }
@@ -1019,11 +1032,19 @@ class AuthenticationService {
                   await this.importSeedlessMnemonicToVault(mnemonic);
                 keyringMetadataList.push(keyringMetadata);
               } else {
-                Logger.error(new Error('Unknown secret type'), item.type);
+                Logger.error(
+                  new Error(
+                    'SeedlessOnboardingController : Unknown secret type',
+                  ),
+                  item.type,
+                );
               }
             } catch (error) {
               // catch error to prevent unable to login
-              Logger.error(error as Error);
+              Logger.error(
+                error as Error,
+                'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+              );
             }
           }
         }
@@ -1047,7 +1068,7 @@ class AuthenticationService {
       }
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
-      Logger.error(error as Error);
+      Logger.log(error);
       throw error;
     }
   };
@@ -1083,8 +1104,8 @@ class AuthenticationService {
 
     if (!success) {
       const errorMessage = (seedlessSyncError as Error).message;
-      Logger.error(
-        seedlessSyncError as Error,
+      Logger.log(
+        seedlessSyncError,
         `error while submitting global password: ${errorMessage}`,
       );
 
@@ -1115,6 +1136,11 @@ class AuthenticationService {
           throw seedlessSyncError;
         }
       } else {
+        // Case 3: Both keyring and seedless controller password verification failed.
+        Logger.error(
+          seedlessSyncError as Error,
+          'Error in syncPasswordAndUnlockWallet',
+        );
         throw seedlessSyncError;
       }
     }
@@ -1133,11 +1159,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
-        (err) => {
-          Logger.error(err, 'Failed to revoke refresh token');
-        },
-      );
+      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
+        Logger.error(err, 'Failed to renew refresh token');
+      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });

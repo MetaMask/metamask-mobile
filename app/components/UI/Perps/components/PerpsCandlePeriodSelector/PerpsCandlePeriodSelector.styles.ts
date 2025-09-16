@@ -48,6 +48,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       marginHorizontal: 2,
       alignItems: 'center',
       justifyContent: 'center',
+      flexDirection: 'row',
     },
     moreButtonSelected: {
       backgroundColor: theme.colors.background.muted,
@@ -61,12 +62,13 @@ export const styleSheet = (params: { theme: Theme }) => {
     moreText: {
       fontSize: 14,
       fontWeight: '400',
+      marginRight: 4,
     },
     moreTextSelected: {
       color: theme.colors.text.default,
     },
     moreTextUnselected: {
-      color: theme.colors.text.muted,
+      color: theme.colors.text.alternative,
     },
   });
 };

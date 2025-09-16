@@ -160,6 +160,18 @@ describe('useSendContext', () => {
     expect(result.current.asset).toEqual(mockAssetEvm);
   });
 
+  it('reset amount and maxMode when calling updateAsset', () => {
+    const { result } = renderHook(() => useSendContext(), { wrapper });
+
+    act(() => {
+      result.current.updateValue('10', true);
+      result.current.updateAsset(mockAssetEvm);
+    });
+
+    expect(result.current.value).toEqual('');
+    expect(result.current.maxValueMode).toEqual(false);
+  });
+
   it('updates to address when calling updateTo', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 

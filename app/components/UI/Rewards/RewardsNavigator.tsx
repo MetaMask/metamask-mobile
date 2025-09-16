@@ -4,60 +4,31 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../constants/navigation/Routes';
-import { useRewardsAuth } from './hooks/useRewardsAuth';
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
-import Skeleton from '../../../component-library/components/Skeleton/Skeleton';
-import { Box } from '@metamask/design-system-react-native';
+import RewardsSettingsView from './Views/RewardsSettingsView';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import ErrorBoundary from '../../Views/ErrorBoundary';
-import { useTheme } from '../../../util/theme';
-import { getNavigationOptionsTitle } from '../Navbar';
 import {
   setOnboardingActiveStep,
   OnboardingStep,
 } from '../../../actions/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-
+import {
+  selectRewardsActiveAccountHasOptedIn,
+  selectRewardsSubscriptionId,
+} from '../../../selectors/rewards';
+import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 const Stack = createStackNavigator();
 
 interface RewardsNavigatorProps {
   children?: React.ReactNode;
 }
-
-const LoadingView = () => {
-  const tw = useTailwind();
-  const navigation = useNavigation();
-  const { colors } = useTheme();
-  // Set navigation title
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('rewards.main_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [colors, navigation]);
-  return (
-    <ErrorBoundary navigation={navigation} view="RewardsView">
-      <SafeAreaView
-        style={tw.style('flex-1 bg-default')}
-        edges={['top', 'left', 'right']}
-      >
-        <Box twClassName="flex-1 items-center justify-center">
-          <Skeleton width="100%" height="100%" />
-        </Box>
-      </SafeAreaView>
-    </ErrorBoundary>
-  );
-};
 
 const AuthErrorView = () => {
   const tw = useTailwind();
@@ -90,15 +61,27 @@ const AuthErrorView = () => {
 };
 
 const RewardsNavigatorContent: React.FC = () => {
-  const { hasAccountedOptedIn } = useRewardsAuth();
   const account = useSelector(selectSelectedInternalAccount);
+  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
 
-  // Determine initial route based on auth state and onboarding state
+  // Set candidate subscription ID in Redux state when component mounts and account changes
+  useCandidateSubscriptionId();
+
+  // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
-    if (hasAccountedOptedIn === true) {
+    // If user has already opted in and has a valid subscription candidate ID, go to dashboard
+    if (
+      hasAccountedOptedIn === true &&
+      subscriptionId &&
+      subscriptionId !== 'pending' &&
+      subscriptionId !== 'error'
+    ) {
       return Routes.REWARDS_DASHBOARD;
     }
+
+    // For all other cases, start with onboarding flow (intro step)
     return Routes.REWARDS_ONBOARDING_FLOW;
   };
 
@@ -108,16 +91,25 @@ const RewardsNavigatorContent: React.FC = () => {
     }
   }, [account, dispatch]);
 
-  if (hasAccountedOptedIn === 'pending') {
-    return <LoadingView />;
-  }
-  if (hasAccountedOptedIn === 'error') {
+  // Show loading only while checking auth state initially
+  if (subscriptionId === 'error') {
+    // if we had an error while getting the candidate subscription ID, show the auth error view
     return <AuthErrorView />;
   }
 
+  const isValidSubscriptionCandidateId =
+    Boolean(subscriptionId) &&
+    subscriptionId !== 'error' &&
+    subscriptionId !== 'pending';
+
   return (
     <Stack.Navigator initialRouteName={getInitialRoute()}>
-      {hasAccountedOptedIn === true ? (
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_FLOW}
+        component={OnboardingNavigator}
+        options={{ headerShown: false }}
+      />
+      {hasAccountedOptedIn === true || isValidSubscriptionCandidateId ? (
         <>
           <Stack.Screen
             name={Routes.REWARDS_DASHBOARD}
@@ -129,14 +121,13 @@ const RewardsNavigatorContent: React.FC = () => {
             component={ReferralRewardsView}
             options={{ headerShown: true }}
           />
+          <Stack.Screen
+            name={Routes.REWARDS_SETTINGS_VIEW}
+            component={RewardsSettingsView}
+            options={{ headerShown: true }}
+          />
         </>
-      ) : (
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_FLOW}
-          component={OnboardingNavigator}
-          options={{ headerShown: false }}
-        />
-      )}
+      ) : null}
     </Stack.Navigator>
   );
 };

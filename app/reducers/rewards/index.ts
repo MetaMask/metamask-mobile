@@ -3,6 +3,7 @@ import {
   SeasonStatusState,
   SeasonTierDto,
   GeoRewardsMetadata,
+  PointsBoostDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import Logger from '../../util/Logger';
@@ -12,6 +13,7 @@ export interface RewardsState {
   seasonStatusLoading: boolean;
 
   // Season state
+  seasonId: string | null;
   seasonName: string | null;
   seasonStartDate: Date | null;
   seasonEndDate: Date | null;
@@ -35,16 +37,28 @@ export interface RewardsState {
   // Onboarding state
   onboardingActiveStep: OnboardingStep;
 
+  // Candidate subscription state
+  candidateSubscriptionId: string | 'pending' | 'error' | null;
+
   // Geolocation state
   geoLocation: string | null;
   optinAllowedForGeo: boolean;
   optinAllowedForGeoLoading: boolean;
+
+  // UI preferences
+  hideUnlinkedAccountsBanner: boolean;
+
+  // Points Boost state
+  activeBoosts: PointsBoostDto[] | null;
+  activeBoostsLoading: boolean;
+  activeBoostsError: boolean;
 }
 
 export const initialState: RewardsState = {
   activeTab: 'overview',
   seasonStatusLoading: false,
 
+  seasonId: null,
   seasonName: null,
   seasonStartDate: null,
   seasonEndDate: null,
@@ -63,9 +77,15 @@ export const initialState: RewardsState = {
   balanceUpdatedAt: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
+  candidateSubscriptionId: 'pending',
   geoLocation: null,
   optinAllowedForGeo: false,
   optinAllowedForGeoLoading: false,
+  hideUnlinkedAccountsBanner: false,
+
+  activeBoosts: null,
+  activeBoostsLoading: false,
+  activeBoostsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -90,6 +110,7 @@ const rewardsSlice = createSlice({
       action: PayloadAction<SeasonStatusState | null>,
     ) => {
       // Season state
+      state.seasonId = action.payload?.season.id || null;
       state.seasonName = action.payload?.season.name || null;
       state.seasonStartDate = action.payload?.season.startDate
         ? new Date(action.payload.season.startDate)
@@ -158,6 +179,13 @@ const rewardsSlice = createSlice({
       state.onboardingActiveStep = OnboardingStep.INTRO;
     },
 
+    setCandidateSubscriptionId: (
+      state,
+      action: PayloadAction<string | 'pending' | 'error' | null>,
+    ) => {
+      state.candidateSubscriptionId = action.payload;
+    },
+
     setGeoRewardsMetadata: (
       state,
       action: PayloadAction<GeoRewardsMetadata | null>,
@@ -176,14 +204,31 @@ const rewardsSlice = createSlice({
     setGeoRewardsMetadataLoading: (state, action: PayloadAction<boolean>) => {
       state.optinAllowedForGeoLoading = action.payload;
     },
+
+    setHideUnlinkedAccountsBanner: (state, action: PayloadAction<boolean>) => {
+      state.hideUnlinkedAccountsBanner = action.payload;
+    },
+
+    setActiveBoosts: (state, action: PayloadAction<PointsBoostDto[]>) => {
+      state.activeBoosts = action.payload;
+      state.activeBoostsError = false; // Reset error when successful
+    },
+    setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
+      state.activeBoostsLoading = action.payload;
+    },
+    setActiveBoostsError: (state, action: PayloadAction<boolean>) => {
+      state.activeBoostsError = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
       if (action.payload?.rewards) {
         return {
-          ...action.payload.rewards,
-          // Reset non-persistent state
-          seasonStatusLoading: false,
+          // Reset non-persistent state (state is persisted via controller)
+          ...initialState,
+          // Restore only a few persistent state
+          hideUnlinkedAccountsBanner:
+            action.payload.rewards.hideUnlinkedAccountsBanner,
         };
       }
       return state;
@@ -200,8 +245,13 @@ export const {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setHideUnlinkedAccountsBanner,
+  setActiveBoosts,
+  setActiveBoostsLoading,
+  setActiveBoostsError,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

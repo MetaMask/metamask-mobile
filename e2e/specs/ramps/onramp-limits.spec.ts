@@ -27,7 +27,7 @@ describe(SmokeTrade('On-Ramp Limits'), () => {
       },
       async () => {
         await loginToApp();
-        await WalletView.tapWalletFundButton();
+        await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapBuyButton();
         await BuyGetStartedView.tapGetStartedButton();
         await BuildQuoteView.enterAmount('1');

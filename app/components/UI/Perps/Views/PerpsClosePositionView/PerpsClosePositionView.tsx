@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,8 +28,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import type { OrderType, Position } from '../../controllers/types';
@@ -33,7 +37,7 @@ import {
   usePerpsOrderFees,
   usePerpsClosePositionValidation,
   usePerpsClosePosition,
-  usePerpsMarketData,
+  usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
@@ -43,7 +47,6 @@ import {
 } from '../../utils/positionCalculations';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -53,10 +56,18 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsClosePositionViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsClosePositionViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -69,6 +80,8 @@ const PerpsClosePositionView: React.FC = () => {
   const hasTrackedCloseView = useRef(false);
   const { track } = usePerpsEventTracking();
 
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+
   // Track screen load performance
   usePerpsScreenTracking({
     screenName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
@@ -77,20 +90,15 @@ const PerpsClosePositionView: React.FC = () => {
 
   // State for order type and bottom sheets
   const [orderType, setOrderType] = useState<OrderType>('market');
-  const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isUserInputActive, setIsUserInputActive] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-  const [displayMode, setDisplayMode] = useState<'usd' | 'token'>('usd');
 
   // State for close amount
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
-  const [closeAmount, setCloseAmount] = useState(position.size);
-  const [closeAmountString, setCloseAmountString] = useState(position.size); // Raw string for token input
-  const [closeAmountUSD, setCloseAmountUSD] = useState(0);
-  const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input
+  const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input (user input only)
 
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
@@ -104,19 +112,64 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
-  // Get market data for decimal precision
-  const { marketData } = usePerpsMarketData(position.coin);
-
   // Determine position direction
   const isLong = parseFloat(position.size) > 0;
   const absSize = Math.abs(parseFloat(position.size));
+  // Calculate effective price for calculations
+  // For limit orders, use limit price when available; otherwise use current market price
+  const effectivePrice = useMemo(() => {
+    if (orderType === 'limit' && limitPrice) {
+      const parsed = parseFloat(limitPrice);
+      if (!isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    return currentPrice;
+  }, [orderType, limitPrice, currentPrice]);
+
+  // Calculate display values directly from closePercentage for immediate updates
+  const { closeAmount, calculatedUSDString } = useMemo(() => {
+    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
+      percentage: closePercentage,
+      positionSize: absSize,
+      currentPrice: effectivePrice,
+    });
+
+    return {
+      closeAmount: tokenAmount.toString(),
+      calculatedUSDString: usdValue.toFixed(2),
+    };
+  }, [closePercentage, absSize, effectivePrice]);
+
+  // Use calculated USD string when not in input mode, user input when typing
+  const displayUSDString =
+    isInputFocused || isUserInputActive
+      ? closeAmountUSDString
+      : calculatedUSDString;
 
   // Calculate position value and effective margin
-  const positionValue = absSize * currentPrice;
-  // Use the actual margin from the position instead of recalculating
-  const effectiveMargin = parseFloat(position.marginUsed);
+  // For limit orders, use limit price for display calculations
+  const positionValue = absSize * effectivePrice;
 
-  // Use unrealized PnL from position
+  // Calculate P&L based on effective price (limit price for limit orders)
+  const entryPrice = parseFloat(position.entryPrice);
+  const effectivePnL = useMemo(() => {
+    // Calculate P&L based on the effective price (limit price for limit orders)
+    // For long positions: (effectivePrice - entryPrice) * absSize
+    // For short positions: (entryPrice - effectivePrice) * absSize
+    const priceDiff = isLong
+      ? effectivePrice - entryPrice
+      : entryPrice - effectivePrice;
+    return priceDiff * absSize;
+  }, [effectivePrice, entryPrice, absSize, isLong]);
+
+  // Use the actual initial margin from the position
+  const initialMargin = parseFloat(position.marginUsed);
+
+  // Calculate effective margin (initial margin + P&L at effective price)
+  const effectiveMargin = initialMargin + effectivePnL;
+
+  // Use unrealized PnL from position for current market price (for reference/tracking)
   const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
@@ -127,7 +180,7 @@ const PerpsClosePositionView: React.FC = () => {
     isMaker: false, // Closing positions are typically taker orders
   });
 
-  // Calculate what user will receive (margin - fees, P&L is settled separately)
+  // Calculate what user will receive (initial margin + P&L at effective price - fees)
   const receiveAmount =
     (closePercentage / 100) * effectiveMargin - feeResults.totalFee;
 
@@ -147,7 +200,7 @@ const PerpsClosePositionView: React.FC = () => {
     closeAmount: closeAmount.toString(),
     orderType,
     limitPrice,
-    currentPrice,
+    currentPrice: effectivePrice,
     positionSize: absSize,
     positionValue,
     minimumOrderAmount,
@@ -176,10 +229,9 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
-    const initialUSDAmount = absSize * currentPrice;
-    setCloseAmountUSD(initialUSDAmount);
-    setCloseAmountUSDString(initialUSDAmount.toString());
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally excluding currentPrice to prevent updates on price changes
+    const initialUSDAmount = absSize * effectivePrice;
+    setCloseAmountUSDString(initialUSDAmount.toFixed(2));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally excluding effectivePrice to prevent updates on price changes
   }, [absSize]);
 
   // Auto-open limit price bottom sheet when switching to limit order
@@ -188,50 +240,6 @@ const PerpsClosePositionView: React.FC = () => {
       setIsLimitPriceVisible(true);
     }
   }, [orderType, limitPrice]);
-
-  // Update close amount when percentage changes (but not during active input)
-  useEffect(() => {
-    // Skip automatic updates when user is actively typing or when input is focused
-    if (isInputFocused || isUserInputActive) {
-      return;
-    }
-
-    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
-      percentage: closePercentage,
-      positionSize: absSize,
-      currentPrice,
-    });
-
-    setCloseAmount(tokenAmount.toString());
-    setCloseAmountString(tokenAmount.toString()); // Update token display string for slider
-    setCloseAmountUSD(usdValue);
-    setCloseAmountUSDString(usdValue.toString());
-  }, [
-    closePercentage,
-    absSize,
-    currentPrice,
-    isInputFocused,
-    isUserInputActive,
-  ]);
-
-  // Track position close value changes (separate effect for performance)
-  useEffect(() => {
-    if (closePercentage !== 100 && !isInputFocused) {
-      const trackingValue = (closePercentage / 100) * absSize * currentPrice;
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED, {
-        [PerpsEventProperties.ASSET]: position.coin,
-        [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-        [PerpsEventProperties.CLOSE_VALUE]: trackingValue,
-      });
-    }
-  }, [
-    closePercentage,
-    absSize,
-    currentPrice,
-    position.coin,
-    track,
-    isInputFocused,
-  ]);
 
   const handleConfirm = async () => {
     // Track position close initiated
@@ -243,7 +251,7 @@ const PerpsClosePositionView: React.FC = () => {
       [PerpsEventProperties.ORDER_TYPE]: orderType,
       [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
       [PerpsEventProperties.CLOSE_VALUE]: closingValue,
-      [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
+      [PerpsEventProperties.PNL_DOLLAR]: effectivePnL * (closePercentage / 100),
       [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
     });
 
@@ -272,18 +280,13 @@ const PerpsClosePositionView: React.FC = () => {
     );
   };
 
-  const handleCancel = () => {
-    navigation.goBack();
-  };
-
   const handleAmountPress = () => {
     setIsInputFocused(true);
   };
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
-      const previousValue =
-        displayMode === 'usd' ? closeAmountUSDString : closeAmountString;
+      const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
       let adjustedValue = value;
@@ -310,105 +313,65 @@ const PerpsClosePositionView: React.FC = () => {
         setIsUserInputActive(true);
       }
 
-      if (displayMode === 'usd') {
-        // USD decimal input logic - preserve raw string for display
-        // Use adjustedValue instead of original value
-        const numericValue = parseFloat(adjustedValue) || 0;
-        const clampedValue = validateCloseAmountLimits({
-          amount: numericValue,
-          maxAmount: positionValue,
-        });
-
-        // For USD mode, preserve user input exactly as typed for proper delete operations
-        // Only limit decimal places if there are digits after the decimal point
-        let formattedUSDString = adjustedValue;
-        if (adjustedValue.includes('.')) {
-          const parts = adjustedValue.split('.');
-          const integerPart = parts[0] || '';
-          const decimalPart = parts[1] || '';
-
-          // If there's a decimal part, limit it to 2 digits
-          if (decimalPart.length > 0) {
-            formattedUSDString = integerPart + '.' + decimalPart.slice(0, 2);
-          } else {
-            // Keep the decimal point if user just typed it (like "2.")
-            formattedUSDString = integerPart + '.';
-          }
-        }
-
-        // Update all states in batch to prevent race conditions
-        setCloseAmountUSDString(formattedUSDString);
-        setCloseAmountUSD(clampedValue);
-
-        // Calculate percentage and token amount
-        const newPercentage =
-          positionValue > 0 ? (clampedValue / positionValue) * 100 : 0;
-        const newAmount = (newPercentage / 100) * absSize;
-
-        // Update percentage and token amount after USD values are set
-        setCloseAmount(newAmount.toString());
-        setClosePercentage(newPercentage);
-      } else {
-        // Token decimal input logic - preserve raw string for display
-        // Use adjustedValue for consistency
-        const numericValue = parseFloat(adjustedValue) || 0;
-        const clampedTokenAmount = validateCloseAmountLimits({
-          amount: numericValue,
-          maxAmount: absSize,
-        });
-
-        // Preserve raw input string for display (to keep decimal points)
-        // Only show clamped value if it actually exceeds the limit
-        let displayString = adjustedValue;
-        if (numericValue > absSize) {
-          displayString = clampedTokenAmount.toString();
-        }
-
-        // Update states in batch
-        setCloseAmountString(displayString); // Raw string for display
-        setCloseAmount(clampedTokenAmount.toString()); // Clamped value for calculations
-        setCloseAmountUSD(clampedTokenAmount * currentPrice);
-
-        // Calculate percentage after token values are set
-        const newPercentage =
-          absSize > 0 ? (clampedTokenAmount / absSize) * 100 : 0;
-        setClosePercentage(newPercentage);
+      // Enforce 9-digit limit (ignoring non-digits). Block the change if exceeded.
+      const digitCount = (adjustedValue.match(/\d/g) || []).length;
+      if (digitCount > 9) {
+        return; // Ignore input that would exceed 9 digits
       }
+
+      // USD decimal input logic - preserve raw string for display
+      // Use adjustedValue instead of original value
+      const numericValue = parseFloat(adjustedValue) || 0;
+      const clampedValue = validateCloseAmountLimits({
+        amount: numericValue,
+        maxAmount: positionValue,
+      });
+
+      // For USD mode, preserve user input exactly as typed for proper delete operations
+      // Only limit decimal places if there are digits after the decimal point
+      let formattedUSDString = adjustedValue;
+      if (adjustedValue.includes('.')) {
+        const parts = adjustedValue.split('.');
+        const integerPart = parts[0] || '';
+        const decimalPart = parts[1] || '';
+
+        // If there's a decimal part, limit it to 2 digits
+        if (decimalPart.length > 0) {
+          formattedUSDString = integerPart + '.' + decimalPart.slice(0, 2);
+        } else {
+          // Keep the decimal point if user just typed it (like "2.")
+          formattedUSDString = integerPart + '.';
+        }
+      }
+
+      // Update all states in batch to prevent race conditions
+      setCloseAmountUSDString(formattedUSDString);
+
+      // Calculate percentage and token amount
+      const newPercentage =
+        positionValue > 0 ? (clampedValue / positionValue) * 100 : 0;
+
+      // Update percentage (amount and token values are calculated automatically)
+      setClosePercentage(newPercentage);
     },
-    [
-      displayMode,
-      positionValue,
-      absSize,
-      currentPrice,
-      isInputFocused,
-      isUserInputActive,
-      closeAmountString,
-      closeAmountUSDString,
-    ],
+    [positionValue, isInputFocused, isUserInputActive, closeAmountUSDString],
   );
 
   const handlePercentagePress = (percentage: number) => {
     const newPercentage = percentage * 100;
     setClosePercentage(newPercentage);
 
-    // Immediately update values even when keypad is active
-    const newAmount = (newPercentage / 100) * absSize;
-    setCloseAmount(newAmount.toString());
-    setCloseAmountString(newAmount.toString()); // Update token display string
-    const newUSDAmount = newAmount * currentPrice;
-    setCloseAmountUSD(newUSDAmount);
-    setCloseAmountUSDString(newUSDAmount.toString());
+    // Update USD input to match calculated value for keypad display consistency
+    const newUSDAmount = (newPercentage / 100) * absSize * effectivePrice;
+    setCloseAmountUSDString(newUSDAmount.toFixed(2));
   };
 
   const handleMaxPress = () => {
     setClosePercentage(100);
 
-    // Immediately update values even when keypad is active
-    setCloseAmount(absSize.toString());
-    setCloseAmountString(absSize.toString()); // Update token display string
-    const newUSDAmount = absSize * currentPrice;
-    setCloseAmountUSD(newUSDAmount);
-    setCloseAmountUSDString(newUSDAmount.toString());
+    // Update USD input to match calculated value for keypad display consistency
+    const newUSDAmount = absSize * effectivePrice;
+    setCloseAmountUSDString(newUSDAmount.toFixed(2));
   };
 
   const handleDonePress = () => {
@@ -428,44 +391,136 @@ const PerpsClosePositionView: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Lg}
-            color={IconColor.Default}
-          />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.close_position.title')}
+  const realizedPnl = useMemo(() => {
+    const price = Math.abs(effectivePnL * (closePercentage / 100));
+    const formattedPrice = formatPrice(price, {
+      maximumDecimals: 2,
+    });
+
+    return { formattedPrice, price, isNegative: effectivePnL < 0 };
+  }, [effectivePnL, closePercentage]);
+
+  // Hide provider-level limit price required error on this UI
+  // Only display the minimum amount error (e.g. minimum $10) and suppress others
+  const filteredErrors = useMemo(() => {
+    const minimumAmountErrorPrefix = strings(
+      'perps.order.validation.minimum_amount',
+      {
+        amount: '',
+      },
+    ).replace(/\s+$/, '');
+    // The actual minimum amount string includes the amount placeholder; match by key detection.
+    return validationResult.errors.filter((err) =>
+      err.startsWith(minimumAmountErrorPrefix),
+    );
+  }, [validationResult.errors]);
+
+  const Summary = (
+    <View
+      style={[
+        styles.summaryContainer,
+        isInputFocused && styles.paddingHorizontal,
+      ]}
+    >
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryLabel}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('perps.close_position.margin')}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() => setIsOrderTypeVisible(true)}
-          testID={PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON}
-        >
-          <View style={styles.marketButton}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {orderType === 'market'
-                ? strings('perps.order.market')
-                : strings('perps.order.limit')}
+        <View style={styles.summaryValue}>
+          <Text variant={TextVariant.BodyMD}>
+            {formatPrice(effectiveMargin * (closePercentage / 100), {
+              maximumDecimals: 2,
+            })}
+          </Text>
+          <View style={styles.inclusiveFeeRow}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+              {strings('perps.close_position.includes_pnl')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              color={
+                realizedPnl.isNegative ? TextColor.Error : TextColor.Success
+              }
+            >
+              {realizedPnl.isNegative ? '-' : '+'}
+              {realizedPnl.formattedPrice}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryLabel}>
+          <TouchableOpacity
+            onPress={() => handleTooltipPress('closing_fees')}
+            style={styles.labelWithTooltip}
+            testID={PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON}
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.close_position.fees')}
             </Text>
             <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Xs}
-              color={IconColor.Default}
-              style={styles.marketButtonIcon}
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.Muted}
             />
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.summaryValue}>
+          <Text variant={TextVariant.BodyMD}>
+            -{formatPrice(feeResults.totalFee, { maximumDecimals: 2 })}
+          </Text>
+        </View>
       </View>
+
+      <View style={[styles.summaryRow, styles.summaryTotalRow]}>
+        <View style={styles.summaryLabel}>
+          <TouchableOpacity
+            onPress={() => handleTooltipPress('close_position_you_receive')}
+            style={styles.labelWithTooltip}
+            testID={
+              PerpsClosePositionViewSelectorsIDs.YOU_RECEIVE_TOOLTIP_BUTTON
+            }
+          >
+            <Text variant={TextVariant.BodyMD}>
+              {strings('perps.close_position.you_receive')}
+            </Text>
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.Muted}
+            />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.summaryValue}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={receiveAmount > 0 ? TextColor.Success : TextColor.Default}
+          >
+            {formatPrice(receiveAmount, { maximumDecimals: 2 })}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <PerpsOrderHeader
+        asset={position.coin}
+        price={currentPrice}
+        priceChange={parseFloat(
+          priceData[position.coin]?.percentChange24h ?? '0',
+        )}
+        title={strings('perps.close_position.title')}
+        isLoading={isClosing}
+      />
 
       <ScrollView
         style={styles.content}
+        alwaysBounceVertical={false}
         contentContainerStyle={[
           styles.scrollViewContent,
           isInputFocused && styles.scrollViewContentWithKeypad,
@@ -475,46 +530,24 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           label={strings('perps.close_position.select_amount')}
-          amount={displayMode === 'usd' ? closeAmountUSDString : closeAmount}
-          maxAmount={positionValue}
+          amount={displayUSDString}
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          showTokenAmount={displayMode === 'token'}
-          tokenAmount={
-            displayMode === 'token' && closeAmountString
-              ? closeAmountString
-              : formatPositionSize(closeAmount)
-          }
+          tokenAmount={formatPositionSize(closeAmount)}
+          hasError={filteredErrors.length > 0}
           tokenSymbol={position.coin}
           showMaxAmount={false}
         />
 
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() =>
-              setDisplayMode(displayMode === 'usd' ? 'token' : 'usd')
-            }
-            testID={PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON}
-          >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {displayMode === 'usd'
-                ? `${closeAmountString || formatPositionSize(closeAmount)} ${
-                    position.coin
-                  }`
-                : formatPrice(closeAmountUSD, { maximumDecimals: 2 })}
-            </Text>
-            <Icon
-              name={IconName.SwapVertical}
-              size={IconSize.Xs}
-              color={IconColor.Alternative}
-            />
-          </TouchableOpacity>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {`${formatPositionSize(closeAmount)} ${position.coin}`}
+          </Text>
         </View>
 
-        {/* Slider - Hide when keypad is active */}
+        {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
           <View style={styles.sliderSection}>
             <PerpsSlider
@@ -529,113 +562,58 @@ const PerpsClosePositionView: React.FC = () => {
           </View>
         )}
 
-        {/* Limit Price - only show for limit orders */}
+        {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {orderType === 'limit' && !isInputFocused && (
-          <View style={styles.detailsSection}>
-            <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
-              <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('perps.order.limit_price'),
-                    variant: TextVariant.BodyMD,
-                    color: TextColor.Alternative,
-                  },
-                  tooltip: {
-                    title: strings('perps.tooltips.limit_price.title'),
-                    content: strings('perps.tooltips.limit_price.content'),
-                    size: TooltipSizes.Sm,
-                    onPress: () => handleTooltipPress('limit_price'),
-                  },
-                }}
-                value={{
-                  label: {
-                    text: limitPrice
-                      ? `$${formatPrice(limitPrice, { maximumDecimals: 2 })}`
-                      : 'Set price',
-                    variant: TextVariant.BodyMD,
-                    color: TextColor.Default,
-                  },
-                }}
-              />
-            </TouchableOpacity>
+          <View style={styles.detailsWrapper}>
+            <View style={[styles.detailItem, styles.detailListItem]}>
+              <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
+                <ListItem>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <View style={styles.detailLeft}>
+                      <Text
+                        variant={TextVariant.BodyLGMedium}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('perps.order.limit_price')}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleTooltipPress('limit_price')}
+                        style={styles.infoIcon}
+                      >
+                        <Icon
+                          name={IconName.Info}
+                          size={IconSize.Sm}
+                          color={IconColor.Muted}
+                          testID={
+                            PerpsOrderViewSelectorsIDs.LIMIT_PRICE_INFO_ICON
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Default}
+                    >
+                      {limitPrice
+                        ? `${formatPrice(limitPrice, { maximumDecimals: 2 })}`
+                        : 'Set price'}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
-        {/* Order Details - Always visible */}
-        <View style={styles.detailsSection}>
-          <View style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.close_position.margin')}
-            </Text>
-            <Text variant={TextVariant.BodyMD}>
-              {formatPrice(effectiveMargin * (closePercentage / 100), {
-                maximumDecimals: 2,
-              })}
-            </Text>
-          </View>
+        {/* Order Details moved to footer summary */}
 
-          <View style={styles.detailRow}>
-            <View style={styles.labelWithTooltip}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.close_position.estimated_pnl')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('estimated_pnl')}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Xs}
-                  color={IconColor.Muted}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={pnl >= 0 ? TextColor.Success : TextColor.Error}
-            >
-              {pnl >= 0 ? '+' : '-'}
-              {formatPrice(Math.abs(pnl * (closePercentage / 100)), {
-                maximumDecimals: 2,
-              })}
-            </Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <View style={styles.labelWithTooltip}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.close_position.fees')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('closing_fees')}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Xs}
-                  color={IconColor.Muted}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text variant={TextVariant.BodyMD}>
-              -{formatPrice(feeResults.totalFee, { maximumDecimals: 2 })}
-            </Text>
-          </View>
-
-          <View style={[styles.detailRow, styles.totalRow]}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('perps.close_position.you_receive')}
-            </Text>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {formatPrice(Math.max(0, receiveAmount), {
-                maximumDecimals: 2,
-              })}
-            </Text>
-          </View>
-        </View>
-
-        {/* Validation Messages - Hide when keypad is active */}
-        {!isInputFocused && validationResult.errors.length > 0 && (
+        {/* Validation Messages - keep visible while typing */}
+        {/* Filter the errors and only show minimum $10 error */}
+        {filteredErrors.length > 0 && (
           <View style={styles.validationSection}>
-            {validationResult.errors.map((error, index) => (
+            {filteredErrors.map((error, index) => (
               <View key={index} style={styles.errorMessage}>
                 <Icon
                   name={IconName.Danger}
@@ -649,28 +627,13 @@ const PerpsClosePositionView: React.FC = () => {
             ))}
           </View>
         )}
-
-        {!isInputFocused && validationResult.warnings.length > 0 && (
-          <View style={styles.validationSection}>
-            {validationResult.warnings.map((warning, index) => (
-              <View key={index} style={styles.warningMessage}>
-                <Icon
-                  name={IconName.Warning}
-                  size={IconSize.Sm}
-                  color={IconColor.Warning}
-                />
-                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
-                  {warning}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
       </ScrollView>
 
-      {/* Keypad Section - Show when input is focused */}
+      {/* Keypad Section - Show when input is focused; keep summary and slider above */}
       {isInputFocused && (
         <View style={styles.bottomSection}>
+          {/* Summary shown above keypad while editing */}
+          {Summary}
           <View style={styles.percentageButtonsContainer}>
             <Button
               variant={ButtonVariants.Secondary}
@@ -703,20 +666,20 @@ const PerpsClosePositionView: React.FC = () => {
           </View>
 
           <Keypad
-            value={
-              displayMode === 'usd' ? closeAmountUSDString : closeAmountString
-            }
+            value={closeAmountUSDString}
             onChange={handleKeypadChange}
-            currency={displayMode === 'usd' ? 'USD' : 'native'}
-            decimals={displayMode === 'usd' ? 2 : marketData?.szDecimals ?? 18}
+            currency={'USD'}
+            decimals={2}
             style={styles.keypad}
           />
         </View>
       )}
 
-      {/* Action Buttons - Hide when keypad is active */}
-      {!isInputFocused && (
-        <View style={styles.footer}>
+      {/* Summary + Action Buttons - Always visible (button hidden when keypad active) */}
+      <View style={[styles.footer, styles.footerWithSummary]}>
+        {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
+        {!isInputFocused && Summary}
+        {!isInputFocused && (
           <Button
             label={
               isClosing
@@ -740,59 +703,43 @@ const PerpsClosePositionView: React.FC = () => {
               PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
             }
           />
-          <Button
-            label={strings('perps.close_position.cancel')}
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            onPress={handleCancel}
-            isDisabled={isClosing}
-            testID={
-              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON
-            }
-          />
-        </View>
-      )}
-
-      {/* Order Type Bottom Sheet */}
-      <PerpsOrderTypeBottomSheet
-        isVisible={isOrderTypeVisible}
-        onClose={() => setIsOrderTypeVisible(false)}
-        onSelect={(type) => {
-          setOrderType(type);
-          // Clear limit price when switching to market order
-          if (type === 'market') {
-            setLimitPrice('');
-          }
-          setIsOrderTypeVisible(false);
-        }}
-        currentOrderType={orderType}
-        asset={position.coin}
-        direction={isLong ? 'long' : 'short'}
-      />
+        )}
+      </View>
 
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible}
-        onClose={() => setIsLimitPriceVisible(false)}
+        onClose={() => {
+          setIsLimitPriceVisible(false);
+          // If user dismisses without entering a price, revert order type to market
+          if (orderType === 'limit' && !limitPrice) {
+            setOrderType('market');
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.limitClose
+                .partial.switchToMarketOrderMissingLimitPrice,
+            );
+          }
+        }}
         onConfirm={(price) => {
           setLimitPrice(price);
+          // Close after confirmation explicitly
           setIsLimitPriceVisible(false);
         }}
         asset={position.coin}
         limitPrice={limitPrice}
         currentPrice={currentPrice}
         direction={isLong ? 'short' : 'long'} // Opposite direction for closing
+        isClosingPosition
       />
 
       {/* Tooltip Bottom Sheet */}
-      {selectedTooltip && (
+      {selectedTooltip ? (
         <PerpsBottomSheetTooltip
           isVisible
           onClose={handleTooltipClose}
-          contentKey={selectedTooltip}
+          contentKey={selectedTooltip as PerpsTooltipContentKey}
           key={selectedTooltip}
-          {...(selectedTooltip === ('closing_fees' as PerpsTooltipContentKey)
+          {...(selectedTooltip === 'closing_fees'
             ? {
                 data: {
                   metamaskFeeRate: feeResults.metamaskFeeRate,
@@ -801,7 +748,7 @@ const PerpsClosePositionView: React.FC = () => {
               }
             : {})}
         />
-      )}
+      ) : null}
     </SafeAreaView>
   );
 };
