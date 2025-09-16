@@ -47,12 +47,14 @@ const styleSheet = (params: {
     container: {
       alignItems: 'center',
       justifyContent: 'center',
+      width: '100%',
     },
     label: {
       textAlign: 'center',
       marginTop: 2,
-      flexShrink: 0,
       width: '100%',
+      flexShrink: 0,
+      minWidth: 0,
     },
   });
 };
