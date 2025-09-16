@@ -1,6 +1,8 @@
+/* eslint-disable react/no-children-prop */
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
 import type { FeeCalculationResult } from '../controllers/types';
@@ -24,18 +26,17 @@ const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
   typeof usePerpsTrading
 >;
 
-// Create a mock store for Provider wrapper
-const createMockStore = () => ({
-  getState: () => ({}),
-  subscribe: jest.fn(),
-  dispatch: jest.fn(),
-});
-
 // Test wrapper with Redux Provider
 const createWrapper = () => {
-  const mockStore = createMockStore();
-  return ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store: mockStore as any }, children);
+  const mockStore = configureStore({
+    reducer: {
+      // Minimal reducer for testing
+      test: (state = {}) => state,
+    },
+  });
+  return function TestWrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(Provider, { store: mockStore, children });
+  };
 };
 
 describe('usePerpsOrderFees', () => {
@@ -83,13 +84,14 @@ describe('usePerpsOrderFees', () => {
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'market',
-          amount: '100000',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       // Initial loading state
@@ -123,13 +125,14 @@ describe('usePerpsOrderFees', () => {
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'limit',
-          amount: '100000',
-          isMaker: true,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            isMaker: true,
+          }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -154,13 +157,14 @@ describe('usePerpsOrderFees', () => {
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'limit',
-          amount: '100000',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'limit',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -185,13 +189,14 @@ describe('usePerpsOrderFees', () => {
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'market',
-          amount: '0',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '0',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -212,13 +217,14 @@ describe('usePerpsOrderFees', () => {
       };
       mockCalculateFees.mockResolvedValue(mockFeeResult);
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'market',
-          amount: '',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -235,13 +241,14 @@ describe('usePerpsOrderFees', () => {
     it('should fall back to default fee rate on error', async () => {
       mockCalculateFees.mockRejectedValue(new Error('Network error'));
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'market',
-          amount: '100000',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -256,13 +263,14 @@ describe('usePerpsOrderFees', () => {
     it('should handle non-Error rejection', async () => {
       mockCalculateFees.mockRejectedValue('Unknown error');
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'market',
-          amount: '100000',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -290,13 +298,14 @@ describe('usePerpsOrderFees', () => {
 
       mockCalculateFees.mockReturnValue(deferred.promise);
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'market',
-          amount: '100000',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       // Should be loading initially
@@ -428,13 +437,14 @@ describe('usePerpsOrderFees', () => {
 
       // The provider now returns MetaMask fee directly
 
-      const { result } = renderHook(() =>
-        usePerpsOrderFees({
-          orderType: 'market',
-          amount: '100000',
-          isMaker: false,
-        }),
-        { wrapper: createWrapper() }
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '100000',
+            isMaker: false,
+          }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
