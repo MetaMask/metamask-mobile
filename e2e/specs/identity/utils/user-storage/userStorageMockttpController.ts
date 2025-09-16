@@ -24,6 +24,14 @@ export const pathRegexps = {
     `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.addressBook}`,
     'u',
   ),
+  multichain_accounts_groups: new RegExp(
+    `${baseUrl}/multichain_accounts_groups`,
+    'u',
+  ),
+  multichain_accounts_wallets: new RegExp(
+    `${baseUrl}/multichain_accounts_wallets`,
+    'u',
+  ),
 };
 export interface UserStorageResponseData {
   HashedKey: string;

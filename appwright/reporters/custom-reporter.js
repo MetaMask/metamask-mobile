@@ -14,12 +14,14 @@ class CustomReporter {
 
   onTestEnd(test, result) {
     // Create a unique test identifier to avoid duplicate processing
-    // Use test title and first few characters of attachments as unique ID
-    const attachmentNames = result.attachments.map((att) => att.name).join('|');
-    const testId = `${test.title}-${attachmentNames.substring(0, 50)}`;
+    // Use test title and project name as unique ID
+    const projectName = test?.parent?.project?.name || 'unknown';
+    const testId = `${test.title}-${projectName}`;
 
     if (this.processedTests.has(testId)) {
-      console.log(`⚠️ Test already processed, skipping: ${test.title}`);
+      console.log(
+        `⚠️ Test already processed, skipping: ${test.title} (${projectName})`,
+      );
       return;
     }
     this.processedTests.add(testId);
@@ -97,6 +99,10 @@ class CustomReporter {
           metricsEntry.failureReason = result.status;
         }
 
+        // Ensure consistent device info for all metrics
+        const deviceInfo = this.getDeviceInfo(test, result);
+        metricsEntry.device = deviceInfo;
+
         // For fallback metrics, ensure we have proper structure for reporting
         if (isFallbackMetrics) {
           // Convert test duration to seconds if not already
@@ -108,11 +114,6 @@ class CustomReporter {
           if (!metricsEntry.steps) {
             metricsEntry.steps = [];
           }
-
-          // Ensure device info exists
-          if (!metricsEntry.device) {
-            metricsEntry.device = { name: 'Unknown', osVersion: 'Unknown' };
-          }
         }
 
         this.metrics.push(metricsEntry);
@@ -123,21 +124,7 @@ class CustomReporter {
       // For failed tests without metrics, create a basic entry
       console.log(`⚠️ Test failed without metrics, creating basic entry`);
 
-      // Try to get device info from test project configuration
-      let deviceInfo = { name: 'Unknown', osVersion: 'Unknown' };
-
-      if (test?.parent?.project?.use?.device) {
-        deviceInfo = test.parent.project.use.device;
-      } else if (
-        process.env.BROWSERSTACK_DEVICE &&
-        process.env.BROWSERSTACK_OS_VERSION
-      ) {
-        deviceInfo = {
-          name: process.env.BROWSERSTACK_DEVICE,
-          osVersion: process.env.BROWSERSTACK_OS_VERSION,
-          provider: 'browserstack',
-        };
-      }
+      const deviceInfo = this.getDeviceInfo(test, result);
 
       const basicEntry = {
         testName: test.title,
@@ -151,6 +138,32 @@ class CustomReporter {
 
       this.metrics.push(basicEntry);
     }
+  }
+
+  getDeviceInfo(test, result) {
+    // Try to get device info from test project configuration first
+    if (test?.parent?.project?.use?.device) {
+      return test.parent.project.use.device;
+    }
+
+    // Fallback to environment variables
+    if (
+      process.env.BROWSERSTACK_DEVICE &&
+      process.env.BROWSERSTACK_OS_VERSION
+    ) {
+      return {
+        name: process.env.BROWSERSTACK_DEVICE,
+        osVersion: process.env.BROWSERSTACK_OS_VERSION,
+        provider: 'browserstack',
+      };
+    }
+
+    // Last resort fallback
+    return {
+      name: 'Unknown',
+      osVersion: 'Unknown',
+      provider: 'unknown',
+    };
   }
 
   async onEnd() {
@@ -258,12 +271,35 @@ class CustomReporter {
           };
         });
 
-        // Save JSON metrics
-        const jsonPath = path.join(
-          reportsDir,
-          `performance-metrics-${testName}-${this.metrics[0].device.name}.json`,
-        );
-        fs.writeFileSync(jsonPath, JSON.stringify(metricsWithVideo, null, 2));
+        // Group metrics by device to create separate reports
+        const metricsByDevice = {};
+        metricsWithVideo.forEach((metric) => {
+          const deviceKey = `${metric.device.name}-${metric.device.osVersion}`;
+          if (!metricsByDevice[deviceKey]) {
+            metricsByDevice[deviceKey] = {
+              device: metric.device,
+              metrics: [],
+            };
+          }
+          metricsByDevice[deviceKey].metrics.push(metric);
+        });
+
+        // Create separate JSON files for each device
+        Object.entries(metricsByDevice).forEach(([deviceKey, deviceData]) => {
+          const safeDeviceName = deviceData.device.name.replace(
+            /[^a-zA-Z0-9]/g,
+            '_',
+          );
+          const jsonPath = path.join(
+            reportsDir,
+            `performance-metrics-${testName}-${safeDeviceName}-${deviceData.device.osVersion}.json`,
+          );
+          fs.writeFileSync(
+            jsonPath,
+            JSON.stringify(deviceData.metrics, null, 2),
+          );
+          console.log(`✅ Device-specific report saved: ${jsonPath}`);
+        });
         // Generate HTML report
         /* eslint-disable */
         const html = `
@@ -424,7 +460,6 @@ class CustomReporter {
         fs.writeFileSync(reportPath, html);
 
         console.log(`\n✅ Performance report generated: ${reportPath}`);
-        console.log(`✅ Performance metrics saved: ${jsonPath}`);
       }
       // CSV Export - Steps Performance Report
       // CSV Export - One table per scenario with steps and times
