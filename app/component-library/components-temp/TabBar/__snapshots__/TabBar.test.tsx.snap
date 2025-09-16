@@ -5,21 +5,16 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
   testID="scrollable-tab-view"
 >
   <View
+    activeTab={0}
+    containerWidth={300}
+    goToPage={[MockFunction]}
+    scrollValue={0}
     style={
       [
         {
-          "borderColor": "#ccc",
-          "borderLeftWidth": 0,
-          "borderRightWidth": 0,
-          "borderTopWidth": 0,
-          "borderWidth": 1,
+          "backgroundColor": "blue",
           "flexDirection": "row",
           "height": 50,
-          "justifyContent": "space-around",
-        },
-        {
-          "backgroundColor": "blue",
-          "paddingHorizontal": 0,
         },
         [
           {
@@ -31,123 +26,13 @@ exports[`TabBar accepts and passes through additional props with ScrollableTabVi
         ],
       ]
     }
-  >
-    <TouchableOpacity
-      accessibilityLabel="Tab 1"
-      accessibilityTraits="button"
-      accessible={true}
-      onPress={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-              "paddingBottom": 10,
-            },
-            {
-              "paddingBottom": 8,
-              "paddingHorizontal": 32,
-              "paddingVertical": 8,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "white",
-                "fontWeight": "bold",
-              },
-              {
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-            ]
-          }
-        >
-          Tab 1
-        </Text>
-      </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      accessibilityLabel="Tab 2"
-      accessibilityTraits="button"
-      accessible={true}
-      onPress={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-              "paddingBottom": 10,
-            },
-            {
-              "paddingBottom": 8,
-              "paddingHorizontal": 32,
-              "paddingVertical": 8,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "gray",
-                "fontWeight": "normal",
-              },
-              {
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-            ]
-          }
-        >
-          Tab 2
-        </Text>
-      </View>
-    </TouchableOpacity>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 150,
-        }
-      }
-    />
-  </View>
+    tabs={
+      [
+        "Tab 1",
+        "Tab 2",
+      ]
+    }
+  />
   <View
     tabLabel="Tab 1"
   >
@@ -194,21 +79,16 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
   testID="scrollable-tab-view"
 >
   <View
+    activeTab={0}
+    containerWidth={300}
+    goToPage={[MockFunction]}
+    scrollValue={0}
     style={
       [
         {
-          "borderColor": "#ccc",
-          "borderLeftWidth": 0,
-          "borderRightWidth": 0,
-          "borderTopWidth": 0,
-          "borderWidth": 1,
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "height": 50,
-          "justifyContent": "space-around",
-        },
-        {
-          "backgroundColor": "#ffffff",
-          "paddingHorizontal": 0,
         },
         [
           {
@@ -220,123 +100,13 @@ exports[`TabBar renders correctly with ScrollableTabView 1`] = `
         ],
       ]
     }
-  >
-    <TouchableOpacity
-      accessibilityLabel="Tab 1"
-      accessibilityTraits="button"
-      accessible={true}
-      onPress={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-              "paddingBottom": 10,
-            },
-            {
-              "paddingBottom": 8,
-              "paddingHorizontal": 32,
-              "paddingVertical": 8,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "#121314",
-                "fontWeight": "bold",
-              },
-              {
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-            ]
-          }
-        >
-          Tab 1
-        </Text>
-      </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      accessibilityLabel="Tab 2"
-      accessibilityTraits="button"
-      accessible={true}
-      onPress={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-              "paddingBottom": 10,
-            },
-            {
-              "paddingBottom": 8,
-              "paddingHorizontal": 32,
-              "paddingVertical": 8,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "#686e7d",
-                "fontWeight": "normal",
-              },
-              {
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-            ]
-          }
-        >
-          Tab 2
-        </Text>
-      </View>
-    </TouchableOpacity>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 150,
-        }
-      }
-    />
-  </View>
+    tabs={
+      [
+        "Tab 1",
+        "Tab 2",
+      ]
+    }
+  />
   <View
     tabLabel="Tab 1"
   >
@@ -383,21 +153,16 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
   testID="scrollable-tab-view"
 >
   <View
+    activeTab={0}
+    containerWidth={300}
+    goToPage={[MockFunction]}
+    scrollValue={0}
     style={
       [
         {
-          "borderColor": "#ccc",
-          "borderLeftWidth": 0,
-          "borderRightWidth": 0,
-          "borderTopWidth": 0,
-          "borderWidth": 1,
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "height": 50,
-          "justifyContent": "space-around",
-        },
-        {
-          "backgroundColor": "#ffffff",
-          "paddingHorizontal": 0,
         },
         [
           {
@@ -411,123 +176,13 @@ exports[`TabBar renders correctly with custom style using ScrollableTabView 1`] 
         ],
       ]
     }
-  >
-    <TouchableOpacity
-      accessibilityLabel="Tab 1"
-      accessibilityTraits="button"
-      accessible={true}
-      onPress={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-              "paddingBottom": 10,
-            },
-            {
-              "paddingBottom": 8,
-              "paddingHorizontal": 32,
-              "paddingVertical": 8,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "#121314",
-                "fontWeight": "bold",
-              },
-              {
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-            ]
-          }
-        >
-          Tab 1
-        </Text>
-      </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      accessibilityLabel="Tab 2"
-      accessibilityTraits="button"
-      accessible={true}
-      onPress={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-              "paddingBottom": 10,
-            },
-            {
-              "paddingBottom": 8,
-              "paddingHorizontal": 32,
-              "paddingVertical": 8,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "#686e7d",
-                "fontWeight": "normal",
-              },
-              {
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              },
-            ]
-          }
-        >
-          Tab 2
-        </Text>
-      </View>
-    </TouchableOpacity>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 150,
-        }
-      }
-    />
-  </View>
+    tabs={
+      [
+        "Tab 1",
+        "Tab 2",
+      ]
+    }
+  />
   <View
     tabLabel="Tab 1"
   >
