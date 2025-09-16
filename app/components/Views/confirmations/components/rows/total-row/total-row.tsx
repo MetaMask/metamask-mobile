@@ -7,10 +7,8 @@ import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTr
 import { useSelector } from 'react-redux';
 import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { RootState } from '../../../../../../reducers';
-import AnimatedSpinner, {
-  SpinnerSize,
-} from '../../../../../UI/AnimatedSpinner';
 import { View } from 'react-native';
+import { SkeletonRow } from '../skeleton-row';
 
 export function TotalRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
@@ -20,14 +18,14 @@ export function TotalRow() {
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
   );
 
+  if (isQuotesLoading) {
+    return <SkeletonRow testId="total-row-skeleton" />;
+  }
+
   return (
     <View testID="total-row">
       <InfoRow label={strings('confirm.label.total')}>
-        {isQuotesLoading ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
-          <Text>{totalFormatted}</Text>
-        )}
+        <Text>{totalFormatted}</Text>
       </InfoRow>
     </View>
   );

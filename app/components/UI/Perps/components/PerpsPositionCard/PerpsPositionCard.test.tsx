@@ -29,6 +29,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'perps.position.card.tpsl_count_multiple' && params?.count) {
       return `${params.count} orders`;
     }
+    if (key === 'perps.position.card.tpsl_count_single' && params?.count) {
+      return `${params.count} order`;
+    }
     return key;
   }),
 }));
@@ -950,7 +953,7 @@ describe('PerpsPositionCard', () => {
       expect(screen.getByText('2 orders')).toBeOnTheScreen();
     });
 
-    it('displays single TP price when only one TP order exists', () => {
+    it('displays single TP price when only one TP order exists with price', () => {
       const positionWithSingleTP = {
         ...mockPosition,
         takeProfitCount: 1,
@@ -964,7 +967,7 @@ describe('PerpsPositionCard', () => {
       expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
     });
 
-    it('displays single SL price when only one SL order exists', () => {
+    it('displays single SL price when only one SL order exists with price', () => {
       const positionWithSingleSL = {
         ...mockPosition,
         takeProfitCount: 0,
@@ -978,6 +981,44 @@ describe('PerpsPositionCard', () => {
       expect(screen.queryByText(/1.*orders/)).not.toBeOnTheScreen();
     });
 
+    it('displays single TP count when only one TP order exists without price', () => {
+      const positionWithSingleTPNoPrice = {
+        ...mockPosition,
+        takeProfitCount: 1,
+        takeProfitPrice: undefined, // No price available
+        stopLossCount: 0,
+        stopLossPrice: undefined,
+      };
+
+      render(
+        <PerpsPositionCard position={positionWithSingleTPNoPrice} expanded />,
+      );
+
+      expect(screen.getByText('1 order')).toBeOnTheScreen();
+      // Should still show "Not Set" for stop loss since stopLossCount is 0
+      const notSetTexts = screen.getAllByText('perps.position.card.not_set');
+      expect(notSetTexts).toHaveLength(1); // Only for SL
+    });
+
+    it('displays single SL count when only one SL order exists without price', () => {
+      const positionWithSingleSLNoPrice = {
+        ...mockPosition,
+        takeProfitCount: 0,
+        takeProfitPrice: undefined,
+        stopLossCount: 1,
+        stopLossPrice: undefined, // No price available
+      };
+
+      render(
+        <PerpsPositionCard position={positionWithSingleSLNoPrice} expanded />,
+      );
+
+      expect(screen.getByText('1 order')).toBeOnTheScreen();
+      // Note: There should still be one "Not Set" for the TP field
+      const notSetTexts = screen.getAllByText('perps.position.card.not_set');
+      expect(notSetTexts).toHaveLength(1); // Only for TP
+    });
+
     it('displays "Not Set" when no TP/SL orders exist', () => {
       const positionWithoutTPSL = {
         ...mockPosition,
@@ -987,7 +1028,7 @@ describe('PerpsPositionCard', () => {
         stopLossPrice: undefined,
       };
 
-      render(<PerpsPositionCard position={positionWithoutTPSL} />);
+      render(<PerpsPositionCard position={positionWithoutTPSL} expanded />);
 
       // Should show "Not Set" for both TP and SL
       const notSetTexts = screen.getAllByText('perps.position.card.not_set');
@@ -1096,7 +1137,32 @@ describe('PerpsPositionCard', () => {
 
       // Should show TP/SL bottom sheet, not warning modal
       expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
-      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('TPSL Count Warning Tooltip'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows warning modal when single TP/SL orders exist but no prices available (position bound disabled)', () => {
+      const positionWithSingleOrdersNoPrices = {
+        ...mockPosition,
+        takeProfitCount: 1,
+        takeProfitPrice: undefined, // No price available
+        stopLossCount: 1,
+        stopLossPrice: undefined, // No price available
+      };
+
+      render(<PerpsPositionCard position={positionWithSingleOrdersNoPrices} />);
+
+      // Press edit TP/SL button
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Should show warning modal since position bound TP/SL is disabled and there are orders with no prices
+      expect(screen.getByText('TPSL Count Warning Tooltip')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('perps-tpsl-bottomsheet'),
+      ).not.toBeOnTheScreen();
     });
   });
 

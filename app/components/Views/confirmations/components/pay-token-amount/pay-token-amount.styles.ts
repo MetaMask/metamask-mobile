@@ -15,6 +15,18 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingVertical: 6,
       marginBottom: 64,
     },
+
+    skeleton: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      borderRadius: 99,
+      display: 'flex',
+      flexDirection: 'row',
+      gap: 4,
+      paddingInline: 16,
+      paddingVertical: 6,
+      marginBottom: 64,
+    },
   });
 
 export default styleSheet;

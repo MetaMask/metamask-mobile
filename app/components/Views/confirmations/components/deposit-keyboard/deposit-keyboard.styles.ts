@@ -27,6 +27,13 @@ const styleSheet = (params: { theme: Theme }) =>
       fontSize: 20,
       fontWeight: '600',
     },
+
+    skeletonButton: {
+      width: '100%',
+      height: 40,
+      borderRadius: 10,
+      flex: 1,
+    },
   });
 
 export default styleSheet;

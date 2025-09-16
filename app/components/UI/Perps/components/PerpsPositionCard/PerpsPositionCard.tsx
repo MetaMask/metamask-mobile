@@ -1,5 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -158,7 +158,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     setIsTPSLVisible(true);
   };
 
-  const handleTpslCountPress = async () => {
+  const handleTpslCountPress = useCallback(async () => {
     if (isLoading || error) {
       DevLogger.log(
         'Failed to redirect to orders tab. Error fetching market data: ',
@@ -175,7 +175,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     if (onTpslCountPress) {
       onTpslCountPress('orders');
     }
-  };
+  }, [isLoading, error, marketData, onTpslCountPress]);
 
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
@@ -201,15 +201,71 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const positionTakeProfitCount = position.takeProfitCount || 0;
   const positionStopLossCount = position.stopLossCount || 0;
 
-  const renderStopLossText = () => {
-    if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
-      if (positionStopLossCount > 1) {
+  // Shared helper function for rendering TP/SL text
+  const renderTPSLText = useCallback(
+    (
+      _type: 'takeProfit' | 'stopLoss',
+      count: number,
+      price: string | undefined,
+    ) => {
+      if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
+        // Multiple orders - show count as clickable
+        if (count > 1) {
+          return (
+            <TouchableOpacity onPress={handleTpslCountPress}>
+              <Text style={styles.tpslCountPress}>
+                {strings('perps.position.card.tpsl_count_multiple', {
+                  count,
+                })}
+              </Text>
+            </TouchableOpacity>
+          );
+        }
+
+        // Single order with price - show price
+        if (count === 1 && price) {
+          return (
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {formatPerpsFiat(price, {
+                ranges: PRICE_RANGES_POSITION_VIEW,
+              })}
+            </Text>
+          );
+        }
+
+        // Single order without price - show count as clickable
+        if (count === 1 && !price) {
+          return (
+            <TouchableOpacity onPress={handleTpslCountPress}>
+              <Text style={styles.tpslCountPress}>
+                {strings('perps.position.card.tpsl_count_single', {
+                  count,
+                })}
+              </Text>
+            </TouchableOpacity>
+          );
+        }
+
+        // No orders - show "Not Set"
+        return (
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('perps.position.card.not_set')}
+          </Text>
+        );
+      }
+
+      // if position bound TP/SL is disabled
+      if (count > 0 && !price) {
         return (
           <TouchableOpacity onPress={handleTpslCountPress}>
             <Text style={styles.tpslCountPress}>
-              {strings('perps.position.card.tpsl_count_multiple', {
-                count: position.stopLossCount,
-              })}
+              {count === 1
+                ? strings('perps.position.card.tpsl_count_single', {
+                    count,
+                  })
+                : strings('perps.position.card.tpsl_count_multiple', {
+                    count,
+                  })}
             </Text>
           </TouchableOpacity>
         );
@@ -217,85 +273,32 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
       return (
         <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {position.stopLossPrice
-            ? formatPerpsFiat(position.stopLossPrice, {
+          {price
+            ? formatPerpsFiat(price, {
                 ranges: PRICE_RANGES_POSITION_VIEW,
               })
             : strings('perps.position.card.not_set')}
         </Text>
       );
-    }
+    },
+    [handleTpslCountPress, styles.tpslCountPress],
+  );
 
-    if (positionStopLossCount > 0 && !position.stopLossPrice) {
-      return (
-        <TouchableOpacity onPress={handleTpslCountPress}>
-          <Text style={styles.tpslCountPress}>
-            {strings('perps.position.card.tpsl_count_multiple', {
-              count: position.stopLossCount,
-            })}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
+  const renderStopLossText = useMemo(
+    () =>
+      renderTPSLText('stopLoss', positionStopLossCount, position.stopLossPrice),
+    [renderTPSLText, positionStopLossCount, position.stopLossPrice],
+  );
 
-    return (
-      <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-        {position.stopLossPrice
-          ? formatPerpsFiat(position.stopLossPrice, {
-              ranges: PRICE_RANGES_POSITION_VIEW,
-            })
-          : strings('perps.position.card.not_set')}
-      </Text>
-    );
-  };
-
-  const renderTakeProfitText = () => {
-    if (TP_SL_CONFIG.USE_POSITION_BOUND_TPSL) {
-      if (positionTakeProfitCount > 1) {
-        return (
-          <TouchableOpacity onPress={handleTpslCountPress}>
-            <Text style={styles.tpslCountPress}>
-              {strings('perps.position.card.tpsl_count_multiple', {
-                count: position.takeProfitCount,
-              })}
-            </Text>
-          </TouchableOpacity>
-        );
-      }
-
-      return (
-        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {position.takeProfitPrice
-            ? formatPerpsFiat(position.takeProfitPrice, {
-                ranges: PRICE_RANGES_POSITION_VIEW,
-              })
-            : strings('perps.position.card.not_set')}
-        </Text>
-      );
-    }
-
-    if (positionTakeProfitCount > 0 && !position.takeProfitPrice) {
-      return (
-        <TouchableOpacity onPress={handleTpslCountPress}>
-          <Text style={styles.tpslCountPress}>
-            {strings('perps.position.card.tpsl_count_multiple', {
-              count: position.takeProfitCount,
-            })}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
-
-    return (
-      <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-        {position.takeProfitPrice
-          ? formatPerpsFiat(position.takeProfitPrice, {
-              ranges: PRICE_RANGES_POSITION_VIEW,
-            })
-          : strings('perps.position.card.not_set')}
-      </Text>
-    );
-  };
+  const renderTakeProfitText = useMemo(
+    () =>
+      renderTPSLText(
+        'takeProfit',
+        positionTakeProfitCount,
+        position.takeProfitPrice,
+      ),
+    [renderTPSLText, positionTakeProfitCount, position.takeProfitPrice],
+  );
 
   return (
     <>
@@ -412,7 +415,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.take_profit')}
                 </Text>
-                <>{renderTakeProfitText()}</>
+                <>{renderTakeProfitText}</>
               </View>
               <View style={styles.bodyItem}>
                 <Text
@@ -421,7 +424,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.stop_loss')}
                 </Text>
-                <>{renderStopLossText()}</>
+                <>{renderStopLossText}</>
               </View>
               <View style={styles.bodyItem}>
                 <View style={styles.fundingCostLabelFlex}>

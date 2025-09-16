@@ -232,4 +232,10 @@ describe('EditAmount', () => {
       '123456789012345678901234567',
     );
   });
+
+  it('renders skeleton if isLoading set', async () => {
+    const { getByTestId } = render({ isLoading: true });
+
+    expect(getByTestId('edit-amount-skeleton')).toBeDefined();
+  });
 });
