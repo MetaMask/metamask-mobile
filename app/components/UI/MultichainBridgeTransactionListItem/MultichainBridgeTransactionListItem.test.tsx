@@ -83,6 +83,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       },
       srcTokenAmount: '1000000000000000000',
       destTokenAmount: '2000000000000000000',
+      minDestTokenAmount: '1900000000000000000',
       feeData: {
         metabridge: {
           amount: '1000000000000000',

@@ -13,6 +13,7 @@ import importAdditionalAccounts from './importAdditionalAccounts';
 import { store } from '../store';
 import Engine from '../core/Engine';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
+import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
@@ -74,12 +75,17 @@ async function applyVaultInitialization() {
       ExtendedKeyringTypes.hd,
     );
 
-    for (
-      let keyringIndex = 0;
-      keyringIndex < allKeyrings.length;
-      keyringIndex++
-    ) {
-      await importAdditionalAccounts(9999, keyringIndex);
+    // We're not running EVM discovery on its own if state 2 is enabled. The discovery
+    // will be run on every account providers (EVM included) prior to that point.
+    // See: Authentication.ts
+    if (!isMultichainAccountsState2Enabled()) {
+      for (
+        let keyringIndex = 0;
+        keyringIndex < allKeyrings.length;
+        keyringIndex++
+      ) {
+        await importAdditionalAccounts(9999, keyringIndex);
+      }
     }
 
     await StorageWrapper.setItem(VAULT_INITIALIZED_KEY, 'true');

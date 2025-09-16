@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
+  TextColor,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { usePerpsConnection } from '../../providers/PerpsConnectionProvider';
 
 interface PerpsLoadingSkeletonProps {
   testID?: string;
@@ -18,40 +23,83 @@ interface PerpsLoadingSkeletonProps {
 /**
  * PerpsLoadingSkeleton - Loading screen displayed while Perps connection is initializing
  *
- * This component shows a simple loading state with:
- * - A spinner/activity indicator
- * - "Connecting to Perps..." message
- * - "Perps will be available shortly" subtext
+ * This component shows a loading state that transitions after timeout:
+ * - Initial: Spinner + "Connecting to Perps..." message
+ * - After 10s timeout: Error message + "Retry Connection" button
  */
 const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
   testID = 'perps-loading-skeleton',
 }) => {
-  const tw = useTailwind();
   const { colors } = useTheme();
+  const { reconnectWithNewContext } = usePerpsConnection();
+  const [showTimeout, setShowTimeout] = useState(false);
+
+  // Set timeout to show retry option after CONNECTION_TIMEOUT_MS
+  // Restarts timer whenever showTimeout becomes false (i.e., when user retries)
+  useEffect(() => {
+    if (!showTimeout) {
+      const timer = setTimeout(() => {
+        setShowTimeout(true);
+      }, PERPS_CONSTANTS.CONNECTION_TIMEOUT_MS);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showTimeout]);
+
+  const handleRetry = async () => {
+    // Reset timeout state and reconnect with new context
+    setShowTimeout(false);
+
+    try {
+      await reconnectWithNewContext();
+    } catch (error) {
+      // Error is handled by connection manager
+      // The loading skeleton will either disappear (on success) or timeout will restart
+    }
+  };
 
   return (
     <Box
       testID={testID}
-      twClassName="flex-1 bg-default"
+      twClassName="flex-1 bg-default pt-20"
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
+      justifyContent={BoxJustifyContent.Start}
     >
-      {/* Loading Spinner */}
-      <ActivityIndicator
-        size="large"
-        color={colors.text.muted}
-        style={tw.style('mb-6')}
-      />
+      {!showTimeout ? (
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-6">
+          {/* Loading Spinner */}
+          <ActivityIndicator size="large" color={colors.text.alternative} />
 
-      {/* Main Text */}
-      <Text variant={TextVariant.HeadingMd} twClassName="text-default mb-2">
-        {strings('perps.connection.connecting_to_perps')}
-      </Text>
-
-      {/* Subtext */}
-      <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-        {strings('perps.connection.perps_will_be_available_shortly')}
-      </Text>
+          {/* Main Text */}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('perps.connection.connecting_to_perps')}
+          </Text>
+        </Box>
+      ) : (
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-6">
+          {/* Timeout Message */}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('perps.connection.timeout_title')}
+          </Text>
+          {/* Retry Button */}
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Md}
+            onPress={handleRetry}
+            testID={`${testID}-retry-button`}
+          >
+            {strings('perps.connection.retry_connection')}
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

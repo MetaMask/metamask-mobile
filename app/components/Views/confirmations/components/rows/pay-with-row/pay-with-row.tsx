@@ -28,20 +28,30 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { formatAmount } from '../../../../../UI/SimulationDetails/formatAmount';
 import I18n, { strings } from '../../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { isHardwareAccount } from '../../../../../../util/address';
 
 export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { totalFiat } = useTransactionRequiredFiat();
+  const { totalFiat } = useTransactionRequiredFiat({ log: true });
+
+  const {
+    txParams: { from },
+  } = useTransactionMetadataRequest() ?? { txParams: {} };
 
   useTransactionBridgeQuotes();
 
+  const canEdit = !isHardwareAccount(from ?? '');
+
   const handleClick = useCallback(() => {
+    if (!canEdit) return;
+
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       minimumFiatBalance: totalFiat,
     });
-  }, [navigation, totalFiat]);
+  }, [canEdit, navigation, totalFiat]);
 
   if (!payToken) {
     return (
@@ -57,7 +67,7 @@ export function PayWithRow() {
   );
 
   return (
-    <TouchableOpacity onPress={handleClick}>
+    <TouchableOpacity onPress={handleClick} disabled={!canEdit}>
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
@@ -78,7 +88,9 @@ export function PayWithRow() {
               >
                 {strings('confirm.label.pay_with')}
               </Text>
-              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+              {canEdit && from && (
+                <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+              )}
             </Box>
             <Text
               variant={TextVariant.BodySMMedium}

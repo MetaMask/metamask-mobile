@@ -7,6 +7,14 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { getNavbar } from '../../UI/navbar/navbar';
 import Transfer from './transfer';
 
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('../../../hooks/useTokenAmount', () => ({
   useTokenAmount: jest.fn(() => ({
     usdValue: '3.359625',

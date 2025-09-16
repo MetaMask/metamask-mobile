@@ -9,8 +9,6 @@ import { transferTransactionStateMock } from '../../../__mocks__/transfer-transa
 
 jest.mock('../../../hooks/gas/useGasFeeToken');
 
-jest.mock('../../../hooks/useTokenAsset');
-
 const mockUseGasFeeToken = useGasFeeToken as jest.MockedFunction<
   typeof useGasFeeToken
 >;
@@ -20,7 +18,7 @@ const MOCK_TOKEN = {
   amountFiat: '$1,000.00',
   amountFormatted: '1',
   balanceFiat: '2,345.00',
-  tokenAddress: '0xTOKEN123' as Hex,
+  tokenAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F' as Hex,
 } as ReturnType<typeof useGasFeeToken>;
 
 const NATIVE_TOKEN = {

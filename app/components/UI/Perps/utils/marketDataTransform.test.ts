@@ -71,6 +71,7 @@ describe('marketDataTransform', () => {
         volume: '$1.00B',
         nextFundingTime: undefined,
         fundingIntervalHours: undefined,
+        fundingRate: 0.01,
       });
     });
 
@@ -203,7 +204,7 @@ describe('marketDataTransform', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      expect(result[0].volume).toBe('$1.00B'); // Has context, now with 2 decimals
+      expect(result[0].volume).toBe('$1.00B'); // Has context with 2 decimals
       expect(result[1].volume).toBe('$---'); // No context
     });
 
@@ -611,7 +612,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$2.50B'); // Now with 2 decimals
+      expect(result).toBe('$2.50B');
     });
 
     it('formats volume in millions', () => {

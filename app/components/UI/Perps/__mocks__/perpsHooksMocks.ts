@@ -94,6 +94,8 @@ export const defaultPerpsPositionMock: Position = {
     sinceOpen: '0',
     sinceChange: '0',
   },
+  takeProfitCount: 0,
+  stopLossCount: 0,
 };
 
 export const defaultPerpsOrderMock: Order = {
