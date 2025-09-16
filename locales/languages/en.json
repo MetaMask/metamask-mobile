@@ -1520,7 +1520,8 @@
     "tab": {
       "no_predictions": "No predictions yet",
       "no_predictions_description": "Open a prediction to get started.",
-      "explore": "Explore markets"
+      "explore": "Explore markets",
+      "new_prediction": "New prediction"
     },
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
@@ -1547,7 +1548,13 @@
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
     "claim_button": "Claim",
-    "markets_won": "Markets won"
+    "markets_won": "Markets won",
+    "won_markets_text": "Won {{count}} market{{s}}",
+    "won_markets_text_singular": "Won {{count}} market",
+    "won_markets_text_plural": "Won {{count}} markets",
+    "claim_amount_text": "Claim ${{amount}}",
+    "unrealized_pnl_label": "Unrealized P&L",
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "Receive"

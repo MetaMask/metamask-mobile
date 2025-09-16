@@ -96,11 +96,7 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
-import {
-  PredictMarketList,
-  PredictMarketDetails,
-  selectPredictEnabledFlag,
-} from '../../UI/Predict';
+import { PredictScreenStack, selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -185,6 +181,11 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name="WalletView"
       component={WalletModalFlow}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.PREDICT.ROOT}
+      component={PredictScreenStack}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -1012,24 +1013,13 @@ const MainNavigator = () => {
         </>
       )}
       {isPredictEnabled && (
-        <>
-          <Stack.Screen
-            name={Routes.PREDICT.MARKET_LIST}
-            component={PredictMarketList}
-            options={{
-              title: 'Market List',
-              headerShown: true,
-            }}
-          />
-          <Stack.Screen
-            name={Routes.PREDICT.MARKET_DETAILS}
-            component={PredictMarketDetails}
-            options={{
-              title: 'Market Detail',
-              headerShown: true,
-            }}
-          />
-        </>
+        <Stack.Screen
+          name={Routes.PREDICT.ROOT}
+          component={PredictScreenStack}
+          options={{
+            animationEnabled: false,
+          }}
+        />
       )}
       <Stack.Screen
         name="SetPasswordFlow"

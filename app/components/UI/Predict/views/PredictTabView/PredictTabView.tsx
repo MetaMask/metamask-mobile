@@ -8,6 +8,7 @@ import { PredictPosition as PredictPositionType } from '../../types';
 import PredictPosition from '../../components/PredictPosition';
 import MarketsWonCard from '../../components/MarketsWonCard';
 import PredictPositionEmpty from '../../components/PredictPositionEmpty';
+import PredictNewButton from '../../components/PredictNewButton';
 import {
   Box,
   Text,
@@ -41,10 +42,16 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       0,
     );
 
+    // TODO: replace with actual data
+    const unrealizedAmount = 8.63;
+    const unrealizedPercent = 3.9;
+
     return (
       <MarketsWonCard
-        positions={claimablePositions}
+        numberOfMarketsWon={claimablePositions.length}
         totalClaimableAmount={totalClaimableAmount}
+        unrealizedAmount={unrealizedAmount}
+        unrealizedPercent={unrealizedPercent}
         onClaimPress={() => {
           // TODO: Implement claim winnings functionality
         }}
@@ -127,7 +134,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
         decelerationRate={0}
         ListHeaderComponent={renderMarketsWonCard}
         ListEmptyComponent={<PredictPositionEmpty />}
-        ListFooterComponent={null}
+        ListFooterComponent={positions.length > 0 ? <PredictNewButton /> : null}
       />
     </View>
   );

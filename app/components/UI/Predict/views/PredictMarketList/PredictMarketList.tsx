@@ -71,7 +71,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
             justifyContent={BoxJustifyContent.Between}
             twClassName="w-full py-2"
           >
-            <Text variant={TextVariant.HeadingLG}>Prediction Markets</Text>
+            <Text variant={TextVariant.HeadingLG}>Predictions</Text>
             <Pressable onPress={handleSearchToggle}>
               <Icon
                 name={IconName.Search}

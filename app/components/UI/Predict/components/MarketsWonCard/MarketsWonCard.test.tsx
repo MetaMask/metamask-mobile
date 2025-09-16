@@ -40,6 +40,19 @@ jest.mock('@metamask/design-system-react-native', () => {
         {children}
       </RNText>
     ),
+    Icon: ({
+      name,
+      testID,
+      ...props
+    }: {
+      name: string;
+      testID?: string;
+      [key: string]: unknown;
+    }) => (
+      <View testID={testID} {...props}>
+        <RNText>{name}</RNText>
+      </View>
+    ),
     TextVariant: {
       BodyMd: 'BodyMd',
       BodySm: 'BodySm',
@@ -55,6 +68,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     FontWeight: {
       Medium: 'medium',
+    },
+    IconName: {
+      Info: 'Info',
+      ArrowRight: 'ArrowRight',
     },
   };
 });
@@ -127,7 +144,10 @@ describe('MarketsWonCard', () => {
 
   const defaultProps = {
     positions: mockPositions,
-    totalClaimableAmount: 150.75,
+    numberOfMarketsWon: 2,
+    totalClaimableAmount: 45.2,
+    unrealizedAmount: 8.63,
+    unrealizedPercent: 3.9,
     onClaimPress: jest.fn(),
   };
 
@@ -136,57 +156,104 @@ describe('MarketsWonCard', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders the component with correct title', () => {
+    it('renders the component with won markets row when numberOfMarketsWon is provided', () => {
       renderWithProvider(<MarketsWonCard {...defaultProps} />);
 
-      expect(screen.getByText('Markets won')).toBeOnTheScreen();
+      expect(screen.getByText('Won 2 markets')).toBeOnTheScreen();
+      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
     });
 
-    it('displays the claimable amount in the button', () => {
-      renderWithProvider(<MarketsWonCard {...defaultProps} />);
-
-      expect(screen.getByText('Claim $150.75')).toBeOnTheScreen();
-    });
-
-    it('renders position icons for up to 3 positions', () => {
-      renderWithProvider(<MarketsWonCard {...defaultProps} />);
-
-      // Should render images for the first 3 positions
-      // We can verify this by checking the component renders without errors
-      // and the overflow count is not shown (since we have exactly 3 positions)
-      expect(screen.queryByText(/^\+/)).not.toBeOnTheScreen();
-    });
-
-    it('shows overflow count when more than 3 positions', () => {
-      const manyPositions = [
-        ...mockPositions,
-        {
-          conditionId: 'condition-4',
-          outcomeIndex: 0,
-          icon: 'https://example.com/icon4.png',
-        } as PredictPositionType,
-        {
-          conditionId: 'condition-5',
-          outcomeIndex: 1,
-          icon: 'https://example.com/icon5.png',
-        } as PredictPositionType,
-      ];
-
+    it('renders singular form when numberOfMarketsWon is 1', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} positions={manyPositions} />,
+        <MarketsWonCard {...defaultProps} numberOfMarketsWon={1} />,
       );
 
-      expect(screen.getByText('+2')).toBeOnTheScreen();
+      expect(screen.getByText('Won 1 market')).toBeOnTheScreen();
     });
 
-    it('does not show overflow count when 3 or fewer positions', () => {
+    it('renders plural form when numberOfMarketsWon is greater than 1', () => {
+      renderWithProvider(
+        <MarketsWonCard {...defaultProps} numberOfMarketsWon={5} />,
+      );
+
+      expect(screen.getByText('Won 5 markets')).toBeOnTheScreen();
+    });
+
+    it('does not show won markets row when numberOfMarketsWon is 0', () => {
+      renderWithProvider(
+        <MarketsWonCard {...defaultProps} numberOfMarketsWon={0} />,
+      );
+
+      expect(screen.queryByText('Won 0 markets')).not.toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+    });
+
+    it('renders the unrealized P&L row always', () => {
       renderWithProvider(<MarketsWonCard {...defaultProps} />);
 
-      expect(screen.queryByText(/^\+/)).not.toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      expect(screen.getByText('+$8.63 (+3.9%)')).toBeOnTheScreen();
+    });
+
+    it('does not show won markets row when numberOfMarketsWon is undefined', () => {
+      const { numberOfMarketsWon, ...propsWithoutWon } = defaultProps;
+      renderWithProvider(<MarketsWonCard {...propsWithoutWon} />);
+
+      expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+    });
+
+    it('shows claim button only when totalClaimableAmount and onClaimPress are provided', () => {
+      renderWithProvider(<MarketsWonCard {...defaultProps} />);
+
+      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
+    });
+
+    it('does not show claim button when onClaimPress is not provided', () => {
+      const { onClaimPress, ...propsWithoutCallback } = defaultProps;
+      renderWithProvider(<MarketsWonCard {...propsWithoutCallback} />);
+
+      expect(screen.queryByText('Claim $45.20')).not.toBeOnTheScreen();
     });
   });
 
   describe('Amount Formatting', () => {
+    it('formats unrealized amount with correct sign and decimal places', () => {
+      renderWithProvider(
+        <MarketsWonCard
+          {...defaultProps}
+          unrealizedAmount={123.456}
+          unrealizedPercent={5.67}
+        />,
+      );
+
+      expect(screen.getByText('+$123.46 (+5.7%)')).toBeOnTheScreen();
+    });
+
+    it('formats negative unrealized amount correctly', () => {
+      renderWithProvider(
+        <MarketsWonCard
+          {...defaultProps}
+          unrealizedAmount={-50.25}
+          unrealizedPercent={-2.1}
+        />,
+      );
+
+      expect(screen.getByText('-$50.25 (-2.1%)')).toBeOnTheScreen();
+    });
+
+    it('handles zero unrealized amount correctly', () => {
+      renderWithProvider(
+        <MarketsWonCard
+          {...defaultProps}
+          unrealizedAmount={0}
+          unrealizedPercent={0}
+        />,
+      );
+
+      expect(screen.getByText('+$0.00 (+0.0%)')).toBeOnTheScreen();
+    });
+
     it('formats claimable amount to 2 decimal places', () => {
       renderWithProvider(
         <MarketsWonCard {...defaultProps} totalClaimableAmount={123.456} />,
@@ -195,89 +262,84 @@ describe('MarketsWonCard', () => {
       expect(screen.getByText('Claim $123.46')).toBeOnTheScreen();
     });
 
-    it('handles zero amount correctly', () => {
+    it('handles zero claimable amount correctly', () => {
       renderWithProvider(
         <MarketsWonCard {...defaultProps} totalClaimableAmount={0} />,
       );
 
       expect(screen.getByText('Claim $0.00')).toBeOnTheScreen();
     });
-
-    it('handles large amounts correctly', () => {
-      renderWithProvider(
-        <MarketsWonCard {...defaultProps} totalClaimableAmount={999999.99} />,
-      );
-
-      expect(screen.getByText('Claim $999999.99')).toBeOnTheScreen();
-    });
   });
 
-  describe('Position Display Logic', () => {
-    it('handles empty positions array', () => {
-      renderWithProvider(<MarketsWonCard {...defaultProps} positions={[]} />);
-
-      expect(screen.getByText('Markets won')).toBeOnTheScreen();
-      expect(screen.getByText('Claim $150.75')).toBeOnTheScreen();
-      // Should not show overflow count when no positions
-      expect(screen.queryByText(/^\+/)).not.toBeOnTheScreen();
-    });
-
-    it('handles single position', () => {
-      const singlePosition = [mockPositions[0]];
+  describe('Conditional Rendering Logic', () => {
+    it('shows won markets row when numberOfMarketsWon is greater than 0', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} positions={singlePosition} />,
+        <MarketsWonCard {...defaultProps} numberOfMarketsWon={5} />,
       );
 
-      // Should not show overflow count for single position
-      expect(screen.queryByText(/^\+/)).not.toBeOnTheScreen();
+      expect(screen.getByText('Won 5 markets')).toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
     });
 
-    it('handles exactly 3 positions', () => {
-      renderWithProvider(<MarketsWonCard {...defaultProps} />);
+    it('hides won markets row when numberOfMarketsWon is 0', () => {
+      renderWithProvider(
+        <MarketsWonCard {...defaultProps} numberOfMarketsWon={0} />,
+      );
 
-      // Should not show overflow count for exactly 3 positions
-      expect(screen.queryByText(/^\+/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+    });
+
+    it('hides won markets row when numberOfMarketsWon is undefined', () => {
+      const { numberOfMarketsWon, ...propsWithoutWon } = defaultProps;
+      renderWithProvider(<MarketsWonCard {...propsWithoutWon} />);
+
+      expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+    });
+
+    it('always shows unrealized P&L row regardless of other props', () => {
+      renderWithProvider(
+        <MarketsWonCard unrealizedAmount={100} unrealizedPercent={10} />,
+      );
+
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      expect(screen.getByText('+$100.00 (+10.0%)')).toBeOnTheScreen();
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles positions with missing icons gracefully', () => {
-      const positionsWithMissingIcons = [
-        {
-          conditionId: 'condition-1',
-          outcomeIndex: 0,
-          icon: '',
-        } as PredictPositionType,
-        {
-          conditionId: 'condition-2',
-          outcomeIndex: 1,
-          icon: 'https://example.com/icon2.png',
-        } as PredictPositionType,
-      ];
-
+    it('handles very large unrealized amounts', () => {
       renderWithProvider(
         <MarketsWonCard
           {...defaultProps}
-          positions={positionsWithMissingIcons}
+          unrealizedAmount={999999.99}
+          unrealizedPercent={999.9}
         />,
       );
 
-      // Should still render the component without crashing
-      expect(screen.getByText('Markets won')).toBeOnTheScreen();
+      expect(screen.getByText('+$999999.99 (+999.9%)')).toBeOnTheScreen();
     });
 
-    it('handles very large position counts', () => {
-      const manyPositions = Array.from({ length: 10 }, (_, i) => ({
-        conditionId: `condition-${i}`,
-        outcomeIndex: 0,
-        icon: `https://example.com/icon${i}.png`,
-      })) as PredictPositionType[];
-
+    it('handles very small unrealized amounts', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} positions={manyPositions} />,
+        <MarketsWonCard
+          {...defaultProps}
+          unrealizedAmount={0.01}
+          unrealizedPercent={0.1}
+        />,
       );
 
-      expect(screen.getByText('+7')).toBeOnTheScreen();
+      expect(screen.getByText('+$0.01 (+0.1%)')).toBeOnTheScreen();
+    });
+
+    it('handles missing optional props gracefully', () => {
+      renderWithProvider(
+        <MarketsWonCard unrealizedAmount={50} unrealizedPercent={5} />,
+      );
+
+      expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
+      expect(screen.getByText('+$50.00 (+5.0%)')).toBeOnTheScreen();
     });
   });
 });
