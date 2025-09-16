@@ -7,7 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 import ProgressBar from 'react-native-progress/Bar';
 import I18n, { strings } from '../../../../../../locales/i18n';
-import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { useTheme } from '../../../../../util/theme';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
@@ -24,15 +23,7 @@ import {
   selectCurrentTier,
   selectNextTier,
 } from '../../../../../reducers/rewards/selectors';
-
-const formatTimeRemaining = (endDate: Date): string | null => {
-  const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
-  return hours <= 0
-    ? minutes <= 0
-      ? null
-      : `${minutes}m`
-    : `${days}d ${hours}h`;
-};
+import { formatTimeRemaining } from '../../utils/formatUtils';
 
 const formatNumber = (value: number | null): string => {
   if (value === null || value === undefined) {
@@ -126,7 +117,10 @@ const SeasonStatus: React.FC = () => {
             <Text variant={TextVariant.BodySm} twClassName="text-alternative">
               {strings('rewards.season_ends')}
             </Text>
-            <Text variant={TextVariant.BodyMd} twClassName="text-default">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-default text-right"
+            >
               {timeRemaining}
             </Text>
           </Box>

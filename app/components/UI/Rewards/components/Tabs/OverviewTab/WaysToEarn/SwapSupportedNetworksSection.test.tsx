@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { SwapSupportedNetworksSection } from './SwapSupportedNetworksSection';
-import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
+import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -12,16 +12,16 @@ jest.mock('react-redux', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock selectors
-jest.mock('../../../../../../selectors/networkController', () => ({
+jest.mock('../../../../../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
-jest.mock('../../../../../../selectors/multichainNetworkController', () => ({
+jest.mock('../../../../../../../selectors/multichainNetworkController', () => ({
   selectNonEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/multichainNetworkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/networkController';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/multichainNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 const mockSelectEvmNetworkConfigurationsByChainId =
@@ -34,7 +34,7 @@ const mockSelectNonEvmNetworkConfigurationsByChainId =
   >;
 
 // Mock i18n strings
-jest.mock('../../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
       'rewards.ways_to_earn.supported_networks': 'Supported Networks',
@@ -44,12 +44,12 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 // Mock getNetworkImageSource
-jest.mock('../../../../../../util/networks', () => ({
+jest.mock('../../../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-image-uri' })),
 }));
 
 // Mock PopularList
-jest.mock('../../../../../../util/networks/customNetworks', () => ({
+jest.mock('../../../../../../../util/networks/customNetworks', () => ({
   PopularList: [
     {
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
@@ -64,7 +64,7 @@ jest.mock('../../../../../../util/networks/customNetworks', () => ({
 
 // Mock AvatarNetwork component
 jest.mock(
-  '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork',
+  '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork',
   () => ({
     __esModule: true,
     default: ({ name }: { name: string }) => {
