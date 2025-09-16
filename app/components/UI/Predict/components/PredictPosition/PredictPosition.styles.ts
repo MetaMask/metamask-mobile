@@ -2,6 +2,13 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
+    container: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      padding: 8,
+      gap: 16,
+      width: '100%',
+    },
     positionContainer: {
       flexDirection: 'row',
       alignItems: 'flex-start',
@@ -41,6 +48,12 @@ const styleSheet = () =>
       marginTop: 16,
       flexDirection: 'row',
       justifyContent: 'center',
+      alignItems: 'center',
+      width: '100%',
+    },
+    positionActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
       width: '100%',
     },

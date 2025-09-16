@@ -1,21 +1,25 @@
-import { RefreshControl, View } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
-import React, { useCallback, useRef } from 'react';
-import { useStyles } from '../../../../../component-library/hooks';
-import { usePredictPositions } from '../../hooks/usePredictPositions';
-import styleSheet from './PredictTabView.styles';
-import { PredictPosition as PredictPositionType } from '../../types';
-import PredictPosition from '../../components/PredictPosition';
-import MarketsWonCard from '../../components/MarketsWonCard';
-import PredictPositionEmpty from '../../components/PredictPositionEmpty';
-import PredictNewButton from '../../components/PredictNewButton';
 import {
   Box,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { default as React, useCallback, useRef } from 'react';
+import { RefreshControl, View } from 'react-native';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { useStyles } from '../../../../../component-library/hooks';
+import Routes from '../../../../../constants/navigation/Routes';
+import MarketsWonCard from '../../components/MarketsWonCard';
+import PredictNewButton from '../../components/PredictNewButton';
+import PredictPosition from '../../components/PredictPosition';
+import PredictPositionEmpty from '../../components/PredictPositionEmpty';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
+import { usePredictOrders } from '../../hooks/usePredictOrders';
+import { PredictPosition as PredictPositionType } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
+import styleSheet from './PredictTabView.styles';
 
 interface PredictTabViewProps {}
 
@@ -26,6 +30,9 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       loadOnMount: true,
     });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  usePredictOrders();
 
   const renderMarketsWonCard = useCallback(() => {
     const claimablePositions = positions.filter(
@@ -61,9 +68,19 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
 
   const renderItem = useCallback(
     ({ item }: { item: PredictPositionType }) => (
-      <PredictPosition position={item} />
+      <PredictPosition
+        position={item}
+        onPress={() => {
+          navigation.navigate(Routes.PREDICT.ROOT, {
+            screen: Routes.PREDICT.MARKET_DETAILS,
+            params: {
+              position: item,
+            },
+          });
+        }}
+      />
     ),
-    [],
+    [navigation],
   );
 
   const renderLoadingState = () => (

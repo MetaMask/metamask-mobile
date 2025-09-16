@@ -530,6 +530,17 @@ export const encodeApprove = ({
     'function approve(address spender, uint256 amount)',
   ]).encodeFunctionData('approve', [spender, amount]) as Hex;
 
+export const encodeErc1155Approve = ({
+  spender,
+  approved,
+}: {
+  spender: string;
+  approved: boolean;
+}): Hex =>
+  new Interface([
+    'function setApprovalForAll(address operator, bool approved)',
+  ]).encodeFunctionData('setApprovalForAll', [spender, approved]) as Hex;
+
 function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
@@ -611,8 +622,8 @@ export const parsePolymarketPositions = ({
     id: position.asset,
     providerId: 'polymarket',
     marketId: position.conditionId,
-    outcomeId: position.outcomeIndex.toString(),
-    outcomeTokenId: position.outcomeIndex,
+    outcomeId: position.conditionId,
+    outcomeTokenId: position.asset,
     amount: position.size,
     price: position.curPrice,
     status: (position.redeemable

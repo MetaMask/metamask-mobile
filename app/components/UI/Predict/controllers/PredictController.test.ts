@@ -9,6 +9,7 @@ import {
   type PredictControllerState,
   DEFAULT_GEO_BLOCKED_REGIONS,
 } from './PredictController';
+import { type PredictOrderStatus } from '../types';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
@@ -433,6 +434,111 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toBeDefined();
+      });
+    });
+
+    it('should place sell order via provider and track active order (polymarket selling)', async () => {
+      const mockTxMeta = { id: 'sell-tx-1' } as any;
+      await withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        const mockPosition = {
+          marketId: 'market-1',
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+        };
+
+        // Prepare provider transaction data
+        mockPolymarketProvider.prepareOrder.mockResolvedValue({
+          id: 'sell-order-1',
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+          isBuy: false,
+          amount: 2,
+          price: 0.8,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: [
+            {
+              data: '0xsell-data',
+              to: '0x000000000000000000000000000000000000sell',
+              value: '0x0',
+            },
+          ],
+          offchainTradeParams: {},
+          chainId: 1,
+        } as any);
+
+        // Mock addTransactionBatch to return our batchId
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockTxMeta.id,
+        });
+
+        const result = await controller.sell({
+          position: mockPosition as any,
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+          quantity: 2,
+        });
+
+        expect(mockPolymarketProvider.prepareOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'outcome-token-1',
+            amount: 2,
+            isBuy: false,
+            signer: expect.objectContaining({
+              address: '0x1234567890123456789012345678901234567890',
+            }),
+          }),
+        );
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            requireApproval: false, // Key difference from buy
+          }),
+        );
+
+        expect(result).toEqual({
+          success: true,
+          id: mockTxMeta.id,
+        });
+
+        expect(controller.state.activeOrders[mockTxMeta.id]).toBeDefined();
+        expect(controller.state.activeOrders[mockTxMeta.id].status).toBe(
+          'pending',
+        );
+      });
+    });
+
+    it('should handle sell order errors', async () => {
+      await withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        const mockPosition = {
+          marketId: 'market-1',
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+        };
+
+        mockPolymarketProvider.prepareOrder.mockRejectedValue(
+          new Error('Sell order failed'),
+        );
+
+        const result = await controller.sell({
+          position: mockPosition as any,
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+          quantity: 3,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Sell order failed');
+        expect(result.id).toBeUndefined();
       });
     });
   });
@@ -981,6 +1087,228 @@ describe('PredictController', () => {
 
         expect(controller.state.isEligible).toBe(true);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('deleteOrderToNotify', () => {
+    it('should remove order from ordersToNotify array', () => {
+      withController(({ controller }) => {
+        const orderIdToRemove = 'order-1';
+        const orderIdToKeep = 'order-2';
+
+        // Set up initial state with orders to notify
+        controller.updateStateForTesting((state) => {
+          state.ordersToNotify = [
+            { orderId: orderIdToRemove, status: 'filled' },
+            { orderId: orderIdToKeep, status: 'pending' },
+            { orderId: 'order-3', status: 'error' },
+          ];
+        });
+
+        controller.deleteOrderToNotify(orderIdToRemove);
+
+        expect(controller.state.ordersToNotify).toHaveLength(2);
+        expect(controller.state.ordersToNotify).not.toContainEqual(
+          expect.objectContaining({ orderId: orderIdToRemove }),
+        );
+        expect(controller.state.ordersToNotify).toContainEqual(
+          expect.objectContaining({ orderId: orderIdToKeep }),
+        );
+      });
+    });
+
+    it('should handle removing order that does not exist', () => {
+      withController(({ controller }) => {
+        const initialOrders = [
+          { orderId: 'order-1', status: 'filled' },
+          { orderId: 'order-2', status: 'pending' },
+        ];
+
+        controller.updateStateForTesting((state) => {
+          state.ordersToNotify = initialOrders as {
+            orderId: string;
+            status: PredictOrderStatus;
+          }[];
+        });
+
+        // Try to remove non-existent order
+        controller.deleteOrderToNotify('non-existent-order');
+
+        // State should remain unchanged
+        expect(controller.state.ordersToNotify).toEqual(initialOrders);
+      });
+    });
+
+    it('should handle empty ordersToNotify array', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.ordersToNotify = [];
+        });
+
+        controller.deleteOrderToNotify('any-order-id');
+
+        expect(controller.state.ordersToNotify).toEqual([]);
+      });
+    });
+  });
+
+  describe('updateStateForTesting', () => {
+    it('should update state using provided updater function', () => {
+      withController(({ controller }) => {
+        const initialTestnet = controller.state.isTestnet;
+        const initialEligible = controller.state.isEligible;
+
+        controller.updateStateForTesting((state) => {
+          state.isTestnet = !initialTestnet;
+          state.isEligible = !initialEligible;
+          state.lastError = 'Test error';
+        });
+
+        expect(controller.state.isTestnet).toBe(!initialTestnet);
+        expect(controller.state.isEligible).toBe(!initialEligible);
+        expect(controller.state.lastError).toBe('Test error');
+      });
+    });
+
+    it('should handle complex state updates', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.activeOrders = {
+            'test-order': {
+              id: 'test-order',
+              providerId: 'polymarket',
+              marketId: 'm1',
+              chainId: 1,
+              outcomeId: 'o1',
+              outcomeTokenId: 'ot1',
+              isBuy: true,
+              amount: 1,
+              price: 1,
+              status: 'pending',
+              timestamp: Date.now(),
+              lastUpdated: Date.now(),
+              onchainTradeParams: [],
+              offchainTradeParams: undefined,
+            } as any,
+          };
+          state.ordersToNotify = [{ orderId: 'test-order', status: 'pending' }];
+        });
+
+        expect(controller.state.activeOrders['test-order']).toBeDefined();
+        expect(controller.state.ordersToNotify).toHaveLength(1);
+      });
+    });
+  });
+
+  describe('performInitialization', () => {
+    it('should initialize providers correctly', async () => {
+      await withController(async ({ controller }) => {
+        // Reset initialization state to test performInitialization
+        (controller as any).isInitialized = false;
+        (controller as any).initializationPromise = null;
+
+        await (controller as any).performInitialization();
+
+        expect((controller as any).isInitialized).toBe(true);
+        expect((controller as any).providers.get('polymarket')).toBeDefined();
+        expect((controller as any).providers.get('polymarket')).toBe(
+          mockPolymarketProvider,
+        );
+      });
+    });
+
+    it('should handle provider initialization errors gracefully', async () => {
+      // Mock PolymarketProvider constructor to throw
+      const originalPolymarketProvider = PolymarketProvider;
+      (PolymarketProvider as any).mockImplementation(() => {
+        throw new Error('Provider initialization failed');
+      });
+
+      await withController(async ({ controller }) => {
+        (controller as any).isInitialized = false;
+        (controller as any).initializationPromise = null;
+
+        await expect(
+          (controller as any).performInitialization(),
+        ).rejects.toThrow('Provider initialization failed');
+      });
+
+      // Restore original constructor
+      (PolymarketProvider as any).mockImplementation(
+        originalPolymarketProvider,
+      );
+    });
+  });
+
+  describe('handleTransactionSubmitted', () => {
+    it('should handle transaction submitted event without crashing', () => {
+      withController(({ controller: _controller, messenger }) => {
+        const event = {
+          transactionMeta: {
+            id: 'tx1',
+            hash: '0xabc123',
+            status: 'submitted',
+            txParams: { from: '0x1', to: '0x2', value: '0x0' },
+          },
+        };
+
+        // This should not throw or modify state since there's no active order
+        expect(() => {
+          messenger.publish(
+            'TransactionController:transactionSubmitted',
+            // @ts-ignore
+            event,
+          );
+        }).not.toThrow();
+      });
+    });
+
+    it('should handle transaction submitted for existing active order', () => {
+      withController(({ controller, messenger }) => {
+        const batchId = 'batch-1';
+        const txId = 'tx1';
+
+        // Set up an active order
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: batchId,
+            providerId: 'polymarket',
+            marketId: 'm1',
+            chainId: 1,
+            outcomeId: 'o1',
+            outcomeTokenId: 'ot1',
+            isBuy: true,
+            amount: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [],
+            offchainTradeParams: undefined,
+          } as any;
+        });
+
+        const event = {
+          transactionMeta: {
+            id: txId,
+            hash: '0xabc123',
+            status: 'submitted',
+            txParams: { from: '0x1', to: '0x2', value: '0x0' },
+          },
+        };
+
+        // Currently handleTransactionSubmitted is a TODO, so it should not modify state
+        const initialState = { ...controller.state };
+
+        messenger.publish(
+          'TransactionController:transactionSubmitted',
+          // @ts-ignore
+          event,
+        );
+
+        // State should remain unchanged (since method is not implemented yet)
+        expect(controller.state).toEqual(initialState);
       });
     });
   });

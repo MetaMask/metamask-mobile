@@ -30,6 +30,7 @@ import {
   calculateMarketPrice,
   createApiKey,
   encodeApprove,
+  encodeErc1155Approve,
   getContractConfig,
   getL2Headers,
   getMarketFromPolymarketApi,
@@ -79,7 +80,7 @@ export class PolymarketProvider implements PredictProvider {
    */
   private async buildOrderArtifacts({
     address,
-    orderParams: { outcomeTokenId, side, amount, conditionId },
+    orderParams: { outcomeTokenId, side, amount, outcomeId },
   }: {
     address: string;
     orderParams: OrderArtifactsParams;
@@ -95,7 +96,7 @@ export class PolymarketProvider implements PredictProvider {
   }> {
     const chainId = POLYGON_MAINNET_CHAIN_ID;
     const tokenId = outcomeTokenId;
-
+    const conditionId = outcomeId;
     const [tickSizeResponse, price, marketData] = await Promise.all([
       getTickSize({ tokenId }),
       calculateMarketPrice(tokenId, side, amount, OrderType.FOK),
@@ -215,7 +216,6 @@ export class PolymarketProvider implements PredictProvider {
   }: OrderParams): Promise<PredictOrder> {
     const { address, signTypedMessage } = signer;
     const side = Side.BUY;
-    const conditionId = outcomeId;
 
     const {
       chainId,
@@ -229,7 +229,7 @@ export class PolymarketProvider implements PredictProvider {
     } = await this.buildOrderArtifacts({
       address,
       orderParams: {
-        conditionId,
+        outcomeId,
         outcomeTokenId,
         side,
         amount,
@@ -313,7 +313,7 @@ export class PolymarketProvider implements PredictProvider {
       id: generateOrderId(),
       chainId,
       providerId: this.providerId,
-      marketId: market.id,
+      marketId: market?.id,
       outcomeId,
       outcomeTokenId,
       isBuy: true,
@@ -328,10 +328,120 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  private async prepareSellTransaction(
-    _params: OrderParams,
-  ): Promise<PredictOrder> {
-    throw new Error('Sell transactions not implemented yet');
+  private async prepareSellTransaction({
+    signer,
+    market,
+    outcomeId,
+    outcomeTokenId,
+    amount,
+  }: OrderParams): Promise<PredictOrder> {
+    const { address, signTypedMessage } = signer;
+    const side = Side.SELL;
+    const {
+      chainId,
+      price,
+      tickSize,
+      order,
+      contractConfig,
+      exchangeContract,
+      verifyingContract,
+      negRisk,
+    } = await this.buildOrderArtifacts({
+      address,
+      orderParams: { outcomeId, outcomeTokenId, side, amount },
+    });
+
+    if (!priceValid(price, tickSize)) {
+      throw new Error(
+        `invalid price (${price}), min: ${parseFloat(tickSize)} - max: ${
+          1 - parseFloat(tickSize)
+        }`,
+      );
+    }
+
+    const calls = [];
+
+    // TODO: check if the user already has approved the exchange contract
+    const callData = encodeErc1155Approve({
+      spender: exchangeContract,
+      approved: true,
+    });
+
+    calls.push({
+      data: callData,
+      to: contractConfig.conditionalTokens,
+      chainId,
+      from: address,
+      value: '0x0',
+    });
+
+    if (negRisk) {
+      const adapterCallData = encodeErc1155Approve({
+        spender: contractConfig.negRiskAdapter,
+        approved: true,
+      });
+      calls.push({
+        data: adapterCallData,
+        to: contractConfig.conditionalTokens,
+        chainId,
+        from: address,
+        value: '0x0',
+      });
+    }
+
+    const typedData = getOrderTypedData({
+      order,
+      chainId,
+      verifyingContract,
+    });
+
+    const signature = await signTypedMessage(
+      { data: typedData, from: address },
+      SignTypedDataVersion.V4,
+    );
+
+    const signedOrder = {
+      ...order,
+      signature,
+    };
+
+    const signerApiKey = await this.getApiKey({ address });
+
+    const clobOrder = {
+      order: { ...signedOrder, side, salt: parseInt(signedOrder.salt, 10) },
+      owner: signerApiKey.apiKey,
+      orderType: OrderType.FOK,
+    };
+
+    const body = JSON.stringify(clobOrder);
+
+    const headers = await getL2Headers({
+      l2HeaderArgs: {
+        method: 'POST',
+        requestPath: `/order`,
+        body,
+      },
+      address: clobOrder.order.signer ?? '',
+      apiKey: signerApiKey,
+    });
+
+    return {
+      id: generateOrderId(),
+      providerId: this.providerId,
+      marketId: market?.id,
+      outcomeId,
+      outcomeTokenId,
+      isBuy: false,
+      amount,
+      price,
+      chainId,
+      status: 'idle',
+      error: undefined,
+      timestamp: Date.now(),
+      lastUpdated: Date.now(),
+      onchainTradeParams: calls,
+      offchainTradeParams: { clobOrder, headers },
+    };
   }
 
   public async submitOffchainTrade(

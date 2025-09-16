@@ -36,10 +36,6 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
       Alert.alert('Order failed', error);
       reset();
     },
-    onComplete: () => {
-      Alert.alert('Order confirmed');
-      reset();
-    },
   });
 
   const getOutcomePrices = (): number[] =>

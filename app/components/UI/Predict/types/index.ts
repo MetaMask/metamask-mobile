@@ -63,7 +63,7 @@ export type PredictOrder = {
   id: string;
   providerId: string;
   chainId: number;
-  marketId: string;
+  marketId?: string;
   outcomeId: string;
   outcomeTokenId: string;
   isBuy: boolean;
@@ -164,7 +164,7 @@ export type PredictPosition = {
   marketId: string;
   outcomeId: string;
   outcome: string;
-  outcomeTokenId: number;
+  outcomeTokenId: string;
   title: string;
   icon: string;
   amount: number;
@@ -189,6 +189,13 @@ export interface BuyParams {
   outcomeId: string;
   outcomeTokenId: string;
   amount: number;
+}
+
+export interface SellParams {
+  position: PredictPosition;
+  outcomeId: string;
+  outcomeTokenId: string;
+  quantity: number;
 }
 
 export type Result<T = void> = {

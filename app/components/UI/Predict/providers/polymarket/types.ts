@@ -115,8 +115,8 @@ export interface PolymarketOffchainTradeParams {
 }
 
 export interface OrderArtifactsParams {
-  conditionId: string;
   outcomeTokenId: string;
+  outcomeId: string;
   side: Side;
   amount: number;
 }

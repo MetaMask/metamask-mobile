@@ -1,10 +1,10 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { BuyParams, PredictOrder, Result } from '../types';
-import { usePredictTrading } from './usePredictTrading';
-import { RootState } from '../../../../reducers';
-import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { RootState } from '../../../../reducers';
+import type { PredictOrder, Result, SellParams } from '../types';
+import { usePredictTrading } from './usePredictTrading';
 import {
   ToastContext,
   ToastVariants,
@@ -15,7 +15,7 @@ interface UsePredictBuyOptions {
   /**
    * Callback when order is placed successfully
    */
-  onBuyPlaced?: (order: PredictOrder) => void;
+  onSellPlaced?: (order: PredictOrder) => void;
   /**
    * Callback when order is completed
    */
@@ -32,32 +32,33 @@ interface UsePredictBuyReturn {
   result: Result | null;
   currentOrder: PredictOrder | null;
   completed: boolean;
-  placeBuyOrder: (params: BuyParams) => Promise<void>;
+  placeSellOrder: (params: SellParams) => Promise<void>;
   isOrderLoading: (outcomeTokenId: string) => boolean;
   reset: () => void;
 }
 
 /**
- * Hook for placing Predict orders with loading states and error handling
+ * Hook for placing Predict sell orders with loading states and error handling
  * @param options Configuration options for the hook
  * @returns Order placement utilities and state
  */
-export function usePredictBuy(
+export function usePredictSell(
   options: UsePredictBuyOptions = {},
 ): UsePredictBuyReturn {
-  const { onBuyPlaced, onError, onComplete } = options;
-  const { buy } = usePredictTrading();
+  const { onSellPlaced, onError, onComplete } = options;
+  const { sell } = usePredictTrading();
 
   const [currentOrderParams, setCurrentOrderParams] =
-    useState<BuyParams | null>(null);
+    useState<SellParams | null>(null);
   const [isPlacing, setIsPlacing] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
-  const { toastRef } = useContext(ToastContext);
 
   const selectActiveOrdersState = createSelector(
     (state: RootState) => state.engine.backgroundState.PredictController,
     (predictState) => predictState.activeOrders,
   );
+
+  const { toastRef } = useContext(ToastContext);
 
   const activeOrders = useSelector(selectActiveOrdersState);
   const currentOrder = useMemo(() => {
@@ -94,9 +95,9 @@ export function usePredictBuy(
   useEffect(() => {
     if (result?.id) {
       const activeOrder = activeOrders[result.id];
-      onBuyPlaced?.(activeOrder);
+      onSellPlaced?.(activeOrder);
     }
-  }, [activeOrders, onBuyPlaced, result]);
+  }, [activeOrders, onSellPlaced, result]);
 
   useEffect(() => {
     if (error) {
@@ -116,29 +117,29 @@ export function usePredictBuy(
     [currentOrderParams, loading],
   );
 
-  const placeBuyOrder = useCallback(
-    async (orderParams: BuyParams) => {
+  const placeSellOrder = useCallback(
+    async (orderParams: SellParams) => {
       reset();
       try {
         setIsPlacing(true);
         setCurrentOrderParams(orderParams);
-        const { amount, outcomeId, outcomeTokenId, market } = orderParams;
+        const { quantity, outcomeId, outcomeTokenId, position } = orderParams;
 
         DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
-
-        // Place order using Predict controller
-        const buyResult = await buy({
-          amount,
-          market,
-          outcomeId,
-          outcomeTokenId,
-        });
 
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
           labelOptions: [{ label: 'Order placed' }],
           hasNoTimeout: false,
+        });
+
+        // Place order using Predict controller
+        const buyResult = await sell({
+          quantity,
+          position,
+          outcomeId,
+          outcomeTokenId,
         });
 
         setResult(buyResult);
@@ -155,7 +156,7 @@ export function usePredictBuy(
         onError?.(errorMessage, currentOrder);
       }
     },
-    [reset, toastRef, buy, onError, currentOrder],
+    [reset, toastRef, sell, onError, currentOrder],
   );
 
   return {
@@ -165,7 +166,7 @@ export function usePredictBuy(
     currentOrder,
     completed,
     isOrderLoading,
-    placeBuyOrder,
+    placeSellOrder,
     reset,
   };
 }

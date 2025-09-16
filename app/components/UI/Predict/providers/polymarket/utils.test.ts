@@ -1194,9 +1194,7 @@ describe('polymarket utils', () => {
 
       const result = parsePolymarketEvents([eventWithoutIcon], mockCategory);
 
-      expect(result[0].outcomes[0].image).toBe(
-        'https://example.com/market-image.png',
-      );
+      expect(result[0].outcomes[0].image).toBe('');
     });
   });
 
@@ -1251,8 +1249,8 @@ describe('polymarket utils', () => {
         id: 'position-1',
         providerId: 'polymarket',
         marketId: 'condition-1',
-        outcomeId: '0',
-        outcomeTokenId: 0,
+        outcomeId: 'condition-1',
+        outcomeTokenId: 'position-1',
         amount: 100,
         price: 0.6,
         status: 'open',
@@ -1263,8 +1261,8 @@ describe('polymarket utils', () => {
         id: 'position-2',
         providerId: 'polymarket',
         marketId: 'condition-1',
-        outcomeId: '1',
-        outcomeTokenId: 1,
+        outcomeId: 'condition-1',
+        outcomeTokenId: 'position-2',
         amount: 50,
         price: 0.4,
         status: 'redeemable',

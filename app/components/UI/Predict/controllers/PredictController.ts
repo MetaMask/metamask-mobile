@@ -29,8 +29,10 @@ import {
   OffchainTradeResponse,
   PredictMarket,
   PredictOrder,
+  PredictOrderStatus,
   PredictPosition,
   Result,
+  SellParams,
   ToggleTestnetResult,
 } from '../types';
 import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
@@ -54,6 +56,7 @@ export const PREDICT_ERROR_CODES = {
   PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
   PLACE_BUY_ORDER_FAILED: 'PLACE_BUY_ORDER_FAILED',
+  PLACE_SELL_ORDER_FAILED: 'PLACE_SELL_ORDER_FAILED',
   SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED: 'SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED',
   NO_ONCHAIN_TRADE_PARAMS: 'NO_ONCHAIN_TRADE_PARAMS',
   ONCHAIN_TRANSACTION_NOT_FOUND: 'ONCHAIN_TRANSACTION_NOT_FOUND',
@@ -105,8 +108,10 @@ export type PredictControllerState = {
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
+
+  // Order management
   activeOrders: { [key: string]: PredictOrder };
-  lastSuccessfulTransaction: string | null;
+  ordersToNotify: { orderId: string; status: PredictOrderStatus }[];
 };
 
 /**
@@ -121,7 +126,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   activeOrders: {},
-  lastSuccessfulTransaction: null,
+  ordersToNotify: [],
 });
 
 /**
@@ -138,7 +143,7 @@ const metadata = {
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   activeOrders: { persist: false, anonymous: false },
-  lastSuccessfulTransaction: { persist: false, anonymous: false },
+  ordersToNotify: { persist: false, anonymous: false },
 };
 
 /**
@@ -341,7 +346,9 @@ export class PredictController extends BaseController<
     if (!offchainTradeParams) {
       this.update((state) => {
         state.activeOrders[batchId].status = 'filled';
+        state.ordersToNotify.push({ orderId: batchId, status: 'filled' });
       });
+
       return;
     }
 
@@ -350,6 +357,7 @@ export class PredictController extends BaseController<
         state.activeOrders[batchId].status = 'error';
         state.activeOrders[batchId].error =
           PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED;
+        state.ordersToNotify.push({ orderId: batchId, status: 'error' });
       });
       return;
     }
@@ -368,6 +376,7 @@ export class PredictController extends BaseController<
     this.update((state) => {
       state.activeOrders[batchId].status = status;
       state.activeOrders[batchId].error = error;
+      state.ordersToNotify.push({ orderId: batchId, status });
     });
   }
 
@@ -377,10 +386,17 @@ export class PredictController extends BaseController<
   private handleTransactionFailed(
     _event: TransactionControllerTransactionFailedEvent['payload'][0],
   ): void {
+    const batchId = _event.transactionMeta.id;
+
+    if (!batchId) {
+      return;
+    }
+
     // TODO: Implement transaction failure tracking
     this.update((state) => {
-      if (state.activeOrders[_event.transactionMeta.id]) {
-        state.activeOrders[_event.transactionMeta.id].status = 'error';
+      if (state.activeOrders[batchId]) {
+        state.activeOrders[batchId].status = 'error';
+        state.ordersToNotify.push({ orderId: batchId, status: 'error' });
       }
     });
   }
@@ -585,6 +601,7 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.activeOrders[batchId] = order;
         state.activeOrders[batchId].status = 'pending';
+        state.ordersToNotify.push({ orderId: batchId, status: 'pending' });
       });
 
       return {
@@ -598,6 +615,85 @@ export class PredictController extends BaseController<
           error instanceof Error
             ? error.message
             : PREDICT_ERROR_CODES.PLACE_BUY_ORDER_FAILED,
+        id: undefined,
+      };
+    }
+  }
+
+  async sell({
+    position,
+    outcomeId,
+    outcomeTokenId,
+    quantity,
+  }: SellParams): Promise<Result> {
+    try {
+      const provider = this.providers.get(position.providerId);
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      // TODO: Change to AccountTreeController when available
+      const { AccountsController, NetworkController, KeyringController } =
+        Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      const order = await provider.prepareOrder({
+        signer: {
+          address: selectedAddress,
+          signTypedMessage: (
+            params: TypedMessageParams,
+            version: SignTypedDataVersion,
+          ) => KeyringController.signTypedMessage(params, version),
+        },
+        outcomeId,
+        outcomeTokenId,
+        amount: quantity,
+        isBuy: false,
+      });
+
+      if (order.onchainTradeParams.length === 0) {
+        throw new Error(PREDICT_ERROR_CODES.NO_ONCHAIN_TRADE_PARAMS);
+      }
+
+      const { chainId } = order;
+
+      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+        numberToHex(chainId),
+      );
+
+      const { batchId } = await addTransactionBatch({
+        from: selectedAddress as Hex,
+        networkClientId,
+        transactions: order.onchainTradeParams.map((tx) => ({
+          params: {
+            to: tx.to as Hex,
+            data: tx.data as Hex,
+            value: tx.value as Hex,
+          },
+        })),
+        disable7702: true,
+        disableHook: true,
+        disableSequential: false,
+        requireApproval: false,
+      });
+
+      this.update((state) => {
+        state.activeOrders[batchId] = order;
+        state.activeOrders[batchId].status = 'pending';
+        state.ordersToNotify.push({ orderId: batchId, status: 'pending' });
+      });
+
+      return {
+        success: true,
+        id: batchId,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.PLACE_SELL_ORDER_FAILED,
         id: undefined,
       };
     }
@@ -710,6 +806,14 @@ export class PredictController extends BaseController<
         state.isEligible = isEligible;
       });
     }
+  }
+
+  public deleteOrderToNotify(orderId: string): void {
+    this.update((state) => {
+      state.ordersToNotify = state.ordersToNotify.filter(
+        (order) => order.orderId !== orderId,
+      );
+    });
   }
 
   /**

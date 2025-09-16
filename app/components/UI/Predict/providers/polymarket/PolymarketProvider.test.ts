@@ -467,7 +467,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('throws error for sell orders (not implemented)', async () => {
+    it('successfully prepares a sell order and returns correct result', async () => {
       const provider = createProvider();
       const orderParams: OrderParams = {
         signer: mockSigner,
@@ -478,9 +478,75 @@ describe('PolymarketProvider', () => {
         amount: 1,
       };
 
-      await expect(provider.prepareOrder(orderParams)).rejects.toThrow(
-        'Sell transactions not implemented yet',
+      const result = await provider.prepareOrder(orderParams);
+
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        providerId: 'polymarket',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        isBuy: false,
+        amount: 1,
+        price: 0.5,
+        status: 'idle',
+        timestamp: expect.any(Number),
+        lastUpdated: Date.now(),
+      });
+
+      expect(result.onchainTradeParams).toBeDefined();
+      expect(result.offchainTradeParams).toBeDefined();
+    });
+
+    it('calls all required utility functions with correct parameters for sell order', async () => {
+      const provider = createProvider();
+      const orderParams: OrderParams = {
+        signer: mockSigner,
+        market: mockMarket,
+        outcomeId: 'outcome-456',
+        outcomeTokenId: '0',
+        isBuy: false,
+        amount: 2,
+      };
+
+      await provider.prepareOrder(orderParams);
+
+      expect(mockCalculateMarketPrice).toHaveBeenCalledWith(
+        '0',
+        Side.SELL,
+        2,
+        OrderType.FOK,
       );
+      expect(mockPriceValid).toHaveBeenCalledWith(0.5, '0.01');
+    });
+  });
+
+  describe('getMarketDetails', () => {
+    it('throws error when method is not implemented', () => {
+      const provider = createProvider();
+
+      expect(() =>
+        provider.getMarketDetails({ marketId: 'market-123' }),
+      ).toThrow('Method not implemented.');
+    });
+  });
+
+  describe('getActivity', () => {
+    it('throws error when method is not implemented', () => {
+      const provider = createProvider();
+
+      expect(() =>
+        provider.getActivity({
+          address: '0x1234567890123456789012345678901234567890',
+        }),
+      ).toThrow('Method not implemented.');
+    });
+  });
+
+  describe('claimWinnings', () => {
+    it('throws error when method is not implemented', () => {
+      const provider = createProvider();
+
+      expect(() => provider.claimWinnings()).toThrow('Method not implemented.');
     });
   });
 

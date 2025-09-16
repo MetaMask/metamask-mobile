@@ -1,13 +1,13 @@
 import React from 'react';
-import { View, Image, TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PredictPosition.styles';
 import { PredictPosition as PredictPositionType } from '../../types';
-import { formatPrice, formatPercentage } from '../../utils/format';
+import { formatPercentage, formatPrice } from '../../utils/format';
+import styleSheet from './PredictPosition.styles';
 
 interface PredictPositionProps {
   position: PredictPositionType;

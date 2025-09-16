@@ -33,7 +33,7 @@ export interface Signer {
 
 export interface OrderParams {
   signer: Signer;
-  market: PredictMarket;
+  market?: PredictMarket;
   outcomeId: string;
   outcomeTokenId: string;
   isBuy: boolean;

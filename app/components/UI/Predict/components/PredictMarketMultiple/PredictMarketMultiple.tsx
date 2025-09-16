@@ -40,10 +40,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
       Alert.alert('Order failed', error);
       reset();
     },
-    onComplete: () => {
-      Alert.alert('Order confirmed');
-      reset();
-    },
   });
 
   const getFirstOutcomePrice = (
