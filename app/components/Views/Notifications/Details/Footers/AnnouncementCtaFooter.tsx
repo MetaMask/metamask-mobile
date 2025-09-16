@@ -2,6 +2,7 @@ import React from 'react';
 import { Linking } from 'react-native';
 import Button, {
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
@@ -23,7 +24,8 @@ export default function AnnouncementCtaFooter(
 
   return (
     <Button
-      variant={ButtonVariants.Secondary}
+      variant={ButtonVariants.Primary}
+      width={ButtonWidthTypes.Full}
       label={mobileLinkText}
       style={styles.ctaBtn}
       onPress={() => Linking.openURL(mobileLinkUrl)}
