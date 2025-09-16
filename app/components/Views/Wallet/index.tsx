@@ -14,6 +14,7 @@ import {
   StyleSheet as RNStyleSheet,
   View,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -65,6 +66,7 @@ import {
 import {
   selectSelectedInternalAccount,
   selectSelectedInternalAccountFormattedAddress,
+  selectSelectedInternalAccountId,
 } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
@@ -74,6 +76,7 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNativeCurrencyByChainId,
+  selectNativeNetworkCurrencies,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -181,6 +184,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { refreshTokens } from '../../UI/Tokens/util';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -430,6 +434,7 @@ const Wallet = ({
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
   const theme = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
@@ -447,6 +452,7 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
   /**
    * Object containing the balance of the current selected account
@@ -583,6 +589,7 @@ const Wallet = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -1168,11 +1175,49 @@ const Wallet = ({
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    // Set a timeout to prevent infinite loading states
+    const forceStopTimeout = setTimeout(() => {
+      setRefreshing(false);
+    }, 15000);
+
+    refreshTokens({
+      isEvmSelected,
+      evmNetworkConfigurationsByChainId: evmNetworkConfigurations,
+      nativeCurrencies,
+      selectedAccountId,
+    })
+      .then(() => {
+        clearTimeout(forceStopTimeout);
+        setRefreshing(false);
+      })
+      .catch((error) => {
+        Logger.error(error as Error, 'Wallet refresh failed');
+        clearTimeout(forceStopTimeout);
+        setRefreshing(false);
+      });
+  }, [
+    isEvmSelected,
+    evmNetworkConfigurations,
+    nativeCurrencies,
+    selectedAccountId,
+  ]);
+
   const renderContent = useCallback(
     () => (
       <ScrollView
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       >
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
@@ -1250,6 +1295,9 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
+      colors,
+      refreshing,
+      onRefresh,
     ],
   );
   const renderLoader = useCallback(

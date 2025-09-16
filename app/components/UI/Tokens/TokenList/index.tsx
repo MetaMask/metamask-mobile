@@ -1,5 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { View, RefreshControl } from 'react-native';
+import { View } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -28,8 +28,6 @@ export interface FlashListAssetKey {
 
 interface TokenListProps {
   tokenKeys: FlashListAssetKey[];
-  refreshing: boolean;
-  onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
   showPercentageChange?: boolean;
   setShowScamWarningModal: () => void;
@@ -37,8 +35,6 @@ interface TokenListProps {
 
 const TokenListComponent = ({
   tokenKeys,
-  refreshing,
-  onRefresh,
   showRemoveMenu,
   showPercentageChange = true,
   setShowScamWarningModal,
@@ -108,14 +104,6 @@ const TokenListComponent = ({
         return `${item.address}-${item.chainId}-${staked}`;
       }}
       ListFooterComponent={<TokenListFooter />}
-      refreshControl={
-        <RefreshControl
-          colors={[colors.primary.default]}
-          tintColor={colors.icon.default}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-      }
       extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
       scrollEnabled={false}
     />

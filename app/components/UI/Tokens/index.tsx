@@ -4,23 +4,18 @@ import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectNativeNetworkCurrencies,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
 import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import { refreshTokens, removeEvmToken, goToAddEvmToken } from './util';
+import { removeEvmToken, goToAddEvmToken } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TokenListControlBar } from './TokenListControlBar';
-import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
 import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
@@ -41,17 +36,11 @@ const Tokens = memo(() => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // evm
-  const evmNetworkConfigurationsByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
   const currentChainId = useSelector(selectChainId);
-  const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
-  const [refreshing, setRefreshing] = useState(false);
-  const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
@@ -77,24 +66,6 @@ const Tokens = memo(() => {
     },
     [isEvmSelected],
   );
-
-  const onRefresh = useCallback(async () => {
-    requestAnimationFrame(() => {
-      setRefreshing(true);
-      refreshTokens({
-        isEvmSelected,
-        evmNetworkConfigurationsByChainId,
-        nativeCurrencies,
-        selectedAccountId,
-      });
-      setRefreshing(false);
-    });
-  }, [
-    isEvmSelected,
-    evmNetworkConfigurationsByChainId,
-    nativeCurrencies,
-    selectedAccountId,
-  ]);
 
   const removeToken = useCallback(async () => {
     // remove token currently only supported on evm
@@ -158,8 +129,6 @@ const Tokens = memo(() => {
       {sortedTokenKeys && (
         <TokenList
           tokenKeys={sortedTokenKeys}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
           showRemoveMenu={showRemoveMenu}
           setShowScamWarningModal={handleScamWarningModal}
         />
