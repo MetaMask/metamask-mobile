@@ -1,17 +1,15 @@
 import { test } from '../../../fixtures/performance-test.js';
 
 import TimerHelper from '../../../utils/TimersHelper.js';
-import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
-import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
-import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import CreateNewWalletScreen from '../../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
-import MetaMetricsScreen from '../../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../../../wdio/screen-objects/OnboardingSucessScreen.js';
-import OnboardingSheet from '../../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import WalletAccountModal from '../../../../wdio/screen-objects/Modals/WalletAccountModal.js';
-import SkipAccountSecurityModal from '../../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
-import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
+import OnboardingView from '../../../../e2e/pages/Onboarding/OnboardingView.js';
+import OnboardingSheet from '../../../../e2e/pages/Onboarding/OnboardingSheet.js';
+import CreatePasswordView from '../../../../e2e/pages/Onboarding/CreatePasswordView.js';
+import ProtectYourWalletView from '../../../../e2e/pages/Onboarding/ProtectYourWalletView.js';
+import SkipAccountSecurityModal from '../../../../e2e/pages/Onboarding/SkipAccountSecurityModal.js';
+import MetaMetricsOptInView from '../../../../e2e/pages/Onboarding/MetaMetricsOptInView.js';
+import OnboardingSuccessView from '../../../../e2e/pages/Onboarding/OnboardingSuccessView.js';
+import WalletView from '../../../../e2e/pages/wallet/WalletView.js';
 
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -21,16 +19,14 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
     'Time until the user clicks on the "Get Started" button',
   );
   screen1Timer.start();
-  WelcomeScreen.device = device;
-  TermOfUseScreen.device = device;
-  OnboardingScreen.device = device;
-  CreateNewWalletScreen.device = device;
-  MetaMetricsScreen.device = device;
-  OnboardingSucessScreen.device = device;
+  OnboardingView.device = device;
   OnboardingSheet.device = device;
-  WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
-  WalletMainScreen.device = device;
+  CreatePasswordView.device = device;
+  ProtectYourWalletView.device = device;
+  MetaMetricsOptInView.device = device;
+  OnboardingSuccessView.device = device;
+  WalletView.device = device;
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on "Get Started" button until the Term of Use screen is visible',
@@ -56,37 +52,46 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   const timer8 = new TimerHelper(
     'Time since the user clicks on "Done" button until Solana feature sheet is visible',
   );
+  const timer9 = new TimerHelper(
+    'Time since the user clicks on "Done" button until wallet view is visible',
+  );
 
   timer3.start();
-  await OnboardingScreen.tapCreateNewWalletButton();
-  await OnboardingSheet.isVisible();
+  await OnboardingView.tapCreateWallet();
   timer3.stop();
   timer4.start();
   await OnboardingSheet.tapImportSeedButton();
-  await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
+  await CreatePasswordView.isVisible();
   timer4.stop();
-  await CreateNewWalletScreen.inputPasswordInFirstField(
+  await CreatePasswordView.enterPassword(getPasswordForScenario('onboarding'));
+  await CreatePasswordView.reEnterPassword(
     getPasswordForScenario('onboarding'),
   );
-  await CreateNewWalletScreen.inputConfirmPasswordField(
-    getPasswordForScenario('onboarding'),
-  );
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
   timer5.start();
-  await CreateNewWalletScreen.tapSubmitButton();
-  await CreateNewWalletScreen.tapRemindMeLater();
-  await SkipAccountSecurityModal.isVisible();
+  await ProtectYourWalletView.isVisible();
   timer5.stop();
+  await ProtectYourWalletView.tapOnRemindMeLaterButton();
   timer6.start();
-  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
-  await MetaMetricsScreen.isScreenTitleVisible();
+  await SkipAccountSecurityModal.isVisible();
   timer6.stop();
+  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+  await SkipAccountSecurityModal.tapSkipButton();
   timer7.start();
-  await MetaMetricsScreen.tapIAgreeButton();
-  await OnboardingSucessScreen.isVisible();
+  await MetaMetricsOptInView.isScreenTitleVisible();
   timer7.stop();
+
+  await MetaMetricsOptInView.tapAgreeButton();
   timer8.start();
-  await OnboardingSucessScreen.tapDone();
+  await OnboardingSuccessView.isVisible();
   timer8.stop();
+
+  await OnboardingSuccessView.tapDone();
+  timer9.start();
+
+  await WalletView.isVisible();
+  timer9.stop();
 
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
@@ -96,5 +101,6 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   performanceTracker.addTimer(timer6);
   performanceTracker.addTimer(timer7);
   performanceTracker.addTimer(timer8);
+  performanceTracker.addTimer(timer9);
   await performanceTracker.attachToTest(testInfo);
 });

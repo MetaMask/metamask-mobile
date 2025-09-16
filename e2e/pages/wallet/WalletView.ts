@@ -6,12 +6,33 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
+import { Device, expect } from 'appwright';
+import AppwrightSelectors from '../../../wdio/helpers/AppwrightSelectors.js';
 
 class WalletView {
+  private _device?: Device;
+
+  get device(): Device | undefined {
+    return this._device;
+  }
+
+  set device(device: Device) {
+    this._device = device;
+  }
+
   static readonly MAX_SCROLL_ITERATIONS = 8;
 
-  get container(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+  get container() {
+    if (!this._device) {
+      // Detox framework
+      return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+    }
+      // Appwright framework
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        WalletViewSelectorsIDs.WALLET_CONTAINER,
+      );
+
   }
 
   get earnButton(): DetoxElement {
@@ -94,7 +115,7 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
   }
 
-  get accountName(): DetoxElement {
+  get accountName() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
@@ -586,6 +607,13 @@ class WalletView {
         description: `token network filter should display "${expectedText}"`,
       },
     );
+  }
+
+  async isVisible(): Promise<void> {
+    if (this._device) {
+      // Appwright framework
+      await expect(await this.container).toBeVisible({ timeout: 10000 });
+    }
   }
 }
 
