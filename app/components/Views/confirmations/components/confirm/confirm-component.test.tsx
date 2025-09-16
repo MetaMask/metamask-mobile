@@ -153,6 +153,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../hooks/alerts/useInsufficientPayTokenNativeAlert', () => ({
+  useInsufficientPayTokenNativeAlert: jest.fn().mockReturnValue([]),
+}));
+
 describe('Confirm', () => {
   afterEach(() => {
     jest.restoreAllMocks();

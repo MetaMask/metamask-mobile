@@ -192,6 +192,7 @@ jobs:
           TEST_RUNS_PATH=test/test-results/test-runs-android.json \
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
           node .github/scripts/create-e2e-test-report.mjs
           
           # Clean up temporary node_modules
