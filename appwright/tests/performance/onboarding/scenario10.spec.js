@@ -49,9 +49,7 @@ test('Cold Start after importing a wallet', async ({
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
   await AppwrightSelectors.terminateApp(device);
-
   await AppwrightSelectors.activateApp(device);
-
   await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword('123456789');
   await LoginScreen.tapTitle();
