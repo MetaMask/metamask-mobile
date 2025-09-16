@@ -88,22 +88,21 @@ Imperative:
 
 ```javascript
 import React, { useEffect, useRef } from 'react';
-import LottieView from 'lottie-react-native';
+import Rive from 'react-native-rive';
 
 export default function AnimationWithImperativeApi() {
-  const animationRef = useRef < LottieView > null;
+  const animationRef = useRef < Rive > null;
 
   useEffect(() => {
     animationRef.current?.play();
-
-    // Or set a specific startFrame and endFrame with:
-    animationRef.current?.play(30, 120);
   }, []);
 
   return (
-    <LottieView
-      ref={animationRef}
-      source={{ uri: 'https://lottiefileexample.com/animation.json' }}
+    <Rive
+      url="https://public.rive.app/community/runtime-files/2195-4346-avatar-pack-use-case.riv"
+      artboardName="Avatar 1"
+      stateMachineName="avatar"
+      style={{ width: 400, height: 400 }}
     />
   );
 }
