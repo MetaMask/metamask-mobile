@@ -910,7 +910,22 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
           component={SettingsFlow}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
       )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />
