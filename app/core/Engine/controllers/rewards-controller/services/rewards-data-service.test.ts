@@ -1409,8 +1409,6 @@ describe('RewardsDataService', () => {
     };
 
     it('should successfully get opt-in status for multiple addresses', async () => {
-
-
       // Arrange
       const mockResponse = {
         ok: true,
