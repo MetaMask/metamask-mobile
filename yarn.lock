@@ -7888,19 +7888,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@metamask/network-enablement-controller@npm:0.6.0"
+"@metamask/network-enablement-controller@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/network-enablement-controller@npm:1.1.0"
   dependencies:
     "@metamask/base-controller": ^8.3.0
     "@metamask/controller-utils": ^11.12.0
-    "@metamask/utils": ^11.4.2
+    "@metamask/utils": ^11.8.0
     reselect: ^5.1.1
   peerDependencies:
     "@metamask/multichain-network-controller": ^0.11.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: c33c435ab5bb63556fb465a97dbfa2ad3748d3e70f201a1aa5727d2519377902373424b536087897679818918b2ada69e9bdee3cd65f3f408a8fbe2eccbf17d3
+  checksum: e1bb8f129635d0713524c5032bd13f5bae0d4d2810a7d49e989f8c32d0040131a039f890da2434ae4746d3e26b3afe1d64ce686c7b5b2a287a087b125242a7e8
   languageName: node
   linkType: hard
 
@@ -8760,6 +8760,25 @@ __metadata:
     semver: ^7.5.4
     uuid: ^9.0.1
   checksum: 8fb694d40f523c11e213c2a997db559bf6472d2181fc89d91167c8a8e3487da9c3f8336de74c7a8f9944222d7f1ddd8b89eea021a83db871dfeb4858bbdd1a47
+  languageName: node
+  linkType: hard
+
+"@metamask/utils@npm:^11.8.0":
+  version: 11.8.0
+  resolution: "@metamask/utils@npm:11.8.0"
+  dependencies:
+    "@ethereumjs/tx": ^4.2.0
+    "@metamask/superstruct": ^3.1.0
+    "@noble/hashes": ^1.3.1
+    "@scure/base": ^1.1.3
+    "@types/debug": ^4.1.7
+    "@types/lodash": ^4.17.20
+    debug: ^4.3.4
+    lodash: ^4.17.21
+    pony-cause: ^2.1.10
+    semver: ^7.5.4
+    uuid: ^9.0.1
+  checksum: 61f0eb5f9066ea7f59637389910698d78e48fc810669d156dc1cfea879699cbc12644933ee04929dfc14bc100440a241003a1b68de9e0c41f292c4f290af1ae6
   languageName: node
   linkType: hard
 
@@ -34056,7 +34075,7 @@ __metadata:
     "@metamask/multichain-network-controller": ^0.10.0
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
-    "@metamask/network-enablement-controller": ^0.6.0
+    "@metamask/network-enablement-controller": ^1.1.0
     "@metamask/notification-services-controller": ^18.1.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
