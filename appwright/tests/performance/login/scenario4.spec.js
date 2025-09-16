@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test } from '../../../fixtures/performance-test.js';
 
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
