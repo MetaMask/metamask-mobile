@@ -379,10 +379,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       </BottomSheetHeader>
 
       <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content}>
-        <View
+        <TouchableOpacity
           style={styles.scrollContent}
-          // activeOpacity={1}
+          activeOpacity={1}
           testID="scroll-content"
+          onPress={() => {
+            if (focusedInput) {
+              dismissKeypad();
+            }
+          }}
         >
           {showOverlay && (
             <View style={styles.overlay}>
@@ -728,7 +733,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </Text>
             )}
           </View>
-        </View>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Keypad Section - Show when input is focused */}
