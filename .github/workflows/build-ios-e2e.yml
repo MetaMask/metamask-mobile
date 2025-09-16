@@ -2,6 +2,12 @@ name: Build iOS E2E Apps
 
 on:
   workflow_call:
+    inputs:
+      build_action:
+        description: 'Build action: full, repack, or check_fingerprint'
+        required: false
+        type: string
+        default: 'full'
 
 permissions:
   contents: read
@@ -103,11 +109,21 @@ jobs:
           command: |
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
+
+      - name: Fingerprint build check
+        id: build-decision
+        uses: ./.github/actions/fingerprint-build-check
+        with:
+          platform: ios
+          build_action: ${{ inputs.build_action }}
+          artifact_path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          pr_number: ${{ github.event.pull_request.number }}
       
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
         run: |
-          echo "🏗 Building iOS E2E App..."
+          echo "🏗 Building iOS E2E App (Full Build)..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           yarn build:ios:main:e2e
         shell: bash
@@ -138,6 +154,74 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      - name: Update JS and Assets (expo export)
+        if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        id: expo-export
+        run: |
+          echo "🔧 Updating JS and assets with expo export..."
+          echo "Running setup without building native code..."
+          yarn setup:github-ci --no-build-ios --no-build-android
+
+          echo "Exporting JavaScript bundle for iOS..."
+          yarn expo export --platform ios
+
+          # Verify the bundle was created
+          if [ ! -f "dist/_expo/static/js/ios/index.js" ]; then
+            echo "❌ Error: Bundle not found at dist/_expo/static/js/ios/index.js"
+            exit 1
+          fi
+
+          BUNDLE_SIZE=$(stat -f%z "dist/_expo/static/js/ios/index.js" 2>/dev/null || stat -c%s "dist/_expo/static/js/ios/index.js" 2>/dev/null)
+          echo "✅ JS bundle exported successfully (size: $BUNDLE_SIZE bytes)"
+
+      - name: Repackage App Bundle using unified tool
+        if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        id: repack-app
+        run: |
+          echo "📦 Repackaging iOS .app bundle with updated JavaScript bundle..."
+          echo "==========================================="
+
+          # Use the unified repacking tool
+          if ! yarn repack \
+            --platform ios \
+            --input ios/build/Build/Products/Release-iphonesimulator/MetaMask.app \
+            --bundle dist/_expo/static/js/ios/index.js; then
+            echo "❌ Unified repackaging failed!"
+            exit 1
+          fi
+
+          echo "✅ Unified repackaging completed successfully!"
+          echo "==========================================="
+          echo "🎯 .app bundle ready for E2E testing with updated JS bundle"
+
+      - name: Save fingerprint and cache artifacts
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        uses: ./.github/actions/save-build-fingerprint
+        with:
+          platform: ios
+          artifacts_path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          pr_number: ${{ github.event.pull_request.number }}
+
+      - name: Log Build Performance Metrics
+        if: always()
+        run: |
+          echo "📊 iOS Build Performance Summary"
+          echo "==============================="
+          echo "Build Method: ${{ steps.build-decision.outputs.build_method }}"
+          echo "Cache Hit: ${{ steps.build-decision.outputs.cache_hit }}"
+          echo "Can Repack: ${{ steps.build-decision.outputs.can_repack }}"
+
+          if [[ "${{ steps.build-decision.outputs.build_method }}" == "repack" ]]; then
+            echo "🚀 Optimized build using cached artifacts!"
+            echo "Time saved by avoiding full native build"
+          elif [[ "${{ steps.build-decision.outputs.build_method }}" == "full" ]]; then
+            echo "🏗️ Full native build was required"
+            if [[ "${{ steps.build-decision.outputs.cache_hit }}" == "false" ]]; then
+              echo "Reason: No cache hit or native code changed"
+            fi
+          fi
+          echo "==============================="
 
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)

@@ -1,15 +1,15 @@
 name: 'Fingerprint Build Check'
-description: 'Check fingerprint and decide between full build, repack, or skip (Android only for now)'
+description: 'Check fingerprint and decide between full build, repack, or skip (Cross-platform)'
 inputs:
   platform:
-    description: 'Platform to check (currently android only)'
+    description: 'Platform to check (android or ios)'
     required: true
   build_action:
     description: 'Build action from needs workflow (full, check_fingerprint, skip)'
     required: true
     default: 'full'
-  apk_path:
-    description: 'Path to the APK/APP file to check for reuse'
+  artifact_path:
+    description: 'Path to the APK or APP file to check for reuse'
     required: false
     default: ''
   pr_number:
@@ -40,10 +40,10 @@ runs:
           fingerprint-${{ inputs.platform }}-${{ inputs.pr_number || 'main' }}-
 
     - name: Restore previous build artifacts
-      if: ${{ inputs.build_action == 'check_fingerprint' && inputs.apk_path != '' }}
+      if: ${{ inputs.build_action == 'check_fingerprint' && inputs.artifact_path != '' }}
       uses: actions/cache@v4
       with:
-        path: ${{ inputs.apk_path }}
+        path: ${{ inputs.artifact_path }}
         key: ${{ inputs.platform }}-artifacts-${{ inputs.pr_number || 'main' }}-${{ hashFiles('.app-native-fingerprint') }}
         restore-keys: |
           ${{ inputs.platform }}-artifacts-${{ inputs.pr_number || 'main' }}-
@@ -58,7 +58,7 @@ runs:
         echo "  - Build action: ${{ inputs.build_action }}"
         echo "  - Platform: ${{ inputs.platform }}"
         echo "  - PR Number: ${{ inputs.pr_number || 'main' }}"
-        echo "  - APK Path: ${{ inputs.apk_path }}"
+        echo "  - Artifact Path: ${{ inputs.artifact_path }}"
         echo ""
         
         # Initialize variables to track decisions
@@ -128,21 +128,42 @@ runs:
             echo "📦 Checking for existing artifacts..."
             
             # Check if we have cached artifacts
-            if [[ "${{ inputs.apk_path }}" != "" && -f "${{ inputs.apk_path }}" ]]; then
-              # Validate the APK file
-              APK_SIZE=$(stat -f%z "${{ inputs.apk_path }}" 2>/dev/null || stat -c%s "${{ inputs.apk_path }}" 2>/dev/null || echo "0")
-              if [[ $APK_SIZE -gt 1000000 ]]; then  # APK should be at least 1MB
-                echo "✅ Found valid cached APK (size: $APK_SIZE bytes)"
-                echo "🎯 Decision: REPACK - Using cached build with updated JS bundle"
-                BUILD_METHOD="repack"
-                CAN_REPACK="true"
-                CACHE_HIT="true"
-                echo "build_method=$BUILD_METHOD" >> "$GITHUB_OUTPUT"
-                echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
-                echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
+            if [[ "${{ inputs.artifact_path }}" != "" ]]; then
+              # Check if artifact exists (file for Android, directory for iOS)
+              if [[ "${{ inputs.platform }}" == "android" && -f "${{ inputs.artifact_path }}" ]] || [[ "${{ inputs.platform }}" == "ios" && -d "${{ inputs.artifact_path }}" ]]; then
+                # Validate the artifact
+                if [[ "${{ inputs.platform }}" == "android" ]]; then
+                  ARTIFACT_SIZE=$(stat -f%z "${{ inputs.artifact_path }}" 2>/dev/null || stat -c%s "${{ inputs.artifact_path }}" 2>/dev/null || echo "0")
+                  MIN_SIZE=1000000  # APK should be at least 1MB
+                  ARTIFACT_TYPE="APK"
+                else
+                  ARTIFACT_SIZE=$(du -sb "${{ inputs.artifact_path }}" 2>/dev/null | cut -f1 || echo "0")
+                  MIN_SIZE=10000000  # .app should be at least 10MB
+                  ARTIFACT_TYPE=".app bundle"
+                fi
+
+                if [[ $ARTIFACT_SIZE -gt $MIN_SIZE ]]; then
+                  echo "✅ Found valid cached $ARTIFACT_TYPE (size: $ARTIFACT_SIZE bytes)"
+                  echo "🎯 Decision: REPACK - Using cached build with updated JS bundle"
+                  BUILD_METHOD="repack"
+                  CAN_REPACK="true"
+                  CACHE_HIT="true"
+                  echo "build_method=$BUILD_METHOD" >> "$GITHUB_OUTPUT"
+                  echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
+                  echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
+                else
+                  echo "⚠️ Cached $ARTIFACT_TYPE appears invalid (size: $ARTIFACT_SIZE bytes)"
+                  echo "🎯 Decision: FULL BUILD - Invalid cached artifacts"
+                  BUILD_METHOD="full"
+                  CAN_REPACK="false"
+                  CACHE_HIT="false"
+                  echo "build_method=$BUILD_METHOD" >> "$GITHUB_OUTPUT"
+                  echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
+                  echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
+                fi
               else
-                echo "⚠️ Cached APK appears invalid (size: $APK_SIZE bytes)"
-                echo "🎯 Decision: FULL BUILD - Invalid cached artifacts"
+                echo "🔍 Cached artifact not found or invalid at: ${{ inputs.artifact_path }}"
+                echo "🎯 Decision: FULL BUILD - No cached artifacts available"
                 BUILD_METHOD="full"
                 CAN_REPACK="false"
                 CACHE_HIT="false"
@@ -150,16 +171,6 @@ runs:
                 echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
                 echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
               fi
-            else
-              echo "🔍 No cached artifacts found at: ${{ inputs.apk_path }}"
-              echo "🎯 Decision: FULL BUILD - No cached artifacts available"
-              BUILD_METHOD="full"
-              CAN_REPACK="false"
-              CACHE_HIT="false"
-              echo "build_method=$BUILD_METHOD" >> "$GITHUB_OUTPUT"
-              echo "can_repack=$CAN_REPACK" >> "$GITHUB_OUTPUT"
-              echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
-            fi
           else
             echo "🔄 Fingerprints differ - native code has changed"
             echo "  Saved:   $SAVED_FP"

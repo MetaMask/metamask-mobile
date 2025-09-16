@@ -180,10 +180,9 @@ jobs:
               echo "Both platforms affected by changes"
               android_final="true"
               ios_final="true"
-              # Fingerprint check will happen in Android build workflow
+              # Fingerprint check will happen in both Android and iOS build workflows
               android_build_action="check_fingerprint"
-              # iOS not using fingerprint optimization yet
-              ios_build_action="full"
+              ios_build_action="check_fingerprint"
               ;;
             "ANDROID_ONLY")
               echo "Android-only changes"
@@ -198,7 +197,7 @@ jobs:
               android_final="false"
               ios_final="true"
               android_build_action="skip"
-              # iOS not using fingerprint optimization yet
+              # For iOS-only changes, always do full build (native code likely changed)
               ios_build_action="full"
               ;;
           esac

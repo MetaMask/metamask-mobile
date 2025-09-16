@@ -49,6 +49,7 @@
     "build:android:flask:prod": "./scripts/build.sh android flask production",
     "fingerprint:generate": "node scripts/generate-fingerprint.js",
     "fingerprint:check": "node scripts/check-fingerprint.js",
+    "repack": "node scripts/repack-app.js",
     "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:flask:test": "./scripts/build.sh android flask test",
     "build:android:flask:e2e": "./scripts/build.sh android flask e2e",

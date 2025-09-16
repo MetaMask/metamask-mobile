@@ -1,8 +1,8 @@
 name: 'Save Build Fingerprint'
-description: 'Save fingerprint and cache build artifacts after successful build (Android only for now)'
+description: 'Save fingerprint and cache build artifacts after successful build (Cross-platform)'
 inputs:
   platform:
-    description: 'Platform (currently android only)'
+    description: 'Platform (android or ios)'
     required: true
   artifacts_path:
     description: 'Path to artifacts to cache'

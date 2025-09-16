@@ -4,6 +4,8 @@
 
 The MetaMask Mobile CI/CD pipeline uses a fingerprinting mechanism to optimize build times by detecting when native code has changed. When only JavaScript/TypeScript code changes (but native code remains the same), the system can reuse previously built APKs and simply update the JavaScript bundle, saving significant build time.
 
+> **✅ Current Status**: This feature is now implemented for **both Android and iOS** platforms!
+
 ## How It Works
 
 ### 1. Fingerprinting
@@ -51,21 +53,18 @@ graph TD
 ### 3. Build Methods
 
 #### Full Build (`build_method: full`)
-- Triggered when native code changes are detected
-- Builds the complete Android APK from scratch
-- Saves the fingerprint and caches the APK for future use
-- Time: ~15-20 minutes
+- **Android & iOS**: Triggered when native code changes are detected
+- Builds the complete APK/IPA from scratch
+- Saves the fingerprint and caches the artifacts for future use
 
 #### Repack Build (`build_method: repack`)
-- Triggered when only JS/TS code changes
-- Reuses cached APK from previous build
-- Updates only the JavaScript bundle using `@expo/repack-app`
-- Time: ~3-5 minutes (80% faster!)
+- **Android**: Reuses cached APK, updates JS bundle using `@expo/repack-app`
+- **iOS**: Reuses cached .app bundle, updates JS bundle using custom repack script
+- Significantly faster than full builds by avoiding native compilation
 
 #### Skip Build (`build_method: skip`)
 - Triggered when changes don't affect mobile code (e.g., CI-only changes)
-- No build performed
-- Time: 0 minutes
+- No build performed for either platform
 
 ## Implementation Details
 
@@ -83,22 +82,35 @@ Compares current fingerprint with saved fingerprint:
 yarn fingerprint:check  # Exit 0 if match, 1 if different
 ```
 
+#### `scripts/repack-app.js` (Unified Tool)
+Unified cross-platform repacking tool supporting both Android APK and iOS .app bundles with a single CLI:
+```bash
+# Android repacking
+yarn repack --platform android --input app.apk --bundle bundle.js
+
+# iOS repacking
+yarn repack --platform ios --input MyApp.app --bundle main.jsbundle
+```
+
 ### GitHub Actions
 
-#### `.github/actions/fingerprint-build-check`
-- Restores previous fingerprint from cache
-- Compares fingerprints to determine build method
-- Validates cached APK if fingerprint matches
+#### `.github/actions/fingerprint-build-check` (Unified)
+- Cross-platform fingerprint checking for both Android and iOS
+- Restore previous fingerprint from cache
+- Compare fingerprints to determine build method (full/repack/skip)
+- Validate cached artifacts (APK files for Android, .app directories for iOS)
 - Outputs: `build_method`, `can_repack`, `cache_hit`
 
-#### `.github/actions/save-build-fingerprint`
-- Generates and saves current fingerprint
-- Caches build artifacts for future reuse
-- Uses GitHub Actions cache with fingerprint as key
+#### `.github/actions/save-build-fingerprint` (Unified)
+- Cross-platform fingerprint saving for both Android and iOS
+- Generate and save current fingerprint
+- Cache build artifacts for future reuse
+- Use platform-specific cache keys with fingerprint-based invalidation
+
 
 ### Workflow Integration
 
-The build caching is integrated into the Android E2E build workflow:
+The build caching is integrated into both Android and iOS E2E build workflows:
 
 ```yaml
 - name: Fingerprint build check
@@ -117,7 +129,7 @@ The build caching is integrated into the Android E2E build workflow:
 
 - name: Repackage App Binary
   if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
-  # ... repack steps
+  # ... repack steps using unified tool
 ```
 
 ## Cache Key Strategy
@@ -128,18 +140,26 @@ Cache keys are structured as:
 ```
 
 This ensures:
-- Platform-specific caching (android/ios)
-- PR-specific caches to avoid conflicts
-- Fingerprint-based invalidation
+- **Platform-specific caching**: Separate caches for Android (APK) and iOS (.app) artifacts
+- **PR-specific caches**: Avoid conflicts between different PRs
+- **Fingerprint-based invalidation**: Automatic cache invalidation when native code changes
 
 ## Validation & Error Handling
 
-### APK Validation
-When repacking, the system validates:
+### Artifact Validation
+When repacking, the system validates cached artifacts:
+
+#### Android APK Validation:
 1. **File existence**: Cached APK must exist
 2. **File size**: APK must be > 1MB
 3. **Size comparison**: Repacked APK should be within 10% of original size
 4. **APK structure**: Uses `aapt` to validate APK format (if available)
+
+#### iOS .app Bundle Validation:
+1. **Directory existence**: Cached .app bundle must exist
+2. **Directory size**: .app bundle must be > 10MB
+3. **Size comparison**: Repacked .app should be within 10% of original size
+4. **Bundle structure**: Validates Info.plist and bundle contents
 
 ### Fallback Strategy
 If any validation fails during repacking:
@@ -149,11 +169,21 @@ If any validation fails during repacking:
 
 ## Performance Metrics
 
-The system logs detailed performance metrics:
+The system logs detailed performance metrics for both platforms:
 - Build method used (full/repack/skip)
 - Cache hit/miss status
 - Time saved by using cached builds
 - Reasons for full builds
+
+**Android Build Improvements:**
+- JS-only changes: Uses repack method (significantly faster by avoiding native compilation)
+- Native changes: Requires full build
+- Documentation changes: Build skipped entirely
+
+**iOS Build Improvements:**
+- JS-only changes: Uses repack method (significantly faster by avoiding native compilation)
+- Native changes: Requires full build
+- Documentation changes: Build skipped entirely
 
 ## Troubleshooting
 
@@ -190,13 +220,17 @@ npx @expo/repack-app \
   --js-bundle dist/_expo/static/js/android/index.js
 ```
 
+## Current Limitations
+
+- **Cache size limits**: Subject to GitHub Actions 10GB cache limit and automatic cleanup policies
+
 ## Future Improvements
 
-1. **iOS Support**: Extend fingerprinting to iOS builds
-2. **Gradle Cache**: Additional caching of gradle dependencies
-3. **Metrics Dashboard**: Track cache hit rates and time savings
-4. **Smart Invalidation**: More granular fingerprinting for specific modules
-5. **Parallel Caching**: Support multiple concurrent PR builds
+1. **Gradle/CocoaPods Cache**: Additional caching of build dependencies
+2. **Metrics Dashboard**: Track cache hit rates and time savings across platforms
+3. **Smart Invalidation**: More granular fingerprinting for specific modules
+4. **Parallel Caching**: Support multiple concurrent PR builds
+5. **Enhanced Cache Cleanup**: More sophisticated cleanup strategies based on usage patterns
 
 ## References
 

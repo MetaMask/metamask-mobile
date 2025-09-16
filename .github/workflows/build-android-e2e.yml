@@ -76,7 +76,7 @@ jobs:
         with:
           platform: android
           build_action: ${{ inputs.build_action }}
-          apk_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          artifact_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           pr_number: ${{ github.event.pull_request.number }}
       - name: Build Android E2E APKs
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
