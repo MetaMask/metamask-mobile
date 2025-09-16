@@ -244,7 +244,6 @@ describe('CustomNetworkSelector', () => {
       selectNetwork: jest.fn(),
       deselectAll: jest.fn(),
       selectAllPopularNetworks: jest.fn(),
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
 
@@ -388,7 +387,6 @@ describe('CustomNetworkSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
     });
