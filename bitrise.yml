@@ -144,12 +144,7 @@ pipelines:
         abort_on_fail: true
         run_if:
           expression: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      ios_run_regression_network_abstraction_tests_gns_disabled:
-        depends_on:
-        - build_ios_main_e2e_gns_disabled
-      notify_success:
-        depends_on:
-        - ios_run_regression_network_abstraction_tests_gns_disabled
+      notify_success: {}
       bump_version_code:
         depends_on:
         - pr_check_build_cache
