@@ -43,7 +43,7 @@ export class ConnectionRegistry {
       '[SDKConnectV2] Initializing and resuming persisted connections...',
     );
 
-    const persisted = await this.store.list();
+    const persisted = await this.store.list().catch(() => []);
 
     const promises = persisted.map(async (c) => {
       try {
