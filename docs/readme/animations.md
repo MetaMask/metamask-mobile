@@ -95,6 +95,7 @@ export default function AnimationWithImperativeApi() {
 
   return (
     <Rive
+      ref={animationRef}
       url="https://public.rive.app/community/runtime-files/2195-4346-avatar-pack-use-case.riv"
       artboardName="Avatar 1"
       stateMachineName="avatar"
