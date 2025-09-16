@@ -51,11 +51,22 @@ function findMatchingFiles(baseDir, tag) {
   return Array.from(new Set(results));
 }
 
+/**
+ * Compute the ceiling of a division
+ * @param {*} a - The dividend
+ * @param {*} b - The divisor
+ * @returns 
+ */
 function ceilDiv(a, b) {
   return Math.floor((a + b - 1) / b);
 }
 
 // Group key for a spec, removing any -retry-N suffix so base and retries stay together
+/**
+ * Get the group key for a spec, removing any -retry-N suffix so base and retries stay together
+ * @param {*} filePath - The path to the spec file
+ * @returns The group key
+ */
 function getGroupKey(filePath) {
   // Normalize and strip -retry-N suffix before .spec.ext
   const normalized = normalizePathForCompare(filePath);
@@ -67,6 +78,11 @@ function getGroupKey(filePath) {
 }
 
 // Extract retry index from a filename; base files are index 0
+/**
+ * Extract retry index from a filename; base files are index 0
+ * @param {*} filePath - The path to the spec file
+ * @returns The retry index
+ */
 function getRetryIndex(filePath) {
   const normalized = normalizePathForCompare(filePath);
   const m = normalized.match(/-retry-(\d+)\.spec\.(ts|js)$/);
@@ -76,6 +92,11 @@ function getRetryIndex(filePath) {
 }
 
 // Group files by base spec and sort within group as base, retry-1, retry-2
+/**
+ * Group files by base spec and sort within group as base, retry-1, retry-2
+ * @param {*} files - The files to group
+ * @returns The grouped files
+ */
 function groupFilesByBase(files) {
   const map = new Map();
   for (const f of files) {
@@ -98,6 +119,13 @@ function groupFilesByBase(files) {
 }
 
 // Split by groups so a base and its retries land on the same runner
+/**
+ * Split by groups so a base and its retries land on the same runner
+ * @param {*} files - The files to split
+ * @param {*} splitNumber - The number of the split
+ * @param {*} totalSplits - The total number of splits
+ * @returns The split files
+ */
 function computeSplitFromGroups(files, splitNumber, totalSplits) {
   const groups = groupFilesByBase(files);
   const totalGroups = groups.length;
@@ -110,6 +138,13 @@ function computeSplitFromGroups(files, splitNumber, totalSplits) {
 }
 
 // Spawn a yarn script with inherited stdio
+/**
+ * Spawn a yarn script with inherited stdio
+ * @param {*} scriptName - The name of the script to run
+ * @param {*} args - The arguments to pass to the script
+ * @param {*} extraEnv - The extra environment variables to set
+ * @returns A promise that resolves when the script exits
+ */
 function runYarn(scriptName, args, extraEnv = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn('yarn', [scriptName, ...args], {
@@ -125,6 +160,10 @@ function runYarn(scriptName, args, extraEnv = {}) {
 }
 
 // Read the PR changed files JSON written by git-diff-default-branch.mjs
+/**
+ * Read the PR changed files JSON written by git-diff-default-branch.mjs
+ * @returns The changed files
+ */
 function readChangedFilesJson() {
   try {
     const jsonPath = path.resolve(CHANGED_FILES_DIR, 'changed-files.json');
@@ -139,6 +178,10 @@ function readChangedFilesJson() {
 }
 
 // Read the PR body/labels text (used to detect skip-e2e-quality-gate)
+/**
+ * Read the PR body/labels text (used to detect skip-e2e-quality-gate)
+ * @returns The PR body/labels text
+ */
 function readPrBodyText() {
   try {
     const txtPath = path.resolve(CHANGED_FILES_DIR, 'pr-body.txt');
@@ -150,6 +193,11 @@ function readPrBodyText() {
 }
 
 // Filter only ADDED/MODIFIED spec files from the PR changed files list
+/**
+ * Filter only ADDED/MODIFIED spec files from the PR changed files list
+ * @param {*} nodes - The nodes to filter
+ * @returns The changed spec files
+ */
 function getChangedSpecFiles(nodes) {
   const results = new Set();
   for (const node of nodes || []) {
@@ -165,6 +213,12 @@ function getChangedSpecFiles(nodes) {
 }
 
 // Derive the retry filename for a given spec: base -> base-retry-N
+/**
+ * Derive the retry filename for a given spec: base -> base-retry-N
+ * @param {*} originalPath - The original path to the spec file
+ * @param {*} retryIndex - The retry index
+ * @returns The retry filename
+ */
 function computeRetryFilePath(originalPath, retryIndex) {
   // originalPath must end with .spec.ts or .spec.js
   const match = originalPath.match(/^(.*)\.spec\.(ts|js)$/);
@@ -175,6 +229,10 @@ function computeRetryFilePath(originalPath, retryIndex) {
 }
 
 // Create two retry copies of a given spec if not already present
+/**
+ * Create two retry copies of a given spec if not already present
+ * @param {*} originalPath - The original path to the spec file
+ */
 function duplicateSpecFile(originalPath) {
   try {
     const srcPath = path.resolve(originalPath);
@@ -198,12 +256,20 @@ function duplicateSpecFile(originalPath) {
 }
 
 // Normalize a path (repo-relative) for comparisons
+/**
+ * Normalize a path (repo-relative) for comparisons
+ * @param {*} p - The path to normalize
+ * @returns The normalized path
+ */
 function normalizePathForCompare(p) {
   // Ensure relative to CWD, normalized separators
   const rel = path.isAbsolute(p) ? path.relative(process.cwd(), p) : p;
   return path.normalize(rel);
 }
 
+/**
+ * Main function
+ */
 async function main() {
   // 1) Read inputs
   const testSuiteTag = readEnv('TEST_SUITE_TAG');
