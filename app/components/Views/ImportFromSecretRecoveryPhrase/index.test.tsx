@@ -1599,7 +1599,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         1,
         true,
-        true,
+        false,
       );
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         2,
@@ -1656,7 +1656,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         1,
         true,
-        true,
+        false,
       );
       expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
         2,
