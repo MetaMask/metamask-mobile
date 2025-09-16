@@ -916,6 +916,7 @@ describe('RewardsController', () => {
         seasons: {},
         subscriptionReferralDetails: {},
         seasonStatuses: {},
+        activeBoosts: {},
       });
     });
   });
@@ -3018,6 +3019,637 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getOptInStatus',
         largeParams,
+      );
+    });
+  });
+
+  describe('getActivePointsBoosts', () => {
+    let controller: RewardsController;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+    });
+
+    it('should fetch active points boosts successfully', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost 1',
+          icon: {
+            lightModeUrl: 'https://example.com/light1.png',
+            darkModeUrl: 'https://example.com/dark1.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+        {
+          id: 'boost-2',
+          name: 'Test Boost 2',
+          icon: {
+            lightModeUrl: 'https://example.com/light2.png',
+            darkModeUrl: 'https://example.com/dark2.png',
+          },
+          boostBips: 500,
+          seasonLong: false,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-31'),
+          backgroundColor: '#00FF00',
+        },
+      ];
+
+      const mockResponse = { boosts: mockBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockBoosts);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('boost-1');
+      expect(result[1].seasonLong).toBe(false);
+    });
+
+    it('should return empty array when no boosts available', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const mockEmptyBoosts: any[] = [];
+      const mockResponse = { boosts: mockEmptyBoosts };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle data service errors', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const mockError = new Error('Data service error');
+
+      mockMessenger.call.mockRejectedValue(mockError);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+    });
+
+    it('should handle network timeout errors', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const timeoutError = new Error('Request timeout after 10000ms');
+
+      mockMessenger.call.mockRejectedValue(timeoutError);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should handle authentication errors', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const authError = new Error('Authentication failed');
+
+      mockMessenger.call.mockRejectedValue(authError);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should pass through different season and subscription IDs correctly', async () => {
+      // Arrange
+      const seasonId = 'winter-2024';
+      const subscriptionId = 'premium-sub-789';
+      const mockBoosts = [
+        {
+          id: 'winter-boost',
+          name: 'Winter Special',
+          icon: {
+            lightModeUrl: 'https://example.com/winter.png',
+            darkModeUrl: 'https://example.com/winter-dark.png',
+          },
+          boostBips: 1500,
+          seasonLong: true,
+          backgroundColor: '#0066CC',
+        },
+      ];
+
+      const mockResponse = { boosts: mockBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockBoosts);
+      expect(result[0].name).toBe('Winter Special');
+    });
+
+    it('should return empty array when rewards feature is disabled', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should return cached active boosts when cache is fresh', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 5 minute threshold)
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+
+      const mockCachedBoosts = {
+        boosts: [
+          {
+            id: 'cached-boost-1',
+            name: 'Cached Boost 1',
+            icon: {
+              lightModeUrl: 'https://example.com/cached1.png',
+              darkModeUrl: 'https://example.com/cached1-dark.png',
+            },
+            boostBips: 1200,
+            seasonLong: true,
+            backgroundColor: '#FF6600',
+          },
+          {
+            id: 'cached-boost-2',
+            name: 'Cached Boost 2',
+            icon: {
+              lightModeUrl: 'https://example.com/cached2.png',
+              darkModeUrl: 'https://example.com/cached2-dark.png',
+            },
+            boostBips: 800,
+            seasonLong: false,
+            startDate: Date.now() - 86400000, // 1 day ago
+            endDate: Date.now() + 86400000, // 1 day from now
+            backgroundColor: '#00CC66',
+          },
+        ],
+        lastFetched: recentTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {
+            [compositeKey]: mockCachedBoosts,
+          },
+        },
+      });
+
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('cached-boost-1');
+      expect(result[0].name).toBe('Cached Boost 1');
+      expect(result[0].boostBips).toBe(1200);
+      expect(result[1].id).toBe('cached-boost-2');
+      expect(result[1].seasonLong).toBe(false);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should fetch fresh active boosts when cache is stale', async () => {
+      // Arrange
+      mockMessenger.call.mockClear();
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const staleTime = Date.now() - 4000000; // 66+ minutes ago (beyond 60 minute threshold)
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+
+      const mockStaleBoosts = {
+        boosts: [
+          {
+            id: 'stale-boost',
+            name: 'Stale Boost',
+            icon: {
+              lightModeUrl: 'https://example.com/stale.png',
+              darkModeUrl: 'https://example.com/stale-dark.png',
+            },
+            boostBips: 500,
+            seasonLong: true,
+            backgroundColor: '#999999',
+          },
+        ],
+        lastFetched: staleTime,
+      };
+
+      const mockFreshBoosts = [
+        {
+          id: 'fresh-boost-1',
+          name: 'Fresh Boost 1',
+          icon: {
+            lightModeUrl: 'https://example.com/fresh1.png',
+            darkModeUrl: 'https://example.com/fresh1-dark.png',
+          },
+          boostBips: 1500,
+          seasonLong: true,
+          backgroundColor: '#00FF99',
+        },
+        {
+          id: 'fresh-boost-2',
+          name: 'Fresh Boost 2',
+          icon: {
+            lightModeUrl: 'https://example.com/fresh2.png',
+            darkModeUrl: 'https://example.com/fresh2-dark.png',
+          },
+          boostBips: 750,
+          seasonLong: false,
+          startDate: new Date('2024-02-01'),
+          endDate: new Date('2024-02-28'),
+          backgroundColor: '#FF3366',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {
+            [compositeKey]: mockStaleBoosts,
+          },
+        },
+      });
+
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
+
+      const mockResponse = { boosts: mockFreshBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockFreshBoosts);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('fresh-boost-1');
+      expect(result[1].name).toBe('Fresh Boost 2');
+    });
+
+    it('should update state when fetching fresh active boosts', async () => {
+      // Arrange
+      const seasonId = 'season-456';
+      const subscriptionId = 'sub-789';
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+
+      const mockFreshBoosts = [
+        {
+          id: 'state-boost-1',
+          name: 'State Update Boost 1',
+          icon: {
+            lightModeUrl: 'https://example.com/state1.png',
+            darkModeUrl: 'https://example.com/state1-dark.png',
+          },
+          boostBips: 2000,
+          seasonLong: true,
+          backgroundColor: '#6600FF',
+        },
+        {
+          id: 'state-boost-2',
+          name: 'State Update Boost 2',
+          icon: {
+            lightModeUrl: 'https://example.com/state2.png',
+            darkModeUrl: 'https://example.com/state2-dark.png',
+          },
+          boostBips: 1000,
+          seasonLong: false,
+          startDate: new Date('2024-03-01'),
+          endDate: new Date('2024-03-31'),
+          backgroundColor: '#FF9900',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+        },
+      });
+
+      const mockResponse = { boosts: mockFreshBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockFreshBoosts);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('state-boost-1');
+      expect(result[0].boostBips).toBe(2000);
+      expect(result[1].name).toBe('State Update Boost 2');
+      expect(result[1].seasonLong).toBe(false);
+
+      // Check that state was updated with cached boosts
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
+      expect(cachedBoosts).toBeDefined();
+      expect(cachedBoosts.boosts).toHaveLength(2);
+      expect(cachedBoosts.boosts[0].id).toBe('state-boost-1');
+      expect(cachedBoosts.boosts[1].id).toBe('state-boost-2');
+      expect(cachedBoosts.lastFetched).toBeGreaterThan(Date.now() - 1000);
+
+      // Verify serialization: dates should be converted to timestamps
+      expect(typeof cachedBoosts.boosts[1].startDate).toBe('number');
+      expect(typeof cachedBoosts.boosts[1].endDate).toBe('number');
+    });
+
+    it('should handle cache miss and fetch fresh data', async () => {
+      // Arrange
+      const seasonId = 'new-season';
+      const subscriptionId = 'new-sub';
+      const mockBoosts = [
+        {
+          id: 'new-boost',
+          name: 'New Season Boost',
+          icon: {
+            lightModeUrl: 'https://example.com/new.png',
+            darkModeUrl: 'https://example.com/new-dark.png',
+          },
+          boostBips: 1800,
+          seasonLong: true,
+          backgroundColor: '#33CCFF',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {}, // Empty cache
+        },
+      });
+
+      const mockResponse = { boosts: mockBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockBoosts);
+      expect(result[0].name).toBe('New Season Boost');
+
+      // Verify cache was populated
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
+      expect(cachedBoosts).toBeDefined();
+      expect(cachedBoosts.boosts[0].id).toBe('new-boost');
+      expect(cachedBoosts.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('should handle different composite keys for different season/subscription combinations', async () => {
+      // Arrange
+      mockMessenger.call.mockClear();
+      const seasonId1 = 'season-A';
+      const subscriptionId1 = 'sub-X';
+      const seasonId2 = 'season-B';
+      const subscriptionId2 = 'sub-Y';
+      const compositeKey1 = `${seasonId1}:${subscriptionId1}`;
+      const compositeKey2 = `${seasonId2}:${subscriptionId2}`;
+
+      const mockBoosts1 = [
+        {
+          id: 'boost-A-X',
+          name: 'Boost for Season A Sub X',
+          icon: {
+            lightModeUrl: 'https://example.com/ax.png',
+            darkModeUrl: 'https://example.com/ax-dark.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#AA0000',
+        },
+      ];
+
+      const mockBoosts2 = [
+        {
+          id: 'boost-B-Y',
+          name: 'Boost for Season B Sub Y',
+          icon: {
+            lightModeUrl: 'https://example.com/by.png',
+            darkModeUrl: 'https://example.com/by-dark.png',
+          },
+          boostBips: 1500,
+          seasonLong: false,
+          backgroundColor: '#00AA00',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {
+            [compositeKey1]: {
+              boosts: [
+                {
+                  id: 'boost-A-X',
+                  name: 'Boost for Season A Sub X',
+                  icon: {
+                    lightModeUrl: 'https://example.com/ax.png',
+                    darkModeUrl: 'https://example.com/ax-dark.png',
+                  },
+                  boostBips: 1000,
+                  seasonLong: true,
+                  backgroundColor: '#AA0000',
+                },
+              ],
+              lastFetched: Date.now() - 30000, // Fresh cache
+            },
+          },
+        },
+      });
+
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
+
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      const mockResponse2 = { boosts: mockBoosts2 };
+      mockMessenger.call.mockResolvedValue(mockResponse2);
+
+      // Act - First call should use cache
+      const result1 = await controller.getActivePointsBoosts(
+        seasonId1,
+        subscriptionId1,
+      );
+
+      // Act - Second call should fetch fresh data
+      const result2 = await controller.getActivePointsBoosts(
+        seasonId2,
+        subscriptionId2,
+      );
+
+      // Assert
+      expect(result1).toEqual(mockBoosts1);
+      expect(result1[0].id).toBe('boost-A-X');
+      expect(result2).toEqual(mockBoosts2);
+      expect(result2[0].id).toBe('boost-B-Y');
+
+      // Verify first call used cache (no API call)
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId2,
+        subscriptionId2,
+      );
+
+      // Verify both composite keys exist in state
+      expect(controller.state.activeBoosts[compositeKey1]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey2]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey1].boosts[0].id).toBe(
+        'boost-A-X',
+      );
+      expect(controller.state.activeBoosts[compositeKey2].boosts[0].id).toBe(
+        'boost-B-Y',
       );
     });
   });

@@ -267,7 +267,6 @@ describe('NetworkMultiSelector', () => {
       selectNetwork: jest.fn(),
       deselectAll: jest.fn(),
       selectAllPopularNetworks: mockToggleAll,
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
 
@@ -533,7 +532,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: mockToggleAll,
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
     });
@@ -589,7 +587,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -666,7 +663,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -742,7 +738,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -810,7 +805,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 

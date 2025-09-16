@@ -8,7 +8,6 @@ import {
 } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
-import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 
 jest.mock('@metamask/keyring-utils', () => ({}));
@@ -33,6 +32,7 @@ jest.mock('../../../core/Engine', () => ({
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
     },
   },
 }));
@@ -75,6 +75,7 @@ const mockNetworkEnablementController = {
   isNetworkEnabled: jest.fn(),
   hasOneEnabledNetwork: jest.fn(),
   enableAllPopularNetworks: jest.fn(),
+  enableNetworkInNamespace: jest.fn(),
 };
 
 describe('useNetworkEnablement', () => {
@@ -257,17 +258,6 @@ describe('useNetworkEnablement', () => {
   });
 
   describe('network operations', () => {
-    it('calls enableNetwork when enableNetwork is called', () => {
-      const chainId = 'eip155:1' as CaipChainId;
-
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.enableNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-    });
-
     it('calls disableNetwork when disableNetwork is called', () => {
       const chainId = 'eip155:1' as CaipChainId;
 
@@ -392,16 +382,6 @@ describe('useNetworkEnablement', () => {
       ).toHaveBeenCalledTimes(1);
     });
 
-    it('enables Solana mainnet in addition to popular networks', () => {
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.enableAllPopularNetworks();
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(SolScope.Mainnet);
-    });
-
     it('calls both controller methods when enableAllPopularNetworks is invoked', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
@@ -411,9 +391,6 @@ describe('useNetworkEnablement', () => {
       expect(
         mockNetworkEnablementController.enableAllPopularNetworks,
       ).toHaveBeenCalledTimes(1);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(SolScope.Mainnet);
     });
 
     it('works correctly when called multiple times', () => {
@@ -426,15 +403,6 @@ describe('useNetworkEnablement', () => {
       expect(
         mockNetworkEnablementController.enableAllPopularNetworks,
       ).toHaveBeenCalledTimes(2);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledTimes(2);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenNthCalledWith(1, SolScope.Mainnet);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenNthCalledWith(2, SolScope.Mainnet);
     });
 
     it('returns the same function reference on subsequent calls', () => {
@@ -449,16 +417,6 @@ describe('useNetworkEnablement', () => {
   });
 
   describe('tryEnableEvmNetwork', () => {
-    it('enables network when global selector is enabled and network is disabled', () => {
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.tryEnableEvmNetwork('0x1');
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith('eip155:0x1');
-    });
-
     it('does not enable network when chainId is not provided', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
