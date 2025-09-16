@@ -83,9 +83,9 @@ app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-e
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 
-# Co-owned by accounts and core-mobile-ux
-app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/core-mobile-ux
-app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/core-mobile-ux
+# Co-owned by accounts and mobile-core-ux
+app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
+app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
@@ -186,25 +186,25 @@ app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamas
 app/selectors/assets @MetaMask/metamask-assets
 
 # UX Team
-app/components/Views/AccountActions @MetaMask/core-mobile-ux
-app/components/Views/AccountSelector @MetaMask/core-mobile-ux
-app/components/Views/AddressQRCode @MetaMask/core-mobile-ux
-app/components/Views/EditAccountName @MetaMask/core-mobile-ux
-app/components/Views/LockScreen @MetaMask/core-mobile-ux
-app/components/Views/Login @MetaMask/core-mobile-ux
-app/components/Views/NetworkConnect @MetaMask/core-mobile-ux
-app/components/Views/NetworkSelector @MetaMask/core-mobile-ux
-app/components/Views/OnboardingCarousel @MetaMask/core-mobile-ux
-app/components/Views/OnboardingSuccess @MetaMask/core-mobile-ux
-app/components/Views/QRAccountDisplay @MetaMask/core-mobile-ux
-app/components/Views/QRScanner @MetaMask/core-mobile-ux
-app/components/Views/Settings @MetaMask/core-mobile-ux
-app/components/Views/TermsAndConditions @MetaMask/core-mobile-ux
-app/reducers/experimentalSettings @MetaMask/core-mobile-ux
-app/reducers/modals @MetaMask/core-mobile-ux
-app/reducers/navigation @MetaMask/core-mobile-ux
-app/reducers/privacy @MetaMask/core-mobile-ux
-app/reducers/settings @MetaMask/core-mobile-ux
+app/components/Views/AccountActions @MetaMask/mobile-core-ux
+app/components/Views/AccountSelector @MetaMask/mobile-core-ux
+app/components/Views/AddressQRCode @MetaMask/mobile-core-ux
+app/components/Views/EditAccountName @MetaMask/mobile-core-ux
+app/components/Views/LockScreen @MetaMask/mobile-core-ux
+app/components/Views/Login @MetaMask/mobile-core-ux
+app/components/Views/NetworkConnect @MetaMask/mobile-core-ux
+app/components/Views/NetworkSelector @MetaMask/mobile-core-ux
+app/components/Views/OnboardingCarousel @MetaMask/mobile-core-ux
+app/components/Views/OnboardingSuccess @MetaMask/mobile-core-ux
+app/components/Views/QRAccountDisplay @MetaMask/mobile-core-ux
+app/components/Views/QRScanner @MetaMask/mobile-core-ux
+app/components/Views/Settings @MetaMask/mobile-core-ux
+app/components/Views/TermsAndConditions @MetaMask/mobile-core-ux
+app/reducers/experimentalSettings @MetaMask/mobile-core-ux
+app/reducers/modals @MetaMask/mobile-core-ux
+app/reducers/navigation @MetaMask/mobile-core-ux
+app/reducers/privacy @MetaMask/mobile-core-ux
+app/reducers/settings @MetaMask/mobile-core-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
