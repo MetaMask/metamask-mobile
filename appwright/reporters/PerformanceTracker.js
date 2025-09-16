@@ -40,7 +40,7 @@ export class PerformanceTracker {
           `🎯 === ATTEMPT ${attempt}/${maxRetries} === Time: ${new Date().toISOString()}`,
         );
         const response = await axios.get(
-          `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`,
+          `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`,
           {
             auth: {
               username: BS_USERNAME,
@@ -109,6 +109,81 @@ export class PerformanceTracker {
     );
     console.log(`🕐 End time: ${new Date().toISOString()}`);
     return null;
+  }
+
+  async getSessionDetails(sessionId) {
+    const BS_USERNAME = process.env.BROWSERSTACK_USERNAME;
+    const BS_ACCESS_KEY = process.env.BROWSERSTACK_ACCESS_KEY;
+
+    try {
+      const url = `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`;
+
+      const response = await axios.get(url, {
+        auth: {
+          username: BS_USERNAME,
+          password: BS_ACCESS_KEY,
+        },
+        timeout: 8000,
+      });
+
+      const sessionData = response.data.automation_session;
+
+      const result = {
+        buildId: sessionData.build_hashed_id,
+        sessionData,
+        profilingData: sessionData.app_profiling || null,
+      };
+      return result;
+    } catch (error) {
+      console.error('❌ Error getting session details:', error);
+      return null;
+    }
+  }
+
+  async getBuildIdFromSession(sessionId) {
+    const sessionDetails = await this.getSessionDetails(sessionId);
+    return sessionDetails?.buildId || null;
+  }
+
+  /**
+   * Get app profiling data v2 for a specific session
+   * @param {string} buildId - The build hashed ID (not the build name)
+   * @param {string} sessionId - The session ID
+   * @returns {Promise<Object>} App profiling data
+   */
+  async getAppProfilingData(buildId, sessionId) {
+    const BS_USERNAME = process.env.BROWSERSTACK_USERNAME;
+    const BS_ACCESS_KEY = process.env.BROWSERSTACK_ACCESS_KEY;
+
+    // eslint-disable-next-line no-undef
+    const authHeader = Buffer.from(`${BS_USERNAME}:${BS_ACCESS_KEY}`).toString(
+      'base64',
+    );
+
+    const url = `https://api-cloud.browserstack.com/app-automate/builds/${buildId}/sessions/${sessionId}/appprofiling/v2`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(
+          `HTTP error! status: ${response.status}, body: ${errorBody}`,
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error getting app profiling data v2:', error);
+      throw error;
+    }
   }
 
   async attachToTest(testInfo) {

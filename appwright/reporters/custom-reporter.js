@@ -141,9 +141,24 @@ class CustomReporter {
   }
 
   getDeviceInfo(test, result) {
-    // Try to get device info from test project configuration first
+    // Try multiple possible paths for device info
+    let deviceInfo = null;
+
+    // Path 1: test.parent.project.use.device
     if (test?.parent?.project?.use?.device) {
-      return test.parent.project.use.device;
+      deviceInfo = test.parent.project.use.device;
+    }
+    // Path 2: test.project.use.device
+    else if (test?.project?.use?.device) {
+      deviceInfo = test.project.use.device;
+    }
+    // Path 3: test.use.device
+    else if (test?.use?.device) {
+      deviceInfo = test.use.device;
+    }
+
+    if (deviceInfo) {
+      return deviceInfo;
     }
 
     // Fallback to environment variables
@@ -164,6 +179,61 @@ class CustomReporter {
       osVersion: 'Unknown',
       provider: 'unknown',
     };
+  }
+
+  extractProfilingSummary(profilingData) {
+    try {
+      if (!profilingData?.data?.['io.metamask']) {
+        return { error: 'No profiling data available' };
+      }
+
+      const appData = profilingData.data['io.metamask'];
+      const metrics = appData.metrics;
+
+      return {
+        status: appData.status || 'unknown',
+        issues: appData.detected_issues?.length || 0,
+        criticalIssues:
+          appData.detected_issues?.filter((issue) => issue.type === 'error')
+            .length || 0,
+        cpu: {
+          avg: metrics.cpu?.avg || 0,
+          max: metrics.cpu?.max || 0,
+          unit: profilingData.data.units?.cpu || '%',
+        },
+        memory: {
+          avg: metrics.mem?.avg || 0,
+          max: metrics.mem?.max || 0,
+          unit: profilingData.data.units?.mem || 'MB',
+        },
+        battery: {
+          total: metrics.batt?.total_batt_usage || 0,
+          percentage: metrics.batt?.total_batt_usage_pct || 0,
+          unit: profilingData.data.units?.batt || 'mAh',
+        },
+        diskIO: {
+          reads: metrics.diskio?.total_reads || 0,
+          writes: metrics.diskio?.total_writes || 0,
+          unit: profilingData.data.units?.diskio || 'KB',
+        },
+        networkIO: {
+          upload: metrics.networkio?.total_upload || 0,
+          download: metrics.networkio?.total_download || 0,
+          unit: profilingData.data.units?.networkio || 'KB',
+        },
+        uiRendering: {
+          slowFrames: metrics.ui_rendering?.slow_frames_pct || 0,
+          frozenFrames: metrics.ui_rendering?.frozen_frames_pct || 0,
+          anrs: metrics.ui_rendering?.num_anrs || 0,
+        },
+      };
+    } catch (error) {
+      console.error('Error extracting profiling summary:', error);
+      return {
+        error: `Failed to extract profiling summary: ${error.message}`,
+        timestamp: new Date().toISOString(),
+      };
+    }
   }
 
   async onEnd() {
@@ -196,14 +266,20 @@ class CustomReporter {
       );
     }
 
-    if (this.sessions.length > 0 && isBrowserStackRun) {
+    // Always try to fetch profiling data if we have sessions and credentials
+    const hasCredentials =
+      process.env.BROWSERSTACK_USERNAME && process.env.BROWSERSTACK_ACCESS_KEY;
+
+    if (this.sessions.length > 0 && hasCredentials) {
       console.log(
-        `🎥 Fetching video URLs for ${this.sessions.length} sessions`,
+        `🎥 Fetching video URLs and profiling data for ${this.sessions.length} sessions`,
       );
+
       const tracker = new PerformanceTracker();
 
       for (const session of this.sessions) {
         try {
+          // Fetch video URL
           const videoURL = await tracker.getVideoURL(
             session.sessionId,
             60,
@@ -211,6 +287,93 @@ class CustomReporter {
           );
           if (videoURL) {
             session.videoURL = videoURL;
+          }
+
+          // Fetch profiling data
+          try {
+            const sessionDetails = await tracker.getSessionDetails(
+              session.sessionId,
+            );
+
+            if (sessionDetails) {
+              // Extract device info from session data
+              if (sessionDetails.sessionData) {
+                session.deviceInfo = {
+                  name: sessionDetails.sessionData.device,
+                  osVersion: sessionDetails.sessionData.os_version,
+                  provider: 'browserstack',
+                };
+                console.log(
+                  `Device info extracted: ${session.deviceInfo.name} (${session.deviceInfo.osVersion})`,
+                );
+              }
+
+              // Fetch profiling data using the separate API endpoint
+              if (sessionDetails.buildId) {
+                try {
+                  const profilingData = await tracker.getAppProfilingData(
+                    sessionDetails.buildId,
+                    session.sessionId,
+                  );
+                  session.profilingData = profilingData;
+                  session.profilingSummary =
+                    this.extractProfilingSummary(profilingData);
+                  console.log(
+                    `Profiling data fetched for ${session.testTitle}`,
+                  );
+                } catch (profilingError) {
+                  console.error(
+                    `Error fetching profiling data for ${session.testTitle}:`,
+                    profilingError.message,
+                  );
+                  session.profilingData = {
+                    error: profilingError.message,
+                    timestamp: new Date().toISOString(),
+                  };
+                  session.profilingSummary = {
+                    error: profilingError.message,
+                    timestamp: new Date().toISOString(),
+                  };
+                }
+              } else {
+                console.log(
+                  `No build ID found for session ${session.sessionId}`,
+                );
+                session.profilingData = {
+                  error: 'No build ID available',
+                  timestamp: new Date().toISOString(),
+                };
+                session.profilingSummary = {
+                  error: 'No build ID available',
+                  timestamp: new Date().toISOString(),
+                };
+              }
+            } else {
+              console.log(
+                `No session details found for session ${session.sessionId}`,
+              );
+              session.profilingData = {
+                error: 'No session details available',
+                timestamp: new Date().toISOString(),
+              };
+              session.profilingSummary = {
+                error: 'No session details available',
+                timestamp: new Date().toISOString(),
+              };
+            }
+          } catch (profilingError) {
+            console.error(
+              `Error fetching session details for ${session.testTitle}:`,
+              profilingError.message,
+            );
+            session.profilingData = {
+              error: profilingError.message,
+              timestamp: new Date().toISOString(),
+            };
+            session.profilingSummary = {
+              error: profilingError.message,
+              timestamp: new Date().toISOString(),
+            };
           }
         } catch (error) {
           console.error(`❌ Error fetching video URL for ${session.testTitle}`);
@@ -259,15 +422,22 @@ class CustomReporter {
 
       if (this.metrics.length > 0) {
         console.log('Metrics are:', this.metrics);
-        // Add video URLs to metrics by matching test names with sessions
+        // Add video URLs and profiling data to metrics by matching test names with sessions
         const metricsWithVideo = this.metrics.map((metric) => {
           const matchingSession = this.sessions.find(
             (session) => session.testTitle === metric.testName,
           );
+
+          // Use device info from session if available, otherwise keep the existing device info
+          const deviceInfo = matchingSession?.deviceInfo || metric.device;
+
           return {
             ...metric,
+            device: deviceInfo,
             videoURL: matchingSession?.videoURL || null,
             sessionId: matchingSession?.sessionId || null,
+            profilingData: matchingSession?.profilingData || null,
+            profilingSummary: matchingSession?.profilingSummary || null,
           };
         });
 
@@ -448,6 +618,134 @@ class CustomReporter {
                    </div>`
                 : '<p>No video recordings available</p>'
             }
+            ${
+              this.sessions.length > 0 &&
+              this.sessions.some(
+                (s) => s.profilingData && !s.profilingData.error,
+              )
+                ? `<div style="margin-top: 30px;">
+                    <h3>📊 App Profiling Analysis</h3>
+                    ${this.sessions
+                      .filter(
+                        (session) =>
+                          session.profilingData && !session.profilingData.error,
+                      )
+                      .map(
+                        (session) => `
+                        <div style="border: 1px solid #ddd; margin: 15px 0; padding: 20px; border-radius: 8px; background-color: #f9f9f9;">
+                          <h4 style="margin-top: 0; color: #2e7d32;">${
+                            session.testTitle
+                          }</h4>
+                          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                            <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3;">
+                              <strong style="color: #2196f3;">CPU Usage</strong><br>
+                              <span style="font-size: 14px;">Avg: ${
+                                session.profilingSummary.cpu.avg
+                              }% | Max: ${
+                          session.profilingSummary.cpu.max
+                        }%</span>
+                            </div>
+                            <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50;">
+                              <strong style="color: #4caf50;">Memory</strong><br>
+                              <span style="font-size: 14px;">Avg: ${
+                                session.profilingSummary.memory.avg
+                              } MB | Max: ${
+                          session.profilingSummary.memory.max
+                        } MB</span>
+                            </div>
+                            <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ff9800;">
+                              <strong style="color: #ff9800;">Battery</strong><br>
+                              <span style="font-size: 14px;">${
+                                session.profilingSummary.battery.total
+                              } mAh (${(
+                          session.profilingSummary.battery.percentage * 100
+                        ).toFixed(1)}%)</span>
+                            </div>
+                            <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0;">
+                              <strong style="color: #9c27b0;">UI Performance</strong><br>
+                              <span style="font-size: 14px;">Slow Frames: ${
+                                session.profilingSummary.uiRendering.slowFrames
+                              }% | ANRs: ${
+                          session.profilingSummary.uiRendering.anrs
+                        }</span>
+                            </div>
+                            <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #607d8b;">
+                              <strong style="color: #607d8b;">Disk I/O</strong><br>
+                              <span style="font-size: 14px;">Reads: ${
+                                session.profilingSummary.diskIO.reads
+                              } KB | Writes: ${
+                          session.profilingSummary.diskIO.writes
+                        } KB</span>
+                            </div>
+                            <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #795548;">
+                              <strong style="color: #795548;">Network I/O</strong><br>
+                              <span style="font-size: 14px;">Upload: ${
+                                session.profilingSummary.networkIO.upload
+                              } KB | Download: ${
+                          session.profilingSummary.networkIO.download
+                        } KB</span>
+                            </div>
+                          </div>
+                          ${
+                            session.profilingSummary.issues > 0
+                              ? `
+                            <div style="margin-top: 15px; padding: 15px; background-color: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+                              <strong style="color: #856404;">⚠️ Performance Issues Detected (${
+                                session.profilingSummary.issues
+                              })</strong>
+                              <ul style="margin: 10px 0; padding-left: 20px;">
+                                ${session.profilingData.data[
+                                  'io.metamask'
+                                ].detected_issues
+                                  .map(
+                                    (issue) => `
+                                  <li style="margin-bottom: 10px;">
+                                    <strong style="color: #856404;">${
+                                      issue.title
+                                    }</strong><br>
+                                    <span style="font-size: 14px; color: #6c757d;">${
+                                      issue.subtitle
+                                    }</span><br>
+                                    <span style="font-size: 13px; color: #dc3545;">Current: ${
+                                      issue.current
+                                    } ${issue.unit} | Recommended: ${
+                                      issue.recommended
+                                    } ${issue.unit}</span>
+                                    ${
+                                      issue.link
+                                        ? `<br><a href="${issue.link}" target="_blank" style="font-size: 12px; color: #007bff;">Learn more</a>`
+                                        : ''
+                                    }
+                                  </li>
+                                `,
+                                  )
+                                  .join('')}
+                              </ul>
+                            </div>
+                          `
+                              : `
+                            <div style="margin-top: 15px; padding: 15px; background-color: #d4edda; border-radius: 6px; border-left: 4px solid #28a745;">
+                              <strong style="color: #155724;">✅ No Performance Issues Detected</strong>
+                              <p style="margin: 5px 0 0 0; font-size: 14px; color: #155724;">All metrics are within recommended thresholds.</p>
+                            </div>
+                          `
+                          }
+                        </div>
+                      `,
+                      )
+                      .join('')}
+                   </div>`
+                : this.sessions.length > 0 &&
+                  this.sessions.some((s) => s.profilingData?.error)
+                ? `<div style="margin-top: 30px;">
+                    <h3>📊 App Profiling Analysis</h3>
+                    <div style="padding: 15px; background-color: #f8d7da; border-radius: 6px; border-left: 4px solid #dc3545;">
+                      <strong style="color: #721c24;">⚠️ Profiling Data Unavailable</strong>
+                      <p style="margin: 5px 0 0 0; font-size: 14px; color: #721c24;">Some sessions encountered errors while fetching profiling data.</p>
+                    </div>
+                   </div>`
+                : ''
+            }
           </body>
           </html>
         `;
@@ -489,19 +787,39 @@ class CustomReporter {
         csvRows.push(''); // Blank line for readability
 
         // Add column headers
-        csvRows.push('Step,Time (ms)');
+        csvRows.push(
+          'Step,Time (ms),CPU Avg (%),Memory Avg (MB),Battery (mAh),Issues',
+        );
+
+        // Get profiling data for this test
+        const matchingSession = this.sessions.find(
+          (session) => session.testTitle === test.testName,
+        );
+        const profilingSummary = matchingSession?.profilingSummary;
 
         // Add each step based on structure (new array format, old object format, or legacy format)
         if (test.steps && Array.isArray(test.steps)) {
           // New array structure with steps
           test.steps.forEach((stepObject) => {
             const [stepName, duration] = Object.entries(stepObject)[0];
-            csvRows.push(`"${stepName}","${duration}"`);
+            const cpuAvg = profilingSummary?.cpu?.avg || 'N/A';
+            const memoryAvg = profilingSummary?.memory?.avg || 'N/A';
+            const battery = profilingSummary?.battery?.total || 'N/A';
+            const issues = profilingSummary?.issues || 'N/A';
+            csvRows.push(
+              `"${stepName}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
+            );
           });
         } else if (test.steps && typeof test.steps === 'object') {
           // Backward compatibility for old object structure
           Object.entries(test.steps).forEach(([stepName, duration]) => {
-            csvRows.push(`"${stepName}","${duration}"`);
+            const cpuAvg = profilingSummary?.cpu?.avg || 'N/A';
+            const memoryAvg = profilingSummary?.memory?.avg || 'N/A';
+            const battery = profilingSummary?.battery?.total || 'N/A';
+            const issues = profilingSummary?.issues || 'N/A';
+            csvRows.push(
+              `"${stepName}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
+            );
           });
         } else {
           // Fallback to old format (excluding specific keys)
@@ -516,14 +834,54 @@ class CustomReporter {
               key !== 'note' &&
               key !== 'total'
             ) {
-              csvRows.push(`"${key}","${value}"`);
+              const cpuAvg = profilingSummary?.cpu?.avg || 'N/A';
+              const memoryAvg = profilingSummary?.memory?.avg || 'N/A';
+              const battery = profilingSummary?.battery?.total || 'N/A';
+              const issues = profilingSummary?.issues || 'N/A';
+              csvRows.push(
+                `"${key}","${value}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
+              );
             }
           });
         }
 
         // Add total time regardless of structure
-        csvRows.push('---,---');
-        csvRows.push(`TOTAL TIME (s),${test.total}`);
+        csvRows.push('---,---,---,---,---,---');
+        csvRows.push(`TOTAL TIME (s),${test.total},,,,`);
+
+        // Add profiling summary if available
+        if (profilingSummary && !profilingSummary.error) {
+          csvRows.push('---,---,---,---,---,---');
+          csvRows.push('PROFILING SUMMARY,,,,,');
+          csvRows.push(`CPU Avg,${profilingSummary.cpu.avg}%,,,,`);
+          csvRows.push(`CPU Max,${profilingSummary.cpu.max}%,,,,`);
+          csvRows.push(`Memory Avg,${profilingSummary.memory.avg} MB,,,,`);
+          csvRows.push(`Memory Max,${profilingSummary.memory.max} MB,,,,`);
+          csvRows.push(
+            `Battery Usage,${profilingSummary.battery.total} mAh,,,,`,
+          );
+          csvRows.push(
+            `Battery %,${(profilingSummary.battery.percentage * 100).toFixed(
+              1,
+            )}%,,,,`,
+          );
+          csvRows.push(
+            `Slow Frames,${profilingSummary.uiRendering.slowFrames}%,,,,`,
+          );
+          csvRows.push(`ANRs,${profilingSummary.uiRendering.anrs},,,,`);
+          csvRows.push(`Disk Reads,${profilingSummary.diskIO.reads} KB,,,,`);
+          csvRows.push(`Disk Writes,${profilingSummary.diskIO.writes} KB,,,,`);
+          csvRows.push(
+            `Network Upload,${profilingSummary.networkIO.upload} KB,,,,`,
+          );
+          csvRows.push(
+            `Network Download,${profilingSummary.networkIO.download} KB,,,,`,
+          );
+          csvRows.push(`Performance Issues,${profilingSummary.issues},,,,`);
+          csvRows.push(
+            `Critical Issues,${profilingSummary.criticalIssues},,,,`,
+          );
+        }
 
         // Add failure information if this was a failed test
         if (test.testFailed) {
