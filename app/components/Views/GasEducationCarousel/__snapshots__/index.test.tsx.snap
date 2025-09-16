@@ -42,320 +42,863 @@ exports[`GasEducationCarousel should render correctly 1`] = `
             }
           }
         >
-          <View
-            onLayout={[Function]}
-            style={
-              [
+          <View>
+            <View />
+            <View
+              style={
                 {
                   "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              activeTab={0}
-              containerWidth={750}
-              goToPage={[Function]}
-              scrollValue={0}
-              tabs={
-                [
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
-              }
-            />
-            <RCTScrollView
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-              collapsable={false}
-              contentOffset={
-                {
-                  "x": 0,
                 }
               }
-              directionalLockEnabled={true}
-              horizontal={true}
-              keyboardDismissMode="on-drag"
-              onMomentumScrollBegin={[Function]}
-              onMomentumScrollEnd={[Function]}
-              onScroll={[Function]}
-              pagingEnabled={true}
-              scrollEnabled={true}
-              scrollEventThrottle={16}
-              scrollsToTop={false}
-              showsHorizontalScrollIndicator={false}
             >
-              <View>
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={1}
+                  style={
+                    [
+                      {},
+                      {
+                        "height": 458.33333333333337,
+                        "width": 550,
+                      },
+                    ]
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
                 <View
                   style={
                     {
-                      "width": 750,
+                      "margin": 32,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 24,
+                          "justifyContent": "center",
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    Before you purchase ETH, understand gas fees
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#686e7d",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 14,
+                          "justifyContent": "center",
+                          "lineHeight": 20,
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    If you plan to swap or transfer your ETH, purchase extra to cover gas fees.
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#686e7d",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 14,
+                          "justifyContent": "center",
+                          "lineHeight": 20,
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    Gas fees for transactions are separate from the cost of purchasing ETH.
+                     
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 30,
+                            "fontWeight": "400",
+                            "marginVertical": 2,
+                          },
+                          undefined,
+                          undefined,
+                          {
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontWeight": "600",
+                          },
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                        ]
+                      }
+                    >
+                      MetaMask does not profit from gas fees.
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={1}
+                  style={
+                    [
+                      {},
+                      {
+                        "height": 466.7067307692308,
+                        "width": 550,
+                      },
+                    ]
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "margin": 32,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 24,
+                          "justifyContent": "center",
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    What are gas fees?
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#686e7d",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 14,
+                          "justifyContent": "center",
+                          "lineHeight": 20,
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    Gas powers transactions on the Ethereum network. It’s a fee paid in ETH to the crypto miners who process your transactions.
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#686e7d",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 14,
+                          "justifyContent": "center",
+                          "lineHeight": 20,
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    MetaMask does not profit from gas fees.
+                  </Text>
+                  <TouchableOpacity
+                    onPress={[Function]}
+                  >
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 30,
+                            "fontWeight": "400",
+                            "marginVertical": 2,
+                          },
+                          undefined,
+                          undefined,
+                          {
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontWeight": "600",
+                          },
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          {
+                            "color": "#4459ff",
+                          },
+                          undefined,
+                          undefined,
+                          {
+                            "marginVertical": 0,
+                          },
+                          {
+                            "fontSize": 14,
+                            "justifyContent": "center",
+                            "lineHeight": 20,
+                            "marginTop": 24,
+                            "textAlign": "center",
+                          },
+                        ]
+                      }
+                    >
+                      Learn more about gas fees
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={1}
+                  style={
+                    [
+                      {},
+                      {
+                        "height": 436.58192090395477,
+                        "width": 550,
+                      },
+                    ]
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "margin": 32,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "color": "#121314",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 24,
+                          "justifyContent": "center",
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    How much do I need?
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 16,
+                          "justifyContent": "center",
+                          "lineHeight": 22.5,
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    Gas fees fluctuate based on network traffic and type of transaction.
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 14,
+                          "justifyContent": "center",
+                          "lineHeight": 20,
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    A complex transaction like “swapping” may cost 5x - 10x more than a “send” transaction.
+                     
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                          "marginVertical": 0,
+                        },
+                        {
+                          "fontSize": 14,
+                          "justifyContent": "center",
+                          "lineHeight": 20,
+                          "marginBottom": 14,
+                          "textAlign": "center",
+                        },
+                      ]
+                    }
+                  >
+                    The best way to estimate gas fees is to
+                     
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 30,
+                            "fontWeight": "400",
+                            "marginVertical": 2,
+                          },
+                          undefined,
+                          undefined,
+                          {
+                            "fontFamily": "CentraNo1-Bold",
+                            "fontWeight": "600",
+                          },
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                          undefined,
+                        ]
+                      }
+                    >
+                      try the transaction first
+                    </Text>
+                     
+                    and see how much gas costs.
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "justifyContent": "flex-end",
+                      "paddingHorizontal": 40,
                     }
                   }
                 >
                   <View
                     style={
                       {
-                        "flex": 1,
+                        "justifyContent": "flex-end",
                       }
                     }
                   >
-                    <View
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessible={true}
+                      activeOpacity={0.2}
+                      onPress={[Function]}
                       style={
-                        {
-                          "flexDirection": "row",
-                          "justifyContent": "center",
-                        }
+                        [
+                          [
+                            {
+                              "borderRadius": 12,
+                              "justifyContent": "center",
+                              "padding": 15,
+                            },
+                            {
+                              "backgroundColor": "#4459ff",
+                              "minHeight": 50,
+                            },
+                            undefined,
+                          ],
+                          null,
+                        ]
                       }
                     >
-                      <Image
-                        resizeMethod="auto"
-                        source={1}
+                      <Text
                         style={
                           [
-                            {},
                             {
-                              "height": 458.33333333333337,
-                              "width": 550,
+                              "color": "#007aff",
+                              "fontSize": 17,
+                              "fontWeight": "500",
+                              "textAlign": "center",
                             },
-                          ]
-                        }
-                      />
-                    </View>
-                    <View
-                      style={
-                        {
-                          "flex": 1,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          {
-                            "margin": 32,
-                          }
-                        }
-                      >
-                        <Text
-                          style={
+                            null,
                             [
-                              {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 30,
-                                "fontWeight": "400",
-                                "marginVertical": 2,
-                              },
-                              undefined,
-                              undefined,
                               {
                                 "fontFamily": "CentraNo1-Bold",
+                                "fontSize": 14,
                                 "fontWeight": "600",
-                              },
-                              undefined,
-                              {
-                                "color": "#121314",
-                              },
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              {
-                                "color": "#121314",
-                              },
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              {
-                                "marginVertical": 0,
-                              },
-                              {
-                                "fontSize": 24,
-                                "justifyContent": "center",
-                                "marginBottom": 14,
                                 "textAlign": "center",
                               },
-                            ]
-                          }
-                        >
-                          Before you purchase ETH, understand gas fees
-                        </Text>
-                        <Text
-                          style={
-                            [
                               {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 30,
-                                "fontWeight": "400",
-                                "marginVertical": 2,
+                                "color": "#ffffff",
                               },
                               undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              {
-                                "color": "#686e7d",
-                              },
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              {
-                                "marginVertical": 0,
-                              },
-                              {
-                                "fontSize": 14,
-                                "justifyContent": "center",
-                                "lineHeight": 20,
-                                "marginBottom": 14,
-                                "textAlign": "center",
-                              },
-                            ]
-                          }
-                        >
-                          If you plan to swap or transfer your ETH, purchase extra to cover gas fees.
-                        </Text>
-                        <Text
-                          style={
-                            [
-                              {
-                                "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 30,
-                                "fontWeight": "400",
-                                "marginVertical": 2,
-                              },
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              {
-                                "color": "#686e7d",
-                              },
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              {
-                                "marginVertical": 0,
-                              },
-                              {
-                                "fontSize": 14,
-                                "justifyContent": "center",
-                                "lineHeight": 20,
-                                "marginBottom": 14,
-                                "textAlign": "center",
-                              },
-                            ]
-                          }
-                        >
-                          Gas fees for transactions are separate from the cost of purchasing ETH.
-                           
-                          <Text
-                            style={
-                              [
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 30,
-                                  "fontWeight": "400",
-                                  "marginVertical": 2,
-                                },
-                                undefined,
-                                undefined,
-                                {
-                                  "fontFamily": "CentraNo1-Bold",
-                                  "fontWeight": "600",
-                                },
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
-                          >
-                            MetaMask does not profit from gas fees.
-                          </Text>
-                        </Text>
-                      </View>
-                    </View>
+                            ],
+                            null,
+                          ]
+                        }
+                      >
+                        Continue to purchase ETH
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
-                <View
-                  style={
-                    {
-                      "width": 750,
-                    }
-                  }
-                >
-                  <View />
-                </View>
               </View>
-            </RCTScrollView>
+            </View>
           </View>
           <View
             style={
