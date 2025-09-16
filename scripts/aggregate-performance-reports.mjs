@@ -372,84 +372,6 @@ function createSummary(groupedResults) {
   return summary;
 }
 
-/**
- * Generate detailed profiling analysis
- * @param {Object} groupedResults - Grouped test results
- * @returns {Object} Profiling analysis data
- */
-function generateProfilingAnalysis(groupedResults) {
-  const profilingTests = [];
-  const deviceAnalysis = {};
-  const commonIssues = {};
-  
-  // Collect all tests with profiling data
-  Object.keys(groupedResults).forEach(platform => {
-    Object.keys(groupedResults[platform]).forEach(device => {
-      const deviceTests = groupedResults[platform][device];
-      deviceTests.forEach(test => {
-        if (test.profilingSummary && !test.profilingSummary.error) {
-          profilingTests.push({
-            ...test,
-            platform,
-            deviceKey: device
-          });
-          
-          // Group by device for analysis
-          const deviceKey = `${platform}-${device}`;
-          if (!deviceAnalysis[deviceKey]) {
-            deviceAnalysis[deviceKey] = {
-              platform,
-              device,
-              tests: [],
-              totalIssues: 0,
-              totalCriticalIssues: 0,
-              avgCpu: 0,
-              avgMemory: 0,
-              avgBattery: 0
-            };
-          }
-          
-          deviceAnalysis[deviceKey].tests.push(test);
-          deviceAnalysis[deviceKey].totalIssues += test.profilingSummary.issues || 0;
-          deviceAnalysis[deviceKey].totalCriticalIssues += test.profilingSummary.criticalIssues || 0;
-          
-          // Track common issues
-          if (test.profilingData?.data?.['io.metamask']?.detected_issues) {
-            test.profilingData.data['io.metamask'].detected_issues.forEach(issue => {
-              const issueKey = issue.title;
-              if (!commonIssues[issueKey]) {
-                commonIssues[issueKey] = {
-                  title: issue.title,
-                  count: 0,
-                  severity: issue.type,
-                  description: issue.subtitle,
-                  link: issue.link
-                };
-              }
-              commonIssues[issueKey].count++;
-            });
-          }
-        }
-      });
-    });
-  });
-  
-  // Calculate averages for each device
-  Object.values(deviceAnalysis).forEach(device => {
-    if (device.tests.length > 0) {
-      device.avgCpu = (device.tests.reduce((sum, test) => sum + (test.profilingSummary.cpu?.avg || 0), 0) / device.tests.length).toFixed(2);
-      device.avgMemory = (device.tests.reduce((sum, test) => sum + (test.profilingSummary.memory?.avg || 0), 0) / device.tests.length).toFixed(2);
-      device.avgBattery = (device.tests.reduce((sum, test) => sum + (test.profilingSummary.battery?.total || 0), 0) / device.tests.length).toFixed(2);
-    }
-  });
-  
-  return {
-    totalTestsWithProfiling: profilingTests.length,
-    deviceAnalysis,
-    commonIssues: Object.values(commonIssues).sort((a, b) => b.count - a.count),
-    topIssues: Object.values(commonIssues).sort((a, b) => b.count - a.count).slice(0, 5)
-  };
-}
 
 /**
  * Main aggregation function
@@ -597,32 +519,12 @@ function aggregateReports() {
     const summary = createSummary(groupedResults);
     fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
     
-    // Generate profiling analysis
-    const profilingAnalysis = generateProfilingAnalysis(groupedResults);
-    fs.writeFileSync('appwright/aggregated-reports/profiling-analysis.json', JSON.stringify(profilingAnalysis, null, 2));
-    
-    // Create comprehensive report with profiling data
-    const comprehensiveReport = {
-      ...groupedResults,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-        totalTests: summary.totalTests,
-        platforms: summary.platforms,
-        devices: summary.devices,
-        profilingStats: summary.profilingStats
-      },
-      profilingAnalysis
-    };
-    
-    fs.writeFileSync('appwright/aggregated-reports/comprehensive-performance-report.json', JSON.stringify(comprehensiveReport, null, 2));
     
     console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
     console.log(`📊 Profiling data: ${summary.profilingStats.testsWithProfiling} tests with profiling data (${summary.profilingStats.profilingCoverage} coverage)`);
     console.log(`⚠️ Performance issues: ${summary.profilingStats.totalPerformanceIssues} total, ${summary.profilingStats.totalCriticalIssues} critical`);
     console.log(`📈 Average CPU: ${summary.profilingStats.avgCpuUsage}, Memory: ${summary.profilingStats.avgMemoryUsage}`);
     console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
-    console.log('📋 Profiling analysis saved to: appwright/aggregated-reports/profiling-analysis.json');
-    console.log('📋 Comprehensive report saved to: appwright/aggregated-reports/comprehensive-performance-report.json');
     console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
     
   } catch (error) {
