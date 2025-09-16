@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
-    "password": "创建新密码",
+    "password": "Create password",
     "confirm_password": "确认密码",
     "create_button": "创建密码",
     "import_with_seed_phrase": "使用私钥助记词导入",
@@ -404,7 +404,7 @@
     "show": "显示",
     "hide": "隐藏",
     "seed_phrase": "私钥助记词",
-    "must_be_at_least": "密码必须包含至少 {{number}} 个字符",
+    "must_be_at_least": "必须至少包含 {{number}} 个字符",
     "remember_me": "记住我",
     "security_alert_title": "安全警报",
     "security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "如果我忘记此密码，我将永久失去对该钱包的访问权限。MetaMask 无法为我重设密码。",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "请重试"
   },
   "import_from_seed": {
     "title": "导入钱包",
     "seed_phrase_placeholder": "在此输入您的助记词",
-    "create_new_password": "创建新密码",
+    "create_new_password": "Create password",
     "confirm_password": "确认密码",
     "import_button": "导入",
     "cancel_button": "取消",
@@ -491,7 +491,7 @@
     "srp": "私钥助记词，",
     "srp_placeholder": "在每个单词之间加空格，并确保无人窥视.",
     "learn_more_link": "了解详情",
-    "create_password_cta": "创建密码",
+    "import_create_password_cta": "Create password",
     "pass_flow": "使用 Flow 继续",
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "password_error": "密码不匹配。请重试。",
@@ -507,6 +507,7 @@
     "home": "主页",
     "browser": "浏览器",
     "activity": "活动",
+    "trade": "Trade",
     "settings": "设置",
     "rewards": "奖励"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "杠杆",
         "confirm": "确认",
         "entry_price": "建仓价",
         "current_price": "当前价格",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "买入",
     "sell": "卖出",
-    "orders": "订单",
+    "orders": "Transfers",
     "All": "所有",
     "Buy": "买入",
     "Sell": "卖出",
     "token_marketplace": "代币市场",
     "Purchased": "已购买",
     "Sold": "已卖出",
-    "empty_orders_list": "您没有任何订单",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "您没有任何买入订单！",
     "empty_sell_orders_list": "您没有任何卖出订单！",
     "purchased_currency": "已购买 {{currency}}",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "推荐好友",
@@ -5791,7 +5814,9 @@
         "title": "分享您的邀请码以赚取更多",
         "description": "您的好友获得奖励积分，您可获得其奖励的 20% 分成。"
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} 分钟",
