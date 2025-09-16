@@ -51,7 +51,7 @@ done
 # Track any temporary duplicated files for cleanup at exit
 declare -a created_copies
 cleanup_created_copies() {
-    if [[ ${#created_copies[@]:-0} -gt 0 ]]; then
+    if (( ${#created_copies[@]} > 0 )); then
         echo -e "\n🧹 Cleaning up ${#created_copies[@]} temporary duplicated test files..."
         for tmpf in "${created_copies[@]}"; do
             [[ -f "$tmpf" ]] && rm -f "$tmpf" || true
@@ -92,14 +92,14 @@ if [[ "$IS_PR_CONTEXT" == "true" ]]; then
 
         # Map of new spec files (not present on main)
         declare -A new_spec_set
-        for f in "${changed_specs[@]:-}"; do
+        for f in "${changed_specs[@]}"; do
             if ! git cat-file -e "$BASE_REF:$f" 2>/dev/null; then
                 new_spec_set["$f"]=1
             fi
         done
 
         # Augment split_files with duplicates for new tests
-        if [[ ${#new_spec_set[@]:-0} -gt 0 ]]; then
+        if (( ${#new_spec_set[@]} > 0 )); then
             declare -a augmented_files
             for f in "${split_files[@]}"; do
                 augmented_files+=("$f")

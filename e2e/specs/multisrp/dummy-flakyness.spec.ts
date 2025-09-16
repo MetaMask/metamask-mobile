@@ -4,9 +4,9 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 
 describe(
-  SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
+  SmokeWalletPlatform('Dummy test Suite used for testing flakyness'),
   () => {
-    it('adds an account to default SRP and one to the imported SRP', async () => {
+    it('dummy test', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
