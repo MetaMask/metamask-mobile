@@ -157,7 +157,7 @@ jobs:
         id: update-js
         run: |
           yarn setup:github-ci --no-build-ios --no-build-android
-          yarn expo export --platform android
+          yarn build:js --platform android
           # Find the generated bundle (could be .js or .hbc with hash)
           BUNDLE=$(find dist/_expo/static/js/android -name "*.hbc" -o -name "*.js" | head -1)
           if [ -z "$BUNDLE" ]; then
@@ -174,13 +174,16 @@ jobs:
           BUNDLE="${{ steps.update-js.outputs.bundle_path }}"
           [ -f "$APK" ] || { echo "APK not found"; exit 1; }
           [ -f "$BUNDLE" ] || { echo "Bundle not found: $BUNDLE"; exit 1; }
-          yarn repack --platform android --input "$APK" --bundle "$BUNDLE"
+          echo "📦 Repackaging APK with updated bundle..."
+          npx --yes @expo/repack-app --input "$APK" --output "$APK" --bundle "$BUNDLE"
 
       # Save fingerprint after successful builds
       - name: Save build fingerprint
         if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
         run: |
-          ./scripts/save-build-fingerprint.sh "android"
+          FINGERPRINT=$(yarn -s fingerprint:generate)
+          echo "$FINGERPRINT" > .app-native-fingerprint
+          echo "Fingerprint saved: $FINGERPRINT"
 
       # Cache build artifacts
       - name: Cache build artifacts
