@@ -258,7 +258,7 @@ const metadata = {
     usedInUi: true,
   },
   lastDepositResult: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: false,
     anonymous: false,
     usedInUi: true,
@@ -270,7 +270,7 @@ const metadata = {
     usedInUi: true,
   },
   lastWithdrawResult: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: false,
     anonymous: false,
     usedInUi: true,
