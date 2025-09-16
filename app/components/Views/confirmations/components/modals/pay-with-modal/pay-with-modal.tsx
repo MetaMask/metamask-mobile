@@ -158,21 +158,28 @@ export function PayWithModal() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL);
   }, [navigation]);
 
-  const networksToShow = useMemo(
+  const networks = useMemo(
     () =>
-      sortedSourceNetworks.filter(({ chainId }) =>
-        selectedSourceChainIds.includes(chainId),
+      sortedSourceNetworks.filter(
+        (chain) =>
+          selectedSourceChainIds.includes(chain.chainId) &&
+          chain.totalFiatValue > 0,
       ),
     [selectedSourceChainIds, sortedSourceNetworks],
+  );
+
+  const networkChainIds = useMemo(
+    () => networks.map((n) => n.chainId),
+    [networks],
   );
 
   return (
     <BridgeTokenSelectorBase
       networksBar={
         <BridgeSourceNetworksBar
-          networksToShow={networksToShow}
+          networksToShow={networks}
           networkConfigurations={allNetworkConfigurations}
-          selectedSourceChainIds={selectedSourceChainIds as Hex[]}
+          selectedSourceChainIds={networkChainIds as Hex[]}
           enabledSourceChains={supportedSourceChains}
           onPress={handleNetworkPress}
         />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { initialState } from '../../_mocks_/initialState';
+import { evmAccountAddress, initialState } from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeSourceNetworkSelector } from '.';
@@ -9,6 +9,7 @@ import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/brid
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 import { cloneDeep } from 'lodash';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
+import { optimismToken1Address } from '../../_mocks_/bridgeControllerState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -280,5 +281,28 @@ describe('BridgeSourceNetworkSelector', () => {
       expect(queryByText('Solana')).toBeNull();
       expect(queryByText('$30012.75599')).toBeNull();
     });
+  });
+
+  it('hides networks with no fiat value if isBalanceOnly set', async () => {
+    const state = cloneDeep(initialState);
+
+    state.engine.backgroundState.TokenBalancesController.tokenBalances[
+      evmAccountAddress
+    ][optimismChainId][optimismToken1Address] = '0x0';
+
+    state.engine.backgroundState.AccountTrackerController.accountsByChainId[
+      optimismChainId
+    ][evmAccountAddress].balance = '0x0';
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      () => <BridgeSourceNetworkSelector isBalanceOnly />,
+      {
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+      },
+      { state },
+    );
+
+    expect(getByTestId(`chain-${mockChainId}`)).toBeDefined();
+    expect(queryByTestId(`chain-${optimismChainId}`)).toBeNull();
   });
 });
