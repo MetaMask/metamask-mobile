@@ -14,6 +14,7 @@ import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { BridgeSourceNetworksBar } from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useSortedSourceNetworks } from '../../../../../UI/Bridge/hooks/useSortedSourceNetworks';
 
 jest.useFakeTimers();
 
@@ -25,6 +26,7 @@ jest.mock('../../../../../UI/Bridge/hooks/useTokens');
 jest.mock('../../../hooks/pay/useTransactionRequiredTokens');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../../../UI/Bridge/components/BridgeSourceNetworksBar');
+jest.mock('../../../../../UI/Bridge/hooks/useSortedSourceNetworks');
 
 jest.mock(
   '../../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
@@ -122,6 +124,8 @@ describe('PayWithModal', () => {
   const useTokensMock = jest.mocked(useTokens);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const BridgeSourceNetworksBarMock = jest.mocked(BridgeSourceNetworksBar);
+  const useSortedSourceNetworksMock = jest.mocked(useSortedSourceNetworks);
+
   const useTransactionRequiredTokensMock = jest.mocked(
     useTransactionRequiredTokens,
   );
@@ -140,6 +144,21 @@ describe('PayWithModal', () => {
       payToken: { address: '0x0', chainId: '0x0' },
       setPayToken: mockSetPayToken,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    useSortedSourceNetworksMock.mockReturnValue({
+      sortedSourceNetworks: [
+        {
+          chainId: CHAIN_ID_1_MOCK,
+          totalFiatValue: 1,
+        },
+        {
+          chainId: CHAIN_ID_2_MOCK,
+          totalFiatValue: 1,
+        },
+      ] as unknown as ReturnType<
+        typeof useSortedSourceNetworks
+      >['sortedSourceNetworks'],
+    });
   });
 
   it('renders tokens', async () => {
@@ -276,6 +295,37 @@ describe('PayWithModal', () => {
           expect.objectContaining({ chainId: CHAIN_ID_2_MOCK }),
         ],
         selectedSourceChainIds: [CHAIN_ID_1_MOCK, CHAIN_ID_2_MOCK],
+      }),
+      expect.anything(),
+    );
+  });
+
+  it('hides networks with no fiat value', async () => {
+    useSortedSourceNetworksMock.mockReturnValue({
+      sortedSourceNetworks: [
+        {
+          chainId: CHAIN_ID_1_MOCK,
+          totalFiatValue: 0,
+        },
+        {
+          chainId: CHAIN_ID_2_MOCK,
+          totalFiatValue: 1,
+        },
+      ] as unknown as ReturnType<
+        typeof useSortedSourceNetworks
+      >['sortedSourceNetworks'],
+    });
+
+    render();
+
+    expect(BridgeSourceNetworksBarMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        networksToShow: [expect.objectContaining({ chainId: CHAIN_ID_2_MOCK })],
+        enabledSourceChains: [
+          expect.objectContaining({ chainId: CHAIN_ID_1_MOCK }),
+          expect.objectContaining({ chainId: CHAIN_ID_2_MOCK }),
+        ],
+        selectedSourceChainIds: [CHAIN_ID_2_MOCK],
       }),
       expect.anything(),
     );

@@ -53,13 +53,14 @@ const createStyles = () =>
   });
 
 export interface BridgeSourceNetworkSelectorProps {
+  isBalanceOnly?: boolean;
   isEvmOnly?: boolean;
   onApply?: (selectedChainIds: Hex[]) => void;
 }
 
 export const BridgeSourceNetworkSelector: React.FC<
   BridgeSourceNetworkSelectorProps
-> = ({ isEvmOnly, onApply }) => {
+> = ({ isBalanceOnly, isEvmOnly, onApply }) => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -79,10 +80,12 @@ export const BridgeSourceNetworkSelector: React.FC<
 
   const sortedSourceNetworks = useMemo(
     () =>
-      sortedSourceNetworksRaw.filter((chain) =>
-        enabledSourceChainIds.includes(chain.chainId),
+      sortedSourceNetworksRaw.filter(
+        (chain) =>
+          enabledSourceChainIds.includes(chain.chainId) &&
+          (!isBalanceOnly || chain.totalFiatValue > 0),
       ),
-    [enabledSourceChainIds, sortedSourceNetworksRaw],
+    [enabledSourceChainIds, isBalanceOnly, sortedSourceNetworksRaw],
   );
 
   const evmNetworkConfigurations = useSelector(
