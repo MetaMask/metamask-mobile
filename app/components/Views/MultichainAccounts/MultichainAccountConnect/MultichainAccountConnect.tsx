@@ -253,7 +253,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     connectedAccountGroups,
     supportedAccountGroups,
     requestedCaipChainIdsWithDefaultSelectedChainIds,
-    existingConnectedCaipAccountIds,
     updatedCaipAccountIdsToConnect,
   ]);
 
