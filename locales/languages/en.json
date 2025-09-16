@@ -507,6 +507,7 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
+    "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards"
   },
@@ -5834,7 +5835,10 @@
         "title": "Share your code to earn more",
         "description": "Your friends earn bonus points, and you get 20% of their rewards."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
+
   },
   "time": {
     "minutes_format": "{{count}} minute",
