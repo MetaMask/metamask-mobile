@@ -219,11 +219,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
   });
   const estimatedFees = feeResults.totalFee;
 
-  // Memoize hasValidAmount calculation to prevent unnecessary re-renders
-  const hasValidAmount = useMemo(
-    () => parseFloat(orderForm.amount) > 0,
-    [orderForm.amount],
-  );
+  // Simple boolean calculation - no need for expensive memoization
+  const hasValidAmount = parseFloat(orderForm.amount) > 0;
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
@@ -1084,7 +1081,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             <View style={styles.feeRowContent}>
-              {/* Fox icon alternative + -20% (discount amount) + metamask fee */}
               {rewardsState.feeDiscountPercentage &&
               rewardsState.feeDiscountPercentage > 0 ? (
                 <TagColored color={TagColor.Warning}>
