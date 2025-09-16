@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 import {
   Caip25CaveatValue,
-  getAllScopesFromCaip25CaveatValue,
   getCaipAccountIdsFromCaip25CaveatValue,
   isInternalAccountInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
@@ -110,6 +109,10 @@ const hasRequestedAccountIds = (
  * @param requestedNamespacesWithoutWallet - Array of CAIP namespaces being requested (excluding wallet namespace)
  * @returns Object containing connected account groups, supported account groups, and existing connected CAIP account IDs.
  * Account groups that fulfill requestedCaipAccountIds appear first in both arrays.
+ *
+ * **Important**: `updatedCaipAccountIdsToConnect` includes both explicitly requested account IDs
+ * and existing connected account IDs. Consuming components should validate that requested
+ * account IDs are actually supported by available account groups before attempting to connect them.
  */
 export const useAccountGroupsForPermissions = (
   existingPermission: Caip25CaveatValue,
@@ -118,12 +121,6 @@ export const useAccountGroupsForPermissions = (
   requestedNamespacesWithoutWallet: CaipNamespace[],
 ) => {
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
-
-  const existingChainsConnected =
-    getAllScopesFromCaip25CaveatValue(existingPermission);
-  const newChainsRequested = requestedCaipChainIds.some(
-    (chainId) => !existingChainsConnected.includes(chainId),
-  );
 
   const result = useMemo(() => {
     const connectedAccountIds =
@@ -166,17 +163,16 @@ export const useAccountGroupsForPermissions = (
       }
     });
 
-    const updatedCaipAccountIdsToConnect = newChainsRequested
-      ? Array.from(
-          new Set([
-            ...requestedCaipAccountIds,
-            ...getCaip25AccountFromAccountGroupAndScope(
-              [...priorityConnectedGroups, ...connectedAccountGroups],
-              requestedCaipChainIds,
-            ),
-          ]),
-        )
-      : connectedAccountIds;
+    // This are caip account ids of connected account groups with the requested chains/namespaces
+    // It would also include newly requested chain requests.
+    const updatedCaipAccountIdsToConnect = Array.from(
+      new Set([
+        ...getCaip25AccountFromAccountGroupAndScope(
+          [...priorityConnectedGroups, ...connectedAccountGroups],
+          requestedCaipChainIds,
+        ),
+      ]),
+    );
 
     return {
       supportedAccountGroups: [
@@ -196,7 +192,6 @@ export const useAccountGroupsForPermissions = (
     requestedCaipAccountIds,
     requestedCaipChainIds,
     requestedNamespacesWithoutWallet,
-    newChainsRequested,
   ]);
 
   return {
@@ -208,7 +203,5 @@ export const useAccountGroupsForPermissions = (
     existingConnectedCaipAccountIds: result.connectedCaipAccountIds,
     /** CAIP account IDs that should be connected */
     updatedCaipAccountIdsToConnect: result.updatedCaipAccountIdsToConnect,
-    /** Whether new chains are requested for existing account groups */
-    hasNewChainsRequested: newChainsRequested,
   };
 };
