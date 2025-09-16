@@ -1500,7 +1500,13 @@
         "description": "Fund your perps account with any token and make your first trade in seconds."
       },
       "got_it": "Got it"
-    }
+    },
+    "points": "Points",
+    "points_tooltip": "Points",
+    "points_tooltip_content": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "unable_to_load": "Couldn't load",
+    "points_error": "We can't load points right now",
+    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later."
   },
   "receive": {
     "title": "Receive"

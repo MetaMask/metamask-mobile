@@ -9,6 +9,7 @@ import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -334,10 +335,26 @@ export function usePerpsOrderFees({
           // Get user address for rewards API calls
           const userAddress = getUserAddress();
 
-          // First fetch fee discount to know the actual fee rate
-          const discountData = userAddress
-            ? await fetchFeeDiscount(userAddress)
-            : {};
+          // Development-only simulation
+          const shouldSimulateFeeDiscount =
+            __DEV__ &&
+            parseFloat(amount) ===
+              DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
+
+          let discountData: { discountPercentage?: number; tier?: string } = {};
+
+          if (shouldSimulateFeeDiscount) {
+            // Simulate 20% fee discount for development testing
+            discountData = {
+              discountPercentage: 20,
+              tier: 'tier-4-5',
+            };
+          } else {
+            // First fetch fee discount to know the actual fee rate
+            discountData = userAddress
+              ? await fetchFeeDiscount(userAddress)
+              : {};
+          }
 
           // Apply fee discount if available
           if (discountData.discountPercentage !== undefined) {

@@ -75,6 +75,22 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    feeRowContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    feeDiscountContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      minHeight: 25,
+    },
+    foxIcon: {
+      width: 14,
+      height: 14,
+    },
     stopLossLiquidationWarning: {
       paddingHorizontal: 8,
       paddingTop: 8,

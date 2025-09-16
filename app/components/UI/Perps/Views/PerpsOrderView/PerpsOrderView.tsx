@@ -13,7 +13,6 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
@@ -30,6 +29,11 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import FoxIcon from '../../components/FoxIcon/FoxIcon';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
+import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
+import TagColored from '../../../../../component-library/components-temp/TagColored';
+import { TagColor } from '../../../../../component-library/components-temp/TagColored/TagColored.types';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -57,6 +61,7 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import RewardPointsDisplay from '../../components/RewardPointsDisplay';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -83,6 +88,7 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPerformance,
+  usePerpsRewards,
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
@@ -96,7 +102,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
-import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
@@ -206,9 +211,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
-  // Get rewards feature flag
-  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
-
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -218,6 +220,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
     isClosing: false, // For now, we're always opening positions in this view
   });
   const estimatedFees = feeResults.totalFee;
+
+  // Get rewards state using the new hook
+  const rewardsState = usePerpsRewards({
+    feeResults,
+    hasValidAmount: parseFloat(orderForm.amount) > 0,
+    isFeesLoading: feeResults.isLoadingMetamaskFee,
+    orderAmount: orderForm.amount,
+  });
 
   // Tracking refs for one-time events
   const hasTrackedTradingView = useRef(false);
@@ -287,7 +297,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
     symbols: [orderForm.asset],
-    throttleMs: 1000,
+    throttleMs: 10000,
   });
   const currentPrice = prices[orderForm.asset];
 
@@ -1019,7 +1029,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {marginRequired ? formatPrice(marginRequired) : '--'}
+              {marginRequired
+                ? formatPrice(marginRequired)
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 
@@ -1047,7 +1059,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_DETAILED_VIEW,
                   })
-                : '--'}
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
           <View style={styles.infoRow}>
@@ -1067,50 +1079,57 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            <View>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <View style={styles.feeRowContent}>
+              {/* Fox icon alternative + -20% (discount amount) + metamask fee */}
+              {rewardsState.feeDiscountPercentage &&
+                rewardsState.feeDiscountPercentage > 0 && (
+                  <TagColored color={TagColor.Warning}>
+                    <View style={styles.feeDiscountContainer}>
+                      <FoxIcon width={14} height={14} />
+                      <Text
+                        variant={TextVariant.BodySM}
+                      >{`-${rewardsState.feeDiscountPercentage}%`}</Text>
+                    </View>
+                  </TagColored>
+                )}
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {parseFloat(orderForm.amount) > 0
                   ? formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
-                  : '--'}
+                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
               </Text>
-              {rewardsEnabled && feeResults.feeDiscountPercentage && (
-                <Text variant={TextVariant.BodySM} color={TextColor.Success}>
-                  {`${feeResults.feeDiscountPercentage}% discount applied`}
-                </Text>
-              )}
             </View>
           </View>
 
           {/* Rewards Points Estimation */}
-          {rewardsEnabled &&
-            feeResults.estimatedPoints !== undefined &&
-            parseFloat(orderForm.amount) > 0 && (
-              <View style={styles.infoRow}>
-                <View style={styles.detailLeft}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.order.estimated_points')}
-                  </Text>
-                </View>
-                <View>
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-                    {`+${Math.floor(feeResults.estimatedPoints)} points`}
-                  </Text>
-                  {feeResults.bonusBips && feeResults.bonusBips > 0 && (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Success}
-                    >
-                      {`${(feeResults.bonusBips / 100).toFixed(1)}% bonus`}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            )}
+          {rewardsState.shouldShowRewardsRow && (
+            <KeyValueRow
+              field={{
+                label: {
+                  text: strings('perps.points'),
+                  variant: TextVariant.BodyMDMedium,
+                },
+                tooltip: {
+                  title: strings('perps.points_tooltip'),
+                  content: strings('perps.points_tooltip_content'),
+                  size: TooltipSizes.Sm,
+                },
+              }}
+              value={{
+                label: (
+                  <RewardPointsDisplay
+                    estimatedPoints={rewardsState.estimatedPoints}
+                    bonusBips={rewardsState.bonusBips}
+                    isLoading={rewardsState.isLoading}
+                    hasError={rewardsState.hasError}
+                    shouldShow={rewardsState.shouldShowRewardsRow}
+                    isRefresh={rewardsState.isRefresh}
+                  />
+                ),
+              }}
+            />
+          )}
         </View>
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}
