@@ -38297,7 +38297,7 @@ __metadata:
 
 "react-native-aes-crypto-forked@MetaMask/react-native-aes-crypto-forked#397d5db5250e8e7408294807965b5b9fd4ca6a25":
   version: 1.2.1
-  resolution: "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#commit=397d5db5250e8e7408294807965b5b9fd4ca6a25"
+  resolution: "react-native-aes-crypto-forked@https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
   checksum: e299deeb08a56e99c4eaad620b42e68b81425da9180b9ef3c84b99ad50d65219ef7a48ba0ff4afce895b73bfa4a834fcdb649a6028d0ce3f9ec662a954374df6
   languageName: node
   linkType: hard
@@ -39035,7 +39035,7 @@ __metadata:
 
 "react-native-tcp@aprock/react-native-tcp#98fbc801f0586297f16730b2f4c75eef15dfabcd":
   version: 4.0.0
-  resolution: "react-native-tcp@https://github.com/aprock/react-native-tcp.git#commit=98fbc801f0586297f16730b2f4c75eef15dfabcd"
+  resolution: "react-native-tcp@https://github.com/aprock/react-native-tcp.git#98fbc801f0586297f16730b2f4c75eef15dfabcd"
   dependencies:
     base64-js: 1.3.1
     buffer: ^5.4.3
