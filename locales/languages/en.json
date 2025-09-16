@@ -5803,17 +5803,21 @@
     "linking_account": "Linking...",
 
     "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
       "swap": {
         "title": "Swap",
         "sheet_title": "Swap tokens",
-        "sheet_description": "Swap tokens on supported networkds to earn points for every dollar you trade",
-        "points": "80 points per $100"
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
       },
       "perps": {
         "title": "Perps",
         "sheet_title": "Trade perps",
-        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments",
-        "points": "10 points per $100"
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
       },
       "referrals": {
         "title": "Referrals",

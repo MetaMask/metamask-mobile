@@ -52,7 +52,7 @@ interface TabWrapperProps {
   isDisabled?: boolean;
 }
 
-const LevelsTab: React.FC<TabWrapperProps> = () => (
+const LevelsTabWrapper: React.FC<TabWrapperProps> = () => (
   <Box
     twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
     testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
@@ -63,7 +63,17 @@ const LevelsTab: React.FC<TabWrapperProps> = () => (
   </Box>
 );
 
-const ActivityTabWrapper: React.FC<TabWrapperProps> = () => <ActivityTab />;
+const ActivityTabWrapper: React.FC<TabWrapperProps> = () => (
+  <Box twClassName="my-4" testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}>
+    <ActivityTab />
+  </Box>
+);
+
+const OverviewTabWrapper: React.FC<TabWrapperProps> = () => (
+  <Box twClassName="my-4" testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}>
+    <OverviewTab />
+  </Box>
+);
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -288,12 +298,11 @@ const RewardsDashboard: React.FC = () => {
             onChangeTab={handleTabChange}
             testID={REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL}
           >
-            <OverviewTab
+            <OverviewTabWrapper
               key="overview"
               tabLabel={strings('rewards.tab_overview_title')}
             />
-            <OverviewTab key="overview" />
-            <LevelsTab
+            <LevelsTabWrapper
               key="levels"
               tabLabel={strings('rewards.tab_levels_title')}
             />
