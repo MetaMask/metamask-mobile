@@ -46,12 +46,23 @@ export default class AppwrightSelectors {
   }
 
   static async terminateApp(device) {
-    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask';
-    await device.terminateApp(packageId);
+    let retries = 3;
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask'; 
+    while (retries > 0) {
+      try {
+        await device.terminateApp(packageId);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        retries--;
+      } catch (error) {
+        console.log('Error terminating app, retrying...', error);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        retries--;
+      }
+    }
   }
 
   static async activateApp(device) {
-    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask'; 
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask';
     return await device.activateApp(packageId);
   }
 
