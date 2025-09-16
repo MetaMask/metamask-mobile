@@ -10647,13 +10647,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/viewpager@npm:3.3.0":
-  version: 3.3.0
-  resolution: "@react-native-community/viewpager@npm:3.3.0"
+"@react-native-community/viewpager@npm:^2.0.1":
+  version: 2.0.2
+  resolution: "@react-native-community/viewpager@npm:2.0.2"
   peerDependencies:
     react: ^16.0
     react-native: ">=0.57"
-  checksum: 68f3386abfa83a6a04761f53624ee13192aa69efcc10dee20bea3b8537db669c5da7419462fa0cfa769e50ebc72b4178296982d4d34da5299cfb270c6d3f6cff
+  checksum: 855acfdddb68a3a3ed40a7cb838c382ace1a4ccb6c50210a18b5598bb975231178c98c7c60ac1598bbc77babd7cc20dae178498bb170e024e7752f44677014d7
   languageName: node
   linkType: hard
 
@@ -10915,13 +10915,6 @@ __metadata:
     metro-config: ^0.81.0
     metro-runtime: ^0.81.0
   checksum: c52dd64967e6ead75d735702def2e29767f56321d888eae48b683e65118852c567c066755fa0f18c554773a8a0cb44493b436f516bf2c96bb6625f86e7439fec
-  languageName: node
-  linkType: hard
-
-"@react-native/normalize-color@npm:*":
-  version: 2.1.0
-  resolution: "@react-native/normalize-color@npm:2.1.0"
-  checksum: 8ccbd40b3c7629f1dc97b3e9aadd95fd3507fcf2e37535a6299a70436ab891c34cbdc4240b07380553d6e85dd909e23d5773b5be1da2906b026312e0b0768838
   languageName: node
   linkType: hard
 
@@ -24919,17 +24912,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"deprecated-react-native-prop-types@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "deprecated-react-native-prop-types@npm:2.3.0"
-  dependencies:
-    "@react-native/normalize-color": "*"
-    invariant: "*"
-    prop-types: "*"
-  checksum: d14f4be1dfe780a7fa9197a31b4a9a2b409c8cf1bf677713fd92d06733dee1043578662d1a8858541cf06164ae91d295db6e595f29bf13e808d9fb37bc58c90b
-  languageName: node
-  linkType: hard
-
 "deprecated-react-native-prop-types@npm:^5.0.0":
   version: 5.0.0
   resolution: "deprecated-react-native-prop-types@npm:5.0.0"
@@ -30581,7 +30563,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"invariant@npm:*, invariant@npm:2.2.4, invariant@npm:^2.2.4":
+"invariant@npm:2.2.4, invariant@npm:^2.2.4":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
   dependencies:
@@ -34371,7 +34353,7 @@ __metadata:
     react-native-render-html: ^6.3.4
     react-native-safe-area-context: ^5.4.0
     react-native-screens: 3.37.0
-    react-native-scrollable-tab-view: "ptomasroos/react-native-scrollable-tab-view#583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6"
+    react-native-scrollable-tab-view: 1.0.0
     react-native-sensors: 5.3.0
     react-native-share: 7.3.7
     react-native-size-matters: 0.4.0
@@ -37945,17 +37927,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:*, prop-types@npm:^15.5.10, prop-types@npm:^15.5.7, prop-types@npm:^15.5.8, prop-types@npm:^15.5.9, prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
-  version: 15.8.1
-  resolution: "prop-types@npm:15.8.1"
-  dependencies:
-    loose-envify: ^1.4.0
-    object-assign: ^4.1.1
-    react-is: ^16.13.1
-  checksum: c056d3f1c057cb7ff8344c645450e14f088a915d078dcda795041765047fa080d38e5d626560ccaac94a4e16e3aa15f3557c1a9a8d1174530955e992c675e459
-  languageName: node
-  linkType: hard
-
 "prop-types@npm:15.7.2":
   version: 15.7.2
   resolution: "prop-types@npm:15.7.2"
@@ -37964,6 +37935,17 @@ __metadata:
     object-assign: ^4.1.1
     react-is: ^16.8.1
   checksum: 5eef82fdda64252c7e75aa5c8cc28a24bbdece0f540adb60ce67c205cf978a5bd56b83e4f269f91c6e4dcfd80b36f2a2dec24d362e278913db2086ca9c6f9430
+  languageName: node
+  linkType: hard
+
+"prop-types@npm:^15.5.10, prop-types@npm:^15.5.7, prop-types@npm:^15.5.8, prop-types@npm:^15.5.9, prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+  version: 15.8.1
+  resolution: "prop-types@npm:15.8.1"
+  dependencies:
+    loose-envify: ^1.4.0
+    object-assign: ^4.1.1
+    react-is: ^16.13.1
+  checksum: c056d3f1c057cb7ff8344c645450e14f088a915d078dcda795041765047fa080d38e5d626560ccaac94a4e16e3aa15f3557c1a9a8d1174530955e992c675e459
   languageName: node
   linkType: hard
 
@@ -39204,18 +39186,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-scrollable-tab-view@ptomasroos/react-native-scrollable-tab-view#583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6":
-  version: 1.1.0
-  resolution: "react-native-scrollable-tab-view@https://github.com/ptomasroos/react-native-scrollable-tab-view.git#commit=583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6"
+"react-native-scrollable-tab-view@npm:1.0.0":
+  version: 1.0.0
+  resolution: "react-native-scrollable-tab-view@npm:1.0.0"
   dependencies:
-    "@react-native-community/viewpager": 3.3.0
+    "@react-native-community/viewpager": ^2.0.1
     create-react-class: ^15.6.2
-    deprecated-react-native-prop-types: ^2.3.0
     prop-types: ^15.6.0
     react-timer-mixin: ^0.13.3
   peerDependencies:
     react-native: ">=0.20.0"
-  checksum: 46861cb3a175e984a9429c312ceee44e141c72219f21fd3f138acb955a93ad12043caef9f29ea519b397c4e80ac9da802456f627ba2784e657f33f1e4510f1c2
+  checksum: dd270efa3457f6f8382cf95896cc6772f95b7673b4e5c7d5143601ea42e2818610df40759bbc978ff8b3ca396fe609d7e11a7e4419bd146145f19b1e962c8949
   languageName: node
   linkType: hard
 
