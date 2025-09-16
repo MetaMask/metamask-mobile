@@ -2,10 +2,10 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsTrading } from './usePerpsTrading';
 import Engine from '../../../../core/Engine';
-import AppConstants from '../../../../core/AppConstants';
-import { REWARDS_API_CONFIG } from '../constants/perpsConfig';
+import { toCaipAccountId, CaipAccountId } from '@metamask/utils';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { EstimatePointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -127,7 +127,25 @@ export function usePerpsOrderFees({
   }, []);
 
   /**
-   * Fetch fee discount from rewards API (non-blocking)
+   * Helper function to format address to CAIP-10 format for Arbitrum
+   */
+  const formatAccountToCaipAccountId = useCallback(
+    (address: string): CaipAccountId | null => {
+      try {
+        return toCaipAccountId('eip155', '42161', address);
+      } catch (error) {
+        DevLogger.log('Rewards: Failed to format CAIP Account ID', {
+          address,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return null;
+      }
+    },
+    [],
+  );
+
+  /**
+   * Fetch fee discount from RewardsController (non-blocking)
    */
   const fetchFeeDiscount = useCallback(
     async (address: string): Promise<FeeDiscountResponse> => {
@@ -156,91 +174,37 @@ export function usePerpsOrderFees({
       }
 
       try {
-        const response = await fetch(
-          `${AppConstants.REWARDS_API_URL}${REWARDS_API_CONFIG.FEE_DISCOUNT_ENDPOINT}/${address}`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
-
-        if (!response.ok) {
-          DevLogger.log('Rewards: Failed to fetch fee discount', {
-            address,
-            status: response.status,
-          });
+        const caipAccountId = formatAccountToCaipAccountId(address);
+        if (!caipAccountId) {
           return {};
         }
 
-        const discountString = await response.text();
-        DevLogger.log('Rewards: Fee discount fetched', {
+        DevLogger.log('Rewards: Fetching fee discount via controller', {
           address,
-          discountString,
+          caipAccountId,
         });
 
-        // Parse the discount response
-        // API returns format: "x,y" where x is the fee rate in bps
-        // Example: "10,0" means 10bps fee rate
-        // Example: "5,0" means 5bps fee rate (50% discount from base 10bps)
-        // Example: "0,0" means no rewards enrollment or data
-        const values = discountString.split(',').map((v) => v.trim());
-        const userFeeRateBps = parseFloat(values[0] || '0');
+        const discountPercentage = await Engine.controllerMessenger.call(
+          'RewardsController:getPerpsDiscountForAccount',
+          caipAccountId,
+        );
 
-        DevLogger.log('Rewards: Parsed fee discount', {
-          rawResponse: discountString,
-          parsedValues: values,
-          userFeeRateBps,
-        });
-
-        let tier: string;
-        let discountPercentage: number;
-
-        // Calculate discount from base 10bps rate
-        const baseFeeRateBps = 10;
-
-        // Handle different fee rates including 0 (might indicate no rewards program enrollment)
-        if (userFeeRateBps === 0 || isNaN(userFeeRateBps)) {
-          // User might not be enrolled or API returned invalid data
-          DevLogger.log('Rewards: No discount available', {
-            userFeeRateBps,
-            reason:
-              userFeeRateBps === 0
-                ? 'Not enrolled or base tier'
-                : 'Invalid response',
-          });
-          // Return no discount
-          tier = 'none';
-          discountPercentage = 0;
-        } else if (userFeeRateBps >= 10) {
-          // Tiers 1-3: Pay full 10bps
-          tier = 'tier-1-3';
-          discountPercentage = 0; // No discount
-        } else if (userFeeRateBps >= 5) {
-          // Tiers 4-5: Pay 5bps (50% discount from 10bps)
-          tier = 'tier-4-5';
-          discountPercentage =
-            ((baseFeeRateBps - userFeeRateBps) / baseFeeRateBps) * 100;
-        } else if (userFeeRateBps >= 3.5) {
-          // Tiers 6-7: Pay 3.5bps (65% discount from 10bps)
-          tier = 'tier-6-7';
-          discountPercentage =
-            ((baseFeeRateBps - userFeeRateBps) / baseFeeRateBps) * 100;
-        } else if (userFeeRateBps > 0) {
-          // Some other discount rate
-          tier = 'custom';
-          discountPercentage =
-            ((baseFeeRateBps - userFeeRateBps) / baseFeeRateBps) * 100;
-        } else {
-          // Fallback - should not reach here but TypeScript needs this
-          tier = 'none';
-          discountPercentage = 0;
-        }
-
-        DevLogger.log('Rewards: Calculated discount', {
-          tier,
-          userFeeRateBps,
+        DevLogger.log('Rewards: Fee discount fetched via controller', {
+          address,
           discountPercentage,
         });
+
+        // Map discount percentage to approximate tier for logging
+        let tier: string;
+        if (!discountPercentage || discountPercentage === 0) {
+          tier = 'none';
+        } else if (discountPercentage < 30) {
+          tier = 'tier-1-3';
+        } else if (discountPercentage < 60) {
+          tier = 'tier-4-5';
+        } else {
+          tier = 'tier-6-7';
+        }
 
         // Cache the discount for 30 minutes
         feeDiscountCache = {
@@ -253,19 +217,19 @@ export function usePerpsOrderFees({
 
         return { discountPercentage, tier };
       } catch (error) {
-        DevLogger.log('Rewards: Error fetching fee discount', {
-          error: error instanceof Error ? error.message : 'Unknown error',
+        DevLogger.log('Rewards: Error fetching fee discount via controller', {
+          error: error instanceof Error ? error.message : String(error),
           address,
         });
         // Non-blocking - return empty if fails
         return {};
       }
     },
-    [rewardsEnabled],
+    [rewardsEnabled, formatAccountToCaipAccountId],
   );
 
   /**
-   * Estimate points for the trade (non-blocking)
+   * Estimate points for the trade using RewardsController (non-blocking)
    */
   const estimatePoints = useCallback(
     async (
@@ -286,97 +250,53 @@ export function usePerpsOrderFees({
           return {};
         }
 
+        const caipAccountId = formatAccountToCaipAccountId(address);
+        if (!caipAccountId) {
+          return {};
+        }
+
         // Use provided actual fee or calculate with base rate as fallback
         const estimatedFeeUSD = actualFeeUSD ?? amountNum * 0.001; // 0.1% = 10bps default
 
-        // Note: API currently requires activityType: 'SWAP' even for perps
-        // Both swapContext and perpsContext are needed per the API spec
-        const requestBody = {
-          activityType: 'SWAP', // Must be SWAP for now per API requirements
-          account: `eip155:42161:${address}`, // Arbitrum chain ID for perps
+        const estimatePointsDto: EstimatePointsDto = {
+          activityType: 'PERPS',
+          account: caipAccountId,
           activityContext: {
-            // Include minimal swapContext as required by API
-            swapContext: {
-              srcAsset: {
-                id: 'eip155:42161/slip44:60', // ETH on Arbitrum
-                amount: '0', // Not relevant for perps, but required field
-              },
-              destAsset: {
-                id: 'eip155:42161/slip44:60', // ETH on Arbitrum
-                amount: '0', // Not relevant for perps
-              },
-              feeAsset: {
-                id: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC on Arbitrum
-                amount: estimatedFeeUSD.toString(),
-              },
-            },
-            // Perps-specific context
             perpsContext: {
-              type: isClose ? 'CLOSE_POSITION' : 'OPEN_POSITION', // Uppercase per API spec
+              type: isClose ? 'CLOSE_POSITION' : 'OPEN_POSITION',
               usdFeeValue: estimatedFeeUSD.toString(),
               coin: tradeCoin,
-              isBuy: !isClose,
-              size: amountNum.toString(),
-              orderType: 'market',
-              price: '0', // Will be filled at market price
-              reduceOnly: isClose,
-              timeInForce: 'GTC',
-              currentPrice: 0, // Not needed for estimation
             },
           },
         };
 
-        const url = `${AppConstants.REWARDS_API_URL}${REWARDS_API_CONFIG.POINTS_ESTIMATE_ENDPOINT}`;
-        DevLogger.log('Rewards: Points estimation request', {
-          url,
-          requestBody,
+        DevLogger.log('Rewards: Points estimation request via controller', {
+          estimatePointsDto,
+          coin: tradeCoin,
+          size: amountNum,
+          isClose,
         });
 
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        });
+        const result = await Engine.controllerMessenger.call(
+          'RewardsController:estimatePoints',
+          estimatePointsDto,
+        );
 
-        if (!response.ok) {
-          let errorDetails = '';
-          try {
-            const errorBody = await response.text();
-            errorDetails = errorBody;
-          } catch {
-            // Ignore if we can't read the error body
-          }
-
-          // Log the error but don't block the user experience
-          DevLogger.log('Rewards: Failed to estimate points', {
-            status: response.status,
-            statusText: response.statusText,
-            url,
-            errorDetails,
-          });
-
-          // For 500 errors, it's a server issue - return empty gracefully
-          // For 400 errors, it might be our request format - also handle gracefully
-          // Points estimation is non-blocking, so we continue without points
-          return {};
-        }
-
-        const data = await response.json();
-        DevLogger.log('Rewards: Points estimated', {
-          pointsEstimate: data.pointsEstimate,
-          bonusBips: data.bonusBips,
+        DevLogger.log('Rewards: Points estimated via controller', {
+          pointsEstimate: result.pointsEstimate,
+          bonusBips: result.bonusBips,
           coin: tradeCoin,
           size: amountNum,
           isClose,
         });
 
         return {
-          points: data.pointsEstimate,
-          bonus: data.bonusBips,
+          points: result.pointsEstimate,
+          bonus: result.bonusBips,
         };
       } catch (error) {
-        DevLogger.log('Rewards: Error estimating points', {
-          error: error instanceof Error ? error.message : 'Unknown error',
+        DevLogger.log('Rewards: Error estimating points via controller', {
+          error: error instanceof Error ? error.message : String(error),
           coin: tradeCoin,
           amount: tradeAmount,
         });
@@ -384,7 +304,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [rewardsEnabled],
+    [rewardsEnabled, formatAccountToCaipAccountId],
   );
 
   // State for fees from provider
