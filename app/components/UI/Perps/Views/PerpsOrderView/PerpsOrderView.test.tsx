@@ -217,6 +217,15 @@ jest.mock('../../hooks', () => ({
     measure: jest.fn(),
     measureAsync: jest.fn(),
   })),
+  usePerpsRewards: jest.fn(() => ({
+    shouldShowRewardsRow: false,
+    isLoading: false,
+    estimatedPoints: undefined,
+    bonusBips: undefined,
+    feeDiscountPercentage: undefined,
+    hasError: false,
+    isRefresh: false,
+  })),
   usePerpsToasts: jest.fn(() => ({
     showToast: jest.fn(),
     PerpsToastOptions: {

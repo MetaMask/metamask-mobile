@@ -1,4 +1,6 @@
+import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
 import type { FeeCalculationResult } from '../controllers/types';
@@ -6,9 +8,35 @@ import type { FeeCalculationResult } from '../controllers/types';
 // Mock dependencies
 jest.mock('./usePerpsTrading');
 
+// Mock Redux store and selectors
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn((selector) => {
+    // Mock selectRewardsEnabledFlag
+    if (selector.toString().includes('selectRewardsEnabledFlag')) {
+      return true;
+    }
+    return undefined;
+  }),
+}));
+
 const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
   typeof usePerpsTrading
 >;
+
+// Create a mock store for Provider wrapper
+const createMockStore = () => ({
+  getState: () => ({}),
+  subscribe: jest.fn(),
+  dispatch: jest.fn(),
+});
+
+// Test wrapper with Redux Provider
+const createWrapper = () => {
+  const mockStore = createMockStore();
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(Provider, { store: mockStore as any }, children);
+};
 
 describe('usePerpsOrderFees', () => {
   const mockCalculateFees = jest.fn<
@@ -61,6 +89,7 @@ describe('usePerpsOrderFees', () => {
           amount: '100000',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       // Initial loading state
@@ -100,6 +129,7 @@ describe('usePerpsOrderFees', () => {
           amount: '100000',
           isMaker: true,
         }),
+        { wrapper: createWrapper() }
       );
 
       await waitFor(() => {
@@ -130,6 +160,7 @@ describe('usePerpsOrderFees', () => {
           amount: '100000',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       await waitFor(() => {
@@ -160,6 +191,7 @@ describe('usePerpsOrderFees', () => {
           amount: '0',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       await waitFor(() => {
@@ -186,6 +218,7 @@ describe('usePerpsOrderFees', () => {
           amount: '',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       await waitFor(() => {
@@ -208,6 +241,7 @@ describe('usePerpsOrderFees', () => {
           amount: '100000',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       await waitFor(() => {
@@ -228,6 +262,7 @@ describe('usePerpsOrderFees', () => {
           amount: '100000',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       await waitFor(() => {
@@ -261,6 +296,7 @@ describe('usePerpsOrderFees', () => {
           amount: '100000',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       // Should be loading initially
@@ -322,6 +358,7 @@ describe('usePerpsOrderFees', () => {
             amount: '100000',
             isMaker: false,
           },
+          wrapper: createWrapper(),
         },
       );
 
@@ -363,6 +400,7 @@ describe('usePerpsOrderFees', () => {
           usePerpsOrderFees({ orderType: 'market', amount, isMaker: false }),
         {
           initialProps: { amount: '100000' },
+          wrapper: createWrapper(),
         },
       );
 
@@ -396,6 +434,7 @@ describe('usePerpsOrderFees', () => {
           amount: '100000',
           isMaker: false,
         }),
+        { wrapper: createWrapper() }
       );
 
       await waitFor(() => {

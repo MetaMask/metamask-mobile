@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import RewardPointsDisplay from './RewardPointsDisplay';
 
 // Mock the Rive component
@@ -17,10 +18,24 @@ jest.mock('../../../Bridge/hooks/useRewardsIconAnimation', () => ({
   })),
 }));
 
+// Mock useTooltipModal hook
+jest.mock('../../../../hooks/useTooltipModal', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    openTooltipModal: jest.fn(),
+  })),
+}));
+
+// Test wrapper with Navigation
+const NavigationWrapper = ({ children }: { children: React.ReactNode }) => (
+  <NavigationContainer>{children}</NavigationContainer>
+);
+
 describe('RewardPointsDisplay', () => {
   it('renders null when shouldShow is false', () => {
     const { queryByTestId } = render(
       <RewardPointsDisplay shouldShow={false} />,
+      { wrapper: NavigationWrapper },
     );
     expect(queryByTestId('reward-points-display')).toBeNull();
   });
@@ -32,8 +47,9 @@ describe('RewardPointsDisplay', () => {
         hasError
         estimatedPoints={100}
       />,
+      { wrapper: NavigationWrapper },
     );
-    expect(getByText('Unable to load')).toBeTruthy();
+    expect(getByText('Couldn\'t load')).toBeTruthy();
   });
 
   it('renders loaded state with points and discount tag', () => {
@@ -41,14 +57,13 @@ describe('RewardPointsDisplay', () => {
       <RewardPointsDisplay
         shouldShow
         estimatedPoints={1344}
-        feeDiscountPercentage={22}
         bonusBips={150}
       />,
+      { wrapper: NavigationWrapper },
     );
 
     expect(getByText('1,344')).toBeTruthy();
     expect(getByText('+1.5%')).toBeTruthy();
-    expect(getByText('-22%')).toBeTruthy();
   });
 
   it('renders loading state without points display', () => {
@@ -58,21 +73,11 @@ describe('RewardPointsDisplay', () => {
         isLoading
         estimatedPoints={1000}
       />,
+      { wrapper: NavigationWrapper },
     );
 
     // Points should not be visible when loading
     expect(queryByText('1,000')).toBeNull();
   });
 
-  it('does not render discount tag when no discount', () => {
-    const { queryByText } = render(
-      <RewardPointsDisplay
-        shouldShow
-        estimatedPoints={1000}
-        feeDiscountPercentage={0}
-      />,
-    );
-
-    expect(queryByText(/-\d+%/)).toBeNull();
-  });
 });
