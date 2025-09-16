@@ -50,6 +50,10 @@ export const PerpsPositionCardSelectorsIDs = {
   PNL: 'position-card-pnl',
   CLOSE_BUTTON: 'position-card-close',
   EDIT_BUTTON: 'position-card-edit',
+  TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON:
+    'position-card-tpsl-count-warning-tooltip-view-orders',
+  TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
+    'position-card-tpsl-count-warning-tooltip-got-it',
 };
 
 // ========================================
@@ -425,6 +429,8 @@ export const PerpsClosePositionViewSelectorsIDs = {
   DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
   CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
   CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
+  FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
+  YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
 };
 
 // ========================================

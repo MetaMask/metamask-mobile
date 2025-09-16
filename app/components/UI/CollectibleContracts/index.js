@@ -114,7 +114,7 @@ const createStyles = (colors) =>
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       marginRight: 4,
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
       borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
@@ -123,7 +123,7 @@ const createStyles = (colors) =>
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       marginRight: 4,
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
       borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,

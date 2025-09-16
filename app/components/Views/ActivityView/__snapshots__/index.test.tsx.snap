@@ -506,7 +506,7 @@ exports[`ActivityView should render correctly 1`] = `
                                 }
                                 variant="sHeadingMD"
                               >
-                                You don't have any orders
+                                No bank or card transfers yet.
                               </Text>
                             </Row>
                           }
@@ -734,7 +734,7 @@ exports[`ActivityView should render correctly 1`] = `
                                   }
                                 }
                               >
-                                You don't have any orders
+                                No bank or card transfers yet.
                               </Text>
                             </View>
                           </View>

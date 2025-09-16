@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -43,6 +44,7 @@ import {
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -52,6 +54,7 @@ const CustomNetworkSelector = ({
   const { styles } = useStyles(createStyles, { colors });
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   // Use custom hooks for network management
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
@@ -79,7 +82,7 @@ const CustomNetworkSelector = ({
     ({ item }) => {
       const { name, caipChainId, networkTypeOrRpcUrl, isSelected } = item;
       const rawChainId = parseCaipChainId(caipChainId).reference;
-      const chainId = toHex(rawChainId);
+      const chainId = isEvmSelected ? toHex(rawChainId) : rawChainId;
 
       const handlePress = async () => {
         await selectCustomNetwork(caipChainId, dismissModal);
@@ -116,7 +119,7 @@ const CustomNetworkSelector = ({
         </View>
       );
     },
-    [selectCustomNetwork, openModal, dismissModal],
+    [selectCustomNetwork, openModal, dismissModal, isEvmSelected],
   );
 
   const renderFooter = useCallback(

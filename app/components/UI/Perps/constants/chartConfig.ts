@@ -176,7 +176,6 @@ export const CANDLE_PERIODS = [
   { label: '1d', value: CandlePeriod.ONE_DAY },
   { label: '2d', value: CandlePeriod.THREE_DAYS },
   { label: '7d', value: CandlePeriod.ONE_WEEK },
-  { label: '30d', value: CandlePeriod.ONE_MONTH },
 ] as const;
 
 /**

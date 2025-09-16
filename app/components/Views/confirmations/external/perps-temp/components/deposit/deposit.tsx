@@ -22,6 +22,11 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsHardwareAccount,
 ];
 
+const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
+  AlertKeys.PerpsDepositMinimum,
+  AlertKeys.InsufficientPayTokenBalance,
+];
+
 export function PerpsDeposit() {
   useNavbar(strings('confirm.title.perps_deposit'));
   useClearConfirmationOnBackSwipe();
@@ -31,12 +36,20 @@ export function PerpsDeposit() {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingAlerts = usePerpsDepositAlerts({ pendingTokenAmount });
 
+  const filteredConfirmationAlerts = useMemo(
+    () =>
+      confirmationAlerts.filter(
+        (a) => !PENDING_AMOUNT_ALERTS.includes(a.key as AlertKeys),
+      ),
+    [confirmationAlerts],
+  );
+
   const alerts = useMemo(
     () =>
-      [...pendingAlerts, ...confirmationAlerts].filter((a) =>
+      [...pendingAlerts, ...filteredConfirmationAlerts].filter((a) =>
         KEYBOARD_ALERTS.includes(a.key as AlertKeys),
       ),
-    [confirmationAlerts, pendingAlerts],
+    [filteredConfirmationAlerts, pendingAlerts],
   );
 
   const { isFullView, isPayTokenSelected } = usePerpsDepositView({

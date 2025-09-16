@@ -916,6 +916,7 @@ describe('RewardsController', () => {
         seasons: {},
         subscriptionReferralDetails: {},
         seasonStatuses: {},
+        activeBoosts: {},
       });
     });
   });
@@ -2398,6 +2399,1258 @@ describe('RewardsController', () => {
         expect(updatedAccountState.hasOptedIn).toBeUndefined(); // Should be undefined due to error
         expect(updatedAccountState.subscriptionId).toBeNull();
       }
+    });
+  });
+
+  describe('optOut', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return false when no active account exists', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No active account or subscription ID found for opt-out',
+      );
+    });
+
+    it('should return false when active account has no subscription ID', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: null,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No active account or subscription ID found for opt-out',
+      );
+    });
+
+    it('should successfully opt out and reset state', async () => {
+      // Arrange
+      const mockOptOutResponse = { success: true };
+      mockMessenger.call.mockResolvedValue(mockOptOutResponse);
+      mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub123',
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {
+            sub123: {
+              id: 'sub123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:optOut',
+        'sub123',
+      );
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith('sub123');
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully opted out of rewards program',
+        'sub123',
+      );
+
+      // Verify state was reset and active account updated
+      const newState = testController.state;
+      expect(newState.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        lastCheckedAuth: expect.any(Number),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+      expect(newState.subscriptions).toEqual({});
+      expect(newState.accounts).toEqual({});
+    });
+
+    it('should return false when opt-out service returns false', async () => {
+      // Arrange
+      const mockOptOutResponse = { success: false };
+      mockMessenger.call.mockResolvedValue(mockOptOutResponse);
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub123',
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {
+            sub123: {
+              id: 'sub123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Opt-out request returned false',
+        'sub123',
+      );
+      expect(mockRemoveSubscriptionToken).not.toHaveBeenCalled();
+    });
+
+    it('should return false when subscription not found in map', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub123',
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {}, // No subscription
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No active account or subscription ID found for opt-out',
+      );
+    });
+  });
+
+  describe('getCandidateSubscriptionId', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return null when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should fallback to first subscription ID from subscriptions map', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            subscriptionId: null, // No active subscription
+            hasOptedIn: false,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {
+            'fallback-sub-123': {
+              id: 'fallback-sub-123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+            'other-sub-456': {
+              id: 'other-sub-456',
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBe('fallback-sub-123');
+    });
+
+    it('should return null when no subscriptions found and no accounts opted in', async () => {
+      // Arrange
+      const mockInternalAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockOptInResponse = { ois: [false, false] }; // No accounts opted in
+
+      mockMessenger.call
+        .mockReturnValueOnce(mockInternalAccounts) // getInternalAccounts
+        .mockResolvedValueOnce(mockOptInResponse); // getOptInStatus
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('linkAccountToSubscriptionCandidate', () => {
+    const mockInternalAccount = {
+      address: '0x123',
+      type: 'eip155:eoa' as const,
+      id: 'account1',
+      options: {},
+      metadata: {
+        name: 'Test Account',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+      },
+      scopes: ['eip155:1' as const],
+      methods: [],
+    } as InternalAccount;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false); // Default to non-Solana
+    });
+
+    it('should return false when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Rewards feature is disabled',
+      );
+    });
+
+    it('should return false for Solana accounts', async () => {
+      // Arrange
+      const solanaAccount = {
+        ...mockInternalAccount,
+        address: 'solana-address',
+      };
+      mockIsSolanaAddress.mockReturnValue(true);
+
+      // Act
+      const result = await controller.linkAccountToSubscriptionCandidate(
+        solanaAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
+      );
+    });
+
+    it('should return true if account already has subscription', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            [CAIP_ACCOUNT_1]: {
+              account: CAIP_ACCOUNT_1,
+              subscriptionId: 'existing-sub',
+              hasOptedIn: true,
+              lastCheckedAuth: Date.now(),
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+          subscriptions: {
+            'existing-sub': {
+              id: 'existing-sub',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Account to link already has subscription',
+        {
+          account: CAIP_ACCOUNT_1,
+          subscriptionId: 'existing-sub',
+        },
+      );
+    });
+
+    it('should throw error when no candidate subscription found', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Setup getCandidateSubscriptionId to return null by mocking getInternalAccounts to return empty
+      mockMessenger.call.mockReturnValueOnce([]); // getInternalAccounts - empty
+
+      // Act & Assert
+      await expect(
+        testController.linkAccountToSubscriptionCandidate(mockInternalAccount),
+      ).rejects.toThrow('No valid subscription found to link account to');
+    });
+
+    it('should successfully link account to subscription', async () => {
+      // Arrange
+      const mockUpdatedSubscription = {
+        id: 'candidate-sub-123',
+        referralCode: 'REF456',
+        accounts: [{ address: '0x123', chainId: 1 }],
+      };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            'candidate-sub-123': {
+              id: 'candidate-sub-123',
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      mockToHex.mockReturnValue('0xsignature');
+      mockMessenger.call
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        {
+          account: '0x123',
+          timestamp: expect.any(Number),
+          signature: '0xsignature',
+        },
+        'candidate-sub-123',
+      );
+
+      // Verify account state was updated
+      const accountState = testController.state.accounts[CAIP_ACCOUNT_1];
+      expect(accountState).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'candidate-sub-123',
+        lastCheckedAuth: expect.any(Number),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully linked account to subscription',
+        {
+          account: CAIP_ACCOUNT_1,
+          subscriptionId: 'candidate-sub-123',
+        },
+      );
+    });
+
+    it('should handle mobile join errors gracefully', async () => {
+      // Arrange
+      const mockError = new Error('Mobile join failed');
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            'candidate-sub-123': {
+              id: 'candidate-sub-123',
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Ensure the account is not detected as Solana
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockToHex.mockReturnValue('0xsignature');
+      mockMessenger.call
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockRejectedValueOnce(mockError); // mobileJoin
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to link account to subscription',
+        CAIP_ACCOUNT_1,
+        'candidate-sub-123',
+        mockError,
+      );
+    });
+  });
+
+  describe('getOptInStatus', () => {
+    const mockParams = { addresses: ['0x123', '0x456'] };
+    const mockResponse = { ois: [true, false] };
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return false array when feature flag is disabled', async () => {
+      // Arrange
+      jest.clearAllMocks(); // Clear any calls from initialization
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual({ ois: [false, false] });
+    });
+
+    it('should successfully get opt-in status from service', async () => {
+      // Arrange
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await controller.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        mockParams,
+      );
+    });
+
+    it('should handle service errors and rethrow them', async () => {
+      // Arrange
+      const mockError = new Error('Service error');
+      mockMessenger.call.mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(controller.getOptInStatus(mockParams)).rejects.toThrow(
+        'Service error',
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get opt-in status:',
+        'Service error',
+      );
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+      // Arrange
+      const mockError = 'String error';
+      mockMessenger.call.mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(controller.getOptInStatus(mockParams)).rejects.toBe(
+        'String error',
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get opt-in status:',
+        'String error',
+      );
+    });
+
+    it('should handle empty addresses array', async () => {
+      // Arrange
+      const emptyParams = { addresses: [] };
+      const emptyResponse = { ois: [] };
+      mockMessenger.call.mockResolvedValue(emptyResponse);
+
+      // Act
+      const result = await controller.getOptInStatus(emptyParams);
+
+      // Assert
+      expect(result).toEqual(emptyResponse);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        emptyParams,
+      );
+    });
+
+    it('should handle large arrays of addresses', async () => {
+      // Arrange
+      const largeAddressArray = Array.from(
+        { length: 100 },
+        (_, i) => `0x${i.toString(16).padStart(40, '0')}`,
+      );
+      const largeParams = { addresses: largeAddressArray };
+      const largeResponse = { ois: Array(100).fill(true) };
+      mockMessenger.call.mockResolvedValue(largeResponse);
+
+      // Act
+      const result = await controller.getOptInStatus(largeParams);
+
+      // Assert
+      expect(result).toEqual(largeResponse);
+      expect(result.ois).toHaveLength(100);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        largeParams,
+      );
+    });
+  });
+
+  describe('getActivePointsBoosts', () => {
+    let controller: RewardsController;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+    });
+
+    it('should fetch active points boosts successfully', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost 1',
+          icon: {
+            lightModeUrl: 'https://example.com/light1.png',
+            darkModeUrl: 'https://example.com/dark1.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+        {
+          id: 'boost-2',
+          name: 'Test Boost 2',
+          icon: {
+            lightModeUrl: 'https://example.com/light2.png',
+            darkModeUrl: 'https://example.com/dark2.png',
+          },
+          boostBips: 500,
+          seasonLong: false,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-31'),
+          backgroundColor: '#00FF00',
+        },
+      ];
+
+      const mockResponse = { boosts: mockBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockBoosts);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('boost-1');
+      expect(result[1].seasonLong).toBe(false);
+    });
+
+    it('should return empty array when no boosts available', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const mockEmptyBoosts: any[] = [];
+      const mockResponse = { boosts: mockEmptyBoosts };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle data service errors', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const mockError = new Error('Data service error');
+
+      mockMessenger.call.mockRejectedValue(mockError);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+    });
+
+    it('should handle network timeout errors', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const timeoutError = new Error('Request timeout after 10000ms');
+
+      mockMessenger.call.mockRejectedValue(timeoutError);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should handle authentication errors', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const authError = new Error('Authentication failed');
+
+      mockMessenger.call.mockRejectedValue(authError);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should pass through different season and subscription IDs correctly', async () => {
+      // Arrange
+      const seasonId = 'winter-2024';
+      const subscriptionId = 'premium-sub-789';
+      const mockBoosts = [
+        {
+          id: 'winter-boost',
+          name: 'Winter Special',
+          icon: {
+            lightModeUrl: 'https://example.com/winter.png',
+            darkModeUrl: 'https://example.com/winter-dark.png',
+          },
+          boostBips: 1500,
+          seasonLong: true,
+          backgroundColor: '#0066CC',
+        },
+      ];
+
+      const mockResponse = { boosts: mockBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockBoosts);
+      expect(result[0].name).toBe('Winter Special');
+    });
+
+    it('should return empty array when rewards feature is disabled', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should return cached active boosts when cache is fresh', async () => {
+      // Arrange
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const recentTime = Date.now() - 30000; // 30 seconds ago (within 5 minute threshold)
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+
+      const mockCachedBoosts = {
+        boosts: [
+          {
+            id: 'cached-boost-1',
+            name: 'Cached Boost 1',
+            icon: {
+              lightModeUrl: 'https://example.com/cached1.png',
+              darkModeUrl: 'https://example.com/cached1-dark.png',
+            },
+            boostBips: 1200,
+            seasonLong: true,
+            backgroundColor: '#FF6600',
+          },
+          {
+            id: 'cached-boost-2',
+            name: 'Cached Boost 2',
+            icon: {
+              lightModeUrl: 'https://example.com/cached2.png',
+              darkModeUrl: 'https://example.com/cached2-dark.png',
+            },
+            boostBips: 800,
+            seasonLong: false,
+            startDate: Date.now() - 86400000, // 1 day ago
+            endDate: Date.now() + 86400000, // 1 day from now
+            backgroundColor: '#00CC66',
+          },
+        ],
+        lastFetched: recentTime,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {
+            [compositeKey]: mockCachedBoosts,
+          },
+        },
+      });
+
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('cached-boost-1');
+      expect(result[0].name).toBe('Cached Boost 1');
+      expect(result[0].boostBips).toBe(1200);
+      expect(result[1].id).toBe('cached-boost-2');
+      expect(result[1].seasonLong).toBe(false);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should fetch fresh active boosts when cache is stale', async () => {
+      // Arrange
+      mockMessenger.call.mockClear();
+      const seasonId = 'season-123';
+      const subscriptionId = 'sub-456';
+      const staleTime = Date.now() - 4000000; // 66+ minutes ago (beyond 60 minute threshold)
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+
+      const mockStaleBoosts = {
+        boosts: [
+          {
+            id: 'stale-boost',
+            name: 'Stale Boost',
+            icon: {
+              lightModeUrl: 'https://example.com/stale.png',
+              darkModeUrl: 'https://example.com/stale-dark.png',
+            },
+            boostBips: 500,
+            seasonLong: true,
+            backgroundColor: '#999999',
+          },
+        ],
+        lastFetched: staleTime,
+      };
+
+      const mockFreshBoosts = [
+        {
+          id: 'fresh-boost-1',
+          name: 'Fresh Boost 1',
+          icon: {
+            lightModeUrl: 'https://example.com/fresh1.png',
+            darkModeUrl: 'https://example.com/fresh1-dark.png',
+          },
+          boostBips: 1500,
+          seasonLong: true,
+          backgroundColor: '#00FF99',
+        },
+        {
+          id: 'fresh-boost-2',
+          name: 'Fresh Boost 2',
+          icon: {
+            lightModeUrl: 'https://example.com/fresh2.png',
+            darkModeUrl: 'https://example.com/fresh2-dark.png',
+          },
+          boostBips: 750,
+          seasonLong: false,
+          startDate: new Date('2024-02-01'),
+          endDate: new Date('2024-02-28'),
+          backgroundColor: '#FF3366',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {
+            [compositeKey]: mockStaleBoosts,
+          },
+        },
+      });
+
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
+
+      const mockResponse = { boosts: mockFreshBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockFreshBoosts);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('fresh-boost-1');
+      expect(result[1].name).toBe('Fresh Boost 2');
+    });
+
+    it('should update state when fetching fresh active boosts', async () => {
+      // Arrange
+      const seasonId = 'season-456';
+      const subscriptionId = 'sub-789';
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+
+      const mockFreshBoosts = [
+        {
+          id: 'state-boost-1',
+          name: 'State Update Boost 1',
+          icon: {
+            lightModeUrl: 'https://example.com/state1.png',
+            darkModeUrl: 'https://example.com/state1-dark.png',
+          },
+          boostBips: 2000,
+          seasonLong: true,
+          backgroundColor: '#6600FF',
+        },
+        {
+          id: 'state-boost-2',
+          name: 'State Update Boost 2',
+          icon: {
+            lightModeUrl: 'https://example.com/state2.png',
+            darkModeUrl: 'https://example.com/state2-dark.png',
+          },
+          boostBips: 1000,
+          seasonLong: false,
+          startDate: new Date('2024-03-01'),
+          endDate: new Date('2024-03-31'),
+          backgroundColor: '#FF9900',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+        },
+      });
+
+      const mockResponse = { boosts: mockFreshBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockFreshBoosts);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('state-boost-1');
+      expect(result[0].boostBips).toBe(2000);
+      expect(result[1].name).toBe('State Update Boost 2');
+      expect(result[1].seasonLong).toBe(false);
+
+      // Check that state was updated with cached boosts
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
+      expect(cachedBoosts).toBeDefined();
+      expect(cachedBoosts.boosts).toHaveLength(2);
+      expect(cachedBoosts.boosts[0].id).toBe('state-boost-1');
+      expect(cachedBoosts.boosts[1].id).toBe('state-boost-2');
+      expect(cachedBoosts.lastFetched).toBeGreaterThan(Date.now() - 1000);
+
+      // Verify serialization: dates should be converted to timestamps
+      expect(typeof cachedBoosts.boosts[1].startDate).toBe('number');
+      expect(typeof cachedBoosts.boosts[1].endDate).toBe('number');
+    });
+
+    it('should handle cache miss and fetch fresh data', async () => {
+      // Arrange
+      const seasonId = 'new-season';
+      const subscriptionId = 'new-sub';
+      const mockBoosts = [
+        {
+          id: 'new-boost',
+          name: 'New Season Boost',
+          icon: {
+            lightModeUrl: 'https://example.com/new.png',
+            darkModeUrl: 'https://example.com/new-dark.png',
+          },
+          boostBips: 1800,
+          seasonLong: true,
+          backgroundColor: '#33CCFF',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {}, // Empty cache
+        },
+      });
+
+      const mockResponse = { boosts: mockBoosts };
+      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Act
+      const result = await controller.getActivePointsBoosts(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+      expect(result).toEqual(mockBoosts);
+      expect(result[0].name).toBe('New Season Boost');
+
+      // Verify cache was populated
+      const compositeKey = `${seasonId}:${subscriptionId}`;
+      const cachedBoosts = controller.state.activeBoosts[compositeKey];
+      expect(cachedBoosts).toBeDefined();
+      expect(cachedBoosts.boosts[0].id).toBe('new-boost');
+      expect(cachedBoosts.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('should handle different composite keys for different season/subscription combinations', async () => {
+      // Arrange
+      mockMessenger.call.mockClear();
+      const seasonId1 = 'season-A';
+      const subscriptionId1 = 'sub-X';
+      const seasonId2 = 'season-B';
+      const subscriptionId2 = 'sub-Y';
+      const compositeKey1 = `${seasonId1}:${subscriptionId1}`;
+      const compositeKey2 = `${seasonId2}:${subscriptionId2}`;
+
+      const mockBoosts1 = [
+        {
+          id: 'boost-A-X',
+          name: 'Boost for Season A Sub X',
+          icon: {
+            lightModeUrl: 'https://example.com/ax.png',
+            darkModeUrl: 'https://example.com/ax-dark.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#AA0000',
+        },
+      ];
+
+      const mockBoosts2 = [
+        {
+          id: 'boost-B-Y',
+          name: 'Boost for Season B Sub Y',
+          icon: {
+            lightModeUrl: 'https://example.com/by.png',
+            darkModeUrl: 'https://example.com/by-dark.png',
+          },
+          boostBips: 1500,
+          seasonLong: false,
+          backgroundColor: '#00AA00',
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {
+            [compositeKey1]: {
+              boosts: [
+                {
+                  id: 'boost-A-X',
+                  name: 'Boost for Season A Sub X',
+                  icon: {
+                    lightModeUrl: 'https://example.com/ax.png',
+                    darkModeUrl: 'https://example.com/ax-dark.png',
+                  },
+                  boostBips: 1000,
+                  seasonLong: true,
+                  backgroundColor: '#AA0000',
+                },
+              ],
+              lastFetched: Date.now() - 30000, // Fresh cache
+            },
+          },
+        },
+      });
+
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
+
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      const mockResponse2 = { boosts: mockBoosts2 };
+      mockMessenger.call.mockResolvedValue(mockResponse2);
+
+      // Act - First call should use cache
+      const result1 = await controller.getActivePointsBoosts(
+        seasonId1,
+        subscriptionId1,
+      );
+
+      // Act - Second call should fetch fresh data
+      const result2 = await controller.getActivePointsBoosts(
+        seasonId2,
+        subscriptionId2,
+      );
+
+      // Assert
+      expect(result1).toEqual(mockBoosts1);
+      expect(result1[0].id).toBe('boost-A-X');
+      expect(result2).toEqual(mockBoosts2);
+      expect(result2[0].id).toBe('boost-B-Y');
+
+      // Verify first call used cache (no API call)
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId2,
+        subscriptionId2,
+      );
+
+      // Verify both composite keys exist in state
+      expect(controller.state.activeBoosts[compositeKey1]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey2]).toBeDefined();
+      expect(controller.state.activeBoosts[compositeKey1].boosts[0].id).toBe(
+        'boost-A-X',
+      );
+      expect(controller.state.activeBoosts[compositeKey2].boosts[0].id).toBe(
+        'boost-B-Y',
+      );
     });
   });
 });

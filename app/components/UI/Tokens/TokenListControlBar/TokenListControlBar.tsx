@@ -42,7 +42,7 @@ export const TokenListControlBar = ({
     <BaseControlBar
       networkFilterTestId={testId}
       additionalButtons={additionalButtons}
-      useEvmSelectionLogic
+      useEvmSelectionLogic={isEvmSelected}
       customWrapper="outer"
     />
   );
