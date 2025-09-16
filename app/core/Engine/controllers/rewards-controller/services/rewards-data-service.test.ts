@@ -8,6 +8,7 @@ import type {
   EstimatedPointsDto,
   SeasonStatusDto,
   SubscriptionReferralDetailsDto,
+  PointsBoostEnvelopeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -1582,8 +1583,7 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get opt-in status failed: 500');
     });
 
-    it('should handle network errors', async () => {
-      // Arrange
+    it('should handle network errors during fetch', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       // Act & Assert
@@ -1626,6 +1626,122 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
+    });
+
+    // Arrange
+    describe('getActivePointsBoosts', () => {
+      it('should fetch active points boosts successfully', async () => {
+        // Arrange
+        const seasonId = 'season-123';
+        const subscriptionId = 'sub-456';
+        const mockToken = 'test-bearer-token';
+        const mockBoostsResponse: PointsBoostEnvelopeDto = {
+          boosts: [
+            {
+              id: 'boost-1',
+              name: 'Test Boost 1',
+              icon: {
+                lightModeUrl: 'https://example.com/light1.png',
+                darkModeUrl: 'https://example.com/dark1.png',
+              },
+              boostBips: 1000,
+              seasonLong: true,
+              backgroundColor: '#FF0000',
+            },
+            {
+              id: 'boost-2',
+              name: 'Test Boost 2',
+              icon: {
+                lightModeUrl: 'https://example.com/light2.png',
+                darkModeUrl: 'https://example.com/dark2.png',
+              },
+              boostBips: 500,
+              seasonLong: false,
+              startDate: new Date('2024-01-01'),
+              endDate: new Date('2024-01-31'),
+              backgroundColor: '#00FF00',
+            },
+          ],
+        };
+        const mockResponse = {
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockBoostsResponse),
+        } as unknown as Response;
+
+        mockGetSubscriptionToken.mockResolvedValue({
+          success: true,
+          token: mockToken,
+        });
+        mockFetch.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await service.getActivePointsBoosts(
+          seasonId,
+          subscriptionId,
+        );
+
+        // Assert
+        expect(mockGetSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://api.rewards.test/seasons/season-123/active-boosts',
+          expect.objectContaining({
+            method: 'GET',
+            headers: expect.objectContaining({
+              'Accept-Language': 'en-US',
+              'Content-Type': 'application/json',
+              'rewards-client-id': 'mobile-7.50.1',
+            }),
+            credentials: 'omit',
+          }),
+        );
+        expect(result).toEqual(mockBoostsResponse);
+        expect(result.boosts).toHaveLength(2);
+        expect(result.boosts[0].id).toBe('boost-1');
+        expect(result.boosts[1].seasonLong).toBe(false);
+      });
+
+      it('should return empty array when no boosts available', async () => {
+        // Arrange
+        const seasonId = 'season-123';
+        const subscriptionId = 'sub-456';
+        const mockToken = 'test-bearer-token';
+        const mockEmptyResponse: PointsBoostEnvelopeDto = {
+          boosts: [],
+        };
+        const mockResponse = {
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockEmptyResponse),
+        } as unknown as Response;
+
+        mockGetSubscriptionToken.mockResolvedValue({
+          success: true,
+          token: mockToken,
+        });
+        mockFetch.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await service.getActivePointsBoosts(
+          seasonId,
+          subscriptionId,
+        );
+
+        // Assert
+        expect(result).toEqual(mockEmptyResponse);
+        expect(result.boosts).toEqual([]);
+        expect(result.boosts).toHaveLength(0);
+      });
+
+      it('should handle authentication errors', async () => {
+        // Arrange
+        const seasonId = 'season-123';
+        const subscriptionId = 'sub-456';
+        mockGetSubscriptionToken.mockRejectedValue(new Error('Auth failed'));
+
+        // Act & Assert
+        await expect(
+          service.getActivePointsBoosts(seasonId, subscriptionId),
+        ).rejects.toThrow('Cannot read properties of undefined');
+      });
     });
 
     it('should include abort signal for timeout handling', async () => {
@@ -1867,6 +1983,41 @@ describe('RewardsDataService', () => {
         expect.objectContaining({
           method: 'POST',
           credentials: 'omit',
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should use correct API endpoint for different season IDs', async () => {
+      // Arrange
+      const seasonId = 'winter-2024';
+      const subscriptionId = 'sub-789';
+      const mockToken = 'test-bearer-token';
+      const mockResponseData: PointsBoostEnvelopeDto = { boosts: [] };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponseData),
+      } as unknown as Response;
+
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.getActivePointsBoosts(seasonId, subscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/winter-2024/active-boosts',
+        expect.objectContaining({
+          method: 'GET',
           headers: expect.objectContaining({
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',

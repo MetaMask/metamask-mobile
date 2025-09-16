@@ -13,8 +13,8 @@ import {
   BoxJustifyContent,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getEventDetails, formatRewardsDate } from '../../utils/formatUtils';
+import { PointsEventDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
