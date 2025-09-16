@@ -90,7 +90,7 @@ const mockSnapClient = {
 
 const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
 
-const mockDiscoverAndCreateAccounts = jest.fn();
+const mockDiscoverAccounts = jest.fn();
 
 jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
@@ -153,6 +153,7 @@ jest.mock('../BackupVault/backupVault', () => ({
 
 jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+  clearState: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
@@ -161,8 +162,8 @@ jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
 }));
 
 jest.mock('../../multichain-accounts/discovery', () => ({
-  discoverAndCreateAccounts: (entropySource: EntropySourceId) =>
-    mockDiscoverAndCreateAccounts(entropySource),
+  discoverAccounts: (entropySource: EntropySourceId) =>
+    mockDiscoverAccounts(entropySource),
 }));
 
 const mockUint8ArrayToMnemonic = jest
@@ -540,7 +541,7 @@ describe('Authentication', () => {
       await Authentication.newWalletAndKeychain('1234', {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
-      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
+      expect(mockDiscoverAccounts).toHaveBeenCalledWith(
         expect.any(String), // mock entropySource
       );
     });
@@ -578,7 +579,7 @@ describe('Authentication', () => {
         '1234',
         false,
       );
-      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
+      expect(mockDiscoverAccounts).toHaveBeenCalledWith(
         expect.any(String), // mock entropySource
       );
     });
@@ -595,7 +596,7 @@ describe('Authentication', () => {
         jest.clearAllMocks();
         mockSnapClient.addDiscoveredAccounts.mockClear();
         mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
-        mockDiscoverAndCreateAccounts.mockClear();
+        mockDiscoverAccounts.mockClear();
       });
 
       afterEach(() => {
@@ -618,7 +619,7 @@ describe('Authentication', () => {
       });
 
       it('(state 2) - completes wallet creation when discovery fails', async () => {
-        mockDiscoverAndCreateAccounts.mockRejectedValueOnce(
+        mockDiscoverAccounts.mockRejectedValueOnce(
           new Error('Discovery error'),
         );
 
@@ -630,12 +631,12 @@ describe('Authentication', () => {
         ).resolves.not.toThrow();
 
         // Verify discovery was attempted
-        expect(mockDiscoverAndCreateAccounts).toHaveBeenCalled();
+        expect(mockDiscoverAccounts).toHaveBeenCalled();
       });
 
       it('(state 2) - completes wallet restore when discovery fails', async () => {
         // Mock discovery to fail
-        mockDiscoverAndCreateAccounts.mockRejectedValueOnce(
+        mockDiscoverAccounts.mockRejectedValueOnce(
           new Error('Discovery timeout'),
         );
 
@@ -651,7 +652,7 @@ describe('Authentication', () => {
         ).resolves.not.toThrow();
 
         // Verify discovery was attempted
-        expect(mockDiscoverAndCreateAccounts).toHaveBeenCalled();
+        expect(mockDiscoverAccounts).toHaveBeenCalled();
       });
 
       it('does not break authentication flow when discovery fails', async () => {

@@ -119,7 +119,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       selectNetwork: mockSelectNetwork,
       deselectAll: jest.fn(),
       selectAllPopularNetworks: jest.fn(),
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
 
