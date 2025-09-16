@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import {
   selectUnlockedRewardLoading,
@@ -9,7 +9,7 @@ import {
 } from '../../../../../../reducers/rewards/selectors';
 import { RewardDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
-import rewardsPlaceholder from '../../../../../../images/rewards/rewards-placeholder.png';
+import UnlockedRewardsPlaceholder from '../../../../../../images/rewards/rewards-placeholder.svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RewardItem } from './UpcomingRewards';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
@@ -73,10 +73,11 @@ const UnlockedRewards: React.FC = () => {
             {strings('rewards.unlocked_rewards.title')}
           </Text>
         </Box>
-        <Image
-          source={rewardsPlaceholder}
-          resizeMode="contain"
-          style={tw.style('h-20 w-20 self-center')}
+        <UnlockedRewardsPlaceholder
+          name="UnlockedRewardsPlaceholder"
+          width={80}
+          height={80}
+          style={tw.style('mb-4 self-center opacity-50')}
         />
         <Text
           variant={TextVariant.BodyMd}

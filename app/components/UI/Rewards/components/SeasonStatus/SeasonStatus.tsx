@@ -8,7 +8,7 @@ import {
 import ProgressBar from 'react-native-progress/Bar';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
+import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-rewards-points.svg';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import SeasonTierImage from '../SeasonTierImage';
 import { capitalize } from 'lodash';

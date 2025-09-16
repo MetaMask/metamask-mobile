@@ -126,7 +126,7 @@ jest.mock('react-native-progress/Bar', () => {
 });
 
 // Mock SVG component
-jest.mock('../../../../../images/metamask-rewards-points.svg', () => {
+jest.mock('../../../../../images/rewards/metamask-rewards-points.svg', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return ReactActual.forwardRef(
