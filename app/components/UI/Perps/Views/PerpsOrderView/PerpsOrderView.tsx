@@ -221,10 +221,16 @@ const PerpsOrderViewContentBase: React.FC = () => {
   });
   const estimatedFees = feeResults.totalFee;
 
+  // Memoize hasValidAmount calculation to prevent unnecessary re-renders
+  const hasValidAmount = useMemo(
+    () => parseFloat(orderForm.amount) > 0,
+    [orderForm.amount],
+  );
+
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
     feeResults,
-    hasValidAmount: parseFloat(orderForm.amount) > 0,
+    hasValidAmount,
     isFeesLoading: feeResults.isLoadingMetamaskFee,
     orderAmount: orderForm.amount,
   });
@@ -1055,7 +1061,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {parseFloat(orderForm.amount) > 0
+              {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_DETAILED_VIEW,
                   })
@@ -1082,18 +1088,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <View style={styles.feeRowContent}>
               {/* Fox icon alternative + -20% (discount amount) + metamask fee */}
               {rewardsState.feeDiscountPercentage &&
-                rewardsState.feeDiscountPercentage > 0 && (
-                  <TagColored color={TagColor.Warning}>
-                    <View style={styles.feeDiscountContainer}>
-                      <FoxIcon width={14} height={14} />
-                      <Text
-                        variant={TextVariant.BodySM}
-                      >{`-${rewardsState.feeDiscountPercentage}%`}</Text>
-                    </View>
-                  </TagColored>
-                )}
+              rewardsState.feeDiscountPercentage > 0 ? (
+                <TagColored color={TagColor.Warning}>
+                  <View style={styles.feeDiscountContainer}>
+                    <FoxIcon width={14} height={14} />
+                    <Text
+                      variant={TextVariant.BodySM}
+                    >{`-${rewardsState.feeDiscountPercentage}%`}</Text>
+                  </View>
+                </TagColored>
+              ) : null}
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {parseFloat(orderForm.amount) > 0
+                {hasValidAmount
                   ? formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })

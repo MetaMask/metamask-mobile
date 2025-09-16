@@ -48,7 +48,8 @@ export const usePerpsRewards = ({
   // Track previous points to detect refresh state
   const [previousPoints, setPreviousPoints] = useState<number | undefined>();
 
-  // Development-only simulations
+  // Development-only simulations for testing different states
+  // Amount "42": Triggers error state to test error handling UI
   const shouldSimulateError = useMemo(
     () =>
       __DEV__ &&
@@ -57,6 +58,7 @@ export const usePerpsRewards = ({
     [orderAmount],
   );
 
+  // Amount "43": Triggers loading state to test loading UI
   const shouldSimulateLoading = useMemo(
     () =>
       __DEV__ &&

@@ -335,7 +335,8 @@ export function usePerpsOrderFees({
           // Get user address for rewards API calls
           const userAddress = getUserAddress();
 
-          // Development-only simulation
+          // Development-only simulation for testing fee discount UI
+          // Amount "41": Triggers 20% fee discount to test discount display
           const shouldSimulateFeeDiscount =
             __DEV__ &&
             parseFloat(amount) ===
