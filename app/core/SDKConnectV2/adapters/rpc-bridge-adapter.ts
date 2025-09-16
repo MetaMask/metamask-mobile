@@ -11,8 +11,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class RPCBridgeAdapter
   extends EventEmitter
-  implements IRPCBridgeAdapter
-{
+  implements IRPCBridgeAdapter {
   private client: BackgroundBridge | null = null;
   private queue: unknown[] = [];
   private processing = false;
@@ -32,13 +31,37 @@ export class RPCBridgeAdapter
     this.processQueue(); // Attempt to process the request immediately
   }
 
+  public dispose(): void {
+    const messenger = Engine.controllerMessenger;
+    messenger.unsubscribe('KeyringController:lock', this.onLock);
+    messenger.unsubscribe('KeyringController:unlock', this.onUnlock);
+    this.client?.onDisconnect();
+    this.removeAllListeners();
+  }
+
   /**
    * Asynchronously sets up listeners for wallet state changes.
    */
   private async initialize() {
-    while (!Engine.context?.KeyringController) {
-      await wait(10);
+    console.warn('[SDKConnectV2] Initializing RPCBridgeAdapter.');
+
+    const isEngineReady = (): boolean => {
+      try {
+        if (Engine.context) {
+          return true;
+        }
+        return false;
+      } catch (error) {
+        return false;
+      }
     }
+
+    while (!isEngineReady()) {
+      await wait(10);
+      console.warn('[SDKConnectV2] Engine not initialized. Waiting...');
+    }
+
+    console.warn('[SDKConnectV2] Engine initialized.');
 
     const messenger = Engine.controllerMessenger;
     messenger.subscribe('KeyringController:lock', this.onLock);
@@ -68,6 +91,7 @@ export class RPCBridgeAdapter
    * The processQueue will process the queue of requests in a FIFO manner.
    */
   private async processQueue(): Promise<void> {
+    console.warn(`[SDKConnectV2] Processing queue=[${this.queue.length}].`);
     // Gate 1: Don't run if already processing or if the queue is empty
     if (this.processing || this.queue.length === 0) {
       console.warn(
@@ -160,13 +184,5 @@ export class RPCBridgeAdapter
       isWalletConnect: false,
       wcRequestActions: undefined,
     });
-  }
-
-  public dispose(): void {
-    const messenger = Engine.controllerMessenger;
-    messenger.unsubscribe('KeyringController:lock', this.onLock);
-    messenger.unsubscribe('KeyringController:unlock', this.onUnlock);
-    this.client?.onDisconnect();
-    this.removeAllListeners();
   }
 }

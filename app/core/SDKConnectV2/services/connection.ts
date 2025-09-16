@@ -30,12 +30,12 @@ export class Connection {
     this.bridge = new RPCBridgeAdapter(this);
 
     this.client.on('message', (payload) => {
-      console.warn(`[Connection:${this.id}] Received message:`, payload);
+      console.warn(`[SDKConnectV2] [Connection:${this.id}] Received message:`, payload);
       this.bridge.send(JSON.parse(payload as string));
     });
 
     this.bridge.on('response', (payload) => {
-      console.warn(`[Connection:${this.id}] Sending message:`, payload);
+      console.warn(`[SDKConnectV2] [Connection:${this.id}] Sending message:`, payload);
       this.client.sendResponse(payload);
     });
   }
@@ -74,7 +74,7 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
-    console.warn(`[Connection:${this.id}] Connected to dApp.`);
+    console.warn(`[SDKConnectV2] [Connection:${this.id}] Connected to dApp.`);
   }
 
   /**
@@ -82,7 +82,7 @@ export class Connection {
    */
   public async resume(): Promise<void> {
     await this.client.resume(this.id);
-    console.warn(`[Connection:${this.id}] Resumed connection to dApp.`);
+    console.warn(`[SDKConnectV2] [Connection:${this.id}] Resumed connection to dApp.`);
   }
 
   /**
@@ -91,6 +91,6 @@ export class Connection {
   public async disconnect(): Promise<void> {
     this.bridge.dispose();
     await this.client.disconnect();
-    console.warn(`[Connection:${this.id}] Disconnected.`);
+    console.warn(`[SDKConnectV2] [Connection:${this.id}] Disconnected.`);
   }
 }
