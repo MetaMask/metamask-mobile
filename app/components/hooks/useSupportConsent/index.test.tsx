@@ -1,5 +1,18 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useSupportConsent } from './index';
+import {
+  selectShouldShowConsentSheet,
+  selectDataSharingPreference,
+} from '../../../selectors/security';
+
+// Mock the support utility
+jest.mock('../../../util/support', () => jest.fn());
+
+// Mock Redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 // Mock the support utility
 jest.mock('../../../util/support', () => ({
@@ -7,7 +20,13 @@ jest.mock('../../../util/support', () => ({
   default: jest.fn(),
 }));
 
-const mockGetSupportUrl = jest.fn();
+import mockGetSupportUrl from '../../../util/support';
+const mockGetSupportUrlTyped = mockGetSupportUrl as jest.MockedFunction<
+  typeof mockGetSupportUrl
+>;
+const mockUseSelectorTyped = useSelector as jest.MockedFunction<
+  typeof useSelector
+>;
 
 describe('useSupportConsent', () => {
   const mockOnNavigate = jest.fn();
@@ -16,8 +35,20 @@ describe('useSupportConsent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetSupportUrl.mockResolvedValue('https://support.metamask.io');
+    mockGetSupportUrlTyped.mockResolvedValue('https://support.metamask.io');
     originalEnv = process.env.METAMASK_BUILD_TYPE;
+
+    // Setup Redux mocks - default behavior
+    mockUseSelectorTyped.mockImplementation((selector) => {
+      // Return appropriate values based on which selector is called
+      if (selector === selectShouldShowConsentSheet) {
+        return true; // Default: show consent sheet
+      }
+      if (selector === selectDataSharingPreference) {
+        return null; // Default: no preference saved
+      }
+      return null;
+    });
   });
 
   afterEach(() => {
@@ -87,7 +118,7 @@ describe('useSupportConsent', () => {
   });
 
   it('falls back to base URL when consent request fails', async () => {
-    mockGetSupportUrl.mockRejectedValueOnce(new Error('Network error'));
+    mockGetSupportUrlTyped.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
@@ -111,7 +142,7 @@ describe('useSupportConsent', () => {
   });
 
   it('uses fallback URL when decline request fails', async () => {
-    mockGetSupportUrl.mockRejectedValueOnce(new Error('Network error'));
+    mockGetSupportUrlTyped.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
@@ -186,5 +217,106 @@ describe('useSupportConsent', () => {
       'https://intercom.help/internal-beta-testing/en/',
       mockTitle,
     );
+  });
+
+  describe('Preference Persistence', () => {
+    it('navigates directly to support when user has saved preference and disabled consent sheet', async () => {
+      mockUseSelectorTyped.mockImplementation((selector) => {
+        if (selector === selectShouldShowConsentSheet) {
+          return false; // Don't show consent sheet
+        }
+        if (selector === selectDataSharingPreference) {
+          return true; // Share data
+        }
+        return null;
+      });
+
+      const { result } = renderHook(() =>
+        useSupportConsent(mockOnNavigate, mockTitle),
+      );
+
+      await act(async () => {
+        result.current.openSupportWebPage();
+      });
+
+      expect(result.current.showConsentSheet).toBe(false);
+      expect(mockOnNavigate).toHaveBeenCalledWith(
+        'https://support.metamask.io',
+        mockTitle,
+      );
+    });
+
+    it('shows consent sheet when user has enabled consent sheet', async () => {
+      mockUseSelectorTyped.mockImplementation((selector) => {
+        if (selector === selectShouldShowConsentSheet) {
+          return true; // Show consent sheet
+        }
+        if (selector === selectDataSharingPreference) {
+          return true; // dataSharingPreference = true (ignored)
+        }
+        return null;
+      });
+
+      const { result } = renderHook(() =>
+        useSupportConsent(mockOnNavigate, mockTitle),
+      );
+
+      await act(async () => {
+        result.current.openSupportWebPage();
+      });
+
+      expect(result.current.showConsentSheet).toBe(true);
+      expect(mockOnNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows consent sheet when user has no saved data sharing preference', async () => {
+      mockUseSelectorTyped.mockImplementation((selector) => {
+        if (selector === selectShouldShowConsentSheet) {
+          return false; // Don't show consent sheet
+        }
+        if (selector === selectDataSharingPreference) {
+          return null; // No preference saved
+        }
+        return null;
+      });
+
+      const { result } = renderHook(() =>
+        useSupportConsent(mockOnNavigate, mockTitle),
+      );
+
+      await act(async () => {
+        result.current.openSupportWebPage();
+      });
+
+      expect(result.current.showConsentSheet).toBe(true);
+      expect(mockOnNavigate).not.toHaveBeenCalled();
+    });
+
+    it('handles network errors gracefully with saved preference', async () => {
+      mockUseSelectorTyped.mockImplementation((selector) => {
+        if (selector === selectShouldShowConsentSheet) {
+          return false; // Don't show consent sheet
+        }
+        if (selector === selectDataSharingPreference) {
+          return true; // Share data
+        }
+        return null;
+      });
+      mockGetSupportUrlTyped.mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHook(() =>
+        useSupportConsent(mockOnNavigate, mockTitle),
+      );
+
+      await act(async () => {
+        result.current.openSupportWebPage();
+      });
+
+      expect(result.current.showConsentSheet).toBe(false);
+      expect(mockOnNavigate).toHaveBeenCalledWith(
+        'https://support.metamask.io',
+        mockTitle,
+      );
+    });
   });
 });

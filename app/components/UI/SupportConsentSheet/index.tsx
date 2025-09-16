@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Text,
@@ -17,11 +18,16 @@ import { BottomSheetRef } from '../../../component-library/components/BottomShee
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { strings } from '../../../../locales/i18n';
+import {
+  setShouldShowConsentSheet,
+  setDataSharingPreference,
+} from '../../../actions/security';
 
 interface SupportConsentSheetProps {
   isVisible: boolean;
   onConsent: () => void;
   onDecline: () => void;
+  onClose?: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -34,19 +40,35 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
   isVisible,
   onConsent,
   onDecline,
+  onClose,
 }) => {
+  const dispatch = useDispatch();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [savePreference, setSavePreference] = useState(true);
 
   const handleConsent = () => {
+    if (savePreference) {
+      // Save that we should not show consent sheet anymore
+      dispatch(setShouldShowConsentSheet(false));
+      // Save that user wants to share data
+      dispatch(setDataSharingPreference(true));
+    }
+    onConsent();
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      onConsent();
+      // Empty callback to ensure the sheet closes
     });
   };
 
   const handleDecline = () => {
+    if (savePreference) {
+      // Save that we should not show consent sheet anymore
+      dispatch(setShouldShowConsentSheet(false));
+      // Save that user doesn't want to share data
+      dispatch(setDataSharingPreference(false));
+    }
+    onDecline();
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      onDecline();
+      // Empty callback to ensure the sheet closes
     });
   };
 
@@ -55,7 +77,11 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
   }
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      onClose={onClose}
+      shouldNavigateBack={false}
+    >
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMd}>
           {strings('support_consent.title')}

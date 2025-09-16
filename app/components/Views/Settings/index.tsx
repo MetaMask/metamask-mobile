@@ -151,8 +151,16 @@ const Settings = () => {
     });
   };
 
-  const { showConsentSheet, openSupportWebPage, handleConsent, handleDecline } =
-    useSupportConsent(goToBrowserUrl, strings('app_settings.contact_support'));
+  const {
+    showConsentSheet,
+    openSupportWebPage,
+    handleConsent,
+    handleDecline,
+    closeConsentSheet,
+  } = useSupportConsent(
+    goToBrowserUrl,
+    strings('app_settings.contact_support'),
+  );
 
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
@@ -358,6 +366,7 @@ const Settings = () => {
         isVisible={showConsentSheet}
         onConsent={handleConsent}
         onDecline={handleDecline}
+        onClose={closeConsentSheet}
       />
     </>
   );

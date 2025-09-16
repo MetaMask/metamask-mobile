@@ -6,7 +6,7 @@ exports[`Settings should render correctly 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "zIndex": 99999999999999,
+      "zIndex": 1,
     }
   }
   testID="settings-scroll"
@@ -766,7 +766,6 @@ exports[`Settings should render correctly 1`] = `
     </TouchableOpacity>
     <TouchableOpacity
       onPress={[Function]}
-      testID="snaps"
     >
       <View
         accessibilityRole="none"

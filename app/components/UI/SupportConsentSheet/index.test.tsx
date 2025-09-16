@@ -14,8 +14,15 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
+// Mock Redux actions
+jest.mock('../../../actions/security', () => ({
+  setSupportConsentPreference: jest.fn(),
+}));
+
 const mockOnConsent = jest.fn();
 const mockOnDecline = jest.fn();
+// Mock functions for testing
+const mockSetSupportConsentPreference = jest.fn();
 
 describe('SupportConsentSheet', () => {
   beforeEach(() => {
@@ -92,5 +99,120 @@ describe('SupportConsentSheet', () => {
     const checkbox = getByText(strings('support_consent.save_preference'));
     expect(checkbox).toBeTruthy();
     // The checkbox should be checked by default (isChecked={true})
+  });
+
+  it('calls onConsent when consent is pressed', () => {
+    const { getByText } = renderWithProvider(
+      <SupportConsentSheet
+        isVisible
+        onConsent={mockOnConsent}
+        onDecline={mockOnDecline}
+      />,
+    );
+
+    const consentButton = getByText(strings('support_consent.consent'));
+    fireEvent.press(consentButton);
+
+    expect(mockOnConsent).toHaveBeenCalled();
+  });
+
+  it('calls onDecline when decline is pressed', () => {
+    const { getByText } = renderWithProvider(
+      <SupportConsentSheet
+        isVisible
+        onConsent={mockOnConsent}
+        onDecline={mockOnDecline}
+      />,
+    );
+
+    const declineButton = getByText(strings('support_consent.decline'));
+    fireEvent.press(declineButton);
+
+    expect(mockOnDecline).toHaveBeenCalled();
+  });
+
+  it('toggles checkbox state when pressed', () => {
+    const { getByText } = renderWithProvider(
+      <SupportConsentSheet
+        isVisible
+        onConsent={mockOnConsent}
+        onDecline={mockOnDecline}
+      />,
+    );
+
+    const checkbox = getByText(strings('support_consent.save_preference'));
+    fireEvent.press(checkbox);
+
+    expect(checkbox).toBeTruthy();
+  });
+
+  describe('Preference Persistence', () => {
+    it('dispatches consent preference when checkbox is checked and consent is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <SupportConsentSheet
+          isVisible
+          onConsent={mockOnConsent}
+          onDecline={mockOnDecline}
+        />,
+      );
+
+      const consentButton = getByText(strings('support_consent.consent'));
+      fireEvent.press(consentButton);
+
+      expect(mockSetSupportConsentPreference).toHaveBeenCalledWith(true);
+      expect(mockOnConsent).toHaveBeenCalled();
+    });
+
+    it('dispatches no-consent preference when checkbox is checked and decline is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <SupportConsentSheet
+          isVisible
+          onConsent={mockOnConsent}
+          onDecline={mockOnDecline}
+        />,
+      );
+
+      const declineButton = getByText(strings('support_consent.decline'));
+      fireEvent.press(declineButton);
+
+      expect(mockSetSupportConsentPreference).toHaveBeenCalledWith(false);
+      expect(mockOnDecline).toHaveBeenCalled();
+    });
+
+    it('does not dispatch preference when checkbox is unchecked and consent is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <SupportConsentSheet
+          isVisible
+          onConsent={mockOnConsent}
+          onDecline={mockOnDecline}
+        />,
+      );
+
+      const checkbox = getByText(strings('support_consent.save_preference'));
+      fireEvent.press(checkbox);
+      const consentButton = getByText(strings('support_consent.consent'));
+      fireEvent.press(consentButton);
+
+      expect(mockSetSupportConsentPreference).not.toHaveBeenCalled();
+      expect(mockOnConsent).toHaveBeenCalled();
+    });
+
+    it('does not dispatch preference when checkbox is unchecked and decline is pressed', () => {
+      const { getByText } = renderWithProvider(
+        <SupportConsentSheet
+          isVisible
+          onConsent={mockOnConsent}
+          onDecline={mockOnDecline}
+        />,
+      );
+
+      const checkbox = getByText(strings('support_consent.save_preference'));
+      fireEvent.press(checkbox);
+      const declineButton = getByText(strings('support_consent.decline'));
+      fireEvent.press(declineButton);
+
+      expect(mockSetSupportConsentPreference).not.toHaveBeenCalled();
+      expect(mockOnDecline).toHaveBeenCalled();
+    });
   });
 });

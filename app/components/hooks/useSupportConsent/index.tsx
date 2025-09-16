@@ -1,11 +1,17 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import getSupportUrl from '../../../util/support';
+import {
+  selectShouldShowConsentSheet,
+  selectDataSharingPreference,
+} from '../../../selectors/security';
 
 interface UseSupportConsentReturn {
   showConsentSheet: boolean;
   openSupportWebPage: () => void;
   handleConsent: () => Promise<void>;
   handleDecline: () => Promise<void>;
+  closeConsentSheet: () => void;
 }
 
 /**
@@ -21,6 +27,8 @@ export const useSupportConsent = (
   buildType?: string,
 ): UseSupportConsentReturn => {
   const [showConsentSheet, setShowConsentSheet] = useState(false);
+  const shouldShowConsentSheet = useSelector(selectShouldShowConsentSheet);
+  const dataSharingPreference = useSelector(selectDataSharingPreference);
 
   // Use refs to store the latest values to avoid dependency array issues
   const onNavigateRef = useRef(onNavigate);
@@ -43,9 +51,30 @@ export const useSupportConsent = (
       return;
     }
 
-    // Default behavior for non-beta builds
+    // Check if we should show the consent sheet
+    if (!shouldShowConsentSheet && dataSharingPreference !== null) {
+      // User has saved preference, use it directly
+      const supportUrl = getSupportUrl(dataSharingPreference);
+
+      supportUrl
+        .then((url) => {
+          onNavigateRef.current(url, titleRef.current);
+        })
+        .catch((error) => {
+          console.warn(
+            'Error getting support URL with saved preference:',
+            error,
+          );
+          // Fallback to base URL
+          const fallbackUrl = 'https://support.metamask.io';
+          onNavigateRef.current(fallbackUrl, titleRef.current);
+        });
+      return;
+    }
+
+    // Show consent sheet when shouldShowConsentSheet is true or no data sharing preference is saved
     setShowConsentSheet(true);
-  }, [buildType]);
+  }, [buildType, shouldShowConsentSheet, dataSharingPreference]);
 
   const handleConsent = useCallback(async () => {
     try {
@@ -75,10 +104,15 @@ export const useSupportConsent = (
     }
   }, []);
 
+  const closeConsentSheet = useCallback(() => {
+    setShowConsentSheet(false);
+  }, []);
+
   return {
     showConsentSheet,
     openSupportWebPage,
     handleConsent,
     handleDecline,
+    closeConsentSheet,
   };
 };

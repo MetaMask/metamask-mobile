@@ -2447,6 +2447,12 @@
     "decline": "Don't share",
     "save_preference": "Save my preference"
   },
+  "support_consent_preference": {
+    "title": "Remember my support preference",
+    "description": "When enabled, you won't be asked for consent each time you contact support. Your saved preference will be used automatically:",
+    "currently_sharing": "your current decision is to share device details.",
+    "currently_not_sharing": "your current decision is to not share device details."
+  },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",
     "private_key_title": "Show private key",
