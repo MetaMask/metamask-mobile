@@ -195,7 +195,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const {
     connectedAccountGroups,
     supportedAccountGroups,
-    existingConnectedCaipAccountIds,
     updatedCaipAccountIdsToConnect,
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
