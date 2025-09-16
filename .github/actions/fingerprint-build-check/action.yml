@@ -52,21 +52,21 @@ runs:
       id: decide
       shell: bash
       run: |
-        echo "🔍 Fingerprint Build Check for ${{ inputs.platform }}"
+        echo "🔍 Fingerprint Build Check for $INPUT_PLATFORM"
         echo "============================================"
         echo "📊 Input Parameters:"
-        echo "  - Build action: ${{ inputs.build_action }}"
-        echo "  - Platform: ${{ inputs.platform }}"
-        echo "  - PR Number: ${{ inputs.pr_number || 'main' }}"
-        echo "  - Artifact Path: ${{ inputs.artifact_path }}"
+        echo "  - Build action: $INPUT_BUILD_ACTION"
+        echo "  - Platform: $INPUT_PLATFORM"
+        echo "  - PR Number: ${INPUT_PR_NUMBER:-main}"
+        echo "  - Artifact Path: $INPUT_ARTIFACT_PATH"
         echo ""
-        
+
         # Initialize variables to track decisions
         BUILD_METHOD=""
         CAN_REPACK=""
         CACHE_HIT=""
-        
-        if [[ "${{ inputs.build_action }}" == "skip" ]]; then
+
+        if [[ "$INPUT_BUILD_ACTION" == "skip" ]]; then
           echo "⏭️ Build action is skip - no build required"
           BUILD_METHOD="skip"
           CAN_REPACK="false"
@@ -76,8 +76,8 @@ runs:
           echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        
-        if [[ "${{ inputs.build_action }}" == "full" ]]; then
+
+        if [[ "$INPUT_BUILD_ACTION" == "full" ]]; then
           echo "🏗️ Build action is full - native code likely changed"
           BUILD_METHOD="full"
           CAN_REPACK="false"
@@ -87,8 +87,8 @@ runs:
           echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        
-        if [[ "${{ inputs.build_action }}" == "check_fingerprint" ]]; then
+
+        if [[ "$INPUT_BUILD_ACTION" == "check_fingerprint" ]]; then
           echo "🔍 Checking fingerprint for potential reuse..."
           echo ""
           
@@ -126,18 +126,18 @@ runs:
           if yarn fingerprint:check; then
             echo "✅ Fingerprints match! Native code unchanged."
             echo "📦 Checking for existing artifacts..."
-            
+
             # Check if we have cached artifacts
-            if [[ "${{ inputs.artifact_path }}" != "" ]]; then
+            if [[ "$INPUT_ARTIFACT_PATH" != "" ]]; then
               # Check if artifact exists (file for Android, directory for iOS)
-              if [[ "${{ inputs.platform }}" == "android" && -f "${{ inputs.artifact_path }}" ]] || [[ "${{ inputs.platform }}" == "ios" && -d "${{ inputs.artifact_path }}" ]]; then
+              if [[ "$INPUT_PLATFORM" == "android" && -f "$INPUT_ARTIFACT_PATH" ]] || [[ "$INPUT_PLATFORM" == "ios" && -d "$INPUT_ARTIFACT_PATH" ]]; then
                 # Validate the artifact
-                if [[ "${{ inputs.platform }}" == "android" ]]; then
-                  ARTIFACT_SIZE=$(stat -f%z "${{ inputs.artifact_path }}" 2>/dev/null || stat -c%s "${{ inputs.artifact_path }}" 2>/dev/null || echo "0")
+                if [[ "$INPUT_PLATFORM" == "android" ]]; then
+                  ARTIFACT_SIZE=$(stat -f%z "$INPUT_ARTIFACT_PATH" 2>/dev/null || stat -c%s "$INPUT_ARTIFACT_PATH" 2>/dev/null || echo "0")
                   MIN_SIZE=1000000  # APK should be at least 1MB
                   ARTIFACT_TYPE="APK"
                 else
-                  ARTIFACT_SIZE=$(du -sb "${{ inputs.artifact_path }}" 2>/dev/null | cut -f1 || echo "0")
+                  ARTIFACT_SIZE=$(du -sb "$INPUT_ARTIFACT_PATH" 2>/dev/null | cut -f1 || echo "0")
                   MIN_SIZE=10000000  # .app should be at least 10MB
                   ARTIFACT_TYPE=".app bundle"
                 fi
@@ -162,7 +162,7 @@ runs:
                   echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
                 fi
               else
-                echo "🔍 Cached artifact not found or invalid at: ${{ inputs.artifact_path }}"
+                echo "🔍 Cached artifact not found or invalid at: $INPUT_ARTIFACT_PATH"
                 echo "🎯 Decision: FULL BUILD - No cached artifacts available"
                 BUILD_METHOD="full"
                 CAN_REPACK="false"
@@ -184,7 +184,7 @@ runs:
             echo "cache_hit=$CACHE_HIT" >> "$GITHUB_OUTPUT"
           fi
         else
-          echo "❓ Unknown build action: ${{ inputs.build_action }}"
+          echo "❓ Unknown build action: $INPUT_BUILD_ACTION"
           echo "🎯 Decision: FULL BUILD - Unknown action, defaulting to safe option"
           BUILD_METHOD="full"
           CAN_REPACK="false"

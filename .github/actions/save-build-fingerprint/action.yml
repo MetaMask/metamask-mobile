@@ -19,7 +19,7 @@ runs:
       id: fingerprint
       shell: bash
       run: |
-        echo "Generating fingerprint for ${{ inputs.platform }}..."
+        echo "Generating fingerprint for $INPUT_PLATFORM..."
         FINGERPRINT=$(yarn -s fingerprint:generate)
         
         if [ -z "$FINGERPRINT" ]; then
