@@ -188,7 +188,7 @@ const ActiveBoosts: React.FC = () => {
   const isLoading = useSelector(selectActiveBoostsLoading);
   const hasError = useSelector(selectActiveBoostsError);
 
-  const numBoosts = useMemo(() => activeBoosts?.length || null, [activeBoosts]);
+  const numBoosts = useMemo(() => activeBoosts?.length || 0, [activeBoosts]);
 
   Logger.log('ActiveBoosts', {
     isLoading,

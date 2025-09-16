@@ -197,22 +197,23 @@ describe('ActiveBoosts', () => {
       expect(getByTestId('skeleton')).toBeTruthy();
     });
 
-    it('should render section header and skeleton when activeBoosts is null', () => {
-      const nullBoostsState = {
+    it('should not render section header and skeleton when activeBoosts is empty', () => {
+      const emptyBoostsState = {
         rewards: {
-          activeBoosts: null,
+          activeBoosts: [],
           activeBoostsLoading: false,
           activeBoostsError: false,
         },
       };
 
-      const { getByText, getByTestId } = renderWithProvider(nullBoostsState);
+      const { queryByText, queryByTestId } =
+        renderWithProvider(emptyBoostsState);
 
-      // Should show section header
-      expect(getByText('Active boosts')).toBeTruthy();
+      // Should not show section header
+      expect(queryByText('Active boosts')).toBeNull();
 
-      // Should show loading skeleton
-      expect(getByTestId('skeleton')).toBeTruthy();
+      // Should not show loading skeleton
+      expect(queryByTestId('skeleton')).toBeNull();
     });
   });
 
