@@ -1,22 +1,14 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
   useNavigationState,
 } from '@react-navigation/native';
-import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
-import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
@@ -28,10 +20,8 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
@@ -39,7 +29,6 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -47,12 +36,11 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
+import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
-import AccountConnect from '../../../components/Views/AccountConnect';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
 import ConnectionDetails from '../../../components/Views/AccountPermissions/ConnectionDetails';
@@ -84,11 +72,8 @@ import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
-import WC2Manager, {
-  isWC2Enabled,
-} from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
+import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
+import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -110,6 +95,7 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
@@ -119,12 +105,7 @@ import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeI
 import TooltipModal from '../../../components/Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
-import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
-import Engine from '../../../core/Engine';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { RpcEndpointType } from '@metamask/network-controller';
 import {
   endTrace,
   trace,
@@ -139,7 +120,6 @@ import {
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
-import NavigationService from '../../../core/NavigationService';
 import AccountStatus from '../../Views/AccountStatus';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
@@ -156,7 +136,8 @@ import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
-import { checkForDeeplink } from '../../../actions/user';
+import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
+import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
@@ -168,6 +149,10 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
+import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
+import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
+import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
+import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -218,14 +203,13 @@ const OnboardingSuccessFlow = () => (
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName="OnboardingCarousel">
+  <Stack.Navigator initialRouteName="Onboarding">
     <Stack.Screen name="Onboarding" component={Onboarding} />
-    <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
     <Stack.Screen
@@ -394,6 +378,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={AccountSelector}
     />
     <Stack.Screen
+      name={Routes.SHEET.ADDRESS_SELECTOR}
+      component={AddressSelector}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
       component={AddNewAccountBottomSheet}
     />
@@ -420,11 +408,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={AccountConnect}
+      component={State2AccountConnectWrapper}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={AccountPermissions}
+      component={BIP44AccountPermissionWrapper}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
@@ -470,6 +458,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
       component={ReturnToAppModal}
+      initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
@@ -518,6 +507,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
       component={NFTAutoDetectionModal}
     />
+    <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
@@ -540,6 +530,16 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO}
+      component={MultichainAccountsIntroModal}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
+      component={LearnMoreBottomSheet}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -620,6 +620,14 @@ const MultichainAccountDetails = () => {
         component={AccountDetails}
         initialParams={route?.params}
       />
+      <Stack.Screen
+        name="SmartAccountDetails"
+        component={SmartAccountModal}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -638,6 +646,14 @@ const MultichainAccountGroupDetails = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
         component={AccountGroupDetails}
         initialParams={route?.params}
+      />
+      <Stack.Screen
+        name="SmartAccountDetails"
+        component={SmartAccountModal}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
       />
     </Stack.Navigator>
   );
@@ -665,8 +681,20 @@ const MultichainAccountDetailsActions = () => {
       }}
     >
       <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
+        component={MultichainAccountActions}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={MultichainEditAccountName}
+        component={EditMultichainAccountName}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME}
+        component={LegacyEditMultichainAccountName}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -807,6 +835,7 @@ const ModalSmartAccountOptIn = () => (
 
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
     <>
@@ -960,6 +989,7 @@ const AppFlow = () => {
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
+          options={emptyNavHeaderOptions}
           component={ModalConfirmationRequest}
         />
         <Stack.Screen
@@ -985,16 +1015,10 @@ const AppFlow = () => {
 
 const App: React.FC = () => {
   const navigation = useNavigation();
-  const userLoggedIn = useSelector(selectUserLoggedIn);
   const routes = useNavigationState((state) => state.routes);
-  const [onboarded, setOnboarded] = useState(false);
   const { toastRef } = useContext(ToastContext);
-  const dispatch = useDispatch();
-  const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
-
   const { isEnabled: checkMetricsEnabled } = useMetrics();
-
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1036,7 +1060,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      setOnboarded(!!existingUser);
       try {
         if (existingUser) {
           // Check if we came from Settings screen to skip auto-authentication
@@ -1057,30 +1080,35 @@ const App: React.FC = () => {
             },
           );
 
-          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-            OPTIN_META_METRICS_UI_SEEN,
-          );
+          // Only show metrics optin for SRP users
+          if (!isSeedlessOnboardingLoginFlow) {
+            const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+              OPTIN_META_METRICS_UI_SEEN,
+            );
 
-          if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
-            const resetParams = {
-              routes: [
-                {
-                  name: Routes.ONBOARDING.ROOT_NAV,
-                  params: {
-                    screen: Routes.ONBOARDING.NAV,
+            if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
+              const resetParams = {
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.ROOT_NAV,
                     params: {
-                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      screen: Routes.ONBOARDING.NAV,
+                      params: {
+                        screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      },
                     },
                   },
-                },
-              ],
-            };
-            navigation.reset(resetParams);
-          } else {
-            navigation.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+                ],
+              };
+              navigation.reset(resetParams);
+              return;
+            }
           }
+
+          // Navigate to home for both SRP users (who have seen metrics) and social login users
+          navigation.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
         } else {
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
@@ -1097,6 +1125,13 @@ const App: React.FC = () => {
           errorMessage,
           `Unlock attempts: 1`,
         );
+        if (locked) {
+          Logger.error(
+            new Error(errorMessage),
+            'Nav/App: Error in appTriggeredAuth:',
+          );
+        }
+        // We are not logging when it's a keychain error
       }
     };
     appTriggeredAuth().catch((error) => {
@@ -1104,74 +1139,6 @@ const App: React.FC = () => {
     });
     // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
   }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleDeeplink = useCallback(
-    ({ uri }: { uri?: string }) => {
-      try {
-        if (uri && typeof uri === 'string') {
-          AppStateEventProcessor.setCurrentDeeplink(uri);
-          dispatch(checkForDeeplink());
-        }
-      } catch (e) {
-        Logger.error(e as Error, `Deeplink: Error parsing deeplink`);
-      }
-    },
-    [dispatch],
-  );
-
-  // Subscribe to incoming deeplinks
-  // Ex. SDK and WalletConnect deeplinks will funnel through here when opening the app from the device's camera
-  useEffect(() => {
-    Linking.addEventListener('url', (params) => {
-      const { url } = params;
-      if (url) {
-        handleDeeplink({ uri: url });
-      }
-    });
-  }, [handleDeeplink]);
-
-  // Subscribe to incoming Branch deeplinks
-  // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
-  // Ex. Branch links will funnel through here when opening the app from a Branch link
-  useEffect(() => {
-    // Initialize deep link manager
-    SharedDeeplinkManager.init({
-      navigation,
-      dispatch,
-    });
-
-    const getBranchDeeplink = async (uri?: string) => {
-      if (uri) {
-        handleDeeplink({ uri });
-        return;
-      }
-
-      try {
-        const latestParams = await branch.getLatestReferringParams();
-        const deeplink = latestParams?.['+non_branch_link'] as string;
-        if (deeplink) {
-          handleDeeplink({ uri: deeplink });
-        }
-      } catch (error) {
-        Logger.error(error as Error, 'Error getting Branch deeplink');
-      }
-    };
-
-    // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
-    // This is a workaround to ensure that the deeplink is processed for iOS cold start.
-    // TODO: Remove this once branch.subscribe is called for iOS cold start.
-    getBranchDeeplink();
-
-    branch.subscribe((opts) => {
-      const { error } = opts;
-
-      if (error) {
-        trackErrorAsAnalytics(error, 'Branch:');
-      }
-
-      getBranchDeeplink(opts.uri);
-    });
-  }, [dispatch, handleDeeplink, navigation]);
 
   useEffect(() => {
     const initMetrics = async () => {
@@ -1184,87 +1151,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
-    async function initSDKConnect() {
-      if (onboarded && sdkInit.current === undefined && userLoggedIn) {
-        sdkInit.current = false;
-        try {
-          const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({
-            context: 'Nav/App',
-            navigation: NavigationService.navigation,
-          });
-          await SDKConnect.getInstance().postInit();
-          sdkInit.current = true;
-        } catch (err) {
-          sdkInit.current = undefined;
-          Logger.error(err as Error, 'Cannot initialize SDKConnect');
-        }
-      }
-    }
-
-    initSDKConnect().catch((err) => {
-      Logger.error(err, 'Error initializing SDKConnect');
-    });
-  }, [onboarded, userLoggedIn]);
-
-  useEffect(() => {
-    if (isWC2Enabled) {
-      DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
-      WC2Manager.init({ navigation: NavigationService.navigation }).catch(
-        (err) => {
-          Logger.error(
-            err as Error,
-            'Cannot initialize WalletConnect Manager.',
-          );
-        },
-      );
-    }
-  }, []);
-
-  useEffect(() => {
     async function startApp() {
-      if (!existingUser) {
-        // List of chainIds to add (as hex strings)
-        const chainIdsToAdd: `0x${string}`[] = [
-          CHAIN_IDS.ARBITRUM,
-          CHAIN_IDS.BASE,
-          CHAIN_IDS.BSC,
-          CHAIN_IDS.OPTIMISM,
-          CHAIN_IDS.POLYGON,
-        ];
-
-        // Filter the PopularList to get only the specified networks based on chainId
-        const selectedNetworks = PopularList.filter((network) =>
-          chainIdsToAdd.includes(network.chainId),
-        );
-        const { NetworkController } = Engine.context;
-
-        // Loop through each selected network and call NetworkController.addNetwork
-        for (const network of selectedNetworks) {
-          try {
-            await NetworkController.addNetwork({
-              chainId: network.chainId,
-              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
-              defaultRpcEndpointIndex: 0,
-              defaultBlockExplorerUrlIndex: 0,
-              name: network.nickname,
-              nativeCurrency: network.ticker,
-              rpcEndpoints: [
-                {
-                  url: network.rpcUrl,
-                  failoverUrls: network.failoverRpcUrls,
-                  name: network.nickname,
-                  type: RpcEndpointType.Custom,
-                },
-              ],
-            });
-          } catch (error) {
-            Logger.error(error as Error);
-          }
-        }
-      }
-
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);

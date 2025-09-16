@@ -5,7 +5,6 @@ export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 16,
-      backgroundColor: colors.background.alternative,
     },
     inputLabel: {
       fontSize: 14,
@@ -13,8 +12,12 @@ export const createStyles = (colors: Theme['colors']) =>
       marginTop: 12,
       marginBottom: 8,
     },
+    errorText: {
+      fontSize: 14,
+      color: colors.error.default,
+    },
     limitPriceDisplay: {
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       paddingVertical: 12,
       paddingHorizontal: 16,
@@ -46,12 +49,12 @@ export const createStyles = (colors: Theme['colors']) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginBottom: 16,
-      gap: 6,
+      gap: 10,
     },
     percentageButton: {
       flex: 1,
-      backgroundColor: colors.background.default,
-      borderRadius: 20,
+      backgroundColor: colors.background.section,
+      borderRadius: 12,
       paddingVertical: 10,
       paddingHorizontal: 4,
       alignItems: 'center',
@@ -67,7 +70,7 @@ export const createStyles = (colors: Theme['colors']) =>
       marginBottom: 16,
     },
     footerContainer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 10,
       paddingBottom: 24,
     },
   });

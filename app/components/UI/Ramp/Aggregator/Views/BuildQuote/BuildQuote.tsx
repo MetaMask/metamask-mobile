@@ -62,7 +62,10 @@ import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { selectTicker } from '../../../../../../selectors/networkController';
+import {
+  selectTicker,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -87,6 +90,11 @@ import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Bu
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import Engine from '../../../../../../core/Engine';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { isCaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,6 +144,9 @@ const BuildQuote = () => {
     useModalHandler(false);
 
   const nativeSymbol = useSelector(selectTicker);
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   /**
    * Grab the current state of the SDK via the context.
@@ -516,11 +527,47 @@ const BuildQuote = () => {
   }, [toggleTokenSelectorModal]);
 
   const handleAssetPress = useCallback(
-    (newAsset: CryptoCurrency) => {
+    async (newAsset: CryptoCurrency) => {
+      if (
+        newAsset.network?.chainId &&
+        newAsset.network.chainId !== selectedChainId
+      ) {
+        const assetCaipChainId = isCaipChainId(newAsset.network.chainId)
+          ? newAsset.network.chainId
+          : toEvmCaipChainId(toHex(newAsset.network.chainId));
+
+        const networkConfiguration = networksByCaipChainId[
+          assetCaipChainId
+        ] as NetworkConfiguration;
+
+        if (networkConfiguration) {
+          const { rpcEndpoints, defaultRpcEndpointIndex } =
+            networkConfiguration;
+          let networkClientId;
+
+          if (!rpcEndpoints || rpcEndpoints.length === 0) {
+            networkClientId = assetCaipChainId;
+          } else {
+            const { networkClientId: endpointNetworkClientId } =
+              rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
+            networkClientId = endpointNetworkClientId;
+          }
+
+          const { MultichainNetworkController } = Engine.context;
+
+          await MultichainNetworkController.setActiveNetwork(networkClientId);
+        }
+      }
+
       setSelectedAsset(newAsset);
       hideTokenSelectorModal();
     },
-    [hideTokenSelectorModal, setSelectedAsset],
+    [
+      hideTokenSelectorModal,
+      setSelectedAsset,
+      selectedChainId,
+      networksByCaipChainId,
+    ],
   );
 
   /**
@@ -849,7 +896,7 @@ const BuildQuote = () => {
         >
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
-              <AccountSelector />
+              <AccountSelector isEvmOnly={isSell} />
               <View style={styles.spacer} />
               <SelectorButton
                 accessibilityRole="button"
@@ -1065,11 +1112,6 @@ const BuildQuote = () => {
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         description={strings(
           'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
-          {
-            network:
-              selectedNetworkName ||
-              strings('fiat_on_ramp_aggregator.this_network'),
-          },
         )}
         tokens={cryptoCurrencies ?? []}
         onItemPress={handleAssetPress}

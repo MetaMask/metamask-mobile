@@ -123,9 +123,11 @@ jest.mock('../../../core/Engine', () => ({
     AccountTrackerController: { refresh: jest.fn() },
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),
+      update: jest.fn(),
     },
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
     },
   },
 }));

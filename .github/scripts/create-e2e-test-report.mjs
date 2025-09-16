@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import xml2js from 'xml2js';
+import https from 'https';
 
 const env = {
   TEST_RESULTS_PATH: process.env.TEST_RESULTS_PATH || 'android-merged-test-report',
@@ -8,9 +9,130 @@ const env = {
   RUN_ID: process.env.RUN_ID ? parseInt(process.env.RUN_ID) : Date.now(),
   PR_NUMBER: process.env.PR_NUMBER ? parseInt(process.env.PR_NUMBER) : 0,
   GITHUB_ACTIONS: process.env.GITHUB_ACTIONS === 'true',
+  GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
 };
 
+if (!env.GITHUB_TOKEN) {
+  console.error('GITHUB_TOKEN is not set');
+  process.exit(1);
+}
+
 const xmlParser = new xml2js.Parser();
+
+// Cache for GitHub API job requests
+const jobsCache = {};
+
+async function githubApiRequest(path) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.github.com',
+      path,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'MetaMask-Mobile-E2E-Script',
+      }
+    };
+
+    if (env.GITHUB_TOKEN) {
+      options.headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`;
+    }
+
+    https.get(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+// Get all jobs for a workflow run
+async function getJobs(runId) {
+  if (!runId || !env.GITHUB_TOKEN) {
+    return [];
+  }
+
+  if (jobsCache[runId]) {
+    return jobsCache[runId];
+  }
+
+  try {
+    // Fetch all pages of jobs (GitHub API returns max 100 per page)
+    let allJobs = [];
+    let page = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+      const response = await githubApiRequest(`/repos/MetaMask/metamask-mobile/actions/runs/${runId}/jobs?per_page=100&page=${page}`);
+      if (response.jobs && response.jobs.length > 0) {
+        allJobs = allJobs.concat(response.jobs);
+        page++;
+        // Check if we've reached the total count
+        hasMore = response.total_count > allJobs.length;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    console.log(`Fetched ${allJobs.length} jobs for run ${runId}`);
+    jobsCache[runId] = allJobs;
+    return allJobs;
+  } catch (error) {
+    console.warn(`Failed to fetch jobs for run ${runId}:`, error.message);
+    return [];
+  }
+}
+
+async function getJobId(runId, jobName) {
+  const jobs = await getJobs(runId);
+
+  // Try exact match first
+  let job = jobs.find((job) => job.name === jobName);
+
+  // If not found, try more flexible matching
+  if (!job) {
+    // Try matching where GitHub job name ends with our job name
+    job = jobs.find((job) => job.name.endsWith(jobName));
+  }
+
+  if (!job) {
+    // Try matching hierarchical job names (e.g., "Android E2E Smoke Tests / category-android-smoke (1) / category-android-smoke-1")
+    job = jobs.find((job) => {
+      const parts = job.name.split(' / ');
+      // Check if the last part matches exactly
+      return parts.length > 0 && parts[parts.length - 1] === jobName;
+    });
+  }
+
+  if (!job) {
+    // Try matching where our job name is contained in GitHub job name
+    job = jobs.find((job) => job.name.includes(jobName));
+  }
+
+  if (!job) {
+    // Try matching by removing common suffixes/prefixes
+    const cleanJobName = jobName.replace(/-\d+$/, ''); // Remove trailing numbers like -1, -2
+    job = jobs.find((job) => job.name.includes(cleanJobName));
+  }
+
+  if (!job && jobs.length > 0) {
+    console.warn(`Could not match job '${jobName}' with any of: ${jobs.map(j => j.name).join(', ')}`);
+  }
+
+  return job?.id;
+}
+
+function cleanErrorMessage(text) {
+  if (!text) return text;
+  // Replace the ❌ emoji with "Error:" at the beginning of the message
+  return text.replace(/^❌\s*/, 'Error: ');
+}
 
 function formatTime(ms) {
   if (ms < 1000) return `${ms}ms`;
@@ -76,12 +198,19 @@ function createTestCase(test) {
   const hasFailure = test.failure && test.failure.length > 0;
   const hasError = test.error && test.error.length > 0;
 
+  // Get the raw error message
+  let errorMessage = hasFailure ? test.failure[0]._ || test.failure[0] :
+    hasError ? test.error[0]._ || test.error[0] : undefined;
+
+  if (errorMessage) {
+    errorMessage = cleanErrorMessage(errorMessage);
+  }
+
   return {
     name: test.$.name,
     time: parseFloat(test.$.time || '0') * 1000, // convert to ms
     status: hasFailure || hasError ? 'failed' : 'passed',
-    error: hasFailure ? test.failure[0]._ || test.failure[0] :
-      hasError ? test.error[0]._ || test.error[0] : undefined,
+    error: errorMessage,
   };
 }
 
@@ -98,7 +227,21 @@ async function processTestDirectory(dirPath, directory) {
       const properties = extractProperties(suite);
       // Get job name from properties, fallback to directory if not present
       const jobName = properties.JOB_NAME || directory;
-      const jobId = Date.now() + Math.random() * 1000; // Generate unique ID
+      const runId = properties.RUN_ID ? parseInt(properties.RUN_ID) : env.RUN_ID;
+      let jobId = await getJobId(runId, jobName);
+
+      // If we couldn't find the GitHub job ID, use a timestamp as fallback
+      if (!jobId) {
+        console.warn(`⚠️  Could not find GitHub job ID for job '${jobName}' in run ${runId}, using timestamp`);
+        // Log available jobs for debugging
+        const jobs = await getJobs(runId);
+        if (jobs.length > 0) {
+          console.warn(`   Available GitHub jobs for run ${runId}:`);
+          jobs.forEach(job => console.warn(`     - ${job.name} (ID: ${job.id})`));
+        }
+        jobId = Date.now() + Math.random(); // This creates the timestamp format we see: 1756704348110.869
+      }
+
       const testSuite = createTestSuite(suite, jobName, jobId, properties);
 
       // Process test cases

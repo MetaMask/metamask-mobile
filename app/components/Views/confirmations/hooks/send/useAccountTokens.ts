@@ -1,14 +1,17 @@
 import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
+import { Hex } from '@metamask/utils';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
-import { useSendScope } from './useSendScope';
-import { getNetworkBadgeSource } from '../../utils/network';
+import { isTestNet } from '../../../../../util/networks';
+import Logger from '../../../../../util/Logger';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
+import { useSendScope } from './useSendScope';
 
 export function useAccountTokens() {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
@@ -32,11 +35,19 @@ export function useAccountTokens() {
       filteredAssets = flatAssets;
     }
 
-    const assetsWithBalance = filteredAssets.filter(
-      (asset) =>
-        asset.fiat?.balance &&
-        new BigNumber(asset.fiat.balance).isGreaterThan(0),
-    );
+    const assetsWithBalance = filteredAssets.filter((asset) => {
+      const haveBalance =
+        (asset.fiat?.balance &&
+          new BigNumber(asset.fiat.balance).isGreaterThan(0)) ||
+        (asset.rawBalance && asset.rawBalance !== '0x0');
+
+      const isTestNetAsset =
+        isTestNet(asset.chainId) &&
+        asset.rawBalance &&
+        asset.rawBalance !== '0x0';
+
+      return haveBalance || isTestNetAsset;
+    });
 
     const processedAssets = assetsWithBalance.map((asset) => {
       const fiatAmount = new BigNumber(asset.fiat?.balance || 0);
@@ -50,13 +61,13 @@ export function useAccountTokens() {
           minimumFractionDigits: hasDecimals ? 2 : 0,
         }).format(fiatAmount.toFixed() as unknown as number);
       } catch (error) {
+        Logger.error(error as Error);
         balanceInSelectedCurrency = `${fiatAmount.toFixed()} ${fiatCurrency}`;
       }
 
       return {
         ...asset,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        networkBadgeSource: getNetworkBadgeSource(asset.chainId as any),
+        networkBadgeSource: getNetworkBadgeSource(asset.chainId as Hex),
         balanceInSelectedCurrency,
         standard: TokenStandard.ERC20 as const,
       };

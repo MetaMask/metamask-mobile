@@ -16,7 +16,7 @@ permissions:
 jobs:
   ios-build:
     name: Test iOS QA Build App
-    runs-on: macos-15
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
@@ -52,7 +52,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
         with:
           platform: ios
           setup-simulator: false
@@ -71,11 +71,20 @@ jobs:
             xcrun simctl list | grep Booted || echo "No booted simulators found"
         shell: bash
 
-      # Run project setup and build the iOS QA app for simulator
-      - name: Setup iOS Environment
+      # Run project setup with retry for better resilience
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Finishing iOS Setup..."
+            yarn setup:github-ci --build-ios --no-build-android
+      
+      # Build the iOS QA app for simulator
+      - name: Build iOS App
         run: |
-          echo "🚀 Finishing iOS Setup..."
-          yarn setup:github-ci --build-ios --no-build-android
           echo "🏗 Building iOS APP..."
           yarn build:ios:qa
         shell: bash

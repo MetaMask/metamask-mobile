@@ -106,33 +106,19 @@ jobs:
       total_splits: 2
     secrets: inherit
 
-  performance-android-smoke:
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: performance-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: "SmokePerformance"
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-    secrets: inherit
-
-  card-android-smoke:
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: card-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: "SmokeCard"
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-    secrets: inherit
+  confirmations-redesigned-android-smoke:
+   strategy:
+     matrix:
+       split: [1, 2]
+     fail-fast: false
+   uses: ./.github/workflows/run-e2e-workflow.yml
+   with:
+     test-suite-name: confirmations-redesigned-android-smoke-${{ matrix.split }}
+     platform: android
+     test_suite_tag: "SmokeConfirmationsRedesigned"
+     split_number: ${{ matrix.split }}
+     total_splits: 2
+   secrets: inherit
 
   report-android-smoke-tests:
     name: Report Android Smoke Tests
@@ -146,8 +132,7 @@ jobs:
       - accounts-android-smoke
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
-      - performance-android-smoke
-      - card-android-smoke
+      - confirmations-redesigned-android-smoke
 
     steps:
       - name: Checkout
@@ -192,6 +177,7 @@ jobs:
           TEST_RUNS_PATH=test/test-results/test-runs-android.json \
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
           node .github/scripts/create-e2e-test-report.mjs
           
           # Clean up temporary node_modules

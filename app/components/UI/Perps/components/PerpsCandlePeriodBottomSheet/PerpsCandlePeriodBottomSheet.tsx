@@ -5,11 +5,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,9 +13,11 @@ import {
   getCandlePeriodsForDuration,
   CandlePeriod,
   TimeDuration,
+  CANDLE_PERIODS,
 } from '../../constants/chartConfig';
 import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { Box } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 
 interface PerpsCandlePeriodBottomSheetProps {
@@ -29,6 +26,7 @@ interface PerpsCandlePeriodBottomSheetProps {
   selectedPeriod: CandlePeriod;
   selectedDuration: TimeDuration;
   onPeriodChange?: (period: CandlePeriod) => void;
+  showAllPeriods?: boolean;
   testID?: string;
 }
 
@@ -40,6 +38,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   selectedPeriod,
   selectedDuration,
   onPeriodChange,
+  showAllPeriods = false,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -51,8 +50,48 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     }
   }, [isVisible]);
 
-  // Get available periods for the selected duration
-  const availablePeriods = getCandlePeriodsForDuration(selectedDuration);
+  const availablePeriods = showAllPeriods
+    ? CANDLE_PERIODS
+    : getCandlePeriodsForDuration(selectedDuration);
+
+  const periodSections = showAllPeriods
+    ? [
+        {
+          title: 'Minutes',
+          periods: CANDLE_PERIODS.filter((period) =>
+            [
+              CandlePeriod.ONE_MINUTE,
+              CandlePeriod.THREE_MINUTES,
+              CandlePeriod.FIVE_MINUTES,
+              CandlePeriod.FIFTEEN_MINUTES,
+              CandlePeriod.THIRTY_MINUTES,
+            ].includes(period.value),
+          ),
+        },
+        {
+          title: 'Hours',
+          periods: CANDLE_PERIODS.filter((period) =>
+            [
+              CandlePeriod.ONE_HOUR,
+              CandlePeriod.TWO_HOURS,
+              CandlePeriod.FOUR_HOURS,
+              CandlePeriod.EIGHT_HOURS,
+              CandlePeriod.TWELVE_HOURS,
+            ].includes(period.value),
+          ),
+        },
+        {
+          title: 'Days',
+          periods: CANDLE_PERIODS.filter((period) =>
+            [
+              CandlePeriod.ONE_DAY,
+              CandlePeriod.THREE_DAYS, // 2d maps to 3d
+              CandlePeriod.ONE_WEEK, // 7d
+            ].includes(period.value),
+          ),
+        },
+      ]
+    : null;
 
   const handlePeriodSelect = (period: CandlePeriod) => {
     onPeriodChange?.(period);
@@ -70,51 +109,99 @@ const PerpsCandlePeriodBottomSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>Select Candle Period</Text>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('perps.chart.candle_intervals')}
+        </Text>
       </BottomSheetHeader>
       <Box>
-        {availablePeriods.map((period, index) => (
-          <TouchableOpacity
-            key={period.value}
-            style={[
-              styles.periodOption,
-              selectedPeriod === period.value && styles.periodOptionActive,
-              index === availablePeriods.length - 1 && styles.periodOptionLast,
-            ]}
-            onPress={() => handlePeriodSelect(period.value)}
-            testID={
-              testID
-                ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
-                    testID,
-                    period.value,
-                  )
-                : undefined
-            }
-          >
-            <Text
-              variant={
-                selectedPeriod === period.value
-                  ? TextVariant.BodyMDBold
-                  : TextVariant.BodyMD
-              }
-              color={
-                selectedPeriod === period.value
-                  ? TextColor.Primary
-                  : TextColor.Default
-              }
+        {showAllPeriods && periodSections ? (
+          periodSections.map((section, sectionIndex) => (
+            <Box
+              key={section.title}
+              style={sectionIndex > 0 ? styles.sectionSpacing : undefined}
             >
-              {period.label}
-            </Text>
-            {selectedPeriod === period.value && (
-              <Icon
-                name={IconName.Check}
-                size={IconSize.Md}
-                color={IconColor.Primary}
-                style={styles.checkIcon}
-              />
-            )}
-          </TouchableOpacity>
-        ))}
+              <Text
+                variant={TextVariant.BodyMDBold}
+                color={TextColor.Alternative}
+                style={styles.sectionTitle}
+              >
+                {section.title}
+              </Text>
+              <Box style={styles.periodOptionsGrid}>
+                {section.periods.map((period) => (
+                  <TouchableOpacity
+                    key={period.value}
+                    style={[
+                      styles.periodOption,
+                      selectedPeriod === period.value &&
+                        styles.periodOptionActive,
+                    ]}
+                    onPress={() => handlePeriodSelect(period.value)}
+                    testID={
+                      testID
+                        ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
+                            testID,
+                            period.value,
+                          )
+                        : undefined
+                    }
+                  >
+                    <Text
+                      variant={
+                        selectedPeriod === period.value
+                          ? TextVariant.BodyMDBold
+                          : TextVariant.BodySMMedium
+                      }
+                      color={
+                        selectedPeriod === period.value
+                          ? TextColor.Inverse
+                          : TextColor.Default
+                      }
+                    >
+                      {period.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </Box>
+            </Box>
+          ))
+        ) : (
+          <Box style={styles.periodOptionsGrid}>
+            {availablePeriods.map((period) => (
+              <TouchableOpacity
+                key={period.value}
+                style={[
+                  styles.periodOption,
+                  selectedPeriod === period.value && styles.periodOptionActive,
+                ]}
+                onPress={() => handlePeriodSelect(period.value)}
+                testID={
+                  testID
+                    ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
+                        testID,
+                        period.value,
+                      )
+                    : undefined
+                }
+              >
+                <Text
+                  variant={
+                    selectedPeriod === period.value
+                      ? TextVariant.BodyMDBold
+                      : TextVariant.BodySMMedium
+                  }
+                  color={
+                    selectedPeriod === period.value
+                      ? TextColor.Inverse
+                      : TextColor.Default
+                  }
+                >
+                  {period.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </Box>
+        )}
       </Box>
     </BottomSheet>
   );

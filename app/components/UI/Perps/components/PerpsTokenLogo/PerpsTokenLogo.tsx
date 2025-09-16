@@ -1,37 +1,30 @@
-import React, { memo, useEffect, useState, useMemo } from 'react';
-import { View, ActivityIndicator, ViewStyle } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import React, { memo, useMemo, useState, useEffect } from 'react';
+import { View, ActivityIndicator, ViewStyle, ImageStyle } from 'react-native';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { useTheme } from '../../../../../util/theme';
 import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
+import { Image } from 'expo-image';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
-import {
-  transformSvgForReactNative,
-  isValidSvgContent,
-} from '../../utils/svgTransform';
-
-const assetSvgCache = new Map<
-  string,
-  { svgContent: string | null; valid: boolean }
->();
-
-// Maximum number of SVGs to cache in memory
-// Set to 250 to accommodate all ~200 markets with some buffer
-const MAX_CACHE_SIZE = 250;
 
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
   size = 32,
   style,
   testID,
+  recyclingKey,
 }) => {
   const { colors } = useTheme();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [svgContent, setSvgContent] = useState<string | null>(null);
+
+  // Reset state when symbol changes (for recycling)
+  useEffect(() => {
+    setIsLoading(false);
+    setHasError(false);
+  }, [symbol]);
 
   const containerStyle: ViewStyle = useMemo(
     () => ({
@@ -42,91 +35,54 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       overflow: 'hidden' as const,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
     }),
-    [size, colors.background.default],
+    [size, colors],
   );
 
-  useEffect(() => {
-    if (!symbol) {
-      setIsLoading(false);
-      setHasError(true);
-      return;
-    }
+  const loadingContainerStyle: ViewStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      width: size,
+      height: size,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    }),
+    [size],
+  );
 
+  const imageStyle: ImageStyle = useMemo(
+    () => ({
+      width: size,
+      height: size,
+    }),
+    [size],
+  );
+
+  // SVG URL - expo-image handles SVG rendering properly
+  const imageUri = useMemo(() => {
+    if (!symbol) return null;
     const upperSymbol = symbol.toUpperCase();
-    const cached = assetSvgCache.get(upperSymbol);
-
-    if (cached) {
-      if (cached.valid && cached.svgContent) {
-        setSvgContent(cached.svgContent);
-        setIsLoading(false);
-        setHasError(false);
-      } else {
-        setIsLoading(false);
-        setHasError(true);
-      }
-      return;
-    }
-
-    const url = `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${upperSymbol}.svg`;
-
-    // Create an AbortController to cancel the fetch if the component unmounts or symbol changes
-    const abortController = new AbortController();
-
-    // Fetch the actual SVG content
-    fetch(url, { signal: abortController.signal })
-      .then((response) => {
-        if (response.ok) {
-          return response.text();
-        }
-        throw new Error(`HTTP ${response.status}`);
-      })
-      .then((svgText) => {
-        // Check if we actually got SVG content
-        if (!isValidSvgContent(svgText)) {
-          throw new Error('Invalid SVG content');
-        }
-
-        // Transform SVG for React Native compatibility
-        const cleanedSvg = transformSvgForReactNative(svgText);
-
-        // Implement simple FIFO cache eviction if cache is too large
-        if (assetSvgCache.size >= MAX_CACHE_SIZE) {
-          const firstKey = assetSvgCache.keys().next().value;
-          if (firstKey) {
-            assetSvgCache.delete(firstKey);
-          }
-        }
-        assetSvgCache.set(upperSymbol, { svgContent: cleanedSvg, valid: true });
-        setSvgContent(cleanedSvg);
-        setIsLoading(false);
-        setHasError(false);
-      })
-      .catch((error) => {
-        // Don't update state if the request was aborted
-        if (error.name === 'AbortError') {
-          return;
-        }
-        assetSvgCache.set(upperSymbol, { svgContent: null, valid: false });
-        setIsLoading(false);
-        setHasError(true);
-      });
-
-    // Cleanup function to abort the fetch if the component unmounts or symbol changes
-    return () => {
-      abortController.abort();
-    };
+    return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${upperSymbol}.svg`;
   }, [symbol]);
 
-  if (isLoading) {
-    return (
-      <View style={[containerStyle, style]} testID={testID}>
-        <ActivityIndicator size="small" />
-      </View>
-    );
-  }
+  const handleLoadStart = () => {
+    setIsLoading(true);
+    setHasError(false);
+  };
 
-  if (hasError || !svgContent) {
+  const handleLoadEnd = () => {
+    setIsLoading(false);
+  };
+
+  const handleError = () => {
+    setIsLoading(false);
+    setHasError(true);
+  };
+
+  // Show Avatar fallback if no symbol or error
+  if (!symbol || !imageUri || hasError) {
     return (
       <Avatar
         variant={AvatarVariant.Token}
@@ -146,14 +102,26 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
 
   return (
     <View style={[containerStyle, style]} testID={testID}>
-      <SvgXml
-        xml={svgContent}
-        width={size}
-        height={size}
-        preserveAspectRatio="xMidYMid meet"
-        onError={() => {
-          setHasError(true);
-        }}
+      {isLoading && (
+        <View style={loadingContainerStyle}>
+          <ActivityIndicator size="small" />
+        </View>
+      )}
+      <Image
+        key={recyclingKey || symbol} // Use recyclingKey for proper recycling
+        source={{ uri: imageUri }}
+        style={imageStyle}
+        onLoadStart={handleLoadStart}
+        onLoadEnd={handleLoadEnd}
+        onError={handleError}
+        contentFit="contain"
+        cachePolicy="memory-disk" // Persistent caching across app sessions
+        recyclingKey={recyclingKey || symbol} // For FlashList optimization
+        transition={0} // Disable transition for faster rendering
+        priority="high" // High priority loading
+        placeholder={null} // No placeholder for cleaner loading
+        allowDownscaling={false} // Prevent quality loss
+        autoplay={false} // SVGs don't need autoplay
       />
     </View>
   );

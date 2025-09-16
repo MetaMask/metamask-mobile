@@ -10,16 +10,21 @@ import {
 } from '@metamask/account-api';
 import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
-import { EthAccountType } from '@metamask/keyring-api';
+import { EthAccountType, EthScope } from '@metamask/keyring-api';
 
+import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
-import { selectAccountTreeControllerState } from './accountTreeController';
+import {
+  selectAccountTreeControllerState,
+  selectAccountGroupWithInternalAccounts,
+} from './accountTreeController';
 import { selectInternalAccountsById } from '../accountsController';
 import {
   type EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
 } from '../networkController';
 import { TEST_NETWORK_IDS } from '../../constants/network';
+import type { AccountGroupWithInternalAccounts } from './accounts.type';
 
 /**
  * Extracts the wallet ID from an account group ID.
@@ -299,3 +304,83 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
       };
     },
   );
+
+/**
+ * Selector factory to get an icon seed address for an account group.
+ * Priority:
+ * 1) First EVM account address (any scope starting with 'eip155:')
+ * 2) If no EVM account, fallback to the first internal account address in the group
+ * 3) Otherwise throw an error
+ *
+ */
+export const selectIconSeedAddressByAccountGroupId = (
+  groupId: AccountGroupId,
+) =>
+  createDeepEqualSelector(
+    [
+      selectAccountTreeControllerState,
+      selectInternalAccountsById,
+      selectInternalAccountsByGroupId,
+    ],
+    (
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+      internalAccountsByGroupId,
+    ): string => {
+      // Prefer an EVM account address if present
+      const evmAccount = findInternalAccountByScope(
+        accountTreeState,
+        internalAccountsMap,
+        groupId,
+        EthScope.Mainnet,
+      );
+      if (evmAccount?.address) {
+        return evmAccount.address;
+      }
+
+      // Fallback to the first available internal account in the group
+      const accountsInGroup = internalAccountsByGroupId(groupId);
+      if (accountsInGroup.length > 0) {
+        return accountsInGroup[0].address;
+      }
+
+      throw new Error(
+        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${groupId}`,
+      );
+    },
+  );
+
+/**
+ * Selector to get account groups by a list of addresses.
+ * Returns groups that contain at least one account matching any of the provided addresses.
+ *
+ * @param _state - Redux state.
+ * @param addresses - An array of addresses to filter account groups by.
+ * @returns An array of AccountGroupWithInternalAccounts that contain at least one matching account.
+ */
+export const selectAccountGroupsByAddress = createDeepEqualSelector(
+  [
+    selectAccountGroupWithInternalAccounts,
+    (_state: RootState, addresses: string[]) =>
+      new Set(addresses.map((address) => address.toLowerCase())),
+  ],
+  (
+    accountGroupWithInternalAccounts,
+    addressesSet: Set<string>,
+  ): AccountGroupWithInternalAccounts[] => {
+    const matchingGroups = new Set<AccountGroupWithInternalAccounts>();
+
+    accountGroupWithInternalAccounts.forEach((group) => {
+      const containsMatchingAccount = group.accounts.some((account) =>
+        addressesSet.has(account.address.toLowerCase()),
+      );
+
+      if (containsMatchingAccount) {
+        matchingGroups.add(group);
+      }
+    });
+
+    // Convert the Set of AccountGroupWithInternalAccounts to an Array
+    return [...matchingGroups];
+  },
+);
