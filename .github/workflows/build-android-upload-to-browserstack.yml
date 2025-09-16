@@ -47,18 +47,18 @@ jobs:
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
     # No outputs - these will be provided by the collect-results job
-    
+
     strategy:
       fail-fast: false
       matrix:
         build_type: [with-srp, without-srp]
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env-yarn-v3@self-hosted-runners-config
         with:
           platform: android
           setup-simulator: false
@@ -81,7 +81,7 @@ jobs:
         run: |
           echo "🚀 Setting up project for ${{ matrix.build_type }} build..."
           yarn setup:github-ci --no-build-ios
-          
+
           echo "🏗 Building Android E2E APK (${{ matrix.build_type }})..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           # Use dedicated dual versions properties file for ARM architectures
@@ -93,20 +93,20 @@ jobs:
           METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
           IS_TEST: false
-          E2E: "true"
+          E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: "true"
-          CI: "true"
-          NODE_OPTIONS: "--max-old-space-size=8192"
-          MM_UNIFIED_SWAPS_ENABLED: "true"
-          MM_BRIDGE_ENABLED: "true"
-          BRIDGE_USE_DEV_APIS: "true"
-          RAMP_INTERNAL_BUILD: "true"
-          SEEDLESS_ONBOARDING_ENABLED: "true"
-          MM_NOTIFICATIONS_UI_ENABLED: "true"
-          DISABLE_NOTIFICATION_PROMPT: "true"
-          MM_SECURITY_ALERTS_API_ENABLED: "true"
-          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          MM_UNIFIED_SWAPS_ENABLED: 'true'
+          MM_BRIDGE_ENABLED: 'true'
+          BRIDGE_USE_DEV_APIS: 'true'
+          RAMP_INTERNAL_BUILD: 'true'
+          SEEDLESS_ONBOARDING_ENABLED: 'true'
+          MM_NOTIFICATIONS_UI_ENABLED: 'true'
+          DISABLE_NOTIFICATION_PROMPT: 'true'
+          MM_SECURITY_ALERTS_API_ENABLED: 'true'
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
           # Conditionally set SRP and password based on build type
           ADDITIONAL_SRP_1: ${{ matrix.build_type == 'with-srp' && secrets.TEST_SRP_1 || '' }}
           PREDEFINED_PASSWORD: ${{ matrix.build_type == 'with-srp' && secrets.E2E_PASSWORD || '' }}
@@ -149,54 +149,54 @@ jobs:
       without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
       with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Download APK Artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
         continue-on-error: true
-      
+
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
           username: ${{ env.BROWSERSTACK_USERNAME }}
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
-      
+
       - name: Upload APKs to BrowserStack
         id: browserstack-upload
         run: |
           echo "Uploading APKs to BrowserStack..."
-          
+
           # List artifacts directory structure for debugging
           echo "Artifacts directory structure:"
           find ./artifacts -type f -name "*.apk" | head -10
           echo "Full artifacts directory tree:"
           find ./artifacts -type d | head -20
-          
+
           # Find the APK files in their subdirectories
           WITH_SRP_APK=$(find ./artifacts -path "*/app-prod-release-with-srp.apk/app-prod-release.apk" | head -1)
           WITHOUT_SRP_APK=$(find ./artifacts -path "*/app-prod-release-without-srp.apk/app-prod-release.apk" | head -1)
-          
+
           # Fallback: if not found in subdirectories, try direct search
           if [ -z "$WITH_SRP_APK" ]; then
             echo "With-SRP APK not found in subdirectory, trying direct search..."
             WITH_SRP_APK=$(find ./artifacts -name "app-prod-release-with-srp.apk" | head -1)
           fi
-          
+
           if [ -z "$WITHOUT_SRP_APK" ]; then
             echo "Without-SRP APK not found in subdirectory, trying direct search..."
             WITHOUT_SRP_APK=$(find ./artifacts -name "app-prod-release-without-srp.apk" | head -1)
           fi
-          
+
           echo "Found APKs:"
           echo "  With SRP: $WITH_SRP_APK"
           echo "  Without SRP: $WITHOUT_SRP_APK"
-          
+
           # Verify files exist and are readable
           if [ -n "$WITH_SRP_APK" ] && [ -f "$WITH_SRP_APK" ]; then
             echo "With-SRP APK file exists and is readable"
@@ -204,14 +204,14 @@ jobs:
           else
             echo "With-SRP APK file not found or not readable"
           fi
-          
+
           if [ -n "$WITHOUT_SRP_APK" ] && [ -f "$WITHOUT_SRP_APK" ]; then
             echo "Without-SRP APK file exists and is readable"
             ls -la "$WITHOUT_SRP_APK"
           else
             echo "Without-SRP APK file not found or not readable"
           fi
-          
+
           # Upload with-SRP APK
           if [ -f "$WITH_SRP_APK" ]; then
             echo "Uploading with-SRP APK to BrowserStack..."
@@ -240,7 +240,7 @@ jobs:
               echo "with-srp-version="
             } >> "$GITHUB_OUTPUT"
           fi
-          
+
           # Upload without-SRP APK
           if [ -f "$WITHOUT_SRP_APK" ]; then
             echo "Uploading without-SRP APK to BrowserStack..."
@@ -269,7 +269,7 @@ jobs:
               echo "without-srp-version="
             } >> "$GITHUB_OUTPUT"
           fi
-          
+
           echo "BrowserStack upload process completed!"
           echo "With-SRP URL: $WITH_SRP_APP_URL"
           echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"

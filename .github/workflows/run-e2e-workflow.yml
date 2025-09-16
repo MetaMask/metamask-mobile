@@ -86,7 +86,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config 
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env-yarn-v3@self-hosted-runners-config
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -104,7 +104,7 @@ jobs:
         if: ${{ inputs.platform == 'android' }}
         run: |
           echo "🏗 Setting up Android artifacts from build job..."
-          
+
           # Create required directories
           mkdir -p android/app/build/outputs/apk/prod/release/
 
@@ -143,7 +143,7 @@ jobs:
         if: ${{ inputs.platform == 'ios' }}
         run: |
           echo "🏗 Setting up iOS artifacts from build job..."
-          
+
           # Create required directories
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
 
@@ -197,12 +197,12 @@ jobs:
             else
               export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
             fi
-            
+
             # Always use the splitting script (handles both split and non-split cases)
             echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
 
             ./scripts/run-e2e-tags-gha.sh
-            
+
             echo "✅ Test execution completed"
         env:
           JOB_NAME: ${{ inputs.test-suite-name }}
@@ -216,7 +216,7 @@ jobs:
           name: ${{ inputs.test-suite-name }}-test-results
           path: e2e/reports/
           retention-days: 7
-      
+
       - name: Prepare screenshots
         if: failure()
         run: |

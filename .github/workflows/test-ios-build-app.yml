@@ -24,7 +24,7 @@ jobs:
       archive-uploaded: ${{ steps.upload-archive.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
-      GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
+      GITHUB_CI: 'true' # ✅ This ensures it's available during pod install
     steps:
       # Get the source code from the repository
       - name: Checkout repo
@@ -42,33 +42,33 @@ jobs:
 
       - name: Print system resources
         run: |
-            echo "🧠 Memory info:"
-            vm_stat
-            echo ""
-            echo "💻 CPU info:"
-            sysctl -n hw.ncpu
-            sysctl -n hw.memsize | awk '{ byte =$1 /1024/1024/1024; print byte " GB" }'
+          echo "🧠 Memory info:"
+          vm_stat
+          echo ""
+          echo "💻 CPU info:"
+          sysctl -n hw.ncpu
+          sysctl -n hw.memsize | awk '{ byte =$1 /1024/1024/1024; print byte " GB" }'
         shell: bash
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env-yarn-v3@self-hosted-runners-config
         with:
           platform: ios
           setup-simulator: false
 
       - name: Print iOS tool versions
         run: |
-            echo "🔧 Node.js Version:"
-            node -v || echo "Node not found"
-            echo "🧶 Yarn Version:"
-            yarn -v || echo "Yarn not found"
-            echo "📦 CocoaPods Version:"
-            pod --version || echo "CocoaPods not found"
-            echo "🛠️ Xcode Path:"
-            xcode-select -p || echo "Xcode not found"
-            echo "📱 Booted iOS Simulators:"
-            xcrun simctl list | grep Booted || echo "No booted simulators found"
+          echo "🔧 Node.js Version:"
+          node -v || echo "Node not found"
+          echo "🧶 Yarn Version:"
+          yarn -v || echo "Yarn not found"
+          echo "📦 CocoaPods Version:"
+          pod --version || echo "CocoaPods not found"
+          echo "🛠️ Xcode Path:"
+          xcode-select -p || echo "Xcode not found"
+          echo "📱 Booted iOS Simulators:"
+          xcrun simctl list | grep Booted || echo "No booted simulators found"
         shell: bash
 
       # Run project setup with retry for better resilience
@@ -81,7 +81,7 @@ jobs:
           command: |
             echo "🚀 Finishing iOS Setup..."
             yarn setup:github-ci --build-ios --no-build-android
-      
+
       # Build the iOS QA app for simulator
       - name: Build iOS App
         run: |
@@ -94,10 +94,10 @@ jobs:
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
           IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: "true"
-          CI: "true"
+          GITHUB_CI: 'true'
+          CI: 'true'
 
-          NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
+          NODE_OPTIONS: '--max_old_space_size=4096' # Increase memory limit for build, specially on GH Runners
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
@@ -174,5 +174,5 @@ jobs:
           echo "-  Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
-          GITHUB_REPOSITORY: "${{ github.repository }}"
-          GITHUB_RUN_ID: "${{ github.run_id }}"
+          GITHUB_REPOSITORY: '${{ github.repository }}'
+          GITHUB_RUN_ID: '${{ github.run_id }}'
