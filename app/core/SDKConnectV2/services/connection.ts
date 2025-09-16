@@ -11,6 +11,8 @@ import { ConnectionRequest } from '../types/connection-request';
 import { PersistedConnection } from '../types/persisted-connection';
 import { KVStore } from '../store/kv-store';
 import { Metadata } from '../types/metadata';
+import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
+import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -19,14 +21,22 @@ export class Connection {
   public readonly id: string;
   public readonly metadata: Metadata;
   public readonly client: WalletClient;
+  public readonly bridge: IRPCBridgeAdapter;
 
   private constructor(id: string, metadata: Metadata, client: WalletClient) {
     this.id = id;
     this.metadata = metadata;
     this.client = client;
+    this.bridge = new RPCBridgeAdapter(this);
 
     this.client.on('message', (payload) => {
-      console.warn(`[Connection:${this.id}] Received message:`, payload); // To be implemented in a future PR.
+      console.warn(`[Connection:${this.id}] Received message:`, payload);
+      this.bridge.send(JSON.parse(payload as string));
+    });
+
+    this.bridge.on('response', (payload) => {
+      console.warn(`[Connection:${this.id}] Sending message:`, payload);
+      this.client.sendResponse(payload);
     });
   }
 
@@ -79,6 +89,7 @@ export class Connection {
    * Disconnects the connection from the dApp.
    */
   public async disconnect(): Promise<void> {
+    this.bridge.dispose();
     await this.client.disconnect();
     console.warn(`[Connection:${this.id}] Disconnected.`);
   }
