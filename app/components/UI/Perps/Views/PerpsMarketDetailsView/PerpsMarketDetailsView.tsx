@@ -72,6 +72,7 @@ import { useSelector } from 'react-redux';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -381,6 +382,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
+  const { navigateToConfirmation } = useConfirmNavigation();
+
   const handleAddFundsPress = async () => {
     try {
       if (!isEligible) {
@@ -392,9 +395,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       await ensureArbitrumNetworkExists();
 
       // Navigate immediately to confirmations screen for instant UI response
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {

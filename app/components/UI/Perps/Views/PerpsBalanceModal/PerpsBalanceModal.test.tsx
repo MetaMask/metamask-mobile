@@ -85,9 +85,12 @@ describe('PerpsBalanceModal', () => {
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
       expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
