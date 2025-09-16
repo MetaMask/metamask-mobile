@@ -29,8 +29,9 @@ export interface TabViewProps {
 export interface TabsListProps extends BoxProps {
   /**
    * Array of tab items or React children with tabLabel prop
+   * Supports both single child and array of children
    */
-  children: React.ReactElement[];
+  children: React.ReactElement | React.ReactElement[];
   /**
    * Initial active tab index
    */

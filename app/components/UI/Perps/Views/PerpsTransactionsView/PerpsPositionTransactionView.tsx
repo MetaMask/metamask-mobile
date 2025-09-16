@@ -97,7 +97,10 @@ const PerpsPositionTransactionView: React.FC = () => {
       )}`,
     },
     transaction.fill?.entryPrice && {
-      label: strings('perps.transactions.position.entry_price'),
+      label:
+        transaction.fill?.action === 'Closed'
+          ? strings('perps.transactions.position.close_price')
+          : strings('perps.transactions.position.entry_price'),
       value: `${formatPerpsFiat(transaction.fill?.entryPrice || '0')}`,
     },
   ].filter(Boolean);
@@ -115,7 +118,11 @@ const PerpsPositionTransactionView: React.FC = () => {
     },
   ].filter(Boolean);
 
-  if (transaction.fill?.pnl && transaction.fill?.action === 'Closed') {
+  if (
+    transaction.fill?.pnl &&
+    (transaction.fill?.action === 'Closed' ||
+      transaction.fill?.action === 'Flipped')
+  ) {
     const pnlValue = BigNumber(transaction.fill?.amountNumber || 0);
     const isPositive = pnlValue.isGreaterThanOrEqualTo(0);
 

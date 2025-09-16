@@ -4,11 +4,13 @@ import {
   PerpsOrderViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsPositionDetailsViewSelectorsIDs,
   getPerpsTPSLBottomSheetSelector,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 
 class PerpsView {
   get closePositionButton() {
@@ -20,7 +22,7 @@ class PerpsView {
     leverageX: number,
     direction: 'long' | 'short',
     index = 0,
-  ) {
+  ): DetoxElement {
     return Matchers.getElementByID(
       new RegExp(
         `^perps-positions-item-${symbol}-${leverageX}x-${direction}-${index}$`,
@@ -35,13 +37,19 @@ class PerpsView {
   }
 
   // "Edit TP/SL" button visible on position details
-  get editTpslButton() {
+  get editTpslButton(): DetoxElement {
     return Matchers.getElementByText('Edit TP/SL');
   }
 
-  get closePositionBottomSheetButton() {
+  get closePositionBottomSheetButton(): DetoxElement {
     return Matchers.getElementByID(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+  }
+
+  get closePositionBottomSheet() {
+    return Matchers.getElementByID(
+      PerpsPositionDetailsViewSelectorsIDs.CLOSE_POSITION_BOTTOMSHEET,
     );
   }
 
@@ -72,10 +80,27 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
-  get anchor() {
-    return Matchers.getElementByID(
-      'perps-tab-scroll-view',
-    ) as unknown as DetoxElement;
+  get anchor(): DetoxElement {
+    return Matchers.getElementByID('perps-tab-scroll-view');
+  }
+
+  // Orders section on the Perps main tab
+  get ordersSectionTitle(): DetoxElement {
+    return Matchers.getElementByText('Orders');
+  }
+
+  get anyOrderCardOnTab(): DetoxElement {
+    // PerpsCard has no specific testID for orders; assert by the presence of the title and any text matching limit label
+    return Matchers.getElementByText('Limit');
+  }
+
+  async expectOpenOrdersOnTab(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.ordersSectionTitle, {
+      description: 'Perps tab shows Open Orders section',
+    });
+    await Assertions.expectElementToBeVisible(this.anyOrderCardOnTab, {
+      description: 'An order card is visible on Perps tab',
+    });
   }
 
   getTakeProfitPercentageButton(percentage: number) {
@@ -103,7 +128,7 @@ class PerpsView {
     index = 0,
   ) {
     const el = this.getPositionItem(symbol, leverageX, direction, index);
-    await Assertions.expectElementToBeVisible(el as DetoxElement, {
+    await Assertions.expectElementToBeVisible(el, {
       description: `Expect ${symbol} ${leverageX}x ${direction} at index ${index}`,
     });
   }
@@ -115,7 +140,7 @@ class PerpsView {
     index = 0,
   ) {
     const el = this.getPositionItem(symbol, leverageX, direction, index);
-    await Assertions.expectElementToBeVisible(el as DetoxElement, {
+    await Assertions.expectElementToBeVisible(el, {
       description: `Expect Perps tab position: ${symbol} ${leverageX}x ${direction} at index ${index}`,
     });
   }
@@ -128,7 +153,7 @@ class PerpsView {
     index = 0,
   ) {
     const el = this.getPositionItem(symbol, leverageX, direction, index);
-    await Gestures.waitAndTap(el as DetoxElement, {
+    await Gestures.waitAndTap(el, {
       elemDescription: `Tap Perps tab position: ${symbol} ${leverageX}x ${direction} at index ${index}`,
     });
   }
@@ -152,33 +177,24 @@ class PerpsView {
     direction: 'long' | 'short',
     index = 0,
   ) {
-    let visible = false;
     for (let i = 0; i < 6; i++) {
-      try {
-        const el = this.getPositionItem(
-          symbol,
-          leverageX,
-          direction,
-          index,
-        ) as DetoxElement;
-        await Assertions.expectElementToBeVisible(el as DetoxElement, {
-          description: `Ensure visible: ${symbol} ${leverageX}x ${direction} at index ${index}`,
-          timeout: 750,
-        });
-        visible = true;
-        break;
-      } catch {
-        await this.scrollDownOnPerpsTab(1);
+      const el = this.getPositionItem(symbol, leverageX, direction, index);
+      const isVisible = await Utilities.isElementVisible(el, 750);
+      if (isVisible) {
+        return;
       }
+      await this.scrollDownOnPerpsTab(1);
     }
-    if (!visible) {
-      // Final attempt assertion to surface a clear error
-      await this.expectPerpsTabPosition(symbol, leverageX, direction, index);
-    }
+    // Final assert to avoid masking regressions
+    const finalEl = this.getPositionItem(symbol, leverageX, direction, index);
+    await Assertions.expectElementToBeVisible(finalEl, {
+      description: `Perps tab position should be visible: ${symbol} ${leverageX}x ${direction} at index ${index}`,
+      timeout: 5000,
+    });
   }
 
   async tapEditTpslButton() {
-    await Gestures.waitAndTap(this.editTpslButton as unknown as DetoxElement, {
+    await Gestures.waitAndTap(this.editTpslButton, {
       elemDescription: 'Tap Edit TP/SL button',
     });
   }
@@ -186,6 +202,8 @@ class PerpsView {
   async tapClosePositionButton() {
     await Gestures.waitAndTap(this.closePositionButton, {
       elemDescription: 'Close position button',
+      checkStability: true,
+      timeout: 10000,
     });
   }
 
@@ -210,7 +228,15 @@ class PerpsView {
   }
 
   async tapPlaceOrderButton() {
-    await Gestures.waitAndTap(this.placeOrderButton);
+    await Utilities.waitForReadyState(this.placeOrderButton as DetoxElement, {
+      checkStability: true,
+      elemDescription: 'Place order button',
+      timeout: 7000,
+    });
+    await Gestures.waitAndTap(this.placeOrderButton, {
+      elemDescription: 'Tap Place Order',
+      checkStability: true,
+    });
   }
 
   async tapOrderSuccessToastDismissButton() {
@@ -230,8 +256,20 @@ class PerpsView {
   }
 
   async tapClosePositionBottomSheetButton() {
+    // Wait robustly until the confirm button appears (sheet open + layout ready)
+    await Utilities.waitUntil(
+      async () =>
+        await Utilities.isElementVisible(
+          this.closePositionBottomSheetButton,
+          400,
+        ),
+      { interval: 200, timeout: 7000 },
+    );
     await Gestures.waitAndTap(this.closePositionBottomSheetButton, {
       elemDescription: 'Close position bottom sheet button',
+      checkStability: true,
+      timeout: 10000,
+      waitForElementToDisappear: true,
     });
   }
 

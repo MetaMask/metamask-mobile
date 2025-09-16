@@ -272,6 +272,7 @@ describe('PerpsController', () => {
         expect(controller.state.accountState).toBeNull();
         expect(controller.state.connectionStatus).toBe('disconnected');
         expect(controller.state.isEligible).toBe(false);
+        expect(controller.state.lastDepositTransactionId).toBeNull();
       });
     });
 
@@ -299,6 +300,8 @@ describe('PerpsController', () => {
               sinceOpen: '0',
               sinceChange: '0',
             },
+            takeProfitCount: 0,
+            stopLossCount: 0,
           },
         ],
       };
@@ -600,6 +603,8 @@ describe('PerpsController', () => {
             sinceOpen: '5',
             sinceChange: '2',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -1357,6 +1362,9 @@ describe('PerpsController', () => {
         const Engine = jest.requireMock('../../../../core/Engine');
         Engine.context.TransactionController.addTransaction.mockResolvedValue({
           result: mockResult,
+          transactionMeta: {
+            id: 'deposit-tx-123',
+          },
         });
 
         await controller.initializeProviders();
@@ -1391,6 +1399,10 @@ describe('PerpsController', () => {
 
         // Verify initial state was cleared (before promise resolves)
         expect(controller.state.lastDepositResult).toBeNull();
+        // Verify transaction ID was stored
+        expect(controller.state.lastDepositTransactionId).toBe(
+          'deposit-tx-123',
+        );
 
         // Now resolve the promise and wait for state update
         resolvePromise(mockTxHash);
@@ -1428,6 +1440,9 @@ describe('PerpsController', () => {
         const Engine = jest.requireMock('../../../../core/Engine');
         Engine.context.TransactionController.addTransaction.mockResolvedValue({
           result: mockResultPromise,
+          transactionMeta: {
+            id: 'deposit-tx-456',
+          },
         });
 
         await controller.initializeProviders();
@@ -1450,6 +1465,10 @@ describe('PerpsController', () => {
           txHash: mockTxHash,
         });
         expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should still be stored
+        expect(controller.state.lastDepositTransactionId).toBe(
+          'deposit-tx-456',
+        );
       });
     });
 
@@ -1474,6 +1493,9 @@ describe('PerpsController', () => {
         const Engine = jest.requireMock('../../../../core/Engine');
         Engine.context.TransactionController.addTransaction.mockResolvedValue({
           result: mockResultPromise,
+          transactionMeta: {
+            id: 'deposit-tx-456',
+          },
         });
 
         await controller.initializeProviders();
@@ -1492,6 +1514,8 @@ describe('PerpsController', () => {
           // Verify state was NOT updated for user cancellation
           expect(controller.state.lastDepositResult).toBeNull();
           expect(controller.state.depositInProgress).toBe(false);
+          // Transaction ID should be cleared on cancellation
+          expect(controller.state.lastDepositTransactionId).toBeNull();
         }
       });
     });
@@ -1517,6 +1541,9 @@ describe('PerpsController', () => {
         const Engine = jest.requireMock('../../../../core/Engine');
         Engine.context.TransactionController.addTransaction.mockResolvedValue({
           result: mockResultPromise,
+          transactionMeta: {
+            id: 'deposit-tx-456',
+          },
         });
 
         await controller.initializeProviders();
@@ -1538,6 +1565,8 @@ describe('PerpsController', () => {
             error: 'Insufficient balance',
           });
           expect(controller.state.depositInProgress).toBe(false);
+          // Transaction ID should be cleared on failure
+          expect(controller.state.lastDepositTransactionId).toBeNull();
         }
       });
     });
@@ -1586,6 +1615,8 @@ describe('PerpsController', () => {
               success: false,
               error: 'Network error',
             });
+            // Transaction ID should be null since addTransaction failed
+            expect(controller.state.lastDepositTransactionId).toBeNull();
           }
         }
       });
@@ -1622,6 +1653,9 @@ describe('PerpsController', () => {
         const Engine = jest.requireMock('../../../../core/Engine');
         Engine.context.TransactionController.addTransaction.mockResolvedValue({
           result: mockResult,
+          transactionMeta: {
+            id: 'deposit-tx-123',
+          },
         });
 
         await controller.initializeProviders();
@@ -1631,6 +1665,10 @@ describe('PerpsController', () => {
 
         // Assert - old result should be cleared immediately (before promise resolves)
         expect(controller.state.lastDepositResult).toBeNull();
+        // New transaction ID should be set
+        expect(controller.state.lastDepositTransactionId).toBe(
+          'deposit-tx-123',
+        );
 
         // Clean up by resolving the promise
         resolvePromise('0xnewtransaction');
@@ -1673,6 +1711,9 @@ describe('PerpsController', () => {
         const Engine = jest.requireMock('../../../../core/Engine');
         Engine.context.TransactionController.addTransaction.mockResolvedValue({
           result: Promise.resolve('0xtx123'),
+          transactionMeta: {
+            id: 'deposit-tx-789',
+          },
         });
 
         await controller.initializeProviders();
