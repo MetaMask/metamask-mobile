@@ -38,13 +38,20 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           target: qa
+          yarn-version: 3.8.7
 
-      - name: Override with Yarn v3 setup
+      - name: Verify and fix Yarn setup
         run: |
-          echo "🔄 Overriding Yarn v1 with Yarn v3..."
+          echo "🔍 Checking Yarn version..."
+          yarn --version
+          echo "🔧 Ensuring corepack is properly configured..."
           corepack enable
           corepack prepare yarn@3.8.7 --activate
+          echo "✅ Final Yarn version:"
           yarn --version
+
+          echo "📦 Installing detox-cli globally using dlx..."
+          yarn dlx detox --version || echo "Detox will be used from project dependencies"
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
