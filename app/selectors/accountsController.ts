@@ -8,6 +8,7 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
 import {
+  BtcAccountType,
   BtcMethod,
   EthMethod,
   SolAccountType,
@@ -163,6 +164,16 @@ export const selectLastSelectedSolanaAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
   (accounts) =>
     accounts.find((account) => account.type === SolAccountType.DataAccount),
+);
+
+/**
+ * A memoized selector that returns the last selected Bitcoin account
+ */
+export const selectLastSelectedBitcoinAccount = createSelector(
+  selectOrderedInternalAccountsByLastSelected,
+  // Segwit right now, TODO figure out what to do with other types
+  (accounts) =>
+    accounts.find((account) => account.type === BtcAccountType.P2wpkh),
 );
 
 /**
