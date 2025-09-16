@@ -66,8 +66,9 @@ const TabBarItemInner = ({
         <MMText
           variant={TextVariant.BodyXSMedium}
           color={isActive ? TextColor.Default : TextColor.Alternative}
-          style={tw.style('mt-1 flex-shrink-0')}
+          style={tw.style('mt-1 w-full flex-shrink-0 text-center')}
           numberOfLines={1}
+          ellipsizeMode="tail"
         >
           {label}
         </MMText>

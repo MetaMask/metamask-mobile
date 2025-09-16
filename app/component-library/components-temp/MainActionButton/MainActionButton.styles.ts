@@ -52,6 +52,7 @@ const styleSheet = (params: {
       textAlign: 'center',
       marginTop: 2,
       flexShrink: 0,
+      width: '100%',
     },
   });
 };
