@@ -16,9 +16,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 16,
-            "fontWeight": "600",
             "marginTop": 32,
           },
           {
@@ -135,9 +134,8 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           }
         }
       >
@@ -149,9 +147,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 16,
-            "fontWeight": "600",
             "marginTop": 32,
           },
           undefined,
@@ -173,9 +170,8 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           }
         }
       >
@@ -187,9 +183,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 16,
-            "fontWeight": "600",
             "marginTop": 32,
           },
           undefined,
@@ -221,9 +216,8 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           }
         }
       >
@@ -259,9 +253,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 16,
-            "fontWeight": "600",
             "marginTop": 32,
           },
           undefined,
@@ -275,9 +268,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           },
           {
             "alignItems": "center",
@@ -294,9 +286,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 16,
-            "fontWeight": "600",
             "marginTop": 32,
           },
           undefined,
@@ -310,9 +301,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           },
           {
             "alignItems": "center",
@@ -329,9 +319,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 16,
-            "fontWeight": "600",
             "marginTop": 32,
           },
           undefined,
@@ -345,9 +334,8 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           },
           {
             "alignItems": "center",
@@ -379,9 +367,8 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#ca3542",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
           }
         }
       >

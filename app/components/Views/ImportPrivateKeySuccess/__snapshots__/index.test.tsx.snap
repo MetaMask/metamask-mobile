@@ -418,9 +418,8 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 32,
-                                    "fontWeight": "400",
                                     "justifyContent": "center",
                                     "marginBottom": 20,
                                     "marginTop": 10,
@@ -441,9 +440,8 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "lineHeight": 23,
                                       "textAlign": "left",
                                     }

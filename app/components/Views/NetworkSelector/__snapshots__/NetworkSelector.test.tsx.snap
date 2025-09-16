@@ -479,9 +479,8 @@ exports[`Network Selector renders correctly 1`] = `
                                   {
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "paddingLeft": 10,
                                   }
                                 }
@@ -1900,9 +1899,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     "borderColor": "#b7bbc8",
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "paddingLeft": 10,
                                   }
                                 }
@@ -3626,9 +3624,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -3746,9 +3743,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -3866,9 +3862,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -3986,9 +3981,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -4106,9 +4100,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -4226,9 +4219,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,

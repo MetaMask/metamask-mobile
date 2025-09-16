@@ -2021,9 +2021,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -3863,9 +3862,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -5744,9 +5742,8 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -7586,9 +7583,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -9428,9 +9424,8 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -11309,9 +11304,8 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -13681,9 +13675,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -15523,9 +15516,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",

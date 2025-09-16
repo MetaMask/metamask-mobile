@@ -507,9 +507,8 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                       {
                                         "color": "#121314",
                                         "flex": 1,
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                       }
                                     }
                                   >
@@ -536,9 +535,8 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                       {
                                         "color": "#121314",
                                         "flex": 1,
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 14,
-                                        "fontWeight": "400",
                                       }
                                     }
                                   >

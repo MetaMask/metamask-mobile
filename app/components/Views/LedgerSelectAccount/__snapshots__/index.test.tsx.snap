@@ -81,16 +81,14 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -113,9 +111,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 24,
-            "fontWeight": "400",
           },
         ]
       }
@@ -161,16 +158,14 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 30,
-                "fontWeight": "400",
                 "marginVertical": 2,
               },
               undefined,
               undefined,
               {
-                "fontFamily": "CentraNo1-Bold",
-                "fontWeight": "600",
+                "fontFamily": "Geist Bold",
               },
               undefined,
               undefined,
@@ -213,9 +208,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -254,9 +248,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -295,9 +288,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -336,9 +328,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -377,9 +368,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -419,16 +409,14 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "CentraNo1-Bold",
-              "fontWeight": "600",
+              "fontFamily": "Geist Bold",
             },
             undefined,
             undefined,
@@ -565,16 +553,14 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -597,9 +583,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 24,
-            "fontWeight": "400",
           },
         ]
       }
@@ -645,16 +630,14 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
             [
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 30,
-                "fontWeight": "400",
                 "marginVertical": 2,
               },
               undefined,
               undefined,
               {
-                "fontFamily": "CentraNo1-Bold",
-                "fontWeight": "600",
+                "fontFamily": "Geist Bold",
               },
               undefined,
               undefined,
@@ -697,9 +680,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -738,9 +720,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -779,9 +760,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -820,9 +800,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -861,9 +840,8 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -903,16 +881,14 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "CentraNo1-Bold",
-              "fontWeight": "600",
+              "fontFamily": "Geist Bold",
             },
             undefined,
             undefined,

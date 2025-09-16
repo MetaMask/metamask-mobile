@@ -77,9 +77,8 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         {

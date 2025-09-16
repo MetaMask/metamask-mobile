@@ -27,16 +27,14 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -82,9 +80,8 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
@@ -119,9 +116,8 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -158,16 +154,14 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "CentraNo1-Bold",
-              "fontWeight": "600",
+              "fontFamily": "Geist Bold",
             },
             undefined,
             undefined,
@@ -233,9 +227,8 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           null,
           [
             {
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 14,
-              "fontWeight": "600",
               "textAlign": "center",
             },
             {

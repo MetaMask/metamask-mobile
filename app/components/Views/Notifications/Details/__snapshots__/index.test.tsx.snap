@@ -132,8 +132,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >
@@ -260,8 +259,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >

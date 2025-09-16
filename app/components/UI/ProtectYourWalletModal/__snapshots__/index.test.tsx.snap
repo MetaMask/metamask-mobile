@@ -220,9 +220,8 @@ exports[`ProtectYourWalletModal render matches snapshot 1`] = `
                       {
                         "color": "#121314",
                         "flex": 1,
-                        "fontFamily": "CentraNo1-Bold",
+                        "fontFamily": "Geist Bold",
                         "fontSize": 20,
-                        "fontWeight": "600",
                         "textAlign": "center",
                       }
                     }
@@ -295,9 +294,8 @@ exports[`ProtectYourWalletModal render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "marginBottom": 24,
                       "textAlign": "center",
                     }
@@ -307,8 +305,7 @@ exports[`ProtectYourWalletModal render matches snapshot 1`] = `
                   <Text
                     style={
                       {
-                        "fontFamily": "CentraNo1-Bold",
-                        "fontWeight": "600",
+                        "fontFamily": "Geist Bold",
                       }
                     }
                   >
@@ -323,9 +320,8 @@ exports[`ProtectYourWalletModal render matches snapshot 1`] = `
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 14,
-                        "fontWeight": "400",
                         "marginBottom": 14,
                         "textAlign": "center",
                       }
@@ -391,9 +387,8 @@ exports[`ProtectYourWalletModal render matches snapshot 1`] = `
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -451,9 +446,8 @@ exports[`ProtectYourWalletModal render matches snapshot 1`] = `
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {

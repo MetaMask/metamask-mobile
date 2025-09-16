@@ -157,9 +157,8 @@ exports[`ProtectWalletMandatoryModal renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "600",
               "marginVertical": 8,
               "textAlign": "center",
             }
@@ -171,9 +170,8 @@ exports[`ProtectWalletMandatoryModal renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "justifyContent": "center",
               "marginVertical": 8,
               "textAlign": "center",
@@ -224,9 +222,8 @@ exports[`ProtectWalletMandatoryModal renders correctly 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 14,
-                      "fontWeight": "600",
                       "textAlign": "center",
                     },
                     {
@@ -405,9 +402,8 @@ exports[`ProtectWalletMandatoryModal renders correctly on iPhoneX 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 18,
-              "fontWeight": "600",
               "marginVertical": 8,
               "textAlign": "center",
             }
@@ -419,9 +415,8 @@ exports[`ProtectWalletMandatoryModal renders correctly on iPhoneX 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "justifyContent": "center",
               "marginVertical": 8,
               "textAlign": "center",
@@ -472,9 +467,8 @@ exports[`ProtectWalletMandatoryModal renders correctly on iPhoneX 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 14,
-                      "fontWeight": "600",
                       "textAlign": "center",
                     },
                     {

@@ -618,7 +618,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderWidth": 1,
                                               "color": "#686e7d",
                                               "display": "flex",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "height": 66,

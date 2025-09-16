@@ -187,9 +187,8 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -245,8 +244,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
+                    "fontFamily": "Geist Regular",
                     "paddingBottom": 3,
                   }
                 }
@@ -267,8 +265,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontWeight": "400",
+                      "fontFamily": "Geist Regular",
                       "padding": 16,
                     },
                     {},
@@ -281,8 +278,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#ca3542",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
+                    "fontFamily": "Geist Regular",
                     "marginTop": 15,
                   }
                 }
@@ -300,8 +296,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
+                    "fontFamily": "Geist Regular",
                     "paddingBottom": 3,
                   }
                 }
@@ -324,8 +319,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
-                      "fontWeight": "400",
+                      "fontFamily": "Geist Regular",
                       "padding": 16,
                     },
                     {},
@@ -338,8 +332,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 style={
                   {
                     "color": "#ca3542",
-                    "fontFamily": "CentraNo1-Book",
-                    "fontWeight": "400",
+                    "fontFamily": "Geist Regular",
                     "marginTop": 15,
                   }
                 }
@@ -662,8 +655,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
-                          "fontWeight": "400",
+                          "fontFamily": "Geist Regular",
                         },
                         {
                           "height": "85%",
@@ -895,9 +887,8 @@ exports[`AddAsset component renders token view correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                   }
                 }
               >
@@ -954,8 +945,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >
@@ -976,8 +966,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                   "paddingHorizontal": 16,
                   "paddingVertical": 12,
                 }
@@ -989,8 +978,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               style={
                 {
                   "color": "#ca3542",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                   "marginTop": 0,
                   "paddingBottom": 8,
                 }
@@ -1015,9 +1003,8 @@ exports[`AddAsset component renders token view correctly 1`] = `
             "borderRadius": 12,
             "color": "#4459ff",
             "flexDirection": "row",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 18,
-            "fontWeight": "400",
             "height": 48,
             "justifyContent": "center",
             "opacity": 0.5,
