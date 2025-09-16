@@ -1,4 +1,3 @@
-// Mock Engine using EXACT same pattern as useRewardsAuth.test.ts
 jest.mock('../../../../core/Engine/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),

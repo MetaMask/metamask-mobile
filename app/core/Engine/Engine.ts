@@ -1013,42 +1013,6 @@ export class Engine {
       // @ts-expect-error Controller uses string for names rather than enum
       trace,
       config: {
-        accountSyncing: {
-          onAccountAdded: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-          onAccountNameUpdated: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-          onAccountSyncErroneousSituation(profileId, situationMessage) {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  situation_message: situationMessage,
-                })
-                .build(),
-            );
-          },
-        },
         contactSyncing: {
           onContactUpdated: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
@@ -1276,6 +1240,10 @@ export class Engine {
     const multichainAccountService = controllersByName.MultichainAccountService;
     ///: END:ONLY_INCLUDE_IF
 
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
+    networkEnablementController.init();
+
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -1288,9 +1256,6 @@ export class Engine {
       messenger: multichainRatesControllerMessenger,
       initialState: initialState.RatesController,
     });
-
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
 
     // Set up currency rate sync
     setupCurrencyRateSync(
@@ -1869,7 +1834,7 @@ export class Engine {
     let totalEthFiat1dAgo = 0;
     let totalTokenFiat = 0;
     let totalTokenFiat1dAgo = 0;
-    let aggregatedNativeTokenBalance = '';
+    let aggregatedNativeTokenBalance = '0';
     let primaryTicker = '';
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;

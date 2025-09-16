@@ -37,6 +37,26 @@ export interface LoginDto {
   referralCode?: string;
 }
 
+export interface MobileLoginDto {
+  /**
+   * The account of the user
+   * @example '0x... or solana address.'
+   */
+  account: string;
+
+  /**
+   * The timestamp (epoch seconds) used in the signature.
+   * @example 1
+   */
+  timestamp: number;
+
+  /**
+   * The signature of the login (hex encoded)
+   * @example '0x...'
+   */
+  signature: `0x${string}`;
+}
+
 export interface EstimateAssetDto {
   /**
    * Asset identifier in CAIP-19 format
@@ -351,6 +371,26 @@ export interface SubscriptionReferralDetailsDto {
   totalReferees: number;
 }
 
+export interface PointsBoostEnvelopeDto {
+  boosts: PointsBoostDto[];
+}
+
+export interface PointsBoostDto {
+  id: string;
+  name: string;
+  icon: ThemeImage;
+  boostBips: number;
+  seasonLong: boolean;
+  startDate?: Date;
+  endDate?: Date;
+  backgroundColor: string;
+}
+
+export interface ThemeImage {
+  lightModeUrl: string;
+  darkModeUrl: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionReferralDetailsState = {
   referralCode: string;
@@ -391,6 +431,24 @@ export type SeasonStatusState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ActiveBoostsState = {
+  boosts: {
+    id: string;
+    name: string;
+    icon: {
+      lightModeUrl: string;
+      darkModeUrl: string;
+    };
+    boostBips: number;
+    seasonLong: boolean;
+    startDate?: number; // timestamp
+    endDate?: number; // timestamp
+    backgroundColor: string;
+  }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
@@ -411,6 +469,7 @@ export type RewardsControllerState = {
     [subscriptionId: string]: SubscriptionReferralDetailsState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
+  activeBoosts: { [compositeId: string]: ActiveBoostsState };
 };
 
 /**
@@ -484,6 +543,14 @@ export interface GeoRewardsMetadata {
 export interface RewardsControllerGetHasAccountOptedInAction {
   type: 'RewardsController:getHasAccountOptedIn';
   handler: (account: CaipAccountId) => Promise<boolean>;
+}
+
+/**
+ * Action for getting opt-in status of multiple addresses with feature flag check
+ */
+export interface RewardsControllerGetOptInStatusAction {
+  type: 'RewardsController:getOptInStatus';
+  handler: (params: OptInStatusInputDto) => Promise<OptInStatusDto>;
 }
 
 /**
@@ -564,11 +631,47 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for linking an account to a subscription
+ */
+export interface RewardsControllerLinkAccountToSubscriptionAction {
+  type: 'RewardsController:linkAccountToSubscriptionCandidate';
+  handler: (account: InternalAccount) => Promise<boolean>;
+}
+
+/**
+ * Action for getting candidate subscription ID
+ */
+export interface RewardsControllerGetCandidateSubscriptionIdAction {
+  type: 'RewardsController:getCandidateSubscriptionId';
+  handler: () => Promise<string | null>;
+}
+
+/**
+ * Action for opting out of rewards program
+ */
+export interface RewardsControllerOptOutAction {
+  type: 'RewardsController:optOut';
+  handler: () => Promise<boolean>;
+}
+
+/**
+ * Action for getting active points boosts
+ */
+export interface RewardsControllerGetActivePointsBoostsAction {
+  type: 'RewardsController:getActivePointsBoosts';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<PointsBoostDto[]>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
   | ControllerGetStateAction<'RewardsController', RewardsControllerState>
   | RewardsControllerGetHasAccountOptedInAction
+  | RewardsControllerGetOptInStatusAction
   | RewardsControllerGetPointsEventsAction
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
@@ -578,6 +681,48 @@ export type RewardsControllerActions =
   | RewardsControllerOptInAction
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
-  | RewardsControllerValidateReferralCodeAction;
+  | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerLinkAccountToSubscriptionAction
+  | RewardsControllerGetCandidateSubscriptionIdAction
+  | RewardsControllerOptOutAction
+  | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerGetActivePointsBoostsAction;
 
 export const CURRENT_SEASON_ID = 'current';
+
+/**
+ * Input DTO for getting opt-in status of multiple addresses
+ */
+export interface OptInStatusInputDto {
+  /**
+   * The addresses to check opt-in status for
+   * @example [
+   *   '0xDE37C32E8dbD1CD325B8023a00550a5beA97eF13',
+   *   '0xDE37C32E8dbD1CD325B8023a00550a5beA97eF14',
+   *   '0xDE37C32E8dbD1CD325B8023a00550a5beA97eF15'
+   * ]
+   */
+  addresses: string[];
+}
+
+/**
+ * Response DTO for opt-in status of multiple addresses
+ */
+export interface OptInStatusDto {
+  /**
+   * The opt-in status of the addresses in the same order as the input
+   * @example [true, true, false]
+   */
+  ois: boolean[];
+}
+
+/**
+ * Response DTO for opt-out operation
+ */
+export interface OptOutDto {
+  /**
+   * Whether the opt-out operation was successful
+   * @example true
+   */
+  success: boolean;
+}

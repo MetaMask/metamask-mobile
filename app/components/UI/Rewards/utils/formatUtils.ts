@@ -7,6 +7,7 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
+import { getTimeDifferenceFromNow } from '../../../../util/date';
 
 /**
  * Formats a timestamp for rewards date
@@ -24,6 +25,15 @@ export const formatRewardsDate = (
     hour: 'numeric',
     minute: '2-digit',
   }).format(new Date(timestamp));
+
+export const formatTimeRemaining = (endDate: Date): string | null => {
+  const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
+  return hours <= 0
+    ? minutes <= 0
+      ? null
+      : `${minutes}m`
+    : `${days}d ${hours}h`;
+};
 
 export const PerpsEventType = {
   OPEN_POSITION: 'OPEN_POSITION',

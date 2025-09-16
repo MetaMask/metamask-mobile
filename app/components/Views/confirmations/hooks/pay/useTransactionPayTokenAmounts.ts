@@ -82,10 +82,15 @@ export function useTransactionPayTokenAmounts({
         const amountHuman = amountHumanValue.toString(10);
         const amountRaw = amountHumanValue.shiftedBy(decimals).toFixed(0);
 
+        const amountHumanOriginal = new BigNumber(value.amountFiat)
+          .div(tokenFiatRate)
+          .toString(10);
+
         return {
           address: value.address,
           allowUnderMinimum: value.allowUnderMinimum,
           amountHuman,
+          amountHumanOriginal,
           amountRaw,
           targetAmountRaw: value.amountRaw,
         };
