@@ -695,6 +695,18 @@ const ImportFromSecretRecoveryPhrase = ({
     [showAllSeedPhrase, seedPhraseInputFocusedIndex, errorWordIndexes],
   );
 
+  const getInputValue = (isFirstInput, index, item) => {
+    if (isFirstInput) {
+      return seedPhrase?.[0] || '';
+    }
+
+    if (canShowSeedPhraseWord(index)) {
+      return item;
+    }
+
+    return maskText(item);
+  };
+
   const learnMoreLink = () => {
     navigation.push('Webview', {
       screen: 'SimpleWebview',
@@ -839,13 +851,7 @@ const ImportFromSecretRecoveryPhrase = ({
                               </Text>
                             )
                           }
-                          value={
-                            isFirstInput
-                              ? seedPhrase?.[0] || ''
-                              : canShowSeedPhraseWord(index)
-                              ? item
-                              : maskText(item)
-                          }
+                          value={getInputValue(isFirstInput, index, item)}
                           onFocus={(e) => {
                             handleOnFocus(index);
                           }}
