@@ -115,7 +115,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .app-native-fingerprint
-          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ github.sha }}
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ hashFiles('yarn.lock', 'package.json', 'patches/**', 'ios/Podfile.lock', 'ios/Podfile', 'ios/MetaMask.xcodeproj/project.pbxproj') }}
           restore-keys: |
             fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-
 
@@ -234,7 +234,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .app-native-fingerprint
-          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ github.sha }}
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ hashFiles('yarn.lock', 'package.json', 'patches/**', 'ios/Podfile.lock', 'ios/Podfile', 'ios/MetaMask.xcodeproj/project.pbxproj') }}
 
       - name: Log Build Performance Metrics
         if: always()
