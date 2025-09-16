@@ -31,7 +31,6 @@ import { useNetworkInfo } from '../../../../../selectors/selectedNetworkControll
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -53,14 +52,13 @@ const createStyles = () =>
   });
 
 export interface BridgeSourceNetworkSelectorProps {
-  isBalanceOnly?: boolean;
-  isEvmOnly?: boolean;
+  chainIds?: Hex[];
   onApply?: (selectedChainIds: Hex[]) => void;
 }
 
 export const BridgeSourceNetworkSelector: React.FC<
   BridgeSourceNetworkSelectorProps
-> = ({ isBalanceOnly, isEvmOnly, onApply }) => {
+> = ({ chainIds, onApply }) => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -71,11 +69,8 @@ export const BridgeSourceNetworkSelector: React.FC<
     useSortedSourceNetworks();
 
   const enabledSourceChainIds = useMemo(
-    () =>
-      enabledSourceChains
-        .filter((chain) => (isEvmOnly ? !isSolanaChainId(chain.chainId) : true))
-        .map((chain) => chain.chainId),
-    [enabledSourceChains, isEvmOnly],
+    () => enabledSourceChains.map((chain) => chain.chainId),
+    [enabledSourceChains],
   );
 
   const sortedSourceNetworks = useMemo(
@@ -83,9 +78,9 @@ export const BridgeSourceNetworkSelector: React.FC<
       sortedSourceNetworksRaw.filter(
         (chain) =>
           enabledSourceChainIds.includes(chain.chainId) &&
-          (!isBalanceOnly || chain.totalFiatValue > 0),
+          (!chainIds || chainIds.includes(chain.chainId as Hex)),
       ),
-    [enabledSourceChainIds, isBalanceOnly, sortedSourceNetworksRaw],
+    [chainIds, enabledSourceChainIds, sortedSourceNetworksRaw],
   );
 
   const evmNetworkConfigurations = useSelector(
