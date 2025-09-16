@@ -113,7 +113,7 @@ export default class AppwrightSelectors {
   static async scrollIntoView(device, element) {
     for (let i = 0; i < 20; i++) {
       try {
-        const isVisible = await element.isVisible({ timeout: 2000 });
+        const isVisible = await element.isVisible({ timeout: 10000 });
         
         if (isVisible) {
           console.log('Element found and visible, returning element');

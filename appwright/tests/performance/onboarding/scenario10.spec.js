@@ -19,7 +19,7 @@ import SendScreen from '../../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../wdio/screen-objects/AmountScreen.js';
-
+import MultichainAccountEducationModal from '../../../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
 import AppwrightSelectors from '../../../../wdio/helpers/AppwrightSelectors.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 test('Cold Start after importing a wallet', async ({
@@ -45,6 +45,7 @@ test('Cold Start after importing a wallet', async ({
   ConfirmationScreen.device = device;
   AmountScreen.device = device;
   LoginScreen.device = device;
+  MultichainAccountEducationModal.device = device;
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
@@ -58,14 +59,19 @@ test('Cold Start after importing a wallet', async ({
   const timer1 = new TimerHelper(
     'Time since the user clicks on unlock button, until the app unlocks',
   );
-  timer1.start();
-  await WalletMainScreen.isMainWalletViewVisible();
-  timer1.stop();
-  const timer1Duration = timer1.getDuration();
-  console.log(
-    `The time it takes the wallet view to appear is: ${timer1Duration}`,
+  const timer2 = new TimerHelper(
+    'Time since the user closes the multichain account education modal, until the wallet main screen appears',
   );
+  timer1.start();
+  await MultichainAccountEducationModal.isVisible();
+  timer1.stop();
+  await MultichainAccountEducationModal.tapGotItButton();
+  timer2.start();
+  await WalletMainScreen.isMainWalletViewVisible();
+  timer2.stop();
+
   performanceTracker.addTimer(timer1);
+  performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);
 });
 test('Cold Start: Measure ColdStart To Login Screen', async ({
