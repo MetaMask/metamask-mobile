@@ -47,13 +47,54 @@ function ceilDiv(a, b) {
   return Math.floor((a + b - 1) / b);
 }
 
-function computeSplit(files, splitNumber, totalSplits) {
-  const totalFiles = files.length;
-  const filesPerSplit = ceilDiv(totalFiles, totalSplits);
-  const startIndex = (splitNumber - 1) * filesPerSplit;
-  let endIndex = startIndex + filesPerSplit;
-  if (endIndex > totalFiles) endIndex = totalFiles;
-  return files.slice(startIndex, endIndex);
+function getGroupKey(filePath) {
+  // Normalize and strip -retry-N suffix before .spec.ext
+  const normalized = normalizePathForCompare(filePath);
+  const match = normalized.match(/^(.*?)(?:-retry-\d+)?\.spec\.(ts|js)$/);
+  if (!match) return normalized;
+  const base = match[1];
+  const ext = match[2];
+  return `${base}.spec.${ext}`;
+}
+
+function getRetryIndex(filePath) {
+  const normalized = normalizePathForCompare(filePath);
+  const m = normalized.match(/-retry-(\d+)\.spec\.(ts|js)$/);
+  if (!m) return 0; // base file has index 0
+  const n = Number(m[1]);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function groupFilesByBase(files) {
+  const map = new Map();
+  for (const f of files) {
+    const key = getGroupKey(f);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(f);
+  }
+  // Sort groups by key for stable order; within group, sort by filename
+  const keys = Array.from(map.keys()).sort((a, b) => a.localeCompare(b));
+  return keys.map((k) =>
+    map
+      .get(k)
+      .sort((a, b) => {
+        const ra = getRetryIndex(a);
+        const rb = getRetryIndex(b);
+        if (ra !== rb) return ra - rb; // base (0) first, then retry-1, retry-2...
+        return a.localeCompare(b);
+      }),
+  );
+}
+
+function computeSplitFromGroups(files, splitNumber, totalSplits) {
+  const groups = groupFilesByBase(files);
+  const totalGroups = groups.length;
+  const groupsPerSplit = ceilDiv(totalGroups, totalSplits);
+  const startIndex = (splitNumber - 1) * groupsPerSplit;
+  let endIndex = startIndex + groupsPerSplit;
+  if (endIndex > totalGroups) endIndex = totalGroups;
+  const selectedGroups = groups.slice(startIndex, endIndex);
+  return selectedGroups.flat();
 }
 
 function runYarn(scriptName, args, extraEnv = {}) {
@@ -192,7 +233,7 @@ async function main() {
     console.log('⏭️  skip-e2e-quality-gate detected; skipping flaky duplication');
   }
 
-  const splitFiles = computeSplit(allMatches, splitNumber, totalSplits);
+  const splitFiles = computeSplitFromGroups(allMatches, splitNumber, totalSplits);
 
   console.log(`\n🔍 Running ${splitFiles.length} tests for split ${splitNumber} of ${totalSplits}:`);
   for (const f of splitFiles) {
