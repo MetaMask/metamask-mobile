@@ -7,7 +7,7 @@ import { AvatarBaseProps } from '../../foundation/AvatarBase';
 export enum AvatarAccountType {
   JazzIcon = 'JazzIcon',
   Blockies = 'Blockies',
-  Maskicon = 'Maskicon',
+  Maskicon = 'Maskicon', // Referred to as Polycons to users
 }
 
 /**
