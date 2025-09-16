@@ -38,6 +38,7 @@ import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettin
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
+import { segmentPersistor } from './SegmentPersistor';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -550,6 +551,8 @@ class MetaMetrics implements IMetaMetrics {
         // if not set, the default values from the Segment SDK will be used
         flushInterval: process.env.SEGMENT_FLUSH_INTERVAL as unknown as number,
         flushAt: process.env.SEGMENT_FLUSH_EVENT_LIMIT as unknown as number,
+        // Use custom persistor to bridge Segment SDK with app's storage system
+        storePersistor: segmentPersistor,
       };
 
       if (__DEV__)
