@@ -21,6 +21,7 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -35,6 +36,7 @@ const Settings = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<any>();
@@ -49,9 +51,14 @@ const Settings = () => {
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
-      getSettingsNavigationOptions(strings('app_settings.title'), colors),
+      getSettingsNavigationOptions(
+        strings('app_settings.title'),
+        colors,
+        navigation,
+        isRewardsEnabled,
+      ),
     );
-  }, [navigation, colors]);
+  }, [navigation, colors, isRewardsEnabled]);
 
   useEffect(() => {
     updateNavBar();
@@ -174,7 +181,7 @@ const Settings = () => {
   };
 
   const onPressLock = async () => {
-    await Authentication.lockApp({ reset: false, locked: true });
+    await Authentication.lockApp({ reset: false, locked: false });
   };
 
   const lock = () => {

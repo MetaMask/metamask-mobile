@@ -8,17 +8,26 @@ import rewardsReducer, {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
+  setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setHideUnlinkedAccountsBanner,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
 import { SeasonStatusState } from '../../core/Engine/controllers/rewards-controller/types';
+import Logger from '../../util/Logger';
 
 describe('rewardsReducer', () => {
   const initialState: RewardsState = {
     activeTab: 'overview',
     seasonStatusLoading: false,
+
+    seasonId: null,
+    seasonName: null,
+    seasonStartDate: null,
+    seasonEndDate: null,
+    seasonTiers: [],
 
     referralDetailsLoading: false,
     referralCode: null,
@@ -32,15 +41,12 @@ describe('rewardsReducer', () => {
     balanceRefereePortion: 0,
     balanceUpdatedAt: null,
 
-    seasonName: null,
-    seasonStartDate: null,
-    seasonEndDate: null,
-    seasonTiers: [],
-
     onboardingActiveStep: OnboardingStep.INTRO,
+    candidateSubscriptionId: 'pending',
     geoLocation: null,
     optinAllowedForGeo: false,
     optinAllowedForGeoLoading: false,
+    hideUnlinkedAccountsBanner: false,
   };
 
   it('should return the initial state', () => {
@@ -52,6 +58,11 @@ describe('rewardsReducer', () => {
       expect.objectContaining({
         activeTab: 'overview',
         seasonStatusLoading: false,
+        seasonId: null,
+        seasonName: null,
+        seasonStartDate: null,
+        seasonEndDate: null,
+        seasonTiers: [],
         referralDetailsLoading: false,
         referralCode: null,
         refereeCount: 0,
@@ -61,14 +72,12 @@ describe('rewardsReducer', () => {
         balanceTotal: 0,
         balanceRefereePortion: 0,
         balanceUpdatedAt: null,
-        seasonName: null,
-        seasonStartDate: null,
-        seasonEndDate: null,
-        seasonTiers: [],
         onboardingActiveStep: OnboardingStep.INTRO,
+        candidateSubscriptionId: 'pending',
         geoLocation: null,
         optinAllowedForGeo: false,
         optinAllowedForGeoLoading: false,
+        hideUnlinkedAccountsBanner: false,
       }),
     );
   });
@@ -349,428 +358,632 @@ describe('rewardsReducer', () => {
       expect(state.nextTier).toBe(null);
       expect(state.nextTierPointsNeeded).toBe(null);
     });
-  });
 
-  describe('setReferralDetails', () => {
-    it('should update referral code when provided', () => {
+    it('should handle season status with undefined balance updatedAt', () => {
       // Arrange
-      const action = setReferralDetails({ referralCode: 'NEW123' });
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.referralCode).toBe('NEW123');
-      expect(state.refereeCount).toBe(0); // Should remain unchanged
-    });
-
-    it('should update referee count when provided', () => {
-      // Arrange
-      const action = setReferralDetails({ refereeCount: 5 });
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.refereeCount).toBe(5);
-      expect(state.referralCode).toBe(null); // Should remain unchanged
-    });
-
-    it('should update multiple referral fields when provided', () => {
-      // Arrange
-      const action = setReferralDetails({
-        referralCode: 'MULTI123',
-        refereeCount: 10,
-      });
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.referralCode).toBe('MULTI123');
-      expect(state.refereeCount).toBe(10);
-    });
-
-    it('should handle empty payload without updating any fields', () => {
-      // Arrange
-      const stateWithData = {
-        ...initialState,
-        referralCode: 'EXISTING',
-        refereeCount: 3,
-      };
-      const action = setReferralDetails({});
-
-      // Act
-      const state = rewardsReducer(stateWithData, action);
-
-      // Assert
-      expect(state.referralCode).toBe('EXISTING');
-      expect(state.refereeCount).toBe(3);
-    });
-
-    it('should handle zero referee count', () => {
-      // Arrange
-      const stateWithReferees = { ...initialState, refereeCount: 5 };
-      const action = setReferralDetails({ refereeCount: 0 });
-
-      // Act
-      const state = rewardsReducer(stateWithReferees, action);
-
-      // Assert
-      expect(state.refereeCount).toBe(0);
-    });
-
-    it('should set referralDetailsLoading to false', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        referralDetailsLoading: true,
-      };
-      const action = setReferralDetails({ referralCode: 'TEST123' });
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.referralDetailsLoading).toBe(false);
-      expect(state.referralCode).toBe('TEST123');
-    });
-  });
-
-  describe('setSeasonStatusLoading', () => {
-    it('should set season status loading to true', () => {
-      // Arrange
-      const action = setSeasonStatusLoading(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.seasonStatusLoading).toBe(true);
-    });
-
-    it('should set season status loading to false', () => {
-      // Arrange
-      const stateWithLoading = { ...initialState, seasonStatusLoading: true };
-      const action = setSeasonStatusLoading(false);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.seasonStatusLoading).toBe(false);
-    });
-  });
-
-  describe('setReferralDetailsLoading', () => {
-    it('should set referral details loading to true', () => {
-      // Arrange
-      const action = setReferralDetailsLoading(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.referralDetailsLoading).toBe(true);
-    });
-
-    it('should set referral details loading to false', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        referralDetailsLoading: true,
-      };
-      const action = setReferralDetailsLoading(false);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.referralDetailsLoading).toBe(false);
-    });
-  });
-
-  describe('setOnboardingActiveStep', () => {
-    it.each([
-      OnboardingStep.INTRO,
-      OnboardingStep.STEP_1,
-      OnboardingStep.STEP_2,
-      OnboardingStep.STEP_3,
-      OnboardingStep.STEP_4,
-    ])('should set onboarding active step to %s', (step) => {
-      // Arrange
-      const action = setOnboardingActiveStep(step);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(step);
-    });
-
-    it('should update from different onboarding step', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_2,
-      };
-      const action = setOnboardingActiveStep(OnboardingStep.STEP_4);
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_4);
-    });
-  });
-
-  describe('resetOnboarding', () => {
-    it('should reset onboarding to INTRO step', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_3,
-      };
-      const action = resetOnboarding();
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-    });
-
-    it('should not affect other state properties', () => {
-      // Arrange
-      const stateWithData = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_4,
-        referralCode: 'KEEP123',
-        balanceTotal: 1500,
-      };
-      const action = resetOnboarding();
-
-      // Act
-      const state = rewardsReducer(stateWithData, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-      expect(state.referralCode).toBe('KEEP123');
-      expect(state.balanceTotal).toBe(1500);
-    });
-  });
-
-  describe('setGeoRewardsMetadata', () => {
-    it('should update geo metadata when payload is provided', () => {
-      // Arrange
-      const geoMetadata = {
-        geoLocation: 'US',
-        optinAllowedForGeo: true,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('US');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should update geo metadata with different location', () => {
-      // Arrange
-      const geoMetadata = {
-        geoLocation: 'CA',
-        optinAllowedForGeo: false,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('CA');
-      expect(state.optinAllowedForGeo).toBe(false);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should clear geo metadata when payload is null', () => {
-      // Arrange
-      const stateWithGeoData = {
-        ...initialState,
-        geoLocation: 'EU',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadata(null);
-
-      // Act
-      const state = rewardsReducer(stateWithGeoData, action);
-
-      // Assert
-      expect(state.geoLocation).toBe(null);
-      expect(state.optinAllowedForGeo).toBe(false);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should reset loading state when metadata is set', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        optinAllowedForGeoLoading: true,
-      };
-      const geoMetadata = {
-        geoLocation: 'UK',
-        optinAllowedForGeo: true,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('UK');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-  });
-
-  describe('setGeoRewardsMetadataLoading', () => {
-    it('should set geo rewards metadata loading to true', () => {
-      // Arrange
-      const action = setGeoRewardsMetadataLoading(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoLoading).toBe(true);
-    });
-
-    it('should set geo rewards metadata loading to false', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadataLoading(false);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-  });
-
-  describe('resetRewardsState', () => {
-    it('should reset all state to initial values', () => {
-      // Arrange
-      const stateWithData: RewardsState = {
-        activeTab: 'activity' as const,
-        seasonStatusLoading: true,
-        referralDetailsLoading: false,
-        referralCode: 'TEST123',
-        refereeCount: 10,
-        currentTier: {
-          id: 'tier-platinum',
-          name: 'Platinum',
-          pointsNeeded: 1000,
+      const mockSeasonStatus = {
+        season: {
+          id: 'season-no-updated-at',
+          name: 'Season No UpdatedAt',
+          startDate: new Date('2024-01-01').getTime(),
+          endDate: new Date('2024-12-31').getTime(),
+          tiers: [],
         },
-        nextTier: {
-          id: 'tier-diamond',
-          name: 'Diamond',
-          pointsNeeded: 2000,
+        balance: {
+          total: 100,
+          refereePortion: 50,
+          // No updatedAt property
         },
-        nextTierPointsNeeded: 1000,
-        balanceTotal: 5000,
-        balanceRefereePortion: 1000,
-        balanceUpdatedAt: new Date('2024-01-01'),
-        seasonName: 'Test Season',
-        seasonStartDate: new Date('2024-01-01'),
-        seasonEndDate: new Date('2024-12-31'),
-        seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
-        onboardingActiveStep: OnboardingStep.STEP_1,
-        geoLocation: 'US',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: false,
-      };
-      const action = resetRewardsState();
-
-      // Act
-      const state = rewardsReducer(stateWithData, action);
-
-      // Assert
-      expect(state).toEqual(
-        expect.objectContaining({
-          activeTab: 'overview',
-          seasonStatusLoading: false,
-          referralDetailsLoading: false,
-          referralCode: null,
-          refereeCount: 0,
+        tier: {
           currentTier: null,
           nextTier: null,
           nextTierPointsNeeded: null,
-          balanceTotal: 0,
-          balanceRefereePortion: 0,
-          balanceUpdatedAt: null,
-          seasonName: null,
-          seasonStartDate: null,
-          seasonEndDate: null,
-          seasonTiers: [],
-          onboardingActiveStep: OnboardingStep.INTRO,
-          geoLocation: null,
-          optinAllowedForGeo: false,
-          optinAllowedForGeoLoading: false,
-        }),
-      );
-    });
-  });
-
-  describe('persist/REHYDRATE', () => {
-    it('should restore state from persisted data', () => {
-      // Arrange
-      const persistedRewardsState: RewardsState = {
-        activeTab: 'activity',
-        seasonStatusLoading: true, // This will be reset to false in rehydration
-        referralDetailsLoading: false,
-        referralCode: 'PERSISTED123',
-        refereeCount: 15,
-        currentTier: {
-          id: 'tier-diamond',
-          name: 'Diamond',
-          pointsNeeded: 1000,
         },
-        nextTier: null,
-        nextTierPointsNeeded: null,
-        balanceTotal: 2000,
-        balanceRefereePortion: 400,
-        balanceUpdatedAt: new Date('2024-05-01'),
-        seasonName: 'Persisted Season',
-        seasonStartDate: new Date('2024-01-01'),
-        seasonEndDate: new Date('2024-12-31'),
-        seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
-        onboardingActiveStep: OnboardingStep.STEP_2,
-        geoLocation: 'CA',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: false,
-      };
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: {
-          rewards: persistedRewardsState,
-        },
-      };
+      } as unknown as SeasonStatusState;
+      const action = setSeasonStatus(mockSeasonStatus);
 
       // Act
-      const state = rewardsReducer(initialState, rehydrateAction);
+      const state = rewardsReducer(initialState, action);
 
       // Assert
-      expect(state).toEqual(
-        expect.objectContaining({
+      expect(state.balanceTotal).toBe(100);
+      expect(state.balanceRefereePortion).toBe(50);
+      expect(state.balanceUpdatedAt).toBe(null);
+    });
+
+    describe('setReferralDetails', () => {
+      it('should update referral code when provided', () => {
+        // Arrange
+        const action = setReferralDetails({ referralCode: 'NEW123' });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.referralCode).toBe('NEW123');
+        expect(state.refereeCount).toBe(0); // Should remain unchanged
+      });
+
+      it('should update referee count when provided', () => {
+        // Arrange
+        const action = setReferralDetails({ refereeCount: 5 });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.refereeCount).toBe(5);
+        expect(state.referralCode).toBe(null); // Should remain unchanged
+      });
+
+      it('should update multiple referral fields when provided', () => {
+        // Arrange
+        const action = setReferralDetails({
+          referralCode: 'MULTI123',
+          refereeCount: 10,
+        });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.referralCode).toBe('MULTI123');
+        expect(state.refereeCount).toBe(10);
+      });
+
+      it('should handle empty payload without updating any fields', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          referralCode: 'EXISTING',
+          refereeCount: 3,
+        };
+        const action = setReferralDetails({});
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.referralCode).toBe('EXISTING');
+        expect(state.refereeCount).toBe(3);
+      });
+
+      it('should handle zero referee count', () => {
+        // Arrange
+        const stateWithReferees = { ...initialState, refereeCount: 5 };
+        const action = setReferralDetails({ refereeCount: 0 });
+
+        // Act
+        const state = rewardsReducer(stateWithReferees, action);
+
+        // Assert
+        expect(state.refereeCount).toBe(0);
+      });
+
+      it('should set referralDetailsLoading to false', () => {
+        // Arrange
+        const stateWithLoading = {
+          ...initialState,
+          referralDetailsLoading: true,
+        };
+        const action = setReferralDetails({ referralCode: 'TEST123' });
+
+        // Act
+        const state = rewardsReducer(stateWithLoading, action);
+
+        // Assert
+        expect(state.referralDetailsLoading).toBe(false);
+        expect(state.referralCode).toBe('TEST123');
+      });
+
+      it('should handle null referralCode explicitly', () => {
+        // Arrange
+        const stateWithCode = { ...initialState, referralCode: 'EXISTING' };
+        const action = setReferralDetails({
+          referralCode: null as unknown as string,
+        });
+
+        // Act
+        const state = rewardsReducer(stateWithCode, action);
+
+        // Assert
+        expect(state.referralCode).toBe(null);
+        expect(state.referralDetailsLoading).toBe(false);
+      });
+
+      it('should handle undefined referralCode in payload', () => {
+        // Arrange
+        const stateWithCode = { ...initialState, referralCode: 'EXISTING' };
+        const action = setReferralDetails({
+          referralCode: undefined,
+          refereeCount: 5,
+        });
+
+        // Act
+        const state = rewardsReducer(stateWithCode, action);
+
+        // Assert
+        expect(state.referralCode).toBe('EXISTING'); // Should remain unchanged
+        expect(state.refereeCount).toBe(5);
+        expect(state.referralDetailsLoading).toBe(false);
+      });
+
+      it('should handle negative referee count', () => {
+        // Arrange
+        const action = setReferralDetails({ refereeCount: -1 });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.refereeCount).toBe(-1); // Should accept negative values
+        expect(state.referralDetailsLoading).toBe(false);
+      });
+    });
+
+    describe('setSeasonStatusLoading', () => {
+      it('should set season status loading to true', () => {
+        // Arrange
+        const action = setSeasonStatusLoading(true);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusLoading).toBe(true);
+      });
+
+      it('should set season status loading to false', () => {
+        // Arrange
+        const stateWithLoading = { ...initialState, seasonStatusLoading: true };
+        const action = setSeasonStatusLoading(false);
+
+        // Act
+        const state = rewardsReducer(stateWithLoading, action);
+
+        // Assert
+        expect(state.seasonStatusLoading).toBe(false);
+      });
+    });
+
+    describe('setReferralDetailsLoading', () => {
+      it('should set referral details loading to true', () => {
+        // Arrange
+        const action = setReferralDetailsLoading(true);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.referralDetailsLoading).toBe(true);
+      });
+
+      it('should set referral details loading to false', () => {
+        // Arrange
+        const stateWithLoading = {
+          ...initialState,
+          referralDetailsLoading: true,
+        };
+        const action = setReferralDetailsLoading(false);
+
+        // Act
+        const state = rewardsReducer(stateWithLoading, action);
+
+        // Assert
+        expect(state.referralDetailsLoading).toBe(false);
+      });
+    });
+
+    describe('setOnboardingActiveStep', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it.each([
+        OnboardingStep.INTRO,
+        OnboardingStep.STEP_1,
+        OnboardingStep.STEP_2,
+        OnboardingStep.STEP_3,
+        OnboardingStep.STEP_4,
+      ])('should set onboarding active step to %s', (step) => {
+        // Arrange
+        const loggerSpy = jest.spyOn(Logger, 'log');
+        const action = setOnboardingActiveStep(step);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.onboardingActiveStep).toBe(step);
+        expect(loggerSpy).toHaveBeenCalledWith('setOnboardingActiveStep', step);
+      });
+
+      it('should update from different onboarding step', () => {
+        // Arrange
+        const loggerSpy = jest.spyOn(Logger, 'log');
+        const stateWithStep = {
+          ...initialState,
+          onboardingActiveStep: OnboardingStep.STEP_2,
+        };
+        const action = setOnboardingActiveStep(OnboardingStep.STEP_4);
+
+        // Act
+        const state = rewardsReducer(stateWithStep, action);
+
+        // Assert
+        expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_4);
+        expect(loggerSpy).toHaveBeenCalledWith(
+          'setOnboardingActiveStep',
+          OnboardingStep.STEP_4,
+        );
+      });
+
+      it('should call logger even when step is the same', () => {
+        // Arrange
+        const loggerSpy = jest.spyOn(Logger, 'log');
+        const stateWithStep = {
+          ...initialState,
+          onboardingActiveStep: OnboardingStep.STEP_1,
+        };
+        const action = setOnboardingActiveStep(OnboardingStep.STEP_1);
+
+        // Act
+        const state = rewardsReducer(stateWithStep, action);
+
+        // Assert
+        expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_1);
+        expect(loggerSpy).toHaveBeenCalledWith(
+          'setOnboardingActiveStep',
+          OnboardingStep.STEP_1,
+        );
+      });
+    });
+
+    describe('resetOnboarding', () => {
+      it('should reset onboarding to INTRO step', () => {
+        // Arrange
+        const stateWithStep = {
+          ...initialState,
+          onboardingActiveStep: OnboardingStep.STEP_3,
+        };
+        const action = resetOnboarding();
+
+        // Act
+        const state = rewardsReducer(stateWithStep, action);
+
+        // Assert
+        expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
+      });
+
+      it('should not affect other state properties', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          onboardingActiveStep: OnboardingStep.STEP_4,
+          referralCode: 'KEEP123',
+          balanceTotal: 1500,
+        };
+        const action = resetOnboarding();
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
+        expect(state.referralCode).toBe('KEEP123');
+        expect(state.balanceTotal).toBe(1500);
+      });
+    });
+
+    describe('setGeoRewardsMetadata', () => {
+      it('should update geo metadata when payload is provided', () => {
+        // Arrange
+        const geoMetadata = {
+          geoLocation: 'US',
+          optinAllowedForGeo: true,
+        };
+        const action = setGeoRewardsMetadata(geoMetadata);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.geoLocation).toBe('US');
+        expect(state.optinAllowedForGeo).toBe(true);
+        expect(state.optinAllowedForGeoLoading).toBe(false);
+      });
+
+      it('should update geo metadata with different location', () => {
+        // Arrange
+        const geoMetadata = {
+          geoLocation: 'CA',
+          optinAllowedForGeo: false,
+        };
+        const action = setGeoRewardsMetadata(geoMetadata);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.geoLocation).toBe('CA');
+        expect(state.optinAllowedForGeo).toBe(false);
+        expect(state.optinAllowedForGeoLoading).toBe(false);
+      });
+
+      it('should clear geo metadata when payload is null', () => {
+        // Arrange
+        const stateWithGeoData = {
+          ...initialState,
+          geoLocation: 'EU',
+          optinAllowedForGeo: true,
+          optinAllowedForGeoLoading: true,
+        };
+        const action = setGeoRewardsMetadata(null);
+
+        // Act
+        const state = rewardsReducer(stateWithGeoData, action);
+
+        // Assert
+        expect(state.geoLocation).toBe(null);
+        expect(state.optinAllowedForGeo).toBe(false);
+        expect(state.optinAllowedForGeoLoading).toBe(false);
+      });
+
+      it('should reset loading state when metadata is set', () => {
+        // Arrange
+        const stateWithLoading = {
+          ...initialState,
+          optinAllowedForGeoLoading: true,
+        };
+        const geoMetadata = {
+          geoLocation: 'UK',
+          optinAllowedForGeo: true,
+        };
+        const action = setGeoRewardsMetadata(geoMetadata);
+
+        // Act
+        const state = rewardsReducer(stateWithLoading, action);
+
+        // Assert
+        expect(state.geoLocation).toBe('UK');
+        expect(state.optinAllowedForGeo).toBe(true);
+        expect(state.optinAllowedForGeoLoading).toBe(false);
+      });
+    });
+
+    describe('setGeoRewardsMetadataLoading', () => {
+      it('should set geo rewards metadata loading to true', () => {
+        // Arrange
+        const action = setGeoRewardsMetadataLoading(true);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.optinAllowedForGeoLoading).toBe(true);
+      });
+
+      it('should set geo rewards metadata loading to false', () => {
+        // Arrange
+        const stateWithLoading = {
+          ...initialState,
+          optinAllowedForGeoLoading: true,
+        };
+        const action = setGeoRewardsMetadataLoading(false);
+
+        // Act
+        const state = rewardsReducer(stateWithLoading, action);
+
+        // Assert
+        expect(state.optinAllowedForGeoLoading).toBe(false);
+      });
+    });
+
+    describe('setCandidateSubscriptionId', () => {
+      it('should set candidate subscription ID to a string value', () => {
+        // Arrange
+        const action = setCandidateSubscriptionId('sub-12345');
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.candidateSubscriptionId).toBe('sub-12345');
+      });
+
+      it('should set candidate subscription ID to pending', () => {
+        // Arrange
+        const stateWithId = {
+          ...initialState,
+          candidateSubscriptionId: 'existing-id' as const,
+        };
+        const action = setCandidateSubscriptionId('pending');
+
+        // Act
+        const state = rewardsReducer(stateWithId, action);
+
+        // Assert
+        expect(state.candidateSubscriptionId).toBe('pending');
+      });
+
+      it('should set candidate subscription ID to error', () => {
+        // Arrange
+        const action = setCandidateSubscriptionId('error');
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.candidateSubscriptionId).toBe('error');
+      });
+
+      it('should set candidate subscription ID to null', () => {
+        // Arrange
+        const stateWithId = {
+          ...initialState,
+          candidateSubscriptionId: 'existing-id' as const,
+        };
+        const action = setCandidateSubscriptionId(null);
+
+        // Act
+        const state = rewardsReducer(stateWithId, action);
+
+        // Assert
+        expect(state.candidateSubscriptionId).toBe(null);
+      });
+
+      it('should not affect other state properties', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          candidateSubscriptionId: 'old-id',
+          referralCode: 'KEEP123',
+          balanceTotal: 1500,
+        };
+        const action = setCandidateSubscriptionId('new-id');
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.candidateSubscriptionId).toBe('new-id');
+        expect(state.referralCode).toBe('KEEP123');
+        expect(state.balanceTotal).toBe(1500);
+      });
+    });
+
+    describe('setHideUnlinkedAccountsBanner', () => {
+      it('should set hide unlinked accounts banner to true', () => {
+        // Arrange
+        const action = setHideUnlinkedAccountsBanner(true);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.hideUnlinkedAccountsBanner).toBe(true);
+      });
+
+      it('should set hide unlinked accounts banner to false', () => {
+        // Arrange
+        const stateWithBannerHidden = {
+          ...initialState,
+          hideUnlinkedAccountsBanner: true,
+        };
+        const action = setHideUnlinkedAccountsBanner(false);
+
+        // Act
+        const state = rewardsReducer(stateWithBannerHidden, action);
+
+        // Assert
+        expect(state.hideUnlinkedAccountsBanner).toBe(false);
+      });
+
+      it('should not affect other state properties', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          hideUnlinkedAccountsBanner: false,
+          referralCode: 'KEEP123',
+          balanceTotal: 1500,
+        };
+        const action = setHideUnlinkedAccountsBanner(true);
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.hideUnlinkedAccountsBanner).toBe(true);
+        expect(state.referralCode).toBe('KEEP123');
+        expect(state.balanceTotal).toBe(1500);
+      });
+    });
+
+    describe('resetRewardsState', () => {
+      it('should reset all state to initial values', () => {
+        // Arrange
+        const stateWithData: RewardsState = {
+          activeTab: 'activity' as const,
+          seasonStatusLoading: true,
+          seasonId: 'test-season-id',
+          referralDetailsLoading: false,
+          referralCode: 'TEST123',
+          refereeCount: 10,
+          currentTier: {
+            id: 'tier-platinum',
+            name: 'Platinum',
+            pointsNeeded: 1000,
+          },
+          nextTier: {
+            id: 'tier-diamond',
+            name: 'Diamond',
+            pointsNeeded: 2000,
+          },
+          nextTierPointsNeeded: 1000,
+          balanceTotal: 5000,
+          balanceRefereePortion: 1000,
+          balanceUpdatedAt: new Date('2024-01-01'),
+          seasonName: 'Test Season',
+          seasonStartDate: new Date('2024-01-01'),
+          seasonEndDate: new Date('2024-12-31'),
+          seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
+          onboardingActiveStep: OnboardingStep.STEP_1,
+          candidateSubscriptionId: 'some-id',
+          geoLocation: 'US',
+          optinAllowedForGeo: true,
+          optinAllowedForGeoLoading: false,
+          hideUnlinkedAccountsBanner: true,
+        };
+        const action = resetRewardsState();
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state).toEqual(
+          expect.objectContaining({
+            activeTab: 'overview',
+            seasonId: null,
+            seasonStatusLoading: false,
+            referralDetailsLoading: false,
+            referralCode: null,
+            refereeCount: 0,
+            currentTier: null,
+            nextTier: null,
+            nextTierPointsNeeded: null,
+            balanceTotal: 0,
+            balanceRefereePortion: 0,
+            balanceUpdatedAt: null,
+            seasonName: null,
+            seasonStartDate: null,
+            seasonEndDate: null,
+            seasonTiers: [],
+            onboardingActiveStep: OnboardingStep.INTRO,
+            candidateSubscriptionId: 'pending',
+            geoLocation: null,
+            optinAllowedForGeo: false,
+            optinAllowedForGeoLoading: false,
+            hideUnlinkedAccountsBanner: false,
+          }),
+        );
+      });
+    });
+
+    describe('persist/REHYDRATE', () => {
+      it('should reset all state to initial values and only restore hideUnlinkedAccountsBanner', () => {
+        // Arrange
+        const persistedRewardsState: RewardsState = {
           activeTab: 'activity',
-          seasonStatusLoading: false, // Reset to false during rehydration
+          seasonStatusLoading: true,
+          seasonId: 'test-season-id',
+          seasonName: 'Persisted Season',
+          seasonStartDate: new Date('2024-01-01'),
+          seasonEndDate: new Date('2024-12-31'),
+          seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
           referralDetailsLoading: false,
           referralCode: 'PERSISTED123',
           refereeCount: 15,
@@ -784,48 +997,142 @@ describe('rewardsReducer', () => {
           balanceTotal: 2000,
           balanceRefereePortion: 400,
           balanceUpdatedAt: new Date('2024-05-01'),
-          seasonName: 'Persisted Season',
-          seasonStartDate: new Date('2024-01-01'),
-          seasonEndDate: new Date('2024-12-31'),
-          seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
           onboardingActiveStep: OnboardingStep.STEP_2,
+          candidateSubscriptionId: 'some-id',
           geoLocation: 'CA',
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
-        }),
-      );
+          hideUnlinkedAccountsBanner: true, // This should be preserved
+        };
+        const rehydrateAction = {
+          type: 'persist/REHYDRATE',
+          payload: {
+            rewards: persistedRewardsState,
+          },
+        };
+
+        // Act
+        const state = rewardsReducer(initialState, rehydrateAction);
+
+        // Assert - All state should be reset to initial except hideUnlinkedAccountsBanner
+        expect(state).toEqual(
+          expect.objectContaining({
+            activeTab: 'overview', // Reset to initial
+            seasonStatusLoading: false, // Reset to initial
+            seasonId: null, // Reset to initial
+            seasonName: null, // Reset to initial
+            seasonStartDate: null, // Reset to initial
+            seasonEndDate: null, // Reset to initial
+            seasonTiers: [], // Reset to initial
+            referralDetailsLoading: false, // Reset to initial
+            referralCode: null, // Reset to initial
+            refereeCount: 0, // Reset to initial
+            currentTier: null, // Reset to initial
+            nextTier: null, // Reset to initial
+            nextTierPointsNeeded: null, // Reset to initial
+            balanceTotal: 0, // Reset to initial
+            balanceRefereePortion: 0, // Reset to initial
+            balanceUpdatedAt: null, // Reset to initial
+            onboardingActiveStep: OnboardingStep.INTRO, // Reset to initial
+            candidateSubscriptionId: 'pending', // Reset to initial
+            geoLocation: null, // Reset to initial
+            optinAllowedForGeo: false, // Reset to initial
+            optinAllowedForGeoLoading: false, // Reset to initial
+            hideUnlinkedAccountsBanner: true, // Only this should be preserved
+          }),
+        );
+      });
+
+      it('should handle rehydration with hideUnlinkedAccountsBanner false', () => {
+        // Arrange
+        const persistedRewardsState: RewardsState = {
+          ...initialState,
+          referralCode: 'SOME_CODE', // This will be reset
+          hideUnlinkedAccountsBanner: false, // This should be preserved
+        };
+        const rehydrateAction = {
+          type: 'persist/REHYDRATE',
+          payload: {
+            rewards: persistedRewardsState,
+          },
+        };
+
+        // Act
+        const state = rewardsReducer(initialState, rehydrateAction);
+
+        // Assert
+        expect(state.hideUnlinkedAccountsBanner).toBe(false);
+        expect(state.referralCode).toBe(null); // Should be reset
+      });
+
+      it('should return current state when no rewards data in rehydrate payload', () => {
+        // Arrange
+        const currentState = { ...initialState, referralCode: 'CURRENT123' };
+        const rehydrateAction = {
+          type: 'persist/REHYDRATE',
+          payload: {
+            someOtherReducer: {},
+          },
+        };
+
+        // Act
+        const state = rewardsReducer(currentState, rehydrateAction);
+
+        // Assert
+        expect(state).toEqual(currentState);
+      });
+
+      it('should return current state when rehydrate payload is empty', () => {
+        // Arrange
+        const currentState = { ...initialState, referralCode: 'CURRENT123' };
+        const rehydrateAction = {
+          type: 'persist/REHYDRATE',
+          payload: undefined,
+        };
+
+        // Act
+        const state = rewardsReducer(currentState, rehydrateAction);
+
+        // Assert
+        expect(state).toEqual(currentState);
+      });
     });
 
-    it('should return current state when no rewards data in rehydrate payload', () => {
-      // Arrange
-      const currentState = { ...initialState, referralCode: 'CURRENT123' };
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: {
-          someOtherReducer: {},
-        },
-      };
+    describe('unknown actions', () => {
+      it('should return unchanged state for unknown actions', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          referralCode: 'SOME_CODE',
+          balanceTotal: 1000,
+          activeTab: 'activity' as const,
+        };
+        const unknownAction = { type: 'UNKNOWN_ACTION', payload: 'some data' };
 
-      // Act
-      const state = rewardsReducer(currentState, rehydrateAction);
+        // Act
+        const state = rewardsReducer(
+          stateWithData,
+          unknownAction as unknown as Action,
+        );
 
-      // Assert
-      expect(state).toEqual(currentState);
-    });
+        // Assert
+        expect(state).toEqual(stateWithData);
+        expect(state).toBe(stateWithData); // Should be the same reference
+      });
 
-    it('should return current state when rehydrate payload is empty', () => {
-      // Arrange
-      const currentState = { ...initialState, referralCode: 'CURRENT123' };
-      const rehydrateAction = {
-        type: 'persist/REHYDRATE',
-        payload: undefined,
-      };
+      it('should return initial state for unknown action when state is undefined', () => {
+        // Arrange
+        const unknownAction = { type: 'UNKNOWN_ACTION', payload: 'some data' };
 
-      // Act
-      const state = rewardsReducer(currentState, rehydrateAction);
+        // Act
+        const state = rewardsReducer(
+          undefined,
+          unknownAction as unknown as Action,
+        );
 
-      // Assert
-      expect(state).toEqual(currentState);
+        // Assert
+        expect(state).toEqual(initialState);
+      });
     });
   });
 });

@@ -359,8 +359,6 @@ stages:
       - run_tag_flask_build_tests_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_card_ios: {}
-      - run_tag_smoke_card_android: {}
   run_single_e2e_ios_android_stage:
     workflows:
       - run_single_ios_e2e_test: {}
@@ -738,7 +736,7 @@ workflows:
                 Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
 
                 >[!NOTE]
-                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `run-ios-e2e-smoke` label on the pull request
 
                 <!-- BITRISE_TAG -->
                 <!-- BITRISE_SUCCESS_TAG -->
@@ -810,7 +808,7 @@ workflows:
 
                 >[!NOTE]
                 >- You can rerun any failed steps by opening the Bitrise build, tapping `Rebuild` on the upper right then `Rebuild unsuccessful Workflows`
-                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `run-ios-e2e-smoke` label on the pull request
 
                 > [!TIP]
                 >- Check the [documentation](https://www.notion.so/metamask-consensys/Bitrise-Pipeline-Overview-43159500c43748a389556f0593e8834b#26052f2ea6e24f8c9cfdb57a7522dc1f) if you have any doubts on how to understand the failure on bitrise
@@ -2445,6 +2443,15 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/generated/sourcemaps/react/$OUTPUT_PATH
+            - is_compress: true
+            - zip_name: Android_Sourcemaps_$OUTPUT_PATH
+          title: Deploy Android Sourcemaps
       - script@1:
           title: Prepare Android build outputs for caching
           run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
@@ -3742,13 +3749,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.56.0
+      VERSION_NAME: 7.57.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 2349
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.56.0
+      FLASK_VERSION_NAME: 7.57.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 2349

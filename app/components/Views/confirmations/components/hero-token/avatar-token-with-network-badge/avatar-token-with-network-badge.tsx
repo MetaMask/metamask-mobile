@@ -33,7 +33,6 @@ const AvatarTokenOrNetworkAssetLogo = ({
   const { styles } = useStyles(styleSheet, {});
   const { image, isNative } = asset;
   const isUnknownToken = displayName === strings('token.unknown');
-
   return isNative ? (
     <NetworkAssetLogo
       big
@@ -41,6 +40,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
       chainId={chainId}
       style={styles.avatarToken}
       ticker={displayName}
+      testID={`avatar-with-badge-avatar-token-${displayName}`}
     />
   ) : (
     <AvatarToken
@@ -73,7 +73,7 @@ export const AvatarTokenWithNetworkBadge = () => {
         }
       >
         <AvatarTokenOrNetworkAssetLogo
-          asset={asset}
+          asset={asset as TokenI}
           chainId={chainId}
           displayName={displayName}
         />

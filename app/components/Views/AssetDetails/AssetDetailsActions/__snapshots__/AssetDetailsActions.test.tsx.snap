@@ -6,8 +6,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     {
       "flexDirection": "row",
       "gap": 8,
+      "paddingBottom": 0,
       "paddingHorizontal": 16,
-      "paddingVertical": 20,
+      "paddingTop": 24,
       "width": "100%",
     }
   }
@@ -16,6 +17,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -75,7 +77,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             false,
           ]
         }
-        testID="token-fund-button"
+        testID="token-buy-button"
       >
         <View
           style={
@@ -89,7 +91,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             color="#686e7d"
             fill="currentColor"
             height={20}
-            name="Money"
+            name="AttachMoney"
             style={
               {
                 "height": 20,
@@ -104,6 +106,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -113,7 +116,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               }
             }
           >
-            Fund
+            Buy
           </Text>
         </View>
       </View>
@@ -123,6 +126,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -211,6 +215,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -230,6 +235,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -318,6 +324,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -337,6 +344,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -425,6 +433,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -444,6 +453,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -532,6 +542,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
