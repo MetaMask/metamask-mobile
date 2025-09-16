@@ -391,7 +391,7 @@
     "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
-    "password": "Create new password",
+    "password": "Create password",
     "confirm_password": "Confirm password",
     "create_button": "Create password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
@@ -404,7 +404,7 @@
     "show": "Show",
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
-    "must_be_at_least": "Password must have at least {{number}} characters",
+    "must_be_at_least": "Must be at least {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -462,7 +462,7 @@
   "import_from_seed": {
     "title": "Import a wallet",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
-    "create_new_password": "Create new password",
+    "create_new_password": "Create password",
     "confirm_password": "Confirm password",
     "import_button": "IMPORT",
     "cancel_button": "Cancel",
@@ -491,7 +491,7 @@
     "srp": "Secret Recovery Phrase",
     "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "Learn more",
-    "create_password_cta": "Create password",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Continue with Flow",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
@@ -1263,7 +1263,9 @@
         "margin": "Margin",
         "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close position"
+        "close_position": "Close position",
+        "tpsl_count_multiple": "{{count}} orders",
+        "tpsl_count_single": "{{count}} order"
       },
       "list": {
         "loading": "Loading positions...",
@@ -1391,7 +1393,13 @@
         "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",
         "turn_on_button": "Turn on"
       },
-      "got_it_button": "Got it"
+      "got_it_button": "Got it",
+      "tpsl_count_warning": {
+        "title": "Multiple TP/SL orders are active",
+        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
+        "view_orders_button": "View orders",
+        "got_it_button": "Got it"
+      }
     },
     "connection": {
       "failed": "Connection Failed",
@@ -3928,14 +3936,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "buy",
     "sell": "sell",
-    "orders": "Orders",
+    "orders": "Transfers",
     "All": "All",
     "Buy": "Buy",
     "Sell": "Sell",
     "token_marketplace": "Token marketplace",
     "Purchased": "Purchased",
     "Sold": "Sold",
-    "empty_orders_list": "You don't have any orders",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "You don't have any buy orders",
     "empty_sell_orders_list": "You don't have any sell orders",
     "purchased_currency": "Purchased {{currency}}",
@@ -5793,6 +5801,29 @@
 
     "link_account": "Link account",
     "linking_account": "Linking...",
+
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
 
     "referral": {
       "actions": {

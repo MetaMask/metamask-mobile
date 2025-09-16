@@ -261,6 +261,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 100,
           returnOnEquity: '2.0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
         {
           coin: 'ETH',
@@ -274,6 +276,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 50,
           returnOnEquity: '3.33',
           cumulativeFunding: { allTime: '5', sinceOpen: '2', sinceChange: '1' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -296,6 +300,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 100,
           returnOnEquity: '-2.0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
         {
           coin: 'ETH',
@@ -309,6 +315,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 50,
           returnOnEquity: '-3.33',
           cumulativeFunding: { allTime: '5', sinceOpen: '2', sinceChange: '1' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -337,6 +345,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 100,
           returnOnEquity: '2.0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -361,6 +371,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 100,
           returnOnEquity: '2.0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
         {
           coin: 'ETH',
@@ -374,6 +386,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 50,
           returnOnEquity: '3.33',
           cumulativeFunding: { allTime: '5', sinceOpen: '2', sinceChange: '1' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -400,6 +414,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 100,
           returnOnEquity: '-2.0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -432,6 +448,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 100,
           returnOnEquity: '0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -454,6 +472,8 @@ describe('pnlCalculations', () => {
           maxLeverage: 100,
           returnOnEquity: '0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
