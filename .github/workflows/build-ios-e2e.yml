@@ -110,36 +110,46 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # Fingerprint build check - integrated directly into workflow
-      - name: Generate current fingerprint
-        id: generate-fingerprint
-        run: |
-          FINGERPRINT=$(yarn -s fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: $FINGERPRINT"
-
-      - name: Restore previous build artifacts
+      # Fingerprint-based build decision
+      - name: Restore fingerprint cache
         if: ${{ inputs.build_action == 'check_fingerprint' }}
         uses: actions/cache@v4
         with:
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          path: .app-native-fingerprint
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}
           restore-keys: |
-            ios-artifacts-${{ github.event.pull_request.number || 'main' }}-
+            fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-
+            fingerprint-ios-main
 
-      - name: Check fingerprint and decide build method
-        id: build-decision
+      - name: Check fingerprints and decide build method
+        if: ${{ inputs.build_action == 'check_fingerprint' }}
+        id: fingerprint-check
         shell: bash
         run: |
-          ./scripts/fingerprint-build-check.sh \
-            "ios" \
-            "${{ inputs.build_action }}" \
-            "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" \
-            "${{ github.event.pull_request.number }}"
+          echo "🔍 Checking fingerprints..."
+          if yarn fingerprint:check; then
+            echo "✅ Can repack - fingerprints match"
+            echo "can_repack=true" >> "$GITHUB_OUTPUT"
+          elif [[ $? -eq 2 ]]; then
+            echo "🆕 First build - no saved fingerprint"
+            echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "🔄 Native code changed - full build required"
+            echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore cached app for repacking
+        if: ${{ inputs.build_action == 'check_fingerprint' && steps.fingerprint-check.outputs.can_repack == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-${{ github.event.pull_request.number || 'main' }}
+          restore-keys: |
+            ios-app-${{ github.event.pull_request.number || 'main' }}-
       
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
         run: |
           echo "🏗 Building iOS E2E App (Full Build)..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -174,7 +184,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Update JS and Assets
-        if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        if: ${{ inputs.build_action == 'check_fingerprint' && steps.fingerprint-check.outputs.can_repack == 'true' }}
         id: update-js
         run: |
           yarn setup:github-ci --no-build-ios --no-build-android
@@ -189,7 +199,7 @@ jobs:
           echo "bundle_path=$BUNDLE" >> "$GITHUB_OUTPUT"
 
       - name: Repackage App
-        if: ${{ steps.build-decision.outputs.build_method == 'repack' }}
+        if: ${{ inputs.build_action == 'check_fingerprint' && steps.fingerprint-check.outputs.can_repack == 'true' }}
         run: |
           BUNDLE="${{ steps.update-js.outputs.bundle_path }}"
           [ -f "$BUNDLE" ] || { echo "Bundle not found: $BUNDLE"; exit 1; }
@@ -197,17 +207,34 @@ jobs:
             --input ios/build/Build/Products/Release-iphonesimulator/MetaMask.app \
             --bundle "$BUNDLE"
 
-      # Cache artifacts only (no fingerprint file caching)
-      - name: Cache build artifacts for future reuse
-        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+      # Save fingerprint after successful builds
+      - name: Save build fingerprint
+        if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
+        run: |
+          ./scripts/save-build-fingerprint.sh "ios"
+
+      # Cache build artifacts
+      - name: Cache build artifacts
+        if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
         uses: actions/cache@v4
         with:
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-${{ github.event.pull_request.number || 'main' }}
+
+      # Cache fingerprint for future comparisons
+      - name: Cache fingerprint
+        if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
+        uses: actions/cache@v4
+        with:
+          path: .app-native-fingerprint
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}
 
       - name: Log Build Metrics
         if: always()
-        run: echo "Build:${{ steps.build-decision.outputs.build_method }} Cache:${{ steps.build-decision.outputs.cache_hit }}"
+        run: |
+          METHOD=$([[ "${{ inputs.build_action }}" == "check_fingerprint" && "${{ steps.fingerprint-check.outputs.can_repack }}" == "true" ]] && echo "repack" || echo "full")
+          echo "Build method: $METHOD"
+          echo "Action: ${{ inputs.build_action }}"
 
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)
