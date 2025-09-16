@@ -18,7 +18,6 @@ import {
   selectSeasonStatusLoading,
 } from '../../../../../reducers/rewards/selectors';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import MetamaskRewardsActivityEmptyImage from '../../../../../images/metamask-rewards-activity-empty.svg';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
@@ -86,7 +85,6 @@ const EmptyState: React.FC = () => {
 };
 
 export const ActivityTab: React.FC = () => {
-  const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const seasonId = useSelector(selectSeasonId);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
@@ -145,7 +143,6 @@ export const ActivityTab: React.FC = () => {
       onRefresh={refresh}
       refreshing={isRefreshing}
       horizontal={false}
-      style={tw.style('mt-6')}
     />
   );
 };
