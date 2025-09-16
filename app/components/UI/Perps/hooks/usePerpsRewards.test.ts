@@ -26,7 +26,6 @@ describe('usePerpsRewards', () => {
     protocolFeeRate: 0.00045,
     metamaskFeeRate: 0,
     originalMetamaskFeeRate: 0,
-    totalFeeRate: 0.00045,
     protocolFee: 45,
     metamaskFee: 0,
     totalFee: 45,

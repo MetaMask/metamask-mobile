@@ -91,7 +91,7 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
         >
           <Icon
             name={IconName.Info}
-            size={IconSize.Xs}
+            size={IconSize.Sm}
             color={IconColor.Muted}
           />
         </TouchableOpacity>

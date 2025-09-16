@@ -116,5 +116,8 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
+    pointsRightContainer: {
+      alignItems: 'flex-end',
+    },
   });
 export default createStyles;

@@ -30,8 +30,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import FoxIcon from '../../components/FoxIcon/FoxIcon';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import TagColored from '../../../../../component-library/components-temp/TagColored';
 import { TagColor } from '../../../../../component-library/components-temp/TagColored/TagColored.types';
 import ListItem from '../../../../../component-library/components/List/ListItem';
@@ -1110,31 +1108,36 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow && (
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('perps.points'),
-                  variant: TextVariant.BodyMDMedium,
-                },
-                tooltip: {
-                  title: strings('perps.points_tooltip'),
-                  content: strings('perps.points_tooltip_content'),
-                  size: TooltipSizes.Sm,
-                },
-              }}
-              value={{
-                label: (
-                  <RewardPointsDisplay
-                    estimatedPoints={rewardsState.estimatedPoints}
-                    bonusBips={rewardsState.bonusBips}
-                    isLoading={rewardsState.isLoading}
-                    hasError={rewardsState.hasError}
-                    shouldShow={rewardsState.shouldShowRewardsRow}
-                    isRefresh={rewardsState.isRefresh}
+            <View style={styles.infoRow}>
+              <View style={styles.detailLeft}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.points')}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => handleTooltipPress('points')}
+                  style={styles.infoIcon}
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.Muted}
                   />
-                ),
-              }}
-            />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.pointsRightContainer}>
+                <RewardPointsDisplay
+                  estimatedPoints={rewardsState.estimatedPoints}
+                  bonusBips={rewardsState.bonusBips}
+                  isLoading={rewardsState.isLoading}
+                  hasError={rewardsState.hasError}
+                  shouldShow={rewardsState.shouldShowRewardsRow}
+                  isRefresh={rewardsState.isRefresh}
+                />
+              </View>
+            </View>
           )}
         </View>
       </ScrollView>
@@ -1351,6 +1354,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
               ? {
                   metamaskFeeRate: feeResults.metamaskFeeRate,
                   protocolFeeRate: feeResults.protocolFeeRate,
+                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
                 }
               : undefined
           }
