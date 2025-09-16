@@ -69,3 +69,6 @@ export const selectActiveBoosts = (state: RootState) =>
 
 export const selectActiveBoostsLoading = (state: RootState) =>
   state.rewards.activeBoostsLoading;
+
+export const selectActiveBoostsError = (state: RootState) =>
+  state.rewards.activeBoostsError;

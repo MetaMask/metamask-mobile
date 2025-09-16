@@ -25,6 +25,7 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectActiveBoosts,
   selectActiveBoostsLoading,
+  selectActiveBoostsError,
 } from './selectors';
 import { OnboardingStep } from './types';
 import { SeasonTierDto } from '../../core/Engine/controllers/rewards-controller/types';
@@ -700,8 +701,8 @@ describe('Rewards selectors', () => {
       const { result } = renderHook(() => useSelector(selectActiveBoosts));
       expect(result.current).toEqual(mockBoosts);
       expect(result.current).toHaveLength(2);
-      expect(result.current[0].id).toBe('boost-1');
-      expect(result.current[1].seasonLong).toBe(false);
+      expect(result.current?.[0]?.id).toBe('boost-1');
+      expect(result.current?.[1]?.seasonLong).toBe(false);
     });
 
     it('returns single boost correctly', () => {
@@ -724,8 +725,8 @@ describe('Rewards selectors', () => {
       const { result } = renderHook(() => useSelector(selectActiveBoosts));
       expect(result.current).toEqual(singleBoost);
       expect(result.current).toHaveLength(1);
-      expect(result.current[0].name).toBe('Single Boost');
-      expect(result.current[0].boostBips).toBe(2000);
+      expect(result.current?.[0]?.name).toBe('Single Boost');
+      expect(result.current?.[0]?.boostBips).toBe(2000);
     });
   });
 
@@ -748,6 +749,46 @@ describe('Rewards selectors', () => {
         useSelector(selectHideUnlinkedAccountsBanner),
       );
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectActiveBoostsError', () => {
+    it('returns false when no error', () => {
+      const mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when error occurs', () => {
+      const mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectActiveBoostsError),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to error
+      mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Change back to no error
+      mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
     });
   });
 
@@ -850,6 +891,18 @@ describe('Rewards selectors', () => {
       it('returns null correctly', () => {
         const state = createMockRootState({ candidateSubscriptionId: null });
         expect(selectCandidateSubscriptionId(state)).toBeNull();
+      });
+    });
+
+    describe('selectActiveBoostsError direct calls', () => {
+      it('returns false when no error', () => {
+        const state = createMockRootState({ activeBoostsError: false });
+        expect(selectActiveBoostsError(state)).toBe(false);
+      });
+
+      it('returns true when error occurs', () => {
+        const state = createMockRootState({ activeBoostsError: true });
+        expect(selectActiveBoostsError(state)).toBe(true);
       });
     });
   });
@@ -1108,6 +1161,9 @@ describe('Rewards selectors', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        activeBoosts: [],
+        activeBoostsLoading: false,
+        activeBoostsError: false,
       });
 
       it('all selectors return expected values from comprehensive state', () => {
@@ -1143,6 +1199,9 @@ describe('Rewards selectors', () => {
         expect(selectOptinAllowedForGeo(comprehensiveState)).toBe(true);
         expect(selectOptinAllowedForGeoLoading(comprehensiveState)).toBe(false);
         expect(selectHideUnlinkedAccountsBanner(comprehensiveState)).toBe(true);
+        expect(selectActiveBoosts(comprehensiveState)).toEqual([]);
+        expect(selectActiveBoostsLoading(comprehensiveState)).toBe(false);
+        expect(selectActiveBoostsError(comprehensiveState)).toBe(false);
       });
       it('returns true when loading', () => {
         const mockState = { rewards: { activeBoostsLoading: true } };

@@ -14,6 +14,7 @@ import { useTheme } from '../../../../../../util/theme';
 import {
   selectActiveBoosts,
   selectActiveBoostsLoading,
+  selectActiveBoostsError,
 } from '../../../../../../reducers/rewards/selectors';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -25,6 +26,8 @@ import {
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
+import Logger from '../../../../../../util/Logger';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -145,44 +148,85 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   );
 };
 
+const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
+  <Box twClassName="mb-4">
+    <Box twClassName="flex-row items-center gap-2 mb-1">
+      <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+        {strings('rewards.active_boosts_title')}
+      </Text>
+      {count !== null && (
+        <Box twClassName="bg-text-muted rounded-full w-6 h-6 items-center justify-center">
+          <Text variant={TextVariant.BodySm} twClassName="text-default">
+            {count}
+          </Text>
+        </Box>
+      )}
+    </Box>
+  </Box>
+);
+
+const ErrorBanner: React.FC = () => (
+  <Box twClassName="bg-error-muted rounded-lg p-4 mb-4">
+    <Box twClassName="flex-row items-center gap-2">
+      <Icon
+        name={IconName.Danger}
+        size={IconSize.Sm}
+        twClassName="text-error-default"
+      />
+      <Text variant={TextVariant.BodyMd} twClassName="text-error-default">
+        {strings('rewards.active_boosts_error')}
+      </Text>
+    </Box>
+  </Box>
+);
+
 const ActiveBoosts: React.FC = () => {
-  const activeBoosts = useSelector(selectActiveBoosts) as PointsBoostDto[];
+  const tw = useTailwind();
+  const activeBoosts = useSelector(selectActiveBoosts) as
+    | PointsBoostDto[]
+    | null;
   const isLoading = useSelector(selectActiveBoostsLoading);
+  const hasError = useSelector(selectActiveBoostsError);
 
-  const numBoosts = useMemo(() => activeBoosts.length, [activeBoosts]);
+  const numBoosts = useMemo(() => activeBoosts?.length || null, [activeBoosts]);
 
-  if (isLoading || !numBoosts) {
+  Logger.log('ActiveBoosts', {
+    isLoading,
+    numBoosts,
+    hasError,
+    activeBoosts: activeBoosts?.length,
+  });
+
+  if (!isLoading && !hasError && numBoosts === 0) {
     return null;
   }
 
   return (
-    <Box twClassName="py-4">
-      {/* Section Title */}
-      <Box twClassName="mb-4">
-        <Box twClassName="flex-row items-center gap-2 mb-1">
-          <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-            {strings('rewards.active_boosts_title')}
-          </Text>
-          <Box twClassName="bg-text-muted rounded-full w-6 h-6 items-center justify-center">
-            <Text variant={TextVariant.BodySm} twClassName="text-default">
-              {numBoosts}
-            </Text>
-          </Box>
-        </Box>
-      </Box>
+    <Box>
+      {/* Always show section header */}
+      <SectionHeader count={isLoading ? 0 : numBoosts} />
 
-      {/* Horizontal Scrollable Cards */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
-        snapToInterval={CARD_WIDTH + CARD_SPACING}
-        snapToAlignment="start"
-      >
-        {activeBoosts.map((boost: PointsBoostDto, index: number) => (
-          <BoostCard key={boost.id} boost={boost} index={index} />
-        ))}
-      </ScrollView>
+      {/* Show error banner if there's an error */}
+      {hasError && <ErrorBanner />}
+
+      {/* Show loading state */}
+      {isLoading || !activeBoosts ? (
+        <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
+      ) : hasError ? null /* Show active boosts */ : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          snapToInterval={CARD_WIDTH + CARD_SPACING}
+          snapToAlignment="start"
+        >
+          {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
+            <BoostCard key={boost.id} boost={boost} index={index} />
+          ))}
+        </ScrollView>
+      ) : (
+        <></>
+      )}
     </Box>
   );
 };

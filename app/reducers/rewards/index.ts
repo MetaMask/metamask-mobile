@@ -49,8 +49,9 @@ export interface RewardsState {
   hideUnlinkedAccountsBanner: boolean;
 
   // Points Boost state
-  activeBoosts: PointsBoostDto[];
+  activeBoosts: PointsBoostDto[] | null;
   activeBoostsLoading: boolean;
+  activeBoostsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -82,8 +83,9 @@ export const initialState: RewardsState = {
   optinAllowedForGeoLoading: false,
   hideUnlinkedAccountsBanner: false,
 
-  activeBoosts: [],
+  activeBoosts: null,
   activeBoostsLoading: false,
+  activeBoostsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -209,16 +211,19 @@ const rewardsSlice = createSlice({
 
     setActiveBoosts: (state, action: PayloadAction<PointsBoostDto[]>) => {
       state.activeBoosts = action.payload;
+      state.activeBoostsError = false; // Reset error when successful
     },
     setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
       state.activeBoostsLoading = action.payload;
+    },
+    setActiveBoostsError: (state, action: PayloadAction<boolean>) => {
+      state.activeBoostsError = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
       if (action.payload?.rewards) {
         return {
-          ...action.payload.rewards,
           // Reset non-persistent state (state is persisted via controller)
           ...initialState,
           // Restore only a few persistent state
@@ -246,6 +251,7 @@ export const {
   setHideUnlinkedAccountsBanner,
   setActiveBoosts,
   setActiveBoostsLoading,
+  setActiveBoostsError,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

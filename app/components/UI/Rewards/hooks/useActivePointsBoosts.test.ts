@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import {
   setActiveBoosts,
   setActiveBoostsLoading,
+  setActiveBoostsError,
 } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -24,6 +25,7 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../reducers/rewards', () => ({
   setActiveBoosts: jest.fn(),
   setActiveBoostsLoading: jest.fn(),
+  setActiveBoostsError: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -116,8 +118,8 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockLogger).toHaveBeenCalledWith(
       'useActivePointsBoosts: Missing seasonId or subscriptionId',
       {
@@ -143,8 +145,8 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockLogger).toHaveBeenCalledWith(
       'useActivePointsBoosts: Missing seasonId or subscriptionId',
       {
@@ -172,6 +174,7 @@ describe('useActivePointsBoosts', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setActiveBoosts(mockActiveBoosts),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });
@@ -195,6 +198,7 @@ describe('useActivePointsBoosts', () => {
       'useActivePointsBoosts: Failed to fetch active points boosts:',
       'Network error',
     );
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // Verify setActiveBoosts was not called in error case to prevent UI flash
     const setActiveBoostsCalls = mockDispatch.mock.calls.filter(
@@ -214,7 +218,10 @@ describe('useActivePointsBoosts', () => {
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });
 
@@ -226,7 +233,10 @@ describe('useActivePointsBoosts', () => {
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });
 });

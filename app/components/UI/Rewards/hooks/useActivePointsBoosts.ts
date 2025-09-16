@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
   setActiveBoosts,
+  setActiveBoostsError,
   setActiveBoostsLoading,
 } from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
@@ -27,8 +28,8 @@ export const useActivePointsBoosts = (): void => {
         seasonId,
         subscriptionId,
       });
-      dispatch(setActiveBoosts([]));
       dispatch(setActiveBoostsLoading(false));
+      dispatch(setActiveBoostsError(false));
       return;
     }
 
@@ -51,6 +52,7 @@ export const useActivePointsBoosts = (): void => {
         );
 
       dispatch(setActiveBoosts(fetchedBoosts || []));
+      dispatch(setActiveBoostsError(false));
     } catch (fetchError) {
       Logger.log(
         'useActivePointsBoosts: Failed to fetch active points boosts:',
@@ -58,6 +60,7 @@ export const useActivePointsBoosts = (): void => {
       );
       // Keep existing data on error to prevent UI flash
       // Don't dispatch setActiveBoosts([]) here
+      dispatch(setActiveBoostsError(true));
     } finally {
       isLoadingRef.current = false;
       dispatch(setActiveBoostsLoading(false));

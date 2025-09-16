@@ -10,7 +10,7 @@ interface RewardsActivityProps {
 
 const RewardsActivity: React.FC<RewardsActivityProps> = () => (
   <Box
-    twClassName="flex-1"
+    twClassName="flex-1 mt-4"
     testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_ACTIVITY}
   >
     <ActivityTab />
