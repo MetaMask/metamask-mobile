@@ -21,6 +21,7 @@ import Button, {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -155,7 +156,11 @@ const NotificationsView = ({
             />
           )}
         </>
-      ) : null}
+      ) : (
+        <Empty
+          testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
+        />
+      )}
     </View>
   );
 };

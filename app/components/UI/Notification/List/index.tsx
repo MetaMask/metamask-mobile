@@ -150,7 +150,7 @@ function useNotificationListProps(props: {
           />
         ),
         onRefresh: async () => await listNotifications(),
-        refreshing: isLoading,
+        refreshing: isLoading ?? false,
         initialNumToRender: 10,
         maxToRenderPerBatch: 2,
         onEndReachedThreshold: 0.5,
