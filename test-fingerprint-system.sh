@@ -152,8 +152,50 @@ fi
 
 echo ""
 
-# Test 8: Help output validation
-echo "Test 8: Help Output Validation"
+# Test 8: Test new script files
+echo "Test 8: Test Script Files"
+echo "-------------------------"
+
+# Test fingerprint-build-check.sh
+echo "Testing fingerprint-build-check.sh..."
+if [ -f "./scripts/fingerprint-build-check.sh" ]; then
+    # Test skip action
+    OUTPUT=$(./scripts/fingerprint-build-check.sh android skip "" "" 2>&1)
+    if echo "$OUTPUT" | grep -q "build_method=skip"; then
+        echo -e "${GREEN}✅ SUCCESS: Skip action test passed${NC}"
+    else
+        echo -e "${RED}❌ FAILED: Skip action test failed${NC}"
+    fi
+    
+    # Test full action
+    OUTPUT=$(./scripts/fingerprint-build-check.sh ios full "" "" 2>&1)
+    if echo "$OUTPUT" | grep -q "build_method=full"; then
+        echo -e "${GREEN}✅ SUCCESS: Full action test passed${NC}"
+    else
+        echo -e "${RED}❌ FAILED: Full action test failed${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠️  WARNING: fingerprint-build-check.sh not found${NC}"
+fi
+
+# Test save-build-fingerprint.sh
+echo "Testing save-build-fingerprint.sh..."
+if [ -f "./scripts/save-build-fingerprint.sh" ]; then
+    OUTPUT=$(./scripts/save-build-fingerprint.sh android 2>&1)
+    if echo "$OUTPUT" | grep -q "Fingerprint saved"; then
+        echo -e "${GREEN}✅ SUCCESS: Save fingerprint test passed${NC}"
+        rm -f .app-native-fingerprint  # Clean up
+    else
+        echo -e "${RED}❌ FAILED: Save fingerprint test failed${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠️  WARNING: save-build-fingerprint.sh not found${NC}"
+fi
+
+echo ""
+
+# Test 9: Help output validation
+echo "Test 9: Help Output Validation"
 echo "------------------------------"
 echo "Testing unified repacking tool help..."
 if yarn repack 2>&1 | grep -q "Usage:"; then
@@ -185,6 +227,8 @@ echo "✅ Silent mode output"
 echo "✅ Error handling"
 echo "✅ Unified repacking tool validation (Android & iOS)"
 echo "✅ Cross-platform CLI interface"
+echo "✅ Script-based fingerprint checking logic"
+echo "✅ Script-based fingerprint saving logic"
 echo ""
 echo "What requires CI environment:"
 echo "❓ Actual APK/.app repacking (needs real artifacts)"

@@ -19,22 +19,7 @@ runs:
       id: fingerprint
       shell: bash
       run: |
-        # Set environment variables from inputs
-        INPUT_PLATFORM="${{ inputs.platform }}"
-        INPUT_ARTIFACTS_PATH="${{ inputs.artifacts_path }}"
-        INPUT_PR_NUMBER="${{ inputs.pr_number }}"
-
-        echo "Generating fingerprint for $INPUT_PLATFORM..."
-        FINGERPRINT=$(yarn -s fingerprint:generate)
-        
-        if [ -z "$FINGERPRINT" ]; then
-          echo "❌ Error: Failed to generate fingerprint"
-          exit 1
-        fi
-        
-        echo "$FINGERPRINT" > .app-native-fingerprint
-        echo "✅ Fingerprint saved: $FINGERPRINT"
-        echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+        ./scripts/save-build-fingerprint.sh "${{ inputs.platform }}"
 
     - name: Cache build artifacts for future reuse
       uses: actions/cache@v4
