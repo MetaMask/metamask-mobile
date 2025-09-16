@@ -31,17 +31,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.18.0'
-          cache: 'yarn'
-
-      - name: Enable Corepack and setup Yarn v3
-        run: |
-          corepack enable
-          corepack prepare yarn@3.8.7 --activate
-
       - name: Setup Android Build Environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
         with:
@@ -49,6 +38,13 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           target: qa
+
+      - name: Override with Yarn v3 setup
+        run: |
+          echo "🔄 Overriding Yarn v1 with Yarn v3..."
+          corepack enable
+          corepack prepare yarn@3.8.7 --activate
+          yarn --version
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
