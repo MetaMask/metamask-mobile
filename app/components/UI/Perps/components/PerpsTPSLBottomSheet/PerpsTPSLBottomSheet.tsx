@@ -335,28 +335,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   ]);
 
   const dismissKeypad = useCallback(() => {
-    // Blur all inputs to ensure none remain focused
+    // Blur the currently focused input to trigger onBlur events
     if (focusedInput === 'takeProfitPrice') {
-      handleTakeProfitPriceBlur();
       takeProfitPriceRef.current?.blur();
     } else if (focusedInput === 'takeProfitPercentage') {
-      handleTakeProfitPercentageBlur();
       takeProfitPercentageRef.current?.blur();
     } else if (focusedInput === 'stopLossPrice') {
-      handleStopLossPriceBlur();
       stopLossPriceRef.current?.blur();
     } else if (focusedInput === 'stopLossPercentage') {
-      handleStopLossPercentageBlur();
       stopLossPercentageRef.current?.blur();
     }
     setFocusedInput(null);
-  }, [
-    focusedInput,
-    handleTakeProfitPriceBlur,
-    handleTakeProfitPercentageBlur,
-    handleStopLossPriceBlur,
-    handleStopLossPercentageBlur,
-  ]);
+  }, [focusedInput]);
 
   // Show overlay if updating
   const showOverlay = isUpdating;
