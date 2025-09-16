@@ -26,7 +26,7 @@ import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { toChecksumAddress } from '../../../../../util/address';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { EthScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, EthScope, SolScope } from '@metamask/keyring-api';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -158,6 +158,9 @@ export const useTokensWithBalance: ({
   const solanaInternalAccountId = selectedAccountGroupInternalAccounts.find(
     (account) => account.scopes.includes(SolScope.Mainnet),
   )?.id;
+  const bitcoinInternalAccountId = selectedAccountGroupInternalAccounts.find(
+    (account) => account.scopes.includes(BtcScope.Mainnet),
+  )?.id;
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -176,9 +179,11 @@ export const useTokensWithBalance: ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, solanaInternalAccountId),
-  );
+  const nonEvmTokens = useSelector((state: RootState) => {
+    const solanaTokens = selectMultichainTokenListForAccountId(state, solanaInternalAccountId);
+    const bitcoinTokens = selectMultichainTokenListForAccountId(state, bitcoinInternalAccountId);
+    return [...solanaTokens, ...bitcoinTokens];
+  });
   ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
