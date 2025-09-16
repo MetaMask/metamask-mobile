@@ -44,6 +44,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_POSITION_VIEW,
 } from '../../utils/formatUtils';
+import { Button } from '@metamask/design-system-react-native';
 
 // Quick percentage buttons constants - RoE percentages
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
@@ -85,6 +86,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const { startMeasure, endMeasure } = usePerpsPerformance();
 
   // Keypad state management
@@ -218,6 +220,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       });
     }
   }, [isVisible, startMeasure, endMeasure]);
+
+  // Scroll to bottom when keypad opens
+  useEffect(() => {
+    if (focusedInput) {
+      // Small delay to ensure the keypad is rendered
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [focusedInput]);
 
   const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
@@ -368,10 +378,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <TouchableOpacity
+      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content}>
+        <View
           style={styles.scrollContent}
-          activeOpacity={1}
+          // activeOpacity={1}
           testID="scroll-content"
         >
           {showOverlay && (
@@ -714,7 +724,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </Text>
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Keypad Section - Show when input is focused */}
@@ -737,35 +747,29 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             currency="USD_PERPS"
             decimals={5}
           />
+          <Button onPress={dismissKeypad} style={styles.keypadDismissButton}>
+            {strings('perps.tpsl.dismiss_tpsl_keypad')}
+          </Button>
         </View>
       )}
 
-      {!focusedInput ? (
-        <BottomSheetFooter
-          buttonPropsArray={[
-            {
-              label: isUpdating
-                ? strings('perps.tpsl.updating')
-                : strings('perps.tpsl.set'),
-              variant: ButtonVariants.Primary,
-              size: ButtonSize.Lg,
-              onPress: handleConfirm,
-              isDisabled: confirmDisabled,
-              loading: isUpdating,
-            },
-          ]}
-        />
-      ) : (
-        <BottomSheetFooter
-          buttonPropsArray={[
-            {
-              label: strings('perps.tpsl.dismiss_tpsl_keypad'),
-              variant: ButtonVariants.Primary,
-              size: ButtonSize.Lg,
-              onPress: dismissKeypad,
-            },
-          ]}
-        />
+      {!focusedInput && (
+        <View style={styles.keypadFooter}>
+          <BottomSheetFooter
+            buttonPropsArray={[
+              {
+                label: isUpdating
+                  ? strings('perps.tpsl.updating')
+                  : strings('perps.tpsl.set'),
+                variant: ButtonVariants.Primary,
+                size: ButtonSize.Lg,
+                onPress: handleConfirm,
+                isDisabled: confirmDisabled,
+                loading: isUpdating,
+              },
+            ]}
+          />
+        </View>
       )}
     </BottomSheet>
   );
