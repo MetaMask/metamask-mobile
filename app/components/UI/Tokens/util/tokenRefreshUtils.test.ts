@@ -34,11 +34,13 @@ jest.mock('../../../../core/Engine', () => ({
         },
       },
     },
-    PreferencesController: {
+    NetworkEnablementController: {
       state: {
-        tokenNetworkFilter: {
-          '0x1': true,
-          '0x2': true,
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+            '0x2': true,
+          },
         },
       },
     },
@@ -73,13 +75,13 @@ describe('performEvmRefresh', () => {
     expect(
       Engine.context.TokenDetectionController.detectTokens,
     ).toHaveBeenCalledWith({
-      chainIds: Object.keys(fakeNetworkConfigurations),
+      chainIds: ['0x1', '0x2'],
     });
 
     expect(
       Engine.context.TokenBalancesController.updateBalances,
     ).toHaveBeenCalledWith({
-      chainIds: Object.keys(fakeNetworkConfigurations),
+      chainIds: ['0x1', '0x2'],
     });
 
     expect(

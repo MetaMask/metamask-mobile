@@ -39,16 +39,6 @@ export function useSendNonEvmAsset({
 
   const sendNonEvmAsset = useCallback(
     async (location: string): Promise<boolean> => {
-      // Check if this is a non-EVM account
-      if (!selectedAccount || isEvmAccountType(selectedAccount.type)) {
-        return false; // Not a non-EVM account, let caller handle EVM logic
-      }
-
-      // Close modal if provided
-      if (closeModal) {
-        closeModal();
-      }
-
       if (isSendRedesignEnabled) {
         handleSendPageNavigation(
           navigation.navigate,
@@ -57,6 +47,16 @@ export function useSendNonEvmAsset({
           asset.address ? (asset as TokenI) : undefined,
         );
         return true;
+      }
+
+      // Check if this is a non-EVM account
+      if (!selectedAccount || isEvmAccountType(selectedAccount.type)) {
+        return false; // Not a non-EVM account, let caller handle EVM logic
+      }
+
+      // Close modal if provided
+      if (closeModal) {
+        closeModal();
       }
 
       // Validate snap account

@@ -19,6 +19,7 @@ import {
   isQuoteExpired,
 } from '../../../../UI/Bridge/utils/quoteUtils';
 import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
+import { useTransactionPayMetrics } from './useTransactionPayMetrics';
 
 const EXCLUDED_ALERTS = [
   AlertKeys.NoPayTokenQuotes,
@@ -41,6 +42,8 @@ export function useTransactionBridgeQuotes() {
   const interval = useRef<NodeJS.Timer>();
   const isExpired = useRef(false);
   const [refreshIndex, setRefreshIndex] = useState(0);
+
+  useTransactionPayMetrics();
 
   useEffect(() => {
     if (interval.current) {
@@ -100,9 +103,12 @@ export function useTransactionBridgeQuotes() {
     return sourceAmounts.map((sourceAmount) => {
       const {
         address: targetTokenAddress,
+        allowUnderMinimum,
         amountRaw: sourceTokenAmount,
         targetAmountRaw,
       } = sourceAmount;
+
+      const targetAmountMinimum = allowUnderMinimum ? '0' : targetAmountRaw;
 
       return {
         attemptsMax,
@@ -115,7 +121,7 @@ export function useTransactionBridgeQuotes() {
         sourceChainId,
         sourceTokenAddress,
         sourceTokenAmount,
-        targetAmountMinimum: targetAmountRaw,
+        targetAmountMinimum,
         targetChainId,
         targetTokenAddress,
       };

@@ -2,7 +2,9 @@ import BN from 'bnjs4';
 import { useMemo } from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
-import { isDecimal, toTokenMinimalUnit } from '../../../../../util/number';
+import { isDecimal } from '../../../../../util/number';
+import { toTokenMinimalUnit } from '../../utils/send';
+
 import { Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useBalance } from './useBalance';

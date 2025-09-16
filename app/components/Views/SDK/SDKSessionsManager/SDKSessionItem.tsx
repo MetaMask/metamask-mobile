@@ -31,6 +31,7 @@ interface SDKSessionViewProps {
     id: ConnectionProps['id'];
     originatorInfo?: ConnectionProps['originatorInfo'];
     connected?: ConnectionProps['connected'];
+    isV2?: boolean;
   };
   trigger?: number; // used to force refresh fetching permitted accounts
 }
@@ -107,6 +108,7 @@ export const SDKSessionItem = ({
       urlOrTitle: sessionName,
       version: connection.originatorInfo?.apiVersion,
       platform: connection.originatorInfo?.platform,
+      isV2: connection.isV2,
     };
 
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

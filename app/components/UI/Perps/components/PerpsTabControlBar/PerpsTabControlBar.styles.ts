@@ -55,9 +55,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginRight: 8,
       fontWeight: 500,
     },
-    pnlValueText: {
-      fontWeight: 500,
-    },
     infoIcon: {
       marginLeft: 4,
     },

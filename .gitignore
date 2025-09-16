@@ -166,3 +166,6 @@ CLAUDE.md
 /CLAUDE.md
 temp/
 /temp/
+
+# Reassure performance testing
+.reassure/

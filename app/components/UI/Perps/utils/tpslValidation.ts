@@ -17,6 +17,7 @@ interface ValidationParams {
   direction?: 'long' | 'short';
   leverage?: number;
   entryPrice?: number; // For existing positions
+  liquidationPrice?: string;
 }
 
 /**
@@ -52,6 +53,32 @@ export const isValidStopLossPrice = (
 };
 
 /**
+ * Validates if a stop loss price is within the liquidation price
+ * For long positions: stop loss must be ABOVE liquidation price
+ * For short positions: stop loss must be BELOW liquidation price
+ *
+ */
+export const isStopLossSafeFromLiquidation = (
+  price?: string,
+  liquidationPrice?: string,
+  direction?: 'long' | 'short',
+) => {
+  if (!liquidationPrice || !direction || !price) return true;
+
+  // Clean up string values if necessary ($ or ,)
+  const slPriceNum = parseFloat(price.replace(/[$,]/g, ''));
+  const liquidationPriceNum = parseFloat(liquidationPrice.replace(/[$,]/g, ''));
+
+  if (isNaN(slPriceNum) || isNaN(liquidationPriceNum)) return true;
+
+  const isLong = direction === 'long';
+
+  return isLong
+    ? slPriceNum > liquidationPriceNum
+    : slPriceNum < liquidationPriceNum;
+};
+
+/**
  * Validates both take profit and stop loss prices
  */
 export const validateTPSLPrices = (
@@ -69,6 +96,16 @@ export const validateTPSLPrices = (
 
   if (stopLossPrice) {
     isValid = isValid && isValidStopLossPrice(stopLossPrice, params);
+  }
+
+  if (params.liquidationPrice) {
+    isValid =
+      isValid &&
+      isStopLossSafeFromLiquidation(
+        stopLossPrice,
+        params.liquidationPrice,
+        params.direction,
+      );
   }
 
   return isValid;
@@ -92,6 +129,16 @@ export const getStopLossErrorDirection = (
 ): string => {
   if (!direction) return '';
   return direction === 'long' ? 'below' : 'above';
+};
+
+/**
+ * Gets the direction text for stop loss liquidation error message
+ */
+export const getStopLossLiquidationErrorDirection = (
+  direction?: 'long' | 'short',
+): string => {
+  if (!direction) return '';
+  return direction === 'long' ? 'above' : 'below';
 };
 
 /**
@@ -208,14 +255,19 @@ export const calculatePriceForRoE = (
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
-  if (!basePrice) {
-    DevLogger.log(
-      '[TPSL Debug] No basePrice available in calculatePriceForRoE',
-    );
+  if (!basePrice || basePrice <= 0) {
     return '';
   }
 
   const isLong = direction === 'long';
+
+  // Prevent stop loss from exceeding maximum possible loss
+  // Maximum theoretical loss is 100% * leverage (before liquidation)
+  // But we'll cap it at 99% to avoid negative prices
+  if (!isProfit && Math.abs(roePercentage) >= leverage * 99) {
+    // Cap at 99% of max loss to prevent negative prices
+    roePercentage = -(leverage * 99);
+  }
 
   DevLogger.log('[TPSL Debug] calculatePriceForRoE inputs:', {
     roePercentage,
@@ -253,6 +305,10 @@ export const calculatePriceForRoE = (
     // For stop loss (negative RoE)
     // Long SL: price needs to go down
     calculatedPrice = basePrice * (1 - Math.abs(priceChangeRatio));
+    // Ensure price never goes negative
+    if (calculatedPrice <= 0) {
+      calculatedPrice = basePrice * 0.01; // Minimum 1% of base price
+    }
   } else {
     // Short SL: price needs to go up
     calculatedPrice = basePrice * (1 + Math.abs(priceChangeRatio));
@@ -307,10 +363,12 @@ export const calculateRoEForPrice = (
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
-  if (!basePrice || !price) return '';
+  if (!basePrice || basePrice <= 0 || !price) {
+    return '';
+  }
 
   const priceNum = parseFloat(price.replace(/[$,]/g, ''));
-  if (isNaN(priceNum)) return '';
+  if (isNaN(priceNum) || priceNum <= 0) return '';
 
   const isLong = direction === 'long';
 
@@ -329,6 +387,10 @@ export const calculateRoEForPrice = (
     // For stop loss, check if price moved in the wrong direction (loss)
     const isValidLoss = isLong ? priceNum < basePrice : priceNum > basePrice;
     if (!isValidLoss) roePercentage = -roePercentage;
+  }
+
+  if (roePercentage < 0) {
+    roePercentage = 0;
   }
 
   return roePercentage.toFixed(2);
@@ -368,6 +430,14 @@ export const formatRoEPercentageDisplay = (
     return '';
   }
 
+  // When focused, preserve the exact user input including decimal points
+  if (isFocused) {
+    // Only allow valid numeric patterns
+    if (value === '.' || /^\d*\.?\d*$/.test(value)) {
+      return value;
+    }
+  }
+
   const parsed = parseFloat(value);
   if (isNaN(parsed)) {
     return '';
@@ -376,10 +446,35 @@ export const formatRoEPercentageDisplay = (
   const absValue = Math.abs(parsed);
 
   if (isFocused) {
-    // When focused, preserve user input precision
+    // This branch shouldn't be reached now, but keep as fallback
     return absValue.toString();
   }
 
   // When not focused, show clean display format
   return absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
+};
+
+/**
+ * Calculate the maximum allowed stop loss percentage based on leverage
+ * @param leverage The position leverage
+ * @returns The maximum stop loss percentage (as a positive number)
+ */
+export const getMaxStopLossPercentage = (leverage: number): number =>
+  // Maximum theoretical loss is 100% * leverage (before liquidation)
+  // But we cap it at 99% to avoid negative prices and leave room for fees
+  Math.min(leverage * 99, 999);
+
+/**
+ * Validate if a stop loss percentage is within allowed bounds
+ * @param percentage The stop loss percentage (as a positive number)
+ * @param leverage The position leverage
+ * @returns True if valid, false otherwise
+ */
+export const isValidStopLossPercentage = (
+  percentage: number,
+  leverage: number,
+): boolean => {
+  if (percentage <= 0) return false;
+  const maxAllowed = getMaxStopLossPercentage(leverage);
+  return percentage <= maxAllowed;
 };

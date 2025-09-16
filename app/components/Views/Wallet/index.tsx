@@ -12,15 +12,15 @@ import {
   ActivityIndicator,
   Linking,
   StyleSheet as RNStyleSheet,
-  TextStyle,
   View,
+  ScrollView,
 } from 'react-native';
-import ScrollableTabView, {
-  ChangeTabProperties,
-} from 'react-native-scrollable-tab-view';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import TabBar from '../../../component-library/components-temp/TabBar';
+import {
+  TabsList,
+  TabsListRef,
+} from '../../../component-library/components-temp/Tabs';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
   isPastPrivacyPolicyDate,
@@ -115,6 +115,7 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   selectUseTokenDetection,
@@ -140,7 +141,6 @@ import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
-import { swapsUtils } from '@metamask/swaps-controller';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -192,9 +192,7 @@ const createStyles = ({ colors }: Theme) =>
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabBar: {
-      marginBottom: 8,
-    },
+
     tabContainer: {
       paddingHorizontal: 16,
       flex: 1,
@@ -209,12 +207,12 @@ const createStyles = ({ colors }: Theme) =>
       marginTop: 20,
       paddingHorizontal: 16,
     },
-    carouselContainer: {
-      marginBottom: 12,
+    assetsActionsContainer: {
+      marginBottom: 16,
     },
-    tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
+    carousel: {
+      marginBottom: 16,
+      overflow: 'hidden', // Allow for smooth height animations
     },
   });
 
@@ -229,7 +227,10 @@ interface WalletProps {
 }
 interface WalletTokensTabViewProps {
   navigation: WalletProps['navigation'];
-  onChangeTab: (value: ChangeTabProperties) => void;
+  onChangeTab: (changeTabProperties: {
+    i: number;
+    ref: React.ReactNode;
+  }) => void;
   defiEnabled: boolean;
   collectiblesEnabled: boolean;
   navigationParams?: {
@@ -254,30 +255,13 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     navigationParams,
   } = props;
   const route = useRoute<RouteProp<ParamListBase, string>>();
-  // Type augmentation needed as @types/react-native-scrollable-tab-view doesn't expose goToPage method
-  const scrollableTabViewRef = useRef<
-    ScrollableTabView & { goToPage: (pageNumber: number) => void }
-  >(null);
+  const tabsListRef = useRef<TabsListRef>(null);
 
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Track current tab index for Perps visibility
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
-
-  const renderTabBar = useCallback(
-    (tabBarProps: Record<string, unknown>) => (
-      <TabBar
-        style={styles.tabBar}
-        {...tabBarProps}
-        tabStyle={styles.tabStyle}
-        textStyle={{
-          ...(theme.typography.sBodySMBold as TextStyle),
-        }}
-      />
-    ),
-    [styles, theme],
-  );
 
   const tokensTabProps = useMemo(
     () => ({
@@ -317,7 +301,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Handle tab changes and track current index
   const handleTabChange = useCallback(
-    (changeTabProperties: ChangeTabProperties) => {
+    (changeTabProperties: { i: number; ref: React.ReactNode }) => {
       setCurrentTabIndex(changeTabProperties.i);
       onChangeTab(changeTabProperties);
     },
@@ -356,9 +340,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
         // Tokens is always at index 0, Perps is at index 1 when enabled
         const targetPerpsTabIndex = 1;
 
-        // Small delay ensures the ScrollableTabView is fully rendered before selection
+        // Small delay ensures the TabsList is fully rendered before selection
         const timer = setTimeout(() => {
-          scrollableTabViewRef.current?.goToPage(targetPerpsTabIndex);
+          tabsListRef.current?.goToTabIndex(targetPerpsTabIndex);
 
           // Clear the params to prevent re-selection on subsequent focuses
           // This is important for navigation state management
@@ -375,37 +359,58 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }, [route.params, isPerpsEnabled, navigationParams, navigation]),
   );
 
+  // Build tabs array dynamically based on enabled features
+  const tabsToRender = useMemo(() => {
+    const tabs = [<Tokens {...tokensTabProps} key={tokensTabProps.key} />];
+
+    if (isPerpsEnabled) {
+      tabs.push(
+        <PerpsTabView
+          {...perpsTabProps}
+          key={perpsTabProps.key}
+          isVisible={isPerpsTabVisible}
+          onVisibilityChange={(callback) => {
+            perpsVisibilityCallback.current = callback;
+          }}
+        />,
+      );
+    }
+
+    if (defiEnabled) {
+      tabs.push(
+        <DeFiPositionsList
+          {...defiPositionsTabProps}
+          key={defiPositionsTabProps.key}
+        />,
+      );
+    }
+
+    if (collectiblesEnabled) {
+      tabs.push(
+        <CollectibleContracts
+          {...collectibleContractsTabProps}
+          key={collectibleContractsTabProps.key}
+        />,
+      );
+    }
+
+    return tabs;
+  }, [
+    tokensTabProps,
+    isPerpsEnabled,
+    perpsTabProps,
+    isPerpsTabVisible,
+    defiEnabled,
+    defiPositionsTabProps,
+    collectiblesEnabled,
+    collectibleContractsTabProps,
+  ]);
+
   return (
     <View style={styles.tabContainer}>
-      <ScrollableTabView
-        ref={scrollableTabViewRef}
-        renderTabBar={renderTabBar}
-        onChangeTab={handleTabChange}
-      >
-        <Tokens {...tokensTabProps} key={tokensTabProps.key} />
-        {isPerpsEnabled && (
-          <PerpsTabView
-            {...perpsTabProps}
-            key={perpsTabProps.key}
-            isVisible={isPerpsTabVisible}
-            onVisibilityChange={(callback) => {
-              perpsVisibilityCallback.current = callback;
-            }}
-          />
-        )}
-        {defiEnabled && (
-          <DeFiPositionsList
-            {...defiPositionsTabProps}
-            key={defiPositionsTabProps.key}
-          />
-        )}
-        {collectiblesEnabled && (
-          <CollectibleContracts
-            {...collectibleContractsTabProps}
-            key={collectibleContractsTabProps.key}
-          />
-        )}
-      </ScrollableTabView>
+      <TabsList ref={tabsListRef} onChangeTab={handleTabChange}>
+        {tabsToRender}
+      </TabsList>
     </View>
   );
 });
@@ -505,14 +510,6 @@ const Wallet = ({
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    sourceToken: {
-      address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-      chainId: chainId as Hex,
-      decimals: 18,
-      symbol: nativeCurrency || 'ETH',
-      name: nativeCurrency || 'Ethereum',
-      image: '',
-    },
   });
 
   // Hook for handling non-EVM asset sending
@@ -525,7 +522,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayFundButton = true;
+  const displayBuyButton = true;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -828,6 +825,11 @@ const Wallet = ({
   useCheckMultiRpcModal();
 
   /**
+   * Show multichain accounts intro modal if state 2 is enabled and never showed before
+   */
+  useMultichainAccountsIntroModal();
+
+  /**
    * Callback to trigger when pressing the navigation title.
    */
   const onTitlePress = useCallback(() => {
@@ -1087,10 +1089,14 @@ const Wallet = ({
   }, []);
 
   const onChangeTab = useCallback(
-    async (obj: ChangeTabProperties) => {
-      if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
+    async (obj: { i: number; ref: React.ReactNode }) => {
+      const tabLabel =
+        React.isValidElement(obj.ref) && obj.ref.props
+          ? (obj.ref.props as { tabLabel?: string })?.tabLabel
+          : '';
+      if (tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
-      } else if (obj.ref.props.tabLabel === strings('wallet.defi')) {
+      } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
@@ -1164,7 +1170,7 @@ const Wallet = ({
 
   const renderContent = useCallback(
     () => (
-      <View
+      <ScrollView
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
@@ -1190,24 +1196,27 @@ const Wallet = ({
           ) : (
             <PortfolioBalance />
           )}
-          <AssetDetailsActions
-            displayFundButton={displayFundButton}
-            displaySwapsButton={displaySwapsButton}
-            displayBridgeButton={displayBridgeButton}
-            swapsIsLive={swapsIsLive}
-            goToBridge={goToBridge}
-            goToSwaps={goToSwaps}
-            onReceive={onReceive}
-            onSend={onSend}
-            fundButtonActionID={WalletViewSelectorsIDs.WALLET_FUND_BUTTON}
-            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-            bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
-            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-          />
-          {isCarouselBannersEnabled && (
-            <Carousel style={styles.carouselContainer} />
-          )}
+          <View style={styles.assetsActionsContainer}>
+            <AssetDetailsActions
+              displayBuyButton={displayBuyButton}
+              displaySwapsButton={displaySwapsButton}
+              displayBridgeButton={displayBridgeButton}
+              swapsIsLive={swapsIsLive}
+              goToBridge={goToBridge}
+              goToSwaps={goToSwaps}
+              onReceive={onReceive}
+              onSend={onSend}
+              buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+              swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+              bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
+              sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+              receiveButtonActionID={
+                WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON
+              }
+            />
+          </View>
+
+          {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
           <WalletTokensTabView
             navigation={navigation}
@@ -1217,11 +1226,12 @@ const Wallet = ({
             navigationParams={route.params}
           />
         </>
-      </View>
+      </ScrollView>
     ),
     [
       styles.banner,
-      styles.carouselContainer,
+      styles.assetsActionsContainer,
+      styles.carousel,
       styles.wrapper,
       basicFunctionalityEnabled,
       defiEnabled,
@@ -1231,7 +1241,7 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      displayFundButton,
+      displayBuyButton,
       displaySwapsButton,
       displayBridgeButton,
       swapsIsLive,

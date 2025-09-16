@@ -5,9 +5,9 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
   language: 'shortEn',
   languages: {
     shortEn: {
-      h: () => 'hr',
-      m: () => 'min',
-      s: () => 'sec',
+      h: (unitCount: number) => (unitCount === 1 ? 'hour' : 'hours'),
+      m: (unitCount: number) => (unitCount === 1 ? 'minute' : 'minutes'),
+      s: (unitCount: number) => (unitCount === 1 ? 'second' : 'seconds'),
     },
   },
 });
@@ -22,10 +22,10 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
  * @returns A formatted string with the appropriate unit (e.g., "30 sec", "2 min", "1 hr")
  *
  * @example
- * formatDurationForDisplay(30)    // "30 sec"
- * formatDurationForDisplay(90)    // "2 min" (rounds 1.5 to 2)
- * formatDurationForDisplay(3600)  // "1 hr"
- * formatDurationForDisplay(5400)  // "2 hr" (rounds 1.5 to 2)
+ * formatDurationForDisplay(30)    // "30 seconds"
+ * formatDurationForDisplay(90)    // "2 minutes" (rounds 1.5 to 2)
+ * formatDurationForDisplay(3600)  // "1 hour"
+ * formatDurationForDisplay(5400)  // "2 hours" (rounds 1.5 to 2)
  */
 export const formatDurationForDisplay = (seconds: number): string => {
   const milliseconds = seconds * 1000;

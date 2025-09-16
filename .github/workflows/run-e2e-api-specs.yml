@@ -48,10 +48,15 @@ jobs:
           corepack enable
           corepack prepare yarn@3.8.7 --activate
 
-      - name: Install JavaScript dependencies
-        run: yarn install --immutable
+      - name: Install JavaScript dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
 
       - name: Verify Detox CLI
         run: yarn detox --version

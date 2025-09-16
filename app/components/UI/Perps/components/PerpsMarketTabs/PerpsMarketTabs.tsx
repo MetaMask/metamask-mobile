@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
 import Text, {
   TextVariant,
   TextColor,
@@ -10,9 +16,10 @@ import Icon, {
 import { View, Modal, TouchableOpacity, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
+import { captureException } from '@sentry/react-native';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
-import { PerpsMarketTabsProps } from './PerpsMarketTabs.types';
+import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -36,17 +43,66 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   isLoadingPosition,
   unfilledOrders = [],
   onActiveTabChange,
+  initialTab,
   nextFundingTime,
   fundingIntervalHours,
+  onOrderSelect,
+  onOrderCancelled,
+  activeTPOrderId,
+  activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasUserInteracted = useRef(false);
+  const hasSetInitialTab = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+
+  const sortedUnfilledOrders = useMemo(() => {
+    // Pre-compute current price to avoid repeated calculations
+    const currentPrice = marketStats.currentPrice || 0;
+
+    // Pre-compute order metadata for efficient sorting
+    const ordersWithMetadata = unfilledOrders.map((order) => {
+      const orderType = order.detailedOrderType || order.orderType || 'Unknown';
+      const triggerPrice = parseFloat(
+        order.takeProfitPrice || order.stopLossPrice || order.price || '0',
+      );
+
+      // Calculate execution priority (distance to current price)
+      const executionPriority =
+        triggerPrice === 0 || currentPrice === 0
+          ? Infinity
+          : Math.abs(triggerPrice - currentPrice);
+
+      return {
+        order,
+        orderType,
+        executionPriority,
+      };
+    });
+
+    // Sort with pre-computed metadata
+    return ordersWithMetadata
+      .sort((a, b) => {
+        // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
+        if (a.orderType !== b.orderType) {
+          return a.orderType.localeCompare(b.orderType);
+        }
+
+        // Secondary sort: by execution priority within same detailedOrderType
+        if (a.executionPriority !== b.executionPriority) {
+          return a.executionPriority - b.executionPriority;
+        }
+
+        // Final tiebreaker: order ID
+        return a.order.orderId.localeCompare(b.order.orderId);
+      })
+      .map((item) => item.order);
+  }, [unfilledOrders, marketStats.currentPrice]);
 
   // Fade in animation when loading completes
   useEffect(() => {
@@ -61,6 +117,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
+
+    // Always show statistics tab
+    dynamicTabs.push({
+      id: 'statistics',
+      label: strings('perps.market.statistics'),
+    });
 
     // Only show position tab if there's a position
     if (position) {
@@ -78,23 +140,36 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       });
     }
 
-    // Always show statistics tab
-    dynamicTabs.push({
-      id: 'statistics',
-      label: strings('perps.market.statistics'),
-    });
-
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
 
-  // Initialize with statistics by default
-  const [activeTabId, setActiveTabId] = useState('statistics');
+  // Initialize with initialTab or statistics by default
+  const [activeTabId, setActiveTabId] = useState<PerpsTabId>(
+    initialTab || 'statistics',
+  );
+
+  // Handle initialTab when it becomes available after data loads
+  useEffect(() => {
+    if (initialTab && !hasUserInteracted.current && !hasSetInitialTab.current) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(initialTab)) {
+        setActiveTabId(initialTab as PerpsTabId);
+        onActiveTabChange?.(initialTab);
+        hasSetInitialTab.current = true;
+      }
+    }
+  }, [initialTab, tabs, onActiveTabChange]);
 
   // Set initial tab based on data availability
   // Now we can properly distinguish between loading and empty states
   useEffect(() => {
     // If user has interacted, respect their choice
     if (hasUserInteracted.current) {
+      return;
+    }
+
+    // If we've already set the initial tab from props, don't override it
+    if (hasSetInitialTab.current) {
       return;
     }
 
@@ -125,7 +200,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         previousTab: activeTabId,
         isLoadingPosition,
       });
-      setActiveTabId(targetTabId);
+      setActiveTabId(targetTabId as PerpsTabId);
       onActiveTabChange?.(targetTabId);
     }
   }, [
@@ -142,7 +217,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!tabIds.includes(activeTabId)) {
       // Switch to first available tab if current tab is hidden
       const newTabId = tabs[0]?.id || 'statistics';
-      setActiveTabId(newTabId);
+      setActiveTabId(newTabId as PerpsTabId);
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
@@ -151,7 +226,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const handleTabChange = useCallback(
     (tabId: string) => {
       hasUserInteracted.current = true; // Mark that user has interacted
-      setActiveTabId(tabId);
+      setActiveTabId(tabId as PerpsTabId);
       onActiveTabChange?.(tabId);
     },
     [onActiveTabChange],
@@ -206,6 +281,9 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               PerpsToastOptions.orderManagement.limit.cancellationSuccess,
             );
           }
+
+          // Notify parent component that order was cancelled to update chart
+          onOrderCancelled?.(orderToCancel.orderId);
           return;
         }
 
@@ -222,9 +300,37 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         }
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
+
+        // Capture exception with order context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'PerpsMarketTabs',
+              action: 'order_cancellation',
+              operation: 'order_management',
+            },
+            extra: {
+              orderContext: {
+                orderId: orderToCancel.orderId,
+                symbol: orderToCancel.symbol,
+                side: orderToCancel.side,
+                orderType: orderToCancel.orderType,
+                size: orderToCancel.size,
+                price: orderToCancel.price,
+                reduceOnly: orderToCancel.reduceOnly,
+              },
+            },
+          },
+        );
       }
     },
-    [PerpsToastOptions.orderManagement.limit, position?.size, showToast],
+    [
+      PerpsToastOptions.orderManagement.limit,
+      position?.size,
+      showToast,
+      onOrderCancelled,
+    ],
   );
 
   const renderTooltipModal = useCallback(() => {
@@ -317,7 +423,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             testID={getTabTestId(tab.id)}
           >
             <Text
-              variant={TextVariant.BodyMDBold}
+              variant={TextVariant.BodyMD}
               color={isActive ? TextColor.Default : TextColor.Muted}
             >
               {tab.label}
@@ -343,6 +449,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               position={position}
               expanded
               showIcon
+              onTooltipPress={handleTooltipPress}
+              onTpslCountPress={handleTabChange}
             />
           </View>
         );
@@ -392,15 +500,35 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               </View>
             ) : (
               <>
-                {unfilledOrders.map((order) => (
-                  <PerpsOpenOrderCard
-                    key={order.orderId}
-                    order={order}
-                    expanded
-                    showIcon
-                    onCancel={handleOrderCancel}
-                  />
-                ))}
+                {sortedUnfilledOrders.map((order) => {
+                  // Determine if this order is currently active on the chart
+                  const isActiveTP = activeTPOrderId === order.orderId;
+                  const isActiveSL = activeSLOrderId === order.orderId;
+                  const isActive = isActiveTP || isActiveSL;
+
+                  // Determine active type - if both TP and SL are from same order, show 'BOTH'
+                  let activeType: 'TP' | 'SL' | 'BOTH' | undefined;
+                  if (isActiveTP && isActiveSL) {
+                    activeType = 'BOTH';
+                  } else if (isActiveTP) {
+                    activeType = 'TP';
+                  } else if (isActiveSL) {
+                    activeType = 'SL';
+                  }
+
+                  return (
+                    <PerpsOpenOrderCard
+                      key={order.orderId}
+                      order={order}
+                      expanded
+                      showIcon
+                      onCancel={handleOrderCancel}
+                      onSelect={onOrderSelect}
+                      isActiveOnChart={isActive}
+                      activeType={activeType}
+                    />
+                  );
+                })}
               </>
             )}
           </View>
