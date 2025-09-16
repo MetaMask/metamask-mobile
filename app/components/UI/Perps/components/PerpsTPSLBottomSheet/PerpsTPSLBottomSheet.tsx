@@ -453,6 +453,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   !takeProfitPrice && styles.percentageButtonOff,
                 ]}
                 onPress={handleTakeProfitOff}
+                disabled={!!focusedInput}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {strings('perps.tpsl.off')}
@@ -470,6 +471,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
                     percentage,
                   )}
+                  disabled={!!focusedInput}
                 >
                   <Text
                     variant={TextVariant.BodySM}
@@ -599,6 +601,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   !stopLossPrice && styles.percentageButtonOff,
                 ]}
                 onPress={handleStopLossOff}
+                disabled={!!focusedInput}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {strings('perps.tpsl.off')}
@@ -616,6 +619,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
                     percentage,
                   )}
+                  disabled={!!focusedInput}
                 >
                   <Text
                     variant={TextVariant.BodySM}
