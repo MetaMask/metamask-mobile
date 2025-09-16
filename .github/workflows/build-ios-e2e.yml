@@ -117,8 +117,6 @@ jobs:
           FINGERPRINT=$(yarn -s fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: $FINGERPRINT"
-          # Save fingerprint to file for the build check
-          echo "$FINGERPRINT" > .app-native-fingerprint
 
       - name: Restore previous build artifacts
         if: ${{ inputs.build_action == 'check_fingerprint' }}
