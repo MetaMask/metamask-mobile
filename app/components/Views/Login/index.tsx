@@ -113,6 +113,7 @@ import FOX_LOGO from '../../../images/branding/fox.png';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -146,6 +147,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
+
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
@@ -192,6 +194,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       navigation.goBack();
     }
     return false;
+  };
+
+  const updateBiometryChoice = async (newBiometryChoice: boolean) => {
+    await updateAuthTypeStorageFlags(newBiometryChoice);
+    setBiometryChoice(newBiometryChoice);
   };
 
   useEffect(() => {
@@ -311,11 +318,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       setError(strings('login.invalid_password'));
     }
-  };
-
-  const updateBiometryChoice = async (newBiometryChoice: boolean) => {
-    await updateAuthTypeStorageFlags(newBiometryChoice);
-    setBiometryChoice(newBiometryChoice);
   };
 
   const navigateToHome = async () => {
@@ -579,8 +581,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
       // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
-        true,
-        true,
+        biometryChoice,
+        rememberMe,
       );
       if (isComingFromOauthOnboarding) {
         authType.oauth2Login = true;
@@ -659,6 +661,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       Logger.log(tryBiometricError);
     }
     fieldRef.current?.blur();
+  };
+
+  // show biometric switch to true even if biometric is disabled
+  const shouldRenderBiometricLogin = biometryType;
+
+  const renderSwitch = () => {
+    const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
+      setRememberMe(rememberMeChoice);
+    };
+
+    return (
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={shouldRenderBiometricLogin}
+        biometryChoiceState={biometryChoice}
+        onUpdateBiometryChoice={updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
+    );
   };
 
   const toggleWarningModal = () => {
@@ -791,6 +811,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </View>
 
             <View style={styles.ctaWrapper}>
+              {renderSwitch()}
               <Button
                 variant={ButtonVariants.Primary}
                 width={ButtonWidthTypes.Full}

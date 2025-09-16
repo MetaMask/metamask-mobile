@@ -35,8 +35,19 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
-    }
+
+          if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(
+              this._device,
+              WalletViewSelectorsIDs.ACCOUNT_ICON,
+            );
+          } else {
+            return AppwrightSelectors.getElementByCatchAll(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
+          }
+        }
+      
+  
+   
   }
 
   get swapButton() {

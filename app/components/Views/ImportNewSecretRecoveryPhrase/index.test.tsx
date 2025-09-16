@@ -17,8 +17,6 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockLockAccountSyncing = jest.fn();
-const mockUnlockAccountSyncing = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -36,11 +34,6 @@ jest.mock('../../../actions/multiSrp', () => ({
   ...jest.requireActual('../../../actions/multiSrp'),
   importNewSecretRecoveryPhrase: (srp: string) =>
     mockImportNewSecretRecoveryPhrase(srp),
-}));
-
-jest.mock('../../../actions/identity', () => ({
-  lockAccountSyncing: () => mockLockAccountSyncing(),
-  unlockAccountSyncing: () => mockUnlockAccountSyncing(),
 }));
 
 jest.mock('../../../core', () => ({
@@ -264,16 +257,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         })
         .build(),
     );
-  });
-
-  it('locks and unlocks account syncing on import', async () => {
-    const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
-      valid24WordMnemonic,
-    );
-    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    await fireEvent.press(importButton);
-    expect(mockLockAccountSyncing).toHaveBeenCalledTimes(1);
-    expect(mockUnlockAccountSyncing).toHaveBeenCalledTimes(1);
   });
 
   describe('errors', () => {

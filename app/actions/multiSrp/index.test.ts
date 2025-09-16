@@ -31,6 +31,7 @@ const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 const mockRemoveAccount = jest.fn();
+const mockSyncAccountTreeWithUserStorage = jest.fn();
 
 // Mock for seedless onboarding
 const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
@@ -95,11 +96,11 @@ jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
     mockIsMultichainAccountsState2Enabled(),
 }));
 
-const mockDiscoverAndCreateAccounts = jest.fn();
+const mockDiscoverAccounts = jest.fn();
 
 jest.mock('../../multichain-accounts/discovery', () => ({
-  discoverAndCreateAccounts: (entropySource: EntropySourceId) =>
-    mockDiscoverAndCreateAccounts(entropySource),
+  discoverAccounts: (entropySource: EntropySourceId) =>
+    mockDiscoverAccounts(entropySource),
 }));
 
 jest.mock('../../core/Engine', () => ({
@@ -122,6 +123,9 @@ jest.mock('../../core/Engine', () => ({
         type: SecretType,
         keyringId: string,
       ) => mockAddNewSecretData(seed, type, keyringId),
+    },
+    AccountTreeController: {
+      syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
@@ -183,7 +187,7 @@ describe('MultiSRP Actions', () => {
         getAccounts: () => [testAddress],
         id: 'keyring-id-123',
       });
-      mockDiscoverAndCreateAccounts.mockResolvedValue(5);
+      mockDiscoverAccounts.mockResolvedValue(5);
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
       mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
@@ -196,9 +200,8 @@ describe('MultiSRP Actions', () => {
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
-        'keyring-id-123',
-      );
+      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
+      expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
         discoveredAccountsCount: 5,
@@ -212,9 +215,7 @@ describe('MultiSRP Actions', () => {
         getAccounts: () => [testAddress],
         id: 'keyring-id-123',
       });
-      mockDiscoverAndCreateAccounts.mockRejectedValue(
-        new Error('Discovery failed'),
-      );
+      mockDiscoverAccounts.mockRejectedValue(new Error('Discovery failed'));
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
       mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
@@ -222,9 +223,8 @@ describe('MultiSRP Actions', () => {
       const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
       // Assert
-      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
-        'keyring-id-123',
-      );
+      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
+      expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
         discoveredAccountsCount: 0, // Discovery has failed.

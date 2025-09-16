@@ -23,7 +23,9 @@
       "wallets": {}
     },
     "accountGroupsMetadata": {},
-    "accountWalletsMetadata": {}
+    "accountWalletsMetadata": {},
+    "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+    "isAccountTreeSyncingInProgress": false
   },
   "AddressBookController": {
     "addressBook": {}
@@ -444,9 +446,6 @@
     "isUpdatingFCMToken": false
   },
   "UserStorageController": {
-    "hasAccountSyncingSyncedAtLeastOnce": false,
-    "isAccountSyncingReadyToBeDispatched": false,
-    "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
@@ -610,6 +609,7 @@
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
+    "activeBoosts": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},

@@ -32,7 +32,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
+import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -85,7 +85,16 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private async dispatchLogin(): Promise<void> {
+  private async dispatchLogin(
+    options: {
+      clearAccountTreeState: boolean;
+    } = {
+      clearAccountTreeState: false,
+    },
+  ): Promise<void> {
+    if (options.clearAccountTreeState) {
+      AccountTreeInitService.clearState();
+    }
     await AccountTreeInitService.initializeAccountTree();
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
@@ -214,9 +223,7 @@ class AuthenticationService {
     entropySource?: EntropySourceId,
   ): Promise<void> => {
     await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAndCreateAccounts(
-        entropySource ?? this.getPrimaryEntropySourceId(),
-      );
+      await discoverAccounts(entropySource ?? this.getPrimaryEntropySourceId());
     });
   };
 
@@ -492,7 +499,9 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -525,7 +534,9 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreeState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -56,10 +56,6 @@ import { AppThemeKey } from '../../../util/theme/models';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import {
-  lockAccountSyncing,
-  unlockAccountSyncing,
-} from '../../../actions/identity';
 import { Authentication } from '../../../core';
 
 const defaultNumberOfWords = 12;
@@ -232,8 +228,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const onSubmit = async () => {
     setLoading(true);
     try {
-      await lockAccountSyncing();
-
       // check if seedless pwd is outdated skip cache before importing SRP
       const isSeedlessPwdOutdated =
         await Authentication.checkIsSeedlessPasswordOutdated(true);
@@ -285,8 +279,6 @@ const ImportNewSecretRecoveryPhrase = () => {
         );
       }
       setLoading(false);
-    } finally {
-      await unlockAccountSyncing();
     }
   };
 

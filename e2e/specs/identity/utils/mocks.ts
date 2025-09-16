@@ -51,6 +51,14 @@ export async function mockIdentityServices(server: Mockttp) {
     USER_STORAGE_FEATURE_NAMES.addressBook,
     server,
   );
+  await userStorageMockttpControllerInstance.setupPath(
+    'multichain_accounts_groups',
+    server,
+  );
+  await userStorageMockttpControllerInstance.setupPath(
+    'multichain_accounts_wallets',
+    server,
+  );
 
   return {
     userStorageMockttpControllerInstance,

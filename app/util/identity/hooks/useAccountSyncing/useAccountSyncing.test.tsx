@@ -1,11 +1,22 @@
 import { act } from '@testing-library/react-hooks';
 import { renderHookWithProvider } from '../../../test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as actions from '../../../../actions/identity';
 import {
   useAccountSyncing,
   useShouldDispatchAccountSyncing,
 } from './useAccountSyncing';
+
+const mockSyncWithUserStorage = jest.fn<Promise<unknown>, []>();
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      AccountTreeController: {
+        syncWithUserStorage: jest.fn(() => mockSyncWithUserStorage()),
+      },
+    },
+  },
+}));
 
 interface ArrangeMocksMetamaskStateOverrides {
   isSignedIn: boolean;
@@ -14,7 +25,6 @@ interface ArrangeMocksMetamaskStateOverrides {
   isUnlocked: boolean;
   useExternalServices: boolean;
   completedOnboarding: boolean;
-  isAccountSyncingReadyToBeDispatched: boolean;
 }
 
 const arrangeMockState = (
@@ -33,8 +43,6 @@ const arrangeMockState = (
         UserStorageController: {
           isBackupAndSyncEnabled: stateOverrides.isBackupAndSyncEnabled,
           isAccountSyncingEnabled: stateOverrides.isAccountSyncingEnabled,
-          isAccountSyncingReadyToBeDispatched:
-            stateOverrides.isAccountSyncingReadyToBeDispatched,
         },
       },
     },
@@ -58,7 +66,6 @@ describe('useShouldDispatchAccountSyncing()', () => {
       'isUnlocked',
       'useExternalServices',
       'completedOnboarding',
-      'isAccountSyncingReadyToBeDispatched',
     ] as const;
     const baseState = {
       isSignedIn: true,
@@ -67,7 +74,6 @@ describe('useShouldDispatchAccountSyncing()', () => {
       isUnlocked: true,
       useExternalServices: true,
       completedOnboarding: true,
-      isAccountSyncingReadyToBeDispatched: true,
     };
 
     const failureStateCases: {
@@ -113,20 +119,10 @@ describe('useShouldDispatchAccountSyncing()', () => {
 });
 
 describe('useAccountSyncing', () => {
-  const arrangeMocks = () => {
-    const mockSyncAccountsAction = jest.spyOn(
-      actions,
-      'syncInternalAccountsWithUserStorage',
-    );
-    return {
-      mockSyncAccountsAction,
-    };
-  };
-
   const arrangeAndAct = (
     stateOverrides: ArrangeMocksMetamaskStateOverrides,
   ) => {
-    const mocks = arrangeMocks();
+    jest.clearAllMocks();
     const { state } = arrangeMockState(stateOverrides);
 
     const { result } = renderHookWithProvider(() => useAccountSyncing(), {
@@ -135,14 +131,13 @@ describe('useAccountSyncing', () => {
     const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
       result.current;
 
-    return { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing };
+    return { dispatchAccountSyncing, shouldDispatchAccountSyncing };
   };
 
   it('should dispatch if conditions are met', async () => {
-    const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
+    const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
-        isAccountSyncingReadyToBeDispatched: true,
         isBackupAndSyncEnabled: true,
         isAccountSyncingEnabled: true,
         isSignedIn: true,
@@ -152,17 +147,16 @@ describe('useAccountSyncing', () => {
 
     await act(async () => dispatchAccountSyncing());
 
-    expect(mocks.mockSyncAccountsAction).toHaveBeenCalled();
+    expect(mockSyncWithUserStorage).toHaveBeenCalled();
     expect(shouldDispatchAccountSyncing).toBe(true);
   });
 
   it('should not dispatch conditions are not met', async () => {
-    const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
+    const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
       arrangeAndAct({
         completedOnboarding: true,
-        isAccountSyncingReadyToBeDispatched: false,
         isBackupAndSyncEnabled: true,
-        isAccountSyncingEnabled: true,
+        isAccountSyncingEnabled: false,
         isSignedIn: true,
         isUnlocked: true,
         useExternalServices: true,
@@ -170,7 +164,7 @@ describe('useAccountSyncing', () => {
 
     await act(async () => dispatchAccountSyncing());
 
-    expect(mocks.mockSyncAccountsAction).not.toHaveBeenCalled();
+    expect(mockSyncWithUserStorage).not.toHaveBeenCalled();
     expect(shouldDispatchAccountSyncing).toBe(false);
   });
 });

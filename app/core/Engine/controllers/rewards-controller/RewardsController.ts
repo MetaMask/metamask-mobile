@@ -19,6 +19,8 @@ import {
   type GetPointsEventsDto,
   type OptInStatusInputDto,
   type OptInStatusDto,
+  type PointsBoostDto,
+  type ActiveBoostsState,
   CURRENT_SEASON_ID,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -57,6 +59,9 @@ const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
+// Active boosts cache threshold
+const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
+
 /**
  * State metadata for the RewardsController
  */
@@ -67,6 +72,7 @@ const metadata = {
   seasons: { persist: true, anonymous: false },
   subscriptionReferralDetails: { persist: true, anonymous: false },
   seasonStatuses: { persist: true, anonymous: false },
+  activeBoosts: { persist: true, anonymous: false },
 };
 /**
  * Get the default state for the RewardsController
@@ -78,6 +84,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
+  activeBoosts: {},
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -257,6 +264,10 @@ export class RewardsController extends BaseController<
       'RewardsController:getOptInStatus',
       this.getOptInStatus.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getActivePointsBoosts',
+      this.getActivePointsBoosts.bind(this),
+    );
   }
 
   /**
@@ -293,9 +304,9 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Create composite key for season status storage
+   * Create composite key for state storage
    */
-  #createSeasonStatusCompositeKey(
+  #createSeasonSubscriptionCompositeKey(
     seasonId: string,
     subscriptionId: string,
   ): string {
@@ -309,11 +320,67 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
     seasonId: string = CURRENT_SEASON_ID,
   ): SeasonStatusState | null {
-    const compositeKey = this.#createSeasonStatusCompositeKey(
+    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
       seasonId,
       subscriptionId,
     );
     return this.state.seasonStatuses[compositeKey] || null;
+  }
+
+  /**
+   * Get stored active boosts for a given composite key
+   */
+  #getActiveBoosts(
+    subscriptionId: string,
+    seasonId: string = CURRENT_SEASON_ID,
+  ): ActiveBoostsState | null {
+    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+      seasonId,
+      subscriptionId,
+    );
+    return this.state.activeBoosts[compositeKey] || null;
+  }
+
+  /**
+   * Convert PointsBoostDto to serializable format for storage
+   */
+  #convertBoostsToSerializable(
+    boosts: PointsBoostDto[],
+  ): ActiveBoostsState['boosts'] {
+    return boosts.map((boost) => ({
+      id: boost.id,
+      name: boost.name,
+      icon: {
+        lightModeUrl: boost.icon.lightModeUrl,
+        darkModeUrl: boost.icon.darkModeUrl,
+      },
+      boostBips: boost.boostBips,
+      seasonLong: boost.seasonLong,
+      startDate: boost.startDate?.getTime(),
+      endDate: boost.endDate?.getTime(),
+      backgroundColor: boost.backgroundColor,
+    }));
+  }
+
+  /**
+   * Convert serializable format back to PointsBoostDto
+   */
+  #convertBoostsFromSerializable(
+    serializedBoosts: ActiveBoostsState['boosts'],
+  ): PointsBoostDto[] {
+    return serializedBoosts.map((boost) => ({
+      id: boost.id,
+      name: boost.name,
+      icon: {
+        lightModeUrl: boost.icon.lightModeUrl,
+        darkModeUrl: boost.icon.darkModeUrl,
+      },
+      boostBips: boost.boostBips,
+      seasonLong: boost.seasonLong,
+      startDate: boost.startDate ? new Date(boost.startDate) : undefined,
+      endDate: boost.endDate ? new Date(boost.endDate) : undefined,
+      backgroundColor: boost.backgroundColor,
+    }));
   }
 
   /**
@@ -803,7 +870,7 @@ export class RewardsController extends BaseController<
       const subscriptionSeasonStatus =
         this.#convertSeasonStatusToSubscriptionState(seasonStatus);
 
-      const compositeKey = this.#createSeasonStatusCompositeKey(
+      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
         seasonId,
         subscriptionId,
       );
@@ -1385,6 +1452,83 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log('RewardsController: Failed to opt out', error);
       return false;
+    }
+  }
+
+  /**
+   * Get active points boosts for the current season
+   * Get active points boosts for the current season with caching
+   * @param seasonId - The season ID to get points boosts for
+   * @param subscriptionId - The subscription ID to get points boosts for
+   * @returns Promise<PointsBoostDto[]> - The active points boosts
+   */
+  async getActivePointsBoosts(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<PointsBoostDto[]> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return [];
+    }
+
+    // Check if we have cached active boosts and if threshold hasn't been reached
+    const cachedActiveBoosts = this.#getActiveBoosts(subscriptionId, seasonId);
+    if (
+      cachedActiveBoosts?.lastFetched &&
+      Date.now() - cachedActiveBoosts.lastFetched <
+        ACTIVE_BOOSTS_CACHE_THRESHOLD_MS
+    ) {
+      Logger.log(
+        'RewardsController: Using cached active boosts data for',
+        subscriptionId,
+        seasonId,
+        {
+          boostCount: cachedActiveBoosts.boosts.length,
+          cacheAge: Math.round(
+            (Date.now() - cachedActiveBoosts.lastFetched) / 1000,
+          ),
+          maxAge: Math.round(ACTIVE_BOOSTS_CACHE_THRESHOLD_MS / 1000),
+        },
+      );
+      return this.#convertBoostsFromSerializable(cachedActiveBoosts.boosts);
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh active boosts data via API call for subscriptionId & seasonId',
+        subscriptionId,
+        seasonId,
+      );
+      const response = await this.messagingSystem.call(
+        'RewardsDataService:getActivePointsBoosts',
+        seasonId,
+        subscriptionId,
+      );
+
+      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Update state with cached active boosts
+      this.update((state: RewardsControllerState) => {
+        state.activeBoosts[compositeKey] = {
+          boosts: this.#convertBoostsToSerializable(response.boosts),
+          lastFetched: Date.now(),
+        };
+      });
+
+      Logger.log('RewardsController: Successfully cached active boosts data', {
+        boostCount: response.boosts.length,
+      });
+
+      return response.boosts;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get active points boosts:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return [];
     }
   }
 }

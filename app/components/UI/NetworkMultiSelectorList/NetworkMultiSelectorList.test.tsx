@@ -33,6 +33,7 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('@metamask/utils', () => ({
+  KnownCaipNamespace: { Eip155: 'eip155' },
   parseCaipChainId: jest.fn(),
   CaipChainId: jest.fn(),
 }));

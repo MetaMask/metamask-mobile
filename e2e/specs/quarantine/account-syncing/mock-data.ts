@@ -1,8 +1,8 @@
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { createEncryptedResponse } from '../utils/user-storage/generateEncryptedData';
-import { IDENTITY_TEAM_STORAGE_KEY } from '../utils/constants';
-import { UserStorageAccount } from '../utils/helpers';
-import { UserStorageResponseData } from '../utils/user-storage/userStorageMockttpController';
+import { createEncryptedResponse } from '../../identity/utils/user-storage/generateEncryptedData';
+import { IDENTITY_TEAM_STORAGE_KEY } from '../../identity/utils/constants';
+import { UserStorageAccount } from '../../identity/utils/helpers';
+import { UserStorageResponseData } from '../../identity/utils/user-storage/userStorageMockttpController';
 
 /**
  * This array represents the accounts mock data before it is encrypted and sent to UserStorage.

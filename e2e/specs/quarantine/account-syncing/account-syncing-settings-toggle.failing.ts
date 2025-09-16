@@ -1,22 +1,22 @@
 import { loginToApp } from '../../../viewHelper';
-import TestHelpers from '../../../helpers.js';
+import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions.ts';
-import { SmokeIdentity } from '../../../tags.js';
+import Assertions from '../../../framework/Assertions';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
-import { arrangeTestUtils } from '../utils/helpers.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
+import { arrangeTestUtils } from '../../identity/utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController.ts';
+} from '../../identity/utils/user-storage/userStorageMockttpController';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
-import { createUserStorageController } from '../utils/mocks.ts';
+import { createUserStorageController } from '../../identity/utils/mocks';
 
 describe(SmokeIdentity('Account syncing - Setting'), () => {
   let sharedUserStorageController: UserStorageMockttpController;

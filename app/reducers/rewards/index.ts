@@ -3,6 +3,7 @@ import {
   SeasonStatusState,
   SeasonTierDto,
   GeoRewardsMetadata,
+  PointsBoostDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import Logger from '../../util/Logger';
@@ -46,6 +47,11 @@ export interface RewardsState {
 
   // UI preferences
   hideUnlinkedAccountsBanner: boolean;
+
+  // Points Boost state
+  activeBoosts: PointsBoostDto[] | null;
+  activeBoostsLoading: boolean;
+  activeBoostsError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -76,6 +82,10 @@ export const initialState: RewardsState = {
   optinAllowedForGeo: false,
   optinAllowedForGeoLoading: false,
   hideUnlinkedAccountsBanner: false,
+
+  activeBoosts: null,
+  activeBoostsLoading: false,
+  activeBoostsError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -198,12 +208,22 @@ const rewardsSlice = createSlice({
     setHideUnlinkedAccountsBanner: (state, action: PayloadAction<boolean>) => {
       state.hideUnlinkedAccountsBanner = action.payload;
     },
+
+    setActiveBoosts: (state, action: PayloadAction<PointsBoostDto[]>) => {
+      state.activeBoosts = action.payload;
+      state.activeBoostsError = false; // Reset error when successful
+    },
+    setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
+      state.activeBoostsLoading = action.payload;
+    },
+    setActiveBoostsError: (state, action: PayloadAction<boolean>) => {
+      state.activeBoostsError = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
       if (action.payload?.rewards) {
         return {
-          ...action.payload.rewards,
           // Reset non-persistent state (state is persisted via controller)
           ...initialState,
           // Restore only a few persistent state
@@ -229,6 +249,9 @@ export const {
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
   setHideUnlinkedAccountsBanner,
+  setActiveBoosts,
+  setActiveBoostsLoading,
+  setActiveBoostsError,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

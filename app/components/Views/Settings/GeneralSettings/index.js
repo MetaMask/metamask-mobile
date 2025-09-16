@@ -498,7 +498,7 @@ class Settings extends PureComponent {
                       size={diameter}
                     />
                   </View>
-                  <Text style={styles.identiconText}>Maskicons</Text>
+                  <Text style={styles.identiconText}>Polycons</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() =>

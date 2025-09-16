@@ -23,6 +23,9 @@ import {
   selectReferralDetailsLoading,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
+  selectActiveBoosts,
+  selectActiveBoostsLoading,
+  selectActiveBoostsError,
 } from './selectors';
 import { OnboardingStep } from './types';
 import { SeasonTierDto } from '../../core/Engine/controllers/rewards-controller/types';
@@ -630,6 +633,165 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectCurrentSeasonId', () => {
+    it('returns null when season ID is null', () => {
+      const mockState = { rewards: { seasonId: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns season ID when set', () => {
+      const mockState = { rewards: { seasonId: 'season-123' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe('season-123');
+    });
+
+    it('returns different season IDs correctly', () => {
+      const mockState = { rewards: { seasonId: 'winter-2024' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe('winter-2024');
+    });
+  });
+
+  describe('selectActiveBoosts', () => {
+    it('returns empty array when no boosts', () => {
+      const mockState = { rewards: { activeBoosts: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns active boosts array when set', () => {
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost 1',
+          icon: {
+            lightModeUrl: 'light1.png',
+            darkModeUrl: 'dark1.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+        {
+          id: 'boost-2',
+          name: 'Test Boost 2',
+          icon: {
+            lightModeUrl: 'light2.png',
+            darkModeUrl: 'dark2.png',
+          },
+          boostBips: 500,
+          seasonLong: false,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-31'),
+          backgroundColor: '#00FF00',
+        },
+      ];
+      const mockState = { rewards: { activeBoosts: mockBoosts } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual(mockBoosts);
+      expect(result.current).toHaveLength(2);
+      expect(result.current?.[0]?.id).toBe('boost-1');
+      expect(result.current?.[1]?.seasonLong).toBe(false);
+    });
+
+    it('returns single boost correctly', () => {
+      const singleBoost = [
+        {
+          id: 'single-boost',
+          name: 'Single Boost',
+          icon: {
+            lightModeUrl: 'single.png',
+            darkModeUrl: 'single-dark.png',
+          },
+          boostBips: 2000,
+          seasonLong: true,
+          backgroundColor: '#0000FF',
+        },
+      ];
+      const mockState = { rewards: { activeBoosts: singleBoost } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual(singleBoost);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.name).toBe('Single Boost');
+      expect(result.current?.[0]?.boostBips).toBe(2000);
+    });
+  });
+
+  describe('selectActiveBoostsLoading', () => {
+    it('returns false when not loading', () => {
+      const mockState = { rewards: { activeBoostsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectActiveBoostsLoading),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when banner should be hidden', () => {
+      const mockState = { rewards: { hideUnlinkedAccountsBanner: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideUnlinkedAccountsBanner),
+      );
+      expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectActiveBoostsError', () => {
+    it('returns false when no error', () => {
+      const mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when error occurs', () => {
+      const mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectActiveBoostsError),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to error
+      mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Change back to no error
+      mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+  });
+
   // Direct selector tests (without useSelector hook)
   describe('Direct selector calls', () => {
     describe('selectActiveTab direct calls', () => {
@@ -729,6 +891,18 @@ describe('Rewards selectors', () => {
       it('returns null correctly', () => {
         const state = createMockRootState({ candidateSubscriptionId: null });
         expect(selectCandidateSubscriptionId(state)).toBeNull();
+      });
+    });
+
+    describe('selectActiveBoostsError direct calls', () => {
+      it('returns false when no error', () => {
+        const state = createMockRootState({ activeBoostsError: false });
+        expect(selectActiveBoostsError(state)).toBe(false);
+      });
+
+      it('returns true when error occurs', () => {
+        const state = createMockRootState({ activeBoostsError: true });
+        expect(selectActiveBoostsError(state)).toBe(true);
       });
     });
   });
@@ -987,6 +1161,9 @@ describe('Rewards selectors', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        activeBoosts: [],
+        activeBoostsLoading: false,
+        activeBoostsError: false,
       });
 
       it('all selectors return expected values from comprehensive state', () => {
@@ -1022,6 +1199,34 @@ describe('Rewards selectors', () => {
         expect(selectOptinAllowedForGeo(comprehensiveState)).toBe(true);
         expect(selectOptinAllowedForGeoLoading(comprehensiveState)).toBe(false);
         expect(selectHideUnlinkedAccountsBanner(comprehensiveState)).toBe(true);
+        expect(selectActiveBoosts(comprehensiveState)).toEqual([]);
+        expect(selectActiveBoostsLoading(comprehensiveState)).toBe(false);
+        expect(selectActiveBoostsError(comprehensiveState)).toBe(false);
+      });
+      it('returns true when loading', () => {
+        const mockState = { rewards: { activeBoostsLoading: true } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+        const { result } = renderHook(() =>
+          useSelector(selectActiveBoostsLoading),
+        );
+        expect(result.current).toBe(true);
+      });
+
+      it('handles loading state changes correctly', () => {
+        let mockState = { rewards: { activeBoostsLoading: false } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+        const { result, rerender } = renderHook(() =>
+          useSelector(selectActiveBoostsLoading),
+        );
+        expect(result.current).toBe(false);
+
+        // Change state to loading
+        mockState = { rewards: { activeBoostsLoading: true } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+        rerender();
+        expect(result.current).toBe(true);
       });
     });
   });
