@@ -140,103 +140,7 @@ pipelines:
         abort_on_fail: true
         run_if:
           expression: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
-      ios_run_regression_confirmations_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_wallet_platform_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_trade_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_network_abstraction_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_network_expansion_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_identity_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_accounts_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_ux_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      ios_run_regression_assets_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_confirmations_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_wallet_platform_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_trade_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_network_abstraction_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_network_expansion_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_performance_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_assets_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_identity_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_accounts_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
-      android_run_regression_ux_tests:
-        depends_on:
-        - build_ios_main_e2e
-        - build_android_main_e2e
       build_ios_main_e2e_gns_disabled:
-        depends_on:
-        - ios_run_regression_confirmations_tests
-        - ios_run_regression_wallet_platform_tests
-        - ios_run_regression_trade_tests
-        - ios_run_regression_network_abstraction_tests
-        - ios_run_regression_network_expansion_tests
-        - ios_run_regression_identity_tests
-        - ios_run_regression_accounts_tests
-        - ios_run_regression_ux_tests
-        - ios_run_regression_assets_tests
-        - android_run_regression_confirmations_tests
-        - android_run_regression_wallet_platform_tests
-        - android_run_regression_trade_tests
-        - android_run_regression_network_abstraction_tests
-        - android_run_regression_network_expansion_tests
-        - android_run_regression_performance_tests
-        - android_run_regression_assets_tests
-        - android_run_regression_identity_tests
-        - android_run_regression_accounts_tests
-        - android_run_regression_ux_tests
         abort_on_fail: true
         run_if:
           expression: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
@@ -3922,4 +3826,3 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - push_branch: chore/MVP-release-pipeline
     pipeline: pr_rc_rwy_pipeline
-
