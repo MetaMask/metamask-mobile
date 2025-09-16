@@ -5,7 +5,10 @@ import Engine from '../../../../core/Engine';
 import { toCaipAccountId, CaipAccountId } from '@metamask/utils';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { EstimatePointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  EstimatePointsDto,
+  EstimatedPointsDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -24,19 +27,6 @@ let pointsCalculationCache: {
   timestamp: number;
   ttl: number;
 } | null = null;
-
-/**
- * Rewards API response types
- */
-interface FeeDiscountResponse {
-  discountPercentage?: number;
-  tier?: string;
-}
-
-interface PointsEstimateResponse {
-  points?: number;
-  bonus?: number;
-}
 
 /**
  * Fee calculation result with loading states
@@ -148,7 +138,9 @@ export function usePerpsOrderFees({
    * Fetch fee discount from RewardsController (non-blocking)
    */
   const fetchFeeDiscount = useCallback(
-    async (address: string): Promise<FeeDiscountResponse> => {
+    async (
+      address: string,
+    ): Promise<{ discountPercentage?: number; tier?: string }> => {
       // Early return if feature flag is disabled - never make API call
       if (!rewardsEnabled) {
         return {};
@@ -238,21 +230,21 @@ export function usePerpsOrderFees({
       tradeCoin: string,
       isClose: boolean,
       actualFeeUSD?: number,
-    ): Promise<PointsEstimateResponse> => {
+    ): Promise<EstimatedPointsDto | null> => {
       // Early return if feature flag is disabled - never make API call
       if (!rewardsEnabled) {
-        return {};
+        return null;
       }
 
       try {
         const amountNum = parseFloat(tradeAmount || '0');
         if (amountNum <= 0) {
-          return {};
+          return null;
         }
 
         const caipAccountId = formatAccountToCaipAccountId(address);
         if (!caipAccountId) {
-          return {};
+          return null;
         }
 
         // Use provided actual fee or calculate with base rate as fallback
@@ -290,18 +282,15 @@ export function usePerpsOrderFees({
           isClose,
         });
 
-        return {
-          points: result.pointsEstimate,
-          bonus: result.bonusBips,
-        };
+        return result;
       } catch (error) {
         DevLogger.log('Rewards: Error estimating points via controller', {
           error: error instanceof Error ? error.message : String(error),
           coin: tradeCoin,
           amount: tradeAmount,
         });
-        // Non-blocking - return empty if fails
-        return {};
+        // Non-blocking - return null if fails
+        return null;
       }
     },
     [rewardsEnabled, formatAccountToCaipAccountId],
@@ -418,21 +407,24 @@ export function usePerpsOrderFees({
                 actualFeeUSD,
               );
 
-              if (pointsData.points !== undefined && actualFeeUSD > 0) {
-                setEstimatedPoints(pointsData.points);
-                setBonusBips(pointsData.bonus);
+              if (
+                pointsData?.pointsEstimate !== undefined &&
+                actualFeeUSD > 0
+              ) {
+                setEstimatedPoints(pointsData.pointsEstimate);
+                setBonusBips(pointsData.bonusBips);
 
                 // Calculate the base points rate per dollar
                 // Formula: points = feeUSD * baseRate * (1 + bonusBips/10000)
                 // So: baseRate = points / (feeUSD * (1 + bonusBips/10000))
-                const bonusMultiplier = 1 + (pointsData.bonus ?? 0) / 10000;
+                const bonusMultiplier = 1 + (pointsData.bonusBips ?? 0) / 10000;
                 const basePointsPerDollar =
-                  pointsData.points / (actualFeeUSD * bonusMultiplier);
+                  pointsData.pointsEstimate / (actualFeeUSD * bonusMultiplier);
 
                 // Cache the calculation parameters for future use
                 pointsCalculationCache = {
                   address: userAddress,
-                  bonusBips: pointsData.bonus,
+                  bonusBips: pointsData.bonusBips,
                   basePointsPerDollar,
                   timestamp: now,
                   ttl: 30 * 60 * 1000, // Cache for 30 minutes
@@ -440,10 +432,10 @@ export function usePerpsOrderFees({
 
                 DevLogger.log('Rewards: Cached points calculation parameters', {
                   address: userAddress,
-                  bonusBips: pointsData.bonus,
+                  bonusBips: pointsData.bonusBips,
                   basePointsPerDollar,
                   derivedFrom: {
-                    points: pointsData.points,
+                    pointsEstimate: pointsData.pointsEstimate,
                     feeUSD: actualFeeUSD,
                     bonusMultiplier,
                   },
