@@ -68,6 +68,11 @@ graph TD
 
 ## Implementation Details
 
+- **Fingerprint Generation**: Uses `@expo/fingerprint` to hash native dependencies
+- **Cache Storage**: GitHub Actions cache with PR-specific keys
+- **Repacking Tools**: Unified `scripts/repack-app.js` for both platforms
+- **Workflow Integration**: Direct inline steps in build workflows (no composite actions)
+
 ### Scripts
 
 #### `scripts/generate-fingerprint.js`
@@ -92,35 +97,29 @@ yarn repack --platform android --input app.apk --bundle bundle.js
 yarn repack --platform ios --input MyApp.app --bundle main.jsbundle
 ```
 
-### GitHub Actions
-
-#### `.github/actions/fingerprint-build-check` (Unified)
-- Cross-platform fingerprint checking for both Android and iOS
-- Restore previous fingerprint from cache
-- Compare fingerprints to determine build method (full/repack/skip)
-- Validate cached artifacts (APK files for Android, .app directories for iOS)
-- Outputs: `build_method`, `can_repack`, `cache_hit`
-
-#### `.github/actions/save-build-fingerprint` (Unified)
-- Cross-platform fingerprint saving for both Android and iOS
-- Generate and save current fingerprint
-- Cache build artifacts for future reuse
-- Use platform-specific cache keys with fingerprint-based invalidation
-
-
 ### Workflow Integration
 
-The build caching is integrated into both Android and iOS E2E build workflows:
+The build caching is integrated directly into both Android and iOS E2E build workflows:
 
+#### Fingerprint Check Steps
 ```yaml
-- name: Fingerprint build check
-  id: build-decision
-  uses: ./.github/actions/fingerprint-build-check
+# Restore fingerprint cache
+- name: Restore fingerprint cache
+  uses: actions/cache@v4
   with:
-    platform: android
-    build_action: ${{ inputs.build_action }}
-    apk_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-    pr_number: ${{ github.event.pull_request.number }}
+    path: .app-native-fingerprint
+    key: fingerprint-${{ platform }}-${{ pr_number }}-${{ github.sha }}
+
+# Check fingerprint and decide build method
+- name: Check fingerprint and decide build method
+  id: build-decision
+  shell: bash
+  run: |
+    ./scripts/fingerprint-build-check.sh \
+      "${{ platform }}" \
+      "${{ build_action }}" \
+      "${{ artifact_path }}" \
+      "${{ pr_number }}"
 
 # Different paths based on build decision:
 - name: Build Android E2E APKs

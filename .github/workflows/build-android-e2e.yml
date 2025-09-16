@@ -70,14 +70,34 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      - name: Fingerprint build check
-        id: build-decision
-        uses: ./.github/actions/fingerprint-build-check
+      # Fingerprint build check
+      - name: Restore fingerprint cache
+        uses: actions/cache@v4
         with:
-          platform: android
-          build_action: ${{ inputs.build_action }}
-          artifact_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          pr_number: ${{ github.event.pull_request.number }}
+          path: .app-native-fingerprint
+          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ github.sha }}
+          restore-keys: |
+            fingerprint-android-${{ github.event.pull_request.number || 'main' }}-
+
+      - name: Restore previous build artifacts
+        if: ${{ inputs.build_action == 'check_fingerprint' }}
+        uses: actions/cache@v4
+        with:
+          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          key: android-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ hashFiles('.app-native-fingerprint') }}
+          restore-keys: |
+            android-artifacts-${{ github.event.pull_request.number || 'main' }}-
+
+      - name: Check fingerprint and decide build method
+        id: build-decision
+        shell: bash
+        run: |
+          ./scripts/fingerprint-build-check.sh \
+            "android" \
+            "${{ inputs.build_action }}" \
+            "android/app/build/outputs/apk/prod/release/app-prod-release.apk" \
+            "${{ github.event.pull_request.number }}"
+
       - name: Build Android E2E APKs
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
         run: |
@@ -201,13 +221,27 @@ jobs:
           echo "============================================"
           echo "🎯 APK ready for E2E testing with updated JS bundle"
 
-      - name: Save fingerprint and cache artifacts
+      # Save fingerprint and cache artifacts
+      - name: Generate and save fingerprint
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
-        uses: ./.github/actions/save-build-fingerprint
+        id: save-fingerprint
+        shell: bash
+        run: |
+          ./scripts/save-build-fingerprint.sh "android"
+
+      - name: Cache build artifacts for future reuse
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        uses: actions/cache@v4
         with:
-          platform: android
-          artifacts_path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          pr_number: ${{ github.event.pull_request.number }}
+          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          key: android-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ hashFiles('.app-native-fingerprint') }}
+
+      - name: Save fingerprint cache
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        uses: actions/cache@v4
+        with:
+          path: .app-native-fingerprint
+          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ github.sha }}
       
       - name: Log Build Performance Metrics
         if: always()

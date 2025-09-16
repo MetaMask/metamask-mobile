@@ -110,14 +110,33 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      - name: Fingerprint build check
-        id: build-decision
-        uses: ./.github/actions/fingerprint-build-check
+      # Fingerprint build check - integrated directly into workflow
+      - name: Restore fingerprint cache
+        uses: actions/cache@v4
         with:
-          platform: ios
-          build_action: ${{ inputs.build_action }}
-          artifact_path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          pr_number: ${{ github.event.pull_request.number }}
+          path: .app-native-fingerprint
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ github.sha }}
+          restore-keys: |
+            fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-
+
+      - name: Restore previous build artifacts
+        if: ${{ inputs.build_action == 'check_fingerprint' }}
+        uses: actions/cache@v4
+        with:
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ hashFiles('.app-native-fingerprint') }}
+          restore-keys: |
+            ios-artifacts-${{ github.event.pull_request.number || 'main' }}-
+
+      - name: Check fingerprint and decide build method
+        id: build-decision
+        shell: bash
+        run: |
+          ./scripts/fingerprint-build-check.sh \
+            "ios" \
+            "${{ inputs.build_action }}" \
+            "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" \
+            "${{ github.event.pull_request.number }}"
       
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
@@ -195,13 +214,27 @@ jobs:
           echo "==========================================="
           echo "🎯 .app bundle ready for E2E testing with updated JS bundle"
 
-      - name: Save fingerprint and cache artifacts
+      # Save fingerprint and cache artifacts - integrated directly into workflow
+      - name: Generate and save fingerprint
         if: ${{ steps.build-decision.outputs.build_method == 'full' }}
-        uses: ./.github/actions/save-build-fingerprint
+        id: save-fingerprint
+        shell: bash
+        run: |
+          ./scripts/save-build-fingerprint.sh "ios"
+
+      - name: Cache build artifacts for future reuse
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        uses: actions/cache@v4
         with:
-          platform: ios
-          artifacts_path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          pr_number: ${{ github.event.pull_request.number }}
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-artifacts-${{ github.event.pull_request.number || 'main' }}-${{ hashFiles('.app-native-fingerprint') }}
+
+      - name: Save fingerprint cache
+        if: ${{ steps.build-decision.outputs.build_method == 'full' }}
+        uses: actions/cache@v4
+        with:
+          path: .app-native-fingerprint
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ github.sha }}
 
       - name: Log Build Performance Metrics
         if: always()
