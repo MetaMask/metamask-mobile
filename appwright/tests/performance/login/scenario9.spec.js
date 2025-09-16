@@ -1,24 +1,22 @@
-import { test } from '../../fixtures/performance-test.js';
+import { test } from '../../../fixtures/performance-test.js';
 
-import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
-import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import TokenOverviewScreen from '../../../wdio/screen-objects/TokenOverviewScreen.js';
-import SendScreen from '../../../wdio/screen-objects/SendScreen.js';
-import ConfirmationScreen from '../../../wdio/screen-objects/ConfirmationScreen.js';
-import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import AmountScreen from '../../../wdio/screen-objects/AmountScreen.js';
-import SendSolanaScreen from '../../../wdio/screen-objects/SendSolanaScreen.js';
-import NetworkEducationModal from '../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
-import SolanaConfirmationScreen from '../../../wdio/screen-objects/SolanaConfirmationScreen.js';
-import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import TimerHelper from '../../../utils/TimersHelper.js';
+import WalletAccountModal from '../../../../wdio/screen-objects/Modals/WalletAccountModal.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
+import SendScreen from '../../../../wdio/screen-objects/SendScreen.js';
+import ConfirmationScreen from '../../../../wdio/screen-objects/ConfirmationScreen.js';
+import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
+import AmountScreen from '../../../../wdio/screen-objects/AmountScreen.js';
+import SendSolanaScreen from '../../../../wdio/screen-objects/SendSolanaScreen.js';
+import NetworkEducationModal from '../../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
+import SolanaConfirmationScreen from '../../../../wdio/screen-objects/SolanaConfirmationScreen.js';
+import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
+import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 
-import { importSRPFlow, login } from '../../utils/Flows.js';
-import { TEST_ADDRESSES, TEST_AMOUNTS } from '../../utils/TestConstants.js';
+import { login } from '../../../utils/Flows.js';
+import { TEST_ADDRESSES, TEST_AMOUNTS } from '../../../utils/TestConstants.js';
 
 test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,

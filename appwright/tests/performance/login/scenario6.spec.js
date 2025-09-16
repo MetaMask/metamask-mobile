@@ -1,17 +1,15 @@
-import { test, expect } from '../../fixtures/performance-test.js';
+import { test } from '../../../fixtures/performance-test.js';
 
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
-
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import TimerHelper from '../../utils/TimersHelper.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
-import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { importSRPFlow, login } from '../../utils/Flows.js';
+import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
+import TimerHelper from '../../../utils/TimersHelper.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
+import BridgeScreen from '../../../../wdio/screen-objects/BridgeScreen.js';
+import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
+import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
+import SwapScreen from '../../../../wdio/screen-objects/SwapScreen.js';
+import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
+import { login } from '../../../utils/Flows.js';
 
 test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   device,

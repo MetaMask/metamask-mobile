@@ -1,17 +1,15 @@
-import { test } from '../../fixtures/performance-test.js';
+import { test } from '../../../fixtures/performance-test.js';
 
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
+import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
+import TimerHelper from '../../../utils/TimersHelper.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import TimerHelper from '../../utils/TimersHelper.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { login, dismissSystemDialogs } from '../../utils/Flows.js';
-import AddNewHdAccountComponent from '../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
+import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
+import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
+import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
+import { login, dismissSystemDialogs } from '../../../utils/Flows.js';
+import AddNewHdAccountComponent from '../../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
 
 test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,

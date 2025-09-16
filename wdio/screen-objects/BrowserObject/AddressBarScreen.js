@@ -34,7 +34,6 @@ class AddressBarScreen {
     } else {
       return AppwrightSelectors.getElementByID(this._device, BrowserURLBarSelectorsIDs.URL_INPUT);
     }
-    return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
   get uniswapSuggestionsButton() {

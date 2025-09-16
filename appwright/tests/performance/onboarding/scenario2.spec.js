@@ -1,17 +1,17 @@
-import { test, expect } from '../../fixtures/performance-test.js';
+import { test } from '../../../fixtures/performance-test.js';
 
-import TimerHelper from '../../utils/TimersHelper.js';
-import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
-import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
-import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
-import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
-import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
-import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import { getPasswordForScenario } from '../../utils/TestConstants.js';
+import TimerHelper from '../../../utils/TimersHelper.js';
+import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
+import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
+import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
+import CreateNewWalletScreen from '../../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
+import MetaMetricsScreen from '../../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
+import OnboardingSucessScreen from '../../../../wdio/screen-objects/OnboardingSucessScreen.js';
+import OnboardingSheet from '../../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
+import WalletAccountModal from '../../../../wdio/screen-objects/Modals/WalletAccountModal.js';
+import SkipAccountSecurityModal from '../../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
+import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,

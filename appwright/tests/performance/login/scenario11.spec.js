@@ -1,22 +1,18 @@
-import { test } from '../../fixtures/performance-test.js';
-import TimerHelper from '../../utils/TimersHelper.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import {
-  dismissSystemDialogs,
-  login,
-  onboardingFlowImportSRP,
-} from '../../utils/Flows.js';
+import { test } from '../../../fixtures/performance-test.js';
+import TimerHelper from '../../../utils/TimersHelper.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
+import { dismissSystemDialogs, login } from '../../../utils/Flows.js';
 
-import AppwrightSelectors from '../../../wdio/helpers/AppwrightSelectors.js';
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import AppwrightSelectors from '../../../../wdio/helpers/AppwrightSelectors.js';
+import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 
-import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import BrowserScreen from '../../../wdio/screen-objects/BrowserObject/BrowserScreen.js';
-import AddressBarScreen from '../../../wdio/screen-objects/BrowserObject/AddressBarScreen.js';
-import ExternalWebsitesScreen from '../../../wdio/screen-objects/BrowserObject/ExternalWebsitesScreen.js';
-import AccountApprovalModal from '../../../wdio/screen-objects/Modals/AccountApprovalModal.js';
+import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
+import BrowserScreen from '../../../../wdio/screen-objects/BrowserObject/BrowserScreen.js';
+import AddressBarScreen from '../../../../wdio/screen-objects/BrowserObject/AddressBarScreen.js';
+import ExternalWebsitesScreen from '../../../../wdio/screen-objects/BrowserObject/ExternalWebsitesScreen.js';
+import AccountApprovalModal from '../../../../wdio/screen-objects/Modals/AccountApprovalModal.js';
 
-test('Measure Warm Start after Importing a Wallet', async ({
+test('Measure Warm Start: Login To Wallet Screen', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -59,7 +55,7 @@ test('Measure Warm Start after Importing a Wallet', async ({
   await performanceTracker.attachToTest(testInfo);
 });
 
-test('Measure warm start launch time after Importing a Wallet', async ({
+test('Measure Warm Start: Login Screen', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -72,18 +68,6 @@ test('Measure warm start launch time after Importing a Wallet', async ({
   AccountApprovalModal.device = device;
   await login(device, 'login');
   await dismissSystemDialogs(device);
-  await TabBarModal.tapBrowserButton();
-  await BrowserScreen.isScreenContentDisplayed();
-  await BrowserScreen.tapUrlBar();
-  await AddressBarScreen.tapClearButton();
-  await AddressBarScreen.editUrlInput('https://metamask.github.io/test-dapp/');
-
-  await AddressBarScreen.submitUrlWebsite();
-  await ExternalWebsitesScreen.isTestDappDisplayed();
-  await AppwrightSelectors.scrollDown(device);
-  await ExternalWebsitesScreen.tapDappConnectButton();
-  await AccountApprovalModal.tapConnectButtonByText();
-  await TabBarModal.tapWalletButton();
   const timer1 = new TimerHelper(
     'Time since the user open the app again and the login screen appears',
   );

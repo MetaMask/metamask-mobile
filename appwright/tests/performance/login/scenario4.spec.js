@@ -1,19 +1,20 @@
 import { test } from 'appwright';
 
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
+import { PerformanceTracker } from '../../../reporters/PerformanceTracker.js';
 
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
-import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { importSRPFlow, login } from '../../utils/Flows.js';
+import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
+import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
+import SwapScreen from '../../../../wdio/screen-objects/SwapScreen.js';
+import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
+import { importSRPFlow, login } from '../../../utils/Flows.js';
 
 test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   LoginScreen.device = device;
   WalletMainScreen.device = device;
@@ -33,7 +34,6 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   await WalletMainScreen.isTokenVisible('Ethereum');
 
   await WalletMainScreen.tapIdenticon();
-  const performanceTracker = new PerformanceTracker();
   timers.forEach((timer) => performanceTracker.addTimer(timer));
   await performanceTracker.attachToTest(testInfo);
 });

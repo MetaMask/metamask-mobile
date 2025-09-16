@@ -1,27 +1,27 @@
-import { test } from '../../fixtures/performance-test.js';
-import TimerHelper from '../../utils/TimersHelper.js';
-import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
-import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
-import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
-import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
-import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
-import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
-import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
-import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import { onboardingFlowImportSRP } from '../../utils/Flows.js';
-import SendScreen from '../../../wdio/screen-objects/SendScreen.js';
-import ConfirmationScreen from '../../../wdio/screen-objects/ConfirmationScreen.js';
-import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import AmountScreen from '../../../wdio/screen-objects/AmountScreen.js';
+import { test } from '../../../fixtures/performance-test.js';
+import TimerHelper from '../../../utils/TimersHelper.js';
+import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
+import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
+import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
+import CreateNewWalletScreen from '../../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
+import MetaMetricsScreen from '../../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
+import OnboardingSucessScreen from '../../../../wdio/screen-objects/OnboardingSucessScreen.js';
+import OnboardingSheet from '../../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
+import WalletAccountModal from '../../../../wdio/screen-objects/Modals/WalletAccountModal.js';
+import SkipAccountSecurityModal from '../../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
+import ImportFromSeedScreen from '../../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
+import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
+import { onboardingFlowImportSRP } from '../../../utils/Flows.js';
+import SendScreen from '../../../../wdio/screen-objects/SendScreen.js';
+import ConfirmationScreen from '../../../../wdio/screen-objects/ConfirmationScreen.js';
+import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
+import AmountScreen from '../../../../wdio/screen-objects/AmountScreen.js';
 
-import AppwrightSelectors from '../../../wdio/helpers/AppwrightSelectors.js';
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import AppwrightSelectors from '../../../../wdio/helpers/AppwrightSelectors.js';
+import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 test('Cold Start after importing a wallet', async ({
   device,
   performanceTracker,
@@ -70,7 +70,7 @@ test('Cold Start after importing a wallet', async ({
   performanceTracker.addTimer(timer1);
   await performanceTracker.attachToTest(testInfo);
 });
-test('Cold Start on Login Screen After Importing a Wallet', async ({
+test('Cold Start: Measure ColdStart To Login Screen', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -109,7 +109,7 @@ test('Cold Start on Login Screen After Importing a Wallet', async ({
   await performanceTracker.attachToTest(testInfo);
 });
 
-test.skip('Wallet Time To Interact Cold Start on Fresh Install', async ({
+test('Measure Cold Start To Onboarding Screen', async ({
   device,
   performanceTracker,
 }, testInfo) => {
