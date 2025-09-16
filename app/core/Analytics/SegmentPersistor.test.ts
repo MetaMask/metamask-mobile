@@ -94,8 +94,25 @@ describe('segmentPersistor', () => {
       );
       expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
         'segment_undefinedKey',
-        undefined,
+        'undefined',
       );
+    });
+
+    it('handles undefined values correctly', async () => {
+      mockStorageWrapper.setItem.mockResolvedValue(undefined);
+      mockStorageWrapper.getItem.mockResolvedValue('undefined');
+
+      await segmentPersistor.set('undefinedKey', undefined);
+      const result = await segmentPersistor.get('undefinedKey');
+
+      expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+        'segment_undefinedKey',
+        'undefined',
+      );
+      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
+        'segment_undefinedKey',
+      );
+      expect(result).toBeUndefined();
     });
 
     it('logs error when storage fails', async () => {

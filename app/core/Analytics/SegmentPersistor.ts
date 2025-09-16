@@ -20,7 +20,12 @@ export const segmentPersistor: Persistor = {
       const prefixedKey = getSegmentKey(key);
       const value = await StorageWrapper.getItem(prefixedKey);
 
-      if (value === null) {
+      if (value === null || value === undefined) {
+        return undefined;
+      }
+
+      // Handle the special case where we stored 'undefined' as a string
+      if (value === 'undefined') {
         return undefined;
       }
 
@@ -38,8 +43,14 @@ export const segmentPersistor: Persistor = {
   async set<T>(key: string, state: T): Promise<void> {
     try {
       const prefixedKey = getSegmentKey(key);
-      const serialized = JSON.stringify(state);
 
+      // Handle undefined values explicitly to avoid storage issues
+      if (state === undefined) {
+        await StorageWrapper.setItem(prefixedKey, 'undefined');
+        return;
+      }
+
+      const serialized = JSON.stringify(state);
       await StorageWrapper.setItem(prefixedKey, serialized);
     } catch (error) {
       Logger.error(
