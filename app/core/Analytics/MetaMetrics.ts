@@ -3,6 +3,8 @@ import {
   GroupTraits,
   JsonMap,
   UserTraits,
+  CountFlushPolicy,
+  TimerFlushPolicy,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
 import StorageWrapper from '../../store/storage-wrapper';
@@ -546,13 +548,24 @@ class MetaMetrics implements IMetaMetrics {
         writeKey: process.env.SEGMENT_WRITE_KEY as string,
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
-        // allow custom flush interval and event limit for dev and testing
-        // each is optional and can be set in the .js.env file
-        // if not set, the default values from the Segment SDK will be used
-        flushInterval: process.env.SEGMENT_FLUSH_INTERVAL as unknown as number,
-        flushAt: process.env.SEGMENT_FLUSH_EVENT_LIMIT as unknown as number,
         // Use custom persistor to bridge Segment SDK with app's storage system
         storePersistor: segmentPersistor,
+        // Use flush policies for better control and to avoid timeout issues
+        // allow custom flush interval and event limit for dev and testing
+        // each is optional and can be set in the .js.env file
+        // if not set, the default values will be used
+        flushPolicies: [
+          new CountFlushPolicy(
+            process.env.SEGMENT_FLUSH_EVENT_LIMIT
+              ? parseInt(process.env.SEGMENT_FLUSH_EVENT_LIMIT, 10)
+              : 20,
+          ),
+          new TimerFlushPolicy(
+            process.env.SEGMENT_FLUSH_INTERVAL
+              ? parseInt(process.env.SEGMENT_FLUSH_INTERVAL, 10) * 1000
+              : 30000,
+          ),
+        ],
       };
 
       if (__DEV__)
