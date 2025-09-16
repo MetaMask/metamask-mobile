@@ -641,6 +641,7 @@ export function usePerpsTPSLForm(
         );
         setSelectedTpPercentage(roePercentage);
         setTpUsingPercentage(true);
+        setTpSourceOfTruth('percentage');
       } else {
         DevLogger.log(
           '[TPSL Debug] Invalid take profit price calculated, not updating',
@@ -699,6 +700,7 @@ export function usePerpsTPSLForm(
       }
       setSelectedSlPercentage(roePercentage);
       setSlUsingPercentage(true);
+      setSlSourceOfTruth('percentage');
     },
     [asset, currentPrice, actualDirection, leverage, entryPrice],
   );
