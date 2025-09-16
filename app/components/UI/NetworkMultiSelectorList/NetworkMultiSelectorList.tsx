@@ -250,6 +250,7 @@ const NetworkMultiSelectList = ({
 
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
+
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell

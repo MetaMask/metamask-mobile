@@ -353,14 +353,6 @@ describe('RewardsDashboard', () => {
       expect(getAllByText('Levels')).toHaveLength(2);
       expect(getAllByText('Activity')).toHaveLength(2);
     });
-
-    it('should show not implemented content for all tabs', () => {
-      // Act
-      const { getByText } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByText('Not implemented yet')).toBeTruthy();
-    });
   });
 
   describe('button states when not opted in', () => {

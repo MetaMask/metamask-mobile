@@ -6,7 +6,6 @@ import type EthQuery from '@metamask/eth-query';
 import type { BN } from 'ethereumjs-util';
 import { Hex } from '@metamask/utils';
 import { getGlobalEthQuery } from './networks/global-network';
-import { setIsAccountSyncingReadyToBeDispatched } from '../actions/identity';
 import { trace, endTrace, TraceName, TraceOperation } from './trace';
 import { getTraceTags } from './sentry/tags';
 import { store } from '../store';
@@ -94,9 +93,5 @@ export default async (maxAccounts: number = MAX, index: number = 0) => {
     endTrace({
       name: TraceName.EvmDiscoverAccounts,
     });
-
-    // We don't want to catch errors here, we let them bubble up to the caller
-    // as we want to set `isAccountSyncingReadyToBeDispatched` to true either way
-    await setIsAccountSyncingReadyToBeDispatched(true);
   }
 };
