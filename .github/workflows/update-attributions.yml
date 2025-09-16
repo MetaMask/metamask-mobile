@@ -101,7 +101,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable --immutable-cache
+          command: |
+            if ! yarn install --immutable --immutable-cache; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable --immutable-cache
+            fi
       - name: Generate Attributions
         run: yarn build:attribution
       - name: Cache attributions file

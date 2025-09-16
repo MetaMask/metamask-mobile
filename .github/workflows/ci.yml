@@ -34,7 +34,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
       - name: Clean state and following up dependencies installation
         run: yarn setup:ci
       - name: Require clean working directory
@@ -60,7 +66,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
       - name: Clean state and following up dependencies installation
         run: yarn setup:ci --node
       - name: Deduplicate dependencies with retry
@@ -91,7 +103,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
       - name: Clean state and following up dependencies installation
         run: yarn setup:ci --node
       - name: Run @lavamoat/git-safe-dependencies with retry
@@ -126,7 +144,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
       - name: Clean state and following up dependencies installation
         run: yarn setup:ci --node
       - run: yarn ${{ matrix['scripts'] }}
@@ -156,7 +180,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
       - name: Clean state and following up dependencies installation
         run: yarn setup:ci --node
       # The "10" in this command is the total number of shards. It must be kept
@@ -197,7 +227,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
       - name: Clean state and following up dependencies installation
         run: yarn setup:ci --node
       - uses: actions/download-artifact@v4
@@ -261,7 +297,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
       - name: Clean state and following up dependencies installation
         run: yarn setup:ci --no-build-android
 

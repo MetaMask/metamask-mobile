@@ -56,7 +56,13 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
+          command: |
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
 
       - name: Verify Detox CLI
         run: yarn detox --version

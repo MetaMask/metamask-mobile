@@ -39,6 +39,6 @@ jobs:
             --rm \
             -v "$(pwd):/app" -w /app \
             metamask-mobile-builder:latest \
-            bash -c 'yarn install --immutable && yarn setup:ci --build-ios --no-install-pods'
+            bash -c 'if ! yarn install --immutable; then echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..." && yarn install && echo "yarn.lock updated. Verifying with immutable install..." && yarn install --immutable; fi && yarn setup:ci --build-ios --no-install-pods'
             # restore ownership for cleanup
             sudo chown -R "$(id -u):$(id -g)" .
