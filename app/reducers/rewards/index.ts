@@ -50,7 +50,7 @@ export interface RewardsState {
   hideUnlinkedAccountsBanner: boolean;
 
   // Points Boost state
-  activeBoosts: PointsBoostDto[] | null;
+  activeBoosts: PointsBoostDto[];
   activeBoostsLoading: boolean;
   activeBoostsError: boolean;
 
@@ -88,7 +88,7 @@ export const initialState: RewardsState = {
   optinAllowedForGeoLoading: false,
   hideUnlinkedAccountsBanner: false,
 
-  activeBoosts: null,
+  activeBoosts: [],
   activeBoostsLoading: false,
   activeBoostsError: false,
 

@@ -176,7 +176,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative"
             >
-              {strings('rewards.points_needed', {
+              {strings('rewards.upcoming_rewards.points_needed', {
                 points: formatNumber(tier.pointsNeeded),
               })}
             </Text>
@@ -268,7 +268,7 @@ const UpcomingRewards: React.FC = () => {
       {/* Section Title */}
       <Box twClassName="mb-4">
         <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.upcoming_rewards_title')}
+          {strings('rewards.upcoming_rewards.title')}
         </Text>
       </Box>
 

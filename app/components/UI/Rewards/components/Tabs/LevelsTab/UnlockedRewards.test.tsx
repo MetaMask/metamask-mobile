@@ -12,6 +12,12 @@ import {
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
+
+// Mock setActiveTab action
+jest.mock('../../../../../../actions/rewards', () => ({
+  setActiveTab: jest.fn((tab) => ({ type: 'SET_ACTIVE_TAB', payload: tab })),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -47,12 +53,35 @@ jest.mock('../../../../../../util/theme', () => ({
   }),
 }));
 
+// Mock useTailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const mockFn = jest.fn((styles: unknown) => {
+      if (Array.isArray(styles)) {
+        return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
+      }
+      if (typeof styles === 'string') {
+        return { testID: `tw-${styles}` };
+      }
+      return styles || {};
+    });
+
+    const tw = Object.assign(mockFn, {
+      style: mockFn,
+      color: jest.fn((color) => color),
+    });
+
+    return tw;
+  },
+}));
+
 // Mock i18n
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.unlocked_rewards_title': 'Unlocked Rewards',
-      'rewards.unlocked_rewards_empty': 'No unlocked rewards yet',
+      'rewards.unlocked_rewards.title': 'Unlocked rewards',
+      'rewards.unlocked_rewards.empty': 'No unlocked rewards yet',
+      'rewards.unlocked_rewards.see_ways_to_earn': 'View ways to earn',
     };
     return translations[key] || key;
   }),
@@ -145,7 +174,13 @@ describe('UnlockedRewards', () => {
 
     it('should render unlocked rewards title', () => {
       const { getByText } = render(<UnlockedRewards />);
-      expect(getByText('Unlocked Rewards')).toBeDefined();
+      expect(getByText('Unlocked rewards')).toBeDefined();
+    });
+
+    it('should render rewards list container', () => {
+      const { getByTestId } = render(<UnlockedRewards />);
+      const container = getByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS);
+      expect(container).toBeDefined();
     });
 
     it('should render reward items when unlocked rewards exist', () => {
@@ -192,7 +227,12 @@ describe('UnlockedRewards', () => {
 
     it('should render empty state title', () => {
       const { getByText } = render(<UnlockedRewards />);
-      expect(getByText('Unlocked Rewards')).toBeDefined();
+      expect(getByText('Unlocked rewards')).toBeDefined();
+    });
+
+    it('should render navigation link in empty state', () => {
+      const { getByText } = render(<UnlockedRewards />);
+      expect(getByText('View ways to earn')).toBeDefined();
     });
 
     it('should render empty state message', () => {

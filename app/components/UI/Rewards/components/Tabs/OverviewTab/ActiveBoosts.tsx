@@ -152,7 +152,7 @@ const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
   <Box twClassName="mb-4">
     <Box twClassName="flex-row items-center gap-2 mb-1">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-        {strings('rewards.active_boosts_title')}
+        {strings('rewards.active_boosts.title')}
       </Text>
       {count !== null && (
         <Box twClassName="bg-text-muted rounded-full w-6 h-6 items-center justify-center">
@@ -174,7 +174,7 @@ const ErrorBanner: React.FC = () => (
         twClassName="text-error-default"
       />
       <Text variant={TextVariant.BodyMd} twClassName="text-error-default">
-        {strings('rewards.active_boosts_error')}
+        {strings('rewards.active_boosts.error')}
       </Text>
     </Box>
   </Box>
@@ -202,7 +202,7 @@ const ActiveBoosts: React.FC = () => {
   }
 
   return (
-    <Box>
+    <Box twClassName="py-4">
       {/* Always show section header */}
       <SectionHeader count={isLoading ? 0 : numBoosts} />
 

@@ -47,16 +47,12 @@ import Banner, {
 } from '../../../../component-library/components/Banners/Banner';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import AccountDisplayItem from '../components/AccountDisplayItem/AccountDisplayItem';
-
 import RewardsOverview from '../components/Tabs/RewardsOverview';
 import RewardsLevels from '../components/Tabs/RewardsLevels';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
-import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { useUnlockedRewards } from '../hooks/useUnlockedRewards';
-
-const tabMap: RewardsTab[] = ['overview', 'levels', 'activity'];
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();

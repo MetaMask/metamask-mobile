@@ -186,7 +186,7 @@ export const WaysToEarn = () => {
   };
 
   return (
-    <Box>
+    <Box twClassName="py-4">
       <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
         {strings('rewards.ways_to_earn.title')}
       </Text>
@@ -212,7 +212,7 @@ export const WaysToEarn = () => {
                   <Icon
                     color={IconColor.IconAlternative}
                     name={wayToEarn.icon as IconName}
-                    size={IconSize.Md}
+                    size={IconSize.Lg}
                   />
                 </Box>
 

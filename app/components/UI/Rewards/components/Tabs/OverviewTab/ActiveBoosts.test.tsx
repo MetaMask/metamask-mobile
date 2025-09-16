@@ -41,9 +41,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.active_boosts_title': 'Active Boosts',
+      'rewards.active_boosts.title': 'Active boosts',
       'rewards.season_1': 'Season 1',
-      'rewards.active_boosts_error': 'Failed to load active boosts',
+      'rewards.active_boosts.error': 'Failed to load active boosts',
     };
     return translations[key] || key;
   }),
@@ -191,7 +191,7 @@ describe('ActiveBoosts', () => {
       const { getByText, getByTestId } = renderWithProvider(loadingState);
 
       // Should show section header
-      expect(getByText('Active Boosts')).toBeTruthy();
+      expect(getByText('Active boosts')).toBeTruthy();
 
       // Should show loading skeleton
       expect(getByTestId('skeleton')).toBeTruthy();
@@ -209,7 +209,7 @@ describe('ActiveBoosts', () => {
       const { getByText, getByTestId } = renderWithProvider(nullBoostsState);
 
       // Should show section header
-      expect(getByText('Active Boosts')).toBeTruthy();
+      expect(getByText('Active boosts')).toBeTruthy();
 
       // Should show loading skeleton
       expect(getByTestId('skeleton')).toBeTruthy();
@@ -229,7 +229,7 @@ describe('ActiveBoosts', () => {
       const { getByText } = renderWithProvider(errorState);
 
       // Should show section header
-      expect(getByText('Active Boosts')).toBeTruthy();
+      expect(getByText('Active boosts')).toBeTruthy();
 
       // Should show error message
       expect(getByText('Failed to load active boosts')).toBeTruthy();
@@ -247,7 +247,7 @@ describe('ActiveBoosts', () => {
       const { getByText, getByTestId } = renderWithProvider(loadingErrorState);
 
       // Should show section header
-      expect(getByText('Active Boosts')).toBeTruthy();
+      expect(getByText('Active boosts')).toBeTruthy();
 
       // Should show error message
       expect(getByText('Failed to load active boosts')).toBeTruthy();
@@ -269,7 +269,7 @@ describe('ActiveBoosts', () => {
         renderWithProvider(errorWithBoostsState);
 
       // Should show section header with count
-      expect(getByText('Active Boosts')).toBeTruthy();
+      expect(getByText('Active boosts')).toBeTruthy();
       expect(getByText('1')).toBeTruthy();
 
       // Should show error message
@@ -293,7 +293,7 @@ describe('ActiveBoosts', () => {
       const { getByText } = renderWithProvider(errorEmptyState);
 
       // Should still show section header and error banner even with empty boosts
-      expect(getByText('Active Boosts')).toBeTruthy();
+      expect(getByText('Active boosts')).toBeTruthy();
       expect(getByText('Failed to load active boosts')).toBeTruthy();
     });
   });
@@ -310,7 +310,7 @@ describe('ActiveBoosts', () => {
 
       const { getByText } = renderWithProvider(stateWithBoosts);
 
-      expect(getByText('Active Boosts')).toBeTruthy();
+      expect(getByText('Active boosts')).toBeTruthy();
       expect(getByText('2')).toBeTruthy(); // Count badge
     });
 

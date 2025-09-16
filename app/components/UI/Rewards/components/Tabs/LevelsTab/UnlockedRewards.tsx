@@ -1,6 +1,6 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { Image } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { Image, Pressable } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import {
   selectUnlockedRewardLoading,
@@ -13,6 +13,7 @@ import rewardsPlaceholder from '../../../../../../images/rewards/rewards-placeho
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RewardItem } from './UpcomingRewards';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
+import { setActiveTab } from '../../../../../../actions/rewards';
 
 interface UnlockedRewardItemProps {
   reward: RewardDto;
@@ -38,6 +39,7 @@ const UnlockedRewardItem: React.FC<UnlockedRewardItemProps> = ({
 };
 
 const UnlockedRewards: React.FC = () => {
+  const dispatch = useDispatch();
   const unlockedRewards = useSelector(selectUnlockedRewards);
   /* use some mock data
   const unlockedRewards = [
@@ -68,7 +70,7 @@ const UnlockedRewards: React.FC = () => {
         {/* Section Title */}
         <Box twClassName="mb-4">
           <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.unlocked_rewards_title')}
+            {strings('rewards.unlocked_rewards.title')}
           </Text>
         </Box>
         <Image
@@ -80,8 +82,21 @@ const UnlockedRewards: React.FC = () => {
           variant={TextVariant.BodyMd}
           twClassName="text-text-alternative text-center mb-2"
         >
-          {strings('rewards.unlocked_rewards_empty')}
+          {strings('rewards.unlocked_rewards.empty')}
         </Text>
+        <Pressable
+          onPress={() => dispatch(setActiveTab('overview'))}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-primary-default text-center"
+          >
+            {strings('rewards.unlocked_rewards.see_ways_to_earn')}
+          </Text>
+        </Pressable>
       </Box>
     );
   }
@@ -91,7 +106,7 @@ const UnlockedRewards: React.FC = () => {
       {/* Section Title */}
       <Box twClassName="mb-4">
         <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.unlocked_rewards_title')}
+          {strings('rewards.unlocked_rewards.title')}
         </Text>
       </Box>
 

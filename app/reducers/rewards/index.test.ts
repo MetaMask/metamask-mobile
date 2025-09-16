@@ -24,6 +24,7 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import Logger from '../../util/Logger';
 
 describe('rewardsReducer', () => {
   const initialState: RewardsState = {
@@ -56,7 +57,7 @@ describe('rewardsReducer', () => {
     hideUnlinkedAccountsBanner: false,
 
     // Points Boost state
-    activeBoosts: null,
+    activeBoosts: [],
     activeBoostsLoading: false,
     activeBoostsError: false,
 
@@ -915,11 +916,23 @@ describe('rewardsReducer', () => {
             id: 'tier-platinum',
             name: 'Platinum',
             pointsNeeded: 1000,
+            image: {
+              lightModeUrl: 'platinum.png',
+              darkModeUrl: 'platinum-dark.png',
+            },
+            levelNumber: 'Level 10',
+            rewards: [],
           },
           nextTier: {
             id: 'tier-diamond',
             name: 'Diamond',
             pointsNeeded: 2000,
+            image: {
+              lightModeUrl: 'diamond.png',
+              darkModeUrl: 'diamond-dark.png',
+            },
+            levelNumber: 'Level 20',
+            rewards: [],
           },
           nextTierPointsNeeded: 1000,
           balanceTotal: 5000,
@@ -928,7 +941,19 @@ describe('rewardsReducer', () => {
           seasonName: 'Test Season',
           seasonStartDate: new Date('2024-01-01'),
           seasonEndDate: new Date('2024-12-31'),
-          seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
+          seasonTiers: [
+            {
+              id: 'tier-1',
+              name: 'Tier 1',
+              pointsNeeded: 100,
+              image: {
+                lightModeUrl: 'tier-1.png',
+                darkModeUrl: 'tier-1-dark.png',
+              },
+              levelNumber: 'Level 1',
+              rewards: [],
+            },
+          ],
           onboardingActiveStep: OnboardingStep.STEP_1,
           candidateSubscriptionId: 'some-id',
           geoLocation: 'US',
@@ -950,6 +975,8 @@ describe('rewardsReducer', () => {
           ],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          unlockedRewards: [],
+          unlockedRewardLoading: false,
         };
         const action = resetRewardsState();
 
@@ -981,7 +1008,7 @@ describe('rewardsReducer', () => {
             optinAllowedForGeo: false,
             optinAllowedForGeoLoading: false,
             hideUnlinkedAccountsBanner: false,
-            activeBoosts: null,
+            activeBoosts: [],
             activeBoostsLoading: false,
             activeBoostsError: false,
           }),
@@ -996,10 +1023,6 @@ describe('rewardsReducer', () => {
           activeTab: 'activity',
           seasonStatusLoading: true,
           seasonId: 'test-season-id',
-          seasonName: 'Persisted Season',
-          seasonStartDate: new Date('2024-01-01'),
-          seasonEndDate: new Date('2024-12-31'),
-          seasonTiers: [{ id: 'tier-1', name: 'Tier 1', pointsNeeded: 100 }],
           referralDetailsLoading: false,
           referralCode: 'PERSISTED123',
           refereeCount: 15,
@@ -1056,6 +1079,8 @@ describe('rewardsReducer', () => {
           ],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          unlockedRewards: [],
+          unlockedRewardLoading: false,
         };
         const rehydrateAction = {
           type: 'persist/REHYDRATE',
@@ -1092,9 +1117,11 @@ describe('rewardsReducer', () => {
             optinAllowedForGeo: false, // Reset to initial
             optinAllowedForGeoLoading: false, // Reset to initial
             hideUnlinkedAccountsBanner: true, // Only this should be preserved
-            activeBoosts: null,
+            activeBoosts: [],
             activeBoostsLoading: false,
             activeBoostsError: false,
+            unlockedRewards: [],
+            unlockedRewardLoading: false,
           }),
         );
       });

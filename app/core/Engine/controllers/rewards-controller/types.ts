@@ -515,7 +515,7 @@ export type RewardsAccountState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
   activeAccount: RewardsAccountState | null;
-  accounts: { [account: string]: RewardsAccountState };
+  accounts: { [account: CaipAccountId]: RewardsAccountState };
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {

@@ -35,6 +35,8 @@ import {
   RewardDto,
   SeasonTierDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import { RootState } from '..';
+import { RewardsState } from '.';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -833,11 +835,6 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({ activeTab: 'activity' });
         expect(selectActiveTab(state)).toBe('activity');
       });
-
-      it('returns null when activeTab is null directly', () => {
-        const state = createMockRootState({ activeTab: null });
-        expect(selectActiveTab(state)).toBeNull();
-      });
     });
 
     describe('selectBalanceTotal direct calls', () => {
@@ -881,17 +878,67 @@ describe('Rewards selectors', () => {
       });
 
       it('returns single tier correctly', () => {
-        const tier = { id: 'bronze', name: 'Bronze', pointsNeeded: 100 };
+        const tier = {
+          id: 'bronze',
+          name: 'Bronze',
+          pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'bronze.png',
+            darkModeUrl: 'bronze-dark.png',
+          },
+          levelNumber: 'Level 1',
+          rewards: [],
+        };
         const state = createMockRootState({ seasonTiers: [tier] });
         expect(selectSeasonTiers(state)).toEqual([tier]);
       });
 
       it('preserves tier order', () => {
         const tiers = [
-          { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-          { id: 'silver', name: 'Silver', pointsNeeded: 100 },
-          { id: 'gold', name: 'Gold', pointsNeeded: 500 },
-          { id: 'platinum', name: 'Platinum', pointsNeeded: 1000 },
+          {
+            id: 'bronze',
+            name: 'Bronze',
+            pointsNeeded: 100,
+            image: {
+              lightModeUrl: 'bronze.png',
+              darkModeUrl: 'bronze-dark.png',
+            },
+            levelNumber: 'Level 1',
+            rewards: [],
+          },
+          {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 100,
+            image: {
+              lightModeUrl: 'silver.png',
+              darkModeUrl: 'silver-dark.png',
+            },
+            levelNumber: 'Level 2',
+            rewards: [],
+          },
+          {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 500,
+            image: {
+              lightModeUrl: 'gold.png',
+              darkModeUrl: 'gold-dark.png',
+            },
+            levelNumber: 'Level 3',
+            rewards: [],
+          },
+          {
+            id: 'platinum',
+            name: 'Platinum',
+            pointsNeeded: 1000,
+            image: {
+              lightModeUrl: 'platinum.png',
+              darkModeUrl: 'platinum-dark.png',
+            },
+            levelNumber: 'Level 4',
+            rewards: [],
+          },
         ];
         const state = createMockRootState({ seasonTiers: tiers });
         expect(selectSeasonTiers(state)).toEqual(tiers);
@@ -1142,7 +1189,17 @@ describe('Rewards selectors', () => {
   describe('Performance and consistency', () => {
     describe('Selector consistency', () => {
       it('returns same reference for same input', () => {
-        const tier = { id: 'silver', name: 'Silver', pointsNeeded: 500 };
+        const tier = {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'silver.png',
+            darkModeUrl: 'silver-dark.png',
+          },
+          levelNumber: 'Level 2',
+          rewards: [],
+        };
         const state = createMockRootState({ currentTier: tier });
 
         const result1 = selectCurrentTier(state);
@@ -1153,9 +1210,28 @@ describe('Rewards selectors', () => {
       });
 
       it('returns different references for different inputs', () => {
-        const tier1 = { id: 'silver', name: 'Silver', pointsNeeded: 500 };
-        const tier2 = { id: 'gold', name: 'Gold', pointsNeeded: 1000 };
-
+        const tier1 = {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'silver.png',
+            darkModeUrl: 'silver-dark.png',
+          },
+          levelNumber: 'Level 2',
+          rewards: [],
+        };
+        const tier2 = {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'gold.png',
+            darkModeUrl: 'gold-dark.png',
+          },
+          levelNumber: 'Level 3',
+          rewards: [],
+        };
         const state1 = createMockRootState({ currentTier: tier1 });
         const state2 = createMockRootState({ currentTier: tier2 });
 
@@ -1176,15 +1252,50 @@ describe('Rewards selectors', () => {
         seasonStartDate: new Date('2024-01-01'),
         seasonEndDate: new Date('2024-03-31'),
         seasonTiers: [
-          { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-          { id: 'silver', name: 'Silver', pointsNeeded: 500 },
-          { id: 'gold', name: 'Gold', pointsNeeded: 1500 },
+          {
+            id: 'bronze',
+            name: 'Bronze',
+            pointsNeeded: 0,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 1',
+            rewards: [],
+          },
+          {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 500,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 2',
+            rewards: [],
+          },
+          {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 1500,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 3',
+            rewards: [],
+          },
         ],
         referralDetailsLoading: false,
         referralCode: 'REFER2024',
         refereeCount: 25,
-        currentTier: { id: 'silver', name: 'Silver', pointsNeeded: 500 },
-        nextTier: { id: 'gold', name: 'Gold', pointsNeeded: 1500 },
+        currentTier: {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+          levelNumber: 'Level 2',
+          rewards: [],
+        },
+        nextTier: {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 1500,
+          image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+          levelNumber: 'Level 3',
+          rewards: [],
+        },
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
         balanceRefereePortion: 1250.25,
