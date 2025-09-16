@@ -5,7 +5,7 @@
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
-    "audit:ci": "./scripts/yarn-audit.sh",
+    "audit:ci": "yarn npm audit --environment production --severity moderate",
     "watch": "./scripts/build.sh watcher watch",
     "watch:clean": "./scripts/build.sh watcher clean",
     "clean:ios": "rm -rf ios/build",
