@@ -7,17 +7,17 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import Assertions from '../../../framework/Assertions';
 import { RegressionIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures';
-import { arrangeTestUtils } from '../utils/helpers.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
+import { arrangeTestUtils } from '../../identity/utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController.ts';
+} from '../../identity/utils/user-storage/userStorageMockttpController';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { defaultGanacheOptions } from '../../../framework/Constants';
-import { createUserStorageController } from '../utils/mocks.ts';
+import { createUserStorageController } from '../../identity/utils/mocks';
 
 describe(
   RegressionIdentity('Account syncing - Adding and Renaming Accounts'),

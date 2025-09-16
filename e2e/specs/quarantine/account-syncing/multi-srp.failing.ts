@@ -1,23 +1,23 @@
 import { loginToApp } from '../../../viewHelper';
-import TestHelpers from '../../../helpers.js';
+import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { RegressionIdentity } from '../../../tags.js';
+import { RegressionIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
-import { arrangeTestUtils } from '../utils/helpers.ts';
+import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
+import { arrangeTestUtils } from '../../identity/utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../utils/user-storage/userStorageMockttpController.ts';
+} from '../../identity/utils/user-storage/userStorageMockttpController';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import { goToImportSrp, inputSrp } from '../../multisrp/utils.ts';
+import { goToImportSrp, inputSrp } from '../../multisrp/utils';
 import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
-import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants.ts';
+import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../../identity/utils/constants';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import { createUserStorageController } from '../utils/mocks.ts';
+import { createUserStorageController } from '../../identity/utils/mocks';
 
 describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
