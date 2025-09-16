@@ -16,9 +16,9 @@ import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
+import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
 
 export class EngineService {
@@ -84,18 +84,11 @@ export class EngineService {
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
     } catch (error) {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.VAULT_CORRUPTION_DETECTED,
-        )
-          .addProperties({
-            error_type: 'engine_initialization_failure',
-            error_message: (error as Error).message,
-            context: 'engine_service_startup',
-            has_existing_state: Object.keys(state).length > 0,
-          })
-          .build(),
-      );
+      trackVaultCorruption((error as Error).message, {
+        error_type: 'engine_initialization_failure',
+        context: 'engine_service_startup',
+        has_existing_state: Object.keys(state).length > 0,
+      });
 
       Logger.error(
         error as Error,

@@ -83,8 +83,7 @@ import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Con
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
@@ -154,6 +153,7 @@ import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/Mult
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
 import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1119,27 +1119,11 @@ const App: React.FC = () => {
         const locked =
           errorMessage === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS;
 
-        const isVaultRelated =
-          errorMessage.includes('vault') ||
-          errorMessage.includes('keyring') ||
-          errorMessage.includes('Cannot unlock') ||
-          errorMessage.includes('decrypt') ||
-          errorMessage.includes('AUTHENTICATION_APP_TRIGGERED_AUTH');
-
-        if (isVaultRelated) {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.VAULT_CORRUPTION_DETECTED,
-            )
-              .addProperties({
-                error_type: 'app_startup_authentication_failure',
-                error_message: errorMessage,
-                context: 'app_initialization_unlock_failed',
-                locked_state: locked,
-              })
-              .build(),
-          );
-        }
+        // Track vault corruption with enabled state checking
+        trackVaultCorruption(errorMessage, {
+          error_type: 'app_startup_authentication_failure',
+          context: 'app_initialization_unlock_failed',
+        });
 
         // Only call lockApp if there is an existing user to prevent unnecessary calls
         await Authentication.lockApp({ reset: false, locked });

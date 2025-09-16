@@ -7,8 +7,7 @@ import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { CommonActions } from '@react-navigation/native';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import FoxLoader from '../../UI/FoxLoader';
 /**
  * Main view component for the Lock screen
@@ -83,26 +82,12 @@ class LockScreen extends PureComponent {
 
       if (error?.message) {
         const errorMessage = error.message;
-        const isVaultRelated =
-          errorMessage.includes('vault') ||
-          errorMessage.includes('keyring') ||
-          errorMessage.includes('Cannot unlock') ||
-          errorMessage.includes('decrypt') ||
-          errorMessage.includes('AUTHENTICATION_APP_TRIGGERED_AUTH');
 
-        if (isVaultRelated) {
-          MetaMetrics.getInstance().trackEvent(
-            MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.VAULT_CORRUPTION_DETECTED,
-            )
-              .addProperties({
-                error_type: 'lockscreen_authentication_failure',
-                error_message: errorMessage,
-                context: 'lockscreen_unlock_failed',
-              })
-              .build(),
-          );
-        }
+        // Track vault corruption with enabled state checking
+        trackVaultCorruption(errorMessage, {
+          error_type: 'lockscreen_authentication_failure',
+          context: 'lockscreen_unlock_failed',
+        });
       }
 
       trackErrorAsAnalytics(
