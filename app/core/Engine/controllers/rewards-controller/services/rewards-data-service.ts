@@ -122,18 +122,12 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction;
 
-type AllowedActions = never;
-
-export type RewardsDataServiceEvents = never;
-
-type AllowedEvents = never;
-
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
   RewardsDataServiceActions,
-  RewardsDataServiceEvents,
-  AllowedActions['type'],
-  AllowedEvents['type']
+  never,
+  never['type'],
+  never['type']
 >;
 
 /**
