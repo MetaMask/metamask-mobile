@@ -15,7 +15,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { connect } from 'react-redux';
-import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -42,10 +41,6 @@ import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import {
-  BIOMETRY_CHOICE_DISABLED,
-  PASSCODE_DISABLED,
-} from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import { Authentication } from '../../../core';
@@ -700,6 +695,18 @@ const ImportFromSecretRecoveryPhrase = ({
     [showAllSeedPhrase, seedPhraseInputFocusedIndex, errorWordIndexes],
   );
 
+  const getInputValue = (isFirstInput, index, item) => {
+    if (isFirstInput) {
+      return seedPhrase?.[0] || '';
+    }
+
+    if (canShowSeedPhraseWord(index)) {
+      return item;
+    }
+
+    return maskText(item);
+  };
+
   const learnMoreLink = () => {
     navigation.push('Webview', {
       screen: 'SimpleWebview',
@@ -844,13 +851,7 @@ const ImportFromSecretRecoveryPhrase = ({
                               </Text>
                             )
                           }
-                          value={
-                            isFirstInput
-                              ? seedPhrase?.[0] || ''
-                              : canShowSeedPhraseWord(index)
-                              ? item
-                              : maskText(item)
-                          }
+                          value={getInputValue(isFirstInput, index, item)}
                           onFocus={(e) => {
                             handleOnFocus(index);
                           }}
@@ -1000,7 +1001,6 @@ const ImportFromSecretRecoveryPhrase = ({
                 {strings('import_from_seed.create_new_password')}
               </Label>
               <TextField
-                placeholder={strings('import_from_seed.enter_strong_password')}
                 size={TextFieldSize.Lg}
                 value={password}
                 onChangeText={onPasswordChange}
@@ -1028,7 +1028,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 }
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               />
-              {Boolean(password) && password.length < MIN_PASSWORD_LENGTH && (
+              {(!password || password.length < MIN_PASSWORD_LENGTH) && (
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -1069,7 +1069,6 @@ const ImportFromSecretRecoveryPhrase = ({
               </Label>
               <TextField
                 ref={confirmPasswordInput}
-                placeholder={strings('import_from_seed.re_enter_password')}
                 size={TextFieldSize.Lg}
                 onChangeText={onPasswordConfirmChange}
                 secureTextEntry={showPasswordIndex.includes(1)}
@@ -1138,7 +1137,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 loading={loading}
                 width={ButtonWidthTypes.Full}
                 variant={ButtonVariants.Primary}
-                label={strings('import_from_seed.create_password_cta')}
+                label={strings('import_from_seed.import_create_password_cta')}
                 onPress={onPressImport}
                 disabled={isContinueButtonDisabled}
                 size={ButtonSize.Lg}
