@@ -9,8 +9,14 @@ import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
+import {
+  wait,
+  waitForCondition,
+  waitForKeychainUnlocked,
+} from '../utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
+import Routes from '../../../constants/navigation/Routes';
+import { METHODS_TO_DELAY } from '../SDKConnectConstants';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -75,6 +81,8 @@ const handleDeeplink = async ({
     }
   }
   DevLogger.log(`handleDeeplink:: url=${url}`);
+  let connection = sdkConnect.getConnected()[channelId];
+  let message;
   const connections = sdkConnect.getConnections();
   const channelExists = connections[channelId] !== undefined;
 
@@ -131,7 +139,7 @@ const handleDeeplink = async ({
       );
       // If msg contains rpc calls, handle them
       if (rpc) {
-        const connection = sdkConnect.getConnected()[channelId];
+        connection = sdkConnect.getConnected()[channelId];
         if (!connection) {
           DevLogger.log(`handleDeeplink:: connection not found`);
           return;
@@ -145,7 +153,7 @@ const handleDeeplink = async ({
         const clearRPC = connection.remote.decrypt(decodedRPC);
         DevLogger.log(`handleDeeplink:: clearRPC rpc`, clearRPC);
 
-        const message = JSON.parse(clearRPC) as CommunicationLayerMessage;
+        message = JSON.parse(clearRPC) as CommunicationLayerMessage;
         DevLogger.log(`handleDeeplink:: message`, message);
 
         // Check if already received via websocket
@@ -173,6 +181,7 @@ const handleDeeplink = async ({
       DevLogger.log(
         `handleDeeplink:: connectToChannel - trigger=${trigger} origin=${origin} platform=${Platform.OS} rpc=${rpc}`,
       );
+
       await sdkConnect.connectToChannel({
         id: channelId,
         origin,
@@ -183,9 +192,10 @@ const handleDeeplink = async ({
         otherPublicKey,
       });
 
+      connection = sdkConnect.getConnected()[channelId];
+
       // When RPC is provided on new connection, it means connectWith.
       if (rpc) {
-        const connection = sdkConnect.getConnected()[channelId];
         if (!connection) {
           DevLogger.log(`handleDeeplink:: connection not found`);
           return;
@@ -199,9 +209,12 @@ const handleDeeplink = async ({
         // Decode rpc and directly process it - simulate network reception
         const decodedRPC = Buffer.from(rpc, 'base64').toString('utf-8');
 
-        DevLogger.log(`decoded rpc`, decodedRPC);
+        // Decode rpc and directly process it - simulate network reception
+        const clearRPC = connection.remote.decrypt(decodedRPC);
 
-        const message = JSON.parse(decodedRPC) as CommunicationLayerMessage;
+        DevLogger.log(`decoded rpc`, clearRPC);
+
+        message = JSON.parse(clearRPC) as CommunicationLayerMessage;
         DevLogger.log(`handleDeeplink:: message`, message);
 
         await handleConnectionMessage({
@@ -211,6 +224,23 @@ const handleDeeplink = async ({
         });
       }
     }
+
+    // Add delay to display UI feedback before redirecting
+    if (message?.method && METHODS_TO_DELAY[message.method]) {
+      await wait(1200);
+    }
+
+    DevLogger.log(
+      `[handleSendMessage] method=${message?.method} trigger=${connection.trigger} origin=${connection.origin} id=${message?.id} goBack()`,
+    );
+
+    // const isPostNetworkSwitch = method === RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN
+    connection.trigger = 'resume';
+    connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+      method: message?.method,
+      origin: connection.originatorInfo?.url,
+    });
   } catch (error) {
     Logger.error(error as Error, 'Failed to connect to channel');
   }
