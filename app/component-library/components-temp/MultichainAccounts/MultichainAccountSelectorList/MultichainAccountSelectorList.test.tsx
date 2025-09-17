@@ -875,8 +875,8 @@ describe('MultichainAccountSelectorList', () => {
       const account2Checkboxes = getAllByTestId(
         `account-list-cell-checkbox-${account2.id}`,
       );
-      expect(account1Checkboxes.length).toEqual(2); // Container + Icon both have the same testID (selected account)
-      expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
+      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
+      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
 
       // Check that there is at least 1 checked checkbox icon (for the selected account)
       // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
@@ -885,7 +885,7 @@ describe('MultichainAccountSelectorList', () => {
       const checkboxElements = getAllByTestId(
         `account-list-cell-checkbox-${selectedAccount.id}`,
       );
-      expect(checkboxElements.length).toEqual(2); // Container + Icon both have the same testID (selected account)
+      expect(checkboxElements.length).toEqual(1); // Only container should have the testID (selected account)
     });
 
     it('displays unchecked checkbox for unselected accounts', () => {
@@ -1006,9 +1006,9 @@ describe('MultichainAccountSelectorList', () => {
       const account3Checkboxes = getAllByTestId(
         `account-list-cell-checkbox-${account3.id}`,
       );
-      expect(account1Checkboxes.length).toEqual(2); // Container + Icon both have the same testID (selected account)
-      expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
-      expect(account3Checkboxes.length).toEqual(2); // Container + Icon both have the same testID (selected account)
+      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
+      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
+      expect(account3Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
 
       // Check that there are checked checkbox icons (for the 2 selected accounts)
       // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
@@ -1021,8 +1021,8 @@ describe('MultichainAccountSelectorList', () => {
       const checkboxElements3 = getAllByTestId(
         `account-list-cell-checkbox-${selectedAccount3.id}`,
       );
-      expect(checkboxElements1.length).toEqual(2); // Container + Icon both have the same testID (selected account)
-      expect(checkboxElements3.length).toEqual(2); // Container + Icon both have the same testID (selected account)
+      expect(checkboxElements1.length).toEqual(1); // Only container should have the testID (selected account)
+      expect(checkboxElements3.length).toEqual(1); // Only container should have the testID (selected account)
     });
   });
 });
