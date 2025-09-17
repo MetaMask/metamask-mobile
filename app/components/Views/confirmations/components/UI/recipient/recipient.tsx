@@ -7,12 +7,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ButtonBase from '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import ButtonBase from '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -38,7 +38,7 @@ export function Recipient({
   isBIP44,
   accountAvatarType,
   onPress,
-}: Readonly<RecipientProps>) {
+}: RecipientProps) {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
 
