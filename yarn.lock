@@ -5034,7 +5034,7 @@
 
 "@metamask/bridge-controller@^42.0.0":
   version "42.0.0"
-  resolved "https://registry.npmjs.org/@metamask/bridge-controller/-/bridge-controller-42.0.0.tgz#63dc3165c0dcd8654c1e58a080154c2992a5efbe"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-42.0.0.tgz#63dc3165c0dcd8654c1e58a080154c2992a5efbe"
   integrity sha512-C+W1EbtwUWmgp6mds1Vc7yyY1cScZ0xWgBnQ3ta0J8c80lbi4uExZRF+Jsupf1aG7xCsIihfNZymb/QKFBNyYg==
   dependencies:
     "@ethersproject/address" "^5.7.0"
@@ -5054,17 +5054,17 @@
     reselect "^5.1.1"
     uuid "^8.3.2"
 
-"@metamask/bridge-status-controller@^42.0.0":
-  version "42.0.0"
-  resolved "https://registry.npmjs.org/@metamask/bridge-status-controller/-/bridge-status-controller-42.0.0.tgz#9e42f0b7543d9abc59a422a0758cde1c552f8962"
-  integrity sha512-wvB/DlVtYKWhi+bXzEI3N7rr5F9uJCqV5KDUzoiVA8BbRHdziZYBPGTm3Wyer0+pFUeOcQ4TpbYgpdSxtODwtw==
+"@metamask/bridge-status-controller@^43.0.0":
+  version "43.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-43.0.0.tgz#14b0b5a39da17b7b15fe044fb22db50733ae32d1"
+  integrity sha512-g3fCNT5XyEPmEhm5nj0kHxJGH5GvxPNcS4uc3p8ZHhD1okPhpeCxDTIaR6pNiY2nVWm4JZp+fQe7FDQ5QqDVcA==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
-    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-api" "^21.0.0"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.4.2"
+    "@metamask/utils" "^11.8.0"
     bignumber.js "^9.1.2"
     uuid "^8.3.2"
 
