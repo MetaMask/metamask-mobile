@@ -1,7 +1,7 @@
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
 
-export const selectActiveTab = (state: RootState): RewardsTab | null =>
+export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
 
 export const selectReferralCode = (state: RootState) =>
@@ -72,3 +72,15 @@ export const selectActiveBoostsLoading = (state: RootState) =>
 
 export const selectActiveBoostsError = (state: RootState) =>
   state.rewards.activeBoostsError;
+
+export const selectUnlockedRewards = (state: RootState) =>
+  state.rewards.unlockedRewards;
+
+export const selectUnlockedRewardLoading = (state: RootState) =>
+  state.rewards.unlockedRewardLoading;
+
+export const selectSeasonRewardById =
+  (rewardId: string) => (state: RootState) =>
+    (state.rewards.seasonTiers || [])
+      .flatMap((tier) => tier.rewards)
+      ?.find((reward) => reward.id === rewardId);

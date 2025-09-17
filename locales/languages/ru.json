@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Этот пароль разблокирует ваш кошелек MetaMask только на этом устройстве.",
-    "password": "Создать новый пароль",
+    "password": "Create password",
     "confirm_password": "Подтвердить пароль",
     "create_button": "Создать пароль",
     "import_with_seed_phrase": "Импорт с помощью секретной фразы для восстановления",
@@ -404,7 +404,7 @@
     "show": "Показать",
     "hide": "Скрыть",
     "seed_phrase": "Секретная фраза для восстановления",
-    "must_be_at_least": "Пароль должен содержать не менее {{number}} символов",
+    "must_be_at_least": "должна содержать не менее {{number}} символов",
     "remember_me": "Запомнить меня",
     "security_alert_title": "Оповещение безопасности",
     "security_alert_message": "Чтобы продолжить, необходимо включить защиту паролем или любой метод биометрической аутентификации, поддерживаемый вашим устройством (FaceID, TouchID или отпечаток пальца).",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Если я забуду этот пароль, я потеряю доступ к своему кошельку навсегда. MetaMask не может сбросить его для меня.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Повторить попытку"
   },
   "import_from_seed": {
     "title": "Импортировать кошелек",
     "seed_phrase_placeholder": "Введите свою секретную фразу для восстановления",
-    "create_new_password": "Создать новый пароль",
+    "create_new_password": "Create password",
     "confirm_password": "Подтвердить пароль",
     "import_button": "ИМПОРТ",
     "cancel_button": "Отмена",
@@ -491,7 +491,7 @@
     "srp": "секретная фраза для восстановления",
     "srp_placeholder": "Добавьте пробел между всеми словами и убедитесь, что никто не смотрит.",
     "learn_more_link": "Узнайте подробнее",
-    "create_password_cta": "Создать пароль",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Продолжить с Flow",
     "steps": "Шаг {{currentStep}} из {{totalSteps}}",
     "password_error": "Пароли не совпадают. Попробуйте еще раз.",
@@ -507,6 +507,7 @@
     "home": "Главная",
     "browser": "Браузер",
     "activity": "Деятельность",
+    "trade": "Trade",
     "settings": "Настройки",
     "rewards": "Награды"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "Кредитное плечо",
         "confirm": "Подтвердить",
         "entry_price": "Начальная цена",
         "current_price": "Текущая цена",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "купить",
     "sell": "продать",
-    "orders": "Ордера",
+    "orders": "Transfers",
     "All": "Все",
     "Buy": "Купить",
     "Sell": "Продать",
     "token_marketplace": "Торговая площадка токенов",
     "Purchased": "Куплено",
     "Sold": "Продано",
-    "empty_orders_list": "У вас нет ордеров",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "У вас нет ордеров на покупку",
     "empty_sell_orders_list": "У вас нет ордеров на продажу",
     "purchased_currency": "Куплено {{currency}}",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "Приведите друга",
@@ -5791,7 +5814,9 @@
         "title": "Поделитесь своим кодом, чтобы заработать больше",
         "description": "Ваши друзья зарабатывают бонусные баллы, а вы получаете 20% от их вознаграждений."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} минута",

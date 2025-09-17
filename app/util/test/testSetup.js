@@ -366,6 +366,18 @@ jest.mock('@segment/analytics-react-native', () => {
     }
   }
 
+  class CountFlushPolicy {
+    constructor(count) {
+      this.count = count;
+    }
+  }
+
+  class TimerFlushPolicy {
+    constructor(interval) {
+      this.interval = interval;
+    }
+  }
+
   return {
     createClient: jest.fn(() => initializeMockClient()),
     PluginType: {
@@ -377,6 +389,8 @@ jest.mock('@segment/analytics-react-native', () => {
       IdentifyEvent: 'identify',
     },
     Plugin,
+    CountFlushPolicy,
+    TimerFlushPolicy,
   };
 });
 

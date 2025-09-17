@@ -19,7 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { SwapSupportedNetworksSection } from './SwapSupportedNetworksSection';
-import MetamaskRewardsPointsImage from '../../../../../../../images/metamask-rewards-points.svg';
+import MetamaskRewardsPointsImage from '../../../../../../../images/rewards/metamask-rewards-points.svg';
 import swapIllustration from '../../../../../../../images/rewards/rewards-swap.png';
 import perpIllustration from '../../../../../../../images/rewards/rewards-trade.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -186,7 +186,7 @@ export const WaysToEarn = () => {
   };
 
   return (
-    <Box>
+    <Box twClassName="py-4">
       <Text variant={TextVariant.HeadingMd} twClassName="mb-4">
         {strings('rewards.ways_to_earn.title')}
       </Text>
@@ -212,7 +212,7 @@ export const WaysToEarn = () => {
                   <Icon
                     color={IconColor.IconAlternative}
                     name={wayToEarn.icon as IconName}
-                    size={IconSize.Md}
+                    size={IconSize.Lg}
                   />
                 </Box>
 

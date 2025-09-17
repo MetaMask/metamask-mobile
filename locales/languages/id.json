@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya pada perangkat ini.",
-    "password": "Buat kata sandi baru",
+    "password": "Create password",
     "confirm_password": "Konfirmasikan kata sandi",
     "create_button": "Buat kata sandi",
     "import_with_seed_phrase": "Impor dengan Frasa Pemulihan Rahasia",
@@ -404,7 +404,7 @@
     "show": "Tampilkan",
     "hide": "Sembunyikan",
     "seed_phrase": "Frasa Pemulihan Rahasia",
-    "must_be_at_least": "Kata sandi minimal berisi {{number}} karakter",
+    "must_be_at_least": "Minimal berisi {{number}} karakter",
     "remember_me": "Ingat saya",
     "security_alert_title": "Peringatan Keamanan",
     "security_alert_message": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung di perangkat Anda (ID Wajah, ID Sentuh, atau Sidik Jari)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Jika lupa kata sandi ini, saya akan kehilangan akses ke dompet secara permanen. MetaMask tidak dapat mereset kata sandi ini untuk saya.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Coba lagi"
   },
   "import_from_seed": {
     "title": "Impor dompet",
     "seed_phrase_placeholder": "Masukkan Frasa Pemulihan Rahasia",
-    "create_new_password": "Buat kata sandi baru",
+    "create_new_password": "Create password",
     "confirm_password": "Konfirmasikan kata sandi",
     "import_button": "IMPOR",
     "cancel_button": "Batal",
@@ -491,7 +491,7 @@
     "srp": "Frasa Pemulihan Rahasia",
     "srp_placeholder": "Tambahkan spasi di antara setiap kata dan pastikan tidak ada yang melihat.",
     "learn_more_link": "Selengkapnya",
-    "create_password_cta": "Buat kata sandi",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Lanjutkan dengan Flow",
     "steps": "Langkah {{currentStep}} dari {{totalSteps}}",
     "password_error": "Kata sandi tidak sesuai. Coba lagi.",
@@ -507,6 +507,7 @@
     "home": "Beranda",
     "browser": "Browser",
     "activity": "Aktivitas",
+    "trade": "Trade",
     "settings": "Pengaturan",
     "rewards": "Reward"
   },
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "beli",
     "sell": "jual",
-    "orders": "Pesanan",
+    "orders": "Transfers",
     "All": "Semua",
     "Buy": "Beli",
     "Sell": "Jual",
     "token_marketplace": "Token marketplace",
     "Purchased": "Dibeli",
     "Sold": "Terjual",
-    "empty_orders_list": "Anda tidak memiliki order apa pun",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "Anda tidak memiliki pesanan pembelian",
     "empty_sell_orders_list": "Anda tidak memiliki pesanan penjualan",
     "purchased_currency": "Membeli {{currency}}",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "Rekomendasikan ke teman",
@@ -5791,7 +5814,9 @@
         "title": "Bagikan kode Anda untuk mendapatkan lebih banyak",
         "description": "Teman Anda memperoleh poin bonus dan Anda memperoleh 20% dari reward mereka."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} menit",

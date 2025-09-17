@@ -126,7 +126,7 @@ jest.mock('react-native-progress/Bar', () => {
 });
 
 // Mock SVG component
-jest.mock('../../../../../images/metamask-rewards-points.svg', () => {
+jest.mock('../../../../../images/rewards/metamask-rewards-points.svg', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return ReactActual.forwardRef(
@@ -185,13 +185,63 @@ describe('SeasonStatus', () => {
     seasonStartDate: new Date('2024-01-01T00:00:00Z'),
     seasonEndDate: new Date('2024-12-31T23:59:59Z'),
     balanceTotal: 1500,
-    currentTier: { id: 'bronze', name: 'bronze', pointsNeeded: 0 },
-    nextTier: { id: 'silver', name: 'silver', pointsNeeded: 2000 },
+    currentTier: {
+      id: 'bronze',
+      name: 'bronze',
+      pointsNeeded: 0,
+      image: {
+        lightModeUrl: 'lightModeUrl',
+        darkModeUrl: 'darkModeUrl',
+      },
+      levelNumber: 'Level 1',
+      rewards: [],
+    },
+    nextTier: {
+      id: 'silver',
+      name: 'silver',
+      pointsNeeded: 2000,
+      image: {
+        lightModeUrl: 'lightModeUrl',
+        darkModeUrl: 'darkModeUrl',
+      },
+      levelNumber: 'Level 2',
+      rewards: [],
+    },
     nextTierPointsNeeded: 500,
     seasonTiers: [
-      { id: 'bronze', name: 'bronze', pointsNeeded: 0 },
-      { id: 'silver', name: 'silver', pointsNeeded: 2000 },
-      { id: 'gold', name: 'gold', pointsNeeded: 5000 },
+      {
+        id: 'bronze',
+        name: 'bronze',
+        pointsNeeded: 0,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 1',
+        rewards: [],
+      },
+      {
+        id: 'silver',
+        name: 'silver',
+        pointsNeeded: 2000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 2',
+        rewards: [],
+      },
+      {
+        id: 'gold',
+        name: 'gold',
+        pointsNeeded: 5000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 3',
+        rewards: [],
+      },
     ],
   };
 
@@ -264,6 +314,12 @@ describe('SeasonStatus', () => {
         id: 'silver',
         name: 'silver',
         pointsNeeded: 2000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 2',
+        rewards: [],
       });
 
       const { getByText, getByTestId } = render(<SeasonStatus />);
@@ -278,6 +334,12 @@ describe('SeasonStatus', () => {
         id: 'gold',
         name: 'gold',
         pointsNeeded: 5000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 3',
+        rewards: [],
       });
 
       const { getByText } = render(<SeasonStatus />);
@@ -294,6 +356,12 @@ describe('SeasonStatus', () => {
         id: 'silver',
         name: 'silver',
         pointsNeeded: 2000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 2',
+        rewards: [],
       });
 
       // When: component renders
@@ -516,6 +584,12 @@ describe('SeasonStatus', () => {
         id: 'gold',
         name: 'gold',
         pointsNeeded: 5000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 3',
+        rewards: [],
       });
       rerender(<SeasonStatus />);
 

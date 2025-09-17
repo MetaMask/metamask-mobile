@@ -20,6 +20,7 @@ import type {
   OptInStatusDto,
   OptOutDto,
   PointsBoostEnvelopeDto,
+  RewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -112,6 +113,11 @@ export interface RewardsDataServiceGetActivePointsBoostsAction {
   handler: RewardsDataService['getActivePointsBoosts'];
 }
 
+export interface RewardsDataServiceGetUnlockedRewardsAction {
+  type: `${typeof SERVICE_NAME}:getUnlockedRewards`;
+  handler: RewardsDataService['getUnlockedRewards'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -127,7 +133,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
-  | RewardsDataServiceGetActivePointsBoostsAction;
+  | RewardsDataServiceGetActivePointsBoostsAction
+  | RewardsDataServiceGetUnlockedRewardsAction;
 
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
@@ -224,6 +231,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getActivePointsBoosts`,
       this.getActivePointsBoosts.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getUnlockedRewards`,
+      this.getUnlockedRewards.bind(this),
     );
   }
 
@@ -685,5 +696,30 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PointsBoostEnvelopeDto;
+  }
+
+  /**
+   * Get the unlocked rewards for a specific subscription.
+   * @param seasonId - The ID of the season to get status for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The rewards DTO.
+   */
+  async getUnlockedRewards(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<RewardDto[]> {
+    const response = await this.makeRequest(
+      `/rewards?seasonId=${seasonId}`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get unlocked: ${response.status}`);
+    }
+
+    return (await response.json()) as RewardDto[];
   }
 }

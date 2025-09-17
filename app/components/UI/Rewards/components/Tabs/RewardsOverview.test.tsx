@@ -4,11 +4,18 @@ import RewardsOverview from './RewardsOverview';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 // Mock ActiveBoosts component
-jest.mock('./OverviewTab/ActiveBoosts', () => {
-  const MockActiveBoosts = () => 'ActiveBoosts';
-  MockActiveBoosts.displayName = 'ActiveBoosts';
-  return MockActiveBoosts;
-});
+jest.mock('./OverviewTab/ActiveBoosts', () => ({
+  __esModule: true,
+  default: function MockActiveBoosts() {
+    const React = jest.requireActual('react');
+    const { View, Text } = jest.requireActual('react-native');
+    return React.createElement(
+      View,
+      { testID: 'active-boosts' },
+      React.createElement(Text, null, 'Active Boosts'),
+    );
+  },
+}));
 
 // Mock useActivePointsBoosts hook
 const mockUseActivePointsBoosts = jest.fn();
@@ -45,13 +52,21 @@ jest.mock('@react-navigation/native', () => ({
 // Mock WaysToEarn component to avoid navigation dependencies
 jest.mock('./OverviewTab/WaysToEarn/WaysToEarn', () => ({
   WaysToEarn: () => {
+    const React = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="ways-to-earn-mock">
-        <Text>WaysToEarn Mock</Text>
-      </View>
+    return React.createElement(
+      View,
+      { testID: 'ways-to-earn-mock' },
+      React.createElement(Text, null, 'WaysToEarn Mock'),
     );
   },
+}));
+
+// Mock useTailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({ flexGrow: 1 })),
+  }),
 }));
 
 describe('RewardsOverview', () => {
@@ -90,13 +105,11 @@ describe('RewardsOverview', () => {
 
     // Assert
     expect(container).toBeOnTheScreen();
-    // Verify flex styling is applied (checking for flexGrow: 1 which indicates flex: 1)
-    expect(container.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          flexGrow: 1,
-        }),
-      ]),
+    // Verify contentContainerStyle is applied with flexGrow
+    expect(container.props.contentContainerStyle).toEqual(
+      expect.objectContaining({
+        flexGrow: 1,
+      }),
     );
   });
 
@@ -111,5 +124,30 @@ describe('RewardsOverview', () => {
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW),
     ).toBeOnTheScreen();
+  });
+
+  it('should render ActiveBoosts component', () => {
+    // Arrange & Act
+    const { getByTestId } = render(<RewardsOverview />);
+
+    // Assert
+    expect(getByTestId('active-boosts')).toBeOnTheScreen();
+  });
+
+  it('should render WaysToEarn component', () => {
+    // Arrange & Act
+    const { getByTestId } = render(<RewardsOverview />);
+
+    // Assert
+    expect(getByTestId('ways-to-earn-mock')).toBeOnTheScreen();
+  });
+
+  it('should hide vertical scroll indicator', () => {
+    // Arrange & Act
+    const { getByTestId } = render(<RewardsOverview />);
+    const container = getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW);
+
+    // Assert
+    expect(container.props.showsVerticalScrollIndicator).toBe(false);
   });
 });

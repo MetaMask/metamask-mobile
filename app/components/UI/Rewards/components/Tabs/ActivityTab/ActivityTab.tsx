@@ -19,9 +19,10 @@ import {
 } from '../../../../../../reducers/rewards/selectors';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
-import MetamaskRewardsActivityEmptyImage from '../../../../../../images/metamask-rewards-activity-empty.svg';
+import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/metamask-rewards-activity-empty.svg';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { setActiveTab } from '../../../../../../actions/rewards';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
@@ -48,23 +49,25 @@ const IntermediateState: React.FC<{ message?: string; isError?: boolean }> = ({
 
 const EmptyState: React.FC = () => {
   const dispatch = useDispatch();
+  const tw = useTailwind();
 
   const handleSeeWaysToEarn = () => {
     dispatch(setActiveTab('overview'));
   };
 
   return (
-    <Box twClassName="flex-1 items-center p-20 gap-8">
+    <Box twClassName="flex-1 items-center py-4">
       <MetamaskRewardsActivityEmptyImage
         name="MetamaskRewardsActivityEmptyImage"
-        width={120}
-        height={120}
+        width={80}
+        height={80}
+        style={tw.style('mb-4')}
       />
 
       <Box twClassName="items-center gap-2">
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="text-alternative text-center"
+          twClassName="text-text-alternative text-center"
         >
           {strings('rewards.activity_empty_title')}
         </Text>

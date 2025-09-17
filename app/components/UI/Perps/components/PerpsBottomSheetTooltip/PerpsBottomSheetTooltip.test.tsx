@@ -17,6 +17,21 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
+jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '1000',
+      totalBalance: '1000',
+      marginUsed: '0',
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalValue: '1000',
+    },
+    isInitialLoading: false,
+  })),
+}));
+
 describe('PerpsBottomSheetTooltip', () => {
   const mockOnClose = jest.fn();
 

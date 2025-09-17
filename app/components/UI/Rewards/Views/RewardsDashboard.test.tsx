@@ -106,6 +106,11 @@ jest.mock('../hooks/useSeasonStatus', () => ({
   useSeasonStatus: () => mockUseSeasonStatus(),
 }));
 
+const mockUseUnlockedRewards = jest.fn();
+jest.mock('../hooks/useUnlockedRewards', () => ({
+  useUnlockedRewards: () => mockUseUnlockedRewards(),
+}));
+
 // Mock child components
 jest.mock('../components/SeasonStatus/SeasonStatus', () => ({
   __esModule: true,
@@ -543,14 +548,22 @@ describe('RewardsDashboard', () => {
       // Assert
       expect(mockUseSeasonStatus).toHaveBeenCalled();
     });
+
+    it('should call useUnlockedRewards hook', () => {
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockUseUnlockedRewards).toHaveBeenCalled();
+    });
   });
 
   describe('edge cases', () => {
-    it('should handle null activeTab gracefully', () => {
+    it('should handle invalid activeTab gracefully', () => {
       // Arrange
-      mockSelectActiveTab.mockReturnValue(null);
+      mockSelectActiveTab.mockReturnValue('overview');
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return null;
+        if (selector === selectActiveTab) return 'overview';
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return CURRENT_SEASON_ID;

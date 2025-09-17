@@ -102,8 +102,28 @@ describe('useSeasonStatus', () => {
         updatedAt: 1640995200000,
       },
       tier: {
-        currentTier: { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-        nextTier: { id: 'silver', name: 'Silver', pointsNeeded: 100 },
+        currentTier: {
+          id: 'bronze',
+          name: 'Bronze',
+          pointsNeeded: 0,
+          image: {
+            lightModeUrl: 'bronze-light',
+            darkModeUrl: 'bronze-dark',
+          },
+          levelNumber: '1',
+          rewards: [],
+        },
+        nextTier: {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'silver-light',
+            darkModeUrl: 'silver-dark',
+          },
+          levelNumber: '2',
+          rewards: [],
+        },
         nextTierPointsNeeded: 50,
       },
     };

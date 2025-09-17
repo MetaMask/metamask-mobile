@@ -191,6 +191,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "height": 20,
+                          "marginLeft": 8,
                           "width": 20,
                         }
                       }
@@ -378,6 +379,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "height": 20,
+                          "marginLeft": 8,
                           "width": 20,
                         }
                       }

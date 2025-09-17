@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Αυτός ο κωδικός πρόσβασης θα ξεκλειδώσει το πορτοφόλι MetaMask μόνο σε αυτή τη συσκευή.",
-    "password": "Δημιουργία νέου κωδικού πρόσβασης",
+    "password": "Create password",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
     "create_button": "Δημιουργία κωδικού πρόσβασης",
     "import_with_seed_phrase": "Εισαγωγή με Μυστική Φράση Ανάκτησης",
@@ -404,7 +404,7 @@
     "show": "Εμφάνιση",
     "hide": "Απόκρυψη",
     "seed_phrase": "Μυστική Φράση Ανάκτησης",
-    "must_be_at_least": "Ο κωδικός πρόσβασης πρέπει να περιλαμβάνει τουλάχιστον {{number}} χαρακτήρες",
+    "must_be_at_least": "Πρέπει να περιέχει τουλάχιστον {{number}} χαρακτήρες",
     "remember_me": "Να με θυμάσαι",
     "security_alert_title": "Ειδοποίηση Ασφαλείας",
     "security_alert_message": "Για να συνεχίσετε, πρέπει να ενεργοποιήσετε τον κωδικό πρόσβασης ή κάποια βιομετρική μέθοδο επαλήθευσης που υποστηρίζει η συσκευή σας (FaceID, TouchID ή Δακτυλικό αποτύπωμα)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Αν ξεχάσω τον κωδικό πρόσβασης, θα χάσω οριστικά την πρόσβαση στο πορτοφόλι μου. Το MetaMask δεν μπορεί να τον επαναφέρει για εμένα.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Προσπαθήστε ξανά"
   },
   "import_from_seed": {
     "title": "Εισαγωγή πορτοφολιού",
     "seed_phrase_placeholder": "Εισαγάγετε την Μυστική Φράση Ανάκτησης",
-    "create_new_password": "Δημιουργία νέου κωδικού πρόσβασης",
+    "create_new_password": "Create password",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
     "import_button": "ΕΙΣΑΓΩΓΉ",
     "cancel_button": "Άκυρο",
@@ -491,7 +491,7 @@
     "srp": "Μυστική Φράση Ανάκτησής σας",
     "srp_placeholder": "Προσθέστε ένα κενό ανάμεσα σε κάθε λέξη και βεβαιωθείτε ότι δεν σας βλέπει κανείς.",
     "learn_more_link": "Μάθετε περισσότερα",
-    "create_password_cta": "Δημιουργία κωδικού πρόσβασης",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Συνεχίστε με το Flow",
     "steps": "Βήμα {{currentStep}} από {{totalSteps}}",
     "password_error": "Οι κωδικοί πρόσβασης δεν ταιριάζουν. Προσπαθήστε ξανά.",
@@ -507,6 +507,7 @@
     "home": "Αρχική σελίδα",
     "browser": "Πρόγραμμα περιήγησης",
     "activity": "Δραστηριότητα",
+    "trade": "Trade",
     "settings": "Ρυθμίσεις",
     "rewards": "Επιβραβεύσεις"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "Μόχλευση",
         "confirm": "Επιβεβαίωση",
         "entry_price": "Τιμή εκκίνησης",
         "current_price": "Τρέχουσα τιμή",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "αγορά",
     "sell": "πώληση",
-    "orders": "Εντολές",
+    "orders": "Transfers",
     "All": "Όλα",
     "Buy": "Αγορά",
     "Sell": "Πώληση",
     "token_marketplace": "Χώρος αγοράς των tokens",
     "Purchased": "Αγοράστηκαν",
     "Sold": "Πουλήθηκαν",
-    "empty_orders_list": "Δεν έχετε άλλες εντολές",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "Δεν έχετε εντολές αγοράς",
     "empty_sell_orders_list": "Δεν έχετε εντολές πώλησης",
     "purchased_currency": "Αγοράστηκαν {{currency}}",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "Συστήστε έναν φίλο",
@@ -5791,7 +5814,9 @@
         "title": "Κοινοποιήστε τον κωδικό σας για να κερδίσετε περισσότερα",
         "description": "Οι φίλοι σας κερδίζουν μπόνους πόντους και εσείς θα λάβετε το 20% των ανταμοιβών τους."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} λεπτό",

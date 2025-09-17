@@ -26,6 +26,8 @@ import {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text/Text';
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
@@ -191,9 +193,19 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => [
       {
         variant: ButtonVariants.Secondary,
-        label: isMultichainAccountsState2Enabled
-          ? strings('multichain_accounts.add_wallet')
-          : strings('account_actions.add_account_or_hardware_wallet'),
+        label: (
+          <Text
+            variant={
+              isMultichainAccountsState2Enabled
+                ? TextVariant.BodyMDBold
+                : TextVariant.BodyMD
+            }
+          >
+            {isMultichainAccountsState2Enabled
+              ? strings('multichain_accounts.add_wallet')
+              : strings('account_actions.add_account_or_hardware_wallet')}
+          </Text>
+        ),
         size: ButtonSize.Lg,
         width: ButtonWidthTypes.Full,
         onPress: handleAddAccount,
