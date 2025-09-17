@@ -175,9 +175,15 @@ describe('PredictPositionEmpty', () => {
       const exploreButton = screen.getByText('Explore markets');
       fireEvent.press(exploreButton);
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MARKET_LIST,
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+          },
+        },
+      });
     });
   });
 

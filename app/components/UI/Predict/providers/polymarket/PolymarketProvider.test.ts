@@ -276,7 +276,7 @@ describe('PolymarketProvider', () => {
       originalFetch;
   });
 
-  it('getPositions applies offset and uses hardcoded limit in the request', async () => {
+  it('getPositions applies offset and uses provided limit in the request', async () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
     const mockFetch = jest.fn().mockResolvedValue({
@@ -288,7 +288,7 @@ describe('PolymarketProvider', () => {
     await provider.getPositions({ address: userAddress, limit: 5, offset: 15 });
 
     const calledWithUrl = mockFetch.mock.calls[0][0] as string;
-    expect(calledWithUrl).toContain('limit=100');
+    expect(calledWithUrl).toContain('limit=5');
     expect(calledWithUrl).toContain('offset=15');
     expect(calledWithUrl).toContain(`user=${userAddress}`);
 

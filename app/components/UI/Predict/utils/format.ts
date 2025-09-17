@@ -37,8 +37,9 @@ export const formatPercentage = (value: string | number): string => {
  * @param price - Raw numeric price value
  * @param options - Optional formatting options
  * @param options.minimumDecimals - Minimum decimal places (default: 2, use 0 for whole numbers)
+ * @param options.maximumDecimals - Maximum decimal places (default: 2 for prices >= $1000, 4 for prices < $1000)
  * @returns USD formatted string with variable decimals:
- * - Prices >= $1000: "$X,XXX.XX" (2-4 decimals)
+ * - Prices >= $1000: "$X,XXX.XX" (2 decimals by default)
  * - Prices < $1000: "$X.XXXX" (up to 4 decimals)
  * @example formatPrice(1234.5678) => "$1,234.57"
  * @example formatPrice(0.1234) => "$0.1234"
@@ -62,7 +63,8 @@ export const formatPrice = (
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: minDecimals,
-      maximumFractionDigits: Math.max(minDecimals, maxDecimals),
+      maximumFractionDigits:
+        options?.maximumDecimals ?? Math.max(minDecimals, 2),
     });
   }
 

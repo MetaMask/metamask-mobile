@@ -168,7 +168,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getPositions({
     address,
-    limit = 10,
+    limit = 100, // todo: reduce this once we've decided on the pagination approach
     offset = 0,
   }: {
     address: string;
@@ -176,11 +176,6 @@ export class PolymarketProvider implements PredictProvider {
     offset?: number;
   }): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
-
-    // todo: remove hardcoding. including for now until we decide on pagination approach
-    limit = 100;
-    // todo: test with multiple outstanding claims and a range of positions with different statuses
-    // address = '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00';
 
     const response = await fetch(
       `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}&sortBy=CURRENT`,

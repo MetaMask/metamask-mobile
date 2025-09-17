@@ -106,8 +106,8 @@ describe('PredictMarket', () => {
       { state: initialState },
     );
 
-    const yesButton = getByText('Buy Yes');
-    const noButton = getByText('Buy No');
+    const yesButton = getByText('Yes');
+    const noButton = getByText('No');
 
     fireEvent.press(yesButton);
     expect(mockPlaceBuyOrder).toHaveBeenCalledWith({

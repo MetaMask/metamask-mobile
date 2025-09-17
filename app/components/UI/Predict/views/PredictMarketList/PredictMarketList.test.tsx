@@ -191,7 +191,7 @@ describe('PredictMarketList', () => {
     it('renders the component with title and search icon', () => {
       render(<PredictMarketList />);
 
-      expect(screen.getByText('Prediction Markets')).toBeOnTheScreen();
+      expect(screen.getByText('Predictions')).toBeOnTheScreen();
       expect(screen.getByTestId('icon-Search')).toBeOnTheScreen();
     });
 
@@ -275,7 +275,7 @@ describe('PredictMarketList', () => {
     it('renders with correct component hierarchy', () => {
       render(<PredictMarketList />);
 
-      expect(screen.getByText('Prediction Markets')).toBeOnTheScreen();
+      expect(screen.getByText('Predictions')).toBeOnTheScreen();
       expect(screen.getByTestId('icon-Search')).toBeOnTheScreen();
       expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
       expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
