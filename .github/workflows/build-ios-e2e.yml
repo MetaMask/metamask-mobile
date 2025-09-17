@@ -215,13 +215,13 @@ jobs:
           echo "📦 Repackaging iOS app with updated bundle..."
           npx --yes @expo/repack-app --input "$APP" --output "$APP" --bundle "$BUNDLE"
 
-      # Save fingerprint after successful builds
-      - name: Save build fingerprint
+      # Generate fingerprint for future comparisons
+      - name: Generate fingerprint
         if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
         run: |
           FINGERPRINT=$(yarn -s fingerprint:generate)
           echo "$FINGERPRINT" > .app-native-fingerprint
-          echo "Fingerprint saved: $FINGERPRINT"
+          echo "Fingerprint generated and saved: $FINGERPRINT"
 
       # Cache build artifacts
       - name: Cache build artifacts
@@ -237,7 +237,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .app-native-fingerprint
-          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint || 'unknown' }}
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint || 'unknown' }}-${{ github.run_attempt }}
+          restore-keys: |
+            fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint || 'unknown' }}
+            fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-
 
       - name: Log Build Metrics
         if: always()
