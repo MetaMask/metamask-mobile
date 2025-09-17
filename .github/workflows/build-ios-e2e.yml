@@ -189,30 +189,16 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
-      - name: Update JS and Assets
-        if: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' }}
-        id: update-js
-        run: |
-          yarn setup:github-ci --no-build-ios --no-build-android
-          yarn build:js --platform ios
-          # Find the generated bundle (could be .js or .hbc with hash)
-          BUNDLE=$(find dist/_expo/static/js/ios -name "*.hbc" -o -name "*.js" | head -1)
-          if [ -z "$BUNDLE" ]; then
-            echo "Bundle not found in dist/_expo/static/js/ios/"
-            exit 1
-          fi
-          echo "Found bundle: $BUNDLE"
-          echo "bundle_path=$BUNDLE" >> "$GITHUB_OUTPUT"
-
-      - name: Repackage App
+      - name: Repack App with JS updates
         if: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' }}
         run: |
-          APP="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
-          BUNDLE="${{ steps.update-js.outputs.bundle_path }}"
-          [ -d "$APP" ] || { echo "App bundle not found: $APP"; exit 1; }
-          [ -f "$BUNDLE" ] || { echo "Bundle not found: $BUNDLE"; exit 1; }
-          echo "📦 Repackaging iOS app with updated bundle..."
-          npx --yes @expo/repack-app --platform ios --source-app "$APP" --output "$APP" --bundle "$BUNDLE"
+          echo "📦 Repacking iOS app with updated JavaScript..."
+          # The cached app is at: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          # Repack it in place with updated JS
+          cd ios
+          npx --yes @expo/repack-app
+          cd ..
+          echo "✅ iOS app repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
