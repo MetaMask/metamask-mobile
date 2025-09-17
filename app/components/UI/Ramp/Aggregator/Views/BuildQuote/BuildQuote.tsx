@@ -348,11 +348,13 @@ const BuildQuote = () => {
     return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
   }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
-  const isFetching =
-    isFetchingCryptoCurrencies ||
-    isFetchingPaymentMethods ||
-    isFetchingFiatCurrency ||
-    isFetchingRegions;
+  const hasRegionsLoaded = !isFetchingRegions && regions && regions.length > 0;
+
+  const hasCriticalError =
+    errorRegions ||
+    errorPaymentMethods ||
+    errorFiatCurrency ||
+    errorCryptoCurrencies;
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
@@ -703,11 +705,17 @@ const BuildQuote = () => {
 
   const [shouldEndTrace, setShouldEndTrace] = useState(true);
   useEffect(() => {
+    const allDataLoaded =
+      !isFetchingRegions &&
+      !isFetchingPaymentMethods &&
+      !isFetchingFiatCurrency &&
+      !isFetchingCryptoCurrencies;
+
     if (
       shouldEndTrace &&
       !sdkError &&
       !error &&
-      !isFetching &&
+      allDataLoaded &&
       cryptoCurrencies &&
       cryptoCurrencies.length > 0
     ) {
@@ -716,7 +724,17 @@ const BuildQuote = () => {
       });
       setShouldEndTrace(false);
     }
-  }, [cryptoCurrencies, error, isFetching, rampType, sdkError, shouldEndTrace]);
+  }, [
+    cryptoCurrencies,
+    error,
+    isFetchingRegions,
+    isFetchingPaymentMethods,
+    isFetchingFiatCurrency,
+    isFetchingCryptoCurrencies,
+    rampType,
+    sdkError,
+    shouldEndTrace,
+  ]);
 
   if (sdkError) {
     return (
@@ -742,7 +760,7 @@ const BuildQuote = () => {
     );
   }
 
-  if (isFetching) {
+  if (!hasRegionsLoaded && !hasCriticalError) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -783,7 +801,12 @@ const BuildQuote = () => {
     );
   }
 
-  if (!isFetching && cryptoCurrencies && cryptoCurrencies.length === 0) {
+  if (
+    hasRegionsLoaded &&
+    !isFetchingCryptoCurrencies &&
+    cryptoCurrencies &&
+    cryptoCurrencies.length === 0
+  ) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -909,35 +932,54 @@ const BuildQuote = () => {
               {isSell ? (
                 <>
                   <View style={styles.spacer} />
-                  <SelectorButton
-                    accessibilityRole="button"
-                    accessible
-                    onPress={handleFiatSelectorPress}
-                  >
-                    <Text variant={TextVariant.BodyLGMedium}>
-                      {currentFiatCurrency?.symbol}
-                    </Text>
-                  </SelectorButton>
+                  {isFetchingFiatCurrency ? (
+                    <SelectorButton>
+                      <SkeletonText small />
+                    </SelectorButton>
+                  ) : (
+                    <SelectorButton
+                      accessibilityRole="button"
+                      accessible
+                      onPress={handleFiatSelectorPress}
+                    >
+                      <Text variant={TextVariant.BodyLGMedium}>
+                        {currentFiatCurrency?.symbol}
+                      </Text>
+                    </SelectorButton>
+                  )}
                 </>
               ) : null}
             </Row>
-            <AssetSelectorButton
-              label={
-                isBuy
-                  ? strings('fiat_on_ramp_aggregator.want_to_buy')
-                  : strings('fiat_on_ramp_aggregator.want_to_sell')
-              }
-              icon={
-                <TokenIcon
-                  medium
-                  icon={selectedAsset?.logo}
-                  symbol={selectedAsset?.symbol}
-                />
-              }
-              assetSymbol={selectedAsset?.symbol ?? ''}
-              assetName={selectedAsset?.name ?? ''}
-              onPress={handleAssetSelectorPress}
-            />
+            {isFetchingCryptoCurrencies ? (
+              <Box compact>
+                <ListItem>
+                  <ListItemColumn>
+                    <SkeletonText />
+                  </ListItemColumn>
+                  <ListItemColumnEnd widthType={WidthType.Fill}>
+                    <SkeletonText thin smaller />
+                  </ListItemColumnEnd>
+                </ListItem>
+              </Box>
+            ) : (
+              <AssetSelectorButton
+                label={
+                  isBuy
+                    ? strings('fiat_on_ramp_aggregator.want_to_buy')
+                    : strings('fiat_on_ramp_aggregator.want_to_sell')
+                }
+                icon={
+                  <TokenIcon
+                    medium
+                    icon={selectedAsset?.logo}
+                    symbol={selectedAsset?.symbol}
+                  />
+                }
+                assetSymbol={selectedAsset?.symbol ?? ''}
+                assetName={selectedAsset?.name ?? ''}
+                onPress={handleAssetSelectorPress}
+              />
+            )}
             {addressBalance ? (
               <Row>
                 <Text
@@ -1052,6 +1094,7 @@ const BuildQuote = () => {
                 name={currentPaymentMethod?.name}
                 onPress={showPaymentMethodsModal as () => void}
                 paymentMethodIcons={paymentMethodIcons}
+                loading={isFetchingPaymentMethods}
               />
             </Row>
           </ScreenLayout.Content>
@@ -1065,7 +1108,14 @@ const BuildQuote = () => {
               onPress={handleGetQuotePress}
               accessibilityRole="button"
               accessible
-              disabled={amountNumber <= 0}
+              disabled={
+                amountNumber <= 0 ||
+                isFetchingCryptoCurrencies ||
+                isFetchingPaymentMethods ||
+                isFetchingFiatCurrency ||
+                !selectedAsset ||
+                !currentPaymentMethod
+              }
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>

@@ -538,3 +538,192 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
   </TouchableOpacity>,
 ]
 `;
+
+exports[`PaymentMethodSelector renders loading state correctly 1`] = `
+[
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginVertical": 8,
+      }
+    }
+    testID="label"
+  >
+    Update payment method
+  </Text>,
+  <TouchableOpacity
+    accessible={false}
+    disabled={true}
+  >
+    <View
+      style={
+        [
+          {
+            "borderColor": "#b7bbc8",
+            "borderRadius": 8,
+            "borderWidth": 1.5,
+            "padding": 16,
+          },
+          undefined,
+          undefined,
+          {
+            "padding": 0,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityRole="none"
+        accessible={true}
+        style={
+          {
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": -1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#f3f5f9",
+                    "borderRadius": 30,
+                    "padding": 14,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "width": "30%",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#f3f5f9",
+                    "borderRadius": 30,
+                    "padding": 14,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#b7bbc866",
+            "height": 1,
+            "marginLeft": 16,
+            "marginRight": 16,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "margin": 16,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#f3f5f9",
+                "borderRadius": 30,
+                "padding": 14,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "width": "30%",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </TouchableOpacity>,
+]
+`;
