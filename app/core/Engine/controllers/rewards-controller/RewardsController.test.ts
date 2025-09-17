@@ -393,7 +393,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 5.0,
+        discountBips: 5.0,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
@@ -426,7 +426,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 8.5,
+        discountBips: 850,
       });
 
       // Act
@@ -436,7 +436,7 @@ describe('RewardsController', () => {
       const updatedAccountState = controller.state.accounts[CAIP_ACCOUNT_1];
       expect(updatedAccountState).toBeDefined();
       expect(updatedAccountState.hasOptedIn).toBe(true);
-      expect(updatedAccountState.perpsFeeDiscount).toBe(8.5);
+      expect(updatedAccountState.perpsFeeDiscount).toBe(850);
       expect(updatedAccountState.lastPerpsDiscountRateFetched).toBeGreaterThan(
         staleTime,
       );
@@ -445,7 +445,7 @@ describe('RewardsController', () => {
     it('should update store state when creating new account on first opt-in check', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 12.0,
+        discountBips: 12.0,
       });
 
       // Act - check account that doesn't exist in state
@@ -467,7 +467,7 @@ describe('RewardsController', () => {
     it('should call data service for unknown accounts', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 5.0,
+        discountBips: 5.0,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
@@ -482,7 +482,7 @@ describe('RewardsController', () => {
     it('should return true when data service indicates opted in', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 10.0,
+        discountBips: 10.0,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
@@ -523,7 +523,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 7.5,
+        discountBips: 750,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
@@ -757,7 +757,7 @@ describe('RewardsController', () => {
         hasOptedIn: false,
         subscriptionId: null,
         lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 7.5,
+        perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: recentTime,
       };
 
@@ -774,7 +774,7 @@ describe('RewardsController', () => {
         CAIP_ACCOUNT_1,
       );
 
-      expect(result).toBe(7.5);
+      expect(result).toBe(750);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
         expect.anything(),
@@ -788,7 +788,7 @@ describe('RewardsController', () => {
         hasOptedIn: false,
         subscriptionId: null,
         lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 7.5,
+        perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
 
@@ -803,7 +803,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 10.0,
+        discountBips: 10,
       });
 
       const result = await controller.getPerpsDiscountForAccount(
@@ -814,7 +814,7 @@ describe('RewardsController', () => {
         'RewardsDataService:getPerpsDiscount',
         { account: CAIP_ACCOUNT_1 },
       );
-      expect(result).toBe(10.0);
+      expect(result).toBe(10);
     });
 
     it('should update store state with new discount value when fetching fresh data', async () => {
@@ -824,7 +824,7 @@ describe('RewardsController', () => {
         hasOptedIn: true,
         subscriptionId: 'test',
         lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 7.5,
+        perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
 
@@ -839,7 +839,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 15.0,
+        discountBips: 15.0,
       });
 
       // Act
@@ -861,7 +861,7 @@ describe('RewardsController', () => {
     it('should fetch discount for new accounts', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 15.0,
+        discountBips: 15.0,
       });
 
       const result = await controller.getPerpsDiscountForAccount(
@@ -878,7 +878,7 @@ describe('RewardsController', () => {
     it('should update store state when creating new account on first discount check', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 20.0,
+        discountBips: 20.0,
       });
 
       // Act - check discount for account that doesn't exist in state

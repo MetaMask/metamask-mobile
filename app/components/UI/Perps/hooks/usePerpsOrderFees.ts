@@ -16,7 +16,7 @@ import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
   address: string;
-  discountPercentage: number | undefined;
+  discountBips: number | undefined;
   timestamp: number;
   ttl: number;
 } | null = null;
@@ -108,7 +108,7 @@ export function usePerpsOrderFees({
   const fetchFeeDiscount = useCallback(
     async (
       address: string,
-    ): Promise<{ discountPercentage?: number; tier?: string }> => {
+    ): Promise<{ discountBips?: number; tier?: string }> => {
       // Early return if feature flag is disabled - never make API call
       if (!rewardsEnabled) {
         return {};
@@ -123,11 +123,11 @@ export function usePerpsOrderFees({
       ) {
         DevLogger.log('Rewards: Using cached fee discount', {
           address,
-          discountPercentage: feeDiscountCache.discountPercentage,
+          discountBips: feeDiscountCache.discountBips,
           cacheAge: Math.round((now - feeDiscountCache.timestamp) / 1000) + 's',
         });
         return {
-          discountPercentage: feeDiscountCache.discountPercentage,
+          discountBips: feeDiscountCache.discountBips,
         };
       }
 
@@ -146,23 +146,24 @@ export function usePerpsOrderFees({
         });
 
         const { RewardsController } = Engine.context;
-        const discountPercentage =
-          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
+        const discountBips = await RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+        );
 
-        DevLogger.log('Rewards: Fee discount fetched via controller', {
+        DevLogger.log('Rewards: Fee discount bips fetched via controller', {
           address,
-          discountPercentage,
+          discountBips,
         });
 
         // Cache the discount for 30 minutes
         feeDiscountCache = {
           address,
-          discountPercentage,
+          discountBips,
           timestamp: Date.now(),
           ttl: 30 * 60 * 1000, // 30 minutes
         };
 
-        return { discountPercentage };
+        return { discountBips };
       } catch (error) {
         DevLogger.log('Rewards: Error fetching fee discount via controller', {
           error: error instanceof Error ? error.message : String(error),
@@ -285,20 +286,26 @@ export function usePerpsOrderFees({
           parseFloat(amount) ===
             DEVELOPMENT_CONFIG.SIMULATE_FEE_DISCOUNT_AMOUNT;
 
-        let discountData: { discountPercentage?: number };
+        let discountData: { discountBips?: number };
 
         if (shouldSimulateFeeDiscount) {
-          discountData = { discountPercentage: 20 };
+          discountData = { discountBips: 2000 };
         } else {
           discountData = await fetchFeeDiscount(selectedAddress);
         }
 
-        if (discountData.discountPercentage !== undefined) {
-          const discount = discountData.discountPercentage / 100;
+        if (discountData.discountBips !== undefined) {
+          // Validate discount doesn't exceed 100%
+          const clampedDiscountBips = Math.min(
+            discountData.discountBips,
+            10000,
+          );
+          const percentage = clampedDiscountBips / 100;
+          const discount = percentage / 100;
           const adjustedRate = originalRate * (1 - discount);
           return {
             adjustedRate,
-            discountPercentage: discountData.discountPercentage,
+            discountPercentage: percentage,
           };
         }
 
