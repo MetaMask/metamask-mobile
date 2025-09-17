@@ -441,7 +441,7 @@ class Onboarding extends PureComponent {
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {
-      if (this.foxRef.current) {
+      if (this.foxRef.current && this.mounted) {
         this.foxRef.current.play();
       }
     });
@@ -838,12 +838,18 @@ class Onboarding extends PureComponent {
               autoplay={false}
               testID="metamask-wordmark-animation"
               onLoad={() => {
-                if (this.logoRef.current) {
-                  setTimeout(() => this.logoRef.current.play(), 100);
+                if (this.logoRef.current && this.mounted) {
+                  setTimeout(() => {
+                    if (this.logoRef.current && this.mounted) {
+                      this.logoRef.current.play();
+                    }
+                  }, 100);
                 }
               }}
               onStop={() => {
-                this.moveLogoUp();
+                if (this.mounted) {
+                  this.moveLogoUp();
+                }
               }}
             />
           </Animated.View>
