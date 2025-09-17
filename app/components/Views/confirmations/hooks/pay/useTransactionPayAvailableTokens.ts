@@ -55,8 +55,11 @@ export function useTransactionPayAvailableTokens() {
         return true;
       }
 
-      const isTokenBalanceSufficient =
-        (token?.tokenFiatAmount ?? 0) > (minimumFiat ?? 0);
+      const fiatAmount = token.tokenFiatAmount ?? 0;
+
+      const isTokenBalanceSufficient = minimumFiat
+        ? fiatAmount >= minimumFiat
+        : fiatAmount > 0;
 
       if (!isTokenBalanceSufficient) {
         return false;
