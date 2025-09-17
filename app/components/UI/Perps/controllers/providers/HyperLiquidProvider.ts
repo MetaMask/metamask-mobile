@@ -124,6 +124,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
     { value: number; timestamp: number }
   >();
 
+  // Fee discount context for MetaMask reward discounts
+  private userFeeDiscountPercentage?: number;
+
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
     'isolated position does not have sufficient margin available to decrease leverage':
@@ -177,6 +180,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
     DevLogger.log('Asset mapping built', {
       assetCount: meta.universe.length,
       coins: Array.from(this.coinToAssetId.keys()),
+    });
+  }
+
+  /**
+   * Set user fee discount context for next operations
+   * Used by PerpsController to apply MetaMask reward discounts
+   */
+  setUserFeeDiscount(discountPercentage: number | undefined): void {
+    this.userFeeDiscountPercentage = discountPercentage;
+
+    DevLogger.log('HyperLiquid: Fee discount context updated', {
+      discountPercentage,
+      isActive: discountPercentage !== undefined,
     });
   }
 
@@ -2407,8 +2423,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
           : parsedAmount * protocolFeeRate
         : undefined;
 
-    // MetaMask builder fee (0.1% = 0.001)
-    const metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+    // MetaMask builder fee (0.1% = 0.001) with optional reward discount
+    let metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+
+    // Apply MetaMask reward discount if active
+    if (this.userFeeDiscountPercentage !== undefined) {
+      const discount = this.userFeeDiscountPercentage / 100;
+      metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal * (1 - discount);
+
+      DevLogger.log('HyperLiquid: Applied MetaMask fee discount', {
+        originalRate: BUILDER_FEE_CONFIG.maxFeeDecimal,
+        discountPercentage: this.userFeeDiscountPercentage,
+        adjustedRate: metamaskFeeRate,
+        discountAmount: BUILDER_FEE_CONFIG.maxFeeDecimal * discount,
+      });
+    }
+
     const metamaskFeeAmount =
       amount !== undefined
         ? isNaN(parsedAmount)

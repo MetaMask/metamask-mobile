@@ -14,6 +14,13 @@ import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { CandlePeriod } from '../constants/chartConfig';
 import type { AssetRoute } from './types';
+import Engine from '../../../../core/Engine';
+import {
+  createMockHyperLiquidProvider,
+  createMockAccountData,
+  createMockEngineContext,
+  clearAllMocks,
+} from '../__mocks__';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -42,40 +49,8 @@ jest.mock('@metamask/utils', () => ({
   })),
 }));
 
-// Mock Engine
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0x1234567890123456789012345678901234567890',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
-    },
-    AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0x1234567890123456789012345678901234567890',
-          id: 'mock-account-id',
-          type: 'eip155:',
-          metadata: { name: 'Test Account' },
-        },
-      ]),
-    },
-    NetworkController: {
-      state: {
-        selectedNetworkClientId: 'mainnet',
-      },
-      findNetworkClientIdByChainId: jest.fn().mockReturnValue('arbitrum'),
-    },
-    TransactionController: {
-      addTransaction: jest.fn(),
-    },
-    PerpsController: {
-      clearDepositResult: jest.fn(),
-    },
-  },
-}));
+const mockEngineContext = createMockEngineContext();
+jest.mock('../../../../core/Engine', () => ({ context: mockEngineContext }));
 
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -127,9 +102,18 @@ jest.mock('@metamask/controller-utils', () => {
   };
 });
 
+// Don't mock utility functions - let them use the real implementation with mocked Engine context
+
 // Mock transaction utilities
 jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn().mockReturnValue('0xabcdef123456'),
+}));
+
+// Mock rewards utilities
+jest.mock('../utils/rewardsUtils', () => ({
+  formatAccountToCaipAccountId: jest.fn(),
+  handleRewardsError: jest.fn(),
+  isCaipAccountId: jest.fn(),
 }));
 
 // Use imported types for reference but create a flexible test messenger
@@ -139,54 +123,13 @@ type TestMessenger = Messenger<any, any>;
 describe('PerpsController', () => {
   let mockHyperLiquidProvider: jest.Mocked<HyperLiquidProvider>;
 
+  // Use imported shared mocks
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    clearAllMocks();
 
     // Create mock HyperLiquidProvider with all required methods
-    mockHyperLiquidProvider = {
-      protocolId: 'hyperliquid',
-      initialize: jest.fn(),
-      isReadyToTrade: jest.fn(),
-      toggleTestnet: jest.fn(),
-      getPositions: jest.fn(),
-      getAccountState: jest.fn(),
-      getHistoricalPortfolio: jest.fn().mockResolvedValue({
-        totalBalance24hAgo: '10000',
-        totalBalance7dAgo: '9500',
-        totalBalance30dAgo: '9000',
-      }),
-      getMarkets: jest.fn(),
-      placeOrder: jest.fn(),
-      editOrder: jest.fn(),
-      cancelOrder: jest.fn(),
-      closePosition: jest.fn(),
-      withdraw: jest.fn(),
-      getDepositRoutes: jest.fn(),
-      getWithdrawalRoutes: jest.fn(),
-      validateDeposit: jest.fn().mockResolvedValue({ isValid: true }),
-      validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
-      validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
-      validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
-      subscribeToPrices: jest.fn(),
-      subscribeToPositions: jest.fn(),
-      subscribeToOrderFills: jest.fn(),
-      setLiveDataConfig: jest.fn(),
-      disconnect: jest.fn(),
-      updatePositionTPSL: jest.fn(),
-      calculateLiquidationPrice: jest.fn(),
-      calculateMaintenanceMargin: jest.fn(),
-      getMaxLeverage: jest.fn(),
-      calculateFees: jest.fn(),
-      getMarketDataWithPrices: jest.fn(),
-      getBlockExplorerUrl: jest.fn(),
-      getOrderFills: jest.fn(),
-      getOrders: jest.fn(),
-      getFunding: jest.fn(),
-      getIsFirstTimeUser: jest.fn(),
-      getOpenOrders: jest.fn(),
-      subscribeToOrders: jest.fn(),
-      subscribeToAccount: jest.fn(),
-    } as unknown as jest.Mocked<HyperLiquidProvider>;
+    mockHyperLiquidProvider = createMockHyperLiquidProvider();
 
     // Mock the HyperLiquidProvider constructor
     (
@@ -218,14 +161,16 @@ describe('PerpsController', () => {
     // Mock the subscribe method for testing with proper Jest mock typing
     messenger.subscribe = jest.fn();
 
-    // Register mock external actions
+    (Engine as unknown as { context: typeof mockEngineContext }).context =
+      mockEngineContext;
+    const mockAccountData = createMockAccountData();
     messenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
       mocks.getSelectedAccount ??
         jest.fn().mockReturnValue({
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          metadata: { name: 'Test Account' },
+          id: mockAccountData.id,
+          address: mockAccountData.address,
+          metadata: mockAccountData.metadata,
         }),
     );
 
@@ -1051,7 +996,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const mockPendingWithdrawal = {
@@ -1063,7 +1008,7 @@ describe('PerpsController', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
         sourceChainId: 'eip155:999' as CaipChainId,
         destinationChainId: 'eip155:42161' as CaipChainId,
-        destinationAddress: '0x1234567890123456789012345678901234567890' as Hex,
+        destinationAddress: createMockAccountData().address as Hex,
         initiatedAt: Date.now(),
         status: 'pending' as const,
         providerTxHash: undefined,
@@ -1119,7 +1064,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       // Provider returns success but no pendingWithdrawal (legacy behavior)
@@ -1166,7 +1111,7 @@ describe('PerpsController', () => {
       const withdrawParams = {
         amount: '100',
         // Missing assetId
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       withController(async ({ controller }) => {
@@ -1198,7 +1143,7 @@ describe('PerpsController', () => {
         amount: '0',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       withController(async ({ controller }) => {
@@ -1259,7 +1204,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const mockErrorResult = {
@@ -1287,7 +1232,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const errorMessage = 'Network connection failed';
@@ -1359,8 +1304,9 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: mockResult,
           transactionMeta: {
             id: 'deposit-tx-123',
@@ -1381,10 +1327,10 @@ describe('PerpsController', () => {
 
         // Verify TransactionController was called with correct params
         expect(
-          Engine.context.TransactionController.addTransaction,
+          mockEngineContext.TransactionController.addTransaction,
         ).toHaveBeenCalledWith(
           expect.objectContaining({
-            from: '0x1234567890123456789012345678901234567890',
+            from: createMockAccountData().address,
             to: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
             value: '0x0',
             data: '0xabcdef123456',
@@ -1437,8 +1383,9 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: mockResultPromise,
           transactionMeta: {
             id: 'deposit-tx-456',
@@ -1476,7 +1423,6 @@ describe('PerpsController', () => {
       await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('User denied transaction signature');
-        const mockResultPromise = Promise.reject(mockError);
 
         const mockDepositRoute: AssetRoute = {
           assetId:
@@ -1490,12 +1436,20 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
-          result: mockResultPromise,
-          transactionMeta: {
-            id: 'deposit-tx-456',
-          },
+        let rejectedPromise: Promise<string>;
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockImplementation(() => {
+          rejectedPromise = Promise.reject(mockError);
+          rejectedPromise.catch(() => {
+            /* ignore */
+          });
+          return {
+            result: rejectedPromise,
+            transactionMeta: {
+              id: 'deposit-tx-456',
+            },
+          };
         });
 
         await controller.initializeProviders();
@@ -1504,19 +1458,13 @@ describe('PerpsController', () => {
         const { result } = await controller.depositWithConfirmation();
 
         // Attempt to await the promise (should reject)
-        try {
-          await result;
-          fail('Expected promise to reject');
-        } catch (error) {
-          // Assert
-          expect(error).toBe(mockError);
+        await expect(result).rejects.toBe(mockError);
 
-          // Verify state was NOT updated for user cancellation
-          expect(controller.state.lastDepositResult).toBeNull();
-          expect(controller.state.depositInProgress).toBe(false);
-          // Transaction ID should be cleared on cancellation
-          expect(controller.state.lastDepositTransactionId).toBeNull();
-        }
+        // Verify state was NOT updated for user cancellation
+        expect(controller.state.lastDepositResult).toBeNull();
+        expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should be cleared on cancellation
+        expect(controller.state.lastDepositTransactionId).toBeNull();
       });
     });
 
@@ -1524,7 +1472,6 @@ describe('PerpsController', () => {
       await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('Insufficient balance');
-        const mockResultPromise = Promise.reject(mockError);
 
         const mockDepositRoute: AssetRoute = {
           assetId:
@@ -1538,12 +1485,20 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
-          result: mockResultPromise,
-          transactionMeta: {
-            id: 'deposit-tx-456',
-          },
+        let rejectedPromise: Promise<string>;
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockImplementation(() => {
+          rejectedPromise = Promise.reject(mockError);
+          rejectedPromise.catch(() => {
+            /* ignore */
+          });
+          return {
+            result: rejectedPromise,
+            transactionMeta: {
+              id: 'deposit-tx-456',
+            },
+          };
         });
 
         await controller.initializeProviders();
@@ -1552,22 +1507,16 @@ describe('PerpsController', () => {
         const { result } = await controller.depositWithConfirmation();
 
         // Attempt to await the promise (should reject)
-        try {
-          await result;
-          fail('Expected promise to reject');
-        } catch (error) {
-          // Assert
-          expect(error).toBe(mockError);
+        await expect(result).rejects.toBe(mockError);
 
-          // Verify state was updated for actual failure
-          expect(controller.state.lastDepositResult).toEqual({
-            success: false,
-            error: 'Insufficient balance',
-          });
-          expect(controller.state.depositInProgress).toBe(false);
-          // Transaction ID should be cleared on failure
-          expect(controller.state.lastDepositTransactionId).toBeNull();
-        }
+        // Verify state was updated for actual failure
+        expect(controller.state.lastDepositResult).toEqual({
+          success: false,
+          error: 'Insufficient balance',
+        });
+        expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should be cleared on failure
+        expect(controller.state.lastDepositTransactionId).toBeNull();
       });
     });
 
@@ -1588,36 +1537,33 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockRejectedValue(
-          mockError,
-        );
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockRejectedValue(mockError);
 
         await controller.initializeProviders();
 
         // Act & Assert
-        try {
-          await controller.depositWithConfirmation();
-          fail('Expected depositWithConfirmation to throw');
-        } catch (error) {
-          expect(error).toBe(mockError);
+        await expect(controller.depositWithConfirmation()).rejects.toBe(
+          mockError,
+        );
 
-          // Should not update state for user cancellation
-          const errorMessage = error instanceof Error ? error.message : '';
-          if (
-            errorMessage.includes('User denied') ||
-            errorMessage.includes('User rejected')
-          ) {
-            expect(controller.state.lastDepositResult).toBeNull();
-          } else {
-            // Should update state for other errors
-            expect(controller.state.lastDepositResult).toEqual({
-              success: false,
-              error: 'Network error',
-            });
-            // Transaction ID should be null since addTransaction failed
-            expect(controller.state.lastDepositTransactionId).toBeNull();
-          }
+        // Should not update state for user cancellation
+        const errorMessage =
+          mockError instanceof Error ? mockError.message : '';
+        if (
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('User rejected')
+        ) {
+          expect(controller.state.lastDepositResult).toBeNull();
+        } else {
+          // Should update state for other errors
+          expect(controller.state.lastDepositResult).toEqual({
+            success: false,
+            error: 'Network error',
+          });
+          // Transaction ID should be null since addTransaction failed
+          expect(controller.state.lastDepositTransactionId).toBeNull();
         }
       });
     });
@@ -1650,8 +1596,9 @@ describe('PerpsController', () => {
           resolvePromise = resolve;
         });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: mockResult,
           transactionMeta: {
             id: 'deposit-tx-123',
@@ -1684,12 +1631,9 @@ describe('PerpsController', () => {
         await controller.initializeProviders();
 
         // Act & Assert
-        try {
-          await controller.depositWithConfirmation();
-          fail('Expected depositWithConfirmation to throw');
-        } catch (error) {
-          expect(error).toBeDefined();
-        }
+        await expect(
+          controller.depositWithConfirmation(),
+        ).rejects.toBeDefined();
       });
     });
 
@@ -1708,8 +1652,9 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: Promise.resolve('0xtx123'),
           transactionMeta: {
             id: 'deposit-tx-789',
@@ -1723,7 +1668,7 @@ describe('PerpsController', () => {
 
         // Assert
         expect(
-          Engine.context.TransactionController.addTransaction,
+          mockEngineContext.TransactionController.addTransaction,
         ).toHaveBeenCalledWith(
           expect.any(Object),
           expect.objectContaining({
@@ -2445,14 +2390,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getOrderFills();
-          // Should not reach here
-          fail('Expected getOrderFills to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getOrderFills()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -2530,14 +2468,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getOrders();
-          // Should not reach here
-          fail('Expected getOrders to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getOrders()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -2590,14 +2521,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getFunding();
-          // Should not reach here
-          fail('Expected getFunding to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getFunding()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -3258,7 +3182,7 @@ describe('PerpsController', () => {
               Authorization: 'Bearer mock-bearer-token',
             },
             body: JSON.stringify({
-              user_id: '0x1234567890123456789012345678901234567890',
+              user_id: createMockAccountData().address,
               coin: 'BTC',
               sl_price: 45000,
               tp_price: 55000,
@@ -3528,7 +3452,7 @@ describe('PerpsController', () => {
               Authorization: 'Bearer mock-bearer-token',
             },
             body: JSON.stringify({
-              user_id: '0x1234567890123456789012345678901234567890',
+              user_id: createMockAccountData().address,
               coin: 'SOL',
               sl_price: 90,
               tp_price: 110,
@@ -3579,16 +3503,17 @@ describe('PerpsController', () => {
       DevLogger.log.mockClear();
 
       // Reset AccountTreeController mock to default
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       // Create a mock messenger that can handle the getBearerToken call
       mockMessenger = {
@@ -3662,21 +3587,21 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue('mock-bearer-token');
 
       // Mock AccountTreeController to return non-EVM accounts
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0xabc123',
-            id: 'mock-account-1',
-            type: 'bip122:', // Non-EVM account (Bitcoin)
-          },
-          {
-            address: '0xdef456',
-            id: 'mock-account-2',
-            type: 'cosmos:', // Non-EVM account (Cosmos)
-          },
-        ],
-      );
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: '0xabc123',
+          id: 'mock-account-1',
+          type: 'bip122:', // Non-EVM account (Bitcoin)
+        },
+        {
+          address: '0xdef456',
+          id: 'mock-account-2',
+          type: 'cosmos:', // Non-EVM account (Cosmos)
+        },
+      ]);
 
       controller.state.isTestnet = false;
 
@@ -3715,16 +3640,17 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue(null);
 
       // Reset AccountTreeController mock to return EVM account
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       controller.state.isTestnet = false;
 
@@ -3763,10 +3689,10 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue(null);
 
       // Mock AccountTreeController to return empty array
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [],
-      );
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([]);
 
       controller.state.isTestnet = false;
 
@@ -3805,16 +3731,17 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue('mock-bearer-token');
 
       // Mock AccountTreeController to return EVM account
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       // Mock successful API response
       mockFetch.mockResolvedValue({
@@ -3899,16 +3826,17 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue('mock-bearer-token');
 
       // Mock AccountTreeController to return EVM account
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       // Mock API error response (400 Bad Request)
       mockFetch.mockResolvedValue({

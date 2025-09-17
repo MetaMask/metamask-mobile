@@ -18,7 +18,9 @@ import { setMeasurement } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import { generateTransferData } from '../../../../util/transactions';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import {
   trace,
   endTrace,
@@ -549,6 +551,53 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Calculate user fee discount from RewardsController
+   * Used to apply MetaMask reward discounts to trading fees
+   * @returns Fee discount percentage (e.g., 20 for 20% off) or undefined if no discount
+   * @private
+   */
+  private async calculateUserFeeDiscount(): Promise<number | undefined> {
+    try {
+      const { RewardsController } = Engine.context;
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
+      const networkState = this.messagingSystem.call(
+        'NetworkController:getState',
+      );
+
+      if (!evmAccount) {
+        DevLogger.log('PerpsController: No EVM account found for fee discount');
+        return undefined;
+      }
+
+      const caipAccountId = formatAccountToCaipAccountId(
+        evmAccount.address,
+        networkState.selectedNetworkClientId,
+      );
+
+      if (!caipAccountId) {
+        DevLogger.log('PerpsController: Failed to format CAIP account ID');
+        return undefined;
+      }
+
+      const discountPercentage =
+        await RewardsController.getPerpsDiscountForAccount(caipAccountId);
+
+      DevLogger.log('PerpsController: Fee discount calculated', {
+        address: evmAccount.address,
+        caipAccountId,
+        discountPercentage,
+      });
+
+      return discountPercentage;
+    } catch (error) {
+      DevLogger.log('PerpsController: Fee discount calculation failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return undefined;
+    }
+  }
+
+  /**
    * Initialize the PerpsController providers
    * Must be called before using any other methods
    * Prevents double initialization with promise caching
@@ -666,12 +715,25 @@ export class PerpsController extends BaseController<
     try {
       const provider = this.getActiveProvider();
 
+      // Calculate fee discount at execution time (fresh, secure)
+      const feeDiscountPercentage = await this.calculateUserFeeDiscount();
+
+      // Set discount context in provider for this order
+      if (feeDiscountPercentage !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountPercentage);
+      }
+
       // Optimistic update
       this.update((state) => {
         state.pendingOrders.push(params);
       });
 
       const result = await provider.placeOrder(params);
+
+      // Clear discount context after order (success or failure)
+      if (provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(undefined);
+      }
 
       // Update state only on success
       if (result.success) {
@@ -718,6 +780,16 @@ export class PerpsController extends BaseController<
 
       return result;
     } catch (error) {
+      // Clear discount context in case of error
+      try {
+        const provider = this.getActiveProvider();
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      } catch {
+        // Ignore errors during cleanup
+      }
+
       // End trace with error data
       endTrace({
         name: TraceName.PerpsOrderExecution,
@@ -842,8 +914,7 @@ export class PerpsController extends BaseController<
    * No complex state tracking - just sets a loading flag
    */
   async depositWithConfirmation() {
-    const { AccountTreeController, NetworkController, TransactionController } =
-      Engine.context;
+    const { NetworkController, TransactionController } = Engine.context;
 
     try {
       // Clear any stale results when starting a new deposit flow
@@ -862,11 +933,7 @@ export class PerpsController extends BaseController<
         amount: '0x0',
       });
 
-      const accounts =
-        AccountTreeController.getAccountsFromSelectedAccountGroup();
-      const evmAccount = accounts.find((account) =>
-        account.type.startsWith('eip155:'),
-      );
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
       if (!evmAccount) {
         throw new Error(
           'No EVM-compatible account found in selected account group',
@@ -2171,12 +2238,7 @@ export class PerpsController extends BaseController<
       const token = await this.messagingSystem.call(
         'AuthenticationController:getBearerToken',
       );
-      const { AccountTreeController } = Engine.context;
-      const accounts =
-        AccountTreeController.getAccountsFromSelectedAccountGroup();
-      const evmAccount = accounts.find((account) =>
-        account.type.startsWith('eip155:'),
-      );
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
 
       if (!evmAccount || !token) {
         DevLogger.log('DataLake API: Missing requirements', {

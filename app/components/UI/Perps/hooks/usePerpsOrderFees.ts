@@ -2,14 +2,16 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsTrading } from './usePerpsTrading';
 import Engine from '../../../../core/Engine';
-import { toCaipAccountId, CaipAccountId } from '@metamask/utils';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   EstimatePointsDto,
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -95,42 +97,10 @@ export function usePerpsOrderFees({
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
   const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
-
-  /**
-   * Helper function to get current user's EVM address
-   */
-  const getUserAddress = useCallback((): string | null => {
-    try {
-      const { AccountTreeController } = Engine.context;
-      const accounts =
-        AccountTreeController.getAccountsFromSelectedAccountGroup();
-      const evmAccount = accounts.find(
-        (account: { type: string; address: string }) =>
-          account.type.startsWith('eip155:'),
-      );
-      return evmAccount?.address || null;
-    } catch (error) {
-      return null;
-    }
-  }, []);
-
-  /**
-   * Helper function to format address to CAIP-10 format for Arbitrum
-   */
-  const formatAccountToCaipAccountId = useCallback(
-    (address: string): CaipAccountId | null => {
-      try {
-        return toCaipAccountId('eip155', '42161', address);
-      } catch (error) {
-        DevLogger.log('Rewards: Failed to format CAIP Account ID', {
-          address,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return null;
-      }
-    },
-    [],
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
   );
+  const currentChainId = useSelector(selectChainId);
 
   /**
    * Fetch fee discount from RewardsController (non-blocking)
@@ -162,7 +132,10 @@ export function usePerpsOrderFees({
       }
 
       try {
-        const caipAccountId = formatAccountToCaipAccountId(address);
+        const caipAccountId = formatAccountToCaipAccountId(
+          address,
+          currentChainId,
+        );
         if (!caipAccountId) {
           return {};
         }
@@ -172,10 +145,9 @@ export function usePerpsOrderFees({
           caipAccountId,
         });
 
-        const discountPercentage = await Engine.controllerMessenger.call(
-          'RewardsController:getPerpsDiscountForAccount',
-          caipAccountId,
-        );
+        const { RewardsController } = Engine.context;
+        const discountPercentage =
+          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
 
         DevLogger.log('Rewards: Fee discount fetched via controller', {
           address,
@@ -200,7 +172,7 @@ export function usePerpsOrderFees({
         return {};
       }
     },
-    [rewardsEnabled, formatAccountToCaipAccountId],
+    [rewardsEnabled, currentChainId],
   );
 
   /**
@@ -225,7 +197,10 @@ export function usePerpsOrderFees({
           return null;
         }
 
-        const caipAccountId = formatAccountToCaipAccountId(address);
+        const caipAccountId = formatAccountToCaipAccountId(
+          address,
+          currentChainId,
+        );
         if (!caipAccountId) {
           return null;
         }
@@ -252,8 +227,8 @@ export function usePerpsOrderFees({
           isClose,
         });
 
-        const result = await Engine.controllerMessenger.call(
-          'RewardsController:estimatePoints',
+        const { RewardsController } = Engine.context;
+        const result = await RewardsController.estimatePoints(
           estimatePointsDto,
         );
 
@@ -276,7 +251,7 @@ export function usePerpsOrderFees({
         return null;
       }
     },
-    [rewardsEnabled, formatAccountToCaipAccountId],
+    [rewardsEnabled, currentChainId],
   );
 
   // State for fees from provider
@@ -298,8 +273,8 @@ export function usePerpsOrderFees({
    * Apply fee discount and calculate actual rate
    */
   const applyFeeDiscount = useCallback(
-    async (originalRate: number, userAddress: string | null) => {
-      if (!rewardsEnabled || !userAddress) {
+    async (originalRate: number) => {
+      if (!rewardsEnabled || !selectedAddress) {
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
 
@@ -315,7 +290,7 @@ export function usePerpsOrderFees({
         if (shouldSimulateFeeDiscount) {
           discountData = { discountPercentage: 20 };
         } else {
-          discountData = await fetchFeeDiscount(userAddress);
+          discountData = await fetchFeeDiscount(selectedAddress);
         }
 
         if (discountData.discountPercentage !== undefined) {
@@ -338,7 +313,7 @@ export function usePerpsOrderFees({
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
     },
-    [rewardsEnabled, fetchFeeDiscount, amount],
+    [rewardsEnabled, fetchFeeDiscount, amount, selectedAddress],
   );
 
   /**
@@ -499,17 +474,15 @@ export function usePerpsOrderFees({
         if (!isComponentMounted) return;
 
         // Step 2: Apply fee discount if rewards are enabled
-        const userAddress = getUserAddress();
         const { adjustedRate, discountPercentage } = await applyFeeDiscount(
           coreFeesResult.metamaskFeeRate,
-          userAddress,
         );
 
         if (!isComponentMounted) return;
 
         // Step 3: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
-        if (userAddress && parseFloat(amount) > 0) {
+        if (selectedAddress && parseFloat(amount) > 0) {
           const actualFeeUSD = parseFloat(amount) * adjustedRate;
           DevLogger.log('Rewards: Calculating points with discounted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
@@ -520,7 +493,7 @@ export function usePerpsOrderFees({
           });
 
           pointsResult = await handlePointsEstimation(
-            userAddress,
+            selectedAddress,
             actualFeeUSD,
           );
         }
@@ -565,7 +538,8 @@ export function usePerpsOrderFees({
     handlePointsEstimation,
     updateFeeState,
     clearFeeState,
-    getUserAddress,
+    selectedAddress,
+    currentChainId,
   ]);
 
   return useMemo(() => {
