@@ -154,7 +154,7 @@ describe('AccountListCell', () => {
 
     it('renders checked checkbox when isSelected is true', () => {
       const mockOnSelectAccount = jest.fn();
-      const { getAllByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected
@@ -165,10 +165,10 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxElements = getAllByTestId(
-        `account-list-cell-checkbox-${mockAccountGroup.id}`,
-      );
-      expect(checkboxElements.length).toBe(2); // Container + Icon both have the same testID
+      expect(
+        getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
+      ).toBeTruthy();
+      expect(getByTestId('checkbox-icon-component')).toBeTruthy();
     });
 
     it('renders unchecked checkbox when isSelected is false', () => {
@@ -231,7 +231,7 @@ describe('AccountListCell', () => {
 
     it('renders AccountCell with correct props when checkbox is shown', () => {
       const mockOnSelectAccount = jest.fn();
-      const { getAllByTestId, getByText } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <AccountListCell
           accountGroup={mockAccountGroup}
           isSelected
@@ -242,11 +242,10 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      // Verify that the checkbox is present (there will be 2 elements: container + icon)
-      const checkboxElements = getAllByTestId(
-        `account-list-cell-checkbox-${mockAccountGroup.id}`,
-      );
-      expect(checkboxElements.length).toBe(2); // Container + Icon both have the same testID. It is passed down to the touchable opacity and the checkbox.
+      expect(
+        getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
+      ).toBeTruthy();
+      expect(getByTestId('checkbox-icon-component')).toBeTruthy();
       expect(getByText('Test Account')).toBeTruthy();
     });
   });
