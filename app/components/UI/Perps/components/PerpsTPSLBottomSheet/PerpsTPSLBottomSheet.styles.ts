@@ -169,8 +169,8 @@ export const createStyles = (colors: Theme['colors']) =>
     keypadContainer: {
       paddingHorizontal: 16,
       paddingTop: 8,
-      // when refactoring from bottomsheet to dedicated screen, remove this negative margin
-      marginBottom: -8,
+      borderWidth: 1,
+      borderColor: 'red',
     },
     scrollContent: {
       flex: 1,
