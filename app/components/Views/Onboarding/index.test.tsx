@@ -1540,7 +1540,7 @@ describe('Onboarding', () => {
       const mockPlay = jest.fn();
 
       const mockComponent = {
-        logoRef: { current: null },
+        logoRef: { current: null as { play: jest.Mock } | null },
         mounted: true,
         startRiveAnimation() {
           try {
