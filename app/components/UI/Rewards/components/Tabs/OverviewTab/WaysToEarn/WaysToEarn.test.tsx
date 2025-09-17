@@ -66,18 +66,21 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 // Mock SVG component
-jest.mock('../../../../../../../images/metamask-rewards-points.svg', () => ({
-  __esModule: true,
-  default: () => {
-    const React = jest.requireActual('react');
-    const { Text } = jest.requireActual('react-native');
-    return React.createElement(
-      Text,
-      { testID: 'metamask-rewards-points' },
-      'Points Icon',
-    );
-  },
-}));
+jest.mock(
+  '../../../../../../../images/rewards/metamask-rewards-points.svg',
+  () => ({
+    __esModule: true,
+    default: () => {
+      const React = jest.requireActual('react');
+      const { Text } = jest.requireActual('react-native');
+      return React.createElement(
+        Text,
+        { testID: 'metamask-rewards-points' },
+        'Points Icon',
+      );
+    },
+  }),
+);
 
 describe('WaysToEarn', () => {
   beforeEach(() => {

@@ -43,7 +43,11 @@ export const ActivityEventRow: React.FC<{
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
       >
-        <Icon name={eventDetails.icon} size={IconSize.Lg} />
+        <Icon
+          name={eventDetails.icon}
+          size={IconSize.Lg}
+          twClassName="text-icon-alternative"
+        />
         {eventDetails.badgeImageUri && (
           <Box twClassName="absolute -bottom-1 -right-1 bg-muted items-center justify-center size-5 z-10">
             {isSVG ? (
