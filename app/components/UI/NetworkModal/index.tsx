@@ -25,10 +25,7 @@ import {
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
-import {
-  selectTokenNetworkFilter,
-  selectUseSafeChainsListValidation,
-} from '../../../selectors/preferencesController';
+import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -40,10 +37,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
-import {
-  selectIsAllNetworks,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 import {
   NetworkConfiguration,
@@ -108,7 +102,6 @@ const NetworkModals = (props: NetworkProps) => {
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const [alerts, setAlerts] = React.useState<
     {
       alertError: string;
@@ -119,7 +112,6 @@ const NetworkModals = (props: NetworkProps) => {
 
   const showDetailsModal = () => setShowDetails(!showDetails);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const { colors } = useTheme();
   const styles = createNetworkModalStyles(colors);
@@ -148,34 +140,10 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const onUpdateNetworkFilter = useCallback(() => {
-    const { PreferencesController } = Engine.context;
-    if (!isAllNetworks) {
-      PreferencesController.setTokenNetworkFilter({
-        [customNetworkInformation.chainId]: true,
-      });
-    } else {
-      const normalizedTokenNetworkFilter = Object.fromEntries(
-        Object.entries(tokenNetworkFilter).map(([key, value]) => [
-          key,
-          Boolean(value),
-        ]),
-      );
-      PreferencesController.setTokenNetworkFilter({
-        ...normalizedTokenNetworkFilter,
-        [customNetworkInformation.chainId]: true,
-      });
-    }
-
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       selectNetwork(chainId as `0x${string}`);
     }
-  }, [
-    customNetworkInformation.chainId,
-    isAllNetworks,
-    tokenNetworkFilter,
-    chainId,
-    selectNetwork,
-  ]);
+  }, [chainId, selectNetwork]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,

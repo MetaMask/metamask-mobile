@@ -294,37 +294,12 @@ const Main = (props) => {
     if (
       hasNetworkChanged(chainId, previousProviderConfig.current, isEvmSelected)
     ) {
-      //set here token network filter if portfolio view is enabled
-      if (isPortfolioViewEnabled()) {
-        const { PreferencesController } = Engine.context;
-        if (Object.keys(tokenNetworkFilter).length === 1) {
-          PreferencesController.setTokenNetworkFilter({
-            [chainId]: true,
-          });
-        } else {
-          PreferencesController.setTokenNetworkFilter({
-            ...tokenNetworkFilter,
-            [chainId]: true,
-          });
-        }
-      }
       if (
         isRemoveGlobalNetworkSelectorEnabled() &&
         enabledEVMNetworks.length === 0
       ) {
         selectNetwork(chainId);
       }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
-        labelOptions: [
-          {
-            label: `${networkName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        networkImageSource: networkImage,
-      });
 
       handleShowNetworkActiveToast(
         isOnBridgeRoute,
