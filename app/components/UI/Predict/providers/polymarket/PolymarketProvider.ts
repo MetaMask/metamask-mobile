@@ -13,7 +13,12 @@ import {
   PredictPosition,
   Side,
 } from '../../types';
-import { GetMarketsParams, OrderParams, PredictProvider } from '../types';
+import {
+  GetMarketsParams,
+  BuyOrderParams,
+  PredictProvider,
+  SellOrderParams,
+} from '../types';
 import { ROUNDING_CONFIG } from './constants';
 import {
   ApiKeyCreds,
@@ -76,7 +81,7 @@ export class PolymarketProvider implements PredictProvider {
    */
   private async buildOrderArtifacts({
     address,
-    orderParams: { outcomeTokenId, side, amount, outcomeId },
+    orderParams: { outcomeTokenId, side, size, outcomeId },
   }: {
     address: string;
     orderParams: OrderArtifactsParams;
@@ -95,7 +100,7 @@ export class PolymarketProvider implements PredictProvider {
     const conditionId = outcomeId;
     const [tickSizeResponse, price, marketData] = await Promise.all([
       getTickSize({ tokenId }),
-      calculateMarketPrice(tokenId, side, amount, OrderType.FOK),
+      calculateMarketPrice(tokenId, side, size, OrderType.FOK),
       getMarketFromPolymarketApi({ conditionId }),
     ]);
 
@@ -110,7 +115,7 @@ export class PolymarketProvider implements PredictProvider {
       userMarketOrder: {
         tokenID: tokenId,
         price,
-        amount,
+        size,
         side,
         orderType: OrderType.FOK,
       },
@@ -190,21 +195,13 @@ export class PolymarketProvider implements PredictProvider {
     return parsedPositions;
   }
 
-  public async prepareOrder(params: OrderParams): Promise<PredictOrder> {
-    const { isBuy } = params;
-    if (isBuy) {
-      return this.prepareBuyTransaction(params);
-    }
-    return this.prepareSellTransaction(params);
-  }
-
-  private async prepareBuyTransaction({
+  public async prepareBuyOrder({
     signer,
     market,
     outcomeId,
     outcomeTokenId,
-    amount,
-  }: OrderParams): Promise<PredictOrder> {
+    size,
+  }: BuyOrderParams): Promise<PredictOrder> {
     const { address, signTypedMessage } = signer;
     const side = Side.BUY;
 
@@ -223,7 +220,7 @@ export class PolymarketProvider implements PredictProvider {
         outcomeId,
         outcomeTokenId,
         side,
-        amount,
+        size,
       },
     });
 
@@ -308,7 +305,7 @@ export class PolymarketProvider implements PredictProvider {
       outcomeId,
       outcomeTokenId,
       isBuy: true,
-      amount,
+      size,
       price,
       status: 'idle',
       error: undefined,
@@ -319,13 +316,10 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
-  private async prepareSellTransaction({
+  public async prepareSellOrder({
     signer,
-    market,
-    outcomeId,
-    outcomeTokenId,
-    amount,
-  }: OrderParams): Promise<PredictOrder> {
+    position,
+  }: SellOrderParams): Promise<PredictOrder> {
     const { address, signTypedMessage } = signer;
     const side = Side.SELL;
     const {
@@ -339,7 +333,12 @@ export class PolymarketProvider implements PredictProvider {
       negRisk,
     } = await this.buildOrderArtifacts({
       address,
-      orderParams: { outcomeId, outcomeTokenId, side, amount },
+      orderParams: {
+        outcomeId: position.outcomeId,
+        outcomeTokenId: position.outcomeTokenId,
+        size: position.size,
+        side,
+      },
     });
 
     if (!priceValid(price, tickSize)) {
@@ -419,11 +418,10 @@ export class PolymarketProvider implements PredictProvider {
     return {
       id: generateOrderId(),
       providerId: this.providerId,
-      marketId: market?.id,
-      outcomeId,
-      outcomeTokenId,
-      isBuy: false,
-      amount,
+      marketId: position.marketId,
+      outcomeId: position.outcomeId,
+      outcomeTokenId: position.outcomeTokenId,
+      size: position.size,
       price,
       chainId,
       status: 'idle',
@@ -432,6 +430,7 @@ export class PolymarketProvider implements PredictProvider {
       lastUpdated: Date.now(),
       onchainTradeParams: calls,
       offchainTradeParams: { clobOrder, headers },
+      isBuy: false,
     };
   }
 

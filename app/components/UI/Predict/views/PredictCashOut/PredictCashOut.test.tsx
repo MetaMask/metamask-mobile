@@ -319,9 +319,6 @@ describe('PredictCashOut', () => {
       fireEvent.press(cashOutButton);
 
       expect(mockPlaceSellOrder).toHaveBeenCalledWith({
-        outcomeId: 'outcome-456',
-        outcomeTokenId: 'outcome-token-789',
-        quantity: 50,
         position: mockPosition,
       });
 

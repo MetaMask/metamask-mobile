@@ -72,7 +72,8 @@ describe('PredictController', () => {
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
-      prepareOrder: jest.fn(),
+      prepareBuyOrder: jest.fn(),
+      prepareSellOrder: jest.fn(),
       getApiKey: jest.fn(),
       providerId: 'polymarket',
       placeOrder: jest.fn(),
@@ -153,15 +154,12 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
         expect(controller.state.positions).toEqual([]);
-        expect(controller.state.markets).toEqual([]);
-        expect(controller.state.connectionStatus).toBe('disconnected');
         expect(controller.state.eligibility).toEqual({});
       });
     });
 
     it('should initialize with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        isTestnet: false,
         positions: [
           {
             marketId: 'm1',
@@ -175,24 +173,11 @@ describe('PredictController', () => {
 
       withController(
         ({ controller }) => {
-          expect(controller.state.isTestnet).toBe(false);
           expect(controller.state.positions).toHaveLength(1);
           expect((controller.state.positions[0] as any).marketId).toBe('m1');
         },
         { state: customState },
       );
-    });
-  });
-
-  describe('provider management', () => {
-    it('should toggle testnet', async () => {
-      await withController(async ({ controller }) => {
-        const initial = controller.state.isTestnet;
-        const result = await controller.toggleTestnet();
-        expect(result.success).toBe(true);
-        expect(controller.state.isTestnet).toBe(!initial);
-        expect(controller.state.connectionStatus).toBe('disconnected');
-      });
     });
   });
 
@@ -215,7 +200,9 @@ describe('PredictController', () => {
         mockPolymarketProvider.getMarkets.mockResolvedValue(mockMarkets as any);
         await controller.initializeProviders();
 
-        const result = await controller.getMarkets({});
+        const result = await controller.getMarkets({
+          providerId: 'polymarket',
+        });
 
         expect(result).toEqual(mockMarkets as any);
         expect(controller.state.lastError).toBeNull();
@@ -231,7 +218,9 @@ describe('PredictController', () => {
         );
         await controller.initializeProviders();
 
-        await expect(controller.getMarkets({})).rejects.toThrow(errorMessage);
+        await expect(
+          controller.getMarkets({ providerId: 'polymarket' }),
+        ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
       });
     });
@@ -255,6 +244,7 @@ describe('PredictController', () => {
 
         const result = await controller.getPositions({
           address: '0x1234567890123456789012345678901234567890',
+          providerId: 'polymarket',
         });
 
         expect(result).toEqual(mockPositions as any);
@@ -275,6 +265,7 @@ describe('PredictController', () => {
         await expect(
           controller.getPositions({
             address: '0x1234567890123456789012345678901234567890',
+            providerId: 'polymarket',
           }),
         ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
@@ -302,13 +293,13 @@ describe('PredictController', () => {
         await controller.initializeProviders();
 
         // Prepare provider transaction data
-        mockPolymarketProvider.prepareOrder.mockResolvedValue({
+        mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
           id: 'order-1',
           providerId: 'polymarket',
           outcomeId: 'o1',
           outcomeTokenId: 'ot1',
           isBuy: true,
-          amount: 1,
+          size: 1,
           price: 1,
           status: 'idle',
           timestamp: Date.now(),
@@ -333,16 +324,15 @@ describe('PredictController', () => {
           market: mockMarket,
           outcomeId: 'o1',
           outcomeTokenId: 'ot1',
-          amount: 1,
+          size: 1,
         });
 
-        expect(mockPolymarketProvider.prepareOrder).toHaveBeenCalledWith(
+        expect(mockPolymarketProvider.prepareBuyOrder).toHaveBeenCalledWith(
           expect.objectContaining({
             market: mockMarket,
             outcomeId: 'o1',
             outcomeTokenId: 'ot1',
-            amount: 1,
-            isBuy: true,
+            size: 1,
             signer: expect.objectContaining({
               address: '0x1234567890123456789012345678901234567890',
             }),
@@ -366,13 +356,13 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         await controller.initializeProviders();
 
-        mockPolymarketProvider.prepareOrder.mockResolvedValue({
+        mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
           id: 'order-2',
           providerId: 'polymarket',
           outcomeId: 'o2',
           outcomeTokenId: 'ot2',
           isBuy: true,
-          amount: 2,
+          size: 2,
           price: 1,
           status: 'idle',
           timestamp: Date.now(),
@@ -396,7 +386,7 @@ describe('PredictController', () => {
           market: mockMarket,
           outcomeId: 'o2',
           outcomeTokenId: 'ot2',
-          amount: 2,
+          size: 2,
         });
 
         expect(controller.state.activeOrders[mockTxMeta.id]).toBeDefined();
@@ -410,13 +400,15 @@ describe('PredictController', () => {
       await withController(async ({ controller }) => {
         await controller.initializeProviders();
 
-        mockPolymarketProvider.prepareOrder.mockResolvedValue(undefined as any);
+        mockPolymarketProvider.prepareBuyOrder.mockResolvedValue(
+          undefined as any,
+        );
 
         const result = await controller.buy({
           market: mockMarket,
           outcomeId: 'o3',
           outcomeTokenId: 'ot3',
-          amount: 3,
+          size: 3,
         });
 
         expect(result.success).toBe(false);
@@ -437,13 +429,13 @@ describe('PredictController', () => {
         };
 
         // Prepare provider transaction data
-        mockPolymarketProvider.prepareOrder.mockResolvedValue({
+        mockPolymarketProvider.prepareSellOrder.mockResolvedValue({
           id: 'sell-order-1',
           providerId: 'polymarket',
           outcomeId: 'outcome-1',
           outcomeTokenId: 'outcome-token-1',
           isBuy: false,
-          amount: 2,
+          size: 2,
           price: 0.8,
           status: 'idle',
           timestamp: Date.now(),
@@ -466,17 +458,11 @@ describe('PredictController', () => {
 
         const result = await controller.sell({
           position: mockPosition as any,
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'outcome-token-1',
-          quantity: 2,
         });
 
-        expect(mockPolymarketProvider.prepareOrder).toHaveBeenCalledWith(
+        expect(mockPolymarketProvider.prepareSellOrder).toHaveBeenCalledWith(
           expect.objectContaining({
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'outcome-token-1',
-            amount: 2,
-            isBuy: false,
+            position: mockPosition,
             signer: expect.objectContaining({
               address: '0x1234567890123456789012345678901234567890',
             }),
@@ -512,15 +498,12 @@ describe('PredictController', () => {
           outcomeTokenId: 'outcome-token-1',
         };
 
-        mockPolymarketProvider.prepareOrder.mockRejectedValue(
+        mockPolymarketProvider.prepareSellOrder.mockRejectedValue(
           new Error('Sell order failed'),
         );
 
         const result = await controller.sell({
           position: mockPosition as any,
-          outcomeId: 'outcome-1',
-          outcomeTokenId: 'outcome-token-1',
-          quantity: 3,
         });
 
         expect(result.success).toBe(false);
@@ -566,7 +549,7 @@ describe('PredictController', () => {
             outcomeId: 'o1',
             outcomeTokenId: 'ot1',
             isBuy: true,
-            amount: 1,
+            size: 1,
             price: 1,
             status: 'pending',
             timestamp: Date.now(),
@@ -624,7 +607,7 @@ describe('PredictController', () => {
             outcomeId: 'o2',
             outcomeTokenId: 'ot2',
             isBuy: true,
-            amount: 1,
+            size: 1,
             price: 1,
             status: 'pending',
             timestamp: Date.now(),
@@ -688,7 +671,7 @@ describe('PredictController', () => {
             outcomeId: 'o3',
             outcomeTokenId: 'ot3',
             isBuy: true,
-            amount: 1,
+            size: 1,
             price: 1,
             status: 'pending',
             timestamp: Date.now(),
@@ -763,7 +746,7 @@ describe('PredictController', () => {
             outcomeId: 'o4',
             outcomeTokenId: 'ot4',
             isBuy: true,
-            amount: 1,
+            size: 1,
             price: 1,
             status: 'pending',
             timestamp: Date.now(),
@@ -827,7 +810,7 @@ describe('PredictController', () => {
             outcomeId: 'o5',
             outcomeTokenId: 'ot5',
             isBuy: true,
-            amount: 1,
+            size: 1,
             price: 1,
             status: 'pending',
             timestamp: Date.now(),
@@ -884,7 +867,7 @@ describe('PredictController', () => {
             outcomeId: 'o6',
             outcomeTokenId: 'ot6',
             isBuy: true,
-            amount: 1,
+            size: 1,
             price: 1,
             status: 'pending',
             timestamp: Date.now(),
@@ -1001,15 +984,10 @@ describe('PredictController', () => {
   describe('updateStateForTesting', () => {
     it('should update state using provided updater function', () => {
       withController(({ controller }) => {
-        const initialTestnet = controller.state.isTestnet;
-
         controller.updateStateForTesting((state) => {
-          state.isTestnet = !initialTestnet;
           state.eligibility = { polymarket: false };
           state.lastError = 'Test error';
         });
-
-        expect(controller.state.isTestnet).toBe(!initialTestnet);
         expect(controller.state.eligibility).toEqual({
           polymarket: false,
         });
@@ -1029,7 +1007,7 @@ describe('PredictController', () => {
               outcomeId: 'o1',
               outcomeTokenId: 'ot1',
               isBuy: true,
-              amount: 1,
+              size: 1,
               price: 1,
               status: 'pending',
               timestamp: Date.now(),
@@ -1125,7 +1103,7 @@ describe('PredictController', () => {
             outcomeId: 'o1',
             outcomeTokenId: 'ot1',
             isBuy: true,
-            amount: 1,
+            size: 1,
             price: 1,
             status: 'pending',
             timestamp: Date.now(),

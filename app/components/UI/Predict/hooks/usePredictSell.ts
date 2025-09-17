@@ -11,7 +11,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
-interface UsePredictBuyOptions {
+interface UsePredictSellOptions {
   /**
    * Callback when order is placed successfully
    */
@@ -26,7 +26,7 @@ interface UsePredictBuyOptions {
   onError?: (error: string, order: PredictOrder | null) => void;
 }
 
-interface UsePredictBuyReturn {
+interface UsePredictSellReturn {
   error?: string;
   loading: boolean;
   result: Result | null;
@@ -43,8 +43,8 @@ interface UsePredictBuyReturn {
  * @returns Order placement utilities and state
  */
 export function usePredictSell(
-  options: UsePredictBuyOptions = {},
-): UsePredictBuyReturn {
+  options: UsePredictSellOptions = {},
+): UsePredictSellReturn {
   const { onSellPlaced, onError, onComplete } = options;
   const { sell } = usePredictTrading();
 
@@ -113,7 +113,7 @@ export function usePredictSell(
 
   const isOrderLoading = useCallback(
     (outcomeTokenId: string) =>
-      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
+      currentOrderParams?.position.outcomeTokenId === outcomeTokenId && loading,
     [currentOrderParams, loading],
   );
 
@@ -123,7 +123,7 @@ export function usePredictSell(
       try {
         setIsPlacing(true);
         setCurrentOrderParams(orderParams);
-        const { quantity, outcomeId, outcomeTokenId, position } = orderParams;
+        const { position } = orderParams;
 
         DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
 
@@ -135,14 +135,11 @@ export function usePredictSell(
         });
 
         // Place order using Predict controller
-        const buyResult = await sell({
-          quantity,
+        const sellResult = await sell({
           position,
-          outcomeId,
-          outcomeTokenId,
         });
 
-        setResult(buyResult);
+        setResult(sellResult);
 
         DevLogger.log('usePredictPlaceOrder: Order placed successfully');
       } catch (err) {

@@ -30,7 +30,6 @@ import {
   PredictPosition,
   Result,
   SellParams,
-  ToggleTestnetResult,
 } from '../types';
 
 /**
@@ -58,12 +57,6 @@ export type PredictErrorCode =
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
-  isTestnet: boolean; // Dev toggle for testnet
-  connectionStatus: 'disconnected' | 'connecting' | 'connected';
-
-  // Market data
-  markets: PredictMarket[];
-
   // User positions
   positions: PredictPosition[];
 
@@ -83,9 +76,6 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  isTestnet: __DEV__, // Default to testnet in dev
-  connectionStatus: 'disconnected',
-  markets: [],
   positions: [],
   eligibility: {},
   lastError: null,
@@ -98,17 +88,14 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
  * State metadata for the PredictController
  */
 const metadata = {
-  isTestnet: { persist: true, anonymous: false },
-  connectionStatus: { persist: false, anonymous: false },
-  markets: { persist: false, anonymous: false },
   positions: { persist: true, anonymous: false },
   orders: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
   eligibility: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
-  activeOrders: { persist: false, anonymous: false },
-  ordersToNotify: { persist: false, anonymous: false },
+  activeOrders: { persist: true, anonymous: false },
+  ordersToNotify: { persist: true, anonymous: false },
 };
 
 /**
@@ -130,6 +117,10 @@ export type PredictControllerActions =
   | {
       type: 'PredictController:buy';
       handler: PredictController['buy'];
+    }
+  | {
+      type: 'PredictController:sell';
+      handler: PredictController['sell'];
     }
   | {
       type: 'PredictController:refreshEligibility';
@@ -321,11 +312,9 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const { clobOrder, headers } = offchainTradeParams;
-    const { success, response } = (await provider.submitOffchainTrade?.({
-      clobOrder,
-      headers,
-    })) as OffchainTradeResponse;
+    const { success, response } = (await provider.submitOffchainTrade?.(
+      offchainTradeParams,
+    )) as OffchainTradeResponse;
 
     const status = success ? 'filled' : 'error';
     const error = !success
@@ -383,7 +372,6 @@ export class PredictController extends BaseController<
    */
   private async performInitialization(): Promise<void> {
     DevLogger.log('PredictController: Initializing providers', {
-      currentNetwork: this.state.isTestnet ? 'testnet' : 'mainnet',
       existingProviders: Array.from(this.providers.keys()),
       timestamp: new Date().toISOString(),
     });
@@ -396,20 +384,9 @@ export class PredictController extends BaseController<
         timestamp: new Date().toISOString(),
       });
     }
-    // note: temporarily removing as causing "Engine does not exist"
-    // const { KeyringController } = Engine.context;
-    this.providers.clear();
-    this.providers.set(
-      'polymarket',
-      new PolymarketProvider({
-        isTestnet: this.state.isTestnet,
-      }),
-    );
 
-    // Future providers can be added here with their own authentication patterns:
-    // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-    // - Some might use different wallet patterns: new GMXProvider({ signer })
-    // - Some might not need auth at all: new DydxProvider()
+    this.providers.clear();
+    this.providers.set('polymarket', new PolymarketProvider());
 
     this.isInitialized = true;
     DevLogger.log('PredictController: Providers initialized successfully', {
@@ -423,11 +400,24 @@ export class PredictController extends BaseController<
    */
   async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const provider = this.providers.get('polymarket');
-      if (!provider) {
+      const providerIds = params.providerId
+        ? [params.providerId]
+        : Array.from(this.providers.keys());
+
+      if (providerIds.some((id) => !this.providers.has(id))) {
         throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
       }
-      const allMarkets = await provider?.getMarkets(params);
+
+      const allMarkets = await Promise.all(
+        providerIds.map((id: string) =>
+          this.providers.get(id)?.getMarkets(params),
+        ),
+      );
+
+      //TODO: We need to sort the markets after merging them
+      const markets = allMarkets
+        .flat()
+        .filter((market): market is PredictMarket => market !== undefined);
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -435,7 +425,7 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
-      return allMarkets;
+      return markets;
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -458,21 +448,36 @@ export class PredictController extends BaseController<
    */
   async getPositions({
     address,
+    providerId,
   }: GetPositionsParams): Promise<PredictPosition[]> {
     try {
-      const provider = this.providers.get('polymarket');
-      if (!provider) {
-        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
-      }
-
       const { AccountsController } = Engine.context;
 
       const selectedAddress =
         address ?? AccountsController.getSelectedAccount().address;
 
-      const positions = await provider.getPositions({
-        address: selectedAddress,
-      });
+      const providerIds = providerId
+        ? [providerId]
+        : Array.from(this.providers.keys());
+
+      if (providerIds.some((id) => !this.providers.has(id))) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const allPositions = await Promise.all(
+        providerIds.map((id: string) =>
+          this.providers.get(id)?.getPositions({
+            address: selectedAddress,
+          }),
+        ),
+      );
+
+      //TODO: We need to sort the positions after merging them
+      const positions = allPositions
+        .flat()
+        .filter(
+          (position): position is PredictPosition => position !== undefined,
+        );
 
       // Only update state if the provider call succeeded
       this.update((state) => {
@@ -503,7 +508,7 @@ export class PredictController extends BaseController<
     market,
     outcomeId,
     outcomeTokenId,
-    amount,
+    size,
   }: BuyParams): Promise<Result> {
     try {
       const provider = this.providers.get(market.providerId);
@@ -516,7 +521,7 @@ export class PredictController extends BaseController<
         Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
 
-      const order = await provider.prepareOrder({
+      const order = await provider.prepareBuyOrder({
         signer: {
           address: selectedAddress,
           signTypedMessage: (
@@ -526,8 +531,7 @@ export class PredictController extends BaseController<
         },
         outcomeId,
         outcomeTokenId,
-        amount,
-        isBuy: true,
+        size,
         market,
       });
 
@@ -579,12 +583,7 @@ export class PredictController extends BaseController<
     }
   }
 
-  async sell({
-    position,
-    outcomeId,
-    outcomeTokenId,
-    quantity,
-  }: SellParams): Promise<Result> {
+  async sell({ position }: SellParams): Promise<Result> {
     try {
       const provider = this.providers.get(position.providerId);
       if (!provider) {
@@ -596,7 +595,7 @@ export class PredictController extends BaseController<
         Engine.context;
       const selectedAddress = AccountsController.getSelectedAccount().address;
 
-      const order = await provider.prepareOrder({
+      const order = await provider.prepareSellOrder({
         signer: {
           address: selectedAddress,
           signTypedMessage: (
@@ -604,10 +603,7 @@ export class PredictController extends BaseController<
             version: SignTypedDataVersion,
           ) => KeyringController.signTypedMessage(params, version),
         },
-        outcomeId,
-        outcomeTokenId,
-        amount: quantity,
-        isBuy: false,
+        position,
       });
 
       if (order.onchainTradeParams.length === 0) {
@@ -654,50 +650,6 @@ export class PredictController extends BaseController<
             ? error.message
             : PREDICT_ERROR_CODES.PLACE_SELL_ORDER_FAILED,
         id: undefined,
-      };
-    }
-  }
-
-  /**
-   * Toggle between testnet and mainnet
-   */
-  async toggleTestnet(): Promise<ToggleTestnetResult> {
-    try {
-      const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
-
-      this.update((state) => {
-        state.isTestnet = !state.isTestnet;
-        state.connectionStatus = 'disconnected';
-      });
-
-      const newNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
-
-      DevLogger.log('PredictController: Network toggle initiated', {
-        from: previousNetwork,
-        to: newNetwork,
-        timestamp: new Date().toISOString(),
-      });
-
-      // Reset initialization state and reinitialize provider with new testnet setting
-      this.isInitialized = false;
-      this.initializationPromise = null;
-      await this.initializeProviders();
-
-      DevLogger.log('PredictController: Network toggle completed', {
-        newNetwork,
-        isTestnet: this.state.isTestnet,
-        timestamp: new Date().toISOString(),
-      });
-
-      return { success: true, isTestnet: this.state.isTestnet };
-    } catch (error) {
-      return {
-        success: false,
-        isTestnet: this.state.isTestnet,
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
       };
     }
   }

@@ -8,6 +8,10 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 
 interface UsePredictPositionsOptions {
   /**
+   * The provider ID to load positions for
+   */
+  providerId?: string;
+  /**
    * Whether to load positions on mount
    * @default true
    */
@@ -44,6 +48,7 @@ export function usePredictPositions(
   options: UsePredictPositionsOptions = {},
 ): UsePredictPositionsReturn {
   const {
+    providerId,
     loadOnMount = true,
     refreshOnFocus = true,
     onSuccess,
@@ -77,6 +82,7 @@ export function usePredictPositions(
         // Get positions from Predict controller
         const positionsData = await getPositions({
           address: selectedInternalAccountAddress ?? '',
+          providerId,
         });
         const validPositions = positionsData ?? [];
         setPositions(validPositions);
@@ -104,7 +110,13 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
-    [getPositions, selectedInternalAccountAddress, onSuccess, onError],
+    [
+      getPositions,
+      selectedInternalAccountAddress,
+      providerId,
+      onSuccess,
+      onError,
+    ],
   );
 
   // Load positions on mount if enabled

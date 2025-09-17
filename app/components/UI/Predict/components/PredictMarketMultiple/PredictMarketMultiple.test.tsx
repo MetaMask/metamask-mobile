@@ -101,7 +101,7 @@ describe('PredictMarket', () => {
 
     fireEvent.press(buttons[0]);
     expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      amount: 1,
+      size: 1,
       outcomeId: mockMarket.outcomes[0].id,
       outcomeTokenId: mockMarket.outcomes[0].tokens[0].id,
       market: mockMarket,
@@ -109,7 +109,7 @@ describe('PredictMarket', () => {
 
     fireEvent.press(buttons[1]);
     expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      amount: 1,
+      size: 1,
       outcomeId: mockMarket.outcomes[0].id,
       outcomeTokenId: mockMarket.outcomes[0].tokens[1].id,
       market: mockMarket,

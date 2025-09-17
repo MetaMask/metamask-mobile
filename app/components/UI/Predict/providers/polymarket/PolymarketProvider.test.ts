@@ -16,7 +16,7 @@ import {
   priceValid,
   submitClobOrder,
 } from './utils';
-import { type OrderParams } from '../types';
+import { SellOrderParams, type BuyOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import { OrderType } from './types';
 
@@ -79,10 +79,7 @@ const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
 
 describe('PolymarketProvider', () => {
-  const createProvider = (overrides?: { isTestnet?: boolean }) =>
-    new PolymarketProvider({
-      isTestnet: overrides?.isTestnet,
-    });
+  const createProvider = () => new PolymarketProvider();
 
   it('exposes the correct providerId', () => {
     const provider = createProvider();
@@ -333,6 +330,32 @@ describe('PolymarketProvider', () => {
       outcomes: [],
     };
 
+    const mockPosition = {
+      id: 'position-1',
+      providerId: 'polymarket',
+      marketId: 'market-1',
+      outcomeId: 'outcome-456',
+      outcome: 'Yes',
+      outcomeTokenId: '0',
+      title: 'Test Market Position',
+      icon: 'test-icon.png',
+      amount: 1,
+      price: 0.5,
+      status: 'open' as const,
+      size: 1,
+      outcomeIndex: 0,
+      realizedPnl: 0,
+      curPrice: 0.5,
+      conditionId: 'outcome-456',
+      percentPnl: 0,
+      cashPnl: 0,
+      redeemable: false,
+      initialValue: 0.5,
+      avgPrice: 0.5,
+      currentValue: 0.5,
+      endDate: '2025-01-01T00:00:00Z',
+    };
+
     beforeEach(() => {
       jest.clearAllMocks();
 
@@ -368,7 +391,7 @@ describe('PolymarketProvider', () => {
         maker: mockAddress,
         taker: '0x0000000000000000000000000000000000000000',
         price: '500000000000000000',
-        amount: '1000000',
+        size: '1000000',
         side: 0,
         orderType: 'FOK',
       });
@@ -399,16 +422,15 @@ describe('PolymarketProvider', () => {
 
     it('successfully prepares a buy order and returns correct result', async () => {
       const provider = createProvider();
-      const orderParams: OrderParams = {
+      const orderParams: BuyOrderParams = {
         signer: mockSigner,
         market: mockMarket,
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
-        isBuy: true,
-        amount: 1,
+        size: 1,
       };
 
-      const result = await provider.prepareOrder(orderParams);
+      const result = await provider.prepareBuyOrder(orderParams);
 
       expect(result).toMatchObject({
         id: expect.any(String),
@@ -416,7 +438,7 @@ describe('PolymarketProvider', () => {
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
         isBuy: true,
-        amount: 1,
+        size: 1,
         price: 0.5,
         status: 'idle',
         timestamp: expect.any(Number),
@@ -429,16 +451,15 @@ describe('PolymarketProvider', () => {
 
     it('calls all required utility functions with correct parameters for buy order', async () => {
       const provider = createProvider();
-      const orderParams: OrderParams = {
+      const orderParams: BuyOrderParams = {
         signer: mockSigner,
         market: mockMarket,
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
-        isBuy: true,
-        amount: 2,
+        size: 2,
       };
 
-      await provider.prepareOrder(orderParams);
+      await provider.prepareBuyOrder(orderParams);
 
       expect(mockCalculateMarketPrice).toHaveBeenCalledWith(
         '0',
@@ -453,32 +474,27 @@ describe('PolymarketProvider', () => {
       mockPriceValid.mockReturnValue(false);
 
       const provider = createProvider();
-      const orderParams: OrderParams = {
+      const orderParams: BuyOrderParams = {
         signer: mockSigner,
         market: mockMarket,
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
-        isBuy: true,
-        amount: 1,
+        size: 1,
       };
 
-      await expect(provider.prepareOrder(orderParams)).rejects.toThrow(
+      await expect(provider.prepareBuyOrder(orderParams)).rejects.toThrow(
         'invalid price (0.5), min: 0.01 - max: 0.99',
       );
     });
 
     it('successfully prepares a sell order and returns correct result', async () => {
       const provider = createProvider();
-      const orderParams: OrderParams = {
+      const orderParams: SellOrderParams = {
         signer: mockSigner,
-        market: mockMarket,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        isBuy: false,
-        amount: 1,
+        position: mockPosition,
       };
 
-      const result = await provider.prepareOrder(orderParams);
+      const result = await provider.prepareSellOrder(orderParams);
 
       expect(result).toMatchObject({
         id: expect.any(String),
@@ -486,7 +502,7 @@ describe('PolymarketProvider', () => {
         outcomeId: 'outcome-456',
         outcomeTokenId: '0',
         isBuy: false,
-        amount: 1,
+        size: 1,
         price: 0.5,
         status: 'idle',
         timestamp: expect.any(Number),
@@ -499,21 +515,17 @@ describe('PolymarketProvider', () => {
 
     it('calls all required utility functions with correct parameters for sell order', async () => {
       const provider = createProvider();
-      const orderParams: OrderParams = {
+      const orderParams: SellOrderParams = {
         signer: mockSigner,
-        market: mockMarket,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: '0',
-        isBuy: false,
-        amount: 2,
+        position: mockPosition,
       };
 
-      await provider.prepareOrder(orderParams);
+      await provider.prepareSellOrder(orderParams);
 
       expect(mockCalculateMarketPrice).toHaveBeenCalledWith(
         '0',
         Side.SELL,
-        2,
+        1,
         OrderType.FOK,
       );
       expect(mockPriceValid).toHaveBeenCalledWith(0.5, '0.01');

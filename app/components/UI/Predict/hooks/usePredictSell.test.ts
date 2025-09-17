@@ -438,7 +438,7 @@ describe('usePredictSell', () => {
           position: mockPosition,
           outcomeId: 'test',
           outcomeTokenId: 'test-token',
-          quantity: 10,
+          size: 10,
         });
       });
 
@@ -490,7 +490,7 @@ describe('usePredictSell', () => {
           position: mockPosition,
           outcomeId: 'outcome-456',
           outcomeTokenId: 'outcome-token-789',
-          quantity: 50,
+          size: 50,
         });
       });
 
@@ -533,7 +533,7 @@ describe('usePredictSell', () => {
           position: mockPosition,
           outcomeId: 'outcome-456',
           outcomeTokenId: 'outcome-token-789',
-          quantity: 50,
+          size: 50,
         });
       });
 
@@ -587,7 +587,7 @@ describe('usePredictSell', () => {
           position: mockPosition,
           outcomeId: 'outcome-456',
           outcomeTokenId: 'outcome-token-789',
-          quantity: 50,
+          size: 50,
         });
       });
 

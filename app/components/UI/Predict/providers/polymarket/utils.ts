@@ -323,7 +323,7 @@ export const roundUp = (num: number, decimals: number): number => {
 export const calculateMarketPrice = async (
   tokenId: string,
   side: Side,
-  amount: number,
+  size: number,
   orderType: OrderType = OrderType.FOK,
 ): Promise<number> => {
   const book = await getOrderBook({ tokenId });
@@ -334,12 +334,12 @@ export const calculateMarketPrice = async (
     if (!book.asks) {
       throw new Error('no match');
     }
-    return calculateBuyMarketPrice(book.asks, amount, orderType);
+    return calculateBuyMarketPrice(book.asks, size, orderType);
   }
   if (!book.bids) {
     throw new Error('no match');
   }
-  return calculateSellMarketPrice(book.bids, amount, orderType);
+  return calculateSellMarketPrice(book.bids, size, orderType);
 };
 
 export const getMarketOrderRawAmounts = (
@@ -403,7 +403,7 @@ export const buildMarketOrderCreationArgs = async ({
 }): Promise<OrderData & { salt: string }> => {
   const { side, rawMakerAmt, rawTakerAmt } = getMarketOrderRawAmounts(
     userMarketOrder.side,
-    userMarketOrder.amount,
+    userMarketOrder.size,
     userMarketOrder.price || 1,
     roundConfig,
   );
@@ -609,6 +609,7 @@ export const parsePolymarketPositions = ({
     ...position,
     id: position.asset,
     providerId: 'polymarket',
+    // TODO: This is not correct, we need to use the correct market id from the event
     marketId: position.conditionId,
     outcomeId: position.conditionId,
     outcomeTokenId: position.asset,

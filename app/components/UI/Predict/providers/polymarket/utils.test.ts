@@ -813,7 +813,7 @@ describe('polymarket utils', () => {
     const userMarketOrder: UserMarketOrder = {
       tokenID: 'test-token',
       side: Side.BUY,
-      amount: 100,
+      size: 100,
       price: 0.5,
     };
 
@@ -1317,6 +1317,7 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
+        providerId: 'polymarket',
         q: 'weather',
         limit: 10,
         offset: 5,
@@ -1341,6 +1342,7 @@ describe('polymarket utils', () => {
       });
 
       const params: GetMarketsParams = {
+        providerId: 'polymarket',
         category: 'crypto',
         limit: 5,
       };

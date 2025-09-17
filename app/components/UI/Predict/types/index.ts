@@ -1,12 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
-// ESLint override: BaseController requires 'type' for Json compatibility, not 'interface'
-export type ToggleTestnetResult = {
-  success: boolean;
-  isTestnet: boolean;
-  error?: string;
-};
-
 export enum Side {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -67,7 +60,7 @@ export type PredictOrder = {
   outcomeId: string;
   outcomeTokenId: string;
   isBuy: boolean;
-  amount: number;
+  size: number;
   price: number;
   status: PredictOrderStatus;
   error?: string;
@@ -188,14 +181,11 @@ export interface BuyParams {
   market: PredictMarket;
   outcomeId: string;
   outcomeTokenId: string;
-  amount: number;
+  size: number;
 }
 
 export interface SellParams {
   position: PredictPosition;
-  outcomeId: string;
-  outcomeTokenId: string;
-  quantity: number;
 }
 
 export type Result<T = void> = {

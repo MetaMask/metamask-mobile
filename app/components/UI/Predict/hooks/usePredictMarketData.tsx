@@ -6,6 +6,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { PredictCategory, PredictMarket } from '../types';
 
 export interface UsePredictMarketDataOptions {
+  providerId?: string;
   q?: string;
   category?: PredictCategory;
   pageSize?: number;
@@ -28,7 +29,7 @@ export interface UsePredictMarketDataResult {
 export const usePredictMarketData = (
   options: UsePredictMarketDataOptions = {},
 ): UsePredictMarketDataResult => {
-  const { category = 'trending', q, pageSize = 20 } = options;
+  const { category = 'trending', q, pageSize = 20, providerId } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -88,6 +89,7 @@ export const usePredictMarketData = (
             }
 
             const markets = await controller.getMarkets({
+              providerId,
               category,
               q,
               limit: pageSize,
@@ -158,7 +160,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize],
+    [category, q, pageSize, providerId],
   );
 
   const loadMore = useCallback(async () => {

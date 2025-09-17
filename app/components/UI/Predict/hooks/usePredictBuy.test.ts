@@ -74,7 +74,7 @@ describe('usePredictBuy', () => {
       market: mockMarket,
       outcomeId: 'outcome-456',
       outcomeTokenId: 'outcome-token-789',
-      amount: 100,
+      size: 100,
     };
 
     const mockOrderResult = {
@@ -95,7 +95,7 @@ describe('usePredictBuy', () => {
         market: mockMarket,
         outcomeId: 'outcome-456',
         outcomeTokenId: 'outcome-token-789',
-        amount: 100,
+        size: 100,
       });
       expect(result.current.loading).toBe(true);
       expect(result.current.error).toBeUndefined();
@@ -117,7 +117,7 @@ describe('usePredictBuy', () => {
         market: mockMarket,
         outcomeId: 'outcome-456',
         outcomeTokenId: 'outcome-token-789',
-        amount: 100,
+        size: 100,
       });
       expect(result.current.loading).toBe(true);
       expect(result.current.error).toBeUndefined();
@@ -168,7 +168,7 @@ describe('usePredictBuy', () => {
       market: mockMarket,
       outcomeId: 'outcome-456',
       outcomeTokenId: 'outcome-token-789',
-      amount: 100,
+      size: 100,
     };
 
     const mockOrderResult = {
@@ -240,7 +240,7 @@ describe('usePredictBuy', () => {
           market: mockMarket,
           outcomeId: 'test',
           outcomeTokenId: 'test-token',
-          amount: 10,
+          size: 100,
         });
       });
 

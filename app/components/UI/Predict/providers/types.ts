@@ -31,13 +31,17 @@ export interface Signer {
   signTypedMessage: KeyringController['signTypedMessage'];
 }
 
-export interface OrderParams {
+export interface BuyOrderParams {
   signer: Signer;
-  market?: PredictMarket;
+  market: PredictMarket;
   outcomeId: string;
   outcomeTokenId: string;
-  isBuy: boolean;
-  amount: number;
+  size: number;
+}
+
+export interface SellOrderParams {
+  signer: Signer;
+  position: PredictPosition;
 }
 
 export interface PredictProvider {
@@ -50,7 +54,9 @@ export interface PredictProvider {
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
 
   // Order management
-  prepareOrder(params: OrderParams): Promise<PredictOrder>;
+  prepareBuyOrder(params: BuyOrderParams): Promise<PredictOrder>;
+  prepareSellOrder(params: SellOrderParams): Promise<PredictOrder>;
+
   submitOffchainTrade?(params: OffchainTradeParams): Promise<Result>;
   claimWinnings(/* TBD */): Promise<void>;
 

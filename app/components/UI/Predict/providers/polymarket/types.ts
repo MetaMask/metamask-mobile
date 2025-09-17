@@ -118,7 +118,7 @@ export interface OrderArtifactsParams {
   outcomeTokenId: string;
   outcomeId: string;
   side: Side;
-  amount: number;
+  size: number;
 }
 
 // Polymarket API response types
@@ -235,7 +235,7 @@ export interface UserMarketOrder {
    * BUY orders: $$$ Amount to buy
    * SELL orders: Shares to sell
    */
-  amount: number;
+  size: number;
 
   /**
    * Side of the order

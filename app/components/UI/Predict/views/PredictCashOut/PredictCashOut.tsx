@@ -47,17 +47,12 @@ const PredictCashOut = () => {
     outcome,
     currentValue,
     initialValue,
-    size,
-    outcomeId,
     outcomeTokenId,
   } = position;
 
   const onCashOut = () => {
     // Implement cash out action here
     placeSellOrder({
-      outcomeId,
-      outcomeTokenId,
-      quantity: size,
       position,
     });
     setTimeout(() => {

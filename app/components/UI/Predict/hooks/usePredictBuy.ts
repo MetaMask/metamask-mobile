@@ -122,13 +122,13 @@ export function usePredictBuy(
       try {
         setIsPlacing(true);
         setCurrentOrderParams(orderParams);
-        const { amount, outcomeId, outcomeTokenId, market } = orderParams;
+        const { size, outcomeId, outcomeTokenId, market } = orderParams;
 
         DevLogger.log('usePredictPlaceOrder: Placing order', orderParams);
 
         // Place order using Predict controller
         const buyResult = await buy({
-          amount,
+          size,
           market,
           outcomeId,
           outcomeTokenId,

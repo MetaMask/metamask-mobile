@@ -41,12 +41,14 @@ describe('usePredictTrading', () => {
 
       const response = await result.current.getPositions({
         address: '0x1234567890123456789012345678901234567890',
+        providerId: 'polymarket',
       });
 
       expect(
         Engine.context.PredictController.getPositions,
       ).toHaveBeenCalledWith({
         address: '0x1234567890123456789012345678901234567890',
+        providerId: 'polymarket',
       });
       expect(response).toEqual(mockPositions);
     });
@@ -62,6 +64,7 @@ describe('usePredictTrading', () => {
       await expect(
         result.current.getPositions({
           address: '0x1234567890123456789012345678901234567890',
+          providerId: 'polymarket',
         }),
       ).rejects.toThrow('Failed to fetch predict positions');
     });
@@ -97,14 +100,14 @@ describe('usePredictTrading', () => {
         market: mockMarket,
         outcomeId: 'outcome-789',
         outcomeTokenId: 'outcome-token-101',
-        amount: 100,
+        size: 100,
       });
 
       expect(Engine.context.PredictController.buy).toHaveBeenCalledWith({
         market: mockMarket,
         outcomeId: 'outcome-789',
         outcomeTokenId: 'outcome-token-101',
-        amount: 100,
+        size: 100,
       });
       expect(response).toEqual(mockBuyResult);
     });
@@ -122,7 +125,7 @@ describe('usePredictTrading', () => {
           market: mockMarket,
           outcomeId: 'outcome-789',
           outcomeTokenId: 'outcome-token-101',
-          amount: 100,
+          size: 100,
         }),
       ).rejects.toThrow('Failed to place buy order');
     });
@@ -169,16 +172,10 @@ describe('usePredictTrading', () => {
 
       const response = await result.current.sell({
         position: mockPosition,
-        outcomeId: 'outcome-101',
-        outcomeTokenId: 'outcome-token-202',
-        quantity: 25,
       });
 
       expect(Engine.context.PredictController.sell).toHaveBeenCalledWith({
         position: mockPosition,
-        outcomeId: 'outcome-101',
-        outcomeTokenId: 'outcome-token-202',
-        quantity: 25,
       });
       expect(response).toEqual(mockSellResult);
     });
@@ -194,9 +191,6 @@ describe('usePredictTrading', () => {
       await expect(
         result.current.sell({
           position: mockPosition,
-          outcomeId: 'outcome-101',
-          outcomeTokenId: 'outcome-token-202',
-          quantity: 25,
         }),
       ).rejects.toThrow('Failed to place sell order');
     });

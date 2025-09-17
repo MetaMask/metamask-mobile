@@ -72,7 +72,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   const handleYes = (outcome: PredictOutcome) => {
     placeBuyOrder({
-      amount: 1,
+      size: 1,
       outcomeId: outcome.id,
       outcomeTokenId: outcome.tokens[0].id,
       market,
@@ -81,7 +81,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   const handleNo = (outcome: PredictOutcome) => {
     placeBuyOrder({
-      amount: 1,
+      size: 1,
       outcomeId: outcome.id,
       outcomeTokenId: outcome.tokens[1].id,
       market,
