@@ -1,5 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { PerformanceTracker } from './PerformanceTracker';
+import { AppProfilingDataHandler } from './AppProfilingDataHandler';
 import fs from 'fs';
 import path from 'path';
 
@@ -181,61 +182,6 @@ class CustomReporter {
     };
   }
 
-  extractProfilingSummary(profilingData) {
-    try {
-      if (!profilingData?.data?.['io.metamask']) {
-        return { error: 'No profiling data available' };
-      }
-
-      const appData = profilingData.data['io.metamask'];
-      const metrics = appData.metrics;
-
-      return {
-        status: appData.status || 'unknown',
-        issues: appData.detected_issues?.length || 0,
-        criticalIssues:
-          appData.detected_issues?.filter((issue) => issue.type === 'error')
-            .length || 0,
-        cpu: {
-          avg: metrics.cpu?.avg || 0,
-          max: metrics.cpu?.max || 0,
-          unit: profilingData.data.units?.cpu || '%',
-        },
-        memory: {
-          avg: metrics.mem?.avg || 0,
-          max: metrics.mem?.max || 0,
-          unit: profilingData.data.units?.mem || 'MB',
-        },
-        battery: {
-          total: metrics.batt?.total_batt_usage || 0,
-          percentage: metrics.batt?.total_batt_usage_pct || 0,
-          unit: profilingData.data.units?.batt || 'mAh',
-        },
-        diskIO: {
-          reads: metrics.diskio?.total_reads || 0,
-          writes: metrics.diskio?.total_writes || 0,
-          unit: profilingData.data.units?.diskio || 'KB',
-        },
-        networkIO: {
-          upload: metrics.networkio?.total_upload || 0,
-          download: metrics.networkio?.total_download || 0,
-          unit: profilingData.data.units?.networkio || 'KB',
-        },
-        uiRendering: {
-          slowFrames: metrics.ui_rendering?.slow_frames_pct || 0,
-          frozenFrames: metrics.ui_rendering?.frozen_frames_pct || 0,
-          anrs: metrics.ui_rendering?.num_anrs || 0,
-        },
-      };
-    } catch (error) {
-      console.error('Error extracting profiling summary:', error);
-      return {
-        error: `Failed to extract profiling summary: ${error.message}`,
-        timestamp: new Date().toISOString(),
-      };
-    }
-  }
-
   async onEnd() {
     console.log(`\n📊 Generating reports for ${this.metrics.length} tests`);
 
@@ -289,89 +235,46 @@ class CustomReporter {
             session.videoURL = videoURL;
           }
 
-          // Fetch profiling data
+          // Fetch profiling data from BrowserStack API
           try {
-            const sessionDetails = await tracker.getSessionDetails(
-              session.sessionId,
+            console.log(
+              `🔍 Fetching profiling data for ${session.testTitle}...`,
             );
-
-            if (sessionDetails) {
-              // Extract device info from session data
-              if (sessionDetails.sessionData) {
-                session.deviceInfo = {
-                  name: sessionDetails.sessionData.device,
-                  osVersion: sessionDetails.sessionData.os_version,
-                  provider: 'browserstack',
-                };
-                console.log(
-                  `Device info extracted: ${session.deviceInfo.name} (${session.deviceInfo.osVersion})`,
-                );
-              }
-
-              // Fetch profiling data using the separate API endpoint
-              if (sessionDetails.buildId) {
-                try {
-                  const profilingData = await tracker.getAppProfilingData(
-                    sessionDetails.buildId,
-                    session.sessionId,
-                  );
-                  session.profilingData = profilingData;
-                  session.profilingSummary =
-                    this.extractProfilingSummary(profilingData);
-                  console.log(
-                    `Profiling data fetched for ${session.testTitle}`,
-                  );
-                } catch (profilingError) {
-                  console.error(
-                    `Error fetching profiling data for ${session.testTitle}:`,
-                    profilingError.message,
-                  );
-                  session.profilingData = {
-                    error: profilingError.message,
-                    timestamp: new Date().toISOString(),
-                  };
-                  session.profilingSummary = {
-                    error: profilingError.message,
-                    timestamp: new Date().toISOString(),
-                  };
-                }
-              } else {
-                console.log(
-                  `No build ID found for session ${session.sessionId}`,
-                );
-                session.profilingData = {
-                  error: 'No build ID available',
-                  timestamp: new Date().toISOString(),
-                };
-                session.profilingSummary = {
-                  error: 'No build ID available',
-                  timestamp: new Date().toISOString(),
-                };
-              }
-            } else {
-              console.log(
-                `No session details found for session ${session.sessionId}`,
+            const appProfilingHandler = new AppProfilingDataHandler();
+            const profilingResult =
+              await appProfilingHandler.fetchCompleteProfilingData(
+                session.sessionId,
               );
+
+            if (profilingResult.error) {
+              console.log(`⚠️ ${profilingResult.error}`);
               session.profilingData = {
-                error: 'No session details available',
+                error: profilingResult.error,
                 timestamp: new Date().toISOString(),
               };
               session.profilingSummary = {
-                error: 'No session details available',
+                error: profilingResult.error,
                 timestamp: new Date().toISOString(),
               };
+            } else {
+              session.profilingData = profilingResult.profilingData;
+              session.profilingSummary = profilingResult.profilingSummary;
+              console.log(
+                `✅ Profiling data fetched for ${session.testTitle}: ${
+                  session.profilingSummary?.issues || 0
+                } issues detected`,
+              );
             }
-          } catch (profilingError) {
-            console.error(
-              `Error fetching session details for ${session.testTitle}:`,
-              profilingError.message,
+          } catch (error) {
+            console.log(
+              `⚠️ Failed to fetch profiling data for ${session.testTitle}: ${error.message}`,
             );
             session.profilingData = {
-              error: profilingError.message,
+              error: `Failed to fetch profiling data: ${error.message}`,
               timestamp: new Date().toISOString(),
             };
             session.profilingSummary = {
-              error: profilingError.message,
+              error: `Failed to fetch profiling data: ${error.message}`,
               timestamp: new Date().toISOString(),
             };
           }
