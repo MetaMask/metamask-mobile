@@ -23,6 +23,7 @@ import {
   SeasonRewardDto,
   SeasonRewardType,
   RewardClaimStatus,
+  RewardDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
@@ -40,10 +41,10 @@ interface TierAccordionProps {
 }
 
 interface RewardItemProps {
-  reward: SeasonRewardDto;
+  reward?: RewardDto;
+  seasonReward: SeasonRewardDto;
   isLast?: boolean;
   isLocked?: boolean;
-  claimStatus?: RewardClaimStatus;
 }
 
 const RewardItemBottomSheetTitle = ({
@@ -78,17 +79,17 @@ const RewardItemBottomSheetDescription = ({
 
 export const RewardItem: React.FC<RewardItemProps> = ({
   reward,
+  seasonReward,
   isLast = false,
   isLocked = true,
-  claimStatus,
 }) => {
   const shortDescription = isLocked
-    ? reward.shortDescription
-    : reward.shortUnlockedDescription;
+    ? seasonReward.shortDescription
+    : seasonReward.shortUnlockedDescription;
 
   const longDescription = isLocked
-    ? reward.longDescription
-    : reward.longUnlockedDescription;
+    ? seasonReward.longDescription
+    : seasonReward.longUnlockedDescription;
 
   const navigation = useNavigation();
   const currentAccountAddress = useSelector(selectRewardsActiveAccountAddress);
@@ -97,16 +98,16 @@ export const RewardItem: React.FC<RewardItemProps> = ({
     if (isLocked) {
       return false;
     }
-    switch (reward.rewardType) {
+    switch (seasonReward.rewardType) {
       case SeasonRewardType.ALPHA_FOX_INVITE:
         return true;
       default:
         return false;
     }
-  }, [isLocked, reward.rewardType]);
+  }, [isLocked, seasonReward.rewardType]);
 
   const rewardInputPlaceholder = useMemo(() => {
-    switch (reward.rewardType) {
+    switch (seasonReward.rewardType) {
       case SeasonRewardType.ALPHA_FOX_INVITE:
         return strings(
           'rewards.upcoming_rewards.alpha_fox_invite_input_placeholder',
@@ -114,20 +115,23 @@ export const RewardItem: React.FC<RewardItemProps> = ({
       default:
         return '';
     }
-  }, [reward.rewardType]);
+  }, [seasonReward.rewardType]);
 
   const rewardClaimUrl = useMemo(() => {
-    if (isLocked || !currentAccountAddress || !reward.claimUrl)
+    if (isLocked || !currentAccountAddress || !seasonReward.claimUrl)
       return undefined;
-    return reward.claimUrl.replace('{address}', currentAccountAddress || '');
-  }, [isLocked, currentAccountAddress, reward.claimUrl]);
+    return seasonReward.claimUrl.replace(
+      '{address}',
+      currentAccountAddress || '',
+    );
+  }, [isLocked, currentAccountAddress, seasonReward.claimUrl]);
 
   const handleRewardItemPress = useCallback(() => {
     navigation.navigate(Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL, {
       title: (
         <RewardItemBottomSheetTitle
-          title={reward.name}
-          icon={getIconName(reward.iconName)}
+          title={seasonReward.name}
+          icon={getIconName(seasonReward.iconName)}
         />
       ),
       description: (
@@ -139,20 +143,20 @@ export const RewardItem: React.FC<RewardItemProps> = ({
       showInput: rewardInputAction,
       inputPlaceholder: rewardInputPlaceholder,
       showCancelButton: false,
-      rewardId: reward.id,
-      rewardType: reward.rewardType,
+      rewardId: reward?.id,
+      rewardType: seasonReward.rewardType,
       isLocked,
     });
   }, [
     navigation,
-    reward.name,
-    reward.iconName,
-    reward.id,
-    reward.rewardType,
+    seasonReward.name,
+    seasonReward.iconName,
+    seasonReward.rewardType,
     longDescription,
     rewardClaimUrl,
     rewardInputAction,
     rewardInputPlaceholder,
+    reward?.id,
     isLocked,
   ]);
 
@@ -169,7 +173,7 @@ export const RewardItem: React.FC<RewardItemProps> = ({
           testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
         >
           <Icon
-            name={getIconName(reward.iconName)}
+            name={getIconName(seasonReward.iconName)}
             size={IconSize.Lg}
             twClassName="text-icon-alternative"
           />
@@ -182,7 +186,7 @@ export const RewardItem: React.FC<RewardItemProps> = ({
             twClassName="text-text-default mb-1"
             testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
           >
-            {reward.name}
+            {seasonReward.name}
           </Text>
           <Text
             variant={TextVariant.BodySm}
@@ -194,7 +198,7 @@ export const RewardItem: React.FC<RewardItemProps> = ({
         </Box>
 
         {/* Claim Button */}
-        {claimStatus === RewardClaimStatus.UNCLAIMED && !isLocked && (
+        {reward?.claimStatus === RewardClaimStatus.UNCLAIMED && !isLocked && (
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
@@ -229,7 +233,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
     [tier.image, themeAppearance],
   );
 
-  const rewards = useMemo(() => tier.rewards || [], [tier.rewards]);
+  const seasonRewards = useMemo(() => tier.rewards || [], [tier.rewards]);
 
   // Animate height and rotation when expanded state changes
   useEffect(() => {
@@ -311,7 +315,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         </Box>
 
         {/* Expand/Collapse Button */}
-        {rewards.length > 0 && (
+        {seasonRewards.length > 0 && (
           <TouchableOpacity onPress={onToggle}>
             <Box twClassName="ml-4 p-2">
               <Animated.View
@@ -331,16 +335,16 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
       </Box>
 
       {/* Expandable Rewards List */}
-      {rewards.length > 0 && isExpanded && (
+      {seasonRewards.length > 0 && isExpanded && (
         <Box
           twClassName="bg-background-muted"
           testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
         >
-          {rewards.map((reward: SeasonRewardDto, index: number) => (
+          {seasonRewards.map((seasonReward: SeasonRewardDto, index: number) => (
             <RewardItem
-              key={reward.id}
-              reward={reward}
-              isLast={index === rewards.length - 1}
+              key={seasonReward.id}
+              seasonReward={seasonReward}
+              isLast={index === seasonRewards.length - 1}
               isLocked
             />
           ))}

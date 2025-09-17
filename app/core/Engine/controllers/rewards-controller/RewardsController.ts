@@ -1747,28 +1747,44 @@ export class RewardsController extends BaseController<
    */
   #invalidateSubscriptionCache(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId?: string,
   ): void {
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-
-    this.update((state: RewardsControllerState) => {
-      // Remove cached season status
-      delete state.seasonStatuses[compositeKey];
-
-      // Remove cached unlocked rewards
-      delete state.unlockedRewards[compositeKey];
-
-      // Optionally remove active boosts cache as well
-      delete state.activeBoosts[compositeKey];
-    });
+    if (seasonId) {
+      // Invalidate specific season
+      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+      this.update((state: RewardsControllerState) => {
+        delete state.seasonStatuses[compositeKey];
+        delete state.unlockedRewards[compositeKey];
+        delete state.activeBoosts[compositeKey];
+      });
+    } else {
+      // Invalidate all seasons for this subscription
+      this.update((state: RewardsControllerState) => {
+        Object.keys(state.seasonStatuses).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.seasonStatuses[key];
+          }
+        });
+        Object.keys(state.unlockedRewards).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.unlockedRewards[key];
+          }
+        });
+        Object.keys(state.activeBoosts).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.activeBoosts[key];
+          }
+        });
+      });
+    }
 
     Logger.log(
       'RewardsController: Invalidated cache for subscription',
       subscriptionId,
-      seasonId,
+      seasonId || 'all seasons',
     );
   }
 }

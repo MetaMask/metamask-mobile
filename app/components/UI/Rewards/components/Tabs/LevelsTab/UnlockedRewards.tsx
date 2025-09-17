@@ -34,10 +34,10 @@ const UnlockedRewardItem: React.FC<UnlockedRewardItemProps> = ({
   return (
     <Box twClassName=" bg-background-muted">
       <RewardItem
-        reward={seasonReward}
+        seasonReward={seasonReward}
+        reward={reward}
         isLast={isLast}
         isLocked={false}
-        claimStatus={reward.claimStatus}
       />
     </Box>
   );
