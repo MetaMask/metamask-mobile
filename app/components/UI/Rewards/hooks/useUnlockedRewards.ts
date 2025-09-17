@@ -47,4 +47,42 @@ export const useUnlockedRewards = (): void => {
   useEffect(() => {
     fetchUnlockedRewards();
   }, [fetchUnlockedRewards]);
+
+  // Listen for account linked events to trigger refetch
+  useEffect(() => {
+    const handleAccountLinked = () => {
+      fetchUnlockedRewards();
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:accountLinked',
+      handleAccountLinked,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:accountLinked',
+        handleAccountLinked,
+      );
+    };
+  }, [fetchUnlockedRewards]);
+
+  // Listen for reward claimed events to trigger refetch
+  useEffect(() => {
+    const handleRewardClaimed = () => {
+      fetchUnlockedRewards();
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:rewardClaimed',
+      handleRewardClaimed,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:rewardClaimed',
+        handleRewardClaimed,
+      );
+    };
+  }, [fetchUnlockedRewards]);
 };

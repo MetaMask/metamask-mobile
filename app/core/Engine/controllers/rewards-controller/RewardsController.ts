@@ -1446,6 +1446,14 @@ export class RewardsController extends BaseController<
         },
       );
 
+      // Invalidate cache for the linked account
+      this.#invalidateSubscriptionCache(updatedSubscription.id);
+      // Emit event to trigger UI refresh
+      this.messagingSystem.publish('RewardsController:accountLinked', {
+        subscriptionId: updatedSubscription.id,
+        account: caipAccount,
+      });
+
       return true;
     } catch (error) {
       Logger.log(
@@ -1709,6 +1717,20 @@ export class RewardsController extends BaseController<
         subscriptionId,
         dto,
       );
+
+      // Invalidate cache for the active subscription
+      this.#invalidateSubscriptionCache(subscriptionId);
+
+      // Emit event to trigger UI refresh
+      this.messagingSystem.publish('RewardsController:rewardClaimed', {
+        rewardId,
+        subscriptionId,
+      });
+
+      Logger.log('RewardsController: Successfully claimed reward', {
+        rewardId,
+        subscriptionId,
+      });
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to claim reward:',
@@ -1716,5 +1738,37 @@ export class RewardsController extends BaseController<
       );
       throw error;
     }
+  }
+
+  /**
+   * Invalidate cached data for a subscription
+   * @param subscriptionId - The subscription ID to invalidate cache for
+   * @param seasonId - The season ID (defaults to current season)
+   */
+  #invalidateSubscriptionCache(
+    subscriptionId: string,
+    seasonId: string = CURRENT_SEASON_ID,
+  ): void {
+    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+      seasonId,
+      subscriptionId,
+    );
+
+    this.update((state: RewardsControllerState) => {
+      // Remove cached season status
+      delete state.seasonStatuses[compositeKey];
+
+      // Remove cached unlocked rewards
+      delete state.unlockedRewards[compositeKey];
+
+      // Optionally remove active boosts cache as well
+      delete state.activeBoosts[compositeKey];
+    });
+
+    Logger.log(
+      'RewardsController: Invalidated cache for subscription',
+      subscriptionId,
+      seasonId,
+    );
   }
 }

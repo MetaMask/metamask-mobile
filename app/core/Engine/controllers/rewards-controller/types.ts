@@ -546,12 +546,41 @@ export type RewardsControllerState = {
 };
 
 /**
+ * Event emitted when an account is linked to a subscription
+ */
+export interface RewardsControllerAccountLinkedEvent {
+  type: 'RewardsController:accountLinked';
+  payload: [
+    {
+      subscriptionId: string;
+      account: CaipAccountId;
+    },
+  ];
+}
+
+/**
+ * Event emitted when a reward is claimed
+ */
+export interface RewardsControllerRewardClaimedEvent {
+  type: 'RewardsController:rewardClaimed';
+  payload: [
+    {
+      rewardId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
-export interface RewardsControllerEvents {
-  type: 'RewardsController:stateChange';
-  payload: [RewardsControllerState, Patch[]];
-}
+export type RewardsControllerEvents =
+  | {
+      type: 'RewardsController:stateChange';
+      payload: [RewardsControllerState, Patch[]];
+    }
+  | RewardsControllerAccountLinkedEvent
+  | RewardsControllerRewardClaimedEvent;
 
 /**
  * Patch type for state changes

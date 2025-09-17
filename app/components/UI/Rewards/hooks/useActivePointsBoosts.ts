@@ -71,4 +71,42 @@ export const useActivePointsBoosts = (): void => {
   useEffect(() => {
     fetchActivePointsBoosts();
   }, [fetchActivePointsBoosts]);
+
+  // Listen for account linked events to trigger refetch
+  useEffect(() => {
+    const handleAccountLinked = () => {
+      fetchActivePointsBoosts();
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:accountLinked',
+      handleAccountLinked,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:accountLinked',
+        handleAccountLinked,
+      );
+    };
+  }, [fetchActivePointsBoosts]);
+
+  // Listen for reward claimed events to trigger refetch
+  useEffect(() => {
+    const handleRewardClaimed = () => {
+      fetchActivePointsBoosts();
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:rewardClaimed',
+      handleRewardClaimed,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:rewardClaimed',
+        handleRewardClaimed,
+      );
+    };
+  }, [fetchActivePointsBoosts]);
 };

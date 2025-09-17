@@ -103,6 +103,48 @@ export const usePointsEvents = (
     }
   }, [seasonId, subscriptionId, fetchPointsEvents]);
 
+  // Listen for account linked events to trigger refetch
+  useEffect(() => {
+    const handleAccountLinked = () => {
+      if (seasonId && subscriptionId) {
+        refresh();
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:accountLinked',
+      handleAccountLinked,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:accountLinked',
+        handleAccountLinked,
+      );
+    };
+  }, [seasonId, subscriptionId, refresh]);
+
+  // Listen for reward claimed events to trigger refetch
+  useEffect(() => {
+    const handleRewardClaimed = () => {
+      if (seasonId && subscriptionId) {
+        refresh();
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'RewardsController:rewardClaimed',
+      handleRewardClaimed,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'RewardsController:rewardClaimed',
+        handleRewardClaimed,
+      );
+    };
+  }, [seasonId, subscriptionId, refresh]);
+
   return {
     pointsEvents,
     isLoading,
