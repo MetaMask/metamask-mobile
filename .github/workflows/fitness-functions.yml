@@ -27,7 +27,7 @@ jobs:
           retry_wait_seconds: 30
           command: |
             cd .github/scripts
-            yarn install
+            yarn install --immutable
 
       - name: Run fitness functions
         env:
