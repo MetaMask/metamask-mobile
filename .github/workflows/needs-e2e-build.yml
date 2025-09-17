@@ -140,6 +140,7 @@ jobs:
 
           # Get lists of files
           ignore_files="${{ steps.filter.outputs.ignore_files }}"
+          catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
 
           # Use Cases for State Machine:
           # 1. Purely ignored changes -> Skip both
@@ -183,14 +184,16 @@ jobs:
               ;;
           esac
 
-          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
-          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
-          echo "changed_files=$changed_files" >> "${GITHUB_OUTPUT}"
-
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
             builds="true"
           else
             builds="false"
           fi
-          echo "builds=$builds" >> "${GITHUB_OUTPUT}"
+
+          {
+            echo "android_final=$android_final"
+            echo "ios_final=$ios_final"
+            echo "changed_files=$changed_files"
+            echo "builds=$builds"
+          } >> "${GITHUB_OUTPUT}"
