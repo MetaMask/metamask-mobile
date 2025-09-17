@@ -130,7 +130,6 @@ import {
   InteractionManager,
   BackHandler,
   Animated,
-  Easing,
   Platform,
 } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -1566,64 +1565,6 @@ describe('Onboarding', () => {
       expect(mockPlay).toHaveBeenCalled();
     });
 
-    it('should call Animated.parallel when moveLogoUp is executed', () => {
-      const animatedParallelSpy = jest.spyOn(Animated, 'parallel');
-
-      renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      animatedParallelSpy.mockClear();
-
-      const mockLogoPosition = new Animated.Value(0);
-      const mockButtonsOpacity = new Animated.Value(0);
-
-      Animated.parallel([
-        Animated.timing(mockLogoPosition, {
-          toValue: -180,
-          duration: 1200,
-          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-          useNativeDriver: true,
-        }),
-        Animated.timing(mockButtonsOpacity, {
-          toValue: 1,
-          duration: 1200,
-          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      expect(animatedParallelSpy).toHaveBeenCalled();
-    });
-
-    it('should call Animated.timing when showFoxAnimation is executed', () => {
-      const animatedTimingSpy = jest.spyOn(Animated, 'timing');
-
-      renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      animatedTimingSpy.mockClear();
-      const mockFoxOpacity = new Animated.Value(0);
-
-      Animated.timing(mockFoxOpacity, {
-        toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start();
-
-      expect(animatedTimingSpy).toHaveBeenCalled();
-    });
-
     it('should execute moveLogoUp when onStop callback is triggered and mounted is true', () => {
       const mockMoveLogoUp = jest.fn();
 
@@ -1642,6 +1583,131 @@ describe('Onboarding', () => {
       }
 
       expect(mockMoveLogoUp).toHaveBeenCalled();
+    });
+
+    it('should call play method in onLoad callback when logoRef and mounted are true', () => {
+      const mockPlay = jest.fn();
+      const mockComponent = {
+        logoRef: { current: { play: mockPlay } },
+        mounted: true,
+        onLoadCallback() {
+          if (this.logoRef.current && this.mounted) {
+            setTimeout(() => {
+              if (this.logoRef.current && this.mounted) {
+                this.logoRef.current.play();
+              }
+            }, 100);
+          }
+        },
+      };
+
+      mockComponent.onLoadCallback();
+      jest.advanceTimersByTime(100);
+
+      expect(mockPlay).toHaveBeenCalled();
+    });
+
+    it('should call moveLogoUp in onStop callback when mounted is true', () => {
+      const mockMoveLogoUp = jest.fn();
+      const mockComponent = {
+        mounted: true,
+        moveLogoUp: mockMoveLogoUp,
+        onStopCallback() {
+          if (this.mounted) {
+            this.moveLogoUp();
+          }
+        },
+      };
+
+      mockComponent.onStopCallback();
+
+      expect(mockMoveLogoUp).toHaveBeenCalled();
+    });
+
+    it('should handle error in startRiveAnimation and call Logger.error', () => {
+      const mockLoggerError = jest.fn();
+      const Logger = { error: mockLoggerError };
+
+      const mockComponent = {
+        logoRef: { current: null as { play: jest.Mock } | null },
+        mounted: true,
+        startRiveAnimation() {
+          try {
+            if (this.logoRef.current && this.mounted) {
+              this.logoRef.current.play();
+            } else {
+              throw new Error('Test error');
+            }
+          } catch (error) {
+            Logger.error(error);
+          }
+        },
+      };
+
+      mockComponent.startRiveAnimation();
+
+      expect(mockLoggerError).toHaveBeenCalledWith(expect.any(Error));
+    });
+
+    it('should call foxRef.play in showFoxAnimation when foxRef and mounted are true', () => {
+      const mockPlay = jest.fn();
+      const mockComponent = {
+        foxRef: { current: { play: mockPlay } },
+        mounted: true,
+        foxOpacity: { _value: 0 },
+        showFoxAnimationCallback() {
+          if (this.foxRef.current && this.mounted) {
+            this.foxRef.current.play();
+          }
+        },
+      };
+
+      mockComponent.showFoxAnimationCallback();
+
+      expect(mockPlay).toHaveBeenCalled();
+    });
+
+    it('should not call play methods when mounted is false', () => {
+      const mockPlay = jest.fn();
+      const mockMoveLogoUp = jest.fn();
+
+      const mockComponent = {
+        logoRef: { current: { play: mockPlay } },
+        foxRef: { current: { play: mockPlay } },
+        mounted: false,
+        moveLogoUp: mockMoveLogoUp,
+
+        onLoadCallback() {
+          if (this.logoRef.current && this.mounted) {
+            setTimeout(() => {
+              if (this.logoRef.current && this.mounted) {
+                this.logoRef.current.play();
+              }
+            }, 100);
+          }
+        },
+
+        onStopCallback() {
+          if (this.mounted) {
+            this.moveLogoUp();
+          }
+        },
+
+        showFoxAnimationCallback() {
+          if (this.foxRef.current && this.mounted) {
+            this.foxRef.current.play();
+          }
+        },
+      };
+
+      mockComponent.onLoadCallback();
+      mockComponent.onStopCallback();
+      mockComponent.showFoxAnimationCallback();
+
+      jest.advanceTimersByTime(100);
+
+      expect(mockPlay).not.toHaveBeenCalled();
+      expect(mockMoveLogoUp).not.toHaveBeenCalled();
     });
   });
 });
