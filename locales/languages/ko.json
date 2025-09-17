@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "이 비밀번호는 이 기기에서 귀하의 MetaMask 지갑을 잠금 해제할 때만 사용됩니다.",
-    "password": "새 비밀번호 생성",
+    "password": "Create password",
     "confirm_password": "비밀번호 확인",
     "create_button": "비밀번호 생성",
     "import_with_seed_phrase": "비밀 복구 구문으로 불러오기",
@@ -404,7 +404,7 @@
     "show": "보이기",
     "hide": "숨기기",
     "seed_phrase": "비밀 복구 구문",
-    "must_be_at_least": "비밀번호는 {{number}}자 이상이어야 합니다",
+    "must_be_at_least": "최소 {{number}}자여야 합니다",
     "remember_me": "로그인 정보 저장",
     "security_alert_title": "보안 경고",
     "security_alert_message": "계속하려면, 비밀번호를 켜거나 또는 귀하의 기기에서 지원되는 생체 인식 인증 방법을 켜야 합니다 (FaceID, TouchID 또는 지문)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "이 비밀번호를 잊으면 지갑에 영구적으로 접근할 수 없게 됩니다. MetaMask는 비밀번호를 초기화해 드릴 수 없습니다.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "다시 시도"
   },
   "import_from_seed": {
     "title": "지갑 가져오기",
     "seed_phrase_placeholder": "비밀 복구 구문을 입력하세요",
-    "create_new_password": "새 비밀번호 생성",
+    "create_new_password": "Create password",
     "confirm_password": "비밀번호 확인",
     "import_button": "불러오기",
     "cancel_button": "취소",
@@ -491,7 +491,7 @@
     "srp": "비밀복구구문입니다",
     "srp_placeholder": "각 단어 사이에 공백을 추가하고 아무도 보지 못하게 하세요.",
     "learn_more_link": "더 보기",
-    "create_password_cta": "비밀번호 생성",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Flow로 계속",
     "steps": "{{currentStep}} 단계/{{totalSteps}} 단계",
     "password_error": "비밀번호가 일치하지 않습니다. 다시 시도하세요.",
@@ -507,6 +507,7 @@
     "home": "홈",
     "browser": "브라우저",
     "activity": "활동",
+    "trade": "Trade",
     "settings": "설정",
     "rewards": "보상"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "레버리지",
         "confirm": "컨펌",
         "entry_price": "진입 가격",
         "current_price": "현재가",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "매수",
     "sell": "매도",
-    "orders": "주문",
+    "orders": "Transfers",
     "All": "모두",
     "Buy": "구매",
     "Sell": "매도",
     "token_marketplace": "토큰 마켓플레이스",
     "Purchased": "매수함",
     "Sold": "매도함",
-    "empty_orders_list": "주문이 없습니다",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "매수 주문이 없습니다",
     "empty_sell_orders_list": "매도 주문이 없습니다",
     "purchased_currency": "구매한 {{currency}}",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "친구 추천",
@@ -5791,7 +5814,9 @@
         "title": "코드를 공유하고 더 많이 적립하세요",
         "description": "친구는 보너스 포인트를 받고, 회원님은 친구가 받는 보상의 20%를 받습니다."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}}분",
