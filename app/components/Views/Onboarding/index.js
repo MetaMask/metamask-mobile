@@ -67,6 +67,13 @@ import Rive, { Fit, Alignment } from 'rive-react-native';
 import FoxAnimation from '../../../animations/fox_appear.riv';
 import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
 
+const getFoxAnimationHeight = (hasFooter) => {
+  if (hasFooter) {
+    return Device.isMediumDevice() ? 150 : 180;
+  }
+  return Device.isMediumDevice() ? 300 : 350;
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
@@ -244,13 +251,7 @@ const createStyles = (colors) =>
       bottom: hasFooter ? 100 : -20,
       left: 0,
       right: 0,
-      height: hasFooter
-        ? Device.isMediumDevice()
-          ? 150
-          : 180
-        : Device.isMediumDevice()
-        ? 300
-        : 350,
+      height: getFoxAnimationHeight(hasFooter),
       alignItems: 'center',
       justifyContent: 'center',
       pointerEvents: 'none',
