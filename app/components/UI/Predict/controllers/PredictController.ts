@@ -3,10 +3,7 @@ import {
   BaseController,
   type RestrictedMessenger,
 } from '@metamask/base-controller';
-import {
-  isEqualCaseInsensitive,
-  successfulFetch,
-} from '@metamask/controller-utils';
+import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import {
   SignTypedDataVersion,
   TypedMessageParams,
@@ -35,15 +32,6 @@ import {
   SellParams,
   ToggleTestnetResult,
 } from '../types';
-import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
-
-/**
- * Get environment type for geo-blocking URLs
- */
-const getEnvironment = (): 'DEV' | 'PROD' => {
-  const env = process.env.NODE_ENV ?? 'production';
-  return env === 'production' ? 'PROD' : 'DEV';
-};
 
 /**
  * Error codes for PredictController
@@ -66,29 +54,6 @@ export type PredictErrorCode =
   (typeof PREDICT_ERROR_CODES)[keyof typeof PREDICT_ERROR_CODES];
 
 /**
- * Geo-blocking
- */
-const ON_RAMP_GEO_BLOCKING_URLS = {
-  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-};
-
-// UNKNOWN is the default/fallback in case the location API call fails
-export const DEFAULT_GEO_BLOCKED_REGIONS = [
-  'US', // United States
-  'GB', // United Kingdom
-  'FR', // France
-  'CA-ON', // Ontario, Canada
-  'SG', // Singapore
-  'PL', // Poland
-  'TH', // Thailand
-  'AU', // Australia
-  'BE', // Belgium
-  'TW', // Taiwan
-  'UNKNOWN',
-];
-
-/**
  * State shape for PredictController
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -102,8 +67,8 @@ export type PredictControllerState = {
   // User positions
   positions: PredictPosition[];
 
-  // Eligibility (Geo-Blocking)
-  isEligible: boolean;
+  // Eligibility (Geo-Blocking) per Provider
+  eligibility: { [key: string]: boolean };
 
   // Error handling
   lastError: string | null;
@@ -122,7 +87,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   connectionStatus: 'disconnected',
   markets: [],
   positions: [],
-  isEligible: false,
+  eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
   activeOrders: {},
@@ -139,7 +104,7 @@ const metadata = {
   positions: { persist: true, anonymous: false },
   orders: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
-  isEligible: { persist: false, anonymous: false },
+  eligibility: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   activeOrders: { persist: false, anonymous: false },
@@ -258,19 +223,13 @@ export class PredictController extends BaseController<
       });
     });
 
-    fetchGeoBlockedRegionsFromContentful().then((blockedRegions) => {
-      this.refreshEligibility(
-        blockedRegions
-          ? blockedRegions.map((r) => r.region)
-          : DEFAULT_GEO_BLOCKED_REGIONS,
-      ).catch((error) => {
-        DevLogger.log('PredictController: Error refreshing eligibility', {
-          error:
-            error instanceof Error
-              ? error.message
-              : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-          timestamp: new Date().toISOString(),
-        });
+    this.refreshEligibility().catch((error) => {
+      DevLogger.log('PredictController: Error refreshing eligibility', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        timestamp: new Date().toISOString(),
       });
     });
   }
@@ -744,67 +703,33 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Eligibility (Geo-Blocking)
-   * Users in blocked regions are not eligible for Predict markets:
-   * US, UK, France, Ontario (Canada), Singapore, Poland, Thailand, Australia, Belgium, Taiwan
-   */
-
-  /**
-   * Fetch geo location
-   *
-   * Returned in Country or Country-Region format
-   * Example: GB, FR, CA-ON, SG, PL
-   */
-  async #fetchGeoLocation(): Promise<string> {
-    let location = 'UNKNOWN';
-
-    try {
-      const environment = getEnvironment();
-
-      const response = await successfulFetch(
-        ON_RAMP_GEO_BLOCKING_URLS[environment],
-      );
-
-      location = await response?.text();
-
-      return location;
-    } catch (e) {
-      DevLogger.log('PredictController: Failed to fetch geo location', {
-        error: e,
-      });
-      return location;
-    }
-  }
-
-  /**
    * Refresh eligibility status
    */
-  async refreshEligibility(
-    blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
-  ): Promise<void> {
-    // Default to false in case of error.
-    let isEligible = false;
-
-    try {
-      DevLogger.log('PredictController: Refreshing eligibility');
-
-      const geoLocation = await this.#fetchGeoLocation();
-
-      isEligible = blockedLocations.every(
-        (blockedLocation) => !geoLocation.startsWith(blockedLocation),
-      );
-    } catch (error) {
-      DevLogger.log('PredictController: Eligibility refresh failed', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
-    } finally {
-      this.update((state) => {
-        state.isEligible = isEligible;
-      });
+  public async refreshEligibility(): Promise<void> {
+    DevLogger.log('PredictController: Refreshing eligibility');
+    for (const providerId in this.providers) {
+      const provider = this.providers.get(providerId);
+      if (!provider) {
+        continue;
+      }
+      try {
+        const isEligible = await provider.isEligible();
+        this.update((state) => {
+          state.eligibility[providerId] = isEligible;
+        });
+      } catch (error) {
+        // Default to false in case of error
+        this.update((state) => {
+          state.eligibility[providerId] = false;
+        });
+        DevLogger.log('PredictController: Eligibility refresh failed', {
+          error:
+            error instanceof Error
+              ? error.message
+              : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+          timestamp: new Date().toISOString(),
+        });
+      }
     }
   }
 

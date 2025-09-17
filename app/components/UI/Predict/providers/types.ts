@@ -53,4 +53,7 @@ export interface PredictProvider {
   prepareOrder(params: OrderParams): Promise<PredictOrder>;
   submitOffchainTrade?(params: OffchainTradeParams): Promise<Result>;
   claimWinnings(/* TBD */): Promise<void>;
+
+  // Eligibility (Geo-Blocking)
+  isEligible(): Promise<boolean>;
 }

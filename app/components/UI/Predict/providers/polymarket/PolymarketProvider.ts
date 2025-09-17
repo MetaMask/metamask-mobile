@@ -455,4 +455,9 @@ export class PolymarketProvider implements PredictProvider {
       response,
     };
   }
+
+  public async isEligible(): Promise<boolean> {
+    // TODO: Implement once Polymarket Geo-Blocking API is available
+    return true;
+  }
 }
