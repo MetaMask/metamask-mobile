@@ -182,6 +182,49 @@ class CustomReporter {
     };
   }
 
+  /**
+   * Safely access nested object properties with null/undefined protection
+   * @param {Object} obj - The object to access
+   * @param {string} path - Dot-separated path (e.g., 'cpu.avg')
+   * @param {*} defaultValue - Default value if path doesn't exist
+   * @returns {*} The value at the path or default value
+   */
+  getNestedProperty(obj, path, defaultValue = 'N/A') {
+    if (!obj || typeof obj !== 'object') return defaultValue;
+
+    const keys = path.split('.');
+    let current = obj;
+
+    for (const key of keys) {
+      if (
+        current === null ||
+        current === undefined ||
+        typeof current !== 'object'
+      ) {
+        return defaultValue;
+      }
+      current = current[key];
+    }
+
+    return current !== undefined && current !== null ? current : defaultValue;
+  }
+
+  /**
+   * Check if profiling data is valid and not an error
+   * @param {Object} profilingData - The profiling data object
+   * @param {Object} profilingSummary - The profiling summary object
+   * @returns {boolean} True if data is valid
+   */
+  isValidProfilingData(profilingData, profilingSummary) {
+    return (
+      profilingData &&
+      !profilingData.error &&
+      profilingSummary &&
+      !profilingSummary.error &&
+      typeof profilingSummary === 'object'
+    );
+  }
+
   async onEnd() {
     console.log(`\n📊 Generating reports for ${this.metrics.length} tests`);
 
@@ -260,9 +303,13 @@ class CustomReporter {
               session.profilingData = profilingResult.profilingData;
               session.profilingSummary = profilingResult.profilingSummary;
               console.log(
-                `✅ Profiling data fetched for ${session.testTitle}: ${
-                  session.profilingSummary?.issues || 0
-                } issues detected`,
+                `✅ Profiling data fetched for ${
+                  session.testTitle
+                }: ${this.getNestedProperty(
+                  session.profilingSummary,
+                  'issues',
+                  0,
+                )} issues detected`,
               );
             }
           } catch (error) {
@@ -521,12 +568,29 @@ class CustomReporter {
                    </div>`
                 : '<p>No video recordings available</p>'
             }
-            ${
-              this.sessions.length > 0 &&
-              this.sessions.some(
-                (s) => s.profilingData && !s.profilingData.error,
-              )
-                ? `<div style="margin-top: 30px;">
+            ${(() => {
+              const hasValidProfilingData =
+                this.sessions.length > 0 &&
+                this.sessions.some(
+                  (s) => s.profilingData && !s.profilingData.error,
+                );
+              const hasProfilingErrors =
+                this.sessions.length > 0 &&
+                this.sessions.some((s) => s.profilingData?.error);
+
+              console.log(`\n🔍 HTML Profiling Section Debug:`);
+              console.log(
+                `  - Has valid profiling data: ${hasValidProfilingData}`,
+              );
+              console.log(`  - Has profiling errors: ${hasProfilingErrors}`);
+              console.log(
+                `  - Will show profiling section: ${
+                  hasValidProfilingData || hasProfilingErrors
+                }`,
+              );
+
+              if (hasValidProfilingData) {
+                return `<div style="margin-top: 30px;">
                     <h3>📊 App Profiling Analysis</h3>
                     ${this.sessions
                       .filter(
@@ -542,87 +606,153 @@ class CustomReporter {
                           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3;">
                               <strong style="color: #2196f3;">CPU Usage</strong><br>
-                              <span style="font-size: 14px;">Avg: ${
-                                session.profilingSummary.cpu.avg
-                              }% | Max: ${
-                          session.profilingSummary.cpu.max
-                        }%</span>
+                              <span style="font-size: 14px;">Avg: ${this.getNestedProperty(
+                                session.profilingSummary,
+                                'cpu.avg',
+                                'N/A',
+                              )}% | Max: ${this.getNestedProperty(
+                          session.profilingSummary,
+                          'cpu.max',
+                          'N/A',
+                        )}%</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50;">
                               <strong style="color: #4caf50;">Memory</strong><br>
-                              <span style="font-size: 14px;">Avg: ${
-                                session.profilingSummary.memory.avg
-                              } MB | Max: ${
-                          session.profilingSummary.memory.max
-                        } MB</span>
+                              <span style="font-size: 14px;">Avg: ${this.getNestedProperty(
+                                session.profilingSummary,
+                                'memory.avg',
+                                'N/A',
+                              )} MB | Max: ${this.getNestedProperty(
+                          session.profilingSummary,
+                          'memory.max',
+                          'N/A',
+                        )} MB</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ff9800;">
                               <strong style="color: #ff9800;">Battery</strong><br>
-                              <span style="font-size: 14px;">${
-                                session.profilingSummary.battery.total
-                              } mAh (${(
-                          session.profilingSummary.battery.percentage * 100
+                              <span style="font-size: 14px;">${this.getNestedProperty(
+                                session.profilingSummary,
+                                'battery.total',
+                                'N/A',
+                              )} mAh (${(
+                          this.getNestedProperty(
+                            session.profilingSummary,
+                            'battery.percentage',
+                            0,
+                          ) * 100
                         ).toFixed(1)}%)</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0;">
                               <strong style="color: #9c27b0;">UI Performance</strong><br>
-                              <span style="font-size: 14px;">Slow Frames: ${
-                                session.profilingSummary.uiRendering.slowFrames
-                              }% | ANRs: ${
-                          session.profilingSummary.uiRendering.anrs
-                        }</span>
+                              <span style="font-size: 14px;">Slow Frames: ${this.getNestedProperty(
+                                session.profilingSummary,
+                                'uiRendering.slowFrames',
+                                'N/A',
+                              )}% | ANRs: ${this.getNestedProperty(
+                          session.profilingSummary,
+                          'uiRendering.anrs',
+                          'N/A',
+                        )}</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #607d8b;">
                               <strong style="color: #607d8b;">Disk I/O</strong><br>
-                              <span style="font-size: 14px;">Reads: ${
-                                session.profilingSummary.diskIO.reads
-                              } KB | Writes: ${
-                          session.profilingSummary.diskIO.writes
-                        } KB</span>
+                              <span style="font-size: 14px;">Reads: ${this.getNestedProperty(
+                                session.profilingSummary,
+                                'diskIO.reads',
+                                'N/A',
+                              )} KB | Writes: ${this.getNestedProperty(
+                          session.profilingSummary,
+                          'diskIO.writes',
+                          'N/A',
+                        )} KB</span>
                             </div>
                             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #795548;">
                               <strong style="color: #795548;">Network I/O</strong><br>
-                              <span style="font-size: 14px;">Upload: ${
-                                session.profilingSummary.networkIO.upload
-                              } KB | Download: ${
-                          session.profilingSummary.networkIO.download
-                        } KB</span>
+                              <span style="font-size: 14px;">Upload: ${this.getNestedProperty(
+                                session.profilingSummary,
+                                'networkIO.upload',
+                                'N/A',
+                              )} KB | Download: ${this.getNestedProperty(
+                          session.profilingSummary,
+                          'networkIO.download',
+                          'N/A',
+                        )} KB</span>
                             </div>
                           </div>
                           ${
-                            session.profilingSummary.issues > 0
+                            this.getNestedProperty(
+                              session.profilingSummary,
+                              'issues',
+                              0,
+                            ) > 0
                               ? `
                             <div style="margin-top: 15px; padding: 15px; background-color: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
-                              <strong style="color: #856404;">⚠️ Performance Issues Detected (${
-                                session.profilingSummary.issues
-                              })</strong>
+                              <strong style="color: #856404;">⚠️ Performance Issues Detected (${this.getNestedProperty(
+                                session.profilingSummary,
+                                'issues',
+                                0,
+                              )})</strong>
                               <ul style="margin: 10px 0; padding-left: 20px;">
-                                ${session.profilingData.data[
-                                  'io.metamask'
-                                ].detected_issues
-                                  .map(
-                                    (issue) => `
-                                  <li style="margin-bottom: 10px;">
-                                    <strong style="color: #856404;">${
-                                      issue.title
-                                    }</strong><br>
-                                    <span style="font-size: 14px; color: #6c757d;">${
-                                      issue.subtitle
-                                    }</span><br>
-                                    <span style="font-size: 13px; color: #dc3545;">Current: ${
-                                      issue.current
-                                    } ${issue.unit} | Recommended: ${
-                                      issue.recommended
-                                    } ${issue.unit}</span>
-                                    ${
-                                      issue.link
-                                        ? `<br><a href="${issue.link}" target="_blank" style="font-size: 12px; color: #007bff;">Learn more</a>`
-                                        : ''
-                                    }
-                                  </li>
-                                `,
-                                  )
-                                  .join('')}
+                                ${(() => {
+                                  // Access the detected issues directly since 'io.metamask' is a single key
+                                  const detectedIssues =
+                                    session.profilingData?.data?.['io.metamask']
+                                      ?.detected_issues || [];
+                                  console.log(
+                                    `🔍 Debug detected issues for ${session.testTitle}:`,
+                                    detectedIssues,
+                                  );
+                                  console.log(
+                                    `🔍 Is array: ${Array.isArray(
+                                      detectedIssues,
+                                    )}`,
+                                  );
+                                  if (!Array.isArray(detectedIssues)) return '';
+
+                                  return detectedIssues
+                                    .map(
+                                      (issue) => `
+                                    <li style="margin-bottom: 10px;">
+                                      <strong style="color: #856404;">${this.getNestedProperty(
+                                        issue,
+                                        'title',
+                                        'Unknown Issue',
+                                      )}</strong><br>
+                                      <span style="font-size: 14px; color: #6c757d;">${this.getNestedProperty(
+                                        issue,
+                                        'subtitle',
+                                        'No description available',
+                                      )}</span><br>
+                                      <span style="font-size: 13px; color: #dc3545;">Current: ${this.getNestedProperty(
+                                        issue,
+                                        'current',
+                                        'N/A',
+                                      )} ${this.getNestedProperty(
+                                        issue,
+                                        'unit',
+                                        '',
+                                      )} | Recommended: ${this.getNestedProperty(
+                                        issue,
+                                        'recommended',
+                                        'N/A',
+                                      )} ${this.getNestedProperty(
+                                        issue,
+                                        'unit',
+                                        '',
+                                      )}</span>
+                                      ${
+                                        this.getNestedProperty(issue, 'link')
+                                          ? `<br><a href="${this.getNestedProperty(
+                                              issue,
+                                              'link',
+                                            )}" target="_blank" style="font-size: 12px; color: #007bff;">Learn more</a>`
+                                          : ''
+                                      }
+                                    </li>
+                                  `,
+                                    )
+                                    .join('');
+                                })()}
                               </ul>
                             </div>
                           `
@@ -637,18 +767,19 @@ class CustomReporter {
                       `,
                       )
                       .join('')}
-                   </div>`
-                : this.sessions.length > 0 &&
-                  this.sessions.some((s) => s.profilingData?.error)
-                ? `<div style="margin-top: 30px;">
+                   </div>`;
+              } else if (hasProfilingErrors) {
+                return `<div style="margin-top: 30px;">
                     <h3>📊 App Profiling Analysis</h3>
                     <div style="padding: 15px; background-color: #f8d7da; border-radius: 6px; border-left: 4px solid #dc3545;">
                       <strong style="color: #721c24;">⚠️ Profiling Data Unavailable</strong>
                       <p style="margin: 5px 0 0 0; font-size: 14px; color: #721c24;">Some sessions encountered errors while fetching profiling data.</p>
                     </div>
-                   </div>`
-                : ''
-            }
+                   </div>`;
+              } else {
+                return '';
+              }
+            })()}
           </body>
           </html>
         `;
@@ -662,6 +793,7 @@ class CustomReporter {
 
         console.log(`\n✅ Performance report generated: ${reportPath}`);
       }
+
       // CSV Export - Steps Performance Report
       // CSV Export - One table per scenario with steps and times
       const csvRows = [];
@@ -699,16 +831,33 @@ class CustomReporter {
           (session) => session.testTitle === test.testName,
         );
         const profilingSummary = matchingSession?.profilingSummary;
+        const profilingData = matchingSession?.profilingData;
 
         // Add each step based on structure (new array format, old object format, or legacy format)
         if (test.steps && Array.isArray(test.steps)) {
           // New array structure with steps
           test.steps.forEach((stepObject) => {
             const [stepName, duration] = Object.entries(stepObject)[0];
-            const cpuAvg = profilingSummary?.cpu?.avg || 'N/A';
-            const memoryAvg = profilingSummary?.memory?.avg || 'N/A';
-            const battery = profilingSummary?.battery?.total || 'N/A';
-            const issues = profilingSummary?.issues || 'N/A';
+            const cpuAvg = this.getNestedProperty(
+              profilingSummary,
+              'cpu.avg',
+              'N/A',
+            );
+            const memoryAvg = this.getNestedProperty(
+              profilingSummary,
+              'memory.avg',
+              'N/A',
+            );
+            const battery = this.getNestedProperty(
+              profilingSummary,
+              'battery.total',
+              'N/A',
+            );
+            const issues = this.getNestedProperty(
+              profilingSummary,
+              'issues',
+              'N/A',
+            );
             csvRows.push(
               `"${stepName}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
             );
@@ -716,10 +865,26 @@ class CustomReporter {
         } else if (test.steps && typeof test.steps === 'object') {
           // Backward compatibility for old object structure
           Object.entries(test.steps).forEach(([stepName, duration]) => {
-            const cpuAvg = profilingSummary?.cpu?.avg || 'N/A';
-            const memoryAvg = profilingSummary?.memory?.avg || 'N/A';
-            const battery = profilingSummary?.battery?.total || 'N/A';
-            const issues = profilingSummary?.issues || 'N/A';
+            const cpuAvg = this.getNestedProperty(
+              profilingSummary,
+              'cpu.avg',
+              'N/A',
+            );
+            const memoryAvg = this.getNestedProperty(
+              profilingSummary,
+              'memory.avg',
+              'N/A',
+            );
+            const battery = this.getNestedProperty(
+              profilingSummary,
+              'battery.total',
+              'N/A',
+            );
+            const issues = this.getNestedProperty(
+              profilingSummary,
+              'issues',
+              'N/A',
+            );
             csvRows.push(
               `"${stepName}","${duration}","${cpuAvg}","${memoryAvg}","${battery}","${issues}"`,
             );
@@ -753,48 +918,120 @@ class CustomReporter {
         csvRows.push(`TOTAL TIME (s),${test.total},,,,`);
 
         // Add profiling summary if available
-        if (profilingSummary && !profilingSummary.error) {
+        if (this.isValidProfilingData(profilingData, profilingSummary)) {
           csvRows.push('---,---,---,---,---,---');
           csvRows.push('PROFILING SUMMARY,,,,,');
-          csvRows.push(`CPU Avg,${profilingSummary.cpu.avg}%,,,,`);
-          csvRows.push(`CPU Max,${profilingSummary.cpu.max}%,,,,`);
-          csvRows.push(`Memory Avg,${profilingSummary.memory.avg} MB,,,,`);
-          csvRows.push(`Memory Max,${profilingSummary.memory.max} MB,,,,`);
           csvRows.push(
-            `Battery Usage,${profilingSummary.battery.total} mAh,,,,`,
-          );
-          csvRows.push(
-            `Battery %,${(profilingSummary.battery.percentage * 100).toFixed(
-              1,
+            `CPU Avg,${this.getNestedProperty(
+              profilingSummary,
+              'cpu.avg',
+              'N/A',
             )}%,,,,`,
           );
           csvRows.push(
-            `Slow Frames,${profilingSummary.uiRendering.slowFrames}%,,,,`,
-          );
-          csvRows.push(`ANRs,${profilingSummary.uiRendering.anrs},,,,`);
-          csvRows.push(`Disk Reads,${profilingSummary.diskIO.reads} KB,,,,`);
-          csvRows.push(`Disk Writes,${profilingSummary.diskIO.writes} KB,,,,`);
-          csvRows.push(
-            `Network Upload,${profilingSummary.networkIO.upload} KB,,,,`,
+            `CPU Max,${this.getNestedProperty(
+              profilingSummary,
+              'cpu.max',
+              'N/A',
+            )}%,,,,`,
           );
           csvRows.push(
-            `Network Download,${profilingSummary.networkIO.download} KB,,,,`,
+            `Memory Avg,${this.getNestedProperty(
+              profilingSummary,
+              'memory.avg',
+              'N/A',
+            )} MB,,,,`,
           );
-          csvRows.push(`Performance Issues,${profilingSummary.issues},,,,`);
           csvRows.push(
-            `Critical Issues,${profilingSummary.criticalIssues},,,,`,
+            `Memory Max,${this.getNestedProperty(
+              profilingSummary,
+              'memory.max',
+              'N/A',
+            )} MB,,,,`,
+          );
+          csvRows.push(
+            `Battery Usage,${this.getNestedProperty(
+              profilingSummary,
+              'battery.total',
+              'N/A',
+            )} mAh,,,,`,
+          );
+          csvRows.push(
+            `Battery %,${(
+              this.getNestedProperty(
+                profilingSummary,
+                'battery.percentage',
+                0,
+              ) * 100
+            ).toFixed(1)}%,,,,`,
+          );
+          csvRows.push(
+            `Slow Frames,${this.getNestedProperty(
+              profilingSummary,
+              'uiRendering.slowFrames',
+              'N/A',
+            )}%,,,,`,
+          );
+          csvRows.push(
+            `ANRs,${this.getNestedProperty(
+              profilingSummary,
+              'uiRendering.anrs',
+              'N/A',
+            )},,,,`,
+          );
+          csvRows.push(
+            `Disk Reads,${this.getNestedProperty(
+              profilingSummary,
+              'diskIO.reads',
+              'N/A',
+            )} KB,,,,`,
+          );
+          csvRows.push(
+            `Disk Writes,${this.getNestedProperty(
+              profilingSummary,
+              'diskIO.writes',
+              'N/A',
+            )} KB,,,,`,
+          );
+          csvRows.push(
+            `Network Upload,${this.getNestedProperty(
+              profilingSummary,
+              'networkIO.upload',
+              'N/A',
+            )} KB,,,,`,
+          );
+          csvRows.push(
+            `Network Download,${this.getNestedProperty(
+              profilingSummary,
+              'networkIO.download',
+              'N/A',
+            )} KB,,,,`,
+          );
+          csvRows.push(
+            `Performance Issues,${this.getNestedProperty(
+              profilingSummary,
+              'issues',
+              'N/A',
+            )},,,,`,
+          );
+          csvRows.push(
+            `Critical Issues,${this.getNestedProperty(
+              profilingSummary,
+              'criticalIssues',
+              'N/A',
+            )},,,,`,
           );
         }
 
         // Add failure information if this was a failed test
         if (test.testFailed) {
-          csvRows.push('---,---');
-          csvRows.push(`TEST STATUS,FAILED`);
+          csvRows.push('---,---,---,---,---,---');
+          csvRows.push(`TEST STATUS,FAILED,,,,`);
           if (test.failureReason) {
-            csvRows.push(`FAILURE REASON,${test.failureReason}`);
+            csvRows.push(`FAILURE REASON,"${test.failureReason}",,,,`);
           }
           if (test.note) {
-            csvRows.push(`NOTE,"${test.note}"`);
+            csvRows.push(`NOTE,"${test.note}",,,,`);
           }
         }
 
