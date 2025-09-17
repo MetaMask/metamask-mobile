@@ -102,6 +102,7 @@ describe('PermissionController selectors', () => {
       expect(selected).toStrictEqual({
         requiredScopes: {},
         optionalScopes: {},
+        sessionProperties: {},
       });
     });
 
