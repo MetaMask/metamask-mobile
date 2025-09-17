@@ -41,16 +41,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// Prevent Contentful call side-effects during constructor
-jest.mock('../utils/contentful', () => ({
-  fetchGeoBlockedRegionsFromContentful: jest
-    .fn()
-    // Default: keep pending to avoid background eligibility updates racing tests
-    .mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 1e9)),
-    ),
-}));
-
 // Mock DevLogger (default export)
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   __esModule: true,
@@ -165,7 +155,7 @@ describe('PredictController', () => {
         expect(controller.state.positions).toEqual([]);
         expect(controller.state.markets).toEqual([]);
         expect(controller.state.connectionStatus).toBe('disconnected');
-        expect(controller.state.isEligible).toBe(false);
+        expect(controller.state.eligibility).toEqual({});
       });
     });
 
@@ -1012,17 +1002,16 @@ describe('PredictController', () => {
     it('should update state using provided updater function', () => {
       withController(({ controller }) => {
         const initialTestnet = controller.state.isTestnet;
-        const initialEligible = controller.state.isEligible.polymarket;
 
         controller.updateStateForTesting((state) => {
           state.isTestnet = !initialTestnet;
-          state.isEligible = { polymarket: !initialEligible };
+          state.eligibility = { polymarket: false };
           state.lastError = 'Test error';
         });
 
         expect(controller.state.isTestnet).toBe(!initialTestnet);
-        expect(controller.state.isEligible).toBe({
-          polymarket: !initialEligible,
+        expect(controller.state.eligibility).toEqual({
+          polymarket: false,
         });
         expect(controller.state.lastError).toBe('Test error');
       });
