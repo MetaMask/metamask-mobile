@@ -10,10 +10,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -29,7 +25,7 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
-import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositRegion } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
@@ -56,7 +52,7 @@ function RegionSelectorModal() {
   const { regions } = useParams<RegionSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
-  const { styles, theme } = useStyles(styleSheet, {
+  const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
   const trackEvent = useAnalytics();
@@ -86,8 +82,8 @@ function RegionSelectorModal() {
     }
 
     return [...regions].sort((a, b) => {
-      if (a.supported && !b.supported) return -1;
-      if (!a.supported && b.supported) return 1;
+      if (a.recommended && !b.recommended) return -1;
+      if (!a.recommended && b.recommended) return 1;
       return 0;
     });
   }, [searchString, fuseData, regions]);
@@ -231,7 +227,7 @@ function RegionSelectorModal() {
         data={dataSearchResults}
         renderItem={renderRegionItem}
         extraData={selectedRegion?.isoCode}
-        keyExtractor={(item) => item?.isoCode || 'unknown'}
+        keyExtractor={(item) => item?.isoCode || ''}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"

@@ -35,11 +35,10 @@ function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
 
-  // Get params from navigation
   const { errorMessage } = useParams<ErrorDetailsModalParams>();
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} shouldNavigateBack isFullscreen>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <View style={tw.style('flex-row items-center gap-2')}>
           <Icon
@@ -53,8 +52,16 @@ function ErrorDetailsModal() {
         </View>
       </BottomSheetHeader>
 
-      <ScrollView style={tw.style('flex-1 px-4 pb-4')}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+      <ScrollView
+        style={tw.style('flex-1 px-4 pb-4')}
+        contentContainerStyle={tw.style('pb-8')}
+        showsVerticalScrollIndicator
+      >
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Default}
+          style={tw.style('leading-6')}
+        >
           {errorMessage}
         </Text>
       </ScrollView>

@@ -231,7 +231,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  sepa_bank_transfer bank transfer
+                  SEPA bank transfer
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1333,7 +1333,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                     }
                   }
                 >
-                  sepa_bank_transfer bank transfer
+                  SEPA bank transfer
                 </Text>
               </TouchableOpacity>
             </View>

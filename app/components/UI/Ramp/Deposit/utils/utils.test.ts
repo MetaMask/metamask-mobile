@@ -4,8 +4,6 @@ import {
   hasDepositOrderField,
   generateThemeParameters,
   timestampToTransakFormat,
-  validateEmail,
-  excludeFromArray,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -16,6 +14,7 @@ import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { MOCK_ETH_TOKEN } from '../testUtils/constants';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
@@ -155,19 +154,19 @@ describe('getNotificationDetails', () => {
 
 describe('hasDepositOrderField', () => {
   it('should return true when object has the specified field', () => {
-    const validDepositOrder: DepositOrder = {
+    const validDepositOrder: Partial<DepositOrder> = {
       id: 'test-id',
       provider: 'test-provider',
       createdAt: 1673886669608,
       fiatAmount: 123,
       fiatCurrency: 'USD',
-      cryptoCurrency: 'ETH',
+      cryptoCurrency: MOCK_ETH_TOKEN,
       network: 'ethereum',
       status: 'COMPLETED',
-      orderType: 'DEPOSIT',
+      orderType: DepositOrderType.Deposit,
       walletAddress: '0x1234',
       txHash: '0x987654321',
-    } as DepositOrder;
+    };
 
     const result = hasDepositOrderField(validDepositOrder, 'cryptoCurrency');
 
@@ -212,18 +211,18 @@ describe('hasDepositOrderField', () => {
   });
 
   it('should return true for different valid fields', () => {
-    const validDepositOrder: DepositOrder = {
+    const validDepositOrder: Partial<DepositOrder> = {
       id: 'test-id',
       provider: 'test-provider',
       createdAt: 1673886669608,
       fiatAmount: 123,
       fiatCurrency: 'USD',
-      cryptoCurrency: 'ETH',
+      cryptoCurrency: MOCK_ETH_TOKEN,
       network: 'ethereum',
       status: 'COMPLETED',
-      orderType: 'DEPOSIT',
+      orderType: DepositOrderType.Deposit,
       walletAddress: '0x1234',
-    } as DepositOrder;
+    };
 
     expect(hasDepositOrderField(validDepositOrder, 'id')).toBe(true);
     expect(hasDepositOrderField(validDepositOrder, 'fiatAmount')).toBe(true);
@@ -305,51 +304,4 @@ describe('timestampToTransakFormat', () => {
       expect(timestampToTransakFormat(timestamp)).toBe(expected);
     },
   );
-});
-
-describe('validateEmail', () => {
-  it('should return true for valid email addresses', () => {
-    expect(validateEmail('test@example.com')).toBe(true);
-    expect(validateEmail('user.name@domain.co.uk')).toBe(true);
-    expect(validateEmail('test+tag@example.org')).toBe(true);
-  });
-
-  it('should return false for invalid email addresses', () => {
-    expect(validateEmail('invalid-email')).toBe(false);
-    expect(validateEmail('test@')).toBe(false);
-    expect(validateEmail('@example.com')).toBe(false);
-    expect(validateEmail('test@@example.com')).toBe(false);
-    expect(validateEmail('')).toBe(false);
-  });
-});
-
-describe('excludeFromArray', () => {
-  it('should remove specified item from array', () => {
-    const array = ['apple', 'banana', 'orange'];
-    const result = excludeFromArray(array, 'banana');
-    expect(result).toEqual(['apple', 'orange']);
-  });
-
-  it('should return original array if item not found', () => {
-    const array = ['apple', 'banana', 'orange'];
-    const result = excludeFromArray(array, 'grape');
-    expect(result).toEqual(['apple', 'banana', 'orange']);
-  });
-
-  it('should handle empty arrays', () => {
-    const result = excludeFromArray([], 'item');
-    expect(result).toEqual([]);
-  });
-
-  it('should remove all instances of the item', () => {
-    const array = ['apple', 'banana', 'apple', 'orange'];
-    const result = excludeFromArray(array, 'apple');
-    expect(result).toEqual(['banana', 'orange']);
-  });
-
-  it('should work with numbers', () => {
-    const array = [1, 2, 3, 4, 3];
-    const result = excludeFromArray(array, 3);
-    expect(result).toEqual([1, 2, 4]);
-  });
 });

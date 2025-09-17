@@ -1,31 +1,3 @@
-import { CaipChainId } from '@metamask/utils';
-import {
-  BASE_MAINNET,
-  BSC_MAINNET,
-  ETHEREUM_MAINNET,
-  LINEA_MAINNET,
-  SOLANA_MAINNET,
-} from './networks';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
-
-export const MUSD_TOKEN: DepositCryptoCurrency = {
-  assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-  chainId: ETHEREUM_MAINNET.chainId,
-  name: 'MetaMask USD',
-  symbol: 'mUSD',
-  decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
-};
-
-export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
-  ethereum: ETHEREUM_MAINNET.chainId,
-  linea: LINEA_MAINNET.chainId,
-  base: BASE_MAINNET.chainId,
-  solana: SOLANA_MAINNET.chainId,
-  bsc: BSC_MAINNET.chainId,
-};
-
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 export const TRANSAK_URL = 'https://www.transak.com';
 export const CONSENSYS_PRIVACY_POLICY_URL =
@@ -65,11 +37,6 @@ export enum TransakFormId {
   ADDRESS = 'address',
   US_SSN = 'usSSN',
 }
-
-export const MANUAL_BANK_TRANSFER_PAYMENT_METHODS = [
-  'bank_transfer',
-  'sepa_bank_transfer',
-];
 
 export const US_STATES = [
   { code: 'AL', name: 'Alabama' },

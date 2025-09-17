@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useSearchTokenResults from './useSearchTokenResults';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 const mockTokens: DepositCryptoCurrency[] = [
   {

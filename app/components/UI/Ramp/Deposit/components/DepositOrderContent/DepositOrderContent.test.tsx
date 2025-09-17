@@ -4,12 +4,12 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import DepositOrderContent from './DepositOrderContent';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import {
   FIAT_ORDER_STATES,
   FIAT_ORDER_PROVIDERS,
 } from '../../../../../../constants/on-ramp';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
-import { SEPA_PAYMENT_METHOD } from '../../constants';
+import { MOCK_DEPOSIT_ORDER, MOCK_BANK_DETAILS_ORDER } from '../../testUtils';
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -25,17 +25,10 @@ jest.mock('../../utils', () => ({
   hasDepositOrderField: jest.fn(() => true),
 }));
 
-jest.mock('../../constants', () => ({
-  SEPA_PAYMENT_METHOD: {
-    id: 'sepa_credit_transfer',
-    name: 'SEPA Bank Transfer',
-  },
-}));
-
 describe('DepositOrderContent Component', () => {
   const mockOrder = {
     id: 'test-order-id-123456',
-    provider: FIAT_ORDER_PROVIDERS.TRANSAK,
+    provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
     createdAt: Date.now(),
     amount: '100',
     currency: 'USD',
@@ -48,18 +41,9 @@ describe('DepositOrderContent Component', () => {
     excludeFromPurchases: false,
     orderType: DepositOrderType.Deposit,
     data: {
+      ...MOCK_DEPOSIT_ORDER,
       id: 'test-order-id-123456',
       providerOrderId: 'transak-provider-order-id-123456',
-      provider: 'test-provider',
-      createdAt: Date.now(),
-      fiatAmount: 100,
-      fiatCurrency: 'USD',
-      cryptoCurrency: 'USDC',
-      network: 'ethereum',
-      status: 'COMPLETED',
-      orderType: 'DEPOSIT',
-      walletAddress: '0x1234567890123456789012345678901234567890',
-      providerOrderLink: 'https://transak.com/order/123',
       statusDescription: 'Order succeeded',
     } as DepositOrder,
   };
@@ -158,18 +142,11 @@ describe('DepositOrderContent Component', () => {
       ...mockOrder,
       state: FIAT_ORDER_STATES.PENDING,
       data: {
+        ...MOCK_DEPOSIT_ORDER,
         id: 'test-order-id-123456',
         providerOrderId: 'transak-provider-order-id-123456',
-        provider: 'test-provider',
-        createdAt: Date.now(),
-        fiatAmount: 100,
-        fiatCurrency: 'USD',
-        cryptoCurrency: 'USDC',
-        network: 'ethereum',
         status: 'PENDING',
-        orderType: 'DEPOSIT',
-        walletAddress: '0x1234567890123456789012345678901234567890',
-        providerOrderLink: 'https://transak.com/order/123',
+        // Explicitly omit statusDescription to test missing case
       } as DepositOrder,
     };
 
@@ -240,7 +217,7 @@ describe('DepositOrderContent Component', () => {
       state: FIAT_ORDER_STATES.PENDING,
       data: {
         ...mockOrder.data,
-        paymentMethod: SEPA_PAYMENT_METHOD.id,
+        paymentMethod: MOCK_BANK_DETAILS_ORDER.data.paymentMethod,
         statusDescription: 'Bank transfer initiated',
       },
     };

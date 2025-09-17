@@ -9,25 +9,11 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
-
-const USDC_TOKEN = {
-  assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  chainId: 'eip155:1',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-};
-
-const DEBIT_CREDIT_PAYMENT_METHOD = {
-  id: 'credit_debit_card',
-  name: 'Credit/Debit Card',
-  iconName: 'card',
-  duration: '2-5 minutes',
-  fees: '3.99% + network fees',
-};
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_CREDIT_DEBIT_CARD,
+  MOCK_US_REGION,
+} from '../testUtils/constants';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -74,13 +60,11 @@ describe('useUserDetailsPolling', () => {
       logoutFromProvider: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
-      selectedRegion: {
-        isoCode: 'US',
-      } as DepositRegion,
+      selectedRegion: MOCK_US_REGION,
       setSelectedRegion: jest.fn(),
-      selectedPaymentMethod: DEBIT_CREDIT_PAYMENT_METHOD,
+      selectedPaymentMethod: MOCK_CREDIT_DEBIT_CARD,
       setSelectedPaymentMethod: jest.fn(),
-      selectedCryptoCurrency: USDC_TOKEN,
+      selectedCryptoCurrency: MOCK_USDC_TOKEN,
       setSelectedCryptoCurrency: jest.fn(),
     });
   });

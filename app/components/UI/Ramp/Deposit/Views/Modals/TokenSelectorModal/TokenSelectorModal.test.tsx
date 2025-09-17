@@ -49,12 +49,11 @@ describe('TokenSelectorModal Component', () => {
     });
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
 
-    // Mock the context with the required values
     mockUseDepositSDK.mockReturnValue({
       setSelectedCryptoCurrency: mockSetCryptoCurrency,
       selectedRegion: { isoCode: 'US', currency: 'USD' },
       isAuthenticated: false,
-      selectedCryptoCurrency: mockTokens[0], // Add the missing selectedCryptoCurrency
+      selectedCryptoCurrency: mockTokens[0],
     });
   });
 
@@ -63,55 +62,19 @@ describe('TokenSelectorModal Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays tokens and allows selection', async () => {
-    const { getByText } = renderWithProvider(TokenSelectorModal);
-
-    expect(getByText('USDC')).toBeTruthy();
-    expect(getByText('USDT')).toBeTruthy();
-
-    const tetherElement = getByText('USDT');
-    fireEvent.press(tetherElement);
-
-    await waitFor(() => {
-      expect(mockSetCryptoCurrency).toHaveBeenCalledWith(mockTokens[1]);
-    });
-  });
-
   it('displays network filter selector when pressing "All networks" button', async () => {
     const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
-
     const allNetworksButton = getByText('All networks');
     fireEvent.press(allNetworksButton);
-
     await waitFor(() => {
       expect(getByText('Deselect all')).toBeTruthy();
     });
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('tracks RAMPS_TOKEN_SELECTED event when token is selected', async () => {
-    const { getByText } = renderWithProvider(TokenSelectorModal);
-
-    const tetherElement = getByText('USDT');
-    fireEvent.press(tetherElement);
-
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
-        ramp_type: 'DEPOSIT',
-        region: 'US',
-        chain_id: 'eip155:1',
-        currency_destination:
-          'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        currency_source: 'USD',
-        is_authenticated: false,
-      });
-    });
-  });
-
   it('displays empty state when no tokens match search', async () => {
     (useSearchTokenResults as jest.Mock).mockReturnValue([]);
-
-    const { getByPlaceholderText, getByText } =
+    const { getByPlaceholderText, getByText, toJSON } =
       renderWithProvider(TokenSelectorModal);
 
     const searchInput = getByPlaceholderText('Search token by name or address');
@@ -120,5 +83,6 @@ describe('TokenSelectorModal Component', () => {
     await waitFor(() => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

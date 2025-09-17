@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { BuyQuote, DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 import styleSheet from './BuildQuote.styles';
 
@@ -70,6 +70,15 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 
+const MUSD_PLACEHOLDER: DepositCryptoCurrency = {
+  assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  chainId: 'eip155:1',
+  name: 'MetaMask USD',
+  symbol: 'mUSD',
+  decimals: 6,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+};
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
 }
@@ -105,7 +114,6 @@ const BuildQuote = () => {
   } = usePaymentMethods();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const hasHandledImmediateRoute = useRef(false);
 
   const {
     isAuthenticated,
@@ -416,8 +424,7 @@ const BuildQuote = () => {
     : null;
 
   useEffect(() => {
-    if (shouldRouteImmediately && !hasHandledImmediateRoute.current) {
-      hasHandledImmediateRoute.current = true;
+    if (shouldRouteImmediately) {
       navigation.setParams({
         shouldRouteImmediately: false,
       });
@@ -430,26 +437,6 @@ const BuildQuote = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ScreenLayout.Content style={styles.content}>
-            {/* SDK Error Alerts */}
-            <SdkErrorAlert
-              error={regionsError}
-              onRetry={retryFetchRegions}
-              isRetrying={isFetchingRegions}
-              errorType="regions"
-            />
-            <SdkErrorAlert
-              error={cryptosError}
-              onRetry={retryFetchCryptoCurrencies}
-              isRetrying={isFetchingCryptos}
-              errorType="tokens"
-            />
-            <SdkErrorAlert
-              error={paymentMethodsError}
-              onRetry={retryFetchPaymentMethods}
-              isRetrying={isFetchingPaymentMethods}
-              errorType="paymentMethods"
-            />
-
             <View style={styles.selectionRow}>
               <AccountSelector isEvmOnly={false} />
               <TouchableOpacity
@@ -500,25 +487,27 @@ const BuildQuote = () => {
                   )}
                 </Text>
 
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                  style={styles.convertedAmount}
-                >
-                  {isLoadingTokenAmount ||
-                  errorLoadingTokenAmount ||
-                  !selectedCryptoCurrency ||
-                  isFetchingCryptos ||
-                  !cryptoCurrencies ||
-                  cryptoCurrencies.length === 0 ? (
-                    ' '
-                  ) : (
-                    <>
-                      {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
-                      {selectedCryptoCurrency.symbol}
-                    </>
-                  )}
-                </Text>
+                {!error && (
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.convertedAmount}
+                  >
+                    {isLoadingTokenAmount ||
+                    errorLoadingTokenAmount ||
+                    !selectedCryptoCurrency ||
+                    isFetchingCryptos ||
+                    !cryptoCurrencies ||
+                    cryptoCurrencies.length === 0 ? (
+                      ' '
+                    ) : (
+                      <>
+                        {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                        {selectedCryptoCurrency.symbol}
+                      </>
+                    )}
+                  </Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -533,11 +522,13 @@ const BuildQuote = () => {
                   {!selectedCryptoCurrency ? (
                     <>
                       <AvatarToken
-                        name="MUSD"
-                        imageSource={{ uri: '' }}
+                        name={MUSD_PLACEHOLDER.symbol}
+                        imageSource={{ uri: MUSD_PLACEHOLDER.iconUrl }}
                         size={AvatarSize.Md}
                       />
-                      <Text variant={TextVariant.HeadingLG}>MUSD</Text>
+                      <Text variant={TextVariant.HeadingLG}>
+                        {MUSD_PLACEHOLDER.symbol}
+                      </Text>
                     </>
                   ) : (
                     <>
@@ -573,7 +564,29 @@ const BuildQuote = () => {
                   />
                 </View>
               </TouchableOpacity>
-              {error && <TruncatedError error={error} />}
+              <SdkErrorAlert
+                error={regionsError}
+                onRetry={retryFetchRegions}
+                isRetrying={isFetchingRegions}
+                errorType="regions"
+              />
+              <SdkErrorAlert
+                error={cryptosError}
+                onRetry={retryFetchCryptoCurrencies}
+                isRetrying={isFetchingCryptos}
+                errorType="tokens"
+              />
+              <SdkErrorAlert
+                error={paymentMethodsError}
+                onRetry={retryFetchPaymentMethods}
+                isRetrying={isFetchingPaymentMethods}
+                errorType="paymentMethods"
+              />
+              {error && (
+                <View style={styles.errorContainer}>
+                  <TruncatedError error={error} />
+                </View>
+              )}
             </View>
 
             <TouchableOpacity
@@ -647,14 +660,6 @@ const BuildQuote = () => {
               }
               loading={isLoading}
             />
-            <Button
-              size={ButtonSize.Md}
-              onPress={clearAllSelections}
-              label={'Clear All Selections'}
-              variant={ButtonVariants.Secondary}
-              width={ButtonWidthTypes.Full}
-              twClassName="mt-4"
-            />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScreenLayout>
@@ -671,7 +676,10 @@ const BuildQuote = () => {
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
-              Error: {error instanceof Error ? error.message : 'Unknown error'}
+              Error:{' '}
+              {renderError instanceof Error
+                ? renderError.message
+                : 'Unknown error'}
             </Text>
           </ScreenLayout.Content>
         </ScreenLayout.Body>

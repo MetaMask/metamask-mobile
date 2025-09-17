@@ -21,7 +21,7 @@ import useAnalytics from '../../../../hooks/useAnalytics';
 import { useTheme } from '../../../../../../../util/theme';
 import { strings } from '../../../../../../../../locales/i18n';
 import styleSheet from './PaymentMethodSelectorModal.styles';
-import { DepositPaymentMethod } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositPaymentMethod } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,

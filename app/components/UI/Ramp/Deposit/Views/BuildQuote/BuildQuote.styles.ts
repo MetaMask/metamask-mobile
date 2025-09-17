@@ -79,19 +79,8 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     },
     errorContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    cryptoPillSkeleton: {
-      marginLeft: 8,
-    },
-    skeletonMargin: {
-      marginBottom: 4,
-    },
-    errorRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
+      width: '100%',
+      alignSelf: 'stretch',
     },
   });
 };

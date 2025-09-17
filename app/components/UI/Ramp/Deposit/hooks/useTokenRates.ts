@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { handleFetch } from '@metamask/controller-utils';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 interface UseFetchTokenRatesMultiResult {
   rates: Record<string, number | null>;

@@ -62,7 +62,13 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk, selectedRegion, logoutFromProvider } = useDepositSDK();
+  const {
+    sdk,
+    selectedRegion,
+    logoutFromProvider,
+    selectedCryptoCurrency,
+    selectedPaymentMethod,
+  } = useDepositSDK();
   const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
@@ -220,19 +226,12 @@ const BankDetails = () => {
   const bic = getFieldValue('BIC');
 
   useEffect(() => {
-    const paymentMethodId =
-      hasDepositOrderField(order?.data, 'paymentMethod') &&
-      order?.data.paymentMethod
-        ? order.data.paymentMethod
-        : null;
-    const paymentMethodName = paymentMethodId ?? '';
-
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
         {
           title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: paymentMethodName,
+            paymentMethod: selectedPaymentMethod?.shortName ?? '',
           }),
         },
         theme,
@@ -259,7 +258,7 @@ const BankDetails = () => {
         destination: Routes.DEPOSIT.BANK_DETAILS,
       },
     });
-  }, [navigation, theme, order]);
+  }, [navigation, theme, selectedPaymentMethod]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);
@@ -295,10 +294,10 @@ const BankDetails = () => {
         gas_fee: 0, //Number(order.data.gasFee),
         processing_fee: 0, //Number(order.data.processingFee),
         total_fee: Number(order.data.totalFeesFiat),
-        payment_method_id: order.data.paymentMethod,
+        payment_method_id: order.data.paymentMethod.id,
         country: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency?.chainId || '',
-        currency_destination: cryptoCurrency?.assetId || '',
+        chain_id: selectedCryptoCurrency?.chainId || '',
+        currency_destination: selectedCryptoCurrency?.assetId || '',
         currency_source: order.data.fiatCurrency,
       });
 
@@ -324,6 +323,8 @@ const BankDetails = () => {
     order,
     trackEvent,
     selectedRegion?.isoCode,
+    selectedCryptoCurrency?.assetId,
+    selectedCryptoCurrency?.chainId,
     confirmPayment,
     handleOnRefresh,
     handleLogoutError,

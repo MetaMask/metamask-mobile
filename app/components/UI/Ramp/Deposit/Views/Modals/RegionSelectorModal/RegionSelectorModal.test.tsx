@@ -3,7 +3,12 @@ import { fireEvent } from '@testing-library/react-native';
 import RegionSelectorModal from './RegionSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { MOCK_REGIONS_EXTENDED, MOCK_US_REGION } from '../../../testUtils';
+import {
+  MOCK_REGIONS_EXTENDED,
+  MOCK_US_REGION,
+  MOCK_EUR_REGION,
+  MOCK_CA_REGION,
+} from '../../../testUtils';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -60,7 +65,6 @@ describe('RegionSelectorModal Component', () => {
       error: null,
     });
 
-    // Ensure trackEvent mock is reset
     mockTrackEvent.mockClear();
   });
 
@@ -144,58 +148,27 @@ describe('RegionSelectorModal Component', () => {
   });
 
   it('receives and uses regions from navigation params', () => {
-    // Arrange
-    const customRegions = [
-      {
-        isoCode: 'GB',
-        flag: '🇬🇧',
-        name: 'United Kingdom',
-        phone: {
-          prefix: '+44',
-          placeholder: '20 7123 4567',
-          template: 'XX XXXX XXXX',
-        },
-        currency: 'GBP',
-        supported: true,
-      },
-      {
-        isoCode: 'AU',
-        flag: '🇦🇺',
-        name: 'Australia',
-        phone: {
-          prefix: '+61',
-          placeholder: '2 1234 5678',
-          template: 'X XXXX XXXX',
-        },
-        currency: 'AUD',
-        supported: true,
-      },
-    ];
+    const customRegions = [MOCK_EUR_REGION, MOCK_CA_REGION];
 
     mockUseParams.mockReturnValue({
       regions: customRegions,
       error: null,
     });
 
-    // Act
     const { getByText } = renderWithProvider(RegionSelectorModal);
 
-    // Assert - verify custom regions are displayed
-    expect(getByText('United Kingdom')).toBeOnTheScreen();
-    expect(getByText('Australia')).toBeOnTheScreen();
+    expect(getByText('Germany')).toBeOnTheScreen();
+    expect(getByText('Canada')).toBeOnTheScreen();
   });
 
   it('handles empty regions array from navigation params', () => {
-    // Arrange
     mockUseParams.mockReturnValue({
       regions: [],
       error: null,
     });
 
-    // Act
     const { toJSON } = renderWithProvider(RegionSelectorModal);
 
-    // Assert - should render without crashing and show empty state
     expect(toJSON()).toMatchSnapshot();
   });
 });

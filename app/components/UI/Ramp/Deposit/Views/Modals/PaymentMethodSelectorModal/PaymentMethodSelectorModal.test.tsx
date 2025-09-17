@@ -5,7 +5,7 @@ import { renderScreen } from '../../../../../../../util/test/renderWithProvider'
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { MOCK_PAYMENT_METHODS } from '../../../testUtils';
 
-const mockSetPaymentMethod = jest.fn();
+const mockSetSelectedPaymentMethod = jest.fn();
 const mockUseDepositSDK = jest.fn();
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
@@ -46,10 +46,10 @@ describe('PaymentMethodSelectorModal Component', () => {
     });
 
     mockUseDepositSDK.mockReturnValue({
-      setPaymentMethod: mockSetPaymentMethod,
+      setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
       selectedRegion: { isoCode: 'US' },
       isAuthenticated: false,
-      paymentMethod: mockPaymentMethods[0],
+      selectedPaymentMethod: mockPaymentMethods[0],
     });
   });
 
@@ -68,7 +68,9 @@ describe('PaymentMethodSelectorModal Component', () => {
     fireEvent.press(bankTransferElement);
 
     await waitFor(() => {
-      expect(mockSetPaymentMethod).toHaveBeenCalledWith(mockPaymentMethods[1]);
+      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
+        mockPaymentMethods[1],
+      );
     });
   });
 

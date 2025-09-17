@@ -31,6 +31,24 @@ function getDepositAnalyticsPayload(
 
   const order = fiatOrder.data;
 
+  // Validate that we have proper crypto currency and network data
+  // If the data doesn't look valid, don't track analytics
+  if (!order.cryptoCurrency || !order.network) {
+    return [null, null];
+  }
+
+  // Check if the crypto currency and network look like valid identifiers
+  // Valid crypto currencies should be symbols like 'USDC', 'ETH', etc.
+  // Valid networks should be identifiers like 'ethereum', 'eip155:1', etc.
+  const isValidCryptoCurrency = /^[A-Z]{2,10}$/.test(
+    order.cryptoCurrency.symbol,
+  );
+  const isValidNetwork = /^[a-z0-9:]+$/.test(order.network);
+
+  if (!isValidCryptoCurrency || !isValidNetwork) {
+    return [null, null];
+  }
+
   const selectedRegion = fiatOrdersRegionSelectorDeposit(state);
 
   const baseAnalyticsData = {
@@ -38,10 +56,10 @@ function getDepositAnalyticsPayload(
     amount_source: Number(order.fiatAmount),
     amount_destination: Number(fiatOrder.cryptoAmount),
     exchange_rate: Number(order.exchangeRate),
-    payment_method_id: order.paymentMethod,
+    payment_method_id: order.paymentMethod.id,
     country: selectedRegion?.isoCode || '',
-    chain_id: order.network || '',
-    currency_destination: order.cryptoCurrency || '',
+    chain_id: order.network,
+    currency_destination: order.cryptoCurrency.assetId,
     currency_source: order.fiatCurrency,
   };
 

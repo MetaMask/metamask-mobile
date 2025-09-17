@@ -4,7 +4,7 @@ import {
 } from './useDepositSdkMethod';
 import { useEffect } from 'react';
 import { useDepositSDK } from '../sdk';
-import { DepositRegion } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositRegion } from '@consensys/native-ramps-sdk';
 
 export interface UseRegionsResult {
   regions: DepositRegion[] | null;

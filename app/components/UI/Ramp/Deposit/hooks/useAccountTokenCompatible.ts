@@ -1,8 +1,8 @@
-import { useSelector } from 'react-redux';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { parseCaipChainId } from '@metamask/utils';
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { parseCaipChainId } from '@metamask/utils';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 
 function useAccountTokenCompatible(
   cryptoCurrency: DepositCryptoCurrency | null,

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useDepositTokenExchange from './useDepositTokenExchange';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 import { useFetchTokenRatesMulti } from './useTokenRates';
 

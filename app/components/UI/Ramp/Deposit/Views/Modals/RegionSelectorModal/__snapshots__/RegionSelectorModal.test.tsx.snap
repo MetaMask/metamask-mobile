@@ -1371,18 +1371,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   "supported": true,
                                 },
                                 {
-                                  "currency": "EUR",
-                                  "flag": "🇫🇷",
-                                  "isoCode": "FR",
-                                  "name": "France",
-                                  "phone": {
-                                    "placeholder": "1 23 45 67 89",
-                                    "prefix": "+33",
-                                    "template": "X XX XX XX XX",
-                                  },
-                                  "supported": true,
-                                },
-                                {
                                   "currency": "CAD",
                                   "flag": "🇨🇦",
                                   "isoCode": "CA",
@@ -1393,6 +1381,18 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                     "template": "(###) ###-####",
                                   },
                                   "supported": false,
+                                },
+                                {
+                                  "currency": "EUR",
+                                  "flag": "🇫🇷",
+                                  "isoCode": "FR",
+                                  "name": "France",
+                                  "phone": {
+                                    "placeholder": "1 23 45 67 89",
+                                    "prefix": "+33",
+                                    "template": "X XX XX XX XX",
+                                  },
+                                  "supported": true,
                                 },
                               ]
                             }
@@ -1648,111 +1648,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 <RNGestureHandlerButton
                                   collapsable={false}
                                   delayLongPress={600}
-                                  enabled={true}
-                                  exclusive={true}
-                                  handlerTag={-1}
-                                  handlerType="NativeViewGestureHandler"
-                                  innerRef={null}
-                                  onGestureHandlerEvent={[Function]}
-                                  onGestureHandlerStateChange={[Function]}
-                                  rippleColor="transparent"
-                                  style={
-                                    [
-                                      undefined,
-                                      {
-                                        "cursor": undefined,
-                                      },
-                                    ]
-                                  }
-                                  touchSoundDisabled={false}
-                                >
-                                  <View
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    collapsable={false}
-                                    style={{}}
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#ffffff",
-                                            "paddingHorizontal": 16,
-                                            "paddingVertical": 12,
-                                          },
-                                          false,
-                                          false,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginRight": 12,
-                                              }
-                                            }
-                                          >
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              🇫🇷
-                                            </Text>
-                                          </View>
-                                          <View>
-                                            <Text
-                                              accessibilityRole="text"
-                                              style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
-                                              }
-                                            >
-                                              France
-                                            </Text>
-                                          </View>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </RNGestureHandlerButton>
-                              </View>
-                              <View
-                                onFocusCapture={[Function]}
-                                onLayout={[Function]}
-                                style={null}
-                              >
-                                <RNGestureHandlerButton
-                                  collapsable={false}
-                                  delayLongPress={600}
                                   enabled={false}
                                   exclusive={true}
                                   handlerTag={-1}
@@ -1844,6 +1739,111 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               }
                                             >
                                               Canada
+                                            </Text>
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </RNGestureHandlerButton>
+                              </View>
+                              <View
+                                onFocusCapture={[Function]}
+                                onLayout={[Function]}
+                                style={null}
+                              >
+                                <RNGestureHandlerButton
+                                  collapsable={false}
+                                  delayLongPress={600}
+                                  enabled={true}
+                                  exclusive={true}
+                                  handlerTag={-1}
+                                  handlerType="NativeViewGestureHandler"
+                                  innerRef={null}
+                                  onGestureHandlerEvent={[Function]}
+                                  onGestureHandlerStateChange={[Function]}
+                                  rippleColor="transparent"
+                                  style={
+                                    [
+                                      undefined,
+                                      {
+                                        "cursor": undefined,
+                                      },
+                                    ]
+                                  }
+                                  touchSoundDisabled={false}
+                                >
+                                  <View
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    collapsable={false}
+                                    style={{}}
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "paddingHorizontal": 16,
+                                            "paddingVertical": 12,
+                                          },
+                                          false,
+                                          false,
+                                        ]
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              {
+                                                "marginRight": 12,
+                                              }
+                                            }
+                                          >
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 18,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              🇫🇷
+                                            </Text>
+                                          </View>
+                                          <View>
+                                            <Text
+                                              accessibilityRole="text"
+                                              style={
+                                                {
+                                                  "color": "#121314",
+                                                  "fontFamily": "Geist Medium",
+                                                  "fontSize": 18,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              France
                                             </Text>
                                           </View>
                                         </View>

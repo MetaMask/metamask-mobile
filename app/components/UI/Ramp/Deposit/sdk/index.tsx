@@ -16,6 +16,9 @@ import {
   NativeTransakAccessToken,
   SdkEnvironment,
   Context,
+  DepositPaymentMethod,
+  DepositRegion,
+  DepositCryptoCurrency,
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
@@ -32,14 +35,8 @@ import {
   fiatOrdersPaymentMethodSelectorDeposit,
   setFiatOrdersPaymentMethodDeposit,
 } from '../../../../../reducers/fiatOrders';
-import { MUSD_TOKEN } from '../constants/constants';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  DepositPaymentMethod,
-  DepositRegion,
-  DepositCryptoCurrency,
-} from '@consensys/native-ramps-sdk/dist/Deposit';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -59,7 +56,6 @@ export interface DepositSDK {
   setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
   selectedCryptoCurrency: DepositCryptoCurrency | null;
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
-  clearAllSelections: () => void;
 }
 
 const isDevelopment =
@@ -92,11 +88,7 @@ export const DepositSDKProvider = ({
   ...props
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
-  const providerApiKeyFromSelector = useSelector(selectDepositProviderApiKey);
-
-  // TEMPORARY DEV FIX: Use actual dev API key if none is configured
-  const providerApiKey =
-    providerApiKeyFromSelector || 'a9d9cc56-a524-4dd7-8008-59f36bd6fa97';
+  const providerApiKey = useSelector(selectDepositProviderApiKey);
 
   const selectedWalletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -123,9 +115,7 @@ export const DepositSDKProvider = ({
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<DepositPaymentMethod | null>(INITIAL_SELECTED_PAYMENT_METHOD);
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] =
-    useState<DepositCryptoCurrency | null>(
-      INITIAL_SELECTED_CRYPTO_CURRENCY || MUSD_TOKEN,
-    );
+    useState<DepositCryptoCurrency | null>(INITIAL_SELECTED_CRYPTO_CURRENCY);
 
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {
@@ -159,18 +149,6 @@ export const DepositSDKProvider = ({
     [dispatch],
   );
 
-  const clearAllSelections = useCallback(() => {
-    // Clear local state
-    setSelectedRegion(null);
-    setSelectedCryptoCurrency(MUSD_TOKEN);
-    setSelectedPaymentMethod(null);
-
-    // Clear Redux state
-    dispatch(setFiatOrdersRegionDeposit(null));
-    dispatch(setFiatOrdersCryptoCurrencyDeposit(MUSD_TOKEN));
-    dispatch(setFiatOrdersPaymentMethodDeposit(null));
-  }, [dispatch]);
-
   useEffect(() => {
     try {
       if (!providerApiKey) {
@@ -181,7 +159,6 @@ export const DepositSDKProvider = ({
         {
           apiKey: providerApiKey,
           context,
-          verbose: true,
         },
         environment,
       );
@@ -280,7 +257,6 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrency: setSelectedCryptoCurrencyCallback,
-      clearAllSelections,
     }),
     [
       sdk,
@@ -300,7 +276,6 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethodCallback,
       selectedCryptoCurrency,
       setSelectedCryptoCurrencyCallback,
-      clearAllSelections,
     ],
   );
 

@@ -27,13 +27,11 @@ function validMethodParams<T extends keyof NativeRampsSdk>(
     required: boolean;
   }[] = ServicesSignatures.NativeRampsSdk[method].parameters;
 
-  const result = parameters.every(({ required }, index) => {
-    const isValid = !required || params[index] != null;
+  return parameters.every(({ required }, index) => {
+    if (!required) return true;
 
-    return isValid;
+    return params[index] != null;
   });
-
-  return result;
 }
 
 /**
@@ -151,7 +149,6 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
           const response = (await sdk[method](...methodParams)) as Awaited<
             ReturnType<NativeRampsSdk[T]>
           >;
-
           setData(response);
           setIsFetching(false);
 
@@ -173,7 +170,6 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [method, throws, stringifiedParams, sdk],
   );
-
   useEffect(() => {
     if (onMount) {
       query();

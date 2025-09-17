@@ -114,6 +114,11 @@ jest.mock('../../sdk', () => ({
       sdkMethod: jest.fn(),
     },
     logoutFromProvider: mockLogoutFromProvider,
+    selectedPaymentMethod: {
+      name: 'SEPA',
+      id: 'sepa_bank_transfer',
+      shortName: 'SEPA',
+    },
   })),
 }));
 
@@ -211,7 +216,7 @@ describe('BankDetails Component', () => {
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: expect.stringContaining('sepa_bank_transfer bank transfer'),
+        title: expect.stringContaining('SEPA bank transfer'),
       }),
     );
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
@@ -23,9 +23,12 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation();
 
-  // Approximate character count for 2 lines (adjust based on your UI)
-  const maxCharactersPerLine = 50;
-  const maxCharacters = maxLines * maxCharactersPerLine;
+  // Calculate characters per line based on screen width
+  // Assuming average character width of ~8px and accounting for padding/margins
+  const screenWidth = Dimensions.get('window').width;
+  const availableWidth = screenWidth - 64; // Account for horizontal padding/margins
+  const maxCharactersPerLine = Math.floor(availableWidth / 8);
+  const maxCharacters = Math.max(50, maxLines * maxCharactersPerLine - 50); // Reduce by 50 chars, minimum 50
 
   const shouldTruncate = error.length > maxCharacters;
   const displayError = shouldTruncate
@@ -39,25 +42,27 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   };
 
   return (
-    <View style={tw.style('mb-4')}>
+    <View style={tw.style('mb-2 w-full')}>
       <BannerAlert
-        description={displayError}
+        description={
+          <View style={tw.style('flex-row flex-wrap items-center')}>
+            <Text variant={TextVariant.BodySM} style={tw.style('flex-1')}>
+              {displayError}
+            </Text>
+            {shouldTruncate && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Primary}
+                style={tw.style('underline ml-1')}
+                onPress={handleSeeMore}
+              >
+                {strings('deposit.errors.see_more')}
+              </Text>
+            )}
+          </View>
+        }
         severity={BannerAlertSeverity.Error}
       />
-      {shouldTruncate && (
-        <TouchableOpacity
-          onPress={handleSeeMore}
-          style={tw.style('mt-2 self-start')}
-        >
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Primary}
-            style={tw.style('underline')}
-          >
-            {strings('deposit.errors.see_more')}
-          </Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 };

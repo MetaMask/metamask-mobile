@@ -3,7 +3,13 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
+import {
+  DepositOrder,
+  DepositOrderType,
+  DepositCryptoCurrency,
+  DepositPaymentMethod,
+  DepositRegion,
+} from '@consensys/native-ramps-sdk';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -33,11 +39,6 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
-import type {
-  DepositCryptoCurrency,
-  DepositPaymentMethod,
-  DepositRegion,
-} from '@consensys/native-ramps-sdk/dist/Deposit';
 
 interface WyreOrder {
   order: Record<string, unknown>;

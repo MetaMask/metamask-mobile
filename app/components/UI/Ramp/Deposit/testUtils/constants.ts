@@ -1,23 +1,14 @@
-/**
- * Shared test constants for Deposit components
- * This file centralizes all hardcoded test data that was previously duplicated across test files
- */
-
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import {
   DepositOrderType,
   BuyQuote,
   DepositOrder,
-} from '@consensys/native-ramps-sdk';
-import {
   type DepositRegion,
   type DepositCryptoCurrency,
   type DepositPaymentMethod,
   DepositPaymentMethodDuration,
-} from '@consensys/native-ramps-sdk/dist/Deposit';
+} from '@consensys/native-ramps-sdk';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-
-// ====== REGIONS ======
 
 export const MOCK_US_REGION: DepositRegion = {
   isoCode: 'US',
@@ -135,14 +126,23 @@ export const MOCK_ETH_TOKEN: DepositCryptoCurrency = {
     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
 };
 
+export const MOCK_USDC_SOLANA_TOKEN: DepositCryptoCurrency = {
+  assetId: 'solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+};
+
 export const MOCK_CRYPTOCURRENCIES: DepositCryptoCurrency[] = [
   MOCK_USDC_TOKEN,
   MOCK_USDT_TOKEN,
   MOCK_BTC_TOKEN,
   MOCK_ETH_TOKEN,
+  MOCK_USDC_SOLANA_TOKEN,
 ];
-
-// ====== PAYMENT METHODS ======
 
 export const MOCK_CREDIT_DEBIT_CARD: DepositPaymentMethod = {
   id: 'credit_debit_card',
@@ -157,8 +157,8 @@ export const MOCK_APPLE_PAY: DepositPaymentMethod = {
   duration: DepositPaymentMethodDuration.instant,
   icon: IconName.Apple,
   iconColor: {
-    light: '#000000',
-    dark: '#FFFFFF',
+    light: 'var(--color-icon-default)',
+    dark: 'var(--color-icon-default)',
   },
 };
 
@@ -167,24 +167,25 @@ export const MOCK_PAYMENT_METHODS: DepositPaymentMethod[] = [
   MOCK_APPLE_PAY,
 ];
 
-// ====== QUOTES ======
-
 export const MOCK_BUY_QUOTE: BuyQuote = {
   quoteId: 'test-quote-id',
-  fiatAmount: 100,
+  conversionPrice: 2000,
+  marketConversionPrice: 2000,
+  slippage: 0.01,
   fiatCurrency: 'USD',
-  cryptoAmount: 0.05,
   cryptoCurrency: 'USDC',
-  networkFees: 1.25,
-  partnerFees: 1.25,
-  totalFeesFiat: 2.5,
   paymentMethod: 'credit_debit_card',
+  fiatAmount: 100,
+  cryptoAmount: 0.05,
+  isBuyOrSell: 'buy',
   network: 'ethereum',
-  walletAddress: '0x1234567890123456789012345678901234567890',
-  provider: 'test-provider',
+  feeDecimal: 0.025,
+  totalFee: 2.5,
+  feeBreakdown: [],
+  nonce: 12345,
+  cryptoLiquidityProvider: 'test-provider',
+  notes: [],
 };
-
-// ====== ORDERS ======
 
 export const MOCK_DEPOSIT_ORDER: Partial<DepositOrder> = {
   id: 'test-order-id',
@@ -193,7 +194,7 @@ export const MOCK_DEPOSIT_ORDER: Partial<DepositOrder> = {
   fiatAmount: 100,
   totalFeesFiat: 2.5,
   cryptoAmount: 0.05,
-  cryptoCurrency: 'USDC',
+  cryptoCurrency: MOCK_USDC_TOKEN,
   fiatCurrency: 'USD',
   network: 'ethereum',
   status: 'COMPLETED',
@@ -203,7 +204,7 @@ export const MOCK_DEPOSIT_ORDER: Partial<DepositOrder> = {
   exchangeRate: 2000,
   networkFees: 1.25,
   partnerFees: 1.25,
-  paymentMethod: 'credit_debit_card',
+  paymentMethod: MOCK_CREDIT_DEBIT_CARD,
 };
 
 export const MOCK_BANK_DETAILS_ORDER = {
@@ -215,12 +216,17 @@ export const MOCK_BANK_DETAILS_ORDER = {
     createdAt: Date.now(),
     fiatAmount: 100,
     fiatCurrency: 'USD',
-    cryptoCurrency: 'USDC',
+    cryptoCurrency: MOCK_USDC_TOKEN,
     network: 'ethereum',
     status: 'created',
     orderType: 'buy',
     walletAddress: '0x123...',
-    paymentMethod: 'sepa_bank_transfer',
+    paymentMethod: {
+      id: 'sepa_bank_transfer',
+      name: 'SEPA Bank Transfer',
+      duration: DepositPaymentMethodDuration.oneToTwoDays,
+      icon: IconName.Bank,
+    },
     paymentDetails: [
       {
         fiatCurrency: 'USD',
@@ -243,8 +249,6 @@ export const MOCK_BANK_DETAILS_ORDER = {
   },
 };
 
-// ====== SDK RETURN VALUES ======
-
 export const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
   selectedWalletAddress: '0x1234567890123456789012345678901234567890',
@@ -256,8 +260,6 @@ export const createMockSDKReturn = (overrides = {}) => ({
   setSelectedCryptoCurrency: jest.fn(),
   ...overrides,
 });
-
-// ====== HOOK RETURN VALUES ======
 
 export const MOCK_USE_REGIONS_RETURN = {
   regions: MOCK_REGIONS,
@@ -298,8 +300,6 @@ export const MOCK_USE_DEPOSIT_SDK_METHOD_RETURN = {
   isFetching: false,
 };
 
-// ====== ANALYTICS PAYLOAD ======
-
 export const MOCK_ANALYTICS_DEPOSIT_ORDER = {
   id: '123',
   provider: 'DEPOSIT',
@@ -315,19 +315,17 @@ export const MOCK_ANALYTICS_DEPOSIT_ORDER = {
   state: FIAT_ORDER_STATES.COMPLETED,
   network: 'eip155:1',
   data: {
-    cryptoCurrency: 'USDC',
+    cryptoCurrency: MOCK_USDC_TOKEN,
     network: 'ethereum',
     fiatAmount: '100',
     exchangeRate: '2000',
     totalFeesFiat: '2.50',
     networkFees: '1.25',
     partnerFees: '1.25',
-    paymentMethod: 'credit_debit_card',
+    paymentMethod: MOCK_CREDIT_DEBIT_CARD,
     fiatCurrency: 'USD',
   },
 };
-
-// ====== CONSTANTS ======
 
 export const FIXED_DATE = new Date(2024, 0, 1);
 export const FIXED_TIMESTAMP = FIXED_DATE.getTime();
@@ -337,8 +335,6 @@ export const DEFAULT_WALLET_ADDRESS =
 export const TEST_QUOTE_ID = 'test-quote-id';
 export const TEST_ORDER_ID = 'test-order-id';
 export const TEST_PROVIDER = 'test-provider';
-
-// ====== ERROR STATES ======
 
 export const MOCK_USE_REGIONS_ERROR = {
   regions: null,
@@ -361,8 +357,6 @@ export const MOCK_USE_PAYMENT_METHODS_ERROR = {
   retryFetchPaymentMethods: jest.fn(),
 };
 
-// ====== LOADING STATES ======
-
 export const MOCK_USE_REGIONS_LOADING = {
   regions: null,
   error: null,
@@ -383,8 +377,6 @@ export const MOCK_USE_PAYMENT_METHODS_LOADING = {
   isFetching: true,
   retryFetchPaymentMethods: jest.fn(),
 };
-
-// ====== EMPTY STATES ======
 
 export const MOCK_USE_REGIONS_EMPTY = {
   regions: [],

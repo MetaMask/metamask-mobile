@@ -23,16 +23,6 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.primary.muted,
       borderRadius: 8,
     },
-    errorContainer: {
-      padding: 24,
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: 120,
-    },
-    errorText: {
-      textAlign: 'center',
-      marginTop: 16,
-    },
   });
 };
 

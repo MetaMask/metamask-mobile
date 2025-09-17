@@ -51,11 +51,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
-    // Use order data directly instead of mapping
-    return {
-      symbol: order.data.cryptoCurrency,
-      chainId: order.data.network,
-    };
+    return order.data.cryptoCurrency;
   };
 
   const cryptoToken = getCryptoToken();
@@ -66,7 +62,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const networkName =
     allNetworkConfigurations[order.network as `${string}:${string}`]?.name;
   const networkImageSource = getNetworkImageSource({
-    chainId: cryptoToken?.chainId ?? '',
+    chainId: order.network ?? '',
   });
 
   const getIconContainerStyle = () => {
@@ -126,14 +122,14 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
                 <BadgeNetwork
                   name={networkName}
                   imageSource={getNetworkImageSource({
-                    chainId: cryptoToken.chainId,
+                    chainId: order.network ?? '',
                   })}
                 />
               }
             >
               <AvatarToken
                 name={cryptoToken.symbol}
-                imageSource={{ uri: '' }}
+                imageSource={{ uri: cryptoToken.iconUrl }}
                 size={AvatarSize.Lg}
               />
             </BadgeWrapper>

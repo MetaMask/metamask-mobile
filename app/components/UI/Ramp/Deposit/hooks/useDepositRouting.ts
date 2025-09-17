@@ -7,10 +7,7 @@ import { useTheme } from '../../../../../util/theme';
 import { endTrace, TraceName } from '../../../../../util/trace';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import {
-  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
-  REDIRECTION_URL,
-} from '../constants';
+import { REDIRECTION_URL } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
 import { generateThemeParameters } from '../utils';
@@ -44,8 +41,12 @@ export const useDepositRouting = ({
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const { selectedRegion, logoutFromProvider, selectedWalletAddress } =
-    useDepositSDK();
+  const {
+    selectedRegion,
+    selectedPaymentMethod,
+    logoutFromProvider,
+    selectedWalletAddress,
+  } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
 
@@ -229,7 +230,6 @@ export const useDepositRouting = ({
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
-                network: order.network,
               };
 
               await handleNewOrder(processedOrder);
@@ -244,10 +244,10 @@ export const useDepositRouting = ({
                   ? Number(order.partnerFees)
                   : 0,
                 total_fee: Number(order.totalFeesFiat),
-                payment_method_id: order.paymentMethod,
+                payment_method_id: order.paymentMethod.id,
                 country: selectedRegion?.isoCode || '',
                 chain_id: order.network || '',
-                currency_destination: order.cryptoCurrency || '',
+                currency_destination: order.cryptoCurrency.assetId || '',
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -363,12 +363,7 @@ export const useDepositRouting = ({
                 throw new Error('Missing user details');
               }
 
-              const isManualBankTransfer =
-                MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
-                  (method) => method === paymentMethodId,
-                );
-
-              if (isManualBankTransfer) {
+              if (selectedPaymentMethod?.isManualBankTransfer) {
                 const order = await createOrder(
                   quote,
                   selectedWalletAddress,
@@ -495,6 +490,7 @@ export const useDepositRouting = ({
       getAdditionalRequirements,
       fetchUserDetails,
       selectedRegion?.isoCode,
+      selectedPaymentMethod?.isManualBankTransfer,
       handleNewOrder,
       navigateToBankDetailsCallback,
       navigateToWebviewModalCallback,

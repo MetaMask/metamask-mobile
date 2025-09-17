@@ -158,7 +158,6 @@ describe('Deposit SDK Context', () => {
         {
           apiKey: 'test-provider-api-key',
           context: Context.MobileIOS,
-          verbose: true,
         },
         SdkEnvironment.Staging,
       );

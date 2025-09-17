@@ -1,15 +1,5 @@
-/**
- * Deposit Test Utils
- * Centralizes all test utilities for Deposit components
- */
-
 export * from './constants';
 
-// ====== HELPER FUNCTIONS ======
-
-/**
- * Creates a mock hook return value with optional overrides
- */
 export const createMockHookReturn = <T>(
   defaultReturn: T,
   overrides: Partial<T> = {},
@@ -18,9 +8,6 @@ export const createMockHookReturn = <T>(
   ...overrides,
 });
 
-/**
- * Creates jest mock functions for common SDK operations
- */
 export const createMockSDKMethods = () => ({
   mockGetQuote: jest.fn(),
   mockRouteAfterAuthentication: jest.fn(),
@@ -32,9 +19,6 @@ export const createMockSDKMethods = () => ({
   mockCancelOrder: jest.fn(),
 });
 
-/**
- * Creates mock navigation methods
- */
 export const createMockNavigation = () => ({
   mockNavigate: jest.fn(),
   mockGoBack: jest.fn(),
@@ -42,9 +26,16 @@ export const createMockNavigation = () => ({
   mockSetParams: jest.fn(),
 });
 
-/**
- * Creates mock React Native InteractionManager
- */
 export const createMockInteractionManager = () => ({
   runAfterInteractions: jest.fn((callback) => callback()),
+});
+
+export const createDepositUtilsMock = () => ({
+  formatCurrency: jest.fn((amount, currency) => {
+    if (currency === 'USD') {
+      return `$${parseFloat(amount).toFixed(2)}`;
+    }
+    return `${currency} ${amount}`;
+  }),
+  hasDepositOrderField: jest.fn(() => true),
 });

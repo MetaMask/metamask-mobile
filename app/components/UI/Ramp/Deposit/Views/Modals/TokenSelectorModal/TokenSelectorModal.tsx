@@ -9,12 +9,7 @@ import NetworksFilterSelector from '../../../components/NetworksFilterSelector/N
 
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -42,7 +37,7 @@ import {
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
@@ -68,7 +63,7 @@ function TokenSelectorModal() {
   );
   const [isEditingNetworkFilter, setIsEditingNetworkFilter] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
-  const { styles, theme } = useStyles(styleSheet, {
+  const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
 

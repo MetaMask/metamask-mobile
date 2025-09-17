@@ -58,6 +58,7 @@ import { CustomIdData, Action, FiatOrder, Region } from './types';
 import initialRootState from '../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
+import { MOCK_USDC_TOKEN } from '../../components/UI/Ramp/Deposit/testUtils/constants';
 
 const MOCK_ADDRESS_1 = '0x4567';
 const MOCK_ADDRESS_2 = '0x1234';
@@ -456,18 +457,9 @@ describe('fiatOrderReducer', () => {
   });
 
   it('should set the selected deposit crypto currency', () => {
-    const testDepositCryptoCurrency = {
-      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      chainId: 'eip155:1',
-      name: 'USD Coin',
-      symbol: 'USDC',
-      decimals: 6,
-      iconUrl:
-        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-    };
     const stateWithSelectedDepositCryptoCurrency = fiatOrderReducer(
       initialState,
-      setFiatOrdersCryptoCurrencyDeposit(testDepositCryptoCurrency),
+      setFiatOrdersCryptoCurrencyDeposit(MOCK_USDC_TOKEN),
     );
     const stateWithoutSelectedDepositCryptoCurrency = fiatOrderReducer(
       stateWithSelectedDepositCryptoCurrency,
@@ -476,7 +468,7 @@ describe('fiatOrderReducer', () => {
 
     expect(
       stateWithSelectedDepositCryptoCurrency.selectedCryptoCurrencyDeposit,
-    ).toEqual(testDepositCryptoCurrency);
+    ).toEqual(MOCK_USDC_TOKEN);
     expect(
       stateWithoutSelectedDepositCryptoCurrency.selectedCryptoCurrencyDeposit,
     ).toEqual(null);
@@ -955,23 +947,14 @@ describe('selectors', () => {
 
   describe('fiatOrdersCryptoCurrencySelectorDeposit', () => {
     it('should return the selected deposit crypto currency', () => {
-      const testDepositCryptoCurrency = {
-        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        chainId: 'eip155:1',
-        name: 'USD Coin',
-        symbol: 'USDC',
-        decimals: 6,
-        iconUrl:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-      };
       const state = merge({}, initialRootState, {
         fiatOrders: {
-          selectedCryptoCurrencyDeposit: testDepositCryptoCurrency,
+          selectedCryptoCurrencyDeposit: MOCK_USDC_TOKEN,
         },
       });
 
       expect(fiatOrdersCryptoCurrencySelectorDeposit(state)).toEqual(
-        testDepositCryptoCurrency,
+        MOCK_USDC_TOKEN,
       );
     });
 

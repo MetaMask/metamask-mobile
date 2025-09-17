@@ -1,7 +1,7 @@
 import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 import { useEffect } from 'react';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 export interface UseCryptoCurrenciesResult {
   cryptoCurrencies: DepositCryptoCurrency[] | null;
