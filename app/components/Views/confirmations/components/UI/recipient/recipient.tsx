@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import {
   Box,
@@ -8,6 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ButtonBase from '../../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -16,6 +17,7 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 import { formatAddress } from '../../../../../../util/address';
 import styleSheet from './recipient.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { noop } from 'lodash';
 
 export interface RecipientType {
   address: string;
@@ -38,7 +40,7 @@ export function Recipient({
   isBIP44,
   accountAvatarType,
   onPress,
-}: RecipientProps) {
+}: Readonly<RecipientProps>) {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
 
@@ -46,52 +48,57 @@ export function Recipient({
     onPress?.(recipient);
   }, [recipient, onPress]);
 
-  return (
-    <Pressable
-      testID={
-        isSelected
-          ? `selected-${recipient.address}`
-          : `recipient-${recipient.address}`
-      }
-      style={({ pressed }) =>
-        tw.style(
-          'w-full flex-row items-center justify-between py-2 px-4',
-          pressed || isSelected ? 'bg-pressed' : 'bg-transparent',
-        )
-      }
-      onPress={handlePressRecipient}
-    >
-      <Box twClassName="flex-row items-center">
-        <Box twClassName="h-12 justify-center">
-          <Avatar
-            variant={AvatarVariant.Account}
-            type={accountAvatarType}
-            accountAddress={recipient.address}
-            size={AvatarSize.Md}
-          />
-        </Box>
+  const tap = Gesture.Tap()
+    .runOnJS(true)
+    .onEnd(() => handlePressRecipient());
 
-        <Box twClassName="ml-4 h-12 justify-center">
-          <Text
-            testID={`recipient-name-${recipient.address}`}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-          >
-            {isBIP44
-              ? recipient.accountGroupName || recipient.contactName
-              : recipient.accountName || recipient.contactName}
-          </Text>
-          <Text
-            testID={`recipient-address-${recipient.address}`}
-            variant={TextVariant.BodyMd}
-            style={styles.recipientAddress}
-            numberOfLines={1}
-          >
-            {formatAddress(recipient.address, 'short')}
-          </Text>
-        </Box>
-      </Box>
-    </Pressable>
+  return (
+    <GestureDetector gesture={tap}>
+      <ButtonBase
+        testID={
+          isSelected
+            ? `selected-${recipient.address}`
+            : `recipient-${recipient.address}`
+        }
+        style={tw.style(
+          'w-full flex-row items-center justify-between py-2 px-4',
+          isSelected ? 'bg-pressed' : 'bg-transparent',
+        )}
+        onPress={noop}
+        label={
+          <Box twClassName="flex-row items-center">
+            <Box twClassName="h-12 justify-center">
+              <Avatar
+                variant={AvatarVariant.Account}
+                type={accountAvatarType}
+                accountAddress={recipient.address}
+                size={AvatarSize.Md}
+              />
+            </Box>
+
+            <Box twClassName="ml-4 h-12 justify-center">
+              <Text
+                testID={`recipient-name-${recipient.address}`}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                numberOfLines={1}
+              >
+                {isBIP44
+                  ? recipient.accountGroupName || recipient.contactName
+                  : recipient.accountName || recipient.contactName}
+              </Text>
+              <Text
+                testID={`recipient-address-${recipient.address}`}
+                variant={TextVariant.BodyMd}
+                style={styles.recipientAddress}
+                numberOfLines={1}
+              >
+                {formatAddress(recipient.address, 'short')}
+              </Text>
+            </Box>
+          </Box>
+        }
+      />
+    </GestureDetector>
   );
 }
