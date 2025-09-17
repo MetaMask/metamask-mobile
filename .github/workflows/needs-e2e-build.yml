@@ -19,6 +19,9 @@ on:
       builds:
         description: 'Whether any builds will happen'
         value: ${{ jobs.needs-e2e-build.outputs.builds }}
+      changed_files:
+        description: 'Changed files'
+        value: ${{ jobs.needs-e2e-build.outputs.changed_files }}
 
 jobs:
   needs-e2e-build:
@@ -28,6 +31,7 @@ jobs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
       builds: ${{ steps.set-outputs.outputs.builds }}
+      changed_files: ${{ steps.set-outputs.outputs.changed_files }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -38,18 +42,7 @@ jobs:
         with:
           # Specifying `ref` ensures that the head commit is checked out directly.
           ref: ${{ env.HEAD_COMMIT_HASH }}
-
-      - name: Get changed files with git diff
-        run: node .github/scripts/git-diff-default-branch.mjs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-      - name: Upload changed files artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: changed-files
-          path: ./changed-files/
-
+        
       - name: Check skip commit tag
         id: skip-tag
         run: |
@@ -132,6 +125,7 @@ jobs:
               echo "android_final=false"
               echo "ios_final=false"
               echo "builds=false"
+              echo "changed_files=false"
             } >> "${GITHUB_OUTPUT}"
             echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
             exit 0
@@ -142,10 +136,10 @@ jobs:
           ios="${{ steps.filter.outputs.ios }}"
           shared="${{ steps.filter.outputs.shared }}"
           ignore="${{ steps.filter.outputs.ignore }}"
+          changed_files="${{ steps.filter.outputs.catch_all_files }}"
 
           # Get lists of files
           ignore_files="${{ steps.filter.outputs.ignore_files }}"
-          catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
 
           # Use Cases for State Machine:
           # 1. Purely ignored changes -> Skip both
@@ -191,6 +185,7 @@ jobs:
 
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
           echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
+          echo "changed_files=$changed_files" >> "${GITHUB_OUTPUT}"
 
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
