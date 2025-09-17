@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Bu şifre sadece bu cihazda MetaMask cüzdanınızın kilidini açar.",
-    "password": "Yeni şifre oluştur",
+    "password": "Create password",
     "confirm_password": "Şifreyi onayla",
     "create_button": "Şifre oluştur",
     "import_with_seed_phrase": "Gizli Kurtarma İfadesi ile içe aktar",
@@ -404,7 +404,7 @@
     "show": "Göster",
     "hide": "Gizle",
     "seed_phrase": "Gizli Kurtarma İfadesi",
-    "must_be_at_least": "Şifre en az {{number}} karakterden oluşmalıdır",
+    "must_be_at_least": "En az {{number}} karakter olmalıdır",
     "remember_me": "Beni hatırla",
     "security_alert_title": "Güvenlik Uyarısı",
     "security_alert_message": "İlerlemek için Parolayı veya cihazınızda desteklenen herhangi bir biyometri kimlik doğrulama yöntemini (FaceID, TouchID veya Parmak İzi) açmanız gerekir",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Bu şifreyi unutursam cüzdanıma erişimi kalıcı olarak kaybedeceğim. MetaMask bunu benim için sıfırlayamaz.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Tekrar dene"
   },
   "import_from_seed": {
     "title": "Bir cüzdanı içe aktar",
     "seed_phrase_placeholder": "Gizli Kurtarma İfadenizi girin",
-    "create_new_password": "Yeni şifre oluştur",
+    "create_new_password": "Create password",
     "confirm_password": "Şifreyi onayla",
     "import_button": "İÇE AKTAR",
     "cancel_button": "İptal",
@@ -491,7 +491,7 @@
     "srp": "Gizli Kurtarma İfadesi",
     "srp_placeholder": "Her bir sözcüğün arasına bir boşluk ekleyin ve hiç kimsenin izlemediğinden emin olun.",
     "learn_more_link": "Daha fazla bilgi edin",
-    "create_password_cta": "Şifre oluştur",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Akış ile devam et",
     "steps": "Adım {{currentStep}}/{{totalSteps}}",
     "password_error": "Şifreler eşleşmiyor. Tekrar deneyin.",
@@ -507,6 +507,7 @@
     "home": "Ana Sayfa",
     "browser": "Tarayıcı",
     "activity": "Aktivite",
+    "trade": "Trade",
     "settings": "Ayarlar",
     "rewards": "Ödüller"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "Kaldıraç",
         "confirm": "Onayla",
         "entry_price": "Giriş Fiyatı",
         "current_price": "Mevcut fiyat",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "al",
     "sell": "sat",
-    "orders": "Emirler",
+    "orders": "Transfers",
     "All": "Tümü",
     "Buy": "Satın Al",
     "Sell": "Sat",
     "token_marketplace": "Token pazar yeri",
     "Purchased": "Satın Alındı",
     "Sold": "Satıldı",
-    "empty_orders_list": "Emriniz yok",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "Hiç al emriniz yok",
     "empty_sell_orders_list": "Hiç sat emriniz yok",
     "purchased_currency": "{{currency}} Satın Alındı",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "Bir arkadaşına öner",
@@ -5791,7 +5814,9 @@
         "title": "Daha fazla kazanmak için kodunuzu paylaşın",
         "description": "Arkadaşlarınız bonus puan kazanır ve siz de onların ödüllerinin %20'sini alırsınız."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} dakika",
