@@ -5845,7 +5845,6 @@
         "points": "Get 20% from friends you refer"
       }
     },
-
     "referral": {
       "actions": {
         "share_referral_link": "Refer a friend",
@@ -5863,12 +5862,17 @@
     "season_1": "Season 1",
     "upcoming_rewards": {
       "title": "Upcoming rewards",
-      "points_needed": "{{points}} points"
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
     },
     "unlocked_rewards": {
       "title": "Unlocked rewards",
       "empty": "No rewards yet. \nEarn points and level up.",
-      "see_ways_to_earn": "See ways to earn"
+      "see_ways_to_earn": "See ways to earn",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim"
     }
   },
   "time": {

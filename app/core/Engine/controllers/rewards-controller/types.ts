@@ -352,8 +352,19 @@ export interface SeasonRewardDto {
   id: string;
   name: string;
   shortDescription: string;
+  longDescription: string;
+  shortUnlockedDescription: string;
+  longUnlockedDescription: string;
+  claimUrl?: string;
   iconName: string;
-  rewardType: string;
+  rewardType: SeasonRewardType;
+}
+
+export enum SeasonRewardType {
+  GENERIC = 'GENERIC',
+  PERPS_DISCOUNT = 'PERPS_DISCOUNT',
+  POINTS_BOOST = 'POINTS_BOOST',
+  ALPHA_FOX_INVITE = 'ALPHA_FOX_INVITE',
 }
 
 export interface SeasonDto {
@@ -412,6 +423,10 @@ export interface ThemeImage {
   darkModeUrl: string;
 }
 
+export interface ClaimRewardDto {
+  data?: Record<string, string>;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionReferralDetailsState = {
   referralCode: string;
@@ -425,8 +440,12 @@ export type SeasonRewardDtoState = {
   id: string;
   name: string;
   shortDescription: string;
+  longDescription: string;
+  shortUnlockedDescription: string;
+  longUnlockedDescription: string;
+  claimUrl?: string;
   iconName: string;
-  rewardType: string;
+  rewardType: SeasonRewardType;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -719,9 +738,24 @@ export interface RewardsControllerGetActivePointsBoostsAction {
   ) => Promise<PointsBoostDto[]>;
 }
 
+/**
+ * Action for getting unlocked rewards for a season
+ */
 export interface RewardsControllerGetUnlockedRewardsAction {
   type: 'RewardsController:getUnlockedRewards';
   handler: (seasonId: string, subscriptionId: string) => Promise<RewardDto[]>;
+}
+
+/**
+ * Action for claiming a reward
+ */
+export interface RewardsControllerClaimRewardAction {
+  type: 'RewardsController:claimReward';
+  handler: (
+    rewardId: string,
+    subscriptionId: string,
+    dto?: ClaimRewardDto,
+  ) => Promise<void>;
 }
 
 /**
@@ -746,7 +780,8 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerValidateReferralCodeAction
   | RewardsControllerGetActivePointsBoostsAction
-  | RewardsControllerGetUnlockedRewardsAction;
+  | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerClaimRewardAction;
 
 export const CURRENT_SEASON_ID = 'current';
 

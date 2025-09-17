@@ -33,7 +33,12 @@ const UnlockedRewardItem: React.FC<UnlockedRewardItemProps> = ({
 
   return (
     <Box twClassName=" bg-background-muted">
-      <RewardItem reward={seasonReward} isLast={isLast} />
+      <RewardItem
+        reward={seasonReward}
+        isLast={isLast}
+        isLocked={false}
+        claimStatus={reward.claimStatus}
+      />
     </Box>
   );
 };
@@ -41,7 +46,7 @@ const UnlockedRewardItem: React.FC<UnlockedRewardItemProps> = ({
 const UnlockedRewards: React.FC = () => {
   const dispatch = useDispatch();
   const unlockedRewards = useSelector(selectUnlockedRewards);
-  /* use some mock data
+  /*   // use some mock data
   const unlockedRewards = [
     {
       id: '1',
@@ -51,6 +56,11 @@ const UnlockedRewards: React.FC = () => {
     {
       id: '2',
       seasonRewardId: '5dfa42ab-58b9-4c53-b72f-7cf63e200284',
+      claimStatus: RewardClaimStatus.UNCLAIMED,
+    },
+    {
+      id: '3',
+      seasonRewardId: '2131c7e4-afbc-4ab6-8f69-02edfc9f8428',
       claimStatus: RewardClaimStatus.UNCLAIMED,
     },
   ]; */

@@ -7,6 +7,7 @@ import {
   RewardDto,
   SeasonRewardDto,
   RewardClaimStatus,
+  SeasonRewardType,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Mock dependencies
@@ -123,8 +124,13 @@ const mockSeasonReward: SeasonRewardDto = {
   id: 'season-reward-1',
   name: 'Test Season Reward',
   shortDescription: 'A test season reward',
+  longDescription: 'A long description for the test season reward',
+  shortUnlockedDescription:
+    'A short description for the test season reward when unlocked',
+  longUnlockedDescription:
+    'A long description for the test season reward when unlocked',
   iconName: 'Star',
-  rewardType: 'BADGE',
+  rewardType: SeasonRewardType.GENERIC,
 };
 
 const mockUnlockedReward: RewardDto = {

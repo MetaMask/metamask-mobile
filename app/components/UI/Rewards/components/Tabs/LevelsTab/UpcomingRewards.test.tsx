@@ -6,6 +6,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import {
   SeasonTierDto,
   SeasonRewardDto,
+  SeasonRewardType,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
 // Mock dependencies
@@ -73,8 +74,13 @@ const mockSeasonReward: SeasonRewardDto = {
   id: 'reward-1',
   name: 'Test Reward',
   shortDescription: 'A test reward',
+  longDescription: 'A long description for the test reward',
+  shortUnlockedDescription:
+    'A short description for the test reward when unlocked',
+  longUnlockedDescription:
+    'A long description for the test reward when unlocked',
   iconName: 'Star',
-  rewardType: 'BADGE',
+  rewardType: SeasonRewardType.GENERIC,
 };
 
 const mockSeasonTier: SeasonTierDto = {

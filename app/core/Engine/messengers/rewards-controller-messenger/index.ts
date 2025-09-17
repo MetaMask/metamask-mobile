@@ -32,6 +32,7 @@ import {
   RewardsDataServiceGetPointsEventsAction,
   RewardsDataServiceGetActivePointsBoostsAction,
   RewardsDataServiceGetUnlockedRewardsAction,
+  RewardsDataServiceClaimRewardAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
@@ -56,7 +57,8 @@ type AllowedActions =
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
-  | RewardsDataServiceGetUnlockedRewardsAction;
+  | RewardsDataServiceGetUnlockedRewardsAction
+  | RewardsDataServiceClaimRewardAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -99,6 +101,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:optOut',
       'RewardsDataService:getActivePointsBoosts',
       'RewardsDataService:getUnlockedRewards',
+      'RewardsDataService:claimReward',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useCallback } from 'react';
 import { Image, TouchableOpacity, Animated } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -8,6 +8,9 @@ import {
   Icon,
   IconName,
   IconSize,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
@@ -18,11 +21,17 @@ import {
 import {
   SeasonTierDto,
   SeasonRewardDto,
+  SeasonRewardType,
+  RewardClaimStatus,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
 import { formatNumber, getIconName } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { ModalType } from '../../RewardsBottomSheetModal';
+import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
@@ -33,48 +42,175 @@ interface TierAccordionProps {
 interface RewardItemProps {
   reward: SeasonRewardDto;
   isLast?: boolean;
+  isLocked?: boolean;
+  claimStatus?: RewardClaimStatus;
 }
 
-export const RewardItem: React.FC<RewardItemProps> = ({
-  reward,
-  isLast = false,
+const RewardItemBottomSheetTitle = ({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: IconName;
 }) => (
-  <Box
-    twClassName={`flex-row items-center py-3 px-4 gap-4 ${
-      !isLast ? 'border-b border-muted' : ''
-    }`}
-  >
-    {/* Reward Icon */}
+  <Box twClassName="flex-row items-center justify-between w-full">
+    <Text variant={TextVariant.HeadingLg} twClassName="w-[80%]">
+      {title}
+    </Text>
     <Box
       twClassName={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
       testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
     >
-      <Icon
-        name={getIconName(reward.iconName)}
-        size={IconSize.Lg}
-        twClassName="text-icon-alternative"
-      />
-    </Box>
-
-    {/* Reward Info */}
-    <Box twClassName="flex-1">
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-text-default mb-1"
-        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
-      >
-        {reward.name}
-      </Text>
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName="text-text-alternative"
-        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}
-      >
-        {reward.shortDescription}
-      </Text>
+      <Icon name={icon} size={IconSize.Lg} twClassName="text-primary-default" />
     </Box>
   </Box>
 );
+
+const RewardItemBottomSheetDescription = ({
+  description,
+}: {
+  description: string;
+}) => (
+  <Text variant={TextVariant.BodyMd} twClassName="text-text-alternative">
+    {description}
+  </Text>
+);
+
+export const RewardItem: React.FC<RewardItemProps> = ({
+  reward,
+  isLast = false,
+  isLocked = true,
+  claimStatus,
+}) => {
+  const shortDescription = isLocked
+    ? reward.shortDescription
+    : reward.shortUnlockedDescription;
+
+  const longDescription = isLocked
+    ? reward.longDescription
+    : reward.longUnlockedDescription;
+
+  const navigation = useNavigation();
+  const currentAccountAddress = useSelector(selectRewardsActiveAccountAddress);
+
+  const rewardInputAction = useMemo(() => {
+    if (isLocked) {
+      return false;
+    }
+    switch (reward.rewardType) {
+      case SeasonRewardType.ALPHA_FOX_INVITE:
+        return true;
+      default:
+        return false;
+    }
+  }, [isLocked, reward.rewardType]);
+
+  const rewardInputPlaceholder = useMemo(() => {
+    switch (reward.rewardType) {
+      case SeasonRewardType.ALPHA_FOX_INVITE:
+        return strings(
+          'rewards.upcoming_rewards.alpha_fox_invite_input_placeholder',
+        );
+      default:
+        return '';
+    }
+  }, [reward.rewardType]);
+
+  const rewardClaimUrl = useMemo(() => {
+    if (isLocked || !currentAccountAddress || !reward.claimUrl)
+      return undefined;
+    return reward.claimUrl.replace('{address}', currentAccountAddress || '');
+  }, [isLocked, currentAccountAddress, reward.claimUrl]);
+
+  const handleRewardItemPress = useCallback(() => {
+    navigation.navigate(Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL, {
+      title: (
+        <RewardItemBottomSheetTitle
+          title={reward.name}
+          icon={getIconName(reward.iconName)}
+        />
+      ),
+      description: (
+        <RewardItemBottomSheetDescription description={longDescription} />
+      ),
+      claimUrl: rewardClaimUrl,
+      showIcon: false,
+      type: ModalType.Confirmation,
+      showInput: rewardInputAction,
+      inputPlaceholder: rewardInputPlaceholder,
+      showCancelButton: false,
+      rewardId: reward.id,
+      rewardType: reward.rewardType,
+      isLocked,
+    });
+  }, [
+    navigation,
+    reward.name,
+    reward.iconName,
+    reward.id,
+    reward.rewardType,
+    longDescription,
+    rewardClaimUrl,
+    rewardInputAction,
+    rewardInputPlaceholder,
+    isLocked,
+  ]);
+
+  return (
+    <TouchableOpacity onPress={handleRewardItemPress}>
+      <Box
+        twClassName={`flex-row items-center py-3 px-4 gap-4 ${
+          !isLast ? 'border-b border-muted' : ''
+        }`}
+      >
+        {/* Reward Icon */}
+        <Box
+          twClassName={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
+          testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
+        >
+          <Icon
+            name={getIconName(reward.iconName)}
+            size={IconSize.Lg}
+            twClassName="text-icon-alternative"
+          />
+        </Box>
+
+        {/* Reward Info */}
+        <Box twClassName="flex-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-text-default mb-1"
+            testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
+          >
+            {reward.name}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-text-alternative"
+            testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}
+          >
+            {shortDescription}
+          </Text>
+        </Box>
+
+        {/* Claim Button */}
+        {claimStatus === RewardClaimStatus.UNCLAIMED && !isLocked && (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleRewardItemPress();
+            }}
+          >
+            {strings('rewards.unlocked_rewards.claim_label')}
+          </Button>
+        )}
+      </Box>
+    </TouchableOpacity>
+  );
+};
+
 const TierAccordion: React.FC<TierAccordionProps> = ({
   tier,
   isExpanded,
@@ -82,7 +218,6 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 }) => {
   const tw = useTailwind();
   const { themeAppearance, brandColors } = useTheme();
-  const animatedHeight = useRef(new Animated.Value(0)).current;
   const animatedRotation = useRef(new Animated.Value(0)).current;
 
   // Get appropriate image URL based on theme
@@ -98,22 +233,14 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 
   // Animate height and rotation when expanded state changes
   useEffect(() => {
-    const targetHeight = isExpanded ? rewards.length * 74 : 0; // Approximate height per reward item
     const targetRotation = isExpanded ? 1 : 0;
 
-    Animated.parallel([
-      Animated.timing(animatedHeight, {
-        toValue: targetHeight,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(animatedRotation, {
-        toValue: targetRotation,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [isExpanded, rewards.length, animatedHeight, animatedRotation]);
+    Animated.timing(animatedRotation, {
+      toValue: targetRotation,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isExpanded, animatedRotation]);
 
   const rotateInterpolate = animatedRotation.interpolate({
     inputRange: [0, 1],
@@ -204,23 +331,20 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
       </Box>
 
       {/* Expandable Rewards List */}
-      {rewards.length > 0 && (
-        <Animated.View
-          style={[tw.style('overflow-hidden'), { height: animatedHeight }]}
+      {rewards.length > 0 && isExpanded && (
+        <Box
+          twClassName="bg-background-muted"
+          testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
         >
-          <Box
-            twClassName="bg-background-muted"
-            testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
-          >
-            {rewards.map((reward: SeasonRewardDto, index: number) => (
-              <RewardItem
-                key={reward.id}
-                reward={reward}
-                isLast={index === rewards.length - 1}
-              />
-            ))}
-          </Box>
-        </Animated.View>
+          {rewards.map((reward: SeasonRewardDto, index: number) => (
+            <RewardItem
+              key={reward.id}
+              reward={reward}
+              isLast={index === rewards.length - 1}
+              isLocked
+            />
+          ))}
+        </Box>
       )}
     </Box>
   );
@@ -229,6 +353,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 const UpcomingRewards: React.FC = () => {
   const seasonTiers = useSelector(selectSeasonTiers) as SeasonTierDto[];
   const currentTier = useSelector(selectCurrentTier);
+
   // Filter tiers to show only those above current tier
   const upcomingTiers = useMemo(() => {
     if (!currentTier) {

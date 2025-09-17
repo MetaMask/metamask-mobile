@@ -203,3 +203,23 @@ export const getIconName = (iconName: string): IconName =>
   Object.values(IconName).includes(iconName as IconName)
     ? (iconName as IconName)
     : IconName.Star;
+
+// Format Url for display
+export const formatUrl = (url: string): string => {
+  if (!url) {
+    return '';
+  }
+  try {
+    const urlObj = new URL(url);
+    // Strip protocol and query strings, keep hostname and pathname
+    return urlObj.hostname;
+  } catch (e) {
+    // Fallback: manually strip protocol and query strings
+    let cleanUrl = url.replace(/^https?:\/\//, '');
+    const queryIndex = cleanUrl.indexOf('?');
+    if (queryIndex !== -1) {
+      cleanUrl = cleanUrl.substring(0, queryIndex);
+    }
+    return cleanUrl;
+  }
+};

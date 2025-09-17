@@ -24,6 +24,7 @@ import {
   type UnlockedRewardsState,
   type RewardDto,
   CURRENT_SEASON_ID,
+  ClaimRewardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -318,6 +319,10 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:getUnlockedRewards',
       this.getUnlockedRewards.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:claimReward',
+      this.claimReward.bind(this),
     );
   }
 
@@ -1679,6 +1684,37 @@ export class RewardsController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
       return [];
+    }
+  }
+
+  /**
+   * Claim a reward
+   * @param rewardId - The reward ID
+   * @param dto - The claim reward request body
+   * @param subscriptionId - The subscription ID for authentication
+   */
+  async claimReward(
+    rewardId: string,
+    subscriptionId: string,
+    dto?: ClaimRewardDto,
+  ): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    try {
+      await this.messagingSystem.call(
+        'RewardsDataService:claimReward',
+        rewardId,
+        subscriptionId,
+        dto,
+      );
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to claim reward:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
     }
   }
 }
