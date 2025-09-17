@@ -700,13 +700,13 @@ describe('Onboarding', () => {
         expect(getByText('Unlock')).toBeTruthy();
       });
 
+      jest.advanceTimersByTime(600);
+
       const unlockButton = getByText('Unlock');
 
       await act(async () => {
         fireEvent.press(unlockButton);
       });
-
-      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(Authentication.resetVault).toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
@@ -725,13 +725,13 @@ describe('Onboarding', () => {
         expect(getByText('Unlock')).toBeTruthy();
       });
 
+      jest.advanceTimersByTime(600);
+
       const unlockButton = getByText('Unlock');
 
       await act(async () => {
         fireEvent.press(unlockButton);
       });
-
-      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(Authentication.lockApp).toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.LOGIN);
@@ -1470,6 +1470,7 @@ describe('Onboarding', () => {
   });
 
   describe('Rive Animations', () => {
+    jest.useFakeTimers();
     it('should render MetaMask wordmark animation', () => {
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1480,6 +1481,7 @@ describe('Onboarding', () => {
       );
 
       expect(getByTestId('metamask-wordmark-animation')).toBeDefined();
+      jest.advanceTimersByTime(200);
     });
 
     it('should render fox animation', () => {
@@ -1492,6 +1494,7 @@ describe('Onboarding', () => {
       );
 
       expect(getByTestId('fox-animation')).toBeDefined();
+      jest.advanceTimersByTime(600);
     });
 
     it('should render both animations together', () => {
@@ -1503,6 +1506,7 @@ describe('Onboarding', () => {
         },
       );
 
+      jest.advanceTimersByTime(600);
       expect(getByTestId('metamask-wordmark-animation')).toBeDefined();
       expect(getByTestId('fox-animation')).toBeDefined();
     });
