@@ -161,28 +161,3 @@ index 4a81bbc..6cd5476 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
-diff --git a/node_modules/@metamask/assets-controllers/dist/balances.cjs b/node_modules/@metamask/assets-controllers/dist/balances.cjs
-index d229022..bffc155 100644
---- a/node_modules/@metamask/assets-controllers/dist/balances.cjs
-+++ b/node_modules/@metamask/assets-controllers/dist/balances.cjs
-@@ -1,7 +1,6 @@
- "use strict";
- Object.defineProperty(exports, "__esModule", { value: true });
- exports.calculateBalanceChangeForAccountGroup = exports.calculateBalanceChangeForAllWallets = exports.calculateBalanceForAllWallets = void 0;
--const account_api_1 = require("@metamask/account-api");
- const keyring_api_1 = require("@metamask/keyring-api");
- const utils_1 = require("@metamask/utils");
- const AssetsContractController_1 = require("./AssetsContractController.cjs");
-@@ -26,8 +25,11 @@ const isChainEnabledByMap = (map, id) => {
-     const { namespace } = (0, utils_1.parseCaipChainId)(id);
-     return Boolean(map[namespace]?.[id]);
- };
-+const getWalletIdFromGroupId = (groupId) => {
-+    return groupId.split('/')[0];
-+};
- const getInternalAccountsForGroup = (accountTreeState, accountsState, groupId) => {
--    const walletId = (0, account_api_1.parseAccountGroupId)(groupId).wallet.id;
-+    const walletId = getWalletIdFromGroupId(groupId);
-     const wallet = accountTreeState.accountTree.wallets[walletId];
-     if (!wallet) {
-         return [];
