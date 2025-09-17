@@ -7,6 +7,14 @@ scripts/**/*
 # Ignore documentation and markdown files
 *.md
 docs/**/*
+LICENSE
+attribution.txt
+
+# Ignore workflow files
+**/*.yml
+
+# Ignore SonarQube config
+sonar-project.properties
 
 # Ignore test files that don't affect native builds
 **/*.test.js
@@ -25,9 +33,6 @@ wdio/**/*
 .prettierrc*
 .eslintignore
 .prettierignore
-
-# Ignore temporary fingerprint files
-.app-native-fingerprint
 
 # Ignore yarn/npm lock files for stability
 yarn.lock

@@ -212,7 +212,7 @@ jobs:
           [ -d "$APP" ] || { echo "App bundle not found: $APP"; exit 1; }
           [ -f "$BUNDLE" ] || { echo "Bundle not found: $BUNDLE"; exit 1; }
           echo "📦 Repackaging iOS app with updated bundle..."
-          npx --yes @expo/repack-app --input "$APP" --output "$APP" --bundle "$BUNDLE"
+          npx --yes @expo/repack-app --platform ios --input "$APP" --output "$APP" --bundle "$BUNDLE"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
