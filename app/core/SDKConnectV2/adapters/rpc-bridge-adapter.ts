@@ -56,7 +56,7 @@ export class RPCBridgeAdapter
    * The processQueue will process the queue of requests in a FIFO manner.
    */
   private async processQueue(): Promise<void> {
-    // Don't run if already 1) not initialized 2) already processing 3) queue is empty
+    // Don't run if 1) not initialized 2) already processing 3) queue is empty
     if (!this.initialized || this.processing || this.queue.length === 0) return;
 
     this.processing = true;
@@ -71,7 +71,7 @@ export class RPCBridgeAdapter
       const request = this.queue.shift();
 
       this.client.onMessage({
-        name: 'metamask-provider',
+        name: 'metamask-multichain-provider',
         data: request,
       });
     }
