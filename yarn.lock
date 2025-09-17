@@ -8404,10 +8404,10 @@
   dependencies:
     "@sentry/core" "8.54.0"
 
-"@shopify/flash-list@2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-2.0.1.tgz#cde79aa41e9f677e1e5cdc542fe4f304a7338397"
-  integrity sha512-bLgwTcVOn1kzSL4q0qk6JxE+4je1xF2yUDVoIKmeI9miFPAvIxzI8cCoksUrGmRt/MXRj4mrOhAjvxQY1lSoVg==
+"@shopify/flash-list@2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-2.0.3.tgz#222427d1e09bf5cdd8a219d0a5a80f6f1d20465d"
+  integrity sha512-jUlHuZFoPdqRCDvOqsb2YkTttRPyV8Tb/EjCx3gE2wjr4UTM+fE0Ltv9bwBg0K7yo/SxRNXaW7xu5utusRb0xA==
   dependencies:
     tslib "2.8.1"
 

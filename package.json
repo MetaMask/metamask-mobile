@@ -339,7 +339,7 @@
     "@sentry/core": "~8.54.0",
     "@sentry/react": "~8.54.0",
     "@sentry/react-native": "~6.10.0",
-    "@shopify/flash-list": "2.0.1",
+    "@shopify/flash-list": "2.0.3",
     "@solana/addresses": "2.0.0",
     "@tradle/react-native-http": "2.0.1",
     "@types/he": "^1.2.3",
