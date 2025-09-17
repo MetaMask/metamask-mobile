@@ -21,6 +21,20 @@ import {
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 
+// Mock balance selector to avoid deep store dependencies
+jest.mock('../../../../selectors/assets/balances', () => {
+  const actual = jest.requireActual('../../../../selectors/assets/balances');
+  return {
+    ...actual,
+    selectBalanceByAccountGroup: (groupId: string) => () => ({
+      walletId: groupId.split('/')[0],
+      groupId,
+      totalBalanceInUserCurrency: 0,
+      userCurrency: 'usd',
+    }),
+  };
+});
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountsController: {
@@ -37,9 +51,6 @@ jest.mock('../../../../core/Engine', () => ({
         metadata: { name: 'New Account' },
         accounts: [],
       }),
-    },
-    TokenBalancesController: {
-      updateBalances: jest.fn(),
     },
   },
 }));
