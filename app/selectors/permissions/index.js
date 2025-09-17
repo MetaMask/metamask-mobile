@@ -33,12 +33,14 @@ export const getAuthorizedScopes = (origin) =>
   createSelector(getSubjects, (subjects) => {
     const subject = subjects[origin];
 
+    const emptyPermission = {
+      requiredScopes: {},
+      optionalScopes: {},
+      sessionProperties: {},
+    };
+
     if (!subject) {
-      return {
-        requiredScopes: {},
-        optionalScopes: {},
-        sessionProperties: {},
-      };
+      return emptyPermission;
     }
 
     const caveats =
@@ -46,5 +48,5 @@ export const getAuthorizedScopes = (origin) =>
 
     const caveat = caveats.find(({ type }) => type === Caip25CaveatType);
 
-    return caveat?.value;
+    return caveat?.value ?? emptyPermission;
   });
