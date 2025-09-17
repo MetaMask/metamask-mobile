@@ -9,6 +9,7 @@ import {
   MultichainAssetsControllerGetStateAction,
   MultichainAssetsControllerAccountAssetListUpdatedEvent,
 } from '@metamask/assets-controllers';
+import { AccountActivityServiceBalanceUpdatedEvent } from '@metamask/backend-platform';
 
 export type MultichainBalancesControllerActions =
   | AccountsControllerListMultichainAccountsAction
@@ -19,4 +20,5 @@ export type MultichainBalancesControllerEvents =
   | AccountsControllerAccountAddedEvent
   | AccountsControllerAccountRemovedEvent
   | AccountsControllerAccountBalancesUpdatesEvent
-  | MultichainAssetsControllerAccountAssetListUpdatedEvent;
+  | MultichainAssetsControllerAccountAssetListUpdatedEvent
+  | AccountActivityServiceBalanceUpdatedEvent;
