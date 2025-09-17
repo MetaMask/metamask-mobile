@@ -71,14 +71,54 @@ const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
  * State metadata for the RewardsController
  */
 const metadata = {
-  activeAccount: { persist: true, anonymous: false },
-  accounts: { persist: true, anonymous: false },
-  subscriptions: { persist: true, anonymous: false },
-  seasons: { persist: true, anonymous: false },
-  subscriptionReferralDetails: { persist: true, anonymous: false },
-  seasonStatuses: { persist: true, anonymous: false },
-  activeBoosts: { persist: true, anonymous: false },
-  unlockedRewards: { persist: true, anonymous: false },
+  activeAccount: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  accounts: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  subscriptions: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  seasons: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  subscriptionReferralDetails: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  seasonStatuses: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  activeBoosts: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  unlockedRewards: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 /**
  * Get the default state for the RewardsController
