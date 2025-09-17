@@ -610,6 +610,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},

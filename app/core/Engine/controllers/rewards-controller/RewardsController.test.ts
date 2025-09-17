@@ -4,13 +4,15 @@ import {
   getRewardsControllerDefaultState,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import type {
-  RewardsAccountState,
-  RewardsControllerState,
-  SeasonStatusState,
-  SeasonTierDto,
-  SeasonDtoState,
-  SubscriptionReferralDetailsState,
+import { deriveStateFromMetadata } from '@metamask/base-controller';
+import {
+  RewardClaimStatus,
+  type RewardsAccountState,
+  type RewardsControllerState,
+  type SeasonStatusState,
+  type SeasonTierDto,
+  type SeasonDtoState,
+  type SubscriptionReferralDetailsState,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 
@@ -75,10 +77,50 @@ const CAIP_ACCOUNT_3: CaipAccountId = 'eip155:1:0x789' as CaipAccountId;
 
 // Helper function to create test tier data
 const createTestTiers = (): SeasonTierDto[] => [
-  { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-  { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
-  { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
-  { id: 'platinum', name: 'Platinum', pointsNeeded: 10000 },
+  {
+    id: 'bronze',
+    name: 'Bronze',
+    pointsNeeded: 0,
+    image: {
+      lightModeUrl: 'bronze-light',
+      darkModeUrl: 'bronze-dark',
+    },
+    levelNumber: '1',
+    rewards: [],
+  },
+  {
+    id: 'silver',
+    name: 'Silver',
+    pointsNeeded: 1000,
+    image: {
+      lightModeUrl: 'silver-light',
+      darkModeUrl: 'silver-dark',
+    },
+    levelNumber: '2',
+    rewards: [],
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    pointsNeeded: 5000,
+    image: {
+      lightModeUrl: 'gold-light',
+      darkModeUrl: 'gold-dark',
+    },
+    levelNumber: '3',
+    rewards: [],
+  },
+  {
+    id: 'platinum',
+    name: 'Platinum',
+    pointsNeeded: 10000,
+    image: {
+      lightModeUrl: 'platinum-light',
+      darkModeUrl: 'platinum-dark',
+    },
+    levelNumber: '4',
+    rewards: [],
+  },
 ];
 
 // Helper function to create test season status (API response format with Date objects)
@@ -917,6 +959,7 @@ describe('RewardsController', () => {
         subscriptionReferralDetails: {},
         seasonStatuses: {},
         activeBoosts: {},
+        unlockedRewards: {},
       });
     });
   });
@@ -1071,8 +1114,28 @@ describe('RewardsController', () => {
           updatedAt: Date.now() - 3600000, // 1 hour ago
         },
         tier: {
-          currentTier: { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
-          nextTier: { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
+          currentTier: {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 1000,
+            image: {
+              lightModeUrl: 'silver-light',
+              darkModeUrl: 'silver-dark',
+            },
+            levelNumber: '2',
+            rewards: [],
+          },
+          nextTier: {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 5000,
+            image: {
+              lightModeUrl: 'gold-light',
+              darkModeUrl: 'gold-dark',
+            },
+            levelNumber: '3',
+            rewards: [],
+          },
           nextTierPointsNeeded: 3500, // 5000 - 1500
         },
         lastFetched: recentTime,
@@ -1893,10 +1956,50 @@ describe('RewardsController', () => {
     it('should sort tiers by points needed before processing', () => {
       // Arrange - Create tiers in random order
       const unsortedTiers: SeasonTierDto[] = [
-        { id: 'platinum', name: 'Platinum', pointsNeeded: 10000 },
-        { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-        { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
-        { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
+        {
+          id: 'platinum',
+          name: 'Platinum',
+          pointsNeeded: 10000,
+          image: {
+            lightModeUrl: 'platinum-light',
+            darkModeUrl: 'platinum-dark',
+          },
+          levelNumber: '4',
+          rewards: [],
+        },
+        {
+          id: 'bronze',
+          name: 'Bronze',
+          pointsNeeded: 0,
+          image: {
+            lightModeUrl: 'bronze-light',
+            darkModeUrl: 'bronze-dark',
+          },
+          levelNumber: '1',
+          rewards: [],
+        },
+        {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 5000,
+          image: {
+            lightModeUrl: 'gold-light',
+            darkModeUrl: 'gold-dark',
+          },
+          levelNumber: '3',
+          rewards: [],
+        },
+        {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'silver-light',
+            darkModeUrl: 'silver-dark',
+          },
+          levelNumber: '2',
+          rewards: [],
+        },
       ];
       const currentTierId = 'silver';
       const currentPoints = 1500;
@@ -3651,6 +3754,482 @@ describe('RewardsController', () => {
       expect(controller.state.activeBoosts[compositeKey2].boosts[0].id).toBe(
         'boost-B-Y',
       );
+    });
+  });
+
+  describe('getUnlockedRewards', () => {
+    let controller: RewardsController;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSeasonId = 'season123';
+    const mockSubscriptionId = 'sub123';
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return empty array when feature flag is disabled', async () => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      const result = await controller.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should return cached unlocked rewards when cache is fresh', async () => {
+      const recentTime = Date.now() - 120000; // 2 minutes ago (within 5 minute threshold)
+      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
+
+      const mockCachedRewards = [
+        {
+          id: 'reward-1',
+          seasonRewardId: 'season-reward-1',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+        {
+          id: 'reward-2',
+          seasonRewardId: 'season-reward-2',
+          claimStatus: RewardClaimStatus.UNCLAIMED,
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {
+            [compositeKey]: {
+              rewards: mockCachedRewards,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await controller.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockCachedRewards);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('reward-1');
+      expect(result[0].claimStatus).toBe(RewardClaimStatus.CLAIMED);
+      expect(result[1].id).toBe('reward-2');
+      expect(result[1].claimStatus).toBe(RewardClaimStatus.UNCLAIMED);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('should fetch fresh unlocked rewards when cache is stale', async () => {
+      const staleTime = Date.now() - 600000; // 10 minutes ago (beyond 5 minute threshold)
+      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
+
+      const mockStaleRewards = [
+        {
+          id: 'stale-reward',
+          seasonRewardId: 'stale-season-reward',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+
+      const mockFreshRewards = [
+        {
+          id: 'fresh-reward-1',
+          seasonRewardId: 'fresh-season-reward-1',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+        {
+          id: 'fresh-reward-2',
+          seasonRewardId: 'fresh-season-reward-2',
+          claimStatus: RewardClaimStatus.UNCLAIMED,
+        },
+        {
+          id: 'fresh-reward-3',
+          seasonRewardId: 'fresh-season-reward-3',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {
+            [compositeKey]: {
+              rewards: mockStaleRewards,
+              lastFetched: staleTime,
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(mockFreshRewards);
+
+      const result = await controller.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockFreshRewards);
+      expect(result).toHaveLength(3);
+      expect(result[0].id).toBe('fresh-reward-1');
+      expect(result[1].seasonRewardId).toBe('fresh-season-reward-2');
+      expect(result[2].claimStatus).toBe(RewardClaimStatus.CLAIMED);
+
+      // Verify state was updated with fresh data
+      const updatedCache = controller.state.unlockedRewards[compositeKey];
+      expect(updatedCache).toBeDefined();
+      expect(updatedCache.rewards).toEqual(mockFreshRewards);
+      expect(updatedCache.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('should handle cache miss and fetch fresh data', async () => {
+      const mockApiRewards = [
+        {
+          id: 'api-reward-1',
+          seasonRewardId: 'api-season-reward-1',
+          claimStatus: RewardClaimStatus.UNCLAIMED,
+        },
+        {
+          id: 'api-reward-2',
+          seasonRewardId: 'api-season-reward-2',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockApiRewards);
+
+      const result = await controller.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockApiRewards);
+      expect(result).toHaveLength(2);
+      expect(result[0].claimStatus).toBe(RewardClaimStatus.UNCLAIMED);
+      expect(result[1].claimStatus).toBe(RewardClaimStatus.CLAIMED);
+
+      // Verify state was updated with cached data
+      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
+      const cachedData = controller.state.unlockedRewards[compositeKey];
+      expect(cachedData).toBeDefined();
+      expect(cachedData.rewards).toEqual(mockApiRewards);
+      expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('should return empty array on API error', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockRejectedValue(new Error('API error'));
+
+      const result = await controller.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should handle null API response', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await controller.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual([]);
+
+      // Verify state was updated with empty array
+      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
+      const cachedData = controller.state.unlockedRewards[compositeKey];
+      expect(cachedData).toBeDefined();
+      expect(cachedData.rewards).toEqual([]);
+    });
+
+    it('should handle empty rewards array from API', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue([]);
+
+      const result = await controller.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual([]);
+      expect(result).toHaveLength(0);
+
+      // Verify state was updated
+      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
+      const cachedData = controller.state.unlockedRewards[compositeKey];
+      expect(cachedData).toBeDefined();
+      expect(cachedData.rewards).toEqual([]);
+      expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('should handle multiple concurrent calls with different parameters', async () => {
+      const seasonId1 = 'season-A';
+      const subscriptionId1 = 'sub-X';
+      const seasonId2 = 'season-B';
+      const subscriptionId2 = 'sub-Y';
+      const compositeKey1 = `${seasonId1}:${subscriptionId1}`;
+      const compositeKey2 = `${seasonId2}:${subscriptionId2}`;
+
+      const mockRewards1 = [
+        {
+          id: 'reward-A-X',
+          seasonRewardId: 'season-reward-A-X',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+
+      const mockRewards2 = [
+        {
+          id: 'reward-B-Y-1',
+          seasonRewardId: 'season-reward-B-Y-1',
+          claimStatus: RewardClaimStatus.UNCLAIMED,
+        },
+        {
+          id: 'reward-B-Y-2',
+          seasonRewardId: 'season-reward-B-Y-2',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {
+            [compositeKey1]: {
+              rewards: mockRewards1,
+              lastFetched: Date.now() - 30000, // Fresh cache
+            },
+          },
+        },
+      });
+
+      // Clear any calls made during controller initialization
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(mockRewards2);
+
+      // Act - First call should use cache
+      const result1 = await controller.getUnlockedRewards(
+        seasonId1,
+        subscriptionId1,
+      );
+
+      // Act - Second call should fetch fresh data
+      const result2 = await controller.getUnlockedRewards(
+        seasonId2,
+        subscriptionId2,
+      );
+
+      // Assert
+      expect(result1).toEqual(mockRewards1);
+      expect(result1[0].id).toBe('reward-A-X');
+      expect(result2).toEqual(mockRewards2);
+      expect(result2).toHaveLength(2);
+      expect(result2[0].claimStatus).toBe(RewardClaimStatus.UNCLAIMED);
+      expect(result2[1].claimStatus).toBe(RewardClaimStatus.CLAIMED);
+
+      // Verify API was called only once (for the second request)
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        seasonId2,
+        subscriptionId2,
+      );
+
+      // Verify both caches exist
+      expect(controller.state.unlockedRewards[compositeKey1]).toBeDefined();
+      expect(controller.state.unlockedRewards[compositeKey2]).toBeDefined();
+      expect(controller.state.unlockedRewards[compositeKey2].rewards).toEqual(
+        mockRewards2,
+      );
+    });
+
+    it('should use current season ID as default', async () => {
+      const currentSeasonId = 'current';
+      const mockRewards = [
+        {
+          id: 'current-reward',
+          seasonRewardId: 'current-season-reward',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockRewards);
+
+      const result = await controller.getUnlockedRewards(
+        currentSeasonId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        currentSeasonId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockRewards);
+      expect(result[0].seasonRewardId).toBe('current-season-reward');
+    });
+  });
+
+  describe('metadata', () => {
+    it('includes expected state in debug snapshots', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'anonymous',
+        ),
+      ).toMatchInlineSnapshot(`{}`);
+    });
+
+    it('includes expected state in state logs', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'includeInStateLogs',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "activeBoosts": {},
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+          "unlockedRewards": {},
+        }
+      `);
+    });
+
+    it('persists expected state', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'persist',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "activeBoosts": {},
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+          "unlockedRewards": {},
+        }
+      `);
+    });
+
+    it('exposes expected state to UI', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'usedInUi',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "activeBoosts": {},
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+          "unlockedRewards": {},
+        }
+      `);
     });
   });
 });
