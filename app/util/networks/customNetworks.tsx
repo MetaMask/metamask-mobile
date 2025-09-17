@@ -2,7 +2,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
@@ -155,6 +155,14 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
       return require('../../images/bitcoin-testnet-logo.png');
     case BtcScope.Signet:
       return require('../../images/bitcoin-signet-logo.svg');
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    case TrxScope.Mainnet:
+      return require('../../images/tron-logo.png');
+    case TrxScope.Nile:
+      return require('../../images/tron-logo.png');
+    case TrxScope.Shasta:
+      return require('../../images/tron-logo.png');
+    ///: END:ONLY_INCLUDE_IF(tron)
     default:
       return undefined;
   }
