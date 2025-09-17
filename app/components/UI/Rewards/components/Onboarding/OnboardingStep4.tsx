@@ -23,26 +23,30 @@ import TextField, {
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 import {
   REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
   REWARDS_ONBOARD_TERMS_URL,
 } from './constants';
-import RewardsErrorBanner from '../RewardsErrorBanner';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const navigation = useNavigation();
   const { optin, optinError, optinLoading } = useOptin();
+  const urlParams = useParams<{ isFromDeeplink: boolean; referral?: string }>();
   const {
     referralCode,
     setReferralCode: handleReferralCodeChange,
     isValidating: isValidatingReferralCode,
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
-  } = useValidateReferralCode();
+  } = useValidateReferralCode(
+    urlParams.isFromDeeplink ? urlParams?.referral : undefined,
+  );
 
   const handleNext = useCallback(() => {
     optin({ referralCode });
