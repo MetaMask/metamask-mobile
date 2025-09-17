@@ -36,7 +36,7 @@ export class RPCBridgeAdapter
    * Disposes of the RPC bridge adapter.
    */
   public dispose(): void {
-    this.messenger?.unsubscribe('KeyringController:unlock', this.processQueue);
+    this.messenger?.tryUnsubscribe('KeyringController:unlock', this.processQueue);
     this.client?.onDisconnect();
     this.removeAllListeners();
   }

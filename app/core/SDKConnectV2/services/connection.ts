@@ -30,8 +30,8 @@ export class Connection {
     this.bridge = new RPCBridgeAdapter(this);
 
     this.client.on('message', (payload) => {
-      console.warn(`[SDKConnectV2] [Connection:${this.id}] Received message:`, payload);
-      this.bridge.send(JSON.parse(payload as string));
+      console.warn(`[SDKConnectV2] [Connection:${this.id}] Received message:`, JSON.stringify(payload));
+      this.bridge.send(payload);
     });
 
     this.bridge.on('response', (payload) => {
