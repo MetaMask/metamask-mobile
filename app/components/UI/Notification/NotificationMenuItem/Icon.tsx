@@ -6,7 +6,8 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
-import RemoteImage from '../../../../components/Base/RemoteImage';
+import { Image } from 'expo-image';
+
 import METAMASK_FOX from '../../../../images/branding/fox.png';
 import { View } from 'react-native';
 
@@ -21,10 +22,6 @@ function MenuIcon(props: NotificationIconProps) {
   const menuIconStyles = {
     style:
       props.image?.variant === 'square' ? styles.squareLogo : styles.circleLogo,
-    placeholderStyle:
-      props.image?.variant === 'square'
-        ? styles.squareLogoPlaceholder
-        : styles.circleLogoPlaceholder,
   };
 
   const source = useMemo(() => {
@@ -37,12 +34,15 @@ function MenuIcon(props: NotificationIconProps) {
     return props.image.url;
   }, [props.image?.url]);
 
+  const imageStyles = useMemo(() => {
+    const size = source === METAMASK_FOX ? '80%' : '100%';
+    return { width: size, height: size, margin: 'auto' } as const;
+  }, [source]);
+
   return (
-    <RemoteImage
-      source={source}
-      style={menuIconStyles.style}
-      placeholderStyle={menuIconStyles.placeholderStyle}
-    />
+    <View style={menuIconStyles.style}>
+      <Image source={source} style={imageStyles} />
+    </View>
   );
 }
 

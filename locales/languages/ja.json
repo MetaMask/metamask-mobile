@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
-    "password": "新規パスワードの作成",
+    "password": "Create password",
     "confirm_password": "パスワードの確認",
     "create_button": "パスワードを作成",
     "import_with_seed_phrase": "秘密のリカバリーフレーズでインポート",
@@ -404,7 +404,7 @@
     "show": "表示",
     "hide": "非表示",
     "seed_phrase": "秘密のリカバリーフレーズ",
-    "must_be_at_least": "パスワードは{{number}}文字以上で設定してください",
+    "must_be_at_least": "{{number}}文字以上必要です",
     "remember_me": "認証情報を保存",
     "security_alert_title": "セキュリティアラート",
     "security_alert_message": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "このパスワードを忘れると、ウォレットに永久にアクセスできなくなります。MetaMask側ではウォレットをリセットできません。",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "再試行してください"
   },
   "import_from_seed": {
     "title": "ウォレットをインポート",
     "seed_phrase_placeholder": "秘密のリカバリーフレーズを入力してください",
-    "create_new_password": "新規パスワードの作成",
+    "create_new_password": "Create password",
     "confirm_password": "パスワードの確認",
     "import_button": "インポート",
     "cancel_button": "キャンセル",
@@ -491,7 +491,7 @@
     "srp": "シークレットリカバリーフレーズです。",
     "srp_placeholder": "各単語の間に半角スペースを入れ、誰にも見られないようにご注意ください.",
     "learn_more_link": "詳細",
-    "create_password_cta": "パスワードを作成",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Flowで続行",
     "steps": "ステップ{{currentStep}}/{{totalSteps}}",
     "password_error": "パスワードが一致しません。もう一度お試しください。",
@@ -507,6 +507,7 @@
     "home": "ホーム",
     "browser": "ブラウザ",
     "activity": "アクティビティ",
+    "trade": "Trade",
     "settings": "設定",
     "rewards": "報酬"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "レバレッジ",
         "confirm": "確定",
         "entry_price": "エントリー価格",
         "current_price": "現在の価格",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "購入",
     "sell": "売却",
-    "orders": "注文",
+    "orders": "Transfers",
     "All": "すべて",
     "Buy": "購入",
     "Sell": "売却",
     "token_marketplace": "トークンマーケットプレイス",
     "Purchased": "購入しました",
     "Sold": "売却しました",
-    "empty_orders_list": "注文がありません",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "購入注文がありません",
     "empty_sell_orders_list": "売却注文がありません",
     "purchased_currency": "{{currency}}を購入しました",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "友達を紹介",
@@ -5791,7 +5814,9 @@
         "title": "コードを共有してさらに収入を得ましょう",
         "description": "友達はボーナスポイントを獲得し、紹介した人は友達の報酬の20%を獲得できます。"
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}}分",

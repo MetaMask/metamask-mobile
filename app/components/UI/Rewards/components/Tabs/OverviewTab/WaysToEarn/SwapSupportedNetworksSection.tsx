@@ -9,15 +9,15 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { getNetworkImageSource } from '../../../../../../util/networks';
-import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
+import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
+import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
+import { getNetworkImageSource } from '../../../../../../../util/networks';
+import { NETWORKS_CHAIN_ID } from '../../../../../../../constants/network';
 import { SolScope } from '@metamask/keyring-api';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/networkController';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../selectors/multichainNetworkController';
-import { strings } from '../../../../../../../locales/i18n';
-import { PopularList } from '../../../../../../util/networks/customNetworks';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/networkController';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/multichainNetworkController';
+import { strings } from '../../../../../../../../locales/i18n';
+import { PopularList } from '../../../../../../../util/networks/customNetworks';
 
 interface NetworkConfig {
   chainId: string;

@@ -2,8 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn, WayToEarnType } from './WaysToEarn';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { ModalType } from '../../RewardsBottomSheetModal';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -18,7 +18,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 
 // Mock i18n strings
-jest.mock('../../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
       'rewards.ways_to_earn.title': 'Ways to Earn',
@@ -66,18 +66,21 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 // Mock SVG component
-jest.mock('../../../../../../images/metamask-rewards-points.svg', () => ({
-  __esModule: true,
-  default: () => {
-    const React = jest.requireActual('react');
-    const { Text } = jest.requireActual('react-native');
-    return React.createElement(
-      Text,
-      { testID: 'metamask-rewards-points' },
-      'Points Icon',
-    );
-  },
-}));
+jest.mock(
+  '../../../../../../../images/rewards/metamask-rewards-points.svg',
+  () => ({
+    __esModule: true,
+    default: () => {
+      const React = jest.requireActual('react');
+      const { Text } = jest.requireActual('react-native');
+      return React.createElement(
+        Text,
+        { testID: 'metamask-rewards-points' },
+        'Points Icon',
+      );
+    },
+  }),
+);
 
 describe('WaysToEarn', () => {
   beforeEach(() => {
