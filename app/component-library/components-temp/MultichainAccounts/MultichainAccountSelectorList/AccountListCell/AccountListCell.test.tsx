@@ -113,7 +113,7 @@ describe('AccountListCell', () => {
       );
 
       expect(
-        getByTestId(`account-checkbox-${mockAccountGroup.id}`),
+        getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
     });
 
@@ -131,7 +131,7 @@ describe('AccountListCell', () => {
       );
 
       expect(
-        queryByTestId(`account-checkbox-${mockAccountGroup.id}`),
+        queryByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeFalsy();
     });
 
@@ -148,7 +148,7 @@ describe('AccountListCell', () => {
       );
 
       expect(
-        queryByTestId(`account-checkbox-${mockAccountGroup.id}`),
+        queryByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeFalsy();
     });
 
@@ -166,9 +166,9 @@ describe('AccountListCell', () => {
       );
 
       const checkboxElements = getAllByTestId(
-        `account-checkbox-${mockAccountGroup.id}`,
+        `account-list-cell-checkbox-${mockAccountGroup.id}`,
       );
-      expect(checkboxElements.length).toBeGreaterThan(0);
+      expect(checkboxElements.length).toBe(2); // Container + Icon both have the same testID
     });
 
     it('renders unchecked checkbox when isSelected is false', () => {
@@ -185,7 +185,7 @@ describe('AccountListCell', () => {
       );
 
       expect(
-        getByTestId(`account-checkbox-${mockAccountGroup.id}`),
+        getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
       expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
     });
@@ -204,7 +204,7 @@ describe('AccountListCell', () => {
       );
 
       const checkboxElement = getByTestId(
-        `account-checkbox-${mockAccountGroup.id}`,
+        `account-list-cell-checkbox-${mockAccountGroup.id}`,
       );
       fireEvent.press(checkboxElement);
 
@@ -242,14 +242,11 @@ describe('AccountListCell', () => {
         { state: baseState },
       );
 
-      const checkboxes = getAllByTestId(
-        `account-checkbox-${mockAccountGroup.id}`,
-      );
-      expect(checkboxes.length).toBeGreaterThan(0);
+      // Verify that the checkbox is present (there will be 2 elements: container + icon)
       const checkboxElements = getAllByTestId(
-        `account-checkbox-${mockAccountGroup.id}`,
+        `account-list-cell-checkbox-${mockAccountGroup.id}`,
       );
-      expect(checkboxElements.length).toBeGreaterThan(0); // Checkbox shown when checked
+      expect(checkboxElements.length).toBe(2); // Container + Icon both have the same testID. It is passed down to the touchable opacity and the checkbox.
       expect(getByText('Test Account')).toBeTruthy();
     });
   });

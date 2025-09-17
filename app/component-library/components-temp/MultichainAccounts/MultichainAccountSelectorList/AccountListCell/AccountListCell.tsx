@@ -33,7 +33,7 @@ const AccountListCell = memo(
               <Checkbox
                 isChecked={isSelected}
                 onPress={handlePress}
-                testID={`account-checkbox-${accountGroup.id}`}
+                testID={`account-list-cell-checkbox-${accountGroup.id}`}
               />
             ) : undefined
           }
