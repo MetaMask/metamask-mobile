@@ -4,7 +4,7 @@ import { setupMockRequest } from './mockHelpers';
 
 /**
  * Sets up Contentful promotional banners mock with higher priority than notification mocks
- * @param {Mockttp} mockServer - The mock server instance
+ * @param {Mockttp} mockServer - The mock server instancee
  */
 export const setupContentfulPromotionalBannersMock = async (
   mockServer: Mockttp,

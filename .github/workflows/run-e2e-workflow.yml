@@ -152,22 +152,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-      - name: Clean environment before tests (iOS only)
-        if: ${{ inputs.platform == 'ios' }}
-        run: |
-          echo "🧹 Cleaning iOS environment before E2E tests..."
-
-          # Clean up lock files (iOS-specific issue)
-          find . -name "*.lock" -type f -delete 2>/dev/null || true
-
-          # Reset iOS simulator
-          xcrun simctl shutdown all 2>/dev/null || true
-          xcrun simctl erase all 2>/dev/null || true
-
-          # Clean any hanging processes
-          pkill -f "Metro\|node\|npm" 2>/dev/null || true
-
-          echo "✅ iOS environment cleaned"
 
       - name: Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
