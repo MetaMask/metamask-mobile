@@ -2901,14 +2901,6 @@
     semver "^7.6.0"
     xml2js "0.6.0"
 
-"@expo/repack-app@^0.2.9":
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/@expo/repack-app/-/repack-app-0.2.9.tgz#4386e5054b38cc02ccbfdc47e3a5f83e8966b704"
-  integrity sha512-ZkFacmnJMZ6Wzt73crL1Bc+cpsXzU0wG+MkXerdYx1wXa89PlLrOdIF0s1RlTbmjEBcjR/aYOKnBnwTngSsikg==
-  dependencies:
-    commander "^13.1.0"
-    picocolors "^1.1.1"
-
 "@expo/rudder-sdk-node@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@expo/rudder-sdk-node/-/rudder-sdk-node-1.1.1.tgz#6aa575f346833eb6290282118766d4919c808c6a"
