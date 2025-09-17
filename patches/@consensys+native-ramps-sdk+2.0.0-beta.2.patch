@@ -1,9 +1,10 @@
-diff --git a/node_modules/@consensys/native-ramps-sdk/dist/Deposit.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.d.ts
-new file mode 100644
-index 0000000..219ced5
---- /dev/null
-+++ b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.d.ts
-@@ -0,0 +1,69 @@
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
+index 3014bae..ea487cb 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
+@@ -1,5 +1,75 @@
+ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+ import ServicesSignatures from './ServicesSignatures';
 +import { CaipAssetReference, CaipChainId } from '@metamask/utils';
 +export interface DepositRegion {
 +    isoCode: string;
@@ -33,6 +34,7 @@ index 0000000..219ced5
 +        light: string;
 +        dark: string;
 +    };
++    isManualBankTransfer?: boolean;
 +}
 +export declare class DepositCryptoCurrency {
 +    assetId: CaipAssetReference;
@@ -73,15 +75,79 @@ index 0000000..219ced5
 +    fiatCurrencyId?: string;
 +    paymentMethod?: string;
 +}
-diff --git a/node_modules/@consensys/native-ramps-sdk/dist/Deposit.js b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.js
-new file mode 100644
-index 0000000..9feb7b0
---- /dev/null
-+++ b/node_modules/@consensys/native-ramps-sdk/dist/Deposit.js
-@@ -0,0 +1,20 @@
-+"use strict";
-+Object.defineProperty(exports, "__esModule", { value: true });
-+exports.TranslationRequest = exports.NativeQuoteTranslation = exports.DepositFiatCurrency = exports.DepositCryptoCurrency = exports.DepositPaymentMethodDuration = void 0;
+ export declare const logRequest: (config: AxiosRequestConfig) => void;
+ export declare const logResponse: (response: AxiosResponse) => void;
+ export declare const logError: (error: any) => void;
+@@ -155,12 +225,12 @@ export type DepositOrder = {
+     provider: string;
+     cryptoAmount: number | string;
+     fiatAmount: number;
+-    cryptoCurrency: string;
++    cryptoCurrency: DepositCryptoCurrency;
+     fiatCurrency: string;
+     providerOrderId: string;
+     providerOrderLink: string;
+     createdAt: number;
+-    paymentMethod: string;
++    paymentMethod: DepositPaymentMethod;
+     totalFeesFiat: number;
+     txHash: string;
+     walletAddress: string;
+@@ -169,7 +239,7 @@ export type DepositOrder = {
+     timeDescriptionPending: string;
+     fiatAmountInUsd: number;
+     feesInUsd: number;
+-    region: string;
++    region: DepositRegion;
+     orderType: DepositOrderType.Deposit;
+     exchangeRate?: number;
+     statusDescription?: string;
+@@ -276,7 +346,7 @@ export declare class NativeRampsSdk {
+     }>;
+     verifyUserOtp(email: string, verificationCode: string, stateToken: string): Promise<NativeTransakAccessToken>;
+     getUserDetails(): Promise<NativeTransakUserDetails>;
+-    getBuyQuote(fiatCurrency: string, cryptoCurrency: string, network: string, paymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
++    getBuyQuote(genericFiatCurrency: string, genericCryptoCurrency: string, genericNetwork: string, genericPaymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
+     getIdProofStatus(workFlowRunId: string): Promise<IdProofStatus>;
+     getKycRequirement(quoteId: string): Promise<KycRequirement>;
+     getAdditionalRequirements(quoteId: string): Promise<AdditionalRequirementsResponse>;
+@@ -292,7 +362,7 @@ export declare class NativeRampsSdk {
+     confirmPayment(orderId: string, paymentMethodId: string): Promise<{
+         success: boolean;
+     }>;
+-    getOrder(orderId: string, wallet: string, paymentDetails?: OrderPaymentMethod[]): Promise<DepositOrder>;
++    getOrder(orderId: string, wallet: string, paymentDetails?: OrderPaymentMethod[], abortController?: AbortController): Promise<DepositOrder>;
+     getUserLimits(fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
+     requestOtt(): Promise<OttResponse>;
+     getGeolocation(): Promise<GeolocationResponse>;
+@@ -300,5 +370,9 @@ export declare class NativeRampsSdk {
+     getActiveOrders(): Promise<TransakOrder[]>;
+     getOrdersHistory(limit?: number, skip?: number): Promise<TransakOrder[]>;
+     logout(): Promise<string>;
++    getCountries(abortController?: AbortController): Promise<DepositRegion[]>;
++    getCryptoCurrencies(regionId: string, abortController?: AbortController): Promise<DepositCryptoCurrency[]>;
++    getPaymentMethods(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, abortController?: AbortController): Promise<DepositPaymentMethod[]>;
++    getTransalation(translationRequest: TranslationRequest, abortController?: AbortController): Promise<NativeQuoteTranslation>;
+ }
+ export { ServicesSignatures };
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+index ae9dc66..94a362c 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+@@ -48,14 +48,31 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_context, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken;
++var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_regionsApiClient, _NativeRampsSdk_ordersApiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_context, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getBaseRampsUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken, _NativeRampsSdk_makeRegionApiRequest;
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.Context = exports.TransakEnvironment = exports.SdkEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
++exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.Context = exports.TransakEnvironment = exports.SdkEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = exports.TranslationRequest = exports.NativeQuoteTranslation = exports.DepositFiatCurrency = exports.DepositCryptoCurrency = exports.DepositPaymentMethodDuration = void 0;
+ const axios_1 = __importStar(require("axios"));
+ const SdkParam_1 = __importDefault(require("./SdkParam"));
+ const ServicesSignatures_1 = __importDefault(require("./ServicesSignatures"));
+ exports.ServicesSignatures = ServicesSignatures_1.default;
+ const package_json_1 = require("../package.json");
 +var DepositPaymentMethodDuration;
 +(function (DepositPaymentMethodDuration) {
 +    DepositPaymentMethodDuration["instant"] = "instant";
@@ -99,67 +165,10 @@ index 0000000..9feb7b0
 +class TranslationRequest {
 +}
 +exports.TranslationRequest = TranslationRequest;
-diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-index 3014bae..9158bf0 100644
---- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-+++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-@@ -1,5 +1,6 @@
- import type { AxiosRequestConfig, AxiosResponse } from 'axios';
- import ServicesSignatures from './ServicesSignatures';
-+import { DepositCryptoCurrency, DepositRegion, NativeQuoteTranslation, DepositPaymentMethod, TranslationRequest } from './Deposit';
- export declare const logRequest: (config: AxiosRequestConfig) => void;
- export declare const logResponse: (response: AxiosResponse) => void;
- export declare const logError: (error: any) => void;
-@@ -276,7 +277,7 @@ export declare class NativeRampsSdk {
-     }>;
-     verifyUserOtp(email: string, verificationCode: string, stateToken: string): Promise<NativeTransakAccessToken>;
-     getUserDetails(): Promise<NativeTransakUserDetails>;
--    getBuyQuote(fiatCurrency: string, cryptoCurrency: string, network: string, paymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
-+    getBuyQuote(genericFiatCurrency: string, genericCryptoCurrency: string, genericNetwork: string, genericPaymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
-     getIdProofStatus(workFlowRunId: string): Promise<IdProofStatus>;
-     getKycRequirement(quoteId: string): Promise<KycRequirement>;
-     getAdditionalRequirements(quoteId: string): Promise<AdditionalRequirementsResponse>;
-@@ -292,7 +293,7 @@ export declare class NativeRampsSdk {
-     confirmPayment(orderId: string, paymentMethodId: string): Promise<{
-         success: boolean;
-     }>;
--    getOrder(orderId: string, wallet: string, paymentDetails?: OrderPaymentMethod[]): Promise<DepositOrder>;
-+    getOrder(orderId: string, wallet: string, paymentDetails?: OrderPaymentMethod[], abortController?: AbortController): Promise<DepositOrder>;
-     getUserLimits(fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
-     requestOtt(): Promise<OttResponse>;
-     getGeolocation(): Promise<GeolocationResponse>;
-@@ -300,5 +301,9 @@ export declare class NativeRampsSdk {
-     getActiveOrders(): Promise<TransakOrder[]>;
-     getOrdersHistory(limit?: number, skip?: number): Promise<TransakOrder[]>;
-     logout(): Promise<string>;
-+    getCountries(abortController?: AbortController): Promise<DepositRegion[]>;
-+    getCryptoCurrencies(regionId: string, abortController?: AbortController): Promise<DepositCryptoCurrency[]>;
-+    getPaymentMethods(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, abortController?: AbortController): Promise<DepositPaymentMethod[]>;
-+    getTransalation(translationRequest: TranslationRequest, abortController?: AbortController): Promise<NativeQuoteTranslation>;
- }
- export { ServicesSignatures };
-diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
-index ae9dc66..a0382b6 100644
---- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
-+++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
-@@ -48,7 +48,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
- var __importDefault = (this && this.__importDefault) || function (mod) {
-     return (mod && mod.__esModule) ? mod : { "default": mod };
- };
--var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_context, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken;
-+var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_regionsApiClient, _NativeRampsSdk_ordersApiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_context, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getBaseRampsUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken, _NativeRampsSdk_makeRegionApiRequest;
- Object.defineProperty(exports, "__esModule", { value: true });
- exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.Context = exports.TransakEnvironment = exports.SdkEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
- const axios_1 = __importStar(require("axios"));
-@@ -56,6 +56,7 @@ const SdkParam_1 = __importDefault(require("./SdkParam"));
- const ServicesSignatures_1 = __importDefault(require("./ServicesSignatures"));
- exports.ServicesSignatures = ServicesSignatures_1.default;
- const package_json_1 = require("../package.json");
-+const Deposit_1 = require("./Deposit");
  const logRequest = (config) => {
      const { method, url, params, data, headers } = config;
      console.log('🚀 Request:', {
-@@ -67,6 +68,7 @@ const logRequest = (config) => {
+@@ -67,6 +84,7 @@ const logRequest = (config) => {
      });
  };
  exports.logRequest = logRequest;
@@ -167,7 +176,7 @@ index ae9dc66..a0382b6 100644
  const logResponse = (response) => {
      const { status, statusText, data, headers } = response;
      console.log('✅ Response:', {
-@@ -130,6 +132,16 @@ exports.OrderStatusEnum = {
+@@ -130,6 +148,16 @@ exports.OrderStatusEnum = {
      Cancelled: 'CANCELLED',
      IdExpired: 'ID_EXPIRED',
  };
@@ -184,7 +193,7 @@ index ae9dc66..a0382b6 100644
  class OrderIdTransformer {
      static depositOrderIdToTransakOrderId(depositOrderId) {
          const parts = depositOrderId.split('/');
-@@ -156,6 +168,8 @@ class NativeRampsSdk {
+@@ -156,6 +184,8 @@ class NativeRampsSdk {
      constructor(config, environment = SdkEnvironment.Production) {
          _NativeRampsSdk_instances.add(this);
          _NativeRampsSdk_apiClient.set(this, void 0);
@@ -193,7 +202,7 @@ index ae9dc66..a0382b6 100644
          _NativeRampsSdk_config.set(this, void 0);
          _NativeRampsSdk_environment.set(this, void 0);
          _NativeRampsSdk_context.set(this, void 0);
-@@ -172,6 +186,22 @@ class NativeRampsSdk {
+@@ -172,6 +202,22 @@ class NativeRampsSdk {
                  'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
              },
          }), "f");
@@ -216,7 +225,7 @@ index ae9dc66..a0382b6 100644
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_setupInterceptors).call(this);
      }
      setAccessToken(accessToken) {
-@@ -237,8 +267,14 @@ class NativeRampsSdk {
+@@ -237,8 +283,14 @@ class NativeRampsSdk {
              throw error;
          }
      }
@@ -232,7 +241,7 @@ index ae9dc66..a0382b6 100644
              const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/lookup/quotes', {
                  params: {
                      fiatCurrency,
-@@ -415,7 +451,7 @@ class NativeRampsSdk {
+@@ -415,7 +467,7 @@ class NativeRampsSdk {
              throw error;
          }
      }
@@ -241,7 +250,7 @@ index ae9dc66..a0382b6 100644
          var _a;
          let depositOrderId;
          if (OrderIdTransformer.isDepositOrderId(orderId)) {
-@@ -425,19 +461,12 @@ class NativeRampsSdk {
+@@ -425,19 +477,12 @@ class NativeRampsSdk {
              depositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(orderId, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
          }
          const transakOrderId = OrderIdTransformer.extractTransakOrderId(depositOrderId);
@@ -263,7 +272,7 @@ index ae9dc66..a0382b6 100644
              });
              const order = Object.assign(Object.assign({}, response.data), { id: depositOrderId, orderType: DepositOrderType.Deposit });
              if (paymentDetails && paymentDetails.length > 0) {
-@@ -573,8 +602,48 @@ class NativeRampsSdk {
+@@ -573,8 +618,48 @@ class NativeRampsSdk {
              throw error;
          }
      }
@@ -313,7 +322,7 @@ index ae9dc66..a0382b6 100644
      __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.request.use((request) => {
          var _a, _b, _c;
          if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
-@@ -596,6 +665,15 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+@@ -596,6 +681,15 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
          }
          return request;
      });
@@ -329,7 +338,7 @@ index ae9dc66..a0382b6 100644
      __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.response.use((response) => {
          if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
              (0, exports.logResponse)(response);
-@@ -619,6 +697,31 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+@@ -619,6 +713,31 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
          default:
              throw new Error(`Invalid environment: ${String(environment)}`);
      }
@@ -361,7 +370,7 @@ index ae9dc66..a0382b6 100644
  }, _NativeRampsSdk_getPaymentWidgetBaseUrl = function _NativeRampsSdk_getPaymentWidgetBaseUrl(environment) {
      switch (environment) {
          case TransakEnvironment.Production:
-@@ -645,6 +748,11 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+@@ -645,6 +764,11 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
          });
          throw error;
      }
@@ -373,7 +382,7 @@ index ae9dc66..a0382b6 100644
  };
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
-@@ -731,8 +839,9 @@ __decorate([
+@@ -731,8 +855,9 @@ __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __param(1, (0, SdkParam_1.default)({ required: true })),
      __param(2, (0, SdkParam_1.default)({ required: false })),
@@ -384,7 +393,7 @@ index ae9dc66..a0382b6 100644
      __metadata("design:returntype", Promise)
  ], NativeRampsSdk.prototype, "getOrder", null);
  __decorate([
-@@ -759,4 +868,34 @@ __decorate([
+@@ -759,4 +884,34 @@ __decorate([
      __metadata("design:paramtypes", [Number, Number]),
      __metadata("design:returntype", Promise)
  ], NativeRampsSdk.prototype, "getOrdersHistory", null);
@@ -414,7 +423,7 @@ index ae9dc66..a0382b6 100644
 +    __param(0, (0, SdkParam_1.default)({ required: true })),
 +    __param(1, (0, SdkParam_1.default)({ required: false })),
 +    __metadata("design:type", Function),
-+    __metadata("design:paramtypes", [Deposit_1.TranslationRequest,
++    __metadata("design:paramtypes", [TranslationRequest,
 +        AbortController]),
 +    __metadata("design:returntype", Promise)
 +], NativeRampsSdk.prototype, "getTransalation", null);
