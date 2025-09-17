@@ -7,7 +7,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
+import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-rewards-points.svg';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 
