@@ -200,6 +200,7 @@ const CheckoutWebView = () => {
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
           userAgent={'MetamaskCheckoutWebview'}
+          webviewDebuggingEnabled
         />
       </View>
     );
