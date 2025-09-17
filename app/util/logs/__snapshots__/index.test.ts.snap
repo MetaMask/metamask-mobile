@@ -18,6 +18,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "wallets": {},
         },
         "accountWalletsMetadata": {},
+        "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+        "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
         "internalAccounts": {
@@ -464,10 +466,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "RewardsController": {
         "accounts": {},
         "activeAccount": null,
+        "activeBoosts": {},
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
+        "unlockedRewards": {},
       },
       "SamplePetnamesController": {
         "namesByChainIdAndAddress": {},
@@ -636,10 +640,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "transactions": [],
       },
       "UserStorageController": {
-        "hasAccountSyncingSyncedAtLeastOnce": false,
         "isAccountSyncingEnabled": true,
-        "isAccountSyncingInProgress": false,
-        "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
         "isContactSyncingEnabled": true,
@@ -669,6 +670,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "wallets": {},
         },
         "accountWalletsMetadata": {},
+        "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+        "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
         "internalAccounts": {
@@ -1115,10 +1118,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "RewardsController": {
         "accounts": {},
         "activeAccount": null,
+        "activeBoosts": {},
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
+        "unlockedRewards": {},
       },
       "SamplePetnamesController": {
         "namesByChainIdAndAddress": {},
@@ -1269,10 +1274,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "transactions": [],
       },
       "UserStorageController": {
-        "hasAccountSyncingSyncedAtLeastOnce": false,
         "isAccountSyncingEnabled": true,
-        "isAccountSyncingInProgress": false,
-        "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
         "isContactSyncingEnabled": true,
