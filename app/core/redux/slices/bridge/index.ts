@@ -461,11 +461,7 @@ export const selectIsGaslessSwapEnabled = createSelector(
   (isSwap, bridgeFeatureFlags, chainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
     const chainConfig = bridgeFeatureFlags.chains[caipChainId];
-    return (
-      isSwap &&
-      // @ts-expect-error TODO: remove this once bridge controller types are updated
-      chainConfig?.isGaslessSwapEnabled === true
-    );
+    return isSwap && chainConfig?.isGaslessSwapEnabled === true;
   },
 );
 
