@@ -34,7 +34,6 @@ const PredictScreenStack = () => (
       name={Routes.PREDICT.ROOT}
       component={PredictTabView}
       options={{
-        title: strings('predict.title'),
         headerShown: false,
       }}
     />

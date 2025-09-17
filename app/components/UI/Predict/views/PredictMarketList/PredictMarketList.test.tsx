@@ -130,8 +130,6 @@ jest.mock('react-native-scrollable-tab-view', () => {
   };
 });
 
-import { getNavigationOptionsTitle } from '../../../Navbar';
-
 jest.mock('../../../Navbar', () => ({
   getNavigationOptionsTitle: jest.fn(),
 }));
@@ -147,15 +145,6 @@ jest.mock('../../../../../util/theme', () => ({
       },
     },
   })),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'predict.title': 'Prediction Markets',
-    };
-    return translations[key] || key;
-  }),
 }));
 
 describe('PredictMarketList', () => {
@@ -244,29 +233,6 @@ describe('PredictMarketList', () => {
       );
       expect(screen.getByTestId('category-politics')).toHaveTextContent(
         'politics markets',
-      );
-    });
-  });
-
-  describe('Navigation Setup', () => {
-    it('sets navigation options on mount', () => {
-      render(<PredictMarketList />);
-
-      expect(mockNavigation.setOptions).toHaveBeenCalled();
-    });
-
-    it('calls getNavigationOptionsTitle with correct parameters', () => {
-      render(<PredictMarketList />);
-
-      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
-        'Prediction Markets',
-        mockNavigation,
-        false,
-        expect.objectContaining({
-          background: expect.objectContaining({
-            default: '#ffffff',
-          }),
-        }),
       );
     });
   });

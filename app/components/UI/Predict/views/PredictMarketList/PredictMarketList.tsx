@@ -5,8 +5,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
-import { default as React, useEffect, useState } from 'react';
+import { default as React, useState } from 'react';
 import { Pressable, SafeAreaView, View } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -20,7 +19,6 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 import TabBar from '../../../../Base/TabBar';
-import { getNavigationOptionsTitle } from '../../../Navbar';
 import MarketListContent from '../../components/MarketListContent';
 import SearchBox from '../../components/SearchBox';
 import styleSheet from './PredictMarketList.styles';
@@ -29,22 +27,10 @@ interface PredictMarketListProps {}
 
 const PredictMarketList: React.FC<PredictMarketListProps> = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
   const { colors } = useTheme();
   const tw = useTailwind();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('predict.title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [navigation, colors]);
 
   const handleSearchToggle = () => {
     setIsSearchVisible(true);
