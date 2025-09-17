@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "연결 해제",
     "cancel": "취소"
   },
-  "sdk_return_to_app_modal": {
-    "title": "앱으로 돌아가기",
-    "postNetworkSwitchTitle": "네트워크 전환 성공",
-    "description": "서비스를 계속 이용하려면 앱으로 돌아가세요."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "앱으로 돌아가기",
+    "networkSwitchMethodLabel": "네트워크 전환 성공"
   },
   "sdk_feedback_modal": {
     "ok": "확인",
