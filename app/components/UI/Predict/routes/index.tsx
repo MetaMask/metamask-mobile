@@ -4,9 +4,9 @@ import { PredictCashOut } from '..';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
-import PredictMarketDetails from '../views/PredictMarketDetails/PredictMarketDetails';
-import PredictMarketList from '../views/PredictMarketList/PredictMarketList';
-import PredictTabView from '../views/PredictTabView/PredictTabView';
+import PredictMarketDetails from '../views/PredictMarketDetails';
+import PredictMarketList from '../views/PredictMarketList';
+import PredictTabView from '../views/PredictTabView';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();

@@ -4,7 +4,6 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import { PredictCategory, Side } from '../../types';
 import {
-  AMOY_CONTRACTS,
   ClobAuthDomain,
   EIP712Domain,
   MATIC_CONTRACTS,
@@ -30,7 +29,6 @@ import {
 } from './types';
 import { GetMarketsParams } from '../types';
 import {
-  AMOY_TESTNET_CHAIN_ID,
   buildMarketOrderCreationArgs,
   buildPolyHmacSignature,
   calculateBuyMarketPrice,
@@ -109,21 +107,12 @@ describe('polymarket utils', () => {
   });
 
   describe('getPolymarketEndpoints', () => {
-    it('should return production endpoints by default', () => {
+    it('should return production endpoints', () => {
       const endpoints = getPolymarketEndpoints();
       expect(endpoints).toEqual({
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
-      });
-    });
-
-    it('should return staging endpoints when isStaging is true', () => {
-      const endpoints = getPolymarketEndpoints({ isStaging: true });
-      expect(endpoints).toEqual({
-        GAMMA_API_ENDPOINT: 'https://gamma-api-staging.polymarket.com',
-        CLOB_ENDPOINT: 'https://clob-staging.polymarket.com',
-        DATA_API_ENDPOINT: 'https://data-api-staging.polymarket.com',
       });
     });
   });
@@ -911,14 +900,9 @@ describe('polymarket utils', () => {
       expect(config).toEqual(MATIC_CONTRACTS);
     });
 
-    it('should return Amoy testnet contracts', () => {
-      const config = getContractConfig(AMOY_TESTNET_CHAIN_ID);
-      expect(config).toEqual(AMOY_CONTRACTS);
-    });
-
     it('should throw error for unsupported chain', () => {
       expect(() => getContractConfig(999)).toThrow(
-        'MetaMask Predict is only supported on Polygon mainnet and Amoy testnet',
+        'MetaMask Predict is only supported on Polygon mainnet',
       );
     });
   });

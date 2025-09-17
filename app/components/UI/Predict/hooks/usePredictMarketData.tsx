@@ -87,7 +87,6 @@ export const usePredictMarketData = (
               throw new Error('Predict controller not available');
             }
 
-            await controller.initializeProviders();
             const markets = await controller.getMarkets({
               category,
               q,

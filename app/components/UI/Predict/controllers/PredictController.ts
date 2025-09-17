@@ -365,7 +365,7 @@ export class PredictController extends BaseController<
    * Must be called before using any other methods
    * Prevents double initialization with promise caching
    */
-  async initializeProviders(): Promise<void> {
+  private async initializeProviders(): Promise<void> {
     if (this.isInitialized) {
       return;
     }

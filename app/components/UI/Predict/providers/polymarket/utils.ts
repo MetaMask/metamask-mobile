@@ -13,7 +13,6 @@ import {
 } from '../../types';
 import { getRecurrenceDisplay } from '../../utils/format';
 import {
-  AMOY_CONTRACTS,
   ClobAuthDomain,
   EIP712Domain,
   MATIC_CONTRACTS,
@@ -44,20 +43,11 @@ import { GetMarketsParams } from '../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export const POLYGON_MAINNET_CHAIN_ID = 137;
-export const AMOY_TESTNET_CHAIN_ID = 80002;
 
-export const getPolymarketEndpoints = (
-  { isStaging = false }: { isStaging?: boolean } = { isStaging: false },
-) => ({
-  GAMMA_API_ENDPOINT: isStaging
-    ? 'https://gamma-api-staging.polymarket.com'
-    : 'https://gamma-api.polymarket.com',
-  CLOB_ENDPOINT: isStaging
-    ? 'https://clob-staging.polymarket.com'
-    : 'https://clob.polymarket.com',
-  DATA_API_ENDPOINT: isStaging
-    ? 'https://data-api-staging.polymarket.com'
-    : 'https://data-api.polymarket.com',
+export const getPolymarketEndpoints = () => ({
+  GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
+  CLOB_ENDPOINT: 'https://clob.polymarket.com',
+  DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
 });
 
 export const getL1Headers = async ({ address }: { address: string }) => {
@@ -200,7 +190,7 @@ export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
 export const getTickSize = async ({ tokenId }: { tokenId: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints({ isStaging: false });
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
 
   const response = await fetch(
     `${CLOB_ENDPOINT}/tick-size?token_id=${tokenId}`,
@@ -213,7 +203,7 @@ export const getTickSize = async ({ tokenId }: { tokenId: string }) => {
 };
 
 export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
-  const { CLOB_ENDPOINT } = getPolymarketEndpoints({ isStaging: false });
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
 
   const response = await fetch(`${CLOB_ENDPOINT}/book?token_id=${tokenId}`, {
     method: 'GET',
@@ -471,8 +461,6 @@ export const getContractConfig = (chainID: number): ContractConfig => {
   switch (chainID) {
     case POLYGON_MAINNET_CHAIN_ID:
       return MATIC_CONTRACTS;
-    case AMOY_TESTNET_CHAIN_ID:
-      return AMOY_CONTRACTS;
     default:
       throw new Error(
         'MetaMask Predict is only supported on Polygon mainnet and Amoy testnet',
@@ -697,7 +685,7 @@ export const getMarketFromPolymarketApi = async ({
 }: {
   conditionId: string;
 }) => {
-  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints({ isStaging: false });
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
   const response = await fetch(
     `${GAMMA_API_ENDPOINT}/markets?condition_ids=${conditionId}`,
   );

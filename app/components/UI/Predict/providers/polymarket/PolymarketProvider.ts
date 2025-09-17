@@ -53,12 +53,8 @@ export type SignTypedMessageFn = (
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = 'polymarket';
 
-  #isTestnet: boolean;
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
 
-  constructor(options: { isTestnet?: boolean }) {
-    this.#isTestnet = options.isTestnet || false;
-  }
   public getMarketDetails(_params: {
     marketId: string;
   }): Promise<PredictMarket> {
