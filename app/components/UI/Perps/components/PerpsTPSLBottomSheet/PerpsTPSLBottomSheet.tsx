@@ -171,6 +171,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     entryPrice: effectiveEntryPrice,
     isVisible,
     liquidationPrice: displayLiquidationPrice,
+    orderType,
   });
 
   // Extract form state and handlers for easier access
