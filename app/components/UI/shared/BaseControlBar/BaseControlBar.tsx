@@ -40,6 +40,7 @@ import createControlBarStyles from '../ControlBarStyles';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { NetworkManagerSelectorIDs } from '../../../../../e2e/selectors/wallet/NetworkManager.selectors';
 
 export interface BaseControlBarProps {
   /**
@@ -106,6 +107,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
+  const currentNetworkCaipChainId = getNetworkInfo(0)?.caipChainId;
 
   // Determine if disabled (use custom logic if provided, otherwise use hook logic)
   const isDisabled = customIsDisabled ?? hookIsDisabled;
@@ -156,6 +158,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             variant={TextVariant.BodyMDMedium}
             style={styles.controlButtonText}
             numberOfLines={1}
+            testID={`${NetworkManagerSelectorIDs.BASE_CONTROL_BAR_NETWORK_LABEL}-${currentNetworkCaipChainId}`}
           >
             {displayAllNetworks
               ? strings('wallet.all_networks')

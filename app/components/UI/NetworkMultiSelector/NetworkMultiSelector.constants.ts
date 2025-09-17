@@ -15,15 +15,26 @@ export const NETWORK_MULTI_SELECTOR_TEST_IDS = {
   // Tabs
   POPULAR_NETWORKS_TAB: 'popular-networks-tab',
   CUSTOM_NETWORKS_TAB: 'custom-networks-tab',
+
+  // List Item
+  NETWORK_LIST_ITEM: (caipChainId: string, isSelected: boolean) =>
+    `network-list-item-${caipChainId}-${
+      isSelected ? 'selected' : 'not-selected'
+    }`,
 } as const;
 
-export enum CaipChainIds {
+export enum NetworkToCaipChainId {
   ETHEREUM = 'eip155:1',
   LINEA = 'eip155:59144',
-  ARBITRUM = 'eip155:42161',
   AVALANCHE = 'eip155:43114',
-  BSC = 'eip155:56',
+  BNB = 'eip155:56',
+  ZKSYNC_ERA = 'eip155:324',
   BASE = 'eip155:8453',
   OPTIMISM = 'eip155:10',
   POLYGON = 'eip155:137',
+  PALM = 'eip155:11297108109',
+  ARBITRUM = 'eip155:42161',
+  LOCALHOST = 'eip155:1337',
+  ETHEREUM_SEPOLIA = 'eip155:11155111',
+  LINEA_SEPOLIA = 'eip155:59141',
 }

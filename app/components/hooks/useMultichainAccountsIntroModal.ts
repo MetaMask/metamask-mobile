@@ -5,6 +5,9 @@ import { selectMultichainAccountsState2Enabled } from '../../selectors/featureFl
 import { selectMultichainAccountsIntroModalSeen } from '../../reducers/user/selectors';
 import Routes from '../../constants/navigation/Routes';
 
+const isE2ETest =
+  process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
+
 /**
  * Hook to handle showing the multichain accounts intro modal
  * Shows the modal only when:
@@ -21,7 +24,7 @@ export const useMultichainAccountsIntroModal = () => {
 
   useEffect(() => {
     // Only show modal if state 2 is enabled and user hasn't seen it
-    if (isMultichainAccountsState2Enabled && !hasSeenIntroModal) {
+    if (isMultichainAccountsState2Enabled && !hasSeenIntroModal && !isE2ETest) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO,
       });

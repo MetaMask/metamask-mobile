@@ -99,7 +99,7 @@ const CustomNetworkSelector = ({
       };
 
       return (
-        <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
+        <View>
           <Cell
             variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
@@ -115,6 +115,10 @@ const CustomNetworkSelector = ({
             buttonProps={{
               onButtonClick: handleMenuPress,
             }}
+            testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
+              caipChainId,
+              isSelected,
+            )}
           />
         </View>
       );
