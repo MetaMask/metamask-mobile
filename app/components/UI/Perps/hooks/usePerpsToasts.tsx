@@ -26,6 +26,8 @@ import { View, StyleSheet } from 'react-native';
 export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
 };
+
+// TODO: Fix typing so that missing perps configs cause typescript error.
 export interface PerpsToastOptionsConfig {
   accountManagement: {
     deposit: {
@@ -123,6 +125,10 @@ export interface PerpsToastOptionsConfig {
           switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
+    };
+    tpsl: {
+      updateTPSLSuccess: PerpsToastOptions;
+      updateTPSLError: (error?: string) => PerpsToastOptions;
     };
   };
   formValidation: {
@@ -635,6 +641,25 @@ const usePerpsToasts = (): {
                 ),
               },
             },
+          },
+        },
+        tpsl: {
+          updateTPSLSuccess: {
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_success'),
+            ),
+          },
+          updateTPSLError: (error?: string) => {
+            const errorMessage = error || strings('perps.errors.unknown');
+
+            return {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.position.tpsl.update_failed'),
+                errorMessage,
+              ),
+            };
           },
         },
       },

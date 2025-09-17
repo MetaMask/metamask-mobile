@@ -495,6 +495,100 @@ describe('usePerpsToasts', () => {
       });
     });
 
+    describe('positionManagement.tpsl', () => {
+      it('returns update TPSL success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl
+            .updateTPSLSuccess;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'TP/SL updated successfully', isBold: true },
+        ]);
+      });
+
+      it('returns update TPSL error configuration with custom error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const customError = 'Network connection failed';
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+            customError,
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to update TP/SL', isBold: true },
+          { label: '\n', isBold: false },
+          { label: customError, isBold: false },
+        ]);
+      });
+
+      it('returns update TPSL error configuration with default error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl.updateTPSLError();
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to update TP/SL', isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: {
+              description:
+                'An unexpected error occurred. Please try again later.',
+              retry: 'Retry',
+              title: 'Something Went Wrong',
+            },
+            isBold: false,
+          },
+        ]);
+      });
+
+      it('returns update TPSL error configuration with undefined error', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+            undefined,
+          );
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to update TP/SL', isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: {
+              description:
+                'An unexpected error occurred. Please try again later.',
+              retry: 'Retry',
+              title: 'Something Went Wrong',
+            },
+            isBold: false,
+          },
+        ]);
+      });
+    });
+
     describe('formValidation.orderForm', () => {
       it('returns validation error configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
