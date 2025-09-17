@@ -199,7 +199,7 @@ jobs:
           # Always use the splitting script (handles both split and non-split cases)
           echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
 
-          ./.github/scripts/run-e2e-tags-gha.mjs
+          node .github/scripts/run-e2e-tags-gha.mjs
           
           echo "✅ Test execution completed"
         env:
