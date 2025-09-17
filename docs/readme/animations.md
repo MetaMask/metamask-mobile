@@ -63,8 +63,6 @@ Read more about troubleshooting [here](https://airbnb.io/lottie/#/react-native?i
 >
 > **!! USE AT YOUR OWN RISK !!**
 
-According to the Lottie [website](https://lottiefiles.com/what-is-lottie): A Lottie is a JSON-based animation file format. Originally, Lottie files were created in Adobe After Effects through the [Bodymovin](https://aescripts.com/bodymovin/) plugin. As the ecosystem matured over the years, support was added for other tools such as Figma and Lottie Creator. Read more [here](https://lottiefiles.com/lottie-creator).
-
 ### Usage
 
 Read more on React native documenation for Rive [here](https://rive.app/docs/runtimes/react-native/react-native). Instructions on loading Rive files both locally and remotely [here](https://rive.app/docs/runtimes/react-native/loading-rive-to-expo).
@@ -84,30 +82,14 @@ function App() {
 }
 ```
 
-Imperative:
+Devs should get the following values from the designers:
 
-```javascript
-import React, { useEffect, useRef } from 'react';
-import LottieView from 'lottie-react-native';
+1. State machine name
 
-export default function AnimationWithImperativeApi() {
-  const animationRef = useRef < LottieView > null;
+- Android will crash without this, iOS seems to work with `"default"`.
 
-  useEffect(() => {
-    animationRef.current?.play();
-
-    // Or set a specific startFrame and endFrame with:
-    animationRef.current?.play(30, 120);
-  }, []);
-
-  return (
-    <LottieView
-      ref={animationRef}
-      source={{ uri: 'https://lottiefileexample.com/animation.json' }}
-    />
-  );
-}
-```
+2. Trigger names
+3. Animation names
 
 ### Troubleshooting
 
