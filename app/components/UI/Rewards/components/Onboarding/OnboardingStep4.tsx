@@ -56,9 +56,8 @@ const OnboardingStep4: React.FC = () => {
   }, [optin, referralCode]);
 
   const handlePrevious = useCallback(() => {
-    // Reset onboarding state so we can jump from step 1 to 5 next time
-    dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    navigation.navigate(Routes.WALLET_VIEW);
+    dispatch(setOnboardingActiveStep(OnboardingStep.STEP_3));
+    navigation.navigate(Routes.REWARDS_ONBOARDING_3);
   }, [dispatch, navigation]);
 
   const renderStepInfo = () => (
@@ -83,7 +82,7 @@ const OnboardingStep4: React.FC = () => {
       </Box>
 
       {/* Referral Code Input Section */}
-      <Box twClassName="w-full min-h-32 gap-20">
+      <Box twClassName="w-full min-h-32 gap-20 my-4">
         <Text variant={TextVariant.HeadingLg} twClassName="text-center">
           {referralCodeIsValid
             ? strings('rewards.onboarding.step4_title_referral_bonus')
