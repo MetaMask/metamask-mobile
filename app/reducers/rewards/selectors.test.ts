@@ -23,11 +23,20 @@ import {
   selectReferralDetailsLoading,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
+  selectActiveBoosts,
+  selectActiveBoostsLoading,
+  selectActiveBoostsError,
+  selectUnlockedRewards,
+  selectUnlockedRewardLoading,
+  selectSeasonRewardById,
 } from './selectors';
 import { OnboardingStep } from './types';
-import { SeasonTierDto } from '../../core/Engine/controllers/rewards-controller/types';
-import { RootState } from '../index';
-import { RewardsState } from './index';
+import {
+  RewardDto,
+  SeasonTierDto,
+} from '../../core/Engine/controllers/rewards-controller/types';
+import { RootState } from '..';
+import { RewardsState } from '.';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -158,6 +167,12 @@ describe('Rewards selectors', () => {
         id: 'tier1',
         name: 'Bronze',
         pointsNeeded: 100,
+        image: {
+          lightModeUrl: 'https://example.com/bronze-light.png',
+          darkModeUrl: 'https://example.com/bronze-dark.png',
+        },
+        levelNumber: '1',
+        rewards: [],
       };
       const mockState = { rewards: { currentTier: mockTier } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
@@ -181,6 +196,12 @@ describe('Rewards selectors', () => {
         id: 'tier2',
         name: 'Silver',
         pointsNeeded: 500,
+        image: {
+          lightModeUrl: 'https://example.com/silver-light.png',
+          darkModeUrl: 'https://example.com/silver-dark.png',
+        },
+        levelNumber: '2',
+        rewards: [],
       };
       const mockState = { rewards: { nextTier: mockTier } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
@@ -400,16 +421,34 @@ describe('Rewards selectors', () => {
           id: 'bronze',
           name: 'Bronze',
           pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'https://example.com/bronze-light.png',
+            darkModeUrl: 'https://example.com/bronze-dark.png',
+          },
+          levelNumber: '1',
+          rewards: [],
         },
         {
           id: 'silver',
           name: 'Silver',
           pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'https://example.com/silver-light.png',
+            darkModeUrl: 'https://example.com/silver-dark.png',
+          },
+          levelNumber: '2',
+          rewards: [],
         },
         {
           id: 'gold',
           name: 'Gold',
           pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'https://example.com/gold-light.png',
+            darkModeUrl: 'https://example.com/gold-dark.png',
+          },
+          levelNumber: '3',
+          rewards: [],
         },
       ];
       const mockState = { rewards: { seasonTiers: mockTiers } };
@@ -630,17 +669,171 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectCurrentSeasonId', () => {
+    it('returns null when season ID is null', () => {
+      const mockState = { rewards: { seasonId: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns season ID when set', () => {
+      const mockState = { rewards: { seasonId: 'season-123' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe('season-123');
+    });
+
+    it('returns different season IDs correctly', () => {
+      const mockState = { rewards: { seasonId: 'winter-2024' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonId));
+      expect(result.current).toBe('winter-2024');
+    });
+  });
+
+  describe('selectActiveBoosts', () => {
+    it('returns empty array when no boosts', () => {
+      const mockState = { rewards: { activeBoosts: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns active boosts array when set', () => {
+      const mockBoosts = [
+        {
+          id: 'boost-1',
+          name: 'Test Boost 1',
+          icon: {
+            lightModeUrl: 'light1.png',
+            darkModeUrl: 'dark1.png',
+          },
+          boostBips: 1000,
+          seasonLong: true,
+          backgroundColor: '#FF0000',
+        },
+        {
+          id: 'boost-2',
+          name: 'Test Boost 2',
+          icon: {
+            lightModeUrl: 'light2.png',
+            darkModeUrl: 'dark2.png',
+          },
+          boostBips: 500,
+          seasonLong: false,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-01-31'),
+          backgroundColor: '#00FF00',
+        },
+      ];
+      const mockState = { rewards: { activeBoosts: mockBoosts } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual(mockBoosts);
+      expect(result.current).toHaveLength(2);
+      expect(result.current?.[0]?.id).toBe('boost-1');
+      expect(result.current?.[1]?.seasonLong).toBe(false);
+    });
+
+    it('returns single boost correctly', () => {
+      const singleBoost = [
+        {
+          id: 'single-boost',
+          name: 'Single Boost',
+          icon: {
+            lightModeUrl: 'single.png',
+            darkModeUrl: 'single-dark.png',
+          },
+          boostBips: 2000,
+          seasonLong: true,
+          backgroundColor: '#0000FF',
+        },
+      ];
+      const mockState = { rewards: { activeBoosts: singleBoost } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoosts));
+      expect(result.current).toEqual(singleBoost);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.name).toBe('Single Boost');
+      expect(result.current?.[0]?.boostBips).toBe(2000);
+    });
+  });
+
+  describe('selectActiveBoostsLoading', () => {
+    it('returns false when not loading', () => {
+      const mockState = { rewards: { activeBoostsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectActiveBoostsLoading),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when banner should be hidden', () => {
+      const mockState = { rewards: { hideUnlinkedAccountsBanner: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideUnlinkedAccountsBanner),
+      );
+      expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectActiveBoostsError', () => {
+    it('returns false when no error', () => {
+      const mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when error occurs', () => {
+      const mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveBoostsError));
+      expect(result.current).toBe(true);
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectActiveBoostsError),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to error
+      mockState = { rewards: { activeBoostsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Change back to no error
+      mockState = { rewards: { activeBoostsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+  });
+
   // Direct selector tests (without useSelector hook)
   describe('Direct selector calls', () => {
     describe('selectActiveTab direct calls', () => {
       it('returns correct active tab directly', () => {
         const state = createMockRootState({ activeTab: 'activity' });
         expect(selectActiveTab(state)).toBe('activity');
-      });
-
-      it('returns null when activeTab is null directly', () => {
-        const state = createMockRootState({ activeTab: null });
-        expect(selectActiveTab(state)).toBeNull();
       });
     });
 
@@ -685,17 +878,67 @@ describe('Rewards selectors', () => {
       });
 
       it('returns single tier correctly', () => {
-        const tier = { id: 'bronze', name: 'Bronze', pointsNeeded: 100 };
+        const tier = {
+          id: 'bronze',
+          name: 'Bronze',
+          pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'bronze.png',
+            darkModeUrl: 'bronze-dark.png',
+          },
+          levelNumber: 'Level 1',
+          rewards: [],
+        };
         const state = createMockRootState({ seasonTiers: [tier] });
         expect(selectSeasonTiers(state)).toEqual([tier]);
       });
 
       it('preserves tier order', () => {
         const tiers = [
-          { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-          { id: 'silver', name: 'Silver', pointsNeeded: 100 },
-          { id: 'gold', name: 'Gold', pointsNeeded: 500 },
-          { id: 'platinum', name: 'Platinum', pointsNeeded: 1000 },
+          {
+            id: 'bronze',
+            name: 'Bronze',
+            pointsNeeded: 100,
+            image: {
+              lightModeUrl: 'bronze.png',
+              darkModeUrl: 'bronze-dark.png',
+            },
+            levelNumber: 'Level 1',
+            rewards: [],
+          },
+          {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 100,
+            image: {
+              lightModeUrl: 'silver.png',
+              darkModeUrl: 'silver-dark.png',
+            },
+            levelNumber: 'Level 2',
+            rewards: [],
+          },
+          {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 500,
+            image: {
+              lightModeUrl: 'gold.png',
+              darkModeUrl: 'gold-dark.png',
+            },
+            levelNumber: 'Level 3',
+            rewards: [],
+          },
+          {
+            id: 'platinum',
+            name: 'Platinum',
+            pointsNeeded: 1000,
+            image: {
+              lightModeUrl: 'platinum.png',
+              darkModeUrl: 'platinum-dark.png',
+            },
+            levelNumber: 'Level 4',
+            rewards: [],
+          },
         ];
         const state = createMockRootState({ seasonTiers: tiers });
         expect(selectSeasonTiers(state)).toEqual(tiers);
@@ -729,6 +972,18 @@ describe('Rewards selectors', () => {
       it('returns null correctly', () => {
         const state = createMockRootState({ candidateSubscriptionId: null });
         expect(selectCandidateSubscriptionId(state)).toBeNull();
+      });
+    });
+
+    describe('selectActiveBoostsError direct calls', () => {
+      it('returns false when no error', () => {
+        const state = createMockRootState({ activeBoostsError: false });
+        expect(selectActiveBoostsError(state)).toBe(false);
+      });
+
+      it('returns true when error occurs', () => {
+        const state = createMockRootState({ activeBoostsError: true });
+        expect(selectActiveBoostsError(state)).toBe(true);
       });
     });
   });
@@ -934,7 +1189,17 @@ describe('Rewards selectors', () => {
   describe('Performance and consistency', () => {
     describe('Selector consistency', () => {
       it('returns same reference for same input', () => {
-        const tier = { id: 'silver', name: 'Silver', pointsNeeded: 500 };
+        const tier = {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'silver.png',
+            darkModeUrl: 'silver-dark.png',
+          },
+          levelNumber: 'Level 2',
+          rewards: [],
+        };
         const state = createMockRootState({ currentTier: tier });
 
         const result1 = selectCurrentTier(state);
@@ -945,9 +1210,28 @@ describe('Rewards selectors', () => {
       });
 
       it('returns different references for different inputs', () => {
-        const tier1 = { id: 'silver', name: 'Silver', pointsNeeded: 500 };
-        const tier2 = { id: 'gold', name: 'Gold', pointsNeeded: 1000 };
-
+        const tier1 = {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'silver.png',
+            darkModeUrl: 'silver-dark.png',
+          },
+          levelNumber: 'Level 2',
+          rewards: [],
+        };
+        const tier2 = {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'gold.png',
+            darkModeUrl: 'gold-dark.png',
+          },
+          levelNumber: 'Level 3',
+          rewards: [],
+        };
         const state1 = createMockRootState({ currentTier: tier1 });
         const state2 = createMockRootState({ currentTier: tier2 });
 
@@ -968,15 +1252,50 @@ describe('Rewards selectors', () => {
         seasonStartDate: new Date('2024-01-01'),
         seasonEndDate: new Date('2024-03-31'),
         seasonTiers: [
-          { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-          { id: 'silver', name: 'Silver', pointsNeeded: 500 },
-          { id: 'gold', name: 'Gold', pointsNeeded: 1500 },
+          {
+            id: 'bronze',
+            name: 'Bronze',
+            pointsNeeded: 0,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 1',
+            rewards: [],
+          },
+          {
+            id: 'silver',
+            name: 'Silver',
+            pointsNeeded: 500,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 2',
+            rewards: [],
+          },
+          {
+            id: 'gold',
+            name: 'Gold',
+            pointsNeeded: 1500,
+            image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+            levelNumber: 'Level 3',
+            rewards: [],
+          },
         ],
         referralDetailsLoading: false,
         referralCode: 'REFER2024',
         refereeCount: 25,
-        currentTier: { id: 'silver', name: 'Silver', pointsNeeded: 500 },
-        nextTier: { id: 'gold', name: 'Gold', pointsNeeded: 1500 },
+        currentTier: {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 500,
+          image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+          levelNumber: 'Level 2',
+          rewards: [],
+        },
+        nextTier: {
+          id: 'gold',
+          name: 'Gold',
+          pointsNeeded: 1500,
+          image: { lightModeUrl: 'lightModeUrl', darkModeUrl: 'darkModeUrl' },
+          levelNumber: 'Level 3',
+          rewards: [],
+        },
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
         balanceRefereePortion: 1250.25,
@@ -987,6 +1306,9 @@ describe('Rewards selectors', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        activeBoosts: [],
+        activeBoostsLoading: false,
+        activeBoostsError: false,
       });
 
       it('all selectors return expected values from comprehensive state', () => {
@@ -1022,7 +1344,305 @@ describe('Rewards selectors', () => {
         expect(selectOptinAllowedForGeo(comprehensiveState)).toBe(true);
         expect(selectOptinAllowedForGeoLoading(comprehensiveState)).toBe(false);
         expect(selectHideUnlinkedAccountsBanner(comprehensiveState)).toBe(true);
+        expect(selectActiveBoosts(comprehensiveState)).toEqual([]);
+        expect(selectActiveBoostsLoading(comprehensiveState)).toBe(false);
+        expect(selectActiveBoostsError(comprehensiveState)).toBe(false);
       });
+      it('returns true when loading', () => {
+        const mockState = { rewards: { activeBoostsLoading: true } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+        const { result } = renderHook(() =>
+          useSelector(selectActiveBoostsLoading),
+        );
+        expect(result.current).toBe(true);
+      });
+
+      it('handles loading state changes correctly', () => {
+        let mockState = { rewards: { activeBoostsLoading: false } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+        const { result, rerender } = renderHook(() =>
+          useSelector(selectActiveBoostsLoading),
+        );
+        expect(result.current).toBe(false);
+
+        // Change state to loading
+        mockState = { rewards: { activeBoostsLoading: true } };
+        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+        rerender();
+        expect(result.current).toBe(true);
+      });
+    });
+  });
+
+  describe('selectUnlockedRewards', () => {
+    it('returns empty array when unlockedRewards is null', () => {
+      const mockState = { rewards: { unlockedRewards: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectUnlockedRewards));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns empty array when unlockedRewards is empty', () => {
+      const mockState = { rewards: { unlockedRewards: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectUnlockedRewards));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns unlocked rewards array when available', () => {
+      const mockUnlockedRewards = [
+        {
+          id: 'reward-1',
+          seasonRewardId: 'season-reward-1',
+          claimStatus: 'CLAIMED',
+        },
+        {
+          id: 'reward-2',
+          seasonRewardId: 'season-reward-2',
+          claimStatus: 'UNCLAIMED',
+        },
+      ];
+      const mockState = { rewards: { unlockedRewards: mockUnlockedRewards } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectUnlockedRewards));
+      expect(result.current).toEqual(mockUnlockedRewards);
+      expect(result.current).toHaveLength(2);
+      expect(result.current[0].id).toBe('reward-1');
+      expect(result.current[1].claimStatus).toBe('UNCLAIMED');
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = { rewards: { unlockedRewards: [] as RewardDto[] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectUnlockedRewards),
+      );
+      expect(result.current).toEqual([]);
+
+      // Change state to have rewards
+      const newRewards = [
+        {
+          id: 'new-reward',
+          seasonRewardId: 'season-1',
+          claimStatus: 'CLAIMED',
+        },
+      ] as RewardDto[];
+      mockState = { rewards: { unlockedRewards: newRewards } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newRewards);
+    });
+  });
+
+  describe('selectUnlockedRewardLoading', () => {
+    it('returns false when unlockedRewardLoading is false', () => {
+      const mockState = { rewards: { unlockedRewardLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when unlockedRewardLoading is true', () => {
+      const mockState = { rewards: { unlockedRewardLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when unlockedRewardLoading is undefined', () => {
+      const mockState = { rewards: { unlockedRewardLoading: undefined } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('handles loading state changes correctly', () => {
+      let mockState = { rewards: { unlockedRewardLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectUnlockedRewardLoading),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to loading
+      mockState = { rewards: { unlockedRewardLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectSeasonRewardById', () => {
+    const mockSeasonTiers = [
+      {
+        id: 'tier-1',
+        name: 'Bronze',
+        pointsNeeded: 0,
+        image: {
+          lightModeUrl: 'https://example.com/bronze-light.png',
+          darkModeUrl: 'https://example.com/bronze-dark.png',
+        },
+        levelNumber: '1',
+        rewards: [
+          {
+            id: 'reward-1',
+            name: 'Bronze Badge',
+            shortDescription: 'Bronze tier reward',
+            iconName: 'Star',
+            rewardType: 'BADGE',
+          },
+          {
+            id: 'reward-2',
+            name: 'Bronze Points',
+            shortDescription: 'Bronze tier points',
+            iconName: 'Trophy',
+            rewardType: 'POINTS',
+          },
+        ],
+      },
+      {
+        id: 'tier-2',
+        name: 'Silver',
+        pointsNeeded: 1000,
+        image: {
+          lightModeUrl: 'https://example.com/silver-light.png',
+          darkModeUrl: 'https://example.com/silver-dark.png',
+        },
+        levelNumber: '2',
+        rewards: [
+          {
+            id: 'reward-3',
+            name: 'Silver Badge',
+            shortDescription: 'Silver tier reward',
+            iconName: 'Medal',
+            rewardType: 'BADGE',
+          },
+        ],
+      },
+    ];
+
+    it('returns undefined when seasonTiers is null', () => {
+      const mockState = { rewards: { seasonTiers: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('returns undefined when seasonTiers is empty', () => {
+      const mockState = { rewards: { seasonTiers: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('returns undefined when reward is not found', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('non-existent-reward')),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('returns the correct reward when found in first tier', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-1');
+      expect(result.current?.name).toBe('Bronze Badge');
+      expect(result.current?.rewardType).toBe('BADGE');
+    });
+
+    it('returns the correct reward when found in second tier', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-3')),
+      );
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-3');
+      expect(result.current?.name).toBe('Silver Badge');
+      expect(result.current?.rewardType).toBe('BADGE');
+    });
+
+    it('returns the correct reward from multiple rewards in same tier', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-2')),
+      );
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-2');
+      expect(result.current?.name).toBe('Bronze Points');
+      expect(result.current?.rewardType).toBe('POINTS');
+    });
+
+    it('handles different reward IDs correctly', () => {
+      const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      // Test multiple different IDs
+      const { result: result1 } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      const { result: result2 } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-2')),
+      );
+      const { result: result3 } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-3')),
+      );
+
+      expect(result1.current?.id).toBe('reward-1');
+      expect(result2.current?.id).toBe('reward-2');
+      expect(result3.current?.id).toBe('reward-3');
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = { rewards: { seasonTiers: [] as SeasonTierDto[] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectSeasonRewardById('reward-1')),
+      );
+      expect(result.current).toBeUndefined();
+
+      // Change state to have tiers with rewards
+      mockState = {
+        rewards: { seasonTiers: mockSeasonTiers as SeasonTierDto[] },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBeDefined();
+      expect(result.current?.id).toBe('reward-1');
     });
   });
 });

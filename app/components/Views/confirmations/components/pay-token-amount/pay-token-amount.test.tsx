@@ -64,11 +64,11 @@ describe('PayTokenAmount', () => {
     expect(getByText(PAY_TOKEN_SYMBOL_MOCK, { exact: false })).toBeDefined();
   });
 
-  it('renders nothing if missing fiat rate', () => {
+  it('renders skeleton if missing fiat rate', () => {
     useTokenFiatRatesMock.mockReturnValue([undefined, undefined]);
 
-    const { queryByTestId } = render();
+    const { getByTestId } = render();
 
-    expect(queryByTestId('pay-token-amount')).toBeNull();
+    expect(getByTestId('pay-token-amount-skeleton')).toBeDefined();
   });
 });
