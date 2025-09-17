@@ -114,7 +114,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 

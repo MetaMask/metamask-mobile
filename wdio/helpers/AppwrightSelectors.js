@@ -76,29 +76,30 @@ export default class AppwrightSelectors {
     await driver.background(time);
   }
 
-  static async scrollDown(device) {
+  static async scrollToElement(device, element) {
+    const maxScrolls = 10; 
+    let scrollCount = 0;
+    let isVisible = await element.isVisible({ timeout: 500 });
     const driver = device.webDriverClient;
-    if (AppwrightSelectors.isAndroid(device)) {
-      // For Android, use a swipe gesture
-      //await driver.tap({ x: 500, y: 1500 });
-      await driver.executeScript("mobile: swipeGesture", [
-        {
-          left: 100,
-          top: 500,
-          width: 200,
-          height: 500,
-          direction: "up",
-          percent: 0.25
+    while (!(isVisible) && scrollCount < maxScrolls) {
+        await driver.executeScript("mobile: swipeGesture", [
+            {
+                left: 100, 
+                top: 500,
+                width: 200,
+                height: 500, 
+                direction: "up", 
+                percent: 0.60
+            }
+        ]);
+        isVisible = await element.isVisible({ timeout: 500 });
+        if (isVisible) {
+          console.log('Element found and visible, returning element');
+          return element;
         }
-      ]);
-    } else {
-      // For iOS, use mobile: scroll command
-      await driver.executeScript("mobile: scroll", [
-        {
-          direction: "down",
-          percent: 0.25
-        }
-      ]);
+        console.log('Element not found or not visible, continuing scrolling');
+        scrollCount++;
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
 

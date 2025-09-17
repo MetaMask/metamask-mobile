@@ -27,11 +27,11 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
+      return AppwrightSelectors.getElementByText(this._device, 'Create account');
     }
   }
 
-  async tapAddAccountButton() {
+  async tapCreateAccountButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {

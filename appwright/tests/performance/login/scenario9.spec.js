@@ -42,33 +42,44 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await WalletActionModal.tapSendButton();
   await SendScreen.isVisible();
   timer1.stop();
-  performanceTracker.addTimer(timer1);
-
-  await SendScreen.typeAddressInSendAddressField(
-    '0x8aBB895C61706f33060cDb40e7a2b496C3CA1Dcf',
-  );
   const timer2 = new TimerHelper(
-    'Time since the user clicks on next button, until the user is in the send amount screen',
+    'Time since the user clicks on Ethereum Network, until the assets list is displayed',
   );
   timer2.start();
-  await SendScreen.tapOnNextButton();
-  await SendScreen.isAmountScreenDisplayed();
+  await SendScreen.selectNetwork('Ethereum Mainnet');
+  await SendScreen.assetsListIsDisplayed();
   timer2.stop();
-  performanceTracker.addTimer(timer2);
-
   const timer3 = new TimerHelper(
-    'Time since the user clicks on Next after entering the amount, until the user gets the confirmation screen',
+    'Time since the user clicks on ETH, until the amount screen is displayed',
+  );
+  await SendScreen.selectToken('Ethereum', 'ETH');
+  timer3.start();
+  await AmountScreen.isVisible();
+  timer3.stop();
+  await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
+  const timer4 = new TimerHelper(
+    'Time since the user clicks on next button, until the user is in the select address screen',
+  );
+  await AmountScreen.tapOnNextButton();
+  timer4.start();
+  await SendScreen.isSelectAddressScreenDisplayed();
+  timer4.stop();
+  const timer5 = new TimerHelper(
+    'Time since the user selects the receiver account, until the user is in the review screen',
   );
 
-  await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
-  timer3.start();
-  await AmountScreen.tapOnNextButton();
-  await ConfirmationScreen.isAccountSendToVisible();
-  await ConfirmationScreen.isNetworkDisplayed();
-  await ConfirmationScreen.isAdvancedSettingsDisplayed();
-  timer3.stop();
+  await SendScreen.clickOnAccountByName('Account 1');
+  timer5.start();
+  //await SendScreen.clickOnReviewButton();
+  await ConfirmationScreen.isVisible();
+  timer5.stop();
 
+  performanceTracker.addTimer(timer1);
+  performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);
+  performanceTracker.addTimer(timer4);
+  performanceTracker.addTimer(timer5);
+
   await performanceTracker.attachToTest(testInfo);
 });
 
@@ -76,6 +87,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
+  WalletAccountModal.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -83,38 +95,54 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   SendScreen.device = device;
   ConfirmationScreen.device = device;
   AmountScreen.device = device;
-  NetworkEducationModal.device = device;
-  SendSolanaScreen.device = device;
-  SolanaConfirmationScreen.device = device;
-  NetworksScreen.device = device;
   LoginScreen.device = device;
 
   await login(device, 'login');
-  // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-
-  await WalletMainScreen.tapIdenticon();
-  await AccountListComponent.isComponentDisplayed();
-
-  await AccountListComponent.tapOnAccountByName('Solana');
-  await NetworkEducationModal.tapGotItButton();
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
   );
   timer1.start();
   await WalletActionModal.tapSendButton();
-  await SendSolanaScreen.isAddressFieldVisible();
+  await SendScreen.isVisible();
   timer1.stop();
-  performanceTracker.addTimer(timer1);
-
-  await SendSolanaScreen.fillAddressField(TEST_ADDRESSES.SOLANA);
-  await SendSolanaScreen.fillAmountField(TEST_AMOUNTS.SOLANA);
-
-  const timer2 = await SendSolanaScreen.tapContinueButton();
-  await SolanaConfirmationScreen.isConfirmButtonDisplayed();
-
+  const timer2 = new TimerHelper(
+    'Time since the user clicks on Ethereum Network, until the assets list is displayed',
+  );
+  timer2.start();
+  await SendScreen.selectNetwork('Solana');
+  await SendScreen.assetsListIsDisplayed();
   timer2.stop();
+  const timer3 = new TimerHelper(
+    'Time since the user clicks on ETH, until the amount screen is displayed',
+  );
+  await SendScreen.selectToken('Solana', 'SOL');
+  timer3.start();
+  await AmountScreen.isVisible();
+  timer3.stop();
+  await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
+  const timer4 = new TimerHelper(
+    'Time since the user clicks on next button, until the user is in the select address screen',
+  );
+  await AmountScreen.tapOnNextButton();
+  timer4.start();
+  await SendScreen.isSelectAddressScreenDisplayed();
+  timer4.stop();
+  const timer5 = new TimerHelper(
+    'Time since the user selects the receiver account, until the user is in the review screen',
+  );
+  timer5.start();
+  await SendScreen.clickOnAccountByName('Account 1');
+  //await SendScreen.clickOnReviewButton();
+  await ConfirmationScreen.isVisible();
+  timer5.stop();
+
+  performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
+  performanceTracker.addTimer(timer3);
+  performanceTracker.addTimer(timer4);
+  performanceTracker.addTimer(timer5);
+
   await performanceTracker.attachToTest(testInfo);
 });

@@ -33,13 +33,12 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
 
   await AddressBarScreen.submitUrlWebsite();
   await ExternalWebsitesScreen.isTestDappDisplayed();
-  await AppwrightSelectors.scrollDown(device);
   await ExternalWebsitesScreen.tapDappConnectButton();
   console.log('Waiting for 10 seconds');
   await AccountApprovalModal.tapConnectButtonByText();
   console.log('Waiting for 30 seconds');
   await TabBarModal.tapWalletButton();
-  await AppwrightSelectors.backgroundApp(device, 31);
+  await AppwrightSelectors.backgroundApp(device, 30);
   await AppwrightSelectors.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword('123456789');

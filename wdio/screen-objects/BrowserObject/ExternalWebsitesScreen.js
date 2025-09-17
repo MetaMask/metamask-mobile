@@ -17,7 +17,7 @@ import {
   UNISWAP_METAMASK_WALLET_BUTTON,
   UNISWAP_WALLET_PROFILE_ICON,
 } from '../testIDs/BrowserScreen/ExternalWebsites.testIds';
-import { expect as expectAppwright } from 'appwright';
+import { expect as expectAppwright, ScrollDirection } from 'appwright';
 
 class ExternalWebsitesScreen {
   get device() {
@@ -172,8 +172,10 @@ class ExternalWebsitesScreen {
       await element.waitForEnabled();
       await Gestures.waitAndTap(this.testDappConnectButton);
     } else {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
       const element = await this.testDappConnectButton;
-      await AppwrightSelectors.scrollDown(this._device);
+      await AppwrightSelectors.scrollToElement(this._device, element);
       console.log('Tapping dapp connect button');
       await element.tap();
     }
