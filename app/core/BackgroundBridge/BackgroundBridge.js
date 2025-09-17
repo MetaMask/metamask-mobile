@@ -809,6 +809,8 @@ export class BackgroundBridge extends EventEmitter {
               transactionMeta: { chainId },
               securityAlertId,
             }),
+          isAuxiliaryFundsSupported: (chainId) =>
+            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
         },
         Engine.controllerMessenger,
       ),
