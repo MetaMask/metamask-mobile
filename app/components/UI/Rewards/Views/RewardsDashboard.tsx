@@ -1,5 +1,11 @@
-import React, { useEffect, useCallback, useMemo, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -18,7 +24,6 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
-import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import {
   setActiveTab,
   setHideUnlinkedAccountsBanner,
@@ -33,8 +38,6 @@ import {
   selectHideUnlinkedAccountsBanner,
 } from '../../../../selectors/rewards';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
-import { ActivityTab } from '../components/ActivityTab/ActivityTab';
-import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../hooks/useLinkAccount';
@@ -44,43 +47,20 @@ import Banner, {
 } from '../../../../component-library/components/Banners/Banner';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import AccountDisplayItem from '../components/AccountDisplayItem/AccountDisplayItem';
-
-// Tab wrapper components for TabsList
-interface TabWrapperProps {
-  tabLabel: string;
-  isDisabled?: boolean;
-}
-
-const OverviewTab: React.FC<TabWrapperProps> = () => (
-  <Box
-    twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
-    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
-  >
-    <Text variant={TextVariant.BodyMd}>
-      {strings('rewards.not_implemented')}
-    </Text>
-  </Box>
-);
-
-const LevelsTab: React.FC<TabWrapperProps> = () => (
-  <Box
-    twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md my-4"
-    testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
-  >
-    <Text variant={TextVariant.BodyMd}>
-      {strings('rewards.not_implemented')}
-    </Text>
-  </Box>
-);
-
-const ActivityTabWrapper: React.FC<TabWrapperProps> = () => <ActivityTab />;
+import RewardsOverview from '../components/Tabs/RewardsOverview';
+import RewardsLevels from '../components/Tabs/RewardsLevels';
+import RewardsActivity from '../components/Tabs/RewardsActivity';
+import { TabsList } from '../../../../component-library/components-temp/Tabs';
+import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
+import { useUnlockedRewards } from '../hooks/useUnlockedRewards';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  const activeTab = useSelector(selectActiveTab);
+  const theme = useTheme();
+  const { colors } = theme;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const activeTab = useSelector(selectActiveTab);
   const dispatch = useDispatch();
   const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const hideUnlinkedAccountsBanner = useSelector(
@@ -91,6 +71,12 @@ const RewardsDashboard: React.FC = () => {
   // Track linking operation state
   const [isLinking, setIsLinking] = useState(false);
 
+  // Ref for TabsList to control active tab programmatically
+  const tabsListRef = useRef<TabsListRef>(null);
+
+  // Force TabsList remount after navigation to ensure fresh state
+  const [remountTrigger, setRemountTrigger] = useState(false);
+
   // Use the link account hook
   const { linkAccount } = useLinkAccount();
 
@@ -100,10 +86,8 @@ const RewardsDashboard: React.FC = () => {
   });
 
   // Sync rewards controller state with UI store
-  useSeasonStatus({
-    subscriptionId: subscriptionId || '',
-    seasonId: CURRENT_SEASON_ID,
-  });
+  useSeasonStatus();
+  useUnlockedRewards();
 
   // Set navigation title
   useEffect(() => {
@@ -135,17 +119,39 @@ const RewardsDashboard: React.FC = () => {
     [],
   );
 
-  const getActiveIndex = () =>
-    tabOptions.findIndex((tab) => tab.value === activeTab);
+  const getActiveIndex = useCallback(
+    () => tabOptions.findIndex((tab) => tab.value === activeTab),
+    [tabOptions, activeTab],
+  );
+
+  // Sync TabsList with Redux state changes
+  useEffect(() => {
+    const activeIndex = tabOptions.findIndex((tab) => tab.value === activeTab);
+    if (tabsListRef.current && activeIndex !== -1) {
+      // Use setTimeout to avoid race conditions with TabsList internal state
+      if (tabsListRef.current) {
+        tabsListRef.current.goToTabIndex(activeIndex);
+      }
+    }
+  }, [activeTab, tabOptions]);
+
+  // Resync TabsList when screen comes into focus (navigation)
+  useFocusEffect(
+    useCallback(() => {
+      // Force TabsList remount to ensure fresh state after navigation
+      setRemountTrigger((prev) => !prev);
+    }, []),
+  );
 
   const handleTabChange = useCallback(
     ({ i }: { i: number }) => {
       const newTab = tabOptions[i]?.value as RewardsTab;
-      if (newTab) {
+      // Only dispatch if the tab is actually different to prevent loops
+      if (newTab && newTab !== activeTab) {
         dispatch(setActiveTab(newTab));
       }
     },
-    [dispatch, tabOptions],
+    [dispatch, tabOptions, activeTab],
   );
 
   const handleHideUnlinkedAccountsBanner = useCallback(() => {
@@ -166,7 +172,7 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView style={tw.style('flex-1 bg-default')}>
-        <Box twClassName="flex-1 px-4 bg-default gap-8 relative">
+        <Box twClassName="flex-1 px-4 bg-default gap-4 relative">
           {/* Header row */}
           <Box twClassName="flex-row  justify-between">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
@@ -293,20 +299,23 @@ const RewardsDashboard: React.FC = () => {
               </Box>
             )}
 
+          {/* Tab View */}
           <TabsList
+            key={`tabs-${remountTrigger}`}
+            ref={tabsListRef}
             initialActiveIndex={getActiveIndex()}
             onChangeTab={handleTabChange}
-            testID={REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL}
+            testID={REWARDS_VIEW_SELECTORS.TAB_CONTROL}
           >
-            <OverviewTab
+            <RewardsOverview
               key="overview"
               tabLabel={strings('rewards.tab_overview_title')}
             />
-            <LevelsTab
+            <RewardsLevels
               key="levels"
               tabLabel={strings('rewards.tab_levels_title')}
             />
-            <ActivityTabWrapper
+            <RewardsActivity
               key="activity"
               tabLabel={strings('rewards.tab_activity_title')}
             />

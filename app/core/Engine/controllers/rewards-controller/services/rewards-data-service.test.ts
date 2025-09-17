@@ -8,6 +8,7 @@ import type {
   EstimatedPointsDto,
   SeasonStatusDto,
   SubscriptionReferralDetailsDto,
+  PointsBoostEnvelopeDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -50,7 +51,7 @@ describe('RewardsDataService', () => {
     mockFetch = jest.fn();
     mockGetSubscriptionToken.mockResolvedValue({
       success: true,
-      token: 'test-bearer-token',
+      token: 'test-access-token',
     });
 
     service = new RewardsDataService({
@@ -216,7 +217,7 @@ describe('RewardsDataService', () => {
           headers: {
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           },
           signal: expect.any(AbortSignal),
@@ -289,7 +290,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -315,7 +316,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -533,7 +534,7 @@ describe('RewardsDataService', () => {
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
             'rewards-client-id': 'mobile-7.50.1',
-            // Should not include rewards-api-key header
+            // Should not include rewards-access-token header
           },
         }),
       );
@@ -551,11 +552,23 @@ describe('RewardsDataService', () => {
           id: 'tier-gold',
           name: 'Gold Tier',
           pointsNeeded: 1000,
+          image: {
+            lightModeUrl: 'https://example.com/gold-light.png',
+            darkModeUrl: 'https://example.com/gold-dark.png',
+          },
+          levelNumber: '3',
+          rewards: [],
         },
         {
           id: 'tier-silver',
           name: 'Silver Tier',
           pointsNeeded: 500,
+          image: {
+            lightModeUrl: 'https://example.com/silver-light.png',
+            darkModeUrl: 'https://example.com/silver-dark.png',
+          },
+          levelNumber: '2',
+          rewards: [],
         },
       ],
     },
@@ -606,7 +619,7 @@ describe('RewardsDataService', () => {
           headers: {
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           },
           signal: expect.any(AbortSignal),
@@ -645,7 +658,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -690,7 +703,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -725,7 +738,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -740,7 +753,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -782,7 +795,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -799,7 +812,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1059,7 +1072,7 @@ describe('RewardsDataService', () => {
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
         success: true,
-        token: 'test-bearer-token',
+        token: 'test-access-token',
       });
     });
 
@@ -1081,7 +1094,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -1104,7 +1117,7 @@ describe('RewardsDataService', () => {
         expect.objectContaining({
           method: 'POST',
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1154,7 +1167,7 @@ describe('RewardsDataService', () => {
         'https://api.rewards.test/auth/logout',
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1582,8 +1595,7 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get opt-in status failed: 500');
     });
 
-    it('should handle network errors', async () => {
-      // Arrange
+    it('should handle network errors during fetch', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       // Act & Assert
@@ -1628,6 +1640,122 @@ describe('RewardsDataService', () => {
       );
     });
 
+    // Arrange
+    describe('getActivePointsBoosts', () => {
+      it('should fetch active points boosts successfully', async () => {
+        // Arrange
+        const seasonId = 'season-123';
+        const subscriptionId = 'sub-456';
+        const mockToken = 'test-bearer-token';
+        const mockBoostsResponse: PointsBoostEnvelopeDto = {
+          boosts: [
+            {
+              id: 'boost-1',
+              name: 'Test Boost 1',
+              icon: {
+                lightModeUrl: 'https://example.com/light1.png',
+                darkModeUrl: 'https://example.com/dark1.png',
+              },
+              boostBips: 1000,
+              seasonLong: true,
+              backgroundColor: '#FF0000',
+            },
+            {
+              id: 'boost-2',
+              name: 'Test Boost 2',
+              icon: {
+                lightModeUrl: 'https://example.com/light2.png',
+                darkModeUrl: 'https://example.com/dark2.png',
+              },
+              boostBips: 500,
+              seasonLong: false,
+              startDate: new Date('2024-01-01'),
+              endDate: new Date('2024-01-31'),
+              backgroundColor: '#00FF00',
+            },
+          ],
+        };
+        const mockResponse = {
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockBoostsResponse),
+        } as unknown as Response;
+
+        mockGetSubscriptionToken.mockResolvedValue({
+          success: true,
+          token: mockToken,
+        });
+        mockFetch.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await service.getActivePointsBoosts(
+          seasonId,
+          subscriptionId,
+        );
+
+        // Assert
+        expect(mockGetSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://api.rewards.test/seasons/season-123/active-boosts',
+          expect.objectContaining({
+            method: 'GET',
+            headers: expect.objectContaining({
+              'Accept-Language': 'en-US',
+              'Content-Type': 'application/json',
+              'rewards-client-id': 'mobile-7.50.1',
+            }),
+            credentials: 'omit',
+          }),
+        );
+        expect(result).toEqual(mockBoostsResponse);
+        expect(result.boosts).toHaveLength(2);
+        expect(result.boosts[0].id).toBe('boost-1');
+        expect(result.boosts[1].seasonLong).toBe(false);
+      });
+
+      it('should return empty array when no boosts available', async () => {
+        // Arrange
+        const seasonId = 'season-123';
+        const subscriptionId = 'sub-456';
+        const mockToken = 'test-bearer-token';
+        const mockEmptyResponse: PointsBoostEnvelopeDto = {
+          boosts: [],
+        };
+        const mockResponse = {
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockEmptyResponse),
+        } as unknown as Response;
+
+        mockGetSubscriptionToken.mockResolvedValue({
+          success: true,
+          token: mockToken,
+        });
+        mockFetch.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await service.getActivePointsBoosts(
+          seasonId,
+          subscriptionId,
+        );
+
+        // Assert
+        expect(result).toEqual(mockEmptyResponse);
+        expect(result.boosts).toEqual([]);
+        expect(result.boosts).toHaveLength(0);
+      });
+
+      it('should handle authentication errors', async () => {
+        // Arrange
+        const seasonId = 'season-123';
+        const subscriptionId = 'sub-456';
+        mockGetSubscriptionToken.mockRejectedValue(new Error('Auth failed'));
+
+        // Act & Assert
+        await expect(
+          service.getActivePointsBoosts(seasonId, subscriptionId),
+        ).rejects.toThrow('Cannot read properties of undefined');
+      });
+    });
+
     it('should include abort signal for timeout handling', async () => {
       // Arrange
       const mockResponse = {
@@ -1649,6 +1777,154 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getUnlockedRewards', () => {
+    const mockSeasonId = 'season-123';
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-bearer-token';
+
+    const mockUnlockedRewardsResponse = [
+      {
+        id: 'reward-1',
+        seasonRewardId: 'season-reward-1',
+        claimStatus: 'CLAIMED' as const,
+      },
+      {
+        id: 'reward-2',
+        seasonRewardId: 'season-reward-2',
+        claimStatus: 'UNCLAIMED' as const,
+      },
+    ];
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockUnlockedRewardsResponse),
+      } as unknown as Response;
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('should successfully get unlocked rewards', async () => {
+      // Act
+      const result = await service.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/rewards?seasonId=season-123',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+          credentials: 'omit',
+        }),
+      );
+      expect(result).toEqual(mockUnlockedRewardsResponse);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('reward-1');
+      expect(result[0].claimStatus).toBe('CLAIMED');
+      expect(result[1].claimStatus).toBe('UNCLAIMED');
+    });
+
+    it('should handle empty rewards array', async () => {
+      // Arrange
+      const emptyResponse: never[] = [];
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(emptyResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.getUnlockedRewards(
+        mockSeasonId,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual([]);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should throw error when response is not ok', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Failed to get unlocked: 404');
+    });
+
+    it('should throw error when response is 500', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Failed to get unlocked: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle different season IDs correctly', async () => {
+      // Arrange
+      const differentSeasonId = 'current';
+
+      // Act
+      await service.getUnlockedRewards(differentSeasonId, mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/rewards?seasonId=current',
+        expect.any(Object),
+      );
+    });
+
+    it('should include subscription token in authentication', async () => {
+      // Act
+      await service.getUnlockedRewards(mockSeasonId, mockSubscriptionId);
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+  });
+
   describe('optOut', () => {
     const mockSubscriptionId = 'subscription-123';
     const mockOptOutResponse = {
@@ -1658,7 +1934,7 @@ describe('RewardsDataService', () => {
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
         success: true,
-        token: 'test-bearer-token',
+        token: 'test-access-token',
       });
     });
 
@@ -1683,7 +1959,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -1707,7 +1983,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
+            'rewards-access-token': 'test-access-token',
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
@@ -1819,7 +2095,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1844,7 +2120,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.not.objectContaining({
-            'rewards-api-key': expect.any(String),
+            'rewards-access-token': expect.any(String),
           }),
         }),
       );
@@ -1867,6 +2143,41 @@ describe('RewardsDataService', () => {
         expect.objectContaining({
           method: 'POST',
           credentials: 'omit',
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should use correct API endpoint for different season IDs', async () => {
+      // Arrange
+      const seasonId = 'winter-2024';
+      const subscriptionId = 'sub-789';
+      const mockToken = 'test-bearer-token';
+      const mockResponseData: PointsBoostEnvelopeDto = { boosts: [] };
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponseData),
+      } as unknown as Response;
+
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.getActivePointsBoosts(seasonId, subscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/seasons/winter-2024/active-boosts',
+        expect.objectContaining({
+          method: 'GET',
           headers: expect.objectContaining({
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',

@@ -138,18 +138,29 @@ export const USDT_SOLANA_TOKEN: DepositCryptoCurrency = {
     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png',
 };
 
+export const ETH_TOKEN: DepositCryptoCurrency = {
+  assetId: 'eip155:1/slip44:60',
+  chainId: ETHEREUM_MAINNET.chainId,
+  name: 'Ethereum',
+  symbol: 'ETH',
+  decimals: 18,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+};
+
 export const ALL_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   MUSD_TOKEN,
-  MUSD_LINEA_TOKEN,
+  ETH_TOKEN,
   USDC_TOKEN,
-  USDC_LINEA_TOKEN,
-  USDC_BASE_TOKEN,
-  USDC_BSC_TOKEN,
-  USDC_SOLANA_TOKEN,
   USDT_TOKEN,
+  MUSD_LINEA_TOKEN,
+  USDC_LINEA_TOKEN,
   USDT_LINEA_TOKEN,
-  USDT_BASE_TOKEN,
+  USDC_BSC_TOKEN,
   USDT_BSC_TOKEN,
+  USDC_BASE_TOKEN,
+  USDT_BASE_TOKEN,
+  USDC_SOLANA_TOKEN,
   USDT_SOLANA_TOKEN,
 ];
 
@@ -166,6 +177,7 @@ export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   // MUSD_TOKEN,
   // MUSD_LINEA_TOKEN,
   USDC_TOKEN,
+  ETH_TOKEN,
   // USDC_LINEA_TOKEN,
   // USDC_BASE_TOKEN,
   USDC_BSC_TOKEN,
