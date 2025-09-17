@@ -10,6 +10,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
 
 import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
@@ -27,6 +28,7 @@ import {
   WalletSection,
 } from './MultichainAccountSelectorList.types';
 import createStyles from './MultichainAccountSelectorList.styles';
+import { useTokenBalancesUpdate } from '../../../../components/hooks/useTokenBalancesUpdate';
 import {
   MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
@@ -48,6 +50,7 @@ const MultichainAccountSelectorList = ({
   );
   const accountSections = useSelector(selectAccountGroupsByWallet);
   const internalAccountsById = useSelector(selectInternalAccountsById);
+  const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
 
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
@@ -188,6 +191,8 @@ const MultichainAccountSelectorList = ({
       setLastCreatedAccountId(null);
     }
   }, [lastCreatedAccountId, flattenedData, listRefToUse]);
+
+  useTokenBalancesUpdate(enabledEvmNetworks);
 
   // Scroll to the first selected account whenever selection or data changes
   useEffect(() => {

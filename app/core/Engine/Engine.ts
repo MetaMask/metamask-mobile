@@ -907,9 +907,9 @@ export class Engine {
           assetsContractController,
         ),
       includeStakedAssets: true,
-      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-        engine: { backgroundState: initialState },
-      }) as `0x${string}`[],
+      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled(
+        store.getState(),
+      ) as `0x${string}`[],
       allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
     const permissionController = new PermissionController({
@@ -1467,9 +1467,9 @@ export class Engine {
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
           preferencesController.state.isMultiAccountBalancesEnabled,
-        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
-          engine: { backgroundState: initialState },
-        }) as `0x${string}`[],
+        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled(
+          store.getState(),
+        ) as `0x${string}`[],
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({

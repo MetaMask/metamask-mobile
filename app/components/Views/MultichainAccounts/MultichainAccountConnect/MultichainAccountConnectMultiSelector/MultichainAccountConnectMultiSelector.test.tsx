@@ -14,6 +14,18 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../../e2e/sel
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import { RootState } from '../../../../../reducers';
 
+// Mock Engine with TokenBalancesController
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokenBalancesController: {
+      updateBalances: jest.fn(),
+    },
+    MultichainAccountService: {
+      getMultichainAccountWallet: jest.fn(),
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
