@@ -130,6 +130,25 @@ describe('MetaMetrics', () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeFalsy();
     });
+
+    describe('flush policy configuration', () => {
+      it('creates flush policies with default values', () => {
+        TestMetaMetrics.resetInstance();
+        jest.clearAllMocks();
+
+        TestMetaMetrics.getInstance();
+
+        // Verify that createClient was called with flush policies
+        expect(createClient).toHaveBeenCalledWith(
+          expect.objectContaining({
+            flushPolicies: expect.arrayContaining([
+              expect.objectContaining({ count: 20 }), // default event limit
+              expect.objectContaining({ interval: 30000 }), // default 30 seconds in milliseconds
+            ]),
+          }),
+        );
+      });
+    });
   });
 
   describe('Disabling', () => {

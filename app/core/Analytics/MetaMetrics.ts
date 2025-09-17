@@ -551,19 +551,17 @@ class MetaMetrics implements IMetaMetrics {
         // Use custom persistor to bridge Segment SDK with app's storage system
         storePersistor: segmentPersistor,
         // Use flush policies for better control and to avoid timeout issues
-        // allow custom flush interval and event limit for dev and testing
-        // each is optional and can be set in the .js.env file
-        // if not set, the default values will be used
+        // CountFlushPolicy: triggers when reaching a certain number of events
+        // TimerFlushPolicy: triggers on an interval (expects milliseconds)
+        // Environment variables are in seconds for backward compatibility
+        // Both are configurable via environment variables in .js.env
+        // If not set, sensible defaults are used (20 events, 30 seconds)
         flushPolicies: [
           new CountFlushPolicy(
-            process.env.SEGMENT_FLUSH_EVENT_LIMIT
-              ? parseInt(process.env.SEGMENT_FLUSH_EVENT_LIMIT, 10)
-              : 20,
+            parseInt(process.env.SEGMENT_FLUSH_EVENT_LIMIT || '20', 10),
           ),
           new TimerFlushPolicy(
-            process.env.SEGMENT_FLUSH_INTERVAL
-              ? parseInt(process.env.SEGMENT_FLUSH_INTERVAL, 10) * 1000
-              : 30000,
+            parseInt(process.env.SEGMENT_FLUSH_INTERVAL || '30', 10) * 1000,
           ),
         ],
       };
