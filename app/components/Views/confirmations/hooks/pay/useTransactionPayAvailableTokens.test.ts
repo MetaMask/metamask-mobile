@@ -47,10 +47,7 @@ const NATIVE_TOKEN_1_MOCK = {
   address: NATIVE_TOKEN_ADDRESS,
 } as BridgeToken;
 
-function runHook({
-  chainIds,
-  type,
-}: { chainIds?: Hex[]; type?: TransactionType } = {}) {
+function runHook({ type }: { type?: TransactionType } = {}) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
@@ -64,12 +61,9 @@ function runHook({
     ).transactions[0].type = type;
   }
 
-  return renderHookWithProvider(
-    () => useTransactionPayAvailableTokens({ chainIds }),
-    {
-      state,
-    },
-  );
+  return renderHookWithProvider(() => useTransactionPayAvailableTokens(), {
+    state,
+  });
 }
 
 describe('useTransactionPayAvailableTokens', () => {
@@ -141,22 +135,6 @@ describe('useTransactionPayAvailableTokens', () => {
     const { result } = runHook();
 
     expect(result.current.availableTokens).toStrictEqual([]);
-  });
-
-  it('does not return token if chain IDs provided and do not match', () => {
-    useTokensWithBalanceMock.mockReturnValue([
-      TOKEN_1_MOCK,
-      { ...TOKEN_2_MOCK, chainId: CHAIN_ID_2_MOCK },
-      NATIVE_TOKEN_1_MOCK,
-      { ...NATIVE_TOKEN_1_MOCK, chainId: CHAIN_ID_2_MOCK },
-    ]);
-
-    const { result } = runHook({ chainIds: [CHAIN_ID_2_MOCK] });
-
-    expect(result.current.availableTokens).toStrictEqual([
-      { ...TOKEN_2_MOCK, chainId: CHAIN_ID_2_MOCK },
-      { ...NATIVE_TOKEN_1_MOCK, chainId: CHAIN_ID_2_MOCK },
-    ]);
   });
 
   it('returns required token even if no fiat or native balance', () => {

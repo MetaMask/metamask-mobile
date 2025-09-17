@@ -69,18 +69,19 @@ export const BridgeSourceNetworkSelector: React.FC<
     useSortedSourceNetworks();
 
   const enabledSourceChainIds = useMemo(
-    () => enabledSourceChains.map((chain) => chain.chainId),
-    [enabledSourceChains],
+    () =>
+      enabledSourceChains
+        .filter((chain) => !chainIds || chainIds.includes(chain.chainId as Hex))
+        .map((chain) => chain.chainId),
+    [chainIds, enabledSourceChains],
   );
 
   const sortedSourceNetworks = useMemo(
     () =>
-      sortedSourceNetworksRaw.filter(
-        (chain) =>
-          enabledSourceChainIds.includes(chain.chainId) &&
-          (!chainIds || chainIds.includes(chain.chainId as Hex)),
+      sortedSourceNetworksRaw.filter((chain) =>
+        enabledSourceChainIds.includes(chain.chainId),
       ),
-    [chainIds, enabledSourceChainIds, sortedSourceNetworksRaw],
+    [enabledSourceChainIds, sortedSourceNetworksRaw],
   );
 
   const evmNetworkConfigurations = useSelector(

@@ -12,9 +12,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { PERPS_MINIMUM_DEPOSIT } from '../../constants/perps';
 import { Hex } from '@metamask/utils';
 
-export function useTransactionPayAvailableTokens({
-  chainIds: chainIdsProp,
-}: { chainIds?: Hex[] } = {}) {
+export function useTransactionPayAvailableTokens() {
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { payToken } = useTransactionPayToken();
   const requiredTokens = useTransactionRequiredTokens();
@@ -47,10 +45,6 @@ export function useTransactionPayAvailableTokens({
         return true;
       }
 
-      if (chainIdsProp && !chainIdsProp.includes(token.chainId as Hex)) {
-        return false;
-      }
-
       const isRequiredToken = targetTokens.some(
         (t) =>
           t.address.toLowerCase() === token.address.toLowerCase() &&
@@ -77,14 +71,7 @@ export function useTransactionPayAvailableTokens({
 
       return hasNativeBalance;
     },
-    [
-      allTokens,
-      chainIdsProp,
-      minimumFiat,
-      payToken,
-      targetTokens,
-      transactionChainId,
-    ],
+    [allTokens, minimumFiat, payToken, targetTokens, transactionChainId],
   );
 
   const availableTokens = useMemo(

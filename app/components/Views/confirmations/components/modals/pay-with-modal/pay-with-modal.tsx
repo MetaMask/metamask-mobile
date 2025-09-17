@@ -30,17 +30,27 @@ export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
 
   const { availableTokens, availableChainIds } =
-    useTransactionPayAvailableTokens({
-      chainIds: selectedSourceChainIds as Hex[],
-    });
+    useTransactionPayAvailableTokens();
+
+  const tokens = useMemo(
+    () =>
+      availableTokens.filter((token) =>
+        selectedSourceChainIds.includes(token.chainId as Hex),
+      ),
+    [availableTokens, selectedSourceChainIds],
+  );
 
   const { sortedSourceNetworks: sortedSourceNetworksRaw } =
     useSortedSourceNetworks();
 
   const supportedChains = useMemo(
     () =>
-      enabledSourceChains.filter((chain) => !isSolanaChainId(chain.chainId)),
-    [enabledSourceChains],
+      enabledSourceChains.filter(
+        (chain) =>
+          !isSolanaChainId(chain.chainId) &&
+          availableChainIds.includes(chain.chainId as Hex),
+      ),
+    [availableChainIds, enabledSourceChains],
   );
 
   const networksWithIcon = useMemo(
@@ -48,15 +58,9 @@ export function PayWithModal() {
       sortedSourceNetworksRaw.filter(
         (chain) =>
           supportedChains.some((c) => c.chainId === chain.chainId) &&
-          availableChainIds.includes(chain.chainId as Hex) &&
           selectedSourceChainIds.includes(chain.chainId),
       ),
-    [
-      availableChainIds,
-      selectedSourceChainIds,
-      sortedSourceNetworksRaw,
-      supportedChains,
-    ],
+    [selectedSourceChainIds, sortedSourceNetworksRaw, supportedChains],
   );
 
   const chainIdsInCount = useMemo(
@@ -122,7 +126,7 @@ export function PayWithModal() {
         />
       }
       renderTokenItem={renderItem}
-      tokensList={availableTokens}
+      tokensList={tokens}
       title={strings('pay_with_modal.title')}
     />
   );
