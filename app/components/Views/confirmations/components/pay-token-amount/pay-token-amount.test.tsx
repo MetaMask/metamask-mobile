@@ -12,6 +12,7 @@ jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../hooks/pay/useTransactionPayToken');
+jest.mock('../../../../../component-library/components/Skeleton');
 
 const ASSET_AMOUNT_MOCK = '100';
 const ASSET_FIAT_RATE_MOCK = 10;

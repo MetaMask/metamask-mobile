@@ -150,9 +150,7 @@ export const filterByAddressAndNetwork = (
 
 export const filterByAddress = (
   tx: TransactionMeta,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tokens: any[],
+  tokens: { address: string }[],
   selectedAddress: string,
   allTransactions?: TransactionMeta[],
 ): boolean => {

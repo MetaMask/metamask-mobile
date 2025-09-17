@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { RefreshControl } from 'react-native';
 import { render } from '@testing-library/react-native';
@@ -21,7 +20,8 @@ jest.mock('../../UI/AssetOverview/PriceChart/PriceChart.context', () => {
   return {
     __esModule: true,
     default: Ctx,
-    PriceChartProvider: ({ children }: any) => children,
+    PriceChartProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
   };
 });
 
@@ -30,7 +30,7 @@ jest.mock('../../UI/MultichainTransactionListItem', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ index }: any) =>
+    default: ({ index }: { index: number }) =>
       ReactActual.createElement(
         Text,
         { testID: `non-evm-item-${index}` },
@@ -44,7 +44,7 @@ jest.mock('../../UI/MultichainBridgeTransactionListItem', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ index }: any) =>
+    default: ({ index }: { index: number }) =>
       ReactActual.createElement(
         Text,
         { testID: `bridge-item-${index}` },
@@ -59,7 +59,7 @@ jest.mock('../../UI/TransactionElement', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ i }: any) =>
+    default: ({ i }: { i: number }) =>
       ReactActual.createElement(
         Text,
         { testID: `evm-transaction-item-${i}` },
@@ -107,7 +107,7 @@ jest.mock('../../../selectors/currencyRateController', () => ({
 jest.mock('../../../util/activity', () => ({
   filterByAddress: jest.fn(() => true),
   isTransactionOnChains: jest.fn(() => true),
-  sortTransactions: jest.fn((arr: any[]) => arr),
+  sortTransactions: jest.fn((arr: unknown[]) => arr),
 }));
 jest.mock('../../../util/transactions', () => ({
   addAccountTimeFlagFilter: jest.fn(() => false),
@@ -116,7 +116,7 @@ jest.mock('../../../util/networks', () => ({
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
 jest.mock('../../UI/Transactions/utils', () => ({
-  filterDuplicateOutgoingTransactions: jest.fn((arr: any[]) => arr),
+  filterDuplicateOutgoingTransactions: jest.fn((arr: unknown[]) => arr),
 }));
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
@@ -132,7 +132,8 @@ jest.mock('../../../util/theme', () => ({
 
 jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   useBridgeHistoryItemBySrcTxHash: () => ({
-    bridgeHistoryItemsBySrcTxHash: (global as any).__bridgeMap || {},
+    bridgeHistoryItemsBySrcTxHash:
+      (global as { __bridgeMap?: Record<string, unknown> }).__bridgeMap || {},
   }),
 }));
 
@@ -173,7 +174,9 @@ jest.mock('./useUnifiedTxActions', () => {
     cancelUnsignedQRTransaction: jest.fn(),
   };
   return {
-    useUnifiedTxActions: () => (global as any).__actionsState || defaultState,
+    useUnifiedTxActions: () =>
+      (global as { __actionsState?: Partial<typeof defaultState> })
+        .__actionsState || defaultState,
   };
 });
 
@@ -183,7 +186,7 @@ jest.mock('../../UI/TransactionActionModal', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: (props: any) =>
+    default: (props: { isVisible: boolean; titleText?: string }) =>
       props.isVisible
         ? ReactActual.createElement(
             Text,
@@ -211,7 +214,7 @@ jest.mock('../../UI/Transactions/RetryModal', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ retryIsOpen }: any) =>
+    default: ({ retryIsOpen }: { retryIsOpen: boolean }) =>
       retryIsOpen
         ? ReactActual.createElement(Text, { testID: 'retry-modal' }, 'retry')
         : null,
@@ -247,20 +250,18 @@ const { updateIncomingTransactions } = jest.requireMock(
 );
 
 describe('UnifiedTransactionsView', () => {
-  const mockUseSelector = useSelector as jest.MockedFunction<
-    typeof useSelector
-  >;
+  const mockUseSelector = useSelector as unknown as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelector.mockImplementation((selector: any) => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
         return [];
       if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
-        return { transactions: [] } as any;
+        return { transactions: [] };
       if (selector === selectSelectedInternalAccount)
-        return { address: '0xabc', metadata: { importTime: 0 } } as any;
+        return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectSelectedAccountGroupInternalAccounts)
         return [{ address: '0xabc' }];
       if (selector === selectTokens) return [];
@@ -269,7 +270,7 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
-      return undefined as any;
+      return undefined;
     });
   });
 
@@ -280,7 +281,7 @@ describe('UnifiedTransactionsView', () => {
 
   it('renders EVM transactions via TransactionElement list items', () => {
     // Arrange: two EVM transactions, one submitted and one confirmed
-    (mockUseSelector as any).mockImplementation((selector: any) => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
         return [
           {
@@ -326,7 +327,7 @@ describe('UnifiedTransactionsView', () => {
   });
 
   it('renders non-EVM transactions', () => {
-    (mockUseSelector as any).mockImplementation((selector: any) => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
         return [];
       if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
@@ -353,9 +354,93 @@ describe('UnifiedTransactionsView', () => {
     expect(queryAllByTestId(/non-evm-item-/).length).toBe(2);
   });
 
+  describe('non-TransactionMeta EVM transactions (smart tx) status handling', () => {
+    it.each([
+      'submitted',
+      'signed',
+      'unapproved',
+      'approved',
+      'pending',
+    ] as const)(
+      'includes non-meta EVM tx with status %s as submitted (renders in list)',
+      (status) => {
+        // Arrange: a non-TransactionMeta-like tx (no chainId string) that should be treated as submitted
+        mockUseSelector.mockImplementation((selector: unknown) => {
+          if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+            return [
+              {
+                id: 'smart-1',
+                status,
+                // Intentionally omit chainId to ensure !isTransactionMetaLike(tx)
+                txParams: { from: '0xabc', nonce: '0x1' },
+                time: 10,
+              },
+            ];
+          if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+            return { transactions: [] };
+          if (selector === selectSelectedAccountGroupInternalAccounts)
+            return [{ address: '0xabc' }];
+          if (selector === selectSelectedInternalAccount)
+            return { address: '0xabc', metadata: { importTime: 0 } };
+          if (selector === selectTokens) return [];
+          if (selector === selectChainId) return '0x1';
+          if (selector === selectIsPopularNetwork) return false;
+          if (selector === selectEVMEnabledNetworks) return ['0x1'];
+          if (selector === selectNonEVMEnabledNetworks)
+            return ['solana:mainnet'];
+          if (selector === selectCurrentCurrency) return 'USD';
+          return undefined;
+        });
+
+        // Act
+        const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+
+        // Assert: one EVM list item rendered (pending/submitted bucket)
+        expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(1);
+      },
+    );
+
+    it('excludes non-meta EVM tx when status is not allowlisted (e.g., failed)', () => {
+      // Arrange: a non-TransactionMeta-like tx with a status not in the allowlist
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [
+            {
+              id: 'smart-2',
+              status: 'failed',
+              // Intentionally omit chainId to ensure !isTransactionMetaLike(tx)
+              txParams: { from: '0xabc', nonce: '0x1' },
+              time: 10,
+            },
+          ];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectChainId) return '0x1';
+        if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectEVMEnabledNetworks) return ['0x1'];
+        if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      // Act
+      const { queryAllByTestId } = render(<UnifiedTransactionsView />);
+
+      // Assert: no EVM list items rendered (tx excluded entirely)
+      expect(queryAllByTestId(/evm-transaction-item-/).length).toBe(0);
+    });
+  });
+
   it('renders bridge non-EVM item when bridge history exists', () => {
-    (global as any).__bridgeMap = { n1: { some: 'bridge' } } as any;
-    (mockUseSelector as any).mockImplementation((selector: any) => {
+    (global as { __bridgeMap?: Record<string, unknown> }).__bridgeMap = {
+      n1: { some: 'bridge' },
+    };
+    mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
         return [];
       if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
@@ -381,28 +466,36 @@ describe('UnifiedTransactionsView', () => {
     const { queryAllByTestId } = render(<UnifiedTransactionsView />);
     expect(queryAllByTestId(/bridge-item-/).length).toBe(1);
     expect(queryAllByTestId(/non-evm-item-/).length).toBe(1);
-    (global as any).__bridgeMap = {};
+    (global as { __bridgeMap?: Record<string, unknown> }).__bridgeMap = {};
   });
 
   it('shows legacy speedup and cancel modals when open', () => {
-    (global as any).__actionsState = {
+    (
+      global as {
+        __actionsState?: { speedUpIsOpen?: boolean; cancelIsOpen?: boolean };
+      }
+    ).__actionsState = {
       speedUpIsOpen: true,
       cancelIsOpen: true,
-    } as any;
+    };
     const { getByTestId } = render(<UnifiedTransactionsView />);
     expect(getByTestId('speedup-modal')).toBeTruthy();
     expect(getByTestId('cancel-modal')).toBeTruthy();
-    (global as any).__actionsState = undefined;
+    (global as { __actionsState?: unknown }).__actionsState = undefined;
   });
 
   it('shows EIP-1559 modal when speedUp1559IsOpen or cancel1559IsOpen is true', () => {
-    (global as any).__actionsState = { speedUp1559IsOpen: true } as any;
+    (
+      global as { __actionsState?: { speedUp1559IsOpen?: boolean } }
+    ).__actionsState = { speedUp1559IsOpen: true };
     const { getByTestId, rerender } = render(<UnifiedTransactionsView />);
     expect(getByTestId('eip1559-modal')).toBeTruthy();
 
-    (global as any).__actionsState = { cancel1559IsOpen: true } as any;
+    (
+      global as { __actionsState?: { cancel1559IsOpen?: boolean } }
+    ).__actionsState = { cancel1559IsOpen: true };
     rerender(<UnifiedTransactionsView />);
     expect(getByTestId('eip1559-modal')).toBeTruthy();
-    (global as any).__actionsState = undefined;
+    (global as { __actionsState?: unknown }).__actionsState = undefined;
   });
 });

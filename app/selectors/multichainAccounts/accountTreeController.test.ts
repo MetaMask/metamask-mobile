@@ -84,6 +84,7 @@ const createMockState = (
       metadata: { name: string };
     }
   > = {},
+  selectedAccount?: string | null,
 ): RootState =>
   ({
     engine: {
@@ -101,6 +102,7 @@ const createMockState = (
         AccountsController: {
           internalAccounts: {
             accounts: internalAccounts,
+            ...(selectedAccount !== undefined ? { selectedAccount } : {}),
           },
         },
         KeyringController: {
@@ -1633,13 +1635,8 @@ describe('AccountTreeController Selectors', () => {
         { accountTree: { wallets: { [walletId]: wallet } } },
         true,
         internalAccounts,
+        'account2',
       );
-      // And a selected account that belongs to that group
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      (
-        state.engine.backgroundState.AccountsController.internalAccounts as any
-      ).selectedAccount = 'account2';
-      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       // When selecting internal accounts for the selected group
       const result = selectSelectedAccountGroupInternalAccounts(state);
@@ -1671,12 +1668,8 @@ describe('AccountTreeController Selectors', () => {
         { accountTree: { wallets: { [walletId]: wallet } } },
         true,
         internalAccounts,
+        'account2',
       );
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      (
-        state.engine.backgroundState.AccountsController.internalAccounts as any
-      ).selectedAccount = 'account2';
-      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       // When selecting internal accounts for the selected group
       const result = selectSelectedAccountGroupInternalAccounts(state);

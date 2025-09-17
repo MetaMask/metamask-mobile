@@ -569,4 +569,70 @@ describe('Activity utils :: filterByAddress', () => {
     );
     expect(result).toEqual(false);
   });
+
+  it('returns false if hash matches required transaction of alternate transaction', () => {
+    const transaction = {
+      id: '123',
+      hash: '0xabc',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '456',
+        requiredTransactionIds: ['789'],
+      },
+      {
+        id: '789',
+        requiredTransactionIds: ['123'],
+        hash: '0xabc',
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      allTransactions,
+    );
+
+    expect(result).toEqual(false);
+  });
+
+  it('returns false if in batch with perps deposit', () => {
+    const transaction = {
+      id: '123',
+      batchId: '0x456',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '789',
+        batchId: '0x456',
+        type: TransactionType.perpsDeposit,
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const result = filterByAddress(
+      transaction,
+      [],
+      TEST_ADDRESS_ONE,
+      allTransactions,
+    );
+
+    expect(result).toEqual(false);
+  });
 });

@@ -34,6 +34,11 @@ const BTC_TESTNET_NATIVE_CURRENCY =
 const SOL_NATIVE_CURRENCY =
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[SolScope.Mainnet].nativeCurrency;
 
+interface TestTransaction {
+  id: string;
+  timestamp?: number;
+}
+
 function getEvmState(
   chainId?: Hex,
   mockEvmConversionRate: number = 1500,
@@ -528,7 +533,7 @@ describe('MultichainNonEvm Selectors', () => {
 
       state.engine.backgroundState.MultichainTransactionsController = {
         nonEvmTransactions: mockTransactions,
-      };
+      } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController;
 
       expect(selectMultichainTransactions(state)).toEqual(mockTransactions);
     });
@@ -538,7 +543,7 @@ describe('MultichainNonEvm Selectors', () => {
 
       state.engine.backgroundState.MultichainTransactionsController = {
         nonEvmTransactions: {},
-      };
+      } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController;
 
       expect(selectMultichainTransactions(state)).toEqual({});
     });
@@ -858,13 +863,11 @@ describe('MultichainNonEvm Selectors', () => {
                 lastUpdated: 1200,
               },
             },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any;
+          } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
 
         const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect(result.transactions.map((t: any) => t.id)).toEqual([
+        expect(result.transactions.map((t: TestTransaction) => t.id)).toEqual([
           'btc-2',
           'sol-1',
           'btc-1',
@@ -902,13 +905,11 @@ describe('MultichainNonEvm Selectors', () => {
               next: null,
               lastUpdated: 500,
             },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any;
+          } as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
 
         const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect(result.transactions.map((t: any) => t.id)).toEqual([
+        expect(result.transactions.map((t: TestTransaction) => t.id)).toEqual([
           'b',
           'c',
           'a',
@@ -935,8 +936,7 @@ describe('MultichainNonEvm Selectors', () => {
         const state = getNonEvmState(MOCK_ACCOUNT_BIP122_P2WPKH);
         // No entries for selected account
         state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          {} as any;
+          {} as unknown as typeof state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions;
 
         const result = selectNonEvmTransactionsForSelectedAccountGroup(state);
 

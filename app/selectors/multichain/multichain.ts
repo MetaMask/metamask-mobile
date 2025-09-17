@@ -12,7 +12,11 @@ import {
   selectSelectedInternalAccount,
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { Balance, SolScope } from '@metamask/keyring-api';
+import {
+  Balance,
+  SolScope,
+  Transaction as NonEvmTransaction,
+} from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -401,6 +405,12 @@ const DEFAULT_TRANSACTION_STATE_ENTRY = {
   lastUpdated: 0,
 };
 
+interface NonEvmTransactionStateEntry {
+  transactions: NonEvmTransaction[];
+  next: null;
+  lastUpdated: number | undefined;
+}
+
 export const selectNonEvmTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
@@ -450,27 +460,34 @@ export const selectNonEvmTransactionsForSelectedAccountGroup =
         return DEFAULT_TRANSACTION_STATE_ENTRY;
       }
 
-      const aggregated = { ...DEFAULT_TRANSACTION_STATE_ENTRY } as {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        transactions: any[];
-        next: null;
-        lastUpdated: number | undefined;
-      };
+      const aggregated = {
+        ...DEFAULT_TRANSACTION_STATE_ENTRY,
+      } as NonEvmTransactionStateEntry;
 
       for (const account of selectedGroupAccounts) {
-        const accountTx =
-          nonEvmTransactions?.[account.id as keyof typeof nonEvmTransactions];
+        const accountTx = nonEvmTransactions?.[
+          account.id as keyof typeof nonEvmTransactions
+        ] as
+          | NonEvmTransactionStateEntry
+          | Record<string, NonEvmTransactionStateEntry>
+          | undefined;
         if (!accountTx) {
           continue;
         }
 
         // Support both single-level and chain-scoped structures
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const entries = Array.isArray((accountTx as any)?.transactions)
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            [accountTx as any]
-          : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Object.values(accountTx as Record<string, any>);
+        const isSingleLevel = (
+          tx:
+            | NonEvmTransactionStateEntry
+            | Record<string, NonEvmTransactionStateEntry>,
+        ): tx is NonEvmTransactionStateEntry =>
+          Array.isArray((tx as NonEvmTransactionStateEntry).transactions);
+
+        const entries = isSingleLevel(accountTx)
+          ? [accountTx]
+          : Object.values(
+              accountTx as Record<string, NonEvmTransactionStateEntry>,
+            );
 
         for (const entry of entries) {
           const txs = entry?.transactions ?? [];

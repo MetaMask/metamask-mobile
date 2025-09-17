@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 
@@ -6,6 +5,16 @@ import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import Engine from '../../../core/Engine';
+import {
+  type TransactionMeta,
+  GasFeeEstimateType,
+  GasFeeEstimateLevel,
+  type GasFeeEstimates,
+} from '@metamask/transaction-controller';
+import {
+  LedgerReplacementTxTypes,
+  createLedgerTransactionModalNavDetails,
+} from '../../UI/LedgerModals/LedgerTransactionModal';
 
 const mockNavigate = jest.fn();
 
@@ -36,9 +45,15 @@ jest.mock('../../../util/transactions', () => ({
   validateTransactionActionBalance: jest.fn(),
 }));
 
-jest.mock('../../UI/LedgerModals/LedgerTransactionModal', () => ({
-  createLedgerTransactionModalNavDetails: jest.fn(),
-}));
+jest.mock('../../UI/LedgerModals/LedgerTransactionModal', () => {
+  const actual = jest.requireActual(
+    '../../UI/LedgerModals/LedgerTransactionModal',
+  );
+  return {
+    ...actual,
+    createLedgerTransactionModalNavDetails: jest.fn(),
+  };
+});
 
 jest.mock('@metamask/rpc-errors', () => ({
   providerErrors: {
@@ -69,27 +84,42 @@ import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 
 describe('useUnifiedTxActions', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
 
+  interface EngineContextMock {
+    TransactionController: { stopTransaction: jest.Mock };
+    ApprovalController: { accept: jest.Mock; reject: jest.Mock };
+    KeyringController: { resetQRKeyringState: jest.Mock };
+  }
+
+  const engineContext = Engine.context as unknown as EngineContextMock;
+  let defaultSelectorImpl: (selector: unknown) => unknown;
+
   beforeEach(() => {
     jest.resetAllMocks();
 
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (selector === selectGasFeeEstimates) {
-        return {
-          medium: { suggestedMaxFeePerGas: '25' },
-        } as any;
+    defaultSelectorImpl = (selector: unknown) => {
+      if (selector === (selectGasFeeEstimates as unknown)) {
+        const estimates = {
+          type: GasFeeEstimateType.FeeMarket,
+          [GasFeeEstimateLevel.Medium]: { suggestedMaxFeePerGas: '25' },
+        } as const;
+        return estimates as unknown as GasFeeEstimates;
       }
-      if (selector === selectAccounts) {
-        return { '0xabc': { balance: '0xde0b6b3a7640000' } } as any;
+      if (selector === (selectAccounts as unknown)) {
+        const accountsMock = {
+          '0xabc': { balance: '0xde0b6b3a7640000' },
+        };
+        return accountsMock as unknown as ReturnType<typeof selectAccounts>;
       }
       return undefined;
-    });
+    };
+
+    mockUseSelector.mockImplementation(defaultSelectorImpl);
 
     (decGWEIToHexWEI as jest.Mock).mockReturnValue('abc');
     (addHexPrefix as jest.Mock).mockImplementation((v: string) => `0x${v}`);
@@ -145,8 +175,8 @@ describe('useUnifiedTxActions', () => {
 
     it('opens 1559 modal when isEIP1559Transaction=true', () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '1' } as any;
-      const gas = { isEIP1559Transaction: true } as any;
+      const tx = { id: '1' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: true };
 
       act(() => result.current.onSpeedUpAction(true, gas, tx));
 
@@ -162,8 +192,8 @@ describe('useUnifiedTxActions', () => {
         'err',
       );
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '2' } as any;
-      const gas = { isEIP1559Transaction: false } as any;
+      const tx = { id: '2' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: false };
 
       act(() => result.current.onSpeedUpAction(true, gas, tx));
 
@@ -189,8 +219,8 @@ describe('useUnifiedTxActions', () => {
 
     it('opens 1559 modal when isEIP1559Transaction=true', () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '3' } as any;
-      const gas = { isEIP1559Transaction: true } as any;
+      const tx = { id: '3' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: true };
 
       act(() => result.current.onCancelAction(true, gas, tx));
 
@@ -206,8 +236,8 @@ describe('useUnifiedTxActions', () => {
         undefined,
       );
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '4' } as any;
-      const gas = { isEIP1559Transaction: false } as any;
+      const tx = { id: '4' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: false };
 
       act(() => result.current.onCancelAction(true, gas, tx));
 
@@ -225,8 +255,8 @@ describe('useUnifiedTxActions', () => {
   describe('speedUpTransaction', () => {
     it('success with legacy gas: controller computes rate when existing gasPrice !== 0', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '5' } as any;
-      const gas = { isEIP1559Transaction: false, gasPrice: '0x1' } as any;
+      const tx = { id: '5' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: false, gasPrice: '0x1' };
 
       act(() => result.current.onSpeedUpAction(true, gas, tx));
       await act(async () => {
@@ -243,8 +273,8 @@ describe('useUnifiedTxActions', () => {
 
     it('success with legacy gas: uses estimated gas price when existing gasPrice === 0', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '6' } as any;
-      const gas = { isEIP1559Transaction: false, gasPrice: 0 } as any;
+      const tx = { id: '6' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: false, gasPrice: 0 };
 
       act(() => result.current.onSpeedUpAction(true, gas, tx));
       await act(async () => {
@@ -258,12 +288,12 @@ describe('useUnifiedTxActions', () => {
 
     it('success with 1559 gas from modal values', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '7' } as any;
-      const gas = { isEIP1559Transaction: true } as any;
+      const tx = { id: '7' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: true };
       const replacement = {
         suggestedMaxFeePerGasHex: '10',
         suggestedMaxPriorityFeePerGasHex: '2',
-      } as any;
+      };
 
       act(() => result.current.onSpeedUpAction(true, gas, tx));
       await act(async () => {
@@ -278,12 +308,12 @@ describe('useUnifiedTxActions', () => {
 
     it('handles error and opens retry', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '8' } as any;
-      const gas = { isEIP1559Transaction: true } as any;
+      const tx = { id: '8' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: true };
 
       act(() => result.current.onSpeedUpAction(true, gas, tx));
       await act(async () => {
-        await result.current.speedUpTransaction({ error: 'failed' } as any);
+        await result.current.speedUpTransaction({ error: 'failed' });
       });
 
       expect(result.current.retryIsOpen).toBe(true);
@@ -291,13 +321,42 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.speedUpIsOpen).toBe(false);
       expect(result.current.speedUp1559IsOpen).toBe(false);
     });
+
+    it('uses GasFeeController estimates when type is missing', async () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === (selectGasFeeEstimates as unknown)) {
+          return {
+            medium: { suggestedMaxFeePerGas: '25' },
+            low: { suggestedMaxFeePerGas: '10' },
+            high: { suggestedMaxFeePerGas: '40' },
+          } as unknown;
+        }
+        return defaultSelectorImpl(selector);
+      });
+
+      const { result } = renderHook(() => useUnifiedTxActions());
+      const tx = { id: 'fallback' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: false, gasPrice: 0 };
+
+      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      await act(async () => {
+        await result.current.speedUpTransaction();
+      });
+
+      expect(decGWEIToHexWEI).toHaveBeenCalledWith('25');
+      expect(addHexPrefix).toHaveBeenCalledWith('abc');
+      expect(speedUpTx).toHaveBeenCalledWith('fallback', { gasPrice: '0xabc' });
+
+      // Restore default selector for subsequent tests
+      mockUseSelector.mockImplementation(defaultSelectorImpl);
+    });
   });
 
   describe('cancelTransaction', () => {
     it('success with legacy gas: controller computes rate when existing gasPrice !== 0', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '9' } as any;
-      const gas = { isEIP1559Transaction: false, gasPrice: '0x1' } as any;
+      const tx = { id: '9' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: false, gasPrice: '0x1' };
 
       act(() => result.current.onCancelAction(true, gas, tx));
       await act(async () => {
@@ -305,7 +364,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(
-        (Engine.context as any).TransactionController.stopTransaction,
+        engineContext.TransactionController.stopTransaction,
       ).toHaveBeenCalledWith('9', undefined);
       expect(result.current.cancelIsOpen).toBe(false);
       expect(result.current.cancel1559IsOpen).toBe(false);
@@ -316,12 +375,12 @@ describe('useUnifiedTxActions', () => {
 
     it('success with 1559 gas from modal values', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '10' } as any;
-      const gas = { isEIP1559Transaction: true } as any;
+      const tx = { id: '10' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: true };
       const replacement = {
         suggestedMaxFeePerGasHex: 'a',
         suggestedMaxPriorityFeePerGasHex: 'b',
-      } as any;
+      };
 
       act(() => result.current.onCancelAction(true, gas, tx));
       await act(async () => {
@@ -329,7 +388,7 @@ describe('useUnifiedTxActions', () => {
       });
 
       expect(
-        (Engine.context as any).TransactionController.stopTransaction,
+        engineContext.TransactionController.stopTransaction,
       ).toHaveBeenCalledWith('10', {
         maxFeePerGas: '0xa',
         maxPriorityFeePerGas: '0xb',
@@ -338,12 +397,12 @@ describe('useUnifiedTxActions', () => {
 
     it('handles error and opens retry', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '11' } as any;
-      const gas = { isEIP1559Transaction: false } as any;
+      const tx = { id: '11' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: false };
 
       act(() => result.current.onCancelAction(true, gas, tx));
       await act(async () => {
-        await result.current.cancelTransaction({ error: 'nope' } as any);
+        await result.current.cancelTransaction({ error: 'nope' });
       });
 
       expect(result.current.retryIsOpen).toBe(true);
@@ -356,30 +415,31 @@ describe('useUnifiedTxActions', () => {
   describe('QR flow helpers', () => {
     it('signQRTransaction resets keyring and accepts approval', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '12' } as any;
+      const tx = { id: '12' } as unknown as TransactionMeta;
 
       await act(async () => {
         await result.current.signQRTransaction(tx);
       });
 
       expect(
-        (Engine.context as any).KeyringController.resetQRKeyringState,
+        engineContext.KeyringController.resetQRKeyringState,
       ).toHaveBeenCalled();
-      expect(
-        (Engine.context as any).ApprovalController.accept,
-      ).toHaveBeenCalledWith('12', undefined, { waitForResult: true });
+      expect(engineContext.ApprovalController.accept).toHaveBeenCalledWith(
+        '12',
+        undefined,
+        { waitForResult: true },
+      );
     });
 
     it('cancelUnsignedQRTransaction rejects approval', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '13' } as any;
+      const tx = { id: '13' } as unknown as TransactionMeta;
 
       await act(async () => {
         await result.current.cancelUnsignedQRTransaction(tx);
       });
 
-      const rejectMock = (Engine.context as any).ApprovalController
-        .reject as jest.Mock;
+      const rejectMock = engineContext.ApprovalController.reject as jest.Mock;
       expect(rejectMock).toHaveBeenCalled();
       const [id] = rejectMock.mock.calls[0];
       expect(id).toBe('13');
@@ -389,8 +449,8 @@ describe('useUnifiedTxActions', () => {
   describe('Ledger flow', () => {
     it('navigates to ledger modal and resolves completion for speed up', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '14' } as any;
-      const gas = { isEIP1559Transaction: true } as any;
+      const tx = { id: '14' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: true };
 
       (createLedgerTransactionModalNavDetails as jest.Mock).mockImplementation(
         ({ onConfirmationComplete }) => [
@@ -404,7 +464,7 @@ describe('useUnifiedTxActions', () => {
         await result.current.signLedgerTransaction({
           id: '14',
           speedUpParams: { type: 'SpeedUp' },
-        } as any);
+        });
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -424,8 +484,8 @@ describe('useUnifiedTxActions', () => {
 
     it('navigates to ledger modal and resolves completion for cancel', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '15' } as any;
-      const gas = { isEIP1559Transaction: true } as any;
+      const tx = { id: '15' } as unknown as TransactionMeta;
+      const gas = { isEIP1559Transaction: true };
 
       (createLedgerTransactionModalNavDetails as jest.Mock).mockImplementation(
         ({ onConfirmationComplete }) => [
@@ -438,8 +498,8 @@ describe('useUnifiedTxActions', () => {
       await act(async () => {
         await result.current.signLedgerTransaction({
           id: '15',
-          replacementParams: {},
-        } as any);
+          replacementParams: { type: LedgerReplacementTxTypes.CANCEL },
+        });
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
