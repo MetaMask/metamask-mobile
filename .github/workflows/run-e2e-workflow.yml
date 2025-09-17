@@ -195,16 +195,11 @@ jobs:
 
           # Run tests (Detox/Jest handle retries internally)
           echo "🚀 Starting E2E tests..."
-          if [[ "$platform" == "ios" ]]; then
-            export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
-          else
-            export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
-          fi
           
           # Always use the splitting script (handles both split and non-split cases)
           echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
 
-          ./scripts/run-e2e-tags-gha.sh
+          ./.github/scripts/run-e2e-tags-gha.mjs
           
           echo "✅ Test execution completed"
         env:
