@@ -62,40 +62,40 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
  */
 const metadata = {
   activeAccount: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: true,
     anonymous: false,
-    usedInUi: false,
+    usedInUi: true,
   },
   accounts: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: true,
     anonymous: false,
-    usedInUi: false,
+    usedInUi: true,
   },
   subscriptions: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: true,
     anonymous: false,
-    usedInUi: false,
+    usedInUi: true,
   },
   seasons: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: true,
     anonymous: false,
     usedInUi: true,
   },
   subscriptionReferralDetails: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: true,
     anonymous: false,
-    usedInUi: false,
+    usedInUi: true,
   },
   seasonStatuses: {
-    includeInStateLogs: false,
+    includeInStateLogs: true,
     persist: true,
     anonymous: false,
-    usedInUi: false,
+    usedInUi: true,
   },
 };
 /**

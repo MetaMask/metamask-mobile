@@ -3041,7 +3041,16 @@ describe('RewardsController', () => {
           controller.metadata,
           'includeInStateLogs',
         ),
-      ).toMatchInlineSnapshot(`{}`);
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+        }
+      `);
     });
 
     it('persists expected state', () => {
@@ -3072,7 +3081,12 @@ describe('RewardsController', () => {
         ),
       ).toMatchInlineSnapshot(`
         {
+          "accounts": {},
+          "activeAccount": null,
+          "seasonStatuses": {},
           "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
         }
       `);
     });
