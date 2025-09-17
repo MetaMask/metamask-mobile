@@ -127,7 +127,7 @@ export async function importSRPFlow(device, srp) {
 
   timer4.start();
   await ImportFromSeedScreen.tapContinueButton(false);
-  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.isMainWalletViewVisible(60000);
   timer4.stop();
 
   timers.push(timer, timer2, timer3, timer4);

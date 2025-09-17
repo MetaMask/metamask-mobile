@@ -21,9 +21,6 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   WalletActionModal.device = device;
   SwapScreen.device = device;
   TabBarModal.device = device;
-  WalletMainScreen.device = device;
-  AccountListComponent.device = device;
-  AddAccountModal.device = device;
 
   await login(device, 'login');
 

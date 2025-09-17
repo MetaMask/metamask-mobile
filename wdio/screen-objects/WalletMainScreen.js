@@ -238,12 +238,12 @@ class WalletMainScreen {
     await tokenText.waitForExist({ reverse: true });
   }
 
-  async isMainWalletViewVisible() {
+  async isMainWalletViewVisible(timeout = 10000) {
     if (!this._device) {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await element.waitFor('visible',{ timeout: 10000 });
+      await element.waitFor('visible',{ timeout });
       await appwrightExpect(element).toBeVisible();
     }
   }
