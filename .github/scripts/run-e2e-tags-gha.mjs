@@ -39,10 +39,18 @@ function* walk(dir) {
 function findMatchingFiles(baseDir, tag) {
   const resolvedBase = path.resolve(baseDir);
   const results = [];
+  // Escape the tag for safe usage in RegExp
+  const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Match tag with word-boundary semantics similar to `grep -w -F`
+  // We require a non-word (or start) before and after the tag to avoid substring matches
+  const boundaryPattern = new RegExp(
+    `(^|[^A-Za-z0-9_])${escapeRegExp(tag)}([^A-Za-z0-9_]|$)`,
+    'm',
+  );
   for (const filePath of walk(resolvedBase)) {
     if (!isSpecFile(filePath)) continue;
     const content = fs.readFileSync(filePath, 'utf8');
-    if (content.includes(tag)) {
+    if (boundaryPattern.test(content)) {
       // Return repo-relative paths similar to the bash script output
       results.push(path.relative(process.cwd(), filePath));
     }
