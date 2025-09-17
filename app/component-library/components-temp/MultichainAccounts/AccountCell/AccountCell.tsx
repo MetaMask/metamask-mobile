@@ -105,6 +105,7 @@ const AccountCell = ({
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Md}
+            style={styles.checkIcon}
             color={TextColor.Primary}
           />
         )}
