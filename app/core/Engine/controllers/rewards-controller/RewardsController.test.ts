@@ -4180,10 +4180,12 @@ describe('RewardsController', () => {
         {
           "accounts": {},
           "activeAccount": null,
+          "activeBoosts": {},
           "seasonStatuses": {},
           "seasons": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
+          "unlockedRewards": {},
         }
       `);
     });
@@ -4199,10 +4201,12 @@ describe('RewardsController', () => {
         {
           "accounts": {},
           "activeAccount": null,
+          "activeBoosts": {},
           "seasonStatuses": {},
           "seasons": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
+          "unlockedRewards": {},
         }
       `);
     });
@@ -4218,10 +4222,12 @@ describe('RewardsController', () => {
         {
           "accounts": {},
           "activeAccount": null,
+          "activeBoosts": {},
           "seasonStatuses": {},
           "seasons": {},
           "subscriptionReferralDetails": {},
           "subscriptions": {},
+          "unlockedRewards": {},
         }
       `);
     });
