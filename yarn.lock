@@ -5018,16 +5018,7 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0":
-  version "8.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.3.0.tgz#d547323192f7e60d37db63ddbc553544bca16a7e"
-  integrity sha512-DsaQIymoS6c5cDD2sysebZ/8iZwFv1mTyk31r0d8cseyRaf7MxUDj7WUf0RTxGUYiWuOy6RjXT+ySM8IJjhqVQ==
-  dependencies:
-    "@metamask/messenger" "^0.2.0"
-    "@metamask/utils" "^11.4.2"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^8.4.0":
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0", "@metamask/base-controller@^8.4.0":
   version "8.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.4.0.tgz#1adffa81b4d6d53a6c5e54d956251c18a72cdf03"
   integrity sha512-K2tVUIA5p89X/1aro0uGcpR3UvzP6wioM+TzJeGe72ZzbTo3DC5nm98lXgVfWsWt/d94bk2RXijngfYk/0MaIQ==
@@ -5632,11 +5623,6 @@
   version "1.1.2"
   resolved "https://registry.npmjs.org/@metamask/message-signing-snap/-/message-signing-snap-1.1.2.tgz#701ace646077976ba22feda85e7968a1ea4c8642"
   integrity sha512-TANi87ujo7WwyHubWy0iFoYFIh5t5ztvfZ/OqrA0rdZ2d58+6Bvj89jbi1tFWQPT//azwCF5jwQBnJAIVlAwBQ==
-
-"@metamask/messenger@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@metamask/messenger/-/messenger-0.2.0.tgz#2954cc3d893532b11766516ee284997557de8c65"
-  integrity sha512-Ktv9aselR1KH2Nnpj7kulragl4kdCUtLZcuQeAxClV7atn6HmJBmuIYLlTawnRwr8guiKqscAs7EiQQvU0DLiA==
 
 "@metamask/messenger@^0.3.0":
   version "0.3.0"
