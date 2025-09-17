@@ -71,15 +71,22 @@ jobs:
             yarn setup:github-ci --no-build-ios
 
       # Fingerprint-based build decision
+      - name: Generate current fingerprint
+        if: ${{ inputs.build_action == 'check_fingerprint' }}
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn -s fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT:0:16}..."
+
       - name: Restore fingerprint cache
         if: ${{ inputs.build_action == 'check_fingerprint' }}
         uses: actions/cache@v4
         with:
           path: .app-native-fingerprint
-          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}
+          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             fingerprint-android-${{ github.event.pull_request.number || 'main' }}-
-            fingerprint-android-main
 
       - name: Check fingerprints and decide build method
         if: ${{ inputs.build_action == 'check_fingerprint' }}
@@ -103,7 +110,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          key: android-apk-${{ github.event.pull_request.number || 'main' }}
+          key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             android-apk-${{ github.event.pull_request.number || 'main' }}-
 
@@ -191,7 +198,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          key: android-apk-${{ github.event.pull_request.number || 'main' }}
+          key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint || 'unknown' }}
 
       # Cache fingerprint for future comparisons
       - name: Cache fingerprint
@@ -199,7 +206,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .app-native-fingerprint
-          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}
+          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint || 'unknown' }}
       
       - name: Log Build Metrics
         if: always()

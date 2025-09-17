@@ -111,15 +111,22 @@ jobs:
             yarn setup:github-ci --build-ios --no-build-android
 
       # Fingerprint-based build decision
+      - name: Generate current fingerprint
+        if: ${{ inputs.build_action == 'check_fingerprint' }}
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn -s fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT:0:16}..."
+
       - name: Restore fingerprint cache
         if: ${{ inputs.build_action == 'check_fingerprint' }}
         uses: actions/cache@v4
         with:
           path: .app-native-fingerprint
-          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-
-            fingerprint-ios-main
 
       - name: Check fingerprints and decide build method
         if: ${{ inputs.build_action == 'check_fingerprint' }}
@@ -143,7 +150,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.event.pull_request.number || 'main' }}
+          key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             ios-app-${{ github.event.pull_request.number || 'main' }}-
       
@@ -222,7 +229,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.event.pull_request.number || 'main' }}
+          key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint || 'unknown' }}
 
       # Cache fingerprint for future comparisons
       - name: Cache fingerprint
@@ -230,7 +237,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .app-native-fingerprint
-          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}
+          key: fingerprint-ios-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint || 'unknown' }}
 
       - name: Log Build Metrics
         if: always()
