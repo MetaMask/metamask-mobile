@@ -15,9 +15,6 @@ on:
       sourcemap-uploaded:
         description: 'Whether the sourcemap was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
-      build-method:
-        description: 'The build method used: full, repack, or skipped'
-        value: ${{ jobs.build-android-apks.outputs.build-method }}
 
 jobs:
   build-android-apks:
@@ -29,7 +26,6 @@ jobs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
-      build-method: ${{ steps.build-decision.outputs.can_repack == 'true' && 'repack' || 'full' }}
 
     steps:
       - name: Checkout repo
@@ -83,21 +79,8 @@ jobs:
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
           lookup-only: true
 
-      - name: Decide build method based on cache
-        id: build-decision
-        shell: bash
-        run: |
-          echo "🔍 Checking build method..."
-          if [[ "${{ steps.fingerprint-check.outputs.cache-hit }}" == "true" ]]; then
-            echo "✅ Can repack - APK exists with matching fingerprint"
-            echo "can_repack=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "🔄 Full build required - no cached APK with this fingerprint"
-            echo "can_repack=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Restore cached APK for repacking
-        if: ${{ steps.build-decision.outputs.can_repack == 'true' }}
+        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'true' }}
         uses: actions/cache@v4
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
@@ -106,7 +89,7 @@ jobs:
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Build Android E2E APKs
-        if: ${{ steps.build-decision.outputs.can_repack == 'false' }}
+        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'false' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -151,7 +134,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Repack APK with JS updates
-        if: ${{ steps.build-decision.outputs.can_repack == 'true' }}
+        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript..."
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
@@ -170,7 +153,7 @@ jobs:
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
-        if: ${{ steps.build-decision.outputs.can_repack == 'false' }}
+        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'false' }}
         uses: actions/cache@v4
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
