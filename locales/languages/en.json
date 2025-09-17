@@ -507,6 +507,7 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
+    "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards"
   },
@@ -5834,6 +5835,20 @@
         "title": "Share your code to earn more",
         "description": "Your friends earn bonus points, and you get 20% of their rewards."
       }
+    },
+    "active_boosts": {
+      "title": "Active boosts",
+      "error": "Failed to load active boosts"
+    },
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "empty": "No rewards yet. \nEarn points and level up.",
+      "see_ways_to_earn": "See ways to earn"
     }
   },
   "time": {
