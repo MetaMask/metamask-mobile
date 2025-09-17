@@ -61,7 +61,8 @@ export async function discoverAccounts(
  * creation must have been executed beforehand.
  * @returns Primary entropy source ID (similar to keyring ID).
  */
-const getPrimaryEntropySourceId = (): EntropySourceId => Engine.context.KeyringController.state.keyrings[0].metadata.id;
+const getPrimaryEntropySourceId = (): EntropySourceId =>
+  Engine.context.KeyringController.state.keyrings[0].metadata.id;
 
 /**
  * Attempts to discover accounts with retries and exponential backoff.
@@ -69,10 +70,10 @@ const getPrimaryEntropySourceId = (): EntropySourceId => Engine.context.KeyringC
  */
 export const attemptMultichainAccountWalletDiscovery = async (
   entropySource?: EntropySourceId,
-): Promise<number> => await retryWithExponentialDelay(
-    async (): Promise<number> => await discoverAccounts(
-        entropySource ?? getPrimaryEntropySourceId(),
-      ),
+): Promise<number> =>
+  await retryWithExponentialDelay(
+    async (): Promise<number> =>
+      await discoverAccounts(entropySource ?? getPrimaryEntropySourceId()),
     3, // maxRetries
     1000, // baseDelay
     10000, // maxDelay
