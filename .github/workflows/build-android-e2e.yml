@@ -140,8 +140,9 @@ jobs:
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
           OUTPUT_PATH="android/app/build/outputs/apk/prod/release/app-prod-release-repacked.apk"
 
-          # Create temporary app.json with required fields for @expo/repack-app
-          cat > app.json << EOF
+          # Create temporary directory and app.json for @expo/repack-app
+          TEMP_DIR=$(mktemp -d)
+          cat > "$TEMP_DIR/app.json" << EOF
           {
             "name": "MetaMask",
             "slug": "metamask",
@@ -155,19 +156,22 @@ jobs:
           }
           EOF
 
+          # Copy APK to temp directory
+          cp "$APK_PATH" "$TEMP_DIR/source.apk"
+
           # Repack the APK with updated JS bundle
-          npx --yes @expo/repack-app \
+          (cd "$TEMP_DIR" && npx --yes @expo/repack-app \
             --platform android \
-            --source-app "$APK_PATH" \
-            --output "$OUTPUT_PATH" \
-            --verbose
+            --source-app "source.apk" \
+            --output "repacked.apk" \
+            --verbose)
 
           # Replace original with repacked version
-          mv "$OUTPUT_PATH" "$APK_PATH"
-          
-          # Clean up temporary app.json
-          rm -f app.json
-          
+          mv "$TEMP_DIR/repacked.apk" "$APK_PATH"
+
+          # Cleanup
+          rm -rf "$TEMP_DIR"
+
           echo "✅ APK repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint

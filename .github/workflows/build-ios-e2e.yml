@@ -174,8 +174,20 @@ jobs:
           echo "📦 Repacking iOS app with updated JavaScript..."
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
 
-          # Create temporary app.json with required fields for @expo/repack-app
-          cat > app.json << EOF
+          # Create a temporary directory for the payload
+          TEMP_DIR=$(mktemp -d)
+          PAYLOAD_DIR="$TEMP_DIR/Payload"
+          mkdir -p "$PAYLOAD_DIR"
+
+          # Copy the app bundle to Payload directory
+          cp -R "$APP_PATH" "$PAYLOAD_DIR/"
+
+          # Create IPA from the app bundle
+          TEMP_IPA="$TEMP_DIR/MetaMask.ipa"
+          (cd "$TEMP_DIR" && zip -r "$TEMP_IPA" Payload)
+
+          # Create temporary app.json in the temp directory for @expo/repack-app
+          cat > "$TEMP_DIR/app.json" << EOF
           {
             "name": "MetaMask",
             "slug": "metamask",
@@ -189,28 +201,13 @@ jobs:
           }
           EOF
 
-          # Note: For iOS simulator builds (.app), we need to handle it differently than IPA
-          # The tool expects an IPA for iOS, but we have a .app bundle for simulator
-
-          # Create a temporary directory for the payload
-          TEMP_DIR=$(mktemp -d)
-          PAYLOAD_DIR="$TEMP_DIR/Payload"
-          mkdir -p "$PAYLOAD_DIR"
-
-          # Copy the app bundle to Payload directory
-          cp -R "$APP_PATH" "$PAYLOAD_DIR/"
-
-          # Create IPA from the app bundle
-          TEMP_IPA="$TEMP_DIR/MetaMask.ipa"
-          (cd "$TEMP_DIR" && zip -r "$TEMP_IPA" Payload)
-
           # Repack the IPA with updated JS bundle
           OUTPUT_IPA="$TEMP_DIR/MetaMask-repacked.ipa"
-          npx --yes @expo/repack-app \
+          (cd "$TEMP_DIR" && npx --yes @expo/repack-app \
             --platform ios \
             --source-app "$TEMP_IPA" \
             --output "$OUTPUT_IPA" \
-            --verbose
+            --verbose)
 
           # Extract the repacked IPA back to .app
           unzip -q "$OUTPUT_IPA" -d "$TEMP_DIR/repacked"
@@ -219,7 +216,6 @@ jobs:
 
           # Cleanup
           rm -rf "$TEMP_DIR"
-          rm -f app.json
 
           echo "✅ iOS app repacked successfully"
 
