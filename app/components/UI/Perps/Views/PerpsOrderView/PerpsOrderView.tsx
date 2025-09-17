@@ -29,9 +29,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import FoxIcon from '../../components/FoxIcon/FoxIcon';
-import TagColored from '../../../../../component-library/components-temp/TagColored';
-import { TagColor } from '../../../../../component-library/components-temp/TagColored/TagColored.types';
+import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -1079,26 +1077,17 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            <View style={styles.feeRowContent}>
-              {rewardsState.feeDiscountPercentage &&
-              rewardsState.feeDiscountPercentage > 0 ? (
-                <TagColored color={TagColor.Warning}>
-                  <View style={styles.feeDiscountContainer}>
-                    <FoxIcon width={14} height={14} />
-                    <Text
-                      variant={TextVariant.BodySM}
-                    >{`-${rewardsState.feeDiscountPercentage}%`}</Text>
-                  </View>
-                </TagColored>
-              ) : null}
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {hasValidAmount
+            <PerpsFeesDisplay
+              feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+              formatFeeText={
+                hasValidAmount
                   ? formatPerpsFiat(estimatedFees, {
                       ranges: PRICE_RANGES_MINIMAL_VIEW,
                     })
-                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
-              </Text>
-            </View>
+                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+              }
+              variant={TextVariant.BodySM}
+            />
           </View>
 
           {/* Rewards Points Estimation */}
