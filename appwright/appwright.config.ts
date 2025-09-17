@@ -29,6 +29,7 @@ export default defineConfig({
           osVersion: '14', // this can be changed to your emulator version
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+        expectTimeout: 60 * 1000, //60 seconds // increased since login the app takes longer
       },
     },
     {
@@ -41,6 +42,7 @@ export default defineConfig({
           osVersion: '16.0', // this can be changed to your simulator version
         },
         buildPath: 'PATH-TO-BUILD', // Path to your .app file
+        expectTimeout: 60 * 1000, //60 seconds // increased since login the app takes longer
       },
     },
     {
@@ -54,6 +56,7 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        expectTimeout: 60 * 1000, //60 seconds // increased since login the app takes longer
       },
     },
     {
@@ -67,6 +70,7 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
         buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+        expectTimeout: 60 * 1000, //60 seconds // increased since login the app takes longer
       },
     },
     {
@@ -80,6 +84,7 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
         },
         buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        expectTimeout: 60 * 1000, //60 seconds // increased since login the app takes longer
       },
     },
     {
@@ -93,6 +98,7 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
         buildPath: process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        expectTimeout: 60 * 1000, //60 seconds // increased since login the app takes longer
       },
     },
   ],

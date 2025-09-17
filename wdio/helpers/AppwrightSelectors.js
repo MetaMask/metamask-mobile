@@ -63,7 +63,13 @@ export default class AppwrightSelectors {
 
   static async activateApp(device) {
     const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask';
-    return await device.activateApp(packageId);
+    try {
+      return await device.activateApp(packageId);
+    } catch (error) {
+      console.log('Error activating app', packageId);
+      console.log(`Retrying with packageId: ${packageId}-QA`);
+      return await device.activateApp(packageId + '-QA');
+    }
   }
 
   static async hideKeyboard(device) {
