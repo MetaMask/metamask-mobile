@@ -401,7 +401,7 @@ class Onboarding extends PureComponent {
 
   startRiveAnimation = () => {
     try {
-      if (this.logoRef.current) {
+      if (this.logoRef.current && this.mounted) {
         this.logoRef.current.play();
       } else {
         setTimeout(() => {
