@@ -4896,14 +4896,17 @@
     "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.13.1":
-  version "0.13.1"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.13.1.tgz#9e0adcf8bd707e521cde4aa89d7bc59f3fa3daf1"
-  integrity sha512-MHLbaXy5SOsX0LumNQIyxM4lhKbcm6xtCx3ruJUMrB2y6bOV9YSYQ/IVAq1sToD0/WvnVAfV3Mqk+FZe33XPKw==
+"@metamask/account-tree-controller@^0.15.1":
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.15.1.tgz#4878641b934bb0bebd785b97fbc7df541b49947f"
+  integrity sha512-Jc0Lg4huCzNxI0we445FOVeraQYK9EppUqnhq7Mnbb2vDA+I5TSaOKp/BV/wJVCXIs9rmpep00pNwvGhQOaFYg==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
+    fast-deep-equal "^3.1.3"
     lodash "^4.17.21"
 
 "@metamask/accounts-controller@^33.1.0":
@@ -5346,7 +5349,7 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^16.0.0", "@metamask/eth-snap-keyring@^16.1.0":
+"@metamask/eth-snap-keyring@^16.0.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-16.1.0.tgz#2a4d54367ed8a329fb91d1d3200c82f4dd36423b"
   integrity sha512-JnR14wPksYja+e/3RbEYWxFNukO/yIpmR0hmIiogNj6VWJTQd0F/E8G/5J+0jdyX2ZYtNpzGtJj0vZaNi3wq/w==
@@ -5695,21 +5698,22 @@
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.7.0.tgz#ee4173dd9f2751ab1dabbea91748fb3915731d9c"
-  integrity sha512-vHjznP2cX5foqSp6nlBICkd9MQifYjWRgkzYvEnRXXiuE4PqpvbihLcbnJTdedU1/tF1qi/0eLWtrWfYBsFVPA==
+"@metamask/multichain-account-service@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.8.0.tgz#b90f9e0146298f430298656aa4d1ae75aed5dd18"
+  integrity sha512-w5ZnwJTQEbcCE8L88+J5DCZ0H4MTwIIxGqfNDltmefVF8l66TJ7pEuouAdJS3CjMsfBL/pKvW0M+2vn/gecu2g==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
-    "@metamask/eth-snap-keyring" "^16.1.0"
-    "@metamask/keyring-api" "^20.1.0"
-    "@metamask/keyring-internal-api" "^8.1.0"
-    "@metamask/keyring-snap-client" "^7.0.0"
+    "@metamask/eth-snap-keyring" "^17.0.0"
+    "@metamask/keyring-api" "^21.0.0"
+    "@metamask/keyring-internal-api" "^9.0.0"
+    "@metamask/keyring-snap-client" "^8.0.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.4.2"
+    async-mutex "^0.5.0"
 
 "@metamask/multichain-api-client@^0.6.5":
   version "0.6.5"
@@ -5802,14 +5806,14 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.6.0.tgz#f4b5b3d834e721a077b2920719ca3948f0599e29"
-  integrity sha512-U1zEdyCnxQcOkQ6D2G3kYpc9XxkNvpdBxaK9i8AB0YIIkjy0WlsTHtQbW9VLdi5rEeu6dvFjYjhxoukXLwjnGw==
+"@metamask/network-enablement-controller@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-1.1.0.tgz#83d198e2909d1c1dfd41d664fb3090d9b1345121"
+  integrity sha512-RTcx1MCOT9LMcIuJplyG8pJ+9RUJUYdIhe5iy/gDoUUHYoK5KMI9+JC1dEdUgIhUFERvgAacwflKBZNXPC/Wgw==
   dependencies:
     "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
-    "@metamask/utils" "^11.4.2"
+    "@metamask/utils" "^11.8.0"
     reselect "^5.1.1"
 
 "@metamask/nonce-tracker@^6.0.0":
@@ -5956,16 +5960,16 @@
   dependencies:
     "@metamask/snaps-sdk" "^9.3.0"
 
-"@metamask/profile-sync-controller@^23.0.0":
-  version "23.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-23.0.0.tgz#fb40435f3635c36650445dba15521186853d9f13"
-  integrity sha512-4NQ9UmyJxwznRDpnnEdqisJ612ZxETxVLit4CjZbbw2d2UyZ9nVq2tszhcTRIfI2mp8RMUmTT/1V1ZgqnRxVyg==
+"@metamask/profile-sync-controller@^25.0.0":
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-25.0.0.tgz#aa275348b56b68296129becdb32d68fea8b32a47"
+  integrity sha512-4bQsp/ECAczG+UJUT0/LVcg2pW9Agb81H4/gbSrAv06WRHISlN+FjeL3oQsjwK7y54n5OnA4U3uT4h1/Pu9lCg==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
-    "@noble/ciphers" "^0.5.2"
-    "@noble/hashes" "^1.4.0"
+    "@noble/ciphers" "^1.3.0"
+    "@noble/hashes" "^1.8.0"
     immer "^9.0.6"
     loglevel "^1.8.1"
     siwe "^2.3.2"
@@ -6411,10 +6415,10 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0", "@metamask/utils@^11.4.2", "@metamask/utils@^11.7.0":
-  version "11.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.7.0.tgz#d6b7dad510eef5d19e756fa8d3e43c1a95cf1c5e"
-  integrity sha512-IamqpZF8Lr4WeXJ84fD+Sy+v1Zo05SYuMPHHBrZWpzVbnHAmXQpL4ckn9s5dfA+zylp3WGypaBPb6SBZdOhuNQ==
+"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0", "@metamask/utils@^11.4.2", "@metamask/utils@^11.7.0", "@metamask/utils@^11.8.0":
+  version "11.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.8.0.tgz#0d1f1b4097fa3645258cb397a9256e2c54b5c164"
+  integrity sha512-EJqiuvVBAjV1vd1kBhmVmRtGfadrBfY3ImcAMjl+8MSSByTB3VNwvlIBLQdp+TwdAomUdenJCx2BvOSQykm8Hg==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
@@ -6519,11 +6523,6 @@
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-1.3.0.tgz#f64b8ff886c240e644e5573c097f86e5b43676dc"
   integrity sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==
-
-"@noble/ciphers@^0.5.2":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-0.5.3.tgz#48b536311587125e0d0c1535f73ec8375cd76b23"
-  integrity sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==
 
 "@noble/curves@1.4.2", "@noble/curves@~1.4.0":
   version "1.4.2"
