@@ -22,7 +22,7 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
-import { discoverAccounts } from '../../multichain-accounts/discovery';
+import { attemptMultichainAccountWalletDiscovery } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
 
@@ -140,7 +140,9 @@ export async function importNewSecretRecoveryPhrase(
       // We dispatch a full sync here since this is a new SRP
       await Engine.context.AccountTreeController.syncWithUserStorage();
 
-      discoveredAccountsCount = await discoverAccounts(newKeyring.id);
+      discoveredAccountsCount = await attemptMultichainAccountWalletDiscovery(
+        newKeyring.id,
+      );
     } catch (error) {
       captureException(
         new Error(`Unable to discover and create accounts: ${error}`),

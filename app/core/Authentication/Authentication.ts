@@ -32,7 +32,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { discoverAccounts } from '../../multichain-accounts/discovery';
+import { attemptMultichainAccountWalletDiscovery } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -71,7 +71,6 @@ import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
-import { EntropySourceId } from '@metamask/keyring-api';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -112,15 +111,6 @@ class AuthenticationService {
 
   private dispatchOauthReset(): void {
     OAuthService.resetOauthState();
-  }
-
-  /**
-   * This method gets the primary entropy source ID. It assumes it's always being defined, which means, vault
-   * creation must have been executed beforehand.
-   * @returns Primary entropy source ID (similar to keyring ID).
-   */
-  private getPrimaryEntropySourceId(): EntropySourceId {
-    return Engine.context.KeyringController.state.keyrings[0].metadata.id;
   }
 
   /**
@@ -217,19 +207,11 @@ class AuthenticationService {
     });
   };
 
-  private attemptMultichainAccountWalletDiscovery = async (
-    entropySource?: EntropySourceId,
-  ): Promise<void> => {
-    await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAccounts(entropySource ?? this.getPrimaryEntropySourceId());
-    });
-  };
-
   private retryDiscoveryIfPending = async (): Promise<void> => {
     if (isMultichainAccountsState2Enabled()) {
       // We just re-run the same discovery here. Each wallets know their highest group index and restart
       // the discovery from there, thus acting as a "retry".
-      await this.attemptMultichainAccountWalletDiscovery();
+      await attemptMultichainAccountWalletDiscovery();
     } else {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
@@ -807,7 +789,7 @@ class AuthenticationService {
           // discover multichain accounts from imported srp
           if (isMultichainAccountsState2Enabled()) {
             // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
+            attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
           } else {
             this.addMultichainAccounts([keyringMetadata]);
           }
@@ -1049,7 +1031,7 @@ class AuthenticationService {
         if (isMultichainAccountsState2Enabled()) {
           for (const { id } of keyringMetadataList) {
             // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-            this.attemptMultichainAccountWalletDiscovery(id);
+            attemptMultichainAccountWalletDiscovery(id);
           }
         } else {
           this.addMultichainAccounts(keyringMetadataList);
