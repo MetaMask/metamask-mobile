@@ -1,7 +1,123 @@
 // Mock react-native components for testing
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
-  return { ...RN };
+  return {
+    ...RN,
+    InteractionManager: {
+      runAfterInteractions: jest.fn((callback) => callback()),
+    },
+    Animated: {
+      ...RN.Animated,
+      Value: jest.fn(() => ({
+        setValue: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      })),
+      timing: jest.fn(() => ({
+        start: jest.fn((_callback) => {
+          // Don't call callback to prevent teardown issues
+        }),
+      })),
+      parallel: jest.fn(() => ({
+        start: jest.fn((_callback) => {
+          // Don't call callback to prevent teardown issues
+        }),
+      })),
+    },
+  };
+});
+
+jest.mock(
+  '../../../animations/metamask_wordmark_animation_build-up.riv',
+  () => 'mocked-wordmark-riv-file',
+);
+jest.mock('../../../animations/fox_appear.riv', () => 'mocked-fox-riv-file');
+
+// Mock rive
+// ✅ Define types OUTSIDE the jest.mock callback
+interface RiveRef {
+  play: jest.Mock;
+  stop: jest.Mock;
+  reset: jest.Mock;
+  pause: jest.Mock;
+}
+
+interface MockRiveProps {
+  testID?: string;
+  onLoad?: () => void;
+  onStop?: () => void;
+  onError?: (error: Error) => void;
+  [key: string]: unknown;
+}
+
+jest.mock('rive-react-native', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  const MockRiveInner: React.ForwardRefRenderFunction<
+    RiveRef,
+    MockRiveProps
+  > = (
+    { testID = 'mock-rive-animation', onLoad, onStop, onError, ...props },
+    ref,
+  ) => {
+    React.useImperativeHandle(ref, () => ({
+      play: jest.fn(),
+      stop: jest.fn(),
+      reset: jest.fn(),
+      pause: jest.fn(),
+    }));
+
+    React.useEffect(() => {
+      if (onLoad) {
+        const timer = setTimeout(() => {
+          try {
+            onLoad();
+          } catch (error: unknown) {
+            if (error instanceof Error) {
+              console.warn(error.message);
+            }
+          }
+        }, 50);
+        return () => clearTimeout(timer);
+      }
+    }, [onLoad]);
+
+    React.useEffect(() => {
+      if (onStop) {
+        // noop
+      }
+    }, [onStop]);
+
+    return React.createElement(View, { testID, ...props });
+  };
+
+  const MockRive = React.forwardRef(MockRiveInner);
+
+  return {
+    __esModule: true,
+    default: MockRive,
+    Fit: {
+      Contain: 'contain',
+      Cover: 'cover',
+      Fill: 'fill',
+      FitWidth: 'fitWidth',
+      FitHeight: 'fitHeight',
+      None: 'none',
+      ScaleDown: 'scaleDown',
+    },
+    Alignment: {
+      TopLeft: 'topLeft',
+      TopCenter: 'topCenter',
+      TopRight: 'topRight',
+      CenterLeft: 'centerLeft',
+      Center: 'center',
+      CenterRight: 'centerRight',
+      BottomLeft: 'bottomLeft',
+      BottomCenter: 'bottomCenter',
+      BottomRight: 'bottomRight',
+    },
+  };
 });
 
 import React from 'react';
@@ -1351,6 +1467,45 @@ describe('Onboarding', () => {
           name: 'Error Screen Viewed',
         }),
       );
+    });
+  });
+
+  describe('Rive Animations', () => {
+    it('should render MetaMask wordmark animation', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByTestId('metamask-wordmark-animation')).toBeDefined();
+    });
+
+    it('should render fox animation', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByTestId('fox-animation')).toBeDefined();
+    });
+
+    it('should render both animations together', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByTestId('metamask-wordmark-animation')).toBeDefined();
+      expect(getByTestId('fox-animation')).toBeDefined();
     });
   });
 });
