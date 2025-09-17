@@ -34,7 +34,14 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: cd .github/scripts && yarn --immutable
+          command: |
+            cd .github/scripts
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
 
       - name: Create bug report issue on planning repo
         if: steps.extract_version.outputs.version

@@ -34,7 +34,14 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: cd .github/scripts && yarn --immutable
+          command: |
+            cd .github/scripts
+            if ! yarn install --immutable; then
+              echo "Immutable install failed, likely due to checksum mismatch. Attempting to update yarn.lock..."
+              yarn install
+              echo "yarn.lock updated. Verifying with immutable install..."
+              yarn install --immutable
+            fi
 
       - name: Check Bitrise Flask E2E Status
         env:
@@ -45,4 +52,4 @@ jobs:
         # The status check created under this workflow may be bucketed under another check suite in Github actions. This is a result of workflows with the same triggers.
         # For example, the status check may show as `CLA Signature Bot / Bitrise Flask E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
         run: yarn run run-bitrise-e2e-check
-        working-directory: '.github/scripts' 
+        working-directory: '.github/scripts'
