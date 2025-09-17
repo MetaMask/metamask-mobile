@@ -1,7 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePaymentMethods } from './usePaymentMethods';
-import { useDepositSdkMethod } from './useDepositSdkMethod';
-import { useDepositSDK } from '../sdk';
 
 const mockPaymentMethods = [
   {
@@ -33,7 +31,7 @@ jest.mock('../sdk', () => ({
 describe('usePaymentMethods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: { isoCode: 'US', currency: 'USD' },
       selectedCryptoCurrency: { assetId: 'test-asset' },
