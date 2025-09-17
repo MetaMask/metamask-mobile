@@ -31,6 +31,7 @@ exports[`TabBar renders correctly 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "width": "100%",
         }
       }
     >
@@ -123,6 +124,7 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "minWidth": 0,
                 "textAlign": "center",
                 "width": "100%",
               }
@@ -139,6 +141,7 @@ exports[`TabBar renders correctly 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "width": "100%",
         }
       }
     >
@@ -231,6 +234,7 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "minWidth": 0,
                 "textAlign": "center",
                 "width": "100%",
               }
@@ -247,6 +251,7 @@ exports[`TabBar renders correctly 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "width": "100%",
         }
       }
     >
@@ -339,6 +344,7 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "minWidth": 0,
                 "textAlign": "center",
                 "width": "100%",
               }
@@ -355,6 +361,7 @@ exports[`TabBar renders correctly 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "width": "100%",
         }
       }
     >
@@ -447,6 +454,7 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "minWidth": 0,
                 "textAlign": "center",
                 "width": "100%",
               }
@@ -463,6 +471,7 @@ exports[`TabBar renders correctly 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "width": "100%",
         }
       }
     >
@@ -555,6 +564,7 @@ exports[`TabBar renders correctly 1`] = `
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
                 "marginTop": 4,
+                "minWidth": 0,
                 "textAlign": "center",
                 "width": "100%",
               }
