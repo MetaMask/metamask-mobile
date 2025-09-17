@@ -5,6 +5,8 @@ A custom implementation to replace `react-native-scrollable-tab-view` with impro
 ## Features
 
 - ✅ **Dynamic Heights**: Each tab content can use its own height (not limited by the tallest content)
+- ✅ **Lazy Loading**: Active tab loads immediately, other tabs load in background for better performance
+- ✅ **Swipeable Content**: Horizontal swipe gestures to navigate between tabs with visual feedback
 - ✅ **Individual Tab Disabling**: Each tab can be individually disabled with `isDisabled` prop
 - ✅ **Smooth Animations**: Underline animates smoothly between tabs
 - ✅ **Horizontal Scrolling**: Automatically scrolls when there are many tabs
@@ -90,6 +92,24 @@ const MyComponent = () => {
 };
 ```
 
+### Swipe Gestures
+
+The component now supports horizontal swipe gestures similar to `react-native-scrollable-tab-view`:
+
+- **Swipe Left**: Navigate to the next tab
+- **Swipe Right**: Navigate to the previous tab
+- **Visual Feedback**: Content slides horizontally during navigation
+- **Disabled Tab Handling**: Swipes skip over disabled tabs automatically
+
+### Lazy Loading
+
+For better performance, the component implements intelligent lazy loading:
+
+- **Active Tab**: Loads immediately when the component mounts
+- **Background Loading**: Non-disabled tabs load automatically after a short delay
+- **On-Demand Loading**: Tabs load when accessed via swipe or tap
+- **Memory Efficient**: Only loaded tabs consume memory
+
 ### Migration from react-native-scrollable-tab-view
 
 **Before:**
@@ -102,7 +122,7 @@ import TabBar from '../TabBar';
   renderTabBar={(props) => <TabBar {...props} />}
   onChangeTab={onChangeTab}
   initialPage={0}
-  locked={true}
+  locked={false} // Enable swipe gestures
 >
   <View key="tab1" tabLabel="Tab 1">
     {/* content */}
@@ -124,6 +144,14 @@ import { TabsList } from '../Tabs';
   </View>
 </TabsList>;
 ```
+
+**Key Improvements:**
+
+- ✅ Swipe gestures work out of the box (no `locked` prop needed)
+- ✅ Individual tab disabling (not available in react-native-scrollable-tab-view)
+- ✅ Dynamic heights per tab
+- ✅ Lazy loading for better performance
+- ✅ Better design system integration
 
 ## Props
 

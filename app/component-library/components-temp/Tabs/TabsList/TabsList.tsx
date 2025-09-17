@@ -6,10 +6,17 @@ import React, {
   forwardRef,
   useCallback,
   useMemo,
+  useRef,
 } from 'react';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  ScrollView,
+  Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 
 // External dependencies.
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
@@ -21,7 +28,16 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     { children, initialActiveIndex = 0, onChangeTab, testID, ...boxProps },
     ref,
   ) => {
+    const tw = useTailwind();
     const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
+    const [containerWidth, setContainerWidth] = useState(
+      Dimensions.get('window').width,
+    );
+    const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
+    const scrollViewRef = useRef<ScrollView>(null);
+    const isScrolling = useRef(false);
+    const isProgrammaticScroll = useRef(false);
+    const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // Extract tab items from children
     const tabs: TabItem[] = useMemo(
@@ -39,6 +55,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               label: tabLabel,
               content: child,
               isDisabled,
+              isLoaded: false,
             };
           }
           return {
@@ -46,10 +63,40 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             label: `Tab ${index + 1}`,
             content: child,
             isDisabled: false,
+            isLoaded: false,
           };
         }) || [],
       [children],
     );
+
+    // Initialize loaded tabs with active tab
+    useEffect(() => {
+      if (activeIndex >= 0 && activeIndex < tabs.length) {
+        setLoadedTabs((prev) => new Set(prev).add(activeIndex));
+      }
+    }, [activeIndex, tabs.length]);
+
+    // Lazy load non-disabled tabs in background
+    useEffect(() => {
+      const loadBackgroundTabs = () => {
+        const newLoadedTabs = new Set(loadedTabs);
+
+        // Load all non-disabled tabs
+        tabs.forEach((tab, index) => {
+          if (!tab.isDisabled && !newLoadedTabs.has(index)) {
+            newLoadedTabs.add(index);
+          }
+        });
+
+        if (newLoadedTabs.size !== loadedTabs.size) {
+          setLoadedTabs(newLoadedTabs);
+        }
+      };
+
+      // Use a small delay to prioritize the active tab rendering first
+      const timer = setTimeout(loadBackgroundTabs, 100);
+      return () => clearTimeout(timer);
+    }, [tabs, loadedTabs]);
 
     // Update active index when initialActiveIndex or tabs change
     useEffect(() => {
@@ -92,14 +139,40 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const firstEnabledIndex = tabs.findIndex((tab) => !tab.isDisabled);
         setActiveIndex(firstEnabledIndex >= 0 ? firstEnabledIndex : -1);
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialActiveIndex, tabs]);
+    }, [initialActiveIndex, tabs, activeIndex]);
+
+    // Scroll to active tab when activeIndex changes
+    useEffect(() => {
+      if (scrollViewRef.current && activeIndex >= 0 && containerWidth > 0) {
+        const targetX = activeIndex * containerWidth;
+        scrollViewRef.current.scrollTo({
+          x: targetX,
+          animated: !isScrolling.current, // Don't animate if user is currently scrolling
+        });
+      }
+    }, [activeIndex, containerWidth]);
 
     const handleTabPress = useCallback(
       (index: number) => {
         const tab = tabs[index];
         if (!tab?.isDisabled && index !== activeIndex) {
+          // Update activeIndex immediately for TabsBar animation
           setActiveIndex(index);
+
+          // Ensure the tab is loaded
+          setLoadedTabs((prev) => new Set(prev).add(index));
+
+          // Set programmatic scroll flag AFTER state update
+          isProgrammaticScroll.current = true;
+
+          // Scroll to the correct position
+          if (scrollViewRef.current && containerWidth > 0) {
+            const targetX = index * containerWidth;
+            scrollViewRef.current.scrollTo({
+              x: targetX,
+              animated: true,
+            });
+          }
 
           // Call the onChangeTab callback if provided
           if (onChangeTab) {
@@ -108,89 +181,76 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               ref: tabs[index]?.content || null,
             });
           }
+
+          // Reset programmatic scroll flag after animation
+          setTimeout(() => {
+            isProgrammaticScroll.current = false;
+          }, 400);
         }
       },
-      [activeIndex, onChangeTab, tabs],
+      [activeIndex, onChangeTab, tabs, containerWidth],
     );
 
-    // Navigate to next/previous tab with swipe gestures
-    const navigateToTab = useCallback(
-      (direction: 'next' | 'previous') => {
-        if (tabs.length <= 1) return;
+    const handleScroll = useCallback(
+      (scrollEvent: NativeSyntheticEvent<NativeScrollEvent>) => {
+        // Don't process scroll events during programmatic scrolling (tab clicks)
+        if (isProgrammaticScroll.current) return;
 
-        const currentIndex = activeIndex;
-        let targetIndex = -1;
+        const { contentOffset } = scrollEvent.nativeEvent;
 
-        if (direction === 'next') {
-          // Find next enabled tab
-          for (let i = currentIndex + 1; i < tabs.length; i++) {
-            if (!tabs[i]?.isDisabled) {
-              targetIndex = i;
-              break;
-            }
-          }
-        } else {
-          // Find previous enabled tab
-          for (let i = currentIndex - 1; i >= 0; i--) {
-            if (!tabs[i]?.isDisabled) {
-              targetIndex = i;
-              break;
-            }
-          }
-        }
+        // Avoid division by zero and ensure containerWidth is set
+        if (containerWidth <= 0) return;
 
-        if (targetIndex >= 0 && targetIndex !== activeIndex) {
-          setActiveIndex(targetIndex);
+        const newIndex = Math.round(contentOffset.x / containerWidth);
+
+        if (
+          newIndex >= 0 &&
+          newIndex < tabs.length &&
+          !tabs[newIndex]?.isDisabled &&
+          newIndex !== activeIndex
+        ) {
+          setActiveIndex(newIndex);
+
+          // Ensure the tab is loaded
+          setLoadedTabs((prev) => new Set(prev).add(newIndex));
 
           // Call the onChangeTab callback if provided
           if (onChangeTab) {
             onChangeTab({
-              i: targetIndex,
-              ref: tabs[targetIndex]?.content || null,
+              i: newIndex,
+              ref: tabs[newIndex]?.content || null,
             });
           }
         }
       },
-      [activeIndex, tabs, onChangeTab],
+      [activeIndex, containerWidth, onChangeTab, tabs],
     );
 
-    // Create pan gesture for swipe navigation
-    const panGesture = useMemo(
-      () =>
-        Gesture.Pan()
-          .activeOffsetX([-10, 10]) // Only activate for horizontal movements
-          .failOffsetY([-5, 5]) // Fail if vertical movement is too small (allow scrolling)
-          .onEnd((event) => {
-            const { translationX, translationY, velocityX, velocityY } = event;
-            const swipeThreshold = 50; // Minimum distance to trigger swipe
-            const velocityThreshold = 500; // Minimum velocity to trigger swipe
+    const handleScrollBegin = useCallback(() => {
+      // Clear any existing timeout
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
 
-            // Only process if the gesture is primarily horizontal
-            const isHorizontalGesture =
-              Math.abs(translationX) > Math.abs(translationY);
-            const isHorizontalVelocity =
-              Math.abs(velocityX) > Math.abs(velocityY);
+      // Only mark as user scroll if it's not programmatic
+      if (!isProgrammaticScroll.current) {
+        isScrolling.current = true;
+      }
+    }, []);
 
-            if (!isHorizontalGesture && !isHorizontalVelocity) {
-              return; // Let vertical scrolling pass through
-            }
+    const handleScrollEnd = useCallback(() => {
+      // Reset scrolling flag after a short delay
+      scrollTimeout.current = setTimeout(() => {
+        isScrolling.current = false;
+      }, 150);
+    }, []);
 
-            // Determine swipe direction based on translation and velocity
-            const isSwipeLeft =
-              translationX < -swipeThreshold || velocityX < -velocityThreshold;
-            const isSwipeRight =
-              translationX > swipeThreshold || velocityX > velocityThreshold;
-
-            if (isSwipeLeft) {
-              // Swipe left = go to next tab
-              navigateToTab('next');
-            } else if (isSwipeRight) {
-              // Swipe right = go to previous tab
-              navigateToTab('previous');
-            }
-          })
-          .runOnJS(true),
-      [navigateToTab],
+    const handleLayout = useCallback(
+      (layoutEvent: { nativeEvent: { layout: { width: number } } }) => {
+        const { width } = layoutEvent.nativeEvent.layout;
+        setContainerWidth(width);
+      },
+      [],
     );
 
     // Expose methods via ref
@@ -201,7 +261,23 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           if (tabIndex >= 0 && tabIndex < tabs.length) {
             const tab = tabs[tabIndex];
             if (!tab?.isDisabled && tabIndex !== activeIndex) {
+              // Update activeIndex immediately for TabsBar animation
               setActiveIndex(tabIndex);
+
+              // Ensure the tab is loaded
+              setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+
+              // Set programmatic scroll flag AFTER state update
+              isProgrammaticScroll.current = true;
+
+              // Scroll to the correct position
+              if (scrollViewRef.current && containerWidth > 0) {
+                const targetX = tabIndex * containerWidth;
+                scrollViewRef.current.scrollTo({
+                  x: targetX,
+                  animated: true,
+                });
+              }
 
               // Call the onChangeTab callback if provided
               if (onChangeTab) {
@@ -210,32 +286,65 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
                   ref: tabs[tabIndex]?.content || null,
                 });
               }
+
+              // Reset programmatic scroll flag after animation
+              setTimeout(() => {
+                isProgrammaticScroll.current = false;
+              }, 400);
             }
           }
         },
         getCurrentIndex: () => activeIndex,
       }),
-      [activeIndex, tabs, onChangeTab],
+      [activeIndex, tabs, onChangeTab, containerWidth],
     );
 
-    const currentContent = tabs[activeIndex]?.content || null;
+    // Debug: Log activeIndex changes
+    useEffect(() => {
+      // TabsList activeIndex changed
+    }, [activeIndex]);
 
-    const tabBarProps = {
-      tabs,
-      activeIndex,
-      onTabPress: handleTabPress,
-      testID: testID ? `${testID}-bar` : undefined,
-    };
+    const tabBarProps = useMemo(
+      () => ({
+        tabs,
+        activeIndex,
+        onTabPress: handleTabPress,
+        testID: testID ? `${testID}-bar` : undefined,
+      }),
+      [tabs, activeIndex, handleTabPress, testID],
+    );
 
     return (
       <Box twClassName="flex-1" testID={testID} {...boxProps}>
-        {/* Render default TabsBar */}
+        {/* Render TabsBar */}
         <TabsBar {...tabBarProps} />
 
-        {/* Tab content with dynamic height and swipe gesture support */}
-        <GestureDetector gesture={panGesture}>
-          <Box twClassName="flex-1 mt-2">{currentContent}</Box>
-        </GestureDetector>
+        {/* Horizontal ScrollView for tab contents */}
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          onScrollAnimationEnd={handleScrollEnd}
+          onScrollBeginDrag={handleScrollBegin}
+          onScrollEndDrag={handleScrollEnd}
+          onMomentumScrollBegin={handleScrollBegin}
+          onMomentumScrollEnd={handleScrollEnd}
+          scrollEventThrottle={8}
+          onLayout={handleLayout}
+          style={tw.style('flex-1 mt-2')}
+          decelerationRate="fast"
+        >
+          {tabs.map((tab, index) => (
+            <Box
+              key={tab.key}
+              style={tw.style('flex-1', { width: containerWidth })}
+            >
+              {loadedTabs.has(index) ? tab.content : null}
+            </Box>
+          ))}
+        </ScrollView>
       </Box>
     );
   },

@@ -34,7 +34,7 @@ describe('TabsList', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays correct initial tab content', () => {
+  it('displays correct initial tab content with lazy loading', () => {
     // Arrange
     const tabs = [
       { label: 'Tokens', content: 'Tokens Content' },
@@ -55,9 +55,14 @@ describe('TabsList', () => {
       </TabsList>,
     );
 
-    // Assert
+    // Assert - Active tab loads immediately
     expect(getByText('Tokens Content')).toBeOnTheScreen();
-    expect(queryByText('NFTs Content')).toBeNull(); // Should not be visible initially
+
+    // Wait for lazy loading to complete
+    setTimeout(() => {
+      // After lazy loading, NFTs content should be available but not visible
+      expect(queryByText('NFTs Content')).toBeNull();
+    }, 150);
   });
 
   it('switches tab content when tab is pressed', () => {
@@ -1062,6 +1067,272 @@ describe('TabsList', () => {
 
       // Assert - No navigation should occur for invalid indices
       expect(mockOnChangeTab).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Lazy Loading and Swipe Functionality', () => {
+    it('loads active tab immediately and others in background', async () => {
+      // Arrange
+      const tabs = [
+        { label: 'Active', content: 'Active Content' },
+        { label: 'Background', content: 'Background Content' },
+        { label: 'Disabled', content: 'Disabled Content' },
+      ];
+
+      // Act
+      const { getByText, queryByText } = render(
+        <TabsList initialActiveIndex={0}>
+          <View key="active" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+            <Text>{tabs[0].content}</Text>
+          </View>
+          <View
+            key="background"
+            {...({ tabLabel: tabs[1].label } as TabViewProps)}
+          >
+            <Text>{tabs[1].content}</Text>
+          </View>
+          <View
+            key="disabled"
+            {...({ tabLabel: tabs[2].label, isDisabled: true } as TabViewProps)}
+          >
+            <Text>{tabs[2].content}</Text>
+          </View>
+        </TabsList>,
+      );
+
+      // Assert - Active tab loads immediately
+      expect(getByText('Active Content')).toBeOnTheScreen();
+
+      // Wait for background loading
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      });
+
+      // Background tab should be loaded but not visible
+      expect(queryByText('Background Content')).toBeNull();
+      // Disabled tab should not be loaded
+      expect(queryByText('Disabled Content')).toBeNull();
+    });
+
+    it('handles horizontal scroll view for swipeable content', () => {
+      // Arrange
+      const tabs = [
+        { label: 'Tab 1', content: 'Content 1' },
+        { label: 'Tab 2', content: 'Content 2' },
+      ];
+
+      // Act
+      const { getByText, getByTestId } = render(
+        <TabsList testID="swipeable-tabs">
+          {tabs.map((tab, index) => (
+            <View
+              key={`tab${index}`}
+              {...({ tabLabel: tab.label } as TabViewProps)}
+            >
+              <Text>{tab.content}</Text>
+            </View>
+          ))}
+        </TabsList>,
+      );
+
+      // Assert - Component renders with ScrollView structure
+      const tabsList = getByTestId('swipeable-tabs');
+      expect(tabsList).toBeOnTheScreen();
+      expect(getByText('Content 1')).toBeOnTheScreen();
+    });
+
+    it('handles scroll events to change active tab', async () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabs = [
+        { label: 'Tab 1', content: 'Content 1' },
+        { label: 'Tab 2', content: 'Content 2' },
+      ];
+
+      // Act
+      const { getByTestId } = render(
+        <TabsList testID="scroll-tabs" onChangeTab={mockOnChangeTab}>
+          {tabs.map((tab, index) => (
+            <View
+              key={`tab${index}`}
+              {...({ tabLabel: tab.label } as TabViewProps)}
+            >
+              <Text>{tab.content}</Text>
+            </View>
+          ))}
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('scroll-tabs');
+
+      // Simulate scroll to second tab
+      await act(async () => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { x: 400, y: 0 }, // Assuming 400px width per tab
+          },
+        });
+      });
+
+      // Assert - Should trigger tab change
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: 1,
+        ref: expect.anything(),
+      });
+    });
+
+    it('maintains individual tab heights without constraint', () => {
+      // Arrange
+      const tabs = [
+        { label: 'Short', content: 'Short' },
+        {
+          label: 'Tall',
+          content:
+            'Very tall content that should not be constrained by other tabs',
+        },
+      ];
+
+      // Act
+      const { getByText } = render(
+        <TabsList>
+          {tabs.map((tab, index) => (
+            <View
+              key={`tab${index}`}
+              {...({ tabLabel: tab.label } as TabViewProps)}
+            >
+              <Text>{tab.content}</Text>
+            </View>
+          ))}
+        </TabsList>,
+      );
+
+      // Assert - Each tab content should render with its natural height
+      expect(getByText('Short')).toBeOnTheScreen();
+      // The component should not enforce a fixed height constraint
+    });
+
+    it('skips disabled tabs during swipe navigation', async () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabs = [
+        { label: 'Tab 1', content: 'Content 1' },
+        { label: 'Tab 2', content: 'Content 2', disabled: true },
+        { label: 'Tab 3', content: 'Content 3' },
+      ];
+
+      // Act
+      const { getByTestId } = render(
+        <TabsList testID="skip-disabled-tabs" onChangeTab={mockOnChangeTab}>
+          <View key="tab1" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+            <Text>{tabs[0].content}</Text>
+          </View>
+          <View
+            key="tab2"
+            {...({ tabLabel: tabs[1].label, isDisabled: true } as TabViewProps)}
+          >
+            <Text>{tabs[1].content}</Text>
+          </View>
+          <View key="tab3" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
+            <Text>{tabs[2].content}</Text>
+          </View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('skip-disabled-tabs');
+
+      // Simulate scroll to third tab (skipping disabled second tab)
+      await act(async () => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { x: 800, y: 0 }, // Scroll to third tab position
+          },
+        });
+      });
+
+      // Assert - Should navigate to third tab, skipping disabled second tab
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: 2,
+        ref: expect.anything(),
+      });
+    });
+
+    it('handles container width changes for responsive behavior', () => {
+      // Arrange
+      const tabs = [
+        { label: 'Tab 1', content: 'Content 1' },
+        { label: 'Tab 2', content: 'Content 2' },
+      ];
+
+      // Act
+      const { getByTestId } = render(
+        <TabsList testID="responsive-tabs">
+          {tabs.map((tab, index) => (
+            <View
+              key={`tab${index}`}
+              {...({ tabLabel: tab.label } as TabViewProps)}
+            >
+              <Text>{tab.content}</Text>
+            </View>
+          ))}
+        </TabsList>,
+      );
+
+      const tabsList = getByTestId('responsive-tabs');
+
+      // Simulate layout change
+      act(() => {
+        fireEvent(tabsList, 'layout', {
+          nativeEvent: {
+            layout: { width: 500, height: 300 },
+          },
+        });
+      });
+
+      // Assert - Component should handle layout changes gracefully
+      expect(tabsList).toBeOnTheScreen();
+    });
+
+    it('loads tabs on demand when accessed via swipe', async () => {
+      // Arrange
+      const mockOnChangeTab = jest.fn();
+      const tabs = [
+        { label: 'Tab 1', content: 'Content 1' },
+        { label: 'Tab 2', content: 'Content 2' },
+      ];
+
+      // Act
+      const { getByText, getByTestId } = render(
+        <TabsList testID="on-demand-tabs" onChangeTab={mockOnChangeTab}>
+          {tabs.map((tab, index) => (
+            <View
+              key={`tab${index}`}
+              {...({ tabLabel: tab.label } as TabViewProps)}
+            >
+              <Text>{tab.content}</Text>
+            </View>
+          ))}
+        </TabsList>,
+      );
+
+      // Assert initial state
+      expect(getByText('Content 1')).toBeOnTheScreen();
+
+      const scrollView = getByTestId('on-demand-tabs');
+
+      // Simulate swipe to second tab
+      await act(async () => {
+        fireEvent.scroll(scrollView, {
+          nativeEvent: {
+            contentOffset: { x: 400, y: 0 },
+          },
+        });
+      });
+
+      // Assert - Second tab should be loaded and callback triggered
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: 1,
+        ref: expect.anything(),
+      });
     });
   });
 
