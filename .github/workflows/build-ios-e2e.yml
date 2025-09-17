@@ -173,50 +173,18 @@ jobs:
         run: |
           echo "📦 Repacking iOS app with updated JavaScript..."
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
-
-          # Create a temporary directory for the payload
-          TEMP_DIR=$(mktemp -d)
-          PAYLOAD_DIR="$TEMP_DIR/Payload"
-          mkdir -p "$PAYLOAD_DIR"
-
-          # Copy the app bundle to Payload directory
-          cp -R "$APP_PATH" "$PAYLOAD_DIR/"
-
-          # Create IPA from the app bundle
-          TEMP_IPA="$TEMP_DIR/MetaMask.ipa"
-          (cd "$TEMP_DIR" && zip -r "$TEMP_IPA" Payload)
-
-          # Create temporary app.json in the temp directory for @expo/repack-app
-          cat > "$TEMP_DIR/app.json" << EOF
-          {
-            "name": "MetaMask",
-            "slug": "metamask",
-            "version": "1.0.0",
-            "android": {
-              "package": "io.metamask"
-            },
-            "ios": {
-              "bundleIdentifier": "io.metamask.MetaMask"
-            }
-          }
-          EOF
-
-          # Repack the IPA with updated JS bundle
-          OUTPUT_IPA="$TEMP_DIR/MetaMask-repacked.ipa"
-          (cd "$TEMP_DIR" && npx --yes @expo/repack-app \
-            --platform ios \
-            --source-app "$TEMP_IPA" \
-            --output "$OUTPUT_IPA" \
-            --verbose)
-
-          # Extract the repacked IPA back to .app
-          unzip -q "$OUTPUT_IPA" -d "$TEMP_DIR/repacked"
-          rm -rf "$APP_PATH"
-          mv "$TEMP_DIR/repacked/Payload/MetaMask.app" "$APP_PATH"
-
+          
+          # Generate new JavaScript bundle using Metro bundler
+          echo "🔄 Generating new JavaScript bundle with Metro..."
+          yarn gen-bundle:ios
+          
+          # Replace the bundle in the cached app
+          echo "🔄 Replacing JavaScript bundle..."
+          cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
+          
           # Cleanup
-          rm -rf "$TEMP_DIR"
-
+          rm -f ios/main.jsbundle
+          
           echo "✅ iOS app repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint

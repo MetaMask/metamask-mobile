@@ -138,40 +138,33 @@ jobs:
         run: |
           echo "📦 Repacking APK with updated JavaScript..."
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
-          OUTPUT_PATH="android/app/build/outputs/apk/prod/release/app-prod-release-repacked.apk"
-
-          # Create temporary directory and app.json for @expo/repack-app
+          
+          # Generate new JavaScript bundle using Metro bundler
+          echo "🔄 Generating new JavaScript bundle with Metro..."
+          yarn gen-bundle:android
+          
+          # Extract APK, replace bundle, and repackage
+          echo "📦 Extracting APK..."
           TEMP_DIR=$(mktemp -d)
-          cat > "$TEMP_DIR/app.json" << EOF
-          {
-            "name": "MetaMask",
-            "slug": "metamask",
-            "version": "1.0.0",
-            "android": {
-              "package": "io.metamask"
-            },
-            "ios": {
-              "bundleIdentifier": "io.metamask.MetaMask"
-            }
-          }
-          EOF
-
-          # Copy APK to temp directory
-          cp "$APK_PATH" "$TEMP_DIR/source.apk"
-
-          # Repack the APK with updated JS bundle
-          (cd "$TEMP_DIR" && npx --yes @expo/repack-app \
-            --platform android \
-            --source-app "source.apk" \
-            --output "repacked.apk" \
-            --verbose)
-
-          # Replace original with repacked version
-          mv "$TEMP_DIR/repacked.apk" "$APK_PATH"
-
+          unzip -q "$APK_PATH" -d "$TEMP_DIR"
+          
+          # Replace the bundle
+          echo "🔄 Replacing JavaScript bundle..."
+          cp android/main.jsbundle "$TEMP_DIR/assets/index.android.bundle"
+          
+          # Re-zip the APK
+          echo "📦 Repackaging APK..."
+          cd "$TEMP_DIR"
+          zip -qr "../app-prod-release-new.apk" .
+          cd -
+          
+          # Replace original APK
+          mv "$TEMP_DIR/../app-prod-release-new.apk" "$APK_PATH"
+          
           # Cleanup
           rm -rf "$TEMP_DIR"
-
+          rm -f android/main.jsbundle
+          
           echo "✅ APK repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
