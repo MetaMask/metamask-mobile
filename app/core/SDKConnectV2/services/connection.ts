@@ -35,7 +35,7 @@ export class Connection {
     });
 
     this.bridge.on('response', (payload) => {
-      console.warn(`[SDKConnectV2] [Connection:${this.id}] Sending message:`, payload);
+      console.warn(`[SDKConnectV2] [Connection:${this.id}] Sending message:`, JSON.stringify(payload));
       this.client.sendResponse(payload);
     });
   }

@@ -1,5 +1,6 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
+import { throttle } from 'lodash';
 import {
   ConnectionRequest,
   isConnectionRequest,
@@ -33,6 +34,14 @@ export class ConnectionRegistry {
     this.store = store;
     this.ready = this.initialize();
     this.setupAppStateListener();
+
+    // Throttled function to prevent failure due to rapid, 
+    // duplicate calls from the host app.
+    this.handleConnectDeeplink = throttle(
+      this._handleConnectDeeplink.bind(this),
+      1000,
+      { leading: true, trailing: false },
+    );
   }
 
   /**
@@ -70,14 +79,16 @@ export class ConnectionRegistry {
    * @param url The full deeplink URL that triggered the connection.
    *
    * Happy path:
-   * 1. Show loading indicator
-   * 2. Parse the connection request
+   * 1. Parse the connection request
+   * 2. Show loading indicator
    * 3. Create a new connection and connect
    * 4. Save the connection to the store
    * 5. Sync the connection list to the host application
    * 6. Hide loading indicator
    */
-  public async handleConnectDeeplink(url: string): Promise<void> {
+  public handleConnectDeeplink: (url: string) => void;
+
+  private async _handleConnectDeeplink(url: string): Promise<void> {
     let conn: Connection | undefined;
 
     try {
@@ -95,8 +106,8 @@ export class ConnectionRegistry {
       console.error('[SDKConnectV2] Connection handshake failed:', error);
       if (conn) await this.disconnect(conn.id);
       this.hostapp.showAlert(
-        'Connection Error',
-        'The connection request failed. Please try again.',
+        'Connection Error', // TODO use localizable strings
+        'The connection request failed. Please try again.', // TODO use localizable strings
       );
     } finally {
       this.hostapp.hideLoading();
@@ -153,8 +164,6 @@ export class ConnectionRegistry {
     AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus): void => {
-        console.warn('[SDKConnectV2] App state changed to:', nextAppState);
-
         if (nextAppState !== 'active') {
           return;
         }
@@ -177,8 +186,6 @@ export class ConnectionRegistry {
    * for preventing stale/zombie connections after the app was put in the background.
    */
   private async reconnectAll(): Promise<void> {
-    console.warn('[SDKConnectV2] Proactively refreshing all connections...');
-
     const connections = Array.from(this.connections.values());
 
     const promises = connections.map((conn) =>
