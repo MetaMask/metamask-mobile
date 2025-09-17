@@ -186,6 +186,7 @@ jobs:
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
           echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
           echo "changed_files=$changed_files" >> "${GITHUB_OUTPUT}"
+          echo "changed_files=$changed_files"
 
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
