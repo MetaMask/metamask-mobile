@@ -32,7 +32,7 @@ class CreatePasswordScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '**/XCUIElementTypeOther[`name=="textfield"`][1]');
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
       }
     }
   }
@@ -46,7 +46,7 @@ class CreatePasswordScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Re-enter your password"]');
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');
       }
     }
   }
