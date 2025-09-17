@@ -2,6 +2,12 @@ name: Android E2E Smoke Tests
 
 on:
   workflow_call:
+    inputs:
+      changed_files:
+        description: 'Changed files'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -20,6 +26,7 @@ jobs:
       test_suite_tag: "SmokeConfirmations"
       split_number: ${{ matrix.split }}
       total_splits: 3
+      changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
   trade-android-smoke:
@@ -34,6 +41,7 @@ jobs:
       test_suite_tag: "SmokeTrade"
       split_number: ${{ matrix.split }}
       total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
   wallet-platform-android-smoke:
@@ -48,6 +56,7 @@ jobs:
       test_suite_tag: "SmokeWalletPlatform"
       split_number: ${{ matrix.split }}
       total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
   identity-android-smoke:
@@ -62,6 +71,7 @@ jobs:
       test_suite_tag: "SmokeIdentity"
       split_number: ${{ matrix.split }}
       total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
   accounts-android-smoke:
@@ -76,6 +86,7 @@ jobs:
       test_suite_tag: "SmokeAccounts"
       split_number: ${{ matrix.split }}
       total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
   network-abstraction-android-smoke:
@@ -90,6 +101,7 @@ jobs:
       test_suite_tag: "SmokeNetworkAbstractions"
       split_number: ${{ matrix.split }}
       total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
   network-expansion-android-smoke:
@@ -104,6 +116,7 @@ jobs:
       test_suite_tag: "SmokeNetworkExpansion"
       split_number: ${{ matrix.split }}
       total_splits: 2
+      changed_files: ${{ inputs.changed_files }}
     secrets: inherit
 
   confirmations-redesigned-android-smoke:
@@ -118,6 +131,7 @@ jobs:
      test_suite_tag: "SmokeConfirmationsRedesigned"
      split_number: ${{ matrix.split }}
      total_splits: 2
+     changed_files: ${{ inputs.changed_files }}
    secrets: inherit
 
   report-android-smoke-tests:

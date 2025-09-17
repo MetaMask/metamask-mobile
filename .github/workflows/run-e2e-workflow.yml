@@ -33,6 +33,11 @@ on:
         required: false
         type: number
         default: 30
+      changed_files:
+        description: 'Changed files'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   test-e2e-mobile:
@@ -48,6 +53,7 @@ jobs:
       METAMASK_BUILD_TYPE: 'main'
       PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+      CHANGED_FILES: ${{ inputs.changed_files }}
       GITHUB_CI: 'true'
       SPLIT_NUMBER: ${{ inputs.split_number }}
       TOTAL_SPLITS: ${{ inputs.total_splits }}
@@ -170,12 +176,6 @@ jobs:
 
           echo "✅ iOS environment cleaned"
 
-      - name: Download changed files artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: changed-files
-          path: changed-files/
-
       - name: Run E2E tests
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -199,11 +199,6 @@ jobs:
 
             # Run tests (Detox/Jest handle retries internally)
             echo "🚀 Starting E2E tests..."
-            if [[ "$platform" == "ios" ]]; then
-              export BITRISE_TRIGGERED_WORKFLOW_ID="ios_workflow"
-            else
-              export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
-            fi
             
             # Always use the splitting script (handles both split and non-split cases)
             echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"

@@ -4,25 +4,109 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 
 // Run E2E tests by tag, optionally split across runners.
-// If certain spec files were ADDED or MODIFIED in the PR, duplicate them per split
+// For every spec file if the bypass quality gate is not set, duplicate them
 // (base + two retries) to detect flakiness. Duplication is done per split so
 // runners do not interfere with each other.
 
 const BASE_DIR = './e2e/specs';
-const CHANGED_FILES_DIR = 'changed-files';
+/**
+ * Get the event payload from the GitHub event path
+ * @returns The event payload
+ */
+function getEventPayload() {
+  try {
+    const eventPath = process.env.GITHUB_EVENT_PATH;
+    if (!eventPath || !fs.existsSync(eventPath)) return {};
+    const raw = fs.readFileSync(eventPath, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
 
+const EVENT = getEventPayload();
+const REPOSITORY = process.env.GITHUB_REPOSITORY || '';
+const [OWNER, REPO] = REPOSITORY.split('/');
+const PR_NUMBER = EVENT?.pull_request?.number || process.env.PR_NUMBER;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
+
+/**
+ * Minimal GitHub GraphQL helper
+ * @param {*} query - The query to run
+ * @param {*} variables - The variables to pass to the query
+ * @returns The data from the query
+ */
+async function githubGraphql(query, variables = {}) {
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'metamask-mobile-ci',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!res.ok) throw new Error(`GraphQL request failed: ${res.status} ${res.statusText}`);
+  const data = await res.json();
+  if (data.errors) {
+    const msg = Array.isArray(data.errors) ? data.errors.map((e) => e.message).join('; ') : String(data.errors);
+    throw new Error(`GraphQL errors: ${msg}`);
+  }
+  return data.data;
+}
+
+/**
+ * Check PR labels for skip-e2e-quality-gate
+ * @returns True if the PR has the skip-e2e-quality-gate label, false otherwise
+ */
+async function prHasSkipE2EQualityGateLabel() {
+  if (!PR_NUMBER || !OWNER || !REPO) return false;
+  try {
+    const data = await githubGraphql(
+      `query($owner:String!, $repo:String!, $number:Int!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $number) {
+            labels(first: 100) { nodes { name } }
+          }
+        }
+      }`,
+      { owner: OWNER, repo: REPO, number: Number(PR_NUMBER) },
+    );
+    const labels = data?.repository?.pullRequest?.labels?.nodes || [];
+    return labels.some((l) => String(l?.name).toLowerCase() === 'skip-e2e-quality-gate');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Read an environment variable
+ * @param {*} name - The name of the environment variable
+ * @param {*} defaultValue - The default value to return if the environment variable is not set
+ * @returns The value of the environment variable, or the default value if the environment variable is not set
+ */
 function readEnv(name, defaultValue = undefined) {
   const value = process.env[name];
   return value === undefined || value === '' ? defaultValue : value;
 }
 
-// True for Detox test specs that are not quarantined
+/**
+ * Check if a file is a spec file
+ * @param {*} filePath - The path to the file
+ * @returns True if the file is a spec file, false otherwise
+ */
 function isSpecFile(filePath) {
   return (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
     !filePath.split(path.sep).includes('quarantine');
 }
 
-// Synchronous generator to recursively walk a directory
+/**
+ * Synchronous generator to recursively walk a directory
+ * @param {*} dir - The directory to walk
+ * @returns A generator of the files in the directory, sorted alphabetically
+ */
 function* walk(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
@@ -35,7 +119,12 @@ function* walk(dir) {
   }
 }
 
-// Find all spec files that contain the provided tag string
+/**
+ * Find all spec files that contain the provided tag string
+ * @param {*} baseDir - The base directory to search
+ * @param {*} tag - The tag to search for
+ * @returns The matching files, sorted alphabetically
+ */
 function findMatchingFiles(baseDir, tag) {
   const resolvedBase = path.resolve(baseDir);
   const results = [];
@@ -63,17 +152,16 @@ function findMatchingFiles(baseDir, tag) {
  * Compute the ceiling of a division
  * @param {*} a - The dividend
  * @param {*} b - The divisor
- * @returns 
+ * @returns The ceiling of the division
  */
 function ceilDiv(a, b) {
   return Math.floor((a + b - 1) / b);
 }
 
-// Group key for a spec, removing any -retry-N suffix so base and retries stay together
 /**
  * Get the group key for a spec, removing any -retry-N suffix so base and retries stay together
  * @param {*} filePath - The path to the spec file
- * @returns The group key
+ * @returns The group key, sorted alphabetically
  */
 function getGroupKey(filePath) {
   // Normalize and strip -retry-N suffix before .spec.ext
@@ -85,11 +173,10 @@ function getGroupKey(filePath) {
   return `${base}.spec.${ext}`;
 }
 
-// Extract retry index from a filename; base files are index 0
 /**
  * Extract retry index from a filename; base files are index 0
  * @param {*} filePath - The path to the spec file
- * @returns The retry index
+ * @returns The retry index, 0 if the file is not a retry file
  */
 function getRetryIndex(filePath) {
   const normalized = normalizePathForCompare(filePath);
@@ -99,11 +186,10 @@ function getRetryIndex(filePath) {
   return Number.isFinite(n) ? n : 0;
 }
 
-// Group files by base spec and sort within group as base, retry-1, retry-2
 /**
  * Group files by base spec and sort within group as base, retry-1, retry-2
  * @param {*} files - The files to group
- * @returns The grouped files
+ * @returns The grouped files, sorted alphabetically
  */
 function groupFilesByBase(files) {
   const map = new Map();
@@ -126,7 +212,6 @@ function groupFilesByBase(files) {
   );
 }
 
-// Split by groups so a base and its retries land on the same runner
 /**
  * Split by groups so a base and its retries land on the same runner
  * @param {*} files - The files to split
@@ -145,7 +230,6 @@ function computeSplitFromGroups(files, splitNumber, totalSplits) {
   return selectedGroups.flat();
 }
 
-// Spawn a yarn script with inherited stdio
 /**
  * Spawn a yarn script with inherited stdio
  * @param {*} scriptName - The name of the script to run
@@ -167,65 +251,11 @@ function runYarn(scriptName, args, extraEnv = {}) {
   });
 }
 
-// Read the PR changed files JSON written by git-diff-default-branch.mjs
-/**
- * Read the PR changed files JSON written by git-diff-default-branch.mjs
- * @returns The changed files
- */
-function readChangedFilesJson() {
-  try {
-    const jsonPath = path.resolve(CHANGED_FILES_DIR, 'changed-files.json');
-    if (!fs.existsSync(jsonPath)) return [];
-    const raw = fs.readFileSync(jsonPath, 'utf8').trim();
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-// Read the PR body/labels text (used to detect skip-e2e-quality-gate)
-/**
- * Read the PR body/labels text (used to detect skip-e2e-quality-gate)
- * @returns The PR body/labels text
- */
-function readPrBodyText() {
-  try {
-    const txtPath = path.resolve(CHANGED_FILES_DIR, 'pr-body.txt');
-    if (!fs.existsSync(txtPath)) return '';
-    return fs.readFileSync(txtPath, 'utf8');
-  } catch {
-    return '';
-  }
-}
-
-// Filter only ADDED/MODIFIED spec files from the PR changed files list
-/**
- * Filter only ADDED/MODIFIED spec files from the PR changed files list
- * @param {*} nodes - The nodes to filter
- * @returns The changed spec files
- */
-function getChangedSpecFiles(nodes) {
-  const results = new Set();
-  for (const node of nodes || []) {
-    const filePath = node?.path;
-    const changeType = node?.changeType;
-    if (!filePath || !changeType) continue;
-    if (changeType !== 'ADDED' && changeType !== 'MODIFIED') continue;
-    if (!filePath.endsWith('.spec.ts') && !filePath.endsWith('.spec.js')) continue;
-    // Normalize to repo-relative path from CWD
-    results.add(path.normalize(filePath));
-  }
-  return results;
-}
-
-// Derive the retry filename for a given spec: base -> base-retry-N
 /**
  * Derive the retry filename for a given spec: base -> base-retry-N
  * @param {*} originalPath - The original path to the spec file
  * @param {*} retryIndex - The retry index
- * @returns The retry filename
+ * @returns The retry filename, or null if the original path is not a spec file
  */
 function computeRetryFilePath(originalPath, retryIndex) {
   // originalPath must end with .spec.ts or .spec.js
@@ -236,7 +266,6 @@ function computeRetryFilePath(originalPath, retryIndex) {
   return `${base}-retry-${retryIndex}.spec.${ext}`;
 }
 
-// Create two retry copies of a given spec if not already present
 /**
  * Create two retry copies of a given spec if not already present
  * @param {*} originalPath - The original path to the spec file
@@ -263,11 +292,10 @@ function duplicateSpecFile(originalPath) {
   }
 }
 
-// Normalize a path (repo-relative) for comparisons
 /**
  * Normalize a path (repo-relative) for comparisons
  * @param {*} p - The path to normalize
- * @returns The normalized path
+ * @returns The normalized path, relative to the current working directory
  */
 function normalizePathForCompare(p) {
   // Ensure relative to CWD, normalized separators
@@ -277,6 +305,7 @@ function normalizePathForCompare(p) {
 
 /**
  * Main function
+ * @returns A promise that resolves when the main function exits
  */
 async function main() {
   // 1) Read inputs
@@ -310,12 +339,25 @@ async function main() {
   const splitFiles = computeSplitFromGroups(allMatches, splitNumber, totalSplits);
 
   // 4) Flaky test detector and duplication (per-split only)
-  const prBodyText = readPrBodyText();
-  const skipQualityGate = prBodyText.includes('skip-e2e-quality-gate');
+  const skipQualityGate = await prHasSkipE2EQualityGateLabel();
   let runFiles = [...splitFiles];
   if (!skipQualityGate) {
-    const nodes = readChangedFilesJson();
-    const changedSpecs = getChangedSpecFiles(nodes);
+    const changedSpecs = (() => {
+      const candidates = [process.env.CHANGED_FILES, process.env.changed_files, process.env.FILES_CHANGED];
+      let raw = candidates.find((v) => typeof v === 'string' && v.trim().length > 0) || '';
+      raw = raw.trim();
+      const eqIdx = raw.indexOf('=');
+      if (eqIdx > -1 && /changed_files/i.test(raw.slice(0, eqIdx))) {
+        raw = raw.slice(eqIdx + 1).trim();
+      }
+      if (!raw) return new Set();
+      const parts = raw.split(/\s+/g).map((p) => p.trim()).filter(Boolean);
+      const s = new Set();
+      for (const p of parts) {
+        if (p.endsWith('.spec.ts') || p.endsWith('.spec.js')) s.add(path.normalize(p));
+      }
+      return s;
+    })();
     if (changedSpecs.size > 0) {
       const selectedSet = new Set(splitFiles.map(normalizePathForCompare));
       const duplicatedSet = new Set();
