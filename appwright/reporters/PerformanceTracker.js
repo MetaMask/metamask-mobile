@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { BrowserStackCredentials } from '../utils/BrowserStackCredentials.js';
-const credentials = BrowserStackCredentials.getCredentials();
 
 export class PerformanceTracker {
   constructor() {
@@ -38,6 +37,7 @@ export class PerformanceTracker {
         console.log(
           `🎯 === ATTEMPT ${attempt}/${maxRetries} === Time: ${new Date().toISOString()}`,
         );
+        const credentials = BrowserStackCredentials.getCredentials();
         const response = await axios.get(
           `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`,
           {

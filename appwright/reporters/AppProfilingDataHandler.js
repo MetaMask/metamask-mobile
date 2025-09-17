@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { BrowserStackCredentials } from '../utils/BrowserStackCredentials.js';
 
-const credentials = BrowserStackCredentials.getCredentials();
-
 /**
  * Handler for BrowserStack app profiling data operations
  */
@@ -15,6 +13,8 @@ export class AppProfilingDataHandler {
   async getSessionDetails(sessionId) {
     try {
       const url = `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`;
+
+      const credentials = BrowserStackCredentials.getCredentials();
 
       const response = await axios.get(url, {
         auth: {
@@ -45,6 +45,7 @@ export class AppProfilingDataHandler {
    * @returns {Promise<Object>} App profiling data
    */
   async getAppProfilingData(buildId, sessionId) {
+    const credentials = BrowserStackCredentials.getCredentials();
     // eslint-disable-next-line no-undef
     const authHeader = Buffer.from(
       `${credentials.username}:${credentials.accessKey}`,
