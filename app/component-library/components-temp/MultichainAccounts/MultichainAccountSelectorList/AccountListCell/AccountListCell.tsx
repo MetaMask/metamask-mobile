@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
@@ -30,11 +30,9 @@ const AccountListCell = memo(
         <AccountCell
           startAccessory={
             showCheckbox ? (
-              <Checkbox
-                isChecked={isSelected}
-                onPress={handlePress}
-                testID={`account-list-cell-checkbox-${accountGroup.id}`}
-              />
+              <View testID={`account-list-cell-checkbox-${accountGroup.id}`}>
+                <Checkbox isChecked={isSelected} onPress={handlePress} />
+              </View>
             ) : undefined
           }
           accountGroup={accountGroup}
