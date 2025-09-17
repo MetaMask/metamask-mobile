@@ -248,7 +248,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => isPerpsFlagEnabled && isEvmSelected,
     [isPerpsFlagEnabled, isEvmSelected],
   );
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useMemo(
+    () => isPredictFlagEnabled && isEvmSelected,
+    [isPredictFlagEnabled, isEvmSelected],
+  );
 
   const {
     navigation,
