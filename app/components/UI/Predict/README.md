@@ -1,18 +1,18 @@
-> NOTE: The current state of this document might not reflect the latest implementation. The idea is for the team to keep this file up to date as we implement this feature.
+# Prediction Markets
 
-# Prediction Markets (Draft)
+The Predict feature enables users to participate in prediction markets within MetaMask Mobile. This document reflects the current implementation architecture and structure.
 
 ## Architecture Layers
 
 ```
 ┌─────────────────────────────────────┐
-│         Components (UI)             │
+│           Components (UI)           │
 ├─────────────────────────────────────┤
-│          Hooks (React)              │
+│            Hooks (React)            │
 ├─────────────────────────────────────┤
-│       Controller (Business)         │
+│         Controller (Business)       │
 ├─────────────────────────────────────┤
-│        Provider (Protocol)          │
+│         Providers (Protocol)        │
 └─────────────────────────────────────┘
 ```
 
@@ -20,42 +20,81 @@
 
 ```
 /Predict
-├── /components    # UI components
-├── /constants     # Config values
-├── /controllers   # Business logic
-├── /hooks         # React integration
-├── /providers     # Protocol implementations
-├── /routes        # Route definitions
-├── /types         # TypeScript definitions
-└── /utils         # Helper functions
+├── /components                  # Reusable UI components
+│   ├── /MarketListContent       # Market list display component
+│   ├── /MarketsWonCard          # Won markets display card
+│   ├── /PredictMarket           # Individual market card component
+│   ├── /PredictMarketMultiple   # Multiple market selection component
+│   ├── /PredictNewButton        # New prediction creation button
+│   ├── /PredictPosition         # Position display component
+│   ├── /PredictPositionEmpty    # Empty state for positions
+│   └── /SearchBox               # Market search component
+├── /controllers                 # Controllers for PredictMarket
+│   └── PredictController.ts     # Main controller with tests
+├── /hooks                       # React integration hooks (6 hooks)
+│   ├── usePredictBuy.ts         # Buy order placement hook
+│   ├── usePredictSell.ts        # Sell order placement hook
+│   ├── usePredictTrading.ts     # Core trading operations
+│   ├── usePredictMarketData.tsx # Market data fetching with pagination
+│   ├── usePredictPositions.ts   # User positions management
+│   └── usePredictOrders.tsx     # Order state management and notifications
+├── /mocks                       # Test mocks and fixtures
+│   └── remoteFeatureFlagMocks.ts
+├── /providers                   # Protocol implementations
+│   ├── /polymarket              # Polymarket provider implementation
+│   │   ├── PolymarketProvider.t s
+│   │   ├── constants.ts
+│   │   ├── types.ts
+│   │   └── utils.ts
+│   └── types.ts                 # Provider interface definitions
+├── /routes                      # Navigation route definitions
+│   └── index.tsx
+├── /selectors                   # Redux state selectors
+│   └── /featureFlags            # Feature flag selectors
+│       └── index.ts
+├── /types                       # TypeScript type definitions
+│   ├── index.ts                 # Core types and interfaces
+│   └── navigation.ts            # Navigation type definitions
+├── /utils                       # Utility functions
+│   ├── format.ts                # Price, percentage, and volume formatting
+│   └── orders.ts                # Order ID generation utilities
+├── /views                       # Main screen components
+│   ├── /PredictCashOut          # Cash out/redeem positions screen
+│   ├── /PredictMarketDetails    # Individual market details screen
+│   ├── /PredictMarketList       # Market listing screen
+│   └── /PredictTabView          # Main tabbed view container
+└── index.ts                     # Main entry point
 ```
 
-## Hooks - Categorized to prevent duplication
+## Hooks - Current Implementation
 
-### Controller Access
+### Trading Operations
 
-- `usePredictTrading` - Trading ops (buy/sell/claimWinnings)
-- `usePredictMarkets` - Market data
+- `usePredictBuy` - Buy order placement with loading states, callbacks, and toast notifications
+- `usePredictSell` - Sell order placement with loading states, callbacks, and toast notifications
+- `usePredictTrading` - Core trading operations (buy/sell/getPositions) via PredictController
 
-### State Management
+### Data Management
 
-- `usePredictPositions` - Position list
+- `usePredictMarketData` - Market data fetching with pagination, search, infinite scroll, and retry logic
+- `usePredictPositions` - User positions management with focus refresh, loading states, and refresh capabilities
+- `usePredictOrders` - Order state management with automatic toast notifications for status changes
 
-### Live Data (WebSocket)
+### Implementation Details
 
-- `usePredictPrices` - Real-time prices
+#### Trading Hooks (`usePredictBuy`, `usePredictSell`)
 
-### Calculations
+- **Loading states**: `placing`, `completed`, `error`
+- **Toast notifications**: Automatic notifications for order placement, completion, and failures
+- **Callbacks**: `onBuyPlaced`/`onSellPlaced`, `onComplete`, `onError`
+- **Order tracking**: Real-time order status via Redux state selectors
+- **Utilities**: `isOrderLoading()` for UI state, `reset()` for cleanup
 
-- `usePredictOrderFees` - Fee calc
+#### Data Management Hooks
 
-### Form Management
-
-- `usePredictOrderForm` - Order form state
-
-### Special Purpose
-
-- `usePredictEligibility` - User eligibility check (geo-fencing)
+- **`usePredictMarketData`**: Supports category filtering, search, pagination with `fetchMore()`, and exponential backoff retry logic
+- **`usePredictPositions`**: Implements `useFocusEffect` for screen refresh, separate loading states for initial load vs refresh
+- **`usePredictOrders`**: Automatic toast notifications based on Redux state changes, manages notification queue
 
 ## Duplication Prevention
 
@@ -86,9 +125,25 @@ Component input → Hook state → Validation → Controller action
 
 ## Quick Hook Selection Guide
 
-| Need           | Use Hook              |
-| -------------- | --------------------- |
-| Place order    | `usePredictTrading`   |
-| Get prices     | `usePredictPrices`    |
-| Manage form    | `usePredictOrderForm` |
-| Calculate fees | `usePredictOrderFees` |
+| Need                     | Use Hook               | Key Features                                    |
+| ------------------------ | ---------------------- | ----------------------------------------------- |
+| Place buy orders         | `usePredictBuy`        | Loading states, toast notifications, callbacks  |
+| Place sell orders        | `usePredictSell`       | Loading states, toast notifications, callbacks  |
+| Direct controller access | `usePredictTrading`    | Core buy/sell/getPositions operations           |
+| Market data with search  | `usePredictMarketData` | Pagination, infinite scroll, category filtering |
+| User positions           | `usePredictPositions`  | Focus refresh, loading states, account-based    |
+| Order notifications      | `usePredictOrders`     | Automatic toast notifications, status tracking  |
+
+## Core Types and Utilities
+
+### Key Types (`/types/index.ts`)
+
+- `PredictMarket` - Market data structure with outcomes, status, categories
+- `PredictPosition` - User position with P&L calculations and status
+- `PredictOrder` - Order structure with status tracking and trade parameters
+- `BuyParams` / `SellParams` - Trading operation parameters
+
+### Utility Functions (`/utils/`)
+
+- **`format.ts`**: Price, percentage, and volume formatting with locale support
+- **`orders.ts`**: Unique order ID generation utilities
