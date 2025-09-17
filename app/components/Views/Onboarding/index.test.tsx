@@ -34,7 +34,6 @@ jest.mock(
 jest.mock('../../../animations/fox_appear.riv', () => 'mocked-fox-riv-file');
 
 // Mock rive
-// ✅ Define types OUTSIDE the jest.mock callback
 interface RiveRef {
   play: jest.Mock;
   stop: jest.Mock;
