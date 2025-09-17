@@ -190,7 +190,12 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
             alignItems={AlignItems.center}
             gap={8}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+            <Text
+              style={styles.groupNameText}
+              variant={TextVariant.BodyMDMedium}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {groupName}
             </Text>
             <Icon
