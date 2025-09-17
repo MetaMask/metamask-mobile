@@ -21,7 +21,7 @@ export interface ContentfulCarouselSlideFields {
 export type ContentfulSlideSkeleton =
   EntrySkeletonType<ContentfulCarouselSlideFields>;
 
-const getEnvironmentDetails = () => {
+export const getContentfulEnvironmentDetails = () => {
   // If preview mode, then show preview prod master content
   const previewToken = getContentPreviewToken();
   if (previewToken) {
@@ -65,7 +65,7 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
   regularSlides: CarouselSlide[];
 }> {
   const { spaceId, accessToken, environment, domain } =
-    getEnvironmentDetails() ?? {};
+    getContentfulEnvironmentDetails() ?? {};
 
   if (!spaceId || !accessToken) {
     console.warn(
