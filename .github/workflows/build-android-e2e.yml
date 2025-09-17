@@ -143,16 +143,14 @@ jobs:
           # Create temporary app.json with required fields for @expo/repack-app
           cat > app.json << EOF
           {
-            "expo": {
-              "name": "MetaMask",
-              "slug": "metamask",
-              "version": "1.0.0",
-              "android": {
-                "package": "io.metamask"
-              },
-              "ios": {
-                "bundleIdentifier": "io.metamask.MetaMask"
-              }
+            "name": "MetaMask",
+            "slug": "metamask",
+            "version": "1.0.0",
+            "android": {
+              "package": "io.metamask"
+            },
+            "ios": {
+              "bundleIdentifier": "io.metamask.MetaMask"
             }
           }
           EOF

@@ -173,21 +173,18 @@ jobs:
         run: |
           echo "📦 Repacking iOS app with updated JavaScript..."
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
-          OUTPUT_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask-repacked.app"
 
           # Create temporary app.json with required fields for @expo/repack-app
           cat > app.json << EOF
           {
-            "expo": {
-              "name": "MetaMask",
-              "slug": "metamask",
-              "version": "1.0.0",
-              "android": {
-                "package": "io.metamask"
-              },
-              "ios": {
-                "bundleIdentifier": "io.metamask.MetaMask"
-              }
+            "name": "MetaMask",
+            "slug": "metamask",
+            "version": "1.0.0",
+            "android": {
+              "package": "io.metamask"
+            },
+            "ios": {
+              "bundleIdentifier": "io.metamask.MetaMask"
             }
           }
           EOF
@@ -223,7 +220,7 @@ jobs:
           # Cleanup
           rm -rf "$TEMP_DIR"
           rm -f app.json
-          
+
           echo "✅ iOS app repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
