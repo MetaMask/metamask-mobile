@@ -23,8 +23,9 @@ The Predict feature enables users to participate in prediction markets within Me
 ├── /components                  # Reusable UI components
 │   ├── /MarketListContent       # Market list display component
 │   ├── /MarketsWonCard          # Won markets display card
-│   ├── /PredictMarket           # Individual market card component
-│   ├── /PredictMarketMultiple   # Multiple market selection component
+│   ├── /PredictMarket           # Market wrapper component (routes to single/multiple)
+│   ├── /PredictMarketSingle     # Single outcome market card component
+│   ├── /PredictMarketMultiple   # Multiple outcome market selection component
 │   ├── /PredictNewButton        # New prediction creation button
 │   ├── /PredictPosition         # Position display component
 │   ├── /PredictPositionEmpty    # Empty state for positions

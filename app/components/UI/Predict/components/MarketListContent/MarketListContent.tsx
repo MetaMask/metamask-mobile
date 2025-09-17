@@ -16,7 +16,6 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarket from '../PredictMarket';
-import PredictMarketMultiple from '../PredictMarketMultiple';
 
 interface MarketListContentProps {
   q?: string;
@@ -43,10 +42,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const renderItem = useCallback(({ item }: { item: PredictMarketType }) => {
-    if (item.outcomes.length === 1) {
-      return <PredictMarket key={item.outcomes[0].id} market={item} />;
-    }
-    return <PredictMarketMultiple key={item.id} market={item} />;
+    return <PredictMarket key={item.id} market={item} />;
   }, []);
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -165,9 +161,7 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
       contentContainerStyle={tw.style('pb-5')}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
-      getItemType={(item) =>
-        item.outcomes.length === 1 ? 'single' : 'multiple'
-      }
+      getItemType={() => 'market'}
     />
   );
 };

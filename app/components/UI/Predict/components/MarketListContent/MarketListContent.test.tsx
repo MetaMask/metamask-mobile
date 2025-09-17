@@ -31,13 +31,8 @@ const mockUsePredictMarketData = usePredictMarketData as jest.MockedFunction<
 
 jest.mock('../PredictMarket', () => {
   const { View } = jest.requireActual('react-native');
-  return jest.fn(() => <View testID="predict-market">PredictMarket</View>);
-});
-
-jest.mock('../PredictMarketMultiple', () => {
-  const { View } = jest.requireActual('react-native');
-  return jest.fn(() => (
-    <View testID="predict-market-multiple">PredictMarketMultiple</View>
+  return jest.fn(({ market }) => (
+    <View testID={`predict-market-${market.id}`}>PredictMarket</View>
   ));
 });
 
@@ -235,7 +230,7 @@ describe('MarketListContent', () => {
   });
 
   describe('Data Rendering', () => {
-    it('should render single market component when market has one outcome', () => {
+    it('should render PredictMarket component for single outcome market', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
         marketData: [mockPredictMarket],
@@ -246,10 +241,10 @@ describe('MarketListContent', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('predict-market')).toBeOnTheScreen();
+      expect(getByTestId('predict-market-test-market-1')).toBeOnTheScreen();
     });
 
-    it('should render multiple market component when market has multiple outcomes', () => {
+    it('should render PredictMarket component for multiple outcome market', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
         marketData: [mockPredictMarketMultiple],
@@ -260,10 +255,10 @@ describe('MarketListContent', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('predict-market-multiple')).toBeOnTheScreen();
+      expect(getByTestId('predict-market-test-market-3')).toBeOnTheScreen();
     });
 
-    it('should render multiple markets with mixed outcome types', () => {
+    it('should render PredictMarket components for all markets regardless of outcome count', () => {
       mockUsePredictMarketData.mockReturnValue({
         ...defaultMockReturn,
         marketData: [mockPredictMarket, mockPredictMarketMultiple],
@@ -274,8 +269,8 @@ describe('MarketListContent', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('predict-market')).toBeOnTheScreen();
-      expect(getByTestId('predict-market-multiple')).toBeOnTheScreen();
+      expect(getByTestId('predict-market-test-market-1')).toBeOnTheScreen();
+      expect(getByTestId('predict-market-test-market-3')).toBeOnTheScreen();
     });
   });
 
