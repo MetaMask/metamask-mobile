@@ -147,7 +147,7 @@ export const useAccountGroupsForPermissions = (
         requestedCaipAccountIds,
       );
 
-      if (isConnected) {
+      if (isConnected || fulfillsRequestedAccounts) {
         if (fulfillsRequestedAccounts) {
           priorityConnectedGroups.push(accountGroup);
         } else {
