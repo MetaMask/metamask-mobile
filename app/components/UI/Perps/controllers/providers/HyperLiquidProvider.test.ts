@@ -3412,17 +3412,18 @@ describe('HyperLiquidProvider', () => {
       describe('setUserFeeDiscount', () => {
         it('logs discount context updates', () => {
           // Arrange
-          const discountPercentage = 30;
+          const discountBips = 3000; // 30% in basis points
           jest.spyOn(DevLogger, 'log');
 
           // Act
-          provider.setUserFeeDiscount(discountPercentage);
+          provider.setUserFeeDiscount(discountBips);
 
           // Assert
           expect(DevLogger.log).toHaveBeenCalledWith(
             'HyperLiquid: Fee discount context updated',
             {
-              discountPercentage,
+              discountBips,
+              discountPercentage: 30,
               isActive: true,
             },
           );
@@ -3439,6 +3440,7 @@ describe('HyperLiquidProvider', () => {
           expect(DevLogger.log).toHaveBeenCalledWith(
             'HyperLiquid: Fee discount context updated',
             {
+              discountBips: undefined,
               discountPercentage: undefined,
               isActive: false,
             },
@@ -3457,8 +3459,8 @@ describe('HyperLiquidProvider', () => {
 
         it('applies discount to MetaMask fees when active', async () => {
           // Arrange
-          const discountPercentage = 20; // 20% discount
-          provider.setUserFeeDiscount(discountPercentage);
+          const discountBips = 2000; // 20% discount in basis points
+          provider.setUserFeeDiscount(discountBips);
 
           // Act
           const result = await provider.calculateFees({
@@ -3476,8 +3478,8 @@ describe('HyperLiquidProvider', () => {
 
         it('applies discount to maker fees correctly', async () => {
           // Arrange
-          const discountPercentage = 50; // 50% discount
-          provider.setUserFeeDiscount(discountPercentage);
+          const discountBips = 5000; // 50% discount in basis points
+          provider.setUserFeeDiscount(discountBips);
 
           // Act
           const result = await provider.calculateFees({
@@ -3495,8 +3497,8 @@ describe('HyperLiquidProvider', () => {
 
         it('preserves protocol fees unchanged', async () => {
           // Arrange
-          const discountPercentage = 100; // 100% discount on MetaMask fees
-          provider.setUserFeeDiscount(discountPercentage);
+          const discountBips = 10000; // 100% discount on MetaMask fees (in basis points)
+          provider.setUserFeeDiscount(discountBips);
 
           // Act
           const result = await provider.calculateFees({
@@ -3548,8 +3550,8 @@ describe('HyperLiquidProvider', () => {
 
         it('combines discount with user staking discount', async () => {
           // Arrange
-          const rewardsDiscount = 20; // 20% MetaMask rewards discount
-          provider.setUserFeeDiscount(rewardsDiscount);
+          const rewardsDiscountBips = 2000; // 20% MetaMask rewards discount in basis points
+          provider.setUserFeeDiscount(rewardsDiscountBips);
 
           // Clear fee cache to ensure fresh API call
           provider.clearFeeCache();
@@ -3585,7 +3587,7 @@ describe('HyperLiquidProvider', () => {
 
         it('clears discount context after undefined is set', async () => {
           // Arrange - first set a discount
-          provider.setUserFeeDiscount(25);
+          provider.setUserFeeDiscount(2500); // 25% discount in basis points
 
           // Verify discount is applied
           let result = await provider.calculateFees({

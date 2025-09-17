@@ -102,6 +102,11 @@ export function usePerpsOrderFees({
   );
   const currentChainId = useSelector(selectChainId);
 
+  // Clear stale cache on component mount to force fresh API call
+  useEffect(() => {
+    pointsCalculationCache = null;
+  }, []);
+
   /**
    * Fetch fee discount from RewardsController (non-blocking)
    */

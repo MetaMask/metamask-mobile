@@ -551,42 +551,75 @@ export class PerpsController extends BaseController<
   /**
    * Calculate user fee discount from RewardsController
    * Used to apply MetaMask reward discounts to trading fees
-   * @returns Fee discount percentage (e.g., 20 for 20% off) or undefined if no discount
+   * @returns Fee discount in basis points (e.g., 550 for 5.5% off) or undefined if no discount
    * @private
    */
   private async calculateUserFeeDiscount(): Promise<number | undefined> {
     try {
-      const { RewardsController } = Engine.context;
+      const { RewardsController, NetworkController } = Engine.context;
       const evmAccount = getEvmAccountFromSelectedAccountGroup();
-      const networkState = this.messagingSystem.call(
-        'NetworkController:getState',
-      );
 
       if (!evmAccount) {
         DevLogger.log('PerpsController: No EVM account found for fee discount');
         return undefined;
       }
 
-      const caipAccountId = formatAccountToCaipAccountId(
-        evmAccount.address,
-        networkState.selectedNetworkClientId,
+      // Get the chain ID using proper NetworkController method
+      const networkState = this.messagingSystem.call(
+        'NetworkController:getState',
       );
+      const selectedNetworkClientId = networkState.selectedNetworkClientId;
+      const networkClient = NetworkController.getNetworkClientById(
+        selectedNetworkClientId,
+      );
+      const chainId = networkClient?.configuration?.chainId;
 
-      if (!caipAccountId) {
-        DevLogger.log('PerpsController: Failed to format CAIP account ID');
+      if (!chainId) {
+        Logger.error(
+          new Error('Chain ID not found for fee discount calculation'),
+          {
+            message:
+              'PerpsController: Missing chain ID prevents reward discount calculation',
+            context: 'PerpsController.calculateUserFeeDiscount',
+            selectedNetworkClientId,
+            networkClientExists: !!networkClient,
+          },
+        );
         return undefined;
       }
 
-      const discountPercentage =
-        await RewardsController.getPerpsDiscountForAccount(caipAccountId);
+      const caipAccountId = formatAccountToCaipAccountId(
+        evmAccount.address,
+        chainId,
+      );
+
+      if (!caipAccountId) {
+        Logger.error(
+          new Error('Failed to format CAIP account ID for fee discount'),
+          {
+            message:
+              'PerpsController: CAIP account ID formatting failed, preventing reward discount calculation',
+            context: 'PerpsController.calculateUserFeeDiscount',
+            address: evmAccount.address,
+            chainId,
+            selectedNetworkClientId,
+          },
+        );
+        return undefined;
+      }
+
+      const discountBips = await RewardsController.getPerpsDiscountForAccount(
+        caipAccountId,
+      );
 
       DevLogger.log('PerpsController: Fee discount calculated', {
         address: evmAccount.address,
         caipAccountId,
-        discountPercentage,
+        discountBips,
+        discountPercentage: discountBips / 100,
       });
 
-      return discountPercentage;
+      return discountBips;
     } catch (error) {
       Logger.error(error as Error, {
         message: 'PerpsController: Fee discount calculation failed',
@@ -715,11 +748,11 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
 
       // Calculate fee discount at execution time (fresh, secure)
-      const feeDiscountPercentage = await this.calculateUserFeeDiscount();
+      const feeDiscountBips = await this.calculateUserFeeDiscount();
 
       // Set discount context in provider for this order
-      if (feeDiscountPercentage !== undefined && provider.setUserFeeDiscount) {
-        provider.setUserFeeDiscount(feeDiscountPercentage);
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
       }
 
       // Optimistic update

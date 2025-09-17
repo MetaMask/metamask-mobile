@@ -558,5 +558,5 @@ export interface IPerpsProvider {
   getBlockExplorerUrl(address?: string): string;
 
   // Fee discount context (optional - for MetaMask reward discounts)
-  setUserFeeDiscount?(discountPercentage: number | undefined): void;
+  setUserFeeDiscount?(discountBips: number | undefined): void;
 }

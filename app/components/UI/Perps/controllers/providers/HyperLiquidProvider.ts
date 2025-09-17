@@ -125,8 +125,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     { value: number; timestamp: number }
   >();
 
-  // Fee discount context for MetaMask reward discounts
-  private userFeeDiscountPercentage?: number;
+  // Fee discount context for MetaMask reward discounts (in basis points)
+  private userFeeDiscountBips?: number;
 
   // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
   private readonly ERROR_MAPPINGS = {
@@ -187,13 +187,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Set user fee discount context for next operations
    * Used by PerpsController to apply MetaMask reward discounts
+   * @param discountBips - The discount in basis points (e.g., 550 = 5.5%)
    */
-  setUserFeeDiscount(discountPercentage: number | undefined): void {
-    this.userFeeDiscountPercentage = discountPercentage;
+  setUserFeeDiscount(discountBips: number | undefined): void {
+    this.userFeeDiscountBips = discountBips;
 
     DevLogger.log('HyperLiquid: Fee discount context updated', {
-      discountPercentage,
-      isActive: discountPercentage !== undefined,
+      discountBips,
+      discountPercentage: discountBips ? discountBips / 100 : undefined,
+      isActive: discountBips !== undefined,
     });
   }
 
@@ -2443,13 +2445,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
     let metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
 
     // Apply MetaMask reward discount if active
-    if (this.userFeeDiscountPercentage !== undefined) {
-      const discount = this.userFeeDiscountPercentage / 100;
+    if (this.userFeeDiscountBips !== undefined) {
+      const discount = this.userFeeDiscountBips / 10000; // Convert basis points to decimal
       metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal * (1 - discount);
 
       DevLogger.log('HyperLiquid: Applied MetaMask fee discount', {
         originalRate: BUILDER_FEE_CONFIG.maxFeeDecimal,
-        discountPercentage: this.userFeeDiscountPercentage,
+        discountBips: this.userFeeDiscountBips,
+        discountPercentage: this.userFeeDiscountBips / 100,
         adjustedRate: metamaskFeeRate,
         discountAmount: BUILDER_FEE_CONFIG.maxFeeDecimal * discount,
       });
