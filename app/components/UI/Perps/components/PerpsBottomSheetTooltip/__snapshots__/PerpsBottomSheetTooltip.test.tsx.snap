@@ -66,6 +66,7 @@ exports[`PerpsBottomSheetTooltip renders correctly when visible 1`] = `
             "left": 0,
             "position": "absolute",
             "right": 0,
+            "zIndex": 999999,
           },
           {
             "paddingBottom": 0,

@@ -8,7 +8,7 @@ const mockNavigation = {
 };
 
 describe('AppInformation', () => {
-  it('should render correctly', () => {
+  it('renders app information screen with navigation context', () => {
     const { toJSON } = renderScreen(
       () => <AppInformation navigation={mockNavigation} />,
       { name: 'AppInformation' },

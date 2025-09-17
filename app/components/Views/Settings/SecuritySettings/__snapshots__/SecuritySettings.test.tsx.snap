@@ -2227,7 +2227,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 }
               }
             >
-              Always share device details with support
+              Remember my support preference
             </Text>
             <View
               style={
@@ -2262,7 +2262,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 testID="support-consent-preference-toggle"
                 thumbTintColor="#ffffff"
                 tintColor="#b7bbc866"
-                value={false}
+                value={true}
               />
             </View>
           </View>
@@ -2279,7 +2279,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
           >
-            When enabled, you won't be asked for consent each time you contact support. Your device details will be automatically shared to help us assist you better.
+            When enabled, you won't be asked for consent each time you contact support. Your saved preference will be used automatically: your current decision is to not share device details.
           </Text>
         </View>
       </View>

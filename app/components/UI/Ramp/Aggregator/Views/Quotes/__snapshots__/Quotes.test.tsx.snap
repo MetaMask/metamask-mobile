@@ -1004,6 +1004,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -2041,6 +2042,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -3144,6 +3146,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -4962,6 +4965,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -6149,6 +6153,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -6903,6 +6908,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -7657,6 +7663,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -8411,6 +8418,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,

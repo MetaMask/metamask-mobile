@@ -365,6 +365,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -1526,6 +1527,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -2275,6 +2277,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,

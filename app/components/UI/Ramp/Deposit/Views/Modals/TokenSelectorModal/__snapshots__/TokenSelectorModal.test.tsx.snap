@@ -365,6 +365,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -1186,6 +1187,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
+                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
