@@ -2,12 +2,6 @@ name: Build iOS E2E Apps
 
 on:
   workflow_call:
-    inputs:
-      build_action:
-        description: 'Build action: full, repack, or check_fingerprint'
-        required: false
-        type: string
-        default: 'full'
 
 permissions:
   contents: read
@@ -120,7 +114,6 @@ jobs:
           echo "Current fingerprint: ${FINGERPRINT:0:16}..."
 
       - name: Check for cached app and decide build method
-        if: ${{ inputs.build_action == 'check_fingerprint' }}
         id: fingerprint-check
         uses: actions/cache@v4
         with:
@@ -131,7 +124,6 @@ jobs:
           lookup-only: true
 
       - name: Decide build method based on cache
-        if: ${{ inputs.build_action == 'check_fingerprint' }}
         id: build-decision
         shell: bash
         run: |
@@ -145,17 +137,17 @@ jobs:
           fi
 
       - name: Restore cached app for repacking
-        if: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' }}
+        if: ${{ steps.build-decision.outputs.can_repack == 'true' }}
         uses: actions/cache@v4
         with:
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-      
+
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ inputs.build_action != 'check_fingerprint' || steps.build-decision.outputs.can_repack == 'false' }}
+        if: ${{ steps.build-decision.outputs.can_repack == 'false' }}
         run: |
           echo "🏗 Building iOS E2E App (Full Build)..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -190,30 +182,52 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack App with JS updates
-        if: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' }}
+        if: ${{ steps.build-decision.outputs.can_repack == 'true' }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript..."
-          # The cached app is at: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          # Repack it in place with updated JS
-          cd ios
-          npx --yes @expo/repack-app
-          cd ..
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          OUTPUT_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask-repacked.app"
+
+          # Note: For iOS simulator builds (.app), we need to handle it differently than IPA
+          # The tool expects an IPA for iOS, but we have a .app bundle for simulator
+          # We'll need to create a temporary IPA or work with the .app directly
+
+          # Create a temporary directory for the payload
+          TEMP_DIR=$(mktemp -d)
+          PAYLOAD_DIR="$TEMP_DIR/Payload"
+          mkdir -p "$PAYLOAD_DIR"
+
+          # Copy the app bundle to Payload directory
+          cp -R "$APP_PATH" "$PAYLOAD_DIR/"
+
+          # Create IPA from the app bundle
+          TEMP_IPA="$TEMP_DIR/MetaMask.ipa"
+          (cd "$TEMP_DIR" && zip -r "$TEMP_IPA" Payload)
+
+          # Repack the IPA with updated JS bundle
+          OUTPUT_IPA="$TEMP_DIR/MetaMask-repacked.ipa"
+          npx --yes @expo/repack-app \
+            --platform ios \
+            --source-app "$TEMP_IPA" \
+            --output "$OUTPUT_IPA" \
+            --verbose
+
+          # Extract the repacked IPA back to .app
+          unzip -q "$OUTPUT_IPA" -d "$TEMP_DIR/repacked"
+          rm -rf "$APP_PATH"
+          mv "$TEMP_DIR/repacked/Payload/MetaMask.app" "$APP_PATH"
+
+          # Cleanup
+          rm -rf "$TEMP_DIR"
           echo "✅ iOS app repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
-        if: ${{ inputs.build_action != 'check_fingerprint' || steps.build-decision.outputs.can_repack == 'false' }}
+        if: ${{ steps.build-decision.outputs.can_repack == 'false' }}
         uses: actions/cache@v4
         with:
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-
-      - name: Log Build Metrics
-        if: always()
-        run: |
-          METHOD=$([[ "${{ inputs.build_action }}" == "check_fingerprint" && "${{ steps.build-decision.outputs.can_repack }}" == "true" ]] && echo "repack" || echo "full")
-          echo "Build method: $METHOD"
-          echo "Action: ${{ inputs.build_action }}"
 
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)

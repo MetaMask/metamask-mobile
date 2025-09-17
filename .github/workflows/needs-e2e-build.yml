@@ -19,12 +19,6 @@ on:
       builds:
         description: 'Whether any builds will happen'
         value: ${{ jobs.needs-e2e-build.outputs.builds }}
-      android_build_action:
-        description: 'Android build action: full, repack, or skip'
-        value: ${{ jobs.needs-e2e-build.outputs.android_build_action }}
-      ios_build_action:
-        description: 'iOS build action: full, repack, or skip'
-        value: ${{ jobs.needs-e2e-build.outputs.ios_build_action }}
 
 jobs:
   needs-e2e-build:
@@ -34,8 +28,6 @@ jobs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
       builds: ${{ steps.set-outputs.outputs.builds }}
-      android_build_action: ${{ steps.set-outputs.outputs.android_build_action }}
-      ios_build_action: ${{ steps.set-outputs.outputs.ios_build_action }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -68,8 +60,8 @@ jobs:
             echo "-> SKIP=true due to 'skip-e2e' label on PR"
           fi
         env:
-          GH_TOKEN: ${{ github.token }}
-
+          GH_TOKEN: ${{ github.token }}    
+      
       - name: Paths filter (Android/iOS impact)
         id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -119,7 +111,6 @@ jobs:
               - '**/*'                             # Matches everything for conservative fallback
           list-files: 'shell'  # Output lists for comparison
 
-
       - name: Set final outputs
         id: set-outputs
         run: |
@@ -130,24 +121,20 @@ jobs:
               echo "android_final=false"
               echo "ios_final=false"
               echo "builds=false"
-              echo "android_build_action=skip"
-              echo "ios_build_action=skip"
             } >> "${GITHUB_OUTPUT}"
             echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
             exit 0
-          fi
+          fi                   
+          
+          # Get filter results
+          android="${{ steps.filter.outputs.android }}"
+          ios="${{ steps.filter.outputs.ios }}"
+          shared="${{ steps.filter.outputs.shared }}"
+          ignore="${{ steps.filter.outputs.ignore }}"
 
-          # Get filter results - using toJSON to handle missing outputs safely
-          filter_outputs='${{ toJSON(steps.filter.outputs) }}'
-
-          # Extract values with defaults using jq
-          android=$(echo "$filter_outputs" | jq -r '.android // "false"')
-          ios=$(echo "$filter_outputs" | jq -r '.ios // "false"')
-          shared=$(echo "$filter_outputs" | jq -r '.shared // "false"')
-          ignore=$(echo "$filter_outputs" | jq -r '.ignore // "false"')
-          ignore_files=$(echo "$filter_outputs" | jq -r '.ignore_files // ""')
-          catch_all_files=$(echo "$filter_outputs" | jq -r '.catch_all_files // ""')
-
+          # Get lists of files
+          ignore_files="${{ steps.filter.outputs.ignore_files }}"
+          catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
 
           # Use Cases for State Machine:
           # 1. Purely ignored changes -> Skip both
@@ -157,7 +144,7 @@ jobs:
           # 5. Android-only changes -> Android only
           # 6. iOS-only changes -> iOS only
 
-          # State Machine for determining which platforms need attention
+          # State Machine
           if [[ "$android" == 'true' && "$ios" != 'true' ]]; then
             state="ANDROID_ONLY"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
@@ -168,40 +155,31 @@ jobs:
             state="SHARED"
           fi
 
-          # Determine build actions based on path changes + fingerprint
           case "$state" in
             "PURE_IGNORE")
               echo "Ignoring - no mobile code changes"
               android_final="false"
               ios_final="false"
-              android_build_action="skip"
-              ios_build_action="skip"
               ;;
             "SHARED")
-              echo "Both platforms affected by changes"
+              echo "Building both platforms"
               android_final="true"
               ios_final="true"
-              # Fingerprint check will happen in both Android and iOS build workflows
-              android_build_action="check_fingerprint"
-              ios_build_action="check_fingerprint"
               ;;
             "ANDROID_ONLY")
-              echo "Android-only changes"
+              echo "Building Android only"
               android_final="true"
               ios_final="false"
-              ios_build_action="skip"
-              # For platform-specific changes, always do full build (native code likely changed)
-              android_build_action="full"
               ;;
             "IOS_ONLY")
-              echo "iOS-only changes"
+              echo "Building iOS only"
               android_final="false"
               ios_final="true"
-              android_build_action="skip"
-              # For iOS-only changes, always do full build (native code likely changed)
-              ios_build_action="full"
               ;;
           esac
+
+          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
+          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
 
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
@@ -209,16 +187,4 @@ jobs:
           else
             builds="false"
           fi
-
-          # Write all outputs in a single grouped redirect
-          {
-            echo "android_final=$android_final"
-            echo "ios_final=$ios_final"
-            echo "android_build_action=$android_build_action"
-            echo "ios_build_action=$ios_build_action"
-            echo "builds=$builds"
-          } >> "${GITHUB_OUTPUT}"
-
-          echo "Build decisions:"
-          echo "  Android: $android_build_action (build=$android_final)"
-          echo "  iOS: $ios_build_action (build=$ios_final)"
+          echo "builds=$builds" >> "${GITHUB_OUTPUT}"

@@ -28,8 +28,6 @@ jobs:
       id-token: write
     needs: [needs_e2e_build]
     uses: ./.github/workflows/build-ios-e2e.yml
-    with:
-      build_action: ${{ needs.needs_e2e_build.outputs.ios_build_action }}
     secrets: inherit
   
   e2e-smoke-tests-ios:
