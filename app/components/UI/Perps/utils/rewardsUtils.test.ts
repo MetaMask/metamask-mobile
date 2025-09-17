@@ -9,16 +9,10 @@ import {
 } from './rewardsUtils';
 import { toCaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock dependencies
 jest.mock('@metamask/utils');
 jest.mock('@metamask/bridge-controller');
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: {
-    log: jest.fn(),
-  },
-}));
 
 const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
   typeof toCaipAccountId
@@ -78,14 +72,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBeNull();
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Rewards: Failed to format CAIP Account ID',
-        {
-          address: mockAddress,
-          chainId: 'invalid',
-          error: 'Invalid chain ID format',
-        },
-      );
     });
 
     it('returns null when parseCaipChainId throws', () => {
@@ -100,14 +86,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBeNull();
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Rewards: Failed to format CAIP Account ID',
-        {
-          address: mockAddress,
-          chainId: mockChainId,
-          error: 'Invalid CAIP chain ID',
-        },
-      );
     });
 
     it('returns null when toCaipAccountId throws', () => {
@@ -122,14 +100,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBeNull();
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Rewards: Failed to format CAIP Account ID',
-        {
-          address: mockAddress,
-          chainId: mockChainId,
-          error: 'Invalid account format',
-        },
-      );
     });
 
     it('handles non-Error objects as error', () => {
@@ -144,14 +114,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBeNull();
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Rewards: Failed to format CAIP Account ID',
-        {
-          address: mockAddress,
-          chainId: mockChainId,
-          error: 'String error',
-        },
-      );
     });
   });
 
@@ -209,10 +171,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBe('Rewards operation failed');
-      expect(DevLogger.log).toHaveBeenCalledWith('Rewards: Error occurred', {
-        error: 'Test error message',
-        context,
-      });
     });
 
     it('handles non-Error objects', () => {
@@ -225,10 +183,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBe('Rewards operation failed');
-      expect(DevLogger.log).toHaveBeenCalledWith('Rewards: Error occurred', {
-        error: 'String error message',
-        context,
-      });
     });
 
     it('works without context parameter', () => {
@@ -240,10 +194,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBe('Rewards operation failed');
-      expect(DevLogger.log).toHaveBeenCalledWith('Rewards: Error occurred', {
-        error: 'Test error',
-        context: undefined,
-      });
     });
   });
 });

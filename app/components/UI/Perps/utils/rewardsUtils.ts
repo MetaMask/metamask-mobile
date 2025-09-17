@@ -8,7 +8,7 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 
 /**
  * Formats an address to CAIP-10 account ID format
@@ -32,10 +32,11 @@ export const formatAccountToCaipAccountId = (
     const { namespace, reference } = parseCaipChainId(caipChainId);
     return toCaipAccountId(namespace, reference, address);
   } catch (error) {
-    DevLogger.log('Rewards: Failed to format CAIP Account ID', {
+    Logger.error(error as Error, {
+      message: 'Rewards: Failed to format CAIP Account ID',
+      context: 'rewardsUtils.formatAccountToCaipAccountId',
       address,
       chainId,
-      error: error instanceof Error ? error.message : String(error),
     });
     return null;
   }
@@ -66,11 +67,10 @@ export const handleRewardsError = (
   error: unknown,
   context?: Record<string, unknown>,
 ): string => {
-  const errorMessage = error instanceof Error ? error.message : String(error);
-
-  DevLogger.log('Rewards: Error occurred', {
-    error: errorMessage,
-    context,
+  Logger.error(error as Error, {
+    message: 'Rewards: Error occurred',
+    context: 'rewardsUtils.handleRewardsError',
+    additionalContext: context,
   });
 
   return 'Rewards operation failed';

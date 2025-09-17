@@ -503,11 +503,9 @@ export class PerpsController extends BaseController<
     this.providers = new Map();
 
     this.initializeProviders().catch((error) => {
-      DevLogger.log('PerpsController: Error initializing providers', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error initializing providers',
+        context: 'PerpsController.constructor',
         timestamp: new Date().toISOString(),
       });
     });
@@ -590,8 +588,9 @@ export class PerpsController extends BaseController<
 
       return discountPercentage;
     } catch (error) {
-      DevLogger.log('PerpsController: Fee discount calculation failed', {
-        error: error instanceof Error ? error.message : String(error),
+      Logger.error(error as Error, {
+        message: 'PerpsController: Fee discount calculation failed',
+        context: 'PerpsController.calculateUserFeeDiscount',
       });
       return undefined;
     }
@@ -786,8 +785,12 @@ export class PerpsController extends BaseController<
         if (provider.setUserFeeDiscount) {
           provider.setUserFeeDiscount(undefined);
         }
-      } catch {
-        // Ignore errors during cleanup
+      } catch (cleanupError) {
+        Logger.error(cleanupError as Error, {
+          message:
+            'PerpsController: Failed to clear fee discount during error cleanup',
+          context: 'PerpsController.placeOrder',
+        });
       }
 
       // End trace with error data
@@ -1153,12 +1156,10 @@ export class PerpsController extends BaseController<
 
         // Trigger account state refresh after withdrawal
         this.getAccountState().catch((error) => {
-          DevLogger.log(
-            '⚠️ PerpsController: Failed to refresh after withdrawal',
-            {
-              error: error instanceof Error ? error.message : 'Unknown error',
-            },
-          );
+          Logger.error(error as Error, {
+            message: '⚠️ PerpsController: Failed to refresh after withdrawal',
+            context: 'PerpsController.withdraw',
+          });
         });
 
         endTrace({
@@ -1361,10 +1362,11 @@ export class PerpsController extends BaseController<
       const [accountState, historicalPortfolio] = await Promise.all([
         provider.getAccountState(params),
         provider.getHistoricalPortfolio(params).catch((error) => {
-          DevLogger.log(
-            'Failed to get historical portfolio, continuing without it:',
-            error,
-          );
+          Logger.error(error as Error, {
+            message:
+              'Failed to get historical portfolio, continuing without it',
+            context: 'PerpsController.getAccountState',
+          });
           return;
         }),
       ]);
@@ -1676,8 +1678,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.getWithdrawalRoutes();
     } catch (error) {
-      DevLogger.log('PerpsController: Error getting withdrawal routes', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error getting withdrawal routes',
+        context: 'PerpsController.getWithdrawalRoutes',
         timestamp: new Date().toISOString(),
       });
       // Return empty array if provider is not available
@@ -1785,8 +1788,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to prices', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to prices',
+        context: 'PerpsController.subscribeToPrices',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1804,8 +1808,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to positions', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to positions',
+        context: 'PerpsController.subscribeToPositions',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1823,8 +1828,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to order fills', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to order fills',
+        context: 'PerpsController.subscribeToOrderFills',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1842,8 +1848,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to orders', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to orders',
+        context: 'PerpsController.subscribeToOrders',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1861,8 +1868,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToAccount(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to account', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to account',
+        context: 'PerpsController.subscribeToAccount',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1905,8 +1913,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       provider.setLiveDataConfig(config);
     } catch (error) {
-      DevLogger.log('PerpsController: Error setting live data config', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error setting live data config',
+        context: 'PerpsController.setLiveDataConfig',
         timestamp: new Date().toISOString(),
       });
     }
@@ -1943,13 +1952,11 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        DevLogger.log(
-          'PerpsController: Error getting provider during disconnect',
-          {
-            error: error instanceof Error ? error.message : 'Unknown error',
-            timestamp: new Date().toISOString(),
-          },
-        );
+        Logger.error(error as Error, {
+          message: 'PerpsController: Error getting provider during disconnect',
+          context: 'PerpsController.disconnect',
+          timestamp: new Date().toISOString(),
+        });
       }
     }
 
@@ -2078,8 +2085,9 @@ export class PerpsController extends BaseController<
 
       return location;
     } catch (e) {
-      DevLogger.log('PerpsController: Failed to fetch geo location', {
-        error: e,
+      Logger.error(e as Error, {
+        message: 'PerpsController: Failed to fetch geo location',
+        context: 'PerpsController.performGeoLocationFetch',
       });
       // Don't cache failures
       return location;
@@ -2106,11 +2114,9 @@ export class PerpsController extends BaseController<
         );
       }
     } catch (error) {
-      DevLogger.log('PerpsController: Eligibility refresh failed', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      Logger.error(error as Error, {
+        message: 'PerpsController: Eligibility refresh failed',
+        context: 'PerpsController.refreshEligibility',
         timestamp: new Date().toISOString(),
       });
     } finally {

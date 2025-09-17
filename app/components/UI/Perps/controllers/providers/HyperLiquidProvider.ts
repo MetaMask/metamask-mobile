@@ -3,6 +3,7 @@ import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import { captureException } from '@sentry/react-native';
 import {
   BUILDER_FEE_CONFIG,
@@ -555,7 +556,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         averagePrice: filledOrder?.avgPx,
       };
     } catch (error) {
-      DevLogger.log('Order placement failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order placement failed',
+        context: 'HyperLiquidProvider.placeOrder',
+      });
       const mappedError = this.mapError(error);
       return createErrorResult(mappedError, { success: false });
     }
@@ -660,7 +664,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderId: params.orderId.toString(),
       };
     } catch (error) {
-      DevLogger.log('Order modification failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order modification failed',
+        context: 'HyperLiquidProvider.editOrder',
+      });
       return createErrorResult(error, { success: false });
     }
   }
@@ -706,7 +713,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error: success ? undefined : 'Order cancellation failed',
       };
     } catch (error) {
-      DevLogger.log('Order cancellation failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order cancellation failed',
+        context: 'HyperLiquidProvider.cancelOrder',
+      });
       return createErrorResult(error, { success: false });
     }
   }
@@ -742,7 +752,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         positions = await this.getPositions();
       } catch (error) {
-        DevLogger.log('Error getting positions:', error);
+        Logger.error(error as Error, {
+          message: 'Error getting positions during close position',
+          context: 'HyperLiquidProvider.closePosition',
+        });
 
         // Capture exception with data context
         captureException(
@@ -1448,7 +1461,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return accountState;
     } catch (error) {
-      DevLogger.log('Error getting account state:', error);
+      Logger.error(error as Error, {
+        message: 'Error getting account state',
+        context: 'HyperLiquidProvider.getAccountState',
+      });
       // Re-throw the error so the controller can handle it properly
       // This allows the UI to show proper error messages instead of zeros
       throw error;
