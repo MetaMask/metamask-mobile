@@ -73,7 +73,9 @@ jobs:
         id: fingerprint-check
         uses: actions/cache@v4
         with:
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
@@ -83,7 +85,9 @@ jobs:
         if: ${{ steps.fingerprint-check.outputs.cache-hit == 'true' }}
         uses: actions/cache@v4
         with:
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
@@ -94,7 +98,6 @@ jobs:
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
-          # to be replaced by expo prebuild
           yarn build:android:main:e2e
         shell: bash
         env:
@@ -138,33 +141,27 @@ jobs:
         run: |
           echo "📦 Repacking APK with updated JavaScript..."
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
-          
-          # Generate new JavaScript bundle using Metro bundler
-          echo "🔄 Generating new JavaScript bundle with Metro..."
-          yarn gen-bundle:android
-          
-          # Extract APK, replace bundle, and repackage
-          echo "📦 Extracting APK..."
+
+          # Ensure sourcemaps directory exists
+          mkdir -p sourcemaps/android
+
+          # Generate bundle with sourcemap
+          yarn react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android/main.jsbundle \
+            --sourcemap-output sourcemaps/android/index.android.bundle.map
+
+          # Extract, replace bundle, and repackage
           TEMP_DIR=$(mktemp -d)
           unzip -q "$APK_PATH" -d "$TEMP_DIR"
-          
-          # Replace the bundle
-          echo "🔄 Replacing JavaScript bundle..."
           cp android/main.jsbundle "$TEMP_DIR/assets/index.android.bundle"
-          
-          # Re-zip the APK
-          echo "📦 Repackaging APK..."
-          cd "$TEMP_DIR"
-          zip -qr "../app-prod-release-new.apk" .
-          cd -
-          
-          # Replace original APK
-          mv "$TEMP_DIR/../app-prod-release-new.apk" "$APK_PATH"
-          
+          (cd "$TEMP_DIR" && zip -qr "$APK_PATH" .)
+
           # Cleanup
-          rm -rf "$TEMP_DIR"
-          rm -f android/main.jsbundle
-          
+          rm -rf "$TEMP_DIR" android/main.jsbundle
+
           echo "✅ APK repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
@@ -172,7 +169,9 @@ jobs:
         if: ${{ steps.fingerprint-check.outputs.cache-hit == 'false' }}
         uses: actions/cache@v4
         with:
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK

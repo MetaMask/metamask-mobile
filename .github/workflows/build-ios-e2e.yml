@@ -173,18 +173,22 @@ jobs:
         run: |
           echo "📦 Repacking iOS app with updated JavaScript..."
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
-          
-          # Generate new JavaScript bundle using Metro bundler
-          echo "🔄 Generating new JavaScript bundle with Metro..."
-          yarn gen-bundle:ios
-          
-          # Replace the bundle in the cached app
-          echo "🔄 Replacing JavaScript bundle..."
+
+          # Ensure sourcemaps directory exists
+          mkdir -p sourcemaps/ios
+
+          # Generate bundle with sourcemap
+          yarn react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output ios/main.jsbundle \
+            --sourcemap-output sourcemaps/ios/index.js.map
+
+          # Replace bundle in app
           cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
-          
-          # Cleanup
           rm -f ios/main.jsbundle
-          
+
           echo "✅ iOS app repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
