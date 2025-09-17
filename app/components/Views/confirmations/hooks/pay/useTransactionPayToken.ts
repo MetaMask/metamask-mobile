@@ -14,7 +14,7 @@ import { useTransactionPayFiat } from './useTransactionPayFiat';
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
   const { id: transactionId } = useTransactionMetadataRequest() || {};
-  const { fiatFormatter } = useTransactionPayFiat();
+  const { formatFiat } = useTransactionPayFiat();
 
   const selectedPayToken = useSelector((state: RootState) =>
     selectTransactionPayToken(state, transactionId as string),
@@ -44,14 +44,14 @@ export function useTransactionPayToken() {
       .shiftedBy(payTokenRaw.decimals)
       .toFixed(0);
 
-    const balanceFiat = fiatFormatter(payTokenRaw?.tokenFiatAmount ?? '0');
+    const balanceFiat = formatFiat(payTokenRaw?.tokenFiatAmount ?? '0');
 
     return {
       ...payTokenRaw,
       balanceFiat,
       balanceRaw,
     };
-  }, [fiatFormatter, payTokenRaw]);
+  }, [formatFiat, payTokenRaw]);
 
   return {
     payToken,

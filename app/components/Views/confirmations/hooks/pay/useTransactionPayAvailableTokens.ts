@@ -17,7 +17,7 @@ export function useTransactionPayAvailableTokens() {
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { payToken } = useTransactionPayToken();
   const requiredTokens = useTransactionRequiredTokens();
-  const { convert: fiatConvert, fiatFormatter } = useTransactionPayFiat();
+  const { convertFiat, formatFiat } = useTransactionPayFiat();
 
   const { chainId: transactionChainId, type } =
     useTransactionMetadataRequest() ?? {};
@@ -81,8 +81,8 @@ export function useTransactionPayAvailableTokens() {
 
   const updateFiatValues = useCallback(
     (token: BridgeToken) => {
-      const balanceFiat = fiatFormatter(token.tokenFiatAmount ?? '0');
-      const balanceUsd = fiatConvert(token.tokenFiatAmount ?? '0');
+      const balanceFiat = formatFiat(token.tokenFiatAmount ?? '0');
+      const balanceUsd = convertFiat(token.tokenFiatAmount ?? '0');
 
       return {
         ...token,
@@ -90,7 +90,7 @@ export function useTransactionPayAvailableTokens() {
         balanceUsd,
       };
     },
-    [fiatConvert, fiatFormatter],
+    [convertFiat, formatFiat],
   );
 
   const availableTokens = useMemo(

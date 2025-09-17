@@ -38,7 +38,7 @@ export function useTransactionTotalFiat({
     selectTransactionBridgeQuotesById(state, transactionId),
   );
 
-  const { fiatFormatter } = useTransactionPayFiat();
+  const { formatFiat: fiatFormatter } = useTransactionPayFiat();
 
   const quotes: TransactionBridgeQuoteExtended[] = (quotesRaw ?? []).map(
     (quote) => {

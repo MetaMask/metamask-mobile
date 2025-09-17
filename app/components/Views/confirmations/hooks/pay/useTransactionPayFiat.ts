@@ -30,20 +30,20 @@ export function useTransactionPayFiat() {
 
   const fiatFormatterOriginal = useFiatFormatter({ currency });
 
-  const fiatFormatter = useCallback(
+  const formatFiat = useCallback(
     (value: number | string | BigNumber) =>
       fiatFormatterOriginal(new BigNumber(value).multipliedBy(multiplier)),
     [fiatFormatterOriginal, multiplier],
   );
 
-  const convert = useCallback(
+  const convertFiat = useCallback(
     (value: number | string | BigNumber) =>
       new BigNumber(value).multipliedBy(multiplier).toNumber(),
     [multiplier],
   );
 
   return {
-    convert,
-    fiatFormatter,
+    convertFiat,
+    formatFiat,
   };
 }
