@@ -160,7 +160,7 @@ export default {
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
   REWARDS_API_URL:
-    process.env.REWARDS_API_URL || 'https://rewards.dev-api.cx.metamask.io',
+    process.env.REWARDS_API_URL || 'https://rewards.uat-api.cx.metamask.io',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
