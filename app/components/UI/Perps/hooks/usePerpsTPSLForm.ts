@@ -727,7 +727,8 @@ export function usePerpsTPSLForm(
   // Validation logic
   // Use entryPrice for validation (which is the limit price for limit orders, or current price for market orders)
   // This ensures TP/SL are validated against the price where the order will execute
-  const referencePrice = orderType === 'market' ? currentPrice : entryPrice;
+  const referencePrice =
+    orderType === 'market' ? currentPrice : entryPrice || currentPrice;
 
   // Determine what type of price we're comparing against for error messages
   const priceType = orderType === 'limit' ? 'limit' : 'current';
