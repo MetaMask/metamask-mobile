@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Messenger } from '@metamask/base-controller';
+import { deriveStateFromMetadata, Messenger } from '@metamask/base-controller';
 import { successfulFetch } from '@metamask/controller-utils';
 import { setMeasurement } from '@sentry/react-native';
 import Logger from '../../../../util/Logger';
@@ -300,6 +300,8 @@ describe('PerpsController', () => {
               sinceOpen: '0',
               sinceChange: '0',
             },
+            takeProfitCount: 0,
+            stopLossCount: 0,
           },
         ],
       };
@@ -601,6 +603,8 @@ describe('PerpsController', () => {
             sinceOpen: '5',
             sinceChange: '2',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -3943,6 +3947,120 @@ describe('PerpsController', () => {
           willRetry: true,
         }),
       );
+    });
+  });
+
+  describe('metadata', () => {
+    it('includes expected state in debug snapshots', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'anonymous',
+          ),
+        ).toMatchInlineSnapshot(`{}`);
+      });
+    });
+
+    it('includes expected state in state logs', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'includeInStateLogs',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "connectionStatus": "disconnected",
+            "depositInProgress": false,
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isEligible": false,
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "lastDepositResult": null,
+            "lastDepositTransactionId": null,
+            "lastUpdateTimestamp": 0,
+            "lastWithdrawResult": null,
+            "pendingOrders": [],
+            "perpsBalances": {},
+            "positions": [],
+            "withdrawInProgress": false,
+          }
+        `);
+      });
+    });
+
+    it('persists expected state', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'persist',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "perpsBalances": {},
+            "positions": [],
+          }
+        `);
+      });
+    });
+
+    it('exposes expected state to UI', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'usedInUi',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "connectionStatus": "disconnected",
+            "depositInProgress": false,
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isEligible": false,
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "lastDepositResult": null,
+            "lastDepositTransactionId": null,
+            "lastWithdrawResult": null,
+            "perpsBalances": {},
+            "positions": [],
+            "withdrawInProgress": false,
+          }
+        `);
+      });
     });
   });
 });

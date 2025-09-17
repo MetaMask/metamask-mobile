@@ -72,6 +72,7 @@ import { useSelector } from 'react-redux';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -120,19 +121,87 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  // TP/SL order selection state - track TP and SL separately
+  const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
+  const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
+
   const account = usePerpsAccount();
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   // Get real-time open orders via WebSocket
-  const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
-
+  const ordersData = usePerpsLiveOrders({});
   // Filter orders for the current market
   const openOrders = useMemo(() => {
     if (!ordersData?.length || !market?.symbol) return [];
     return ordersData.filter((order) => order.symbol === market.symbol);
   }, [ordersData, market?.symbol]);
+
+  // Filter orders that have TP/SL data for chart integration
+  const ordersWithTPSL = useMemo(
+    () =>
+      openOrders.filter((order) => {
+        // Check if order has TP/SL prices directly
+        if (order.takeProfitPrice || order.stopLossPrice) return true;
+
+        // Check if it's a trigger order (TP/SL orders are stored as trigger orders)
+        if (order.isTrigger && order.detailedOrderType) {
+          const orderType = order.detailedOrderType.toLowerCase();
+          return (
+            orderType.includes('take profit') || orderType.includes('stop')
+          );
+        }
+
+        return false;
+      }),
+    [openOrders],
+  );
+
+  // Determine which TP/SL lines to show on the chart
+  const selectedOrderTPSL = useMemo(() => {
+    // Find the active TP order
+    let activeTPOrder = ordersWithTPSL.find(
+      (order) => order.orderId === activeTPOrderId,
+    );
+    // Only use default TP if no TP has ever been explicitly selected
+    if (!activeTPOrder && activeTPOrderId === null) {
+      activeTPOrder = ordersWithTPSL.find((order) => {
+        if (order.takeProfitPrice) return true;
+        if (
+          order.isTrigger &&
+          order.detailedOrderType?.toLowerCase().includes('take profit')
+        )
+          return true;
+        return false;
+      });
+    }
+
+    // Find the active SL order
+    let activeSLOrder = ordersWithTPSL.find(
+      (order) => order.orderId === activeSLOrderId,
+    );
+    // Only use default SL if no SL has ever been explicitly selected
+    if (!activeSLOrder && activeSLOrderId === null) {
+      activeSLOrder = ordersWithTPSL.find((order) => {
+        if (order.stopLossPrice) return true;
+        if (
+          order.isTrigger &&
+          order.detailedOrderType?.toLowerCase().includes('stop')
+        )
+          return true;
+        return false;
+      });
+    }
+
+    const result = {
+      takeProfitPrice: activeTPOrder?.takeProfitPrice || activeTPOrder?.price,
+      stopLossPrice: activeSLOrder?.stopLossPrice || activeSLOrder?.price,
+      activeTPOrderId: activeTPOrder?.orderId,
+      activeSLOrderId: activeSLOrder?.orderId,
+    };
+    return result;
+  }, [ordersWithTPSL, activeTPOrderId, activeSLOrderId]);
 
   const hasZeroBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0') === 0,
@@ -230,6 +299,53 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [candleData, refreshCandleData]);
 
+  // Handle order selection for chart integration
+  const handleOrderSelect = useCallback(
+    (orderId: string) => {
+      const selectedOrder = ordersWithTPSL.find(
+        (order) => order.orderId === orderId,
+      );
+
+      if (selectedOrder) {
+        const hasBothTPSL =
+          selectedOrder.takeProfitPrice && selectedOrder.stopLossPrice;
+
+        if (hasBothTPSL) {
+          setActiveTPOrderId(orderId);
+          setActiveSLOrderId(orderId);
+        } else if (selectedOrder.isTrigger && selectedOrder.detailedOrderType) {
+          const orderType = selectedOrder.detailedOrderType.toLowerCase();
+          if (orderType.includes('take profit')) {
+            setActiveTPOrderId(orderId);
+          } else if (orderType.includes('stop')) {
+            setActiveSLOrderId(orderId);
+          }
+        } else if (selectedOrder.takeProfitPrice) {
+          setActiveTPOrderId(orderId);
+        } else if (selectedOrder.stopLossPrice) {
+          setActiveSLOrderId(orderId);
+        }
+      }
+    },
+    [ordersWithTPSL],
+  );
+
+  // Handle order cancellation to update chart
+  const handleOrderCancelled = useCallback(
+    (cancelledOrderId: string) => {
+      // If the cancelled order was the active TP order, clear it
+      if (activeTPOrderId === cancelledOrderId) {
+        setActiveTPOrderId(null);
+      }
+
+      // If the cancelled order was the active SL order, clear it
+      if (activeSLOrderId === cancelledOrderId) {
+        setActiveSLOrderId(null);
+      }
+    },
+    [activeTPOrderId, activeSLOrderId],
+  );
+
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
@@ -266,6 +382,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
+  const { navigateToConfirmation } = useConfirmNavigation();
+
   const handleAddFundsPress = async () => {
     try {
       if (!isEligible) {
@@ -277,9 +395,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       await ensureArbitrumNetworkExists();
 
       // Navigate immediately to confirmations screen for instant UI response
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {
@@ -372,10 +488,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 existingPosition
                   ? {
                       entryPrice: existingPosition.entryPrice,
-                      takeProfitPrice: existingPosition.takeProfitPrice,
-                      stopLossPrice: existingPosition.stopLossPrice,
+                      takeProfitPrice:
+                        selectedOrderTPSL.takeProfitPrice ||
+                        existingPosition.takeProfitPrice,
+                      stopLossPrice:
+                        selectedOrderTPSL.stopLossPrice ||
+                        existingPosition.stopLossPrice,
                       liquidationPrice:
                         existingPosition.liquidationPrice || undefined,
+                    }
+                  : selectedOrderTPSL.takeProfitPrice ||
+                    selectedOrderTPSL.stopLossPrice
+                  ? {
+                      takeProfitPrice: selectedOrderTPSL.takeProfitPrice,
+                      stopLossPrice: selectedOrderTPSL.stopLossPrice,
                     }
                   : undefined
               }
@@ -402,6 +528,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               initialTab={initialTab}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
+              onOrderSelect={handleOrderSelect}
+              onOrderCancelled={handleOrderCancelled}
+              activeTPOrderId={selectedOrderTPSL?.activeTPOrderId}
+              activeSLOrderId={selectedOrderTPSL?.activeSLOrderId}
             />
           </View>
 
