@@ -72,6 +72,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   rightAccessory,
   isActiveOnChart = false,
   activeType,
+  isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -135,10 +136,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   );
 
   const handleCardPress = useCallback(() => {
-    if (onSelect && !disabled) {
+    if (onSelect && !disabled && !isCancelling) {
       onSelect(order.orderId);
     }
-  }, [onSelect, disabled, order.orderId]);
+  }, [onSelect, disabled, isCancelling, order.orderId]);
 
   // Early return for non-open orders - this component only handles open orders
   if (order.status !== 'open') {
@@ -149,7 +150,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={disabled}
+      disabled={disabled || isCancelling}
       onPress={handleCardPress}
     >
       {/* Header - Always shown */}
@@ -178,8 +179,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                       variant={TextVariant.BodyXS}
                       color={TextColor.Inverse}
                     >
-                      {/* TODO: Localize */}
-                      TP on Chart
+                      {strings('perps.tp_on_chart')}
                     </Text>
                   </View>
                 ) : null}
@@ -191,8 +191,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                       variant={TextVariant.BodyXS}
                       color={TextColor.Default}
                     >
-                      {/* TODO: Localize */}
-                      SL on Chart
+                      {strings('perps.sl_on_chart')}
                     </Text>
                   </View>
                 ) : null}
@@ -318,7 +317,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             width={ButtonWidthTypes.Full}
             label={strings('perps.order.cancel_order')}
             onPress={debouncedHandleCancelPress}
-            isDisabled={disabled}
+            isDisabled={disabled || isCancelling}
+            loading={isCancelling}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />

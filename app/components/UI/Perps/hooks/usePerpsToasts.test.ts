@@ -294,18 +294,18 @@ describe('usePerpsToasts', () => {
     });
 
     describe('orderManagement.limit', () => {
-      it('returns limit order cancellation in progress configuration', () => {
+      it('returns limit order submitted configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
-          result.current.PerpsToastOptions.orderManagement.limit.cancellationInProgress(
+          result.current.PerpsToastOptions.orderManagement.limit.submitted(
             'long',
-            '2.5',
-            'SOL',
+            '0.5',
+            'ETH',
           );
 
         expect(config.labelOptions).toContainEqual({
-          label: 'Cancelling order',
-          isBold: true,
+          label: 'Long 0.5 ETH',
+          isBold: false,
         });
         expect(config.startAccessory).toBeDefined();
         expect(config).toMatchObject({
@@ -315,34 +315,177 @@ describe('usePerpsToasts', () => {
         });
       });
 
-      it('returns limit order cancellation success configuration', () => {
+      it('returns limit order confirmed configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
-          result.current.PerpsToastOptions.orderManagement.limit
-            .cancellationSuccess;
+          result.current.PerpsToastOptions.orderManagement.limit.confirmed(
+            'short',
+            '1.0',
+            'BTC',
+          );
 
+        expect(config).toMatchObject({
+          iconName: IconName.CheckBold,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'Order placed',
+          isBold: true,
+        });
+      });
+
+      it('returns limit order creation failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.creationFailed(
+            'Network error',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Network error',
+          isBold: false,
+        });
+      });
+    });
+
+    describe('orderManagement.shared', () => {
+      it('returns cancellation in progress configuration with detailed order type', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationInProgress(
+            'long',
+            '2.5',
+            'SOL',
+            'Take Profit Limit',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Cancelling take profit limit order',
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'long 2.5 SOL',
+          isBold: false,
+        });
+        expect(config.startAccessory).toBeDefined();
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
+        });
+      });
+
+      it('returns cancellation in progress configuration without detailed order type', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationInProgress(
+            'short',
+            '1.0',
+            'ETH',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Cancelling order',
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'short 1.0 ETH',
+          isBold: false,
+        });
+        expect(config.startAccessory).toBeDefined();
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationFeedbackType.Warning,
+        });
+      });
+
+      it('returns cancellation success configuration with detailed order type and position details', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+            false,
+            'Stop Market',
+            'long',
+            '0.5',
+            'BTC',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Stop market order cancelled',
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'long 0.5 BTC',
+          isBold: false,
+        });
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+        });
+      });
+
+      it('returns cancellation success configuration without detailed order type (non-reduce only)', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+            false,
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Order cancelled',
+          isBold: true,
+        });
         expect(config.labelOptions).toContainEqual({
           label: 'Funds are available to trade',
           isBold: false,
         });
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+        });
       });
 
-      it('returns reduce only close cancellation configurations', () => {
+      it('returns cancellation success configuration for reduce only orders', () => {
         const { result } = renderHook(() => usePerpsToasts());
-        const successConfig =
-          result.current.PerpsToastOptions.orderManagement.limit.reduceOnlyClose
-            .cancellationSuccess;
-        const failedConfig =
-          result.current.PerpsToastOptions.orderManagement.limit.reduceOnlyClose
-            .cancellationFailed;
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+            true,
+            'Limit Close',
+          );
 
-        expect(successConfig.labelOptions).toContainEqual({
+        expect(config.labelOptions).toContainEqual({
           label: 'Limit close order cancelled',
+          isBold: true,
+        });
+        // Should not have the "funds available" message for reduce-only orders
+        expect(config.labelOptions).not.toContainEqual({
+          label: 'Funds are available to trade',
           isBold: false,
         });
-        expect(failedConfig.labelOptions).toContainEqual({
-          label: 'Close order still active',
-          isBold: false,
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationFeedbackType.Success,
+        });
+      });
+
+      it('returns cancellation failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared
+            .cancellationFailed;
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to cancel order', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Order still active', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationFeedbackType.Error,
         });
       });
     });

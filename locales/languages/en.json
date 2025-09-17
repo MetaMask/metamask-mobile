@@ -1110,8 +1110,10 @@
       "confirmed": "Order Confirmed",
       "cancelling_order": "Cancelling order",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "Cancelling {{detailedOrderType}} order",
       "order_cancelled": "Order cancelled",
       "failed_to_cancel_order": "Failed to cancel order",
+      "order_still_active": "Order still active",
       "funds_have_been_returned_to_you": "Funds have been returned to you",
       "funds_are_available_to_trade": "Funds are available to trade",
       "close_order_still_active": "Close order still active",
@@ -1120,7 +1122,8 @@
       "order_placed": "Order placed",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Order failed",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
     "close_position": {
       "title": "Close position",
@@ -1512,7 +1515,9 @@
     "points": "Points",
     "unable_to_load": "Couldn't load",
     "points_error": "We can't load points right now",
-    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later."
+    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
+    "tp_on_chart": "TP on Chart",
+    "sl_on_chart": "SL on Chart"
   },
   "receive": {
     "title": "Receive"
