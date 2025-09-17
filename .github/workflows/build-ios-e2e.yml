@@ -175,9 +175,25 @@ jobs:
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
           OUTPUT_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask-repacked.app"
 
+          # Create temporary app.json with required fields for @expo/repack-app
+          cat > app.json << EOF
+          {
+            "expo": {
+              "name": "MetaMask",
+              "slug": "metamask",
+              "version": "1.0.0",
+              "android": {
+                "package": "io.metamask"
+              },
+              "ios": {
+                "bundleIdentifier": "io.metamask.MetaMask"
+              }
+            }
+          }
+          EOF
+
           # Note: For iOS simulator builds (.app), we need to handle it differently than IPA
           # The tool expects an IPA for iOS, but we have a .app bundle for simulator
-          # We'll need to create a temporary IPA or work with the .app directly
 
           # Create a temporary directory for the payload
           TEMP_DIR=$(mktemp -d)
@@ -206,6 +222,8 @@ jobs:
 
           # Cleanup
           rm -rf "$TEMP_DIR"
+          rm -f app.json
+          
           echo "✅ iOS app repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint

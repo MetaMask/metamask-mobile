@@ -140,6 +140,23 @@ jobs:
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
           OUTPUT_PATH="android/app/build/outputs/apk/prod/release/app-prod-release-repacked.apk"
 
+          # Create temporary app.json with required fields for @expo/repack-app
+          cat > app.json << EOF
+          {
+            "expo": {
+              "name": "MetaMask",
+              "slug": "metamask",
+              "version": "1.0.0",
+              "android": {
+                "package": "io.metamask"
+              },
+              "ios": {
+                "bundleIdentifier": "io.metamask.MetaMask"
+              }
+            }
+          }
+          EOF
+
           # Repack the APK with updated JS bundle
           npx --yes @expo/repack-app \
             --platform android \
@@ -149,6 +166,10 @@ jobs:
 
           # Replace original with repacked version
           mv "$OUTPUT_PATH" "$APK_PATH"
+          
+          # Clean up temporary app.json
+          rm -f app.json
+          
           echo "✅ APK repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
