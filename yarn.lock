@@ -4886,14 +4886,13 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/account-api@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-api/-/account-api-0.9.0.tgz#95af2a17fa2eb20281ffbb653de206fa38779a59"
-  integrity sha512-APZencpXBHFjbJfDkRPpixthMAMrfF0B9yVVesUOzsAI/S12JGrikMtWU8E6S8oWGD+7+t6pO85ljRg9d+D5BA==
+"@metamask/account-api@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-api/-/account-api-0.12.0.tgz#85dfd60998f6cd7c0fc742ffc7b9059e737ba75a"
+  integrity sha512-JDhQ0Evi91TKjjmGRg/nwFLsZmfPGDrS6ck6xERMmzeWMMrsSbvYpRzwyrs1AbTVWnWVKxEEeVPEc1aZzyHB2Q==
   dependencies:
-    "@metamask/keyring-api" "^20.0.0"
+    "@metamask/keyring-api" "^21.0.0"
     "@metamask/keyring-utils" "^3.1.0"
-    "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
 "@metamask/account-tree-controller@^0.15.1":
