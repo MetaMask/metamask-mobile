@@ -69,4 +69,13 @@ describe('useFiatFormatter', () => {
     expect(formatFiat(new BigNumber(500.5))).toBe('500.5 storj');
     expect(formatFiat(new BigNumber(0))).toBe('0 storj');
   });
+
+  it('overrides currency if specified', () => {
+    const { result } = renderHook(() => useFiatFormatter({ currency: 'gbp' }));
+    const formatFiat = result.current;
+
+    expect(formatFiat(new BigNumber(1000))).toBe('£1,000');
+    expect(formatFiat(new BigNumber(500.5))).toBe('£500.50');
+    expect(formatFiat(new BigNumber(0))).toBe('£0');
+  });
 });
