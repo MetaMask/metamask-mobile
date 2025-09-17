@@ -181,7 +181,7 @@ jobs:
           [ -f "$APK" ] || { echo "APK not found"; exit 1; }
           [ -f "$BUNDLE" ] || { echo "Bundle not found: $BUNDLE"; exit 1; }
           echo "📦 Repackaging APK with updated bundle..."
-          npx --yes @expo/repack-app --platform android --input "$APK" --output "$APK" --bundle "$BUNDLE"
+          npx --yes @expo/repack-app --platform android --source-app "$APK" --output "$APK" --bundle "$BUNDLE"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
@@ -190,7 +190,7 @@ jobs:
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-      
+
       - name: Log Build Metrics
         if: always()
         run: |
