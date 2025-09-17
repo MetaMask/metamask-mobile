@@ -35,7 +35,7 @@ jobs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
-      build-method: ${{ inputs.build_action == 'check_fingerprint' && steps.fingerprint-check.outputs.can_repack == 'true' && 'repack' || 'full' }}
+      build-method: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' && 'repack' || 'full' }}
     
     steps:
       - name: Checkout repo
@@ -78,45 +78,43 @@ jobs:
           FINGERPRINT=$(yarn -s fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT:0:16}..."
-          echo "$FINGERPRINT" > .current-fingerprint
 
-      - name: Restore fingerprint cache
-        if: ${{ inputs.build_action == 'check_fingerprint' }}
-        uses: actions/cache@v4
-        with:
-          path: .app-native-fingerprint
-          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            fingerprint-android-${{ github.event.pull_request.number || 'main' }}-
-
-      - name: Check fingerprints and decide build method
+      - name: Check for cached APK and decide build method
         if: ${{ inputs.build_action == 'check_fingerprint' }}
         id: fingerprint-check
-        shell: bash
-        run: |
-          echo "🔍 Checking fingerprints..."
-          if yarn fingerprint:check; then
-            echo "✅ Can repack - fingerprints match"
-            echo "can_repack=true" >> "$GITHUB_OUTPUT"
-          elif [[ $? -eq 2 ]]; then
-            echo "🆕 First build - no saved fingerprint"
-            echo "can_repack=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "🔄 Native code changed - full build required"
-            echo "can_repack=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Restore cached APK for repacking
-        if: ${{ inputs.build_action == 'check_fingerprint' && steps.fingerprint-check.outputs.can_repack == 'true' }}
         uses: actions/cache@v4
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
-            android-apk-${{ github.event.pull_request.number || 'main' }}-
+            android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          lookup-only: true
+
+      - name: Decide build method based on cache
+        if: ${{ inputs.build_action == 'check_fingerprint' }}
+        id: build-decision
+        shell: bash
+        run: |
+          echo "🔍 Checking build method..."
+          if [[ "${{ steps.fingerprint-check.outputs.cache-hit }}" == "true" ]]; then
+            echo "✅ Can repack - APK exists with matching fingerprint"
+            echo "can_repack=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "🔄 Full build required - no cached APK with this fingerprint"
+            echo "can_repack=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore cached APK for repacking
+        if: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          restore-keys: |
+            android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Build Android E2E APKs
-        if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
+        if: ${{ inputs.build_action != 'check_fingerprint' || steps.build-decision.outputs.can_repack == 'false' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -161,7 +159,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Update JS and Assets
-        if: ${{ inputs.build_action == 'check_fingerprint' && steps.fingerprint-check.outputs.can_repack == 'true' }}
+        if: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' }}
         id: update-js
         run: |
           yarn setup:github-ci --no-build-ios --no-build-android
@@ -176,7 +174,7 @@ jobs:
           echo "bundle_path=$BUNDLE" >> "$GITHUB_OUTPUT"
 
       - name: Repackage APK
-        if: ${{ inputs.build_action == 'check_fingerprint' && steps.fingerprint-check.outputs.can_repack == 'true' }}
+        if: ${{ inputs.build_action == 'check_fingerprint' && steps.build-decision.outputs.can_repack == 'true' }}
         run: |
           APK="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
           BUNDLE="${{ steps.update-js.outputs.bundle_path }}"
@@ -187,27 +185,16 @@ jobs:
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
-        if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
+        if: ${{ inputs.build_action != 'check_fingerprint' || steps.build-decision.outputs.can_repack == 'false' }}
         uses: actions/cache@v4
         with:
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-
-      # Cache fingerprint for future comparisons
-      - name: Cache fingerprint
-        if: ${{ inputs.build_action != 'check_fingerprint' || steps.fingerprint-check.outputs.can_repack == 'false' }}
-        uses: actions/cache@v4
-        with:
-          path: .current-fingerprint
-          key: fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}-${{ github.run_attempt }}
-          restore-keys: |
-            fingerprint-android-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-            fingerprint-android-${{ github.event.pull_request.number || 'main' }}-
       
       - name: Log Build Metrics
         if: always()
         run: |
-          METHOD=$([[ "${{ inputs.build_action }}" == "check_fingerprint" && "${{ steps.fingerprint-check.outputs.can_repack }}" == "true" ]] && echo "repack" || echo "full")
+          METHOD=$([[ "${{ inputs.build_action }}" == "check_fingerprint" && "${{ steps.build-decision.outputs.can_repack }}" == "true" ]] && echo "repack" || echo "full")
           echo "Build method: $METHOD"
           echo "Action: ${{ inputs.build_action }}"
 
