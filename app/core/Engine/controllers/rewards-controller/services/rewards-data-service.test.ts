@@ -9,6 +9,7 @@ import type {
   SeasonStatusDto,
   SubscriptionReferralDetailsDto,
   PointsBoostEnvelopeDto,
+  ClaimRewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -81,11 +82,55 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:optin',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:logout',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:generateChallenge',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getSeasonStatus',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getReferralDetails',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getOptInStatus',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:optOut',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getActivePointsBoosts',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getUnlockedRewards',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:claimReward',
         expect.any(Function),
       );
     });
@@ -2178,6 +2223,225 @@ describe('RewardsDataService', () => {
         'https://api.rewards.test/seasons/winter-2024/active-boosts',
         expect.objectContaining({
           method: 'GET',
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+  });
+
+  describe('claimReward', () => {
+    const mockRewardId = 'reward-123';
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-access-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully claim reward without DTO', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.claimReward(mockRewardId, mockSubscriptionId);
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/rewards/reward-123/claim',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(undefined),
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+          credentials: 'omit',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should successfully claim reward with DTO', async () => {
+      // Arrange
+      const mockDto: ClaimRewardDto = {
+        data: {
+          telegramHandle: '@testuser',
+          email: 'test@example.com',
+        },
+      };
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.claimReward(mockRewardId, mockSubscriptionId, mockDto);
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/rewards/reward-123/claim',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockDto),
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+          credentials: 'omit',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should handle empty DTO object', async () => {
+      // Arrange
+      const emptyDto = {};
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.claimReward(mockRewardId, mockSubscriptionId, emptyDto);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/rewards/reward-123/claim',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(emptyDto),
+        }),
+      );
+    });
+
+    it('should throw error when response is not ok', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.claimReward(mockRewardId, mockSubscriptionId),
+      ).rejects.toThrow('Failed to claim reward: 400');
+    });
+
+    it('should throw error when response is 404', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.claimReward(mockRewardId, mockSubscriptionId),
+      ).rejects.toThrow('Failed to claim reward: 404');
+    });
+
+    it('should throw error when response is 500', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.claimReward(mockRewardId, mockSubscriptionId),
+      ).rejects.toThrow('Failed to claim reward: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.claimReward(mockRewardId, mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle subscription token retrieval errors', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockRejectedValue(new Error('Token error'));
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.claimReward(mockRewardId, mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('should handle different reward IDs correctly', async () => {
+      // Arrange
+      const differentRewardId = 'special-reward-789';
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.claimReward(differentRewardId, mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/wr/rewards/special-reward-789/claim',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
+    });
+
+    it('should include proper headers and credentials in request', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.claimReward(mockRewardId, mockSubscriptionId);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'omit',
           headers: expect.objectContaining({
             'Accept-Language': 'en-US',
             'Content-Type': 'application/json',

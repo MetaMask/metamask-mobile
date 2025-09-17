@@ -19,6 +19,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -51,6 +53,14 @@ describe('useActivePointsBoosts', () => {
 
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
+  >;
+  const mockEngineSubscribe = Engine.controllerMessenger
+    .subscribe as jest.MockedFunction<
+    typeof Engine.controllerMessenger.subscribe
+  >;
+  const mockEngineUnsubscribe = Engine.controllerMessenger
+    .unsubscribe as jest.MockedFunction<
+    typeof Engine.controllerMessenger.unsubscribe
   >;
   const mockLogger = Logger.log as jest.MockedFunction<typeof Logger.log>;
 
@@ -238,5 +248,232 @@ describe('useActivePointsBoosts', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
+  });
+
+  describe('Event Subscriptions', () => {
+    it('should subscribe to accountLinked and rewardClaimed events on mount', () => {
+      renderHook(() => useActivePointsBoosts());
+
+      expect(mockEngineSubscribe).toHaveBeenCalledWith(
+        'RewardsController:accountLinked',
+        expect.any(Function),
+      );
+      expect(mockEngineSubscribe).toHaveBeenCalledWith(
+        'RewardsController:rewardClaimed',
+        expect.any(Function),
+      );
+      expect(mockEngineSubscribe).toHaveBeenCalledTimes(2);
+    });
+
+    it('should unsubscribe from events on unmount', () => {
+      const { unmount } = renderHook(() => useActivePointsBoosts());
+
+      unmount();
+
+      expect(mockEngineUnsubscribe).toHaveBeenCalledWith(
+        'RewardsController:accountLinked',
+        expect.any(Function),
+      );
+      expect(mockEngineUnsubscribe).toHaveBeenCalledWith(
+        'RewardsController:rewardClaimed',
+        expect.any(Function),
+      );
+      expect(mockEngineUnsubscribe).toHaveBeenCalledTimes(2);
+    });
+
+    it('should refetch boosts when accountLinked event is triggered', async () => {
+      mockEngineCall.mockResolvedValue(mockActiveBoosts);
+      let accountLinkedHandler: (() => void) | undefined;
+
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+      });
+
+      renderHook(() => useActivePointsBoosts());
+
+      // Wait for initial fetch
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+      mockDispatch.mockClear();
+
+      // Trigger accountLinked event
+      if (accountLinkedHandler) {
+        accountLinkedHandler();
+      }
+
+      // Wait for refetch
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getActivePointsBoosts',
+        'test-season-id',
+        'test-subscription-id',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setActiveBoosts(mockActiveBoosts),
+      );
+    });
+
+    it('should refetch boosts when rewardClaimed event is triggered', async () => {
+      mockEngineCall.mockResolvedValue(mockActiveBoosts);
+      let rewardClaimedHandler: (() => void) | undefined;
+
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:rewardClaimed') {
+          rewardClaimedHandler = handler as () => void;
+        }
+      });
+
+      renderHook(() => useActivePointsBoosts());
+
+      // Wait for initial fetch
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+      mockDispatch.mockClear();
+
+      // Trigger rewardClaimed event
+      if (rewardClaimedHandler) {
+        rewardClaimedHandler();
+      }
+
+      // Wait for refetch
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getActivePointsBoosts',
+        'test-season-id',
+        'test-subscription-id',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setActiveBoosts(mockActiveBoosts),
+      );
+    });
+
+    it('should handle event-triggered fetch errors gracefully', async () => {
+      const mockError = new Error('Event fetch error');
+      mockEngineCall.mockResolvedValueOnce(mockActiveBoosts); // Initial fetch succeeds
+      mockEngineCall.mockRejectedValueOnce(mockError); // Event-triggered fetch fails
+
+      let accountLinkedHandler: (() => void) | undefined;
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+      });
+
+      renderHook(() => useActivePointsBoosts());
+
+      // Wait for initial fetch
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Clear previous calls
+      mockDispatch.mockClear();
+      mockLogger.mockClear();
+
+      // Trigger accountLinked event
+      if (accountLinkedHandler) {
+        accountLinkedHandler();
+      }
+
+      // Wait for refetch
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockLogger).toHaveBeenCalledWith(
+        'useActivePointsBoosts: Failed to fetch active points boosts:',
+        'Event fetch error',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(true));
+      expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
+    });
+
+    it('should not refetch when event is triggered but parameters are missing', async () => {
+      let callCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return null; // selectRewardsSubscriptionId - missing
+        }
+        if (callCount === 2) {
+          return 'test-season-id'; // selectSeasonId
+        }
+        return null;
+      });
+
+      let accountLinkedHandler: (() => void) | undefined;
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+      });
+
+      renderHook(() => useActivePointsBoosts());
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+      mockDispatch.mockClear();
+      mockLogger.mockClear();
+
+      // Trigger accountLinked event
+      if (accountLinkedHandler) {
+        accountLinkedHandler();
+      }
+
+      expect(mockLogger).toHaveBeenCalledWith(
+        'useActivePointsBoosts: Missing seasonId or subscriptionId',
+        {
+          seasonId: 'test-season-id',
+          subscriptionId: null,
+        },
+      );
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Duplicate Request Prevention', () => {
+    it('should prevent duplicate requests when already loading', async () => {
+      // Mock a slow response to simulate loading state
+      let resolveFirstCall:
+        | ((value: typeof mockActiveBoosts) => void)
+        | undefined;
+      const firstCallPromise = new Promise((resolve) => {
+        resolveFirstCall = resolve;
+      });
+      mockEngineCall.mockReturnValueOnce(firstCallPromise);
+
+      let accountLinkedHandler: (() => void) | undefined;
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+      });
+
+      renderHook(() => useActivePointsBoosts());
+
+      // Trigger another fetch while first is still loading
+      if (accountLinkedHandler) {
+        accountLinkedHandler();
+      }
+
+      expect(mockLogger).toHaveBeenCalledWith(
+        'useActivePointsBoosts: Fetch already in progress, skipping',
+      );
+
+      // Only one call should have been made
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+      // Resolve the first call
+      if (resolveFirstCall) {
+        resolveFirstCall(mockActiveBoosts);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 });

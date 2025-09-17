@@ -1,6 +1,8 @@
 jest.mock('../../../../core/Engine/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -16,6 +18,14 @@ import {
 describe('usePointsEvents', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
+  >;
+  const mockEngineSubscribe = Engine.controllerMessenger
+    .subscribe as jest.MockedFunction<
+    typeof Engine.controllerMessenger.subscribe
+  >;
+  const mockEngineUnsubscribe = Engine.controllerMessenger
+    .unsubscribe as jest.MockedFunction<
+    typeof Engine.controllerMessenger.unsubscribe
   >;
   const mockPointsEvent: PointsEventDto = {
     id: '01974010-377f-7553-a365-0c33c8130980',
@@ -595,6 +605,303 @@ describe('usePointsEvents', () => {
       expect(result.current.pointsEvents).toHaveLength(2);
       expect(result.current.pointsEvents[0].type).toBe('SWAP');
       expect(result.current.pointsEvents[1].type).toBe('REFERRAL');
+    });
+  });
+
+  describe('Event Subscriptions', () => {
+    it('should subscribe to accountLinked and rewardClaimed events on mount', () => {
+      renderHook(() => usePointsEvents(defaultOptions));
+
+      expect(mockEngineSubscribe).toHaveBeenCalledWith(
+        'RewardsController:accountLinked',
+        expect.any(Function),
+      );
+      expect(mockEngineSubscribe).toHaveBeenCalledWith(
+        'RewardsController:rewardClaimed',
+        expect.any(Function),
+      );
+      expect(mockEngineSubscribe).toHaveBeenCalledTimes(2);
+    });
+
+    it('should unsubscribe from events on unmount', () => {
+      const { unmount } = renderHook(() => usePointsEvents(defaultOptions));
+
+      unmount();
+
+      expect(mockEngineUnsubscribe).toHaveBeenCalledWith(
+        'RewardsController:accountLinked',
+        expect.any(Function),
+      );
+      expect(mockEngineUnsubscribe).toHaveBeenCalledWith(
+        'RewardsController:rewardClaimed',
+        expect.any(Function),
+      );
+      expect(mockEngineUnsubscribe).toHaveBeenCalledTimes(2);
+    });
+
+    it('should refresh points events when accountLinked event is triggered', async () => {
+      mockEngineCall.mockResolvedValue(mockPaginatedResponse);
+      let accountLinkedHandler: (() => void) | undefined;
+
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+      });
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      // Wait for initial fetch
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+
+      // Trigger accountLinked event
+      expect(accountLinkedHandler).toBeDefined();
+      if (accountLinkedHandler) {
+        act(() => {
+          if (accountLinkedHandler) {
+            accountLinkedHandler();
+          }
+        });
+      }
+
+      // Wait for refresh to complete
+      await waitFor(() => {
+        expect(result.current.isRefreshing).toBe(false);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getPointsEvents',
+        {
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-456',
+          cursor: null,
+        },
+      );
+    });
+
+    it('should refresh points events when rewardClaimed event is triggered', async () => {
+      const updatedResponse: PaginatedPointsEventsDto = {
+        results: [
+          mockPointsEvent,
+          {
+            id: '01974010-377f-7553-a365-0c33c8130981',
+            timestamp: new Date('2024-01-02T00:00:00.000Z'),
+            type: 'REFERRAL',
+            payload: null,
+            value: 200,
+            bonus: null,
+            accountAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+          },
+        ],
+        has_more: false,
+        cursor: null,
+        total_results: 2,
+      };
+      mockEngineCall.mockResolvedValue(updatedResponse);
+      let rewardClaimedHandler: (() => void) | undefined;
+
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:rewardClaimed') {
+          rewardClaimedHandler = handler as () => void | undefined;
+        }
+      });
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      // Wait for initial fetch
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+
+      // Trigger rewardClaimed event
+      expect(rewardClaimedHandler).toBeDefined();
+      if (rewardClaimedHandler) {
+        act(() => {
+          if (rewardClaimedHandler) {
+            rewardClaimedHandler();
+          }
+        });
+      }
+
+      // Wait for refresh to complete
+      await waitFor(() => {
+        expect(result.current.isRefreshing).toBe(false);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getPointsEvents',
+        {
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-456',
+          cursor: null,
+        },
+      );
+      expect(result.current.pointsEvents).toHaveLength(2);
+    });
+
+    it('should not refresh when event is triggered but seasonId is missing', async () => {
+      const options = {
+        seasonId: undefined,
+        subscriptionId: 'subscription-456',
+      };
+      let accountLinkedHandler: (() => void) | undefined;
+
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+      });
+
+      renderHook(() => usePointsEvents(options));
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+
+      // Trigger accountLinked event
+      expect(accountLinkedHandler).toBeDefined();
+      if (accountLinkedHandler) {
+        act(() => {
+          if (accountLinkedHandler) {
+            accountLinkedHandler();
+          }
+        });
+      }
+
+      // Should not have called the API
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+
+    it('should not refresh when event is triggered but subscriptionId is missing', async () => {
+      const options = {
+        seasonId: 'season-123',
+        subscriptionId: '',
+      };
+      let rewardClaimedHandler: (() => void) | undefined;
+
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:rewardClaimed') {
+          rewardClaimedHandler = handler as () => void;
+        }
+      });
+
+      renderHook(() => usePointsEvents(options));
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+
+      // Trigger rewardClaimed event
+      expect(rewardClaimedHandler).toBeDefined();
+      if (rewardClaimedHandler) {
+        act(() => {
+          if (rewardClaimedHandler) {
+            rewardClaimedHandler();
+          }
+        });
+      }
+
+      // Should not have called the API
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+
+    it('should handle event-triggered refresh errors gracefully', async () => {
+      const mockError = new Error('Event refresh error');
+      mockEngineCall.mockResolvedValueOnce(mockPaginatedResponse); // Initial fetch succeeds
+      mockEngineCall.mockRejectedValueOnce(mockError); // Event-triggered refresh fails
+
+      let accountLinkedHandler: (() => void) | undefined;
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+      });
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      // Wait for initial fetch
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Trigger accountLinked event
+      expect(accountLinkedHandler).toBeDefined();
+      if (accountLinkedHandler) {
+        act(() => {
+          if (accountLinkedHandler) {
+            accountLinkedHandler();
+          }
+        });
+      }
+
+      // Wait for refresh to complete with error
+      await waitFor(() => {
+        expect(result.current.isRefreshing).toBe(false);
+      });
+
+      expect(result.current.error).toBe('Event refresh error');
+      expect(result.current.pointsEvents).toEqual([]); // Should clear data on refresh error
+    });
+
+    it('should handle multiple event triggers correctly', async () => {
+      mockEngineCall.mockResolvedValue(mockPaginatedResponse);
+      let accountLinkedHandler: (() => void) | undefined;
+      let rewardClaimedHandler: (() => void) | undefined;
+
+      mockEngineSubscribe.mockImplementation((event, handler) => {
+        if (event === 'RewardsController:accountLinked') {
+          accountLinkedHandler = handler as () => void;
+        }
+        if (event === 'RewardsController:rewardClaimed') {
+          rewardClaimedHandler = handler as () => void;
+        }
+      });
+
+      const { result } = renderHook(() => usePointsEvents(defaultOptions));
+
+      // Wait for initial fetch
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Clear previous calls
+      mockEngineCall.mockClear();
+
+      // Trigger both events
+      expect(accountLinkedHandler).toBeDefined();
+      expect(rewardClaimedHandler).toBeDefined();
+      if (accountLinkedHandler && rewardClaimedHandler) {
+        act(() => {
+          if (accountLinkedHandler) {
+            accountLinkedHandler();
+          }
+          if (rewardClaimedHandler) {
+            rewardClaimedHandler();
+          }
+        });
+      }
+
+      // Wait for refreshes to complete
+      await waitFor(() => {
+        expect(result.current.isRefreshing).toBe(false);
+      });
+
+      // Should have been called twice (once for each event)
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getPointsEvents',
+        {
+          seasonId: 'season-123',
+          subscriptionId: 'subscription-456',
+          cursor: null,
+        },
+      );
     });
   });
 });

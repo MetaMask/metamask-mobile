@@ -70,7 +70,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
       >
         <Box twClassName="mt-8 justify-center items-center">
           {onPrevious && (
-            <Box twClassName="absolute left-1">
+            <Box twClassName="absolute left-1 z-10">
               <ButtonIcon
                 size={ButtonIconSize.Lg}
                 iconName={IconName.ArrowLeft}

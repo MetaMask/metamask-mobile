@@ -113,11 +113,18 @@ jest.mock('./UpcomingRewards', () => ({
   },
 }));
 
-// Mock images
-jest.mock(
-  '../../../../../../images/rewards/rewards-placeholder.png',
-  () => 'rewards-placeholder.png',
-);
+// Mock placeholder SVG
+jest.mock('../../../../../../images/rewards/rewards-placeholder.svg', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return React.forwardRef(
+    (props: Record<string, unknown>, _ref: React.Ref<unknown>) =>
+      React.createElement(View, {
+        testID: 'unlocked-rewards-placeholder',
+        ...props,
+      }),
+  );
+});
 
 // Mock data
 const mockSeasonReward: SeasonRewardDto = {

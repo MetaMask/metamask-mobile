@@ -16,10 +16,22 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+// Mock navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
 // Mock selectors
 jest.mock('../../../../../../reducers/rewards/selectors', () => ({
   selectSeasonTiers: jest.fn(),
   selectCurrentTier: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/rewards', () => ({
+  selectRewardsActiveAccountAddress: jest.fn(),
 }));
 
 import {
@@ -27,12 +39,18 @@ import {
   selectCurrentTier,
 } from '../../../../../../reducers/rewards/selectors';
 
+import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
+
 const mockSelectSeasonTiers = selectSeasonTiers as jest.MockedFunction<
   typeof selectSeasonTiers
 >;
 const mockSelectCurrentTier = selectCurrentTier as jest.MockedFunction<
   typeof selectCurrentTier
 >;
+const mockSelectRewardsActiveAccountAddress =
+  selectRewardsActiveAccountAddress as jest.MockedFunction<
+    typeof selectRewardsActiveAccountAddress
+  >;
 
 // Mock theme
 jest.mock('../../../../../../util/theme', () => ({
@@ -112,10 +130,12 @@ describe('UpcomingRewards', () => {
     jest.clearAllMocks();
     mockSelectSeasonTiers.mockReturnValue([mockCurrentTier, mockSeasonTier]);
     mockSelectCurrentTier.mockReturnValue(mockCurrentTier);
+    mockSelectRewardsActiveAccountAddress.mockReturnValue('0x123');
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonTiers)
         return [mockCurrentTier, mockSeasonTier];
       if (selector === selectCurrentTier) return mockCurrentTier;
+      if (selector === selectRewardsActiveAccountAddress) return '0x123';
       return [];
     });
   });
