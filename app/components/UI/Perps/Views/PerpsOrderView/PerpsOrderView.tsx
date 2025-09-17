@@ -78,7 +78,6 @@ import type {
 import {
   useHasExistingPosition,
   useMinimumOrderAmount,
-  usePerpsAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsMarkets,
@@ -90,7 +89,7 @@ import {
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import {
@@ -152,11 +151,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isSubmittingRef = useRef(false);
   const hasShownSubmittedToastRef = useRef(false);
 
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   // Get real HyperLiquid USDC balance
   const availableBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+    account?.availableBalance?.toString() || '0',
   );
 
   // Get order form state from context instead of hook
@@ -249,14 +248,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Track balance display updates - measure after actual render
   useEffect(() => {
-    if (cachedAccountState?.availableBalance !== undefined) {
+    if (account?.availableBalance !== undefined) {
       startMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
       // Use requestAnimationFrame to measure after actual DOM update
       requestAnimationFrame(() => {
         endMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
       });
     }
-  }, [cachedAccountState?.availableBalance, startMeasure, endMeasure]);
+  }, [account?.availableBalance, startMeasure, endMeasure]);
 
   // Clean up trace on unmount
   useEffect(
@@ -305,7 +304,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Track screen load with centralized hook
   usePerpsScreenTracking({
     screenName: PerpsMeasurementName.TRADE_SCREEN_LOADED,
-    dependencies: [currentPrice, cachedAccountState],
+    dependencies: [currentPrice, account],
   });
 
   const assetData = useMemo(() => {

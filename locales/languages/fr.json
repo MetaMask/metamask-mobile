@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Ce mot de passe permettra de déverrouiller votre portefeuille MetaMask uniquement sur cet appareil.",
-    "password": "Créer un nouveau mot de passe",
+    "password": "Create password",
     "confirm_password": "Confirmer le mot de passe",
     "create_button": "Créer un mot de passe",
     "import_with_seed_phrase": "Importer en utilisant la phrase secrète de récupération",
@@ -404,7 +404,7 @@
     "show": "Afficher",
     "hide": "Masquer",
     "seed_phrase": "phrase secrète de récupération",
-    "must_be_at_least": "Le mot de passe doit comporter au moins {{number}} caractères",
+    "must_be_at_least": "Doit comporter au moins {{number}} caractères",
     "remember_me": "Se souvenir de moi",
     "security_alert_title": "Alerte de sécurité",
     "security_alert_message": "Pour continuer, vous devez activer le code secret ou toute méthode d’authentification biométrique prise en charge par votre appareil (FaceID, TouchID ou empreinte digitale).",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Si j’oublie ce mot de passe, je perdrai définitivement l’accès à mon portefeuille. MetaMask ne peut pas le réinitialiser pour moi.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Réessayez"
   },
   "import_from_seed": {
     "title": "Importer un portefeuille",
     "seed_phrase_placeholder": "Saisissez votre phrase secrète de récupération",
-    "create_new_password": "Créer un nouveau mot de passe",
+    "create_new_password": "Create password",
     "confirm_password": "Confirmer le mot de passe",
     "import_button": "IMPORTER",
     "cancel_button": "Annuler",
@@ -491,7 +491,7 @@
     "srp": "Phrase secrète de récupération",
     "srp_placeholder": "Ajoutez une espace entre chaque mot et assurez-vous que personne ne vous épie.",
     "learn_more_link": "En savoir plus",
-    "create_password_cta": "Créer un mot de passe",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Continuer avec Flow",
     "steps": "Étape {{currentStep}} sur {{totalSteps}}",
     "password_error": "Les mots de passe ne correspondent pas. Veuillez réessayer.",
@@ -507,6 +507,7 @@
     "home": "Accueil",
     "browser": "Navigateur",
     "activity": "Activité",
+    "trade": "Trade",
     "settings": "Paramètres",
     "rewards": "Récompenses"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "Effet de levier",
         "confirm": "« Confirmer »,",
         "entry_price": "Prix d’ouverture",
         "current_price": "Prix actuel",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "acheter",
     "sell": "vendre",
-    "orders": "Ordres",
+    "orders": "Transfers",
     "All": "Tout",
     "Buy": "Acheter",
     "Sell": "Vendre",
     "token_marketplace": "Marché des jetons",
     "Purchased": "Acheté",
     "Sold": "Vendu",
-    "empty_orders_list": "Vous n’avez aucun ordre",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "Vous n’avez aucun ordre d’achat",
     "empty_sell_orders_list": "Vous n’avez aucun ordre de vente",
     "purchased_currency": "{{currency}} acheté",
@@ -5060,7 +5061,7 @@
       "buttons": {
         "cancel": "Annuler",
         "turn_on": "Activer",
-        "turn_off": "Turn off",
+        "turn_off": "Désactiver",
         "reset": "Réinitialiser"
       }
     },
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "Parrainer un ami",
@@ -5791,7 +5814,9 @@
         "title": "Partagez votre code pour gagner plus",
         "description": "Vos amis gagnent des points bonus et vous obtenez 20 % de leurs récompenses."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} minute",
