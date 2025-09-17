@@ -188,7 +188,7 @@ const Settings = () => {
   };
 
   const onPressLock = async () => {
-    await Authentication.lockApp({ reset: false, locked: true });
+    await Authentication.lockApp({ reset: false, locked: false });
   };
 
   const lock = () => {

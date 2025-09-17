@@ -15,7 +15,11 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import ButtonSemantic, {
+  ButtonSemanticSeverity,
+} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -68,7 +72,8 @@ import type {
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import {
-  usePerpsAccount,
+  useHasExistingPosition,
+  useMinimumOrderAmount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsMarkets,
@@ -76,10 +81,10 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPerformance,
-  useMinimumOrderAmount,
   usePerpsToasts,
+  usePerpsTrading,
 } from '../../hooks';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import {
@@ -94,10 +99,7 @@ import {
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import { willFlipPosition } from '../../utils/orderUtils';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -144,11 +146,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const isSubmittingRef = useRef(false);
   const hasShownSubmittedToastRef = useRef(false);
 
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   // Get real HyperLiquid USDC balance
   const availableBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+    account?.availableBalance?.toString() || '0',
   );
 
   // Get order form state from context instead of hook
@@ -171,6 +173,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
     isLoading: isLoadingMarketData,
     error: marketDataError,
   } = usePerpsMarketData(orderForm.asset);
+
+  // Check if user has an existing position for this market
+  const { existingPosition } = useHasExistingPosition({
+    asset: orderForm.asset || '',
+    loadOnMount: true,
+  });
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -221,14 +229,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Track balance display updates - measure after actual render
   useEffect(() => {
-    if (cachedAccountState?.availableBalance !== undefined) {
+    if (account?.availableBalance !== undefined) {
       startMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
       // Use requestAnimationFrame to measure after actual DOM update
       requestAnimationFrame(() => {
         endMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
       });
     }
-  }, [cachedAccountState?.availableBalance, startMeasure, endMeasure]);
+  }, [account?.availableBalance, startMeasure, endMeasure]);
 
   // Clean up trace on unmount
   useEffect(
@@ -277,7 +285,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Track screen load with centralized hook
   usePerpsScreenTracking({
     screenName: PerpsMeasurementName.TRADE_SCREEN_LOADED,
-    dependencies: [currentPrice, cachedAccountState],
+    dependencies: [currentPrice, account],
   });
 
   const assetData = useMemo(() => {
@@ -349,6 +357,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
       }),
     [orderForm.amount, assetData.price, marketData?.szDecimals],
   );
+
+  const { updatePositionTPSL } = usePerpsTrading();
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -665,6 +675,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
         [PerpsEventProperties.MARGIN_USED]: marginRequired,
       });
 
+      const tpParams = orderForm.takeProfitPrice?.trim()
+        ? { takeProfitPrice: orderForm.takeProfitPrice }
+        : {};
+
+      const slParams = orderForm.stopLossPrice?.trim()
+        ? { stopLossPrice: orderForm.stopLossPrice }
+        : {};
+
       // Execute order using the new hook
       // Only include TP/SL if they have valid, non-empty values
       const orderParams: OrderParams = {
@@ -678,12 +696,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         ...(orderForm.type === 'limit' && orderForm.limitPrice
           ? { price: orderForm.limitPrice }
           : {}),
-        ...(orderForm.takeProfitPrice && orderForm.takeProfitPrice !== ''
-          ? { takeProfitPrice: orderForm.takeProfitPrice }
-          : {}),
-        ...(orderForm.stopLossPrice && orderForm.stopLossPrice !== ''
-          ? { stopLossPrice: orderForm.stopLossPrice }
-          : {}),
+        ...tpParams,
+        ...slParams,
       };
 
       navigation.navigate(Routes.PERPS.ROOT, {
@@ -705,6 +719,28 @@ const PerpsOrderViewContentBase: React.FC = () => {
         [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
         [PerpsEventProperties.ORDER_SIZE]: positionSize,
       });
+
+      // Check if TP/SL should be handled separately (for new positions or position flips)
+      const shouldHandleTPSLSeparately =
+        (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
+        ((!existingPosition && orderForm.type === 'market') ||
+          (existingPosition &&
+            willFlipPosition(existingPosition, orderParams)));
+
+      if (shouldHandleTPSLSeparately) {
+        // Execute order without TP/SL first, then update position TP/SL
+        const orderWithoutTPSL = { ...orderParams };
+        delete orderWithoutTPSL.takeProfitPrice;
+        delete orderWithoutTPSL.stopLossPrice;
+
+        await executeOrder(orderWithoutTPSL);
+        await updatePositionTPSL({
+          coin: orderForm.asset,
+          takeProfitPrice: orderForm.takeProfitPrice,
+          stopLossPrice: orderForm.stopLossPrice,
+        });
+        return;
+      }
 
       await executeOrder(orderParams);
     } catch (error) {
@@ -742,6 +778,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     executeOrder,
     showToast,
     PerpsToastOptions.formValidation.orderForm,
+    existingPosition,
+    updatePositionTPSL,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render

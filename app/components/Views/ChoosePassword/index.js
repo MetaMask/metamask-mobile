@@ -26,6 +26,7 @@ import {
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import Device from '../../../util/device';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
@@ -39,7 +40,6 @@ import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-  USE_TERMS,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -450,7 +450,7 @@ class ChoosePassword extends PureComponent {
       // latest ux changes - we are forcing user to enable biometric by default
       const authType = await Authentication.componentAuthenticationType(
         true,
-        true,
+        false,
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
@@ -494,6 +494,11 @@ class ChoosePassword extends PureComponent {
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
         this.props.setDataCollectionForMarketing(this.state.isSelected);
+        OAuthLoginService.updateMarketingOptInStatus(
+          this.state.isSelected,
+        ).catch((error) => {
+          Logger.error(error);
+        });
 
         this.props.navigation.reset({
           index: 0,
@@ -837,9 +842,6 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.password')}
                   </Label>
                   <TextField
-                    placeholder={strings(
-                      'import_from_seed.enter_strong_password',
-                    )}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     value={password}
                     onChangeText={this.onPasswordChange}
@@ -865,17 +867,16 @@ class ChoosePassword extends PureComponent {
                       />
                     }
                   />
-                  {Boolean(password) &&
-                    password.length < MIN_PASSWORD_LENGTH && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('choose_password.must_be_at_least', {
-                          number: MIN_PASSWORD_LENGTH,
-                        })}
-                      </Text>
-                    )}
+                  {(!password || password.length < MIN_PASSWORD_LENGTH) && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  )}
                   {Boolean(password) &&
                     password.length >= MIN_PASSWORD_LENGTH && (
                       <Text
@@ -908,7 +909,6 @@ class ChoosePassword extends PureComponent {
                   </Label>
                   <TextField
                     ref={this.confirmPasswordInput}
-                    placeholder={strings('import_from_seed.re_enter_password')}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
                     secureTextEntry={this.state.showPasswordIndex.includes(1)}
@@ -938,6 +938,7 @@ class ChoosePassword extends PureComponent {
                       />
                     }
                     isDisabled={password === ''}
+                    isError={this.checkError()}
                   />
                   {this.checkError() && (
                     <Text variant={TextVariant.BodySM} color={TextColor.Error}>
