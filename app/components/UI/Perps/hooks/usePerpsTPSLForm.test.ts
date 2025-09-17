@@ -913,7 +913,7 @@ describe('usePerpsTPSLForm', () => {
 
       // Should be invalid because it's below entryPrice
       expect(result.current.validation.takeProfitError).toContain(
-        'limit price',
+        'current price',
       );
     });
 
@@ -956,7 +956,7 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.validation.takeProfitError).toContain(
-        'entry price',
+        'current price',
       );
     });
 
@@ -1023,14 +1023,33 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.validation.takeProfitError).toContain(
-        'entry price',
+        'current price',
       );
     });
 
-    it('should show "limit price" error for limit orders', () => {
+    it('should show "current price" error when entryPrice provided but no orderType', () => {
       const params = {
         ...defaultParams,
-        entryPrice: 52000, // Different from current, indicates limit order
+        entryPrice: 52000, // Different from current, but no orderType specified
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('51000'); // Invalid
+      });
+
+      expect(result.current.validation.takeProfitError).toContain(
+        'current price',
+      );
+    });
+
+    it('should show "limit price" error for actual limit orders', () => {
+      const params = {
+        ...defaultParams,
+        orderType: 'limit' as const,
+        entryPrice: 52000,
         isVisible: true,
       };
 
