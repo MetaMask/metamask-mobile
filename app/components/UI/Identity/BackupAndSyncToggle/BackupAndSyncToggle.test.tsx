@@ -12,12 +12,24 @@ import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuil
 
 jest.mock('../../../../components/hooks/useMetrics');
 
+// Mock the remote feature flag module
+jest.mock('../../../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: jest.fn(() => false),
+}));
+
 // Mock Engine for MultichainAccountService calls
 jest.mock('../../../../core/Engine', () => ({
   default: {
     context: {
       MultichainAccountService: {
         setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
+      },
+      RemoteFeatureFlagController: {
+        state: {
+          remoteFeatureFlags: {
+            'multichain-accounts-state-2': false,
+          },
+        },
       },
     },
   },

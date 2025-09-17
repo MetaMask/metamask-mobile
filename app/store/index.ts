@@ -13,6 +13,7 @@ import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
+import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
 
@@ -69,9 +70,13 @@ const createStoreAndPersistor = async () => {
     const currentState = store.getState();
 
     // This sets the basic functionality value from the persisted state when the app is restarted
-    store.dispatch(
-      setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
-    );
+    // Only call setBasicFunctionality if State 2 (BIP-44 multichain accounts) is enabled
+    // to prevent unwanted account alignment from running
+    if (isMultichainAccountsState2Enabled()) {
+      store.dispatch(
+        setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
+      );
+    }
   };
 
   persistor = persistStore(store, null, onPersistComplete);
