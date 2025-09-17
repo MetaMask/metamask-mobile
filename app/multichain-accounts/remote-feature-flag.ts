@@ -14,7 +14,7 @@ export interface MultichainAccountsFeatureFlag {
 
 const APP_VERSION = packageJson.version;
 const disabledMultichainAccountsState2Local =
-  process.env.MM_DISABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
+  process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'false';
 
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
