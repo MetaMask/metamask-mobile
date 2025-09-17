@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.section,
       borderRadius: 12,
       padding: 16,
-      marginVertical: 6,
+      marginVertical: 8,
     },
     collapsedContainer: {
       borderRadius: 8,
@@ -42,6 +42,10 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       overflow: 'hidden',
     },
+    tpslCountPress: {
+      textDecorationLine: 'underline',
+      textDecorationStyle: 'dotted',
+    },
     headerLeft: {
       flex: 1,
       alignItems: 'flex-start',
@@ -64,7 +68,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingVertical: 16,
-      marginBottom: 16,
+      marginBottom: 4,
     },
     bodyRow: {
       flexDirection: 'row',
@@ -88,6 +92,14 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerButton: {
       flex: 1,
+    },
+    fundingCostLabelRightMargin: {
+      marginRight: 4,
+    },
+    fundingCostLabelFlex: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
     },
   });
 };

@@ -21,6 +21,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 jest.mock('../Views/confirmations/utils/send');
 
+const RemoteFeatureFlagControllerState = {
+  RemoteFeatureFlagController: {
+    remoteFeatureFlags: {
+      sendRedesign: {
+        enabled: false,
+      },
+    },
+  },
+};
+
 const mockedSendMultichainTransaction =
   sendMultichainTransaction as jest.MockedFunction<
     typeof sendMultichainTransaction
@@ -74,6 +84,7 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
@@ -93,6 +104,48 @@ describe('useSendNonEvmAsset', () => {
       expect(mockedSendMultichainTransaction).not.toHaveBeenCalled();
     });
 
+    it('should not return false for EVM account, if send redesign is enabled', async () => {
+      mockedIsEvmAccountType.mockReturnValue(true);
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'evm-account-id',
+                accounts: {
+                  'evm-account-id': {
+                    id: 'evm-account-id',
+                    type: 'eip155:eoa',
+                    metadata: {},
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                sendRedesign: {
+                  enabled: true,
+                },
+              },
+            },
+          },
+        },
+      } as any;
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSendNonEvmAsset({ asset: mockAsset, closeModal: mockCloseModal }),
+        { state: mockState },
+      );
+
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
+
+      expect(wasHandled).toBe(true);
+    });
+
     it('should return false when no account is selected', async () => {
       const mockState = {
         engine: {
@@ -103,6 +156,7 @@ describe('useSendNonEvmAsset', () => {
                 accounts: {},
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;
@@ -266,6 +320,7 @@ describe('useSendNonEvmAsset', () => {
                 },
               },
             },
+            ...RemoteFeatureFlagControllerState,
           },
         },
       } as any;

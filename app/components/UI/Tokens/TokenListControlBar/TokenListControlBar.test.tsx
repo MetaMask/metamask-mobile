@@ -18,6 +18,27 @@ jest.mock('../../../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: jest.fn(),
 }));
 
+// Mock the useNetworksByNamespace hooks
+jest.mock(
+  '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+  () => ({
+    useNetworksByNamespace: () => ({
+      networks: [],
+      selectNetwork: jest.fn(),
+      selectCustomNetwork: jest.fn(),
+      selectPopularNetwork: jest.fn(),
+    }),
+    useNetworksByCustomNamespace: () => ({
+      areAllNetworksSelected: false,
+      totalEnabledNetworksCount: 2,
+    }),
+    NetworkType: {
+      Popular: 'popular',
+      Custom: 'custom',
+    },
+  }),
+);
+
 // Mock the navigation hook
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -274,6 +295,14 @@ describe('TokenListControlBar', () => {
         };
         mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
 
+        const useNetworksByNamespaceModule = jest.requireMock(
+          '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+        );
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 1,
+        });
+
         const { getByText } = renderComponent();
 
         expect(getByText('Ethereum Mainnet')).toBeTruthy();
@@ -288,6 +317,14 @@ describe('TokenListControlBar', () => {
           hasEnabledNetworks: false,
         };
         mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
+
+        const useNetworksByNamespaceModule = jest.requireMock(
+          '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+        );
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 1,
+        });
 
         const { getByText } = renderComponent();
 
@@ -359,21 +396,6 @@ describe('TokenListControlBar', () => {
       fireEvent.press(addTokenButton);
 
       expect(goToAddToken).toHaveBeenCalled();
-    });
-
-    it('should not call handleFilterControls when EVM is not selected', () => {
-      // Ensure EVM is not selected
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-      mockSelectChainId.mockReturnValue(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-
-      const { getByTestId } = renderComponent();
-
-      const filterButton = getByTestId('token-network-filter');
-      fireEvent.press(filterButton);
-
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

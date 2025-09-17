@@ -7,19 +7,26 @@ class CustomReporter {
   constructor() {
     this.metrics = [];
     this.sessions = []; // Array to store all session data
+    this.processedTests = new Set(); // Track processed tests to avoid duplicates
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
 
   onTestEnd(test, result) {
-    console.log(`\n🔍 onTestEnd called for test: ${test.title}`);
-    console.log(`📊 Test status: ${result.status}`);
-    console.log(`📊 Test duration: ${result.duration}ms`);
-    // Look for session data in attachments (preferred method)
-    console.log(`🔍 Total attachments: ${result.attachments.length}`);
-    result.attachments.forEach((att, idx) => {
-      console.log(`  ${idx}: ${att.name} (${att.contentType})`);
-    });
+    // Create a unique test identifier to avoid duplicate processing
+    // Use test title and project name as unique ID
+    const projectName = test?.parent?.project?.name || 'unknown';
+    const testId = `${test.title}-${projectName}`;
+
+    if (this.processedTests.has(testId)) {
+      console.log(
+        `⚠️ Test already processed, skipping: ${test.title} (${projectName})`,
+      );
+      return;
+    }
+    this.processedTests.add(testId);
+
+    console.log(`\n🔍 Processing test: ${test.title} (${result.status})`);
 
     const sessionAttachment = result.attachments.find(
       (att) => att.name === 'session-data',
@@ -33,19 +40,9 @@ class CustomReporter {
           testStatus: result.status,
           testDuration: result.duration,
         });
-        console.log(
-          `✅ Captured session data for test: ${sessionData.sessionId}`,
-        );
-        console.log(
-          `🔍 Project name from session data: ${sessionData.projectName}`,
-        );
       } catch (error) {
         console.log(`❌ Error parsing session data: ${error.message}`);
       }
-    } else {
-      console.log(
-        `❌ No session-data attachment found in ${result.attachments.length} attachments`,
-      );
     }
 
     // Fallback: Try to capture session ID from test result annotations
@@ -55,7 +52,6 @@ class CustomReporter {
       );
       if (sessionIdAnnotation) {
         const sessionId = sessionIdAnnotation.description;
-        console.log(`✅ Captured session ID from annotations: ${sessionId}`);
 
         // Only add if we didn't already capture it from attachments
         if (!this.sessions.find((s) => s.sessionId === sessionId)) {
@@ -70,7 +66,7 @@ class CustomReporter {
       }
     }
 
-    // Look for metrics in the attachments
+    // Look for metrics in the attachments (including fallback metrics)
     const metricsAttachment = result.attachments.find(
       (att) => att.name && att.name.includes('performance-metrics'),
     );
@@ -79,50 +75,112 @@ class CustomReporter {
       try {
         const metrics = JSON.parse(metricsAttachment.body.toString());
 
-        // Add a separator to make the metrics stand out in the logs
-        console.log('\n📊 Performance Metrics for:', test.title);
-        console.log('─'.repeat(50));
+        // Check if this is a fallback metrics entry
+        const isFallbackMetrics =
+          metricsAttachment.name.includes('fallback') ||
+          metrics.message ===
+            'Performance metrics could not be properly attached';
 
-        Object.entries(metrics).forEach(([key, value]) => {
-          if (key !== 'total' && key !== 'device') {
-            console.log(`${key.padEnd(30)}: ${value} ms`);
-          }
-        });
+        console.log(
+          `📊 Processing metrics for: ${test.title} ${
+            isFallbackMetrics ? '(fallback)' : ''
+          }`,
+        );
 
-        console.log('─'.repeat(50));
-        console.log(`TOTAL TIME: ${metrics.total.toFixed(2)} seconds`);
-        console.log('─'.repeat(50));
-
-        this.metrics.push({
+        // Create metrics entry with proper handling for both regular and fallback metrics
+        const metricsEntry = {
           testName: test.title,
           ...metrics,
-        });
+        };
+
+        // Always mark failed tests appropriately
+        if (result.status !== 'passed') {
+          metricsEntry.testFailed = true;
+          metricsEntry.failureReason = result.status;
+        }
+
+        // Ensure consistent device info for all metrics
+        const deviceInfo = this.getDeviceInfo(test, result);
+        metricsEntry.device = deviceInfo;
+
+        // For fallback metrics, ensure we have proper structure for reporting
+        if (isFallbackMetrics) {
+          // Convert test duration to seconds if not already
+          if (!metricsEntry.total && metricsEntry.testDuration) {
+            metricsEntry.total = metricsEntry.testDuration / 1000;
+          }
+
+          // Ensure we have steps array for consistency
+          if (!metricsEntry.steps) {
+            metricsEntry.steps = [];
+          }
+        }
+
+        this.metrics.push(metricsEntry);
       } catch (error) {
         console.error('Error processing metrics:', error);
       }
-    } else {
-      console.log('❌ No performance metrics found in attachments');
+    } else if (result.status !== 'passed') {
+      // For failed tests without metrics, create a basic entry
+      console.log(`⚠️ Test failed without metrics, creating basic entry`);
 
-      // For failed tests, still try to create a basic entry so we can capture video
-      if (result.status !== 'passed') {
-        console.log(
-          `⚠️  Test failed (${result.status}), creating basic metrics entry`,
-        );
-        this.metrics.push({
-          testName: test.title,
-          total: result.duration / 1000, // Convert to seconds
-          device: { name: 'Unknown', osVersion: 'Unknown' },
-          testFailed: true,
-          failureReason: result.status,
-        });
-      }
+      const deviceInfo = this.getDeviceInfo(test, result);
+
+      const basicEntry = {
+        testName: test.title,
+        total: result.duration / 1000,
+        device: deviceInfo,
+        steps: [],
+        testFailed: true,
+        failureReason: result.status,
+        note: 'Test failed - no performance metrics collected',
+      };
+
+      this.metrics.push(basicEntry);
     }
   }
 
+  getDeviceInfo(test, result) {
+    // Try to get device info from test project configuration first
+    if (test?.parent?.project?.use?.device) {
+      return test.parent.project.use.device;
+    }
+
+    // Fallback to environment variables
+    if (
+      process.env.BROWSERSTACK_DEVICE &&
+      process.env.BROWSERSTACK_OS_VERSION
+    ) {
+      return {
+        name: process.env.BROWSERSTACK_DEVICE,
+        osVersion: process.env.BROWSERSTACK_OS_VERSION,
+        provider: 'browserstack',
+      };
+    }
+
+    // Last resort fallback
+    return {
+      name: 'Unknown',
+      osVersion: 'Unknown',
+      provider: 'unknown',
+    };
+  }
+
   async onEnd() {
-    console.log(
-      `\n🔍 onEnd called - Processing ${this.metrics.length} metrics entries and ${this.sessions.length} sessions`,
-    );
+    console.log(`\n📊 Generating reports for ${this.metrics.length} tests`);
+
+    // Analyze the test results for better reporting
+    const passedTests = this.metrics.filter((m) => !m.testFailed).length;
+    const failedTests = this.metrics.filter((m) => m.testFailed).length;
+    const testsWithSteps = this.metrics.filter(
+      (m) => m.steps && m.steps.length > 0,
+    ).length;
+    const testsWithFallbackData = this.metrics.filter(
+      (m) =>
+        m.note &&
+        (m.note.includes('failed') ||
+          m.note.includes('no performance metrics')),
+    ).length;
 
     // Determine if this is a BrowserStack run by checking session data
     let isBrowserStackRun = false;
@@ -133,26 +191,18 @@ class CustomReporter {
         .map((session) => session.projectName)
         .filter(Boolean);
 
-      console.log(`🔍 Project names from sessions: ${projectNames.join(', ')}`);
       isBrowserStackRun = projectNames.some((name) =>
         name.includes('browserstack-'),
       );
     }
 
-    console.log(`🔍 isBrowserStackRun: ${isBrowserStackRun}`);
-    console.log(`🔍 Sessions count: ${this.sessions.length}`);
-
     if (this.sessions.length > 0 && isBrowserStackRun) {
       console.log(
-        `🎥 BrowserStack configuration detected - fetching video URLs...`,
+        `🎥 Fetching video URLs for ${this.sessions.length} sessions`,
       );
       const tracker = new PerformanceTracker();
 
       for (const session of this.sessions) {
-        console.log(
-          `🎬 Fetching video URL for session: ${session.sessionId} (${session.testTitle})`,
-        );
-
         try {
           const videoURL = await tracker.getVideoURL(
             session.sessionId,
@@ -161,27 +211,11 @@ class CustomReporter {
           );
           if (videoURL) {
             session.videoURL = videoURL;
-            console.log(
-              `✅ Video URL fetched for ${session.testTitle}: ${videoURL}`,
-            );
-          } else {
-            console.log(
-              `❌ Video URL could not be fetched for ${session.testTitle}`,
-            );
           }
         } catch (error) {
-          console.error(
-            `❌ Error fetching video URL for ${session.testTitle}:`,
-            error.message,
-          );
+          console.error(`❌ Error fetching video URL for ${session.testTitle}`);
         }
       }
-    } else if (this.sessions.length > 0 && !isBrowserStackRun) {
-      console.log(
-        `📱 Local/emulator run detected - skipping video URL fetching (BrowserStack only feature)`,
-      );
-    } else {
-      console.log('❌ No session data available for video URL fetching');
     }
 
     // Clean up any leftover environment variables
@@ -224,6 +258,7 @@ class CustomReporter {
       }
 
       if (this.metrics.length > 0) {
+        console.log('Metrics are:', this.metrics);
         // Add video URLs to metrics by matching test names with sessions
         const metricsWithVideo = this.metrics.map((metric) => {
           const matchingSession = this.sessions.find(
@@ -236,12 +271,35 @@ class CustomReporter {
           };
         });
 
-        // Save JSON metrics
-        const jsonPath = path.join(
-          reportsDir,
-          `performance-metrics-${testName}-${this.metrics[0].device.name}.json`,
-        );
-        fs.writeFileSync(jsonPath, JSON.stringify(metricsWithVideo, null, 2));
+        // Group metrics by device to create separate reports
+        const metricsByDevice = {};
+        metricsWithVideo.forEach((metric) => {
+          const deviceKey = `${metric.device.name}-${metric.device.osVersion}`;
+          if (!metricsByDevice[deviceKey]) {
+            metricsByDevice[deviceKey] = {
+              device: metric.device,
+              metrics: [],
+            };
+          }
+          metricsByDevice[deviceKey].metrics.push(metric);
+        });
+
+        // Create separate JSON files for each device
+        Object.entries(metricsByDevice).forEach(([deviceKey, deviceData]) => {
+          const safeDeviceName = deviceData.device.name.replace(
+            /[^a-zA-Z0-9]/g,
+            '_',
+          );
+          const jsonPath = path.join(
+            reportsDir,
+            `performance-metrics-${testName}-${safeDeviceName}-${deviceData.device.osVersion}.json`,
+          );
+          fs.writeFileSync(
+            jsonPath,
+            JSON.stringify(deviceData.metrics, null, 2),
+          );
+          console.log(`✅ Device-specific report saved: ${jsonPath}`);
+        });
         // Generate HTML report
         /* eslint-disable */
         const html = `
@@ -264,6 +322,19 @@ class CustomReporter {
             <h1>Performance Report - ${
               this.metrics[0].device.name
             } - OS version: ${this.metrics[0].device.osVersion}</h1>
+            <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+              <h3>📊 Test Suite Summary</h3>
+              <p><strong>Total Tests:</strong> ${this.metrics.length}</p>
+              <p><strong>Passed:</strong> ${passedTests} | <strong>Failed:</strong> ${failedTests}</p>
+              <p><strong>With Performance Data:</strong> ${testsWithSteps} | <strong>Fallback Data:</strong> ${testsWithFallbackData}</p>
+              <p style="font-style: italic; color: #555;">
+                ${
+                  failedTests > 0
+                    ? 'Failed tests are included in this report with available performance data collected until failure.'
+                    : 'All tests completed successfully with full performance metrics.'
+                }
+              </p>
+            </div>
             ${this.metrics
               .map(
                 (test) => `
@@ -273,34 +344,60 @@ class CustomReporter {
                   <th>Steps</th>
                   <th>Time (ms)</th>
                 </tr>
-                ${Object.entries(test)
-                  .filter(
-                    ([key]) =>
-                      key !== 'testName' &&
-                      key !== 'device' &&
-                      key !== 'videoURL' &&
-                      key !== 'sessionId' &&
-                      key !== 'testFailed' &&
-                      key !== 'failureReason' &&
-                      key !== 'note',
-                  )
-                  .map(([key, value]) => {
-                    if (key === 'total') {
-                      return `
-                        <tr class="total">
-                          <td>TOTAL TIME</td>
-                          <td>${value} s</td>
+                ${
+                  test.steps && Array.isArray(test.steps)
+                    ? // New array structure with steps
+                      test.steps
+                        .map((stepObject) => {
+                          const [stepName, duration] =
+                            Object.entries(stepObject)[0];
+                          return `
+                        <tr>
+                          <td>${stepName}</td>
+                          <td>${duration} ms</td>
                         </tr>
                       `;
-                    }
-                    return `
-                      <tr>
-                        <td>${key}</td>
-                        <td>${value} ms</td>
-                      </tr>
-                    `;
-                  })
-                  .join('')}
+                        })
+                        .join('')
+                    : test.steps && typeof test.steps === 'object'
+                    ? // Backward compatibility for old object structure
+                      Object.entries(test.steps)
+                        .map(
+                          ([stepName, duration]) => `
+                        <tr>
+                          <td>${stepName}</td>
+                          <td>${duration} ms</td>
+                        </tr>
+                      `,
+                        )
+                        .join('')
+                    : // Fallback to old structure
+                      Object.entries(test)
+                        .filter(
+                          ([key]) =>
+                            key !== 'testName' &&
+                            key !== 'device' &&
+                            key !== 'videoURL' &&
+                            key !== 'sessionId' &&
+                            key !== 'testFailed' &&
+                            key !== 'failureReason' &&
+                            key !== 'note' &&
+                            key !== 'total',
+                        )
+                        .map(
+                          ([key, value]) => `
+                        <tr>
+                          <td>${key}</td>
+                          <td>${value} ms</td>
+                        </tr>
+                      `,
+                        )
+                        .join('')
+                }
+                <tr class="total">
+                  <td>TOTAL TIME</td>
+                  <td>${test.total} s</td>
+                </tr>
                 ${
                   test.testFailed
                     ? `
@@ -363,7 +460,6 @@ class CustomReporter {
         fs.writeFileSync(reportPath, html);
 
         console.log(`\n✅ Performance report generated: ${reportPath}`);
-        console.log(`✅ Performance metrics saved: ${jsonPath}`);
       }
       // CSV Export - Steps Performance Report
       // CSV Export - One table per scenario with steps and times
@@ -395,27 +491,39 @@ class CustomReporter {
         // Add column headers
         csvRows.push('Step,Time (ms)');
 
-        // Add each step (excluding testName, device, videoURL, sessionId, testFailed, failureReason, and note)
-        Object.entries(test).forEach(([key, value]) => {
-          if (
-            key !== 'testName' &&
-            key !== 'device' &&
-            key !== 'videoURL' &&
-            key !== 'sessionId' &&
-            key !== 'testFailed' &&
-            key !== 'failureReason' &&
-            key !== 'note'
-          ) {
-            if (key === 'total') {
-              // Add a separator line before total
-              csvRows.push('---,---');
-              csvRows.push(`TOTAL TIME (s),${value}`);
-            } else {
-              // Regular step with time in ms
+        // Add each step based on structure (new array format, old object format, or legacy format)
+        if (test.steps && Array.isArray(test.steps)) {
+          // New array structure with steps
+          test.steps.forEach((stepObject) => {
+            const [stepName, duration] = Object.entries(stepObject)[0];
+            csvRows.push(`"${stepName}","${duration}"`);
+          });
+        } else if (test.steps && typeof test.steps === 'object') {
+          // Backward compatibility for old object structure
+          Object.entries(test.steps).forEach(([stepName, duration]) => {
+            csvRows.push(`"${stepName}","${duration}"`);
+          });
+        } else {
+          // Fallback to old format (excluding specific keys)
+          Object.entries(test).forEach(([key, value]) => {
+            if (
+              key !== 'testName' &&
+              key !== 'device' &&
+              key !== 'videoURL' &&
+              key !== 'sessionId' &&
+              key !== 'testFailed' &&
+              key !== 'failureReason' &&
+              key !== 'note' &&
+              key !== 'total'
+            ) {
               csvRows.push(`"${key}","${value}"`);
             }
-          }
-        });
+          });
+        }
+
+        // Add total time regardless of structure
+        csvRows.push('---,---');
+        csvRows.push(`TOTAL TIME (s),${test.total}`);
 
         // Add failure information if this was a failed test
         if (test.testFailed) {

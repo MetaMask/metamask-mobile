@@ -11,6 +11,7 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
+import { isHardwareAccount } from '../../../../../util/address';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -22,11 +23,21 @@ export interface BalanceOverride {
 
 export function useAutomaticTransactionPayToken({
   balanceOverrides,
+  countOnly = false,
 }: {
   balanceOverrides?: BalanceOverride[];
+  countOnly?: boolean;
 } = {}) {
   const isUpdated = useRef(false);
   const supportedChains = useSelector(selectEnabledSourceChains);
+  const { setPayToken } = useTransactionPayToken();
+  const { totalFiat } = useTransactionRequiredFiat();
+  const requiredTokens = useTransactionRequiredTokens({ log: true });
+
+  const {
+    chainId,
+    txParams: { from },
+  } = useTransactionMetadataRequest() ?? { txParams: {} };
 
   const chainIds = useMemo(
     () => (!isUpdated.current ? supportedChains.map((c) => c.chainId) : []),
@@ -34,13 +45,12 @@ export function useAutomaticTransactionPayToken({
   );
 
   const tokens = useTokensWithBalance({ chainIds });
-  const requiredTokens = useTransactionRequiredTokens();
-  const { chainId } = useTransactionMetadataRequest() ?? {};
-  const { setPayToken } = useTransactionPayToken();
-  const { totalFiat } = useTransactionRequiredFiat();
-  let automaticToken: { address: string; chainId?: string } | undefined;
+  const isHardwareWallet = isHardwareAccount(from ?? '');
 
-  if (!isUpdated.current) {
+  let automaticToken: { address: string; chainId?: string } | undefined;
+  let count = 0;
+
+  if (!isUpdated.current || countOnly) {
     const targetToken =
       requiredTokens.find((token) => token.address !== NATIVE_TOKEN_ADDRESS) ??
       requiredTokens[0];
@@ -60,6 +70,8 @@ export function useAutomaticTransactionPayToken({
       (token) => token?.tokenFiatAmount ?? 0,
       'desc',
     );
+
+    count = sufficientBalanceTokens.length;
 
     const requiredToken = sufficientBalanceTokens.find(
       (token) =>
@@ -86,10 +98,19 @@ export function useAutomaticTransactionPayToken({
       sameChainHighestBalanceToken ??
       alternateChainHighestBalanceToken ??
       targetTokenFallback;
+
+    if (isHardwareWallet) {
+      automaticToken = targetTokenFallback;
+    }
   }
 
   useEffect(() => {
-    if (isUpdated.current || !automaticToken || !requiredTokens?.length) {
+    if (
+      isUpdated.current ||
+      !automaticToken ||
+      !requiredTokens?.length ||
+      countOnly
+    ) {
       return;
     }
 
@@ -101,7 +122,9 @@ export function useAutomaticTransactionPayToken({
     isUpdated.current = true;
 
     log('Automatically selected pay token', automaticToken);
-  }, [automaticToken, isUpdated, requiredTokens, setPayToken]);
+  }, [automaticToken, countOnly, isUpdated, requiredTokens, setPayToken]);
+
+  return { count };
 }
 
 function isTokenSupported(

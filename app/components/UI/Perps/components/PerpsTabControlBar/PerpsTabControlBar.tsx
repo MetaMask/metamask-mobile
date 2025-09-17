@@ -6,11 +6,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsTabControlBar.styles';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
@@ -21,6 +16,7 @@ import {
   formatPnl,
   formatPercentage,
 } from '../../utils/formatUtils';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
 
 interface PerpsTabControlBarProps {
@@ -151,6 +147,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         <TouchableOpacity
           style={balancePillContainerStyle}
           onPress={handlePress}
+          testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
         >
           <View style={styles.leftSection}>
             <Text
@@ -164,18 +161,13 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           <View style={styles.rightSection}>
             <Animated.View style={[getBalanceAnimatedStyle]}>
               <Text
-                style={styles.valueText}
-                variant={TextVariant.HeadingSM}
+                variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
+                testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
               >
                 {formatPerpsFiat(availableBalance)}
               </Text>
             </Animated.View>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.Alternative}
-            />
           </View>
         </TouchableOpacity>
       )}
@@ -193,11 +185,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           </View>
           <View style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
-              <Text
-                style={styles.pnlValueText}
-                variant={TextVariant.HeadingSM}
-                color={pnlColor}
-              >
+              <Text variant={TextVariant.BodyMD} color={pnlColor}>
                 {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
               </Text>
             </Animated.View>

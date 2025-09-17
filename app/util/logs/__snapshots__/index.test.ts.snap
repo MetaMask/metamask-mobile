@@ -18,6 +18,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "wallets": {},
         },
         "accountWalletsMetadata": {},
+        "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+        "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
         "internalAccounts": {
@@ -323,13 +325,20 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "NetworkEnablementController": {
         "enabledNetworkMap": {
+          "bip122": {
+            "bip122:000000000019d6689c085ae165831e93": true,
+            "bip122:000000000933ea01ad0ee984209779ba": false,
+            "bip122:00000008819873e925422c1ff0f99f7c": false,
+          },
           "eip155": {
             "0x1": true,
             "0x2105": true,
             "0xe708": true,
           },
           "solana": {
+            "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
             "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+            "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false,
           },
         },
       },
@@ -373,6 +382,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
         "isTestnet": false,
         "lastDepositResult": null,
+        "lastDepositTransactionId": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
@@ -455,11 +465,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
+        "activeBoosts": {},
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
+        "unlockedRewards": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": true,
@@ -493,6 +505,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "vaultEncryptionSalt": true,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {
@@ -624,10 +637,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "transactions": [],
       },
       "UserStorageController": {
-        "hasAccountSyncingSyncedAtLeastOnce": false,
         "isAccountSyncingEnabled": true,
-        "isAccountSyncingInProgress": false,
-        "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
         "isContactSyncingEnabled": true,
@@ -657,6 +667,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "wallets": {},
         },
         "accountWalletsMetadata": {},
+        "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+        "isAccountTreeSyncingInProgress": false,
       },
       "AccountsController": {
         "internalAccounts": {
@@ -962,13 +974,20 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "NetworkEnablementController": {
         "enabledNetworkMap": {
+          "bip122": {
+            "bip122:000000000019d6689c085ae165831e93": true,
+            "bip122:000000000933ea01ad0ee984209779ba": false,
+            "bip122:00000008819873e925422c1ff0f99f7c": false,
+          },
           "eip155": {
             "0x1": true,
             "0x2105": true,
             "0xe708": true,
           },
           "solana": {
+            "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
             "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+            "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false,
           },
         },
       },
@@ -1012,6 +1031,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "isTestnet": false,
         "lastDepositResult": null,
+        "lastDepositTransactionId": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "lastWithdrawResult": null,
@@ -1094,11 +1114,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "RewardsController": {
         "accounts": {},
-        "lastAuthenticatedAccount": null,
+        "activeAccount": null,
+        "activeBoosts": {},
         "seasonStatuses": {},
         "seasons": {},
         "subscriptionReferralDetails": {},
         "subscriptions": {},
+        "unlockedRewards": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": false,
@@ -1114,6 +1136,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "vaultEncryptionSalt": false,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {
@@ -1245,10 +1268,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "transactions": [],
       },
       "UserStorageController": {
-        "hasAccountSyncingSyncedAtLeastOnce": false,
         "isAccountSyncingEnabled": true,
-        "isAccountSyncingInProgress": false,
-        "isAccountSyncingReadyToBeDispatched": false,
         "isBackupAndSyncEnabled": true,
         "isBackupAndSyncUpdateLoading": false,
         "isContactSyncingEnabled": true,

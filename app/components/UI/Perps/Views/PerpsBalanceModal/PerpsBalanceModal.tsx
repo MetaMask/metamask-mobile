@@ -20,6 +20,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsTrading, usePerpsNetworkManagement } from '../../hooks';
 import createStyles from './PerpsBalanceModal.styles';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 
 interface PerpsBalanceModalProps {}
 
@@ -29,6 +31,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { navigateToConfirmation } = useConfirmNavigation();
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -42,9 +45,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
       navigation.goBack();
 
       // Navigate immediately to confirmations screen for instant UI response
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {
@@ -53,7 +54,12 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
     } catch (error) {
       console.error('Failed to proceed with deposit:', error);
     }
-  }, [depositWithConfirmation, navigation, ensureArbitrumNetworkExists]);
+  }, [
+    depositWithConfirmation,
+    ensureArbitrumNetworkExists,
+    navigation,
+    navigateToConfirmation,
+  ]);
 
   const handleWithdrawFunds = useCallback(async () => {
     try {
@@ -89,6 +95,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
           onPress={handleAddFunds}
           style={styles.actionButton}
           startIconName={IconName.Add}
+          testID={PerpsTabViewSelectorsIDs.ADD_FUNDS_BUTTON}
         />
         <Button
           variant={ButtonVariants.Secondary}

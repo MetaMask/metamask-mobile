@@ -101,6 +101,13 @@ describe('MainNavigator - Rewards Integration', () => {
             },
           },
         },
+        RewardsController: {
+          activeAccount: {
+            subscriptionId: null,
+            account: 'eip155:1:0x123',
+            hasOptedIn: false,
+          },
+        },
       },
     },
   });
@@ -132,7 +139,7 @@ describe('MainNavigator - Rewards Integration', () => {
     // Verify other core tabs are present
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Actions')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
   });
 
   it('should show Rewards tab when rewards feature flag is on', () => {
@@ -146,6 +153,6 @@ describe('MainNavigator - Rewards Integration', () => {
     // Verify other core tabs are present
     expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
     expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
-    expect(getByTestId('tab-bar-item-Actions')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Trade')).toBeDefined();
   });
 });

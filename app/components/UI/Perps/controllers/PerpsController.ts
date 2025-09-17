@@ -87,6 +87,8 @@ export const PERPS_ERROR_CODES = {
   ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
   MARKETS_FAILED: 'MARKETS_FAILED',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+  // Provider-agnostic order errors
+  ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
 } as const;
 
 export type PerpsErrorCode =
@@ -129,6 +131,10 @@ export type PerpsControllerState = {
 
   // Simple deposit state (transient, for UI feedback)
   depositInProgress: boolean;
+  // TODO: Update tests
+  // Internal transaction id for the deposit transaction
+  // We use this to fetch the bridge quotes and get the estimated time.
+  lastDepositTransactionId: string | null;
   lastDepositResult: {
     success: boolean;
     txHash?: string;
@@ -178,6 +184,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   depositInProgress: false,
   lastDepositResult: null,
   withdrawInProgress: false,
+  lastDepositTransactionId: null,
   lastWithdrawResult: null,
   lastError: null,
   lastUpdateTimestamp: 0,
@@ -196,22 +203,108 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
  * State metadata for the PerpsController
  */
 const metadata = {
-  positions: { persist: true, anonymous: false },
-  accountState: { persist: true, anonymous: false },
-  perpsBalances: { persist: true, anonymous: false },
-  isTestnet: { persist: true, anonymous: false },
-  activeProvider: { persist: true, anonymous: false },
-  connectionStatus: { persist: false, anonymous: false },
-  pendingOrders: { persist: false, anonymous: false },
-  depositInProgress: { persist: false, anonymous: false },
-  lastDepositResult: { persist: false, anonymous: false },
-  withdrawInProgress: { persist: false, anonymous: false },
-  lastWithdrawResult: { persist: false, anonymous: false },
-  lastError: { persist: false, anonymous: false },
-  lastUpdateTimestamp: { persist: false, anonymous: false },
-  isEligible: { persist: false, anonymous: false },
-  isFirstTimeUser: { persist: true, anonymous: false },
-  hasPlacedFirstOrder: { persist: true, anonymous: false },
+  positions: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  accountState: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  perpsBalances: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  isTestnet: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  activeProvider: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  connectionStatus: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  pendingOrders: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: false,
+  },
+  depositInProgress: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastDepositTransactionId: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastDepositResult: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  withdrawInProgress: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastWithdrawResult: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastError: {
+    includeInStateLogs: false,
+    persist: false,
+    anonymous: false,
+    usedInUi: false,
+  },
+  lastUpdateTimestamp: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: false,
+  },
+  isEligible: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  isFirstTimeUser: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  hasPlacedFirstOrder: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -798,14 +891,17 @@ export class PerpsController extends BaseController<
 
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
-      const { result } = await TransactionController.addTransaction(
-        transaction,
-        {
+      const { result, transactionMeta } =
+        await TransactionController.addTransaction(transaction, {
           networkClientId,
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
-        },
-      );
+        });
+
+      // Store the transaction ID
+      this.update((state) => {
+        state.lastDepositTransactionId = transactionMeta.id;
+      });
 
       // At this point, the confirmation modal is shown to the user
       // The result promise will resolve/reject based on user action and transaction outcome
@@ -850,12 +946,14 @@ export class PerpsController extends BaseController<
             // User cancelled - clear any state, no toast
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
               // Don't set lastDepositResult - no toast needed
             });
           } else {
             // Transaction failed after confirmation - show error toast
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
               state.lastDepositResult = {
                 success: false,
                 error: errorMessage,
@@ -880,6 +978,7 @@ export class PerpsController extends BaseController<
       if (!userCancelled) {
         // Only track actual errors, not user cancellations
         this.update((state) => {
+          state.lastDepositTransactionId = null;
           state.lastDepositResult = {
             success: false,
             error: errorMessage,
@@ -930,7 +1029,7 @@ export class PerpsController extends BaseController<
     });
 
     try {
-      DevLogger.log('🚀 PerpsController: STARTING WITHDRAWAL', {
+      DevLogger.log('PerpsController: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
         assetId: params.assetId,
@@ -947,7 +1046,7 @@ export class PerpsController extends BaseController<
 
       // Get provider (all validation is handled at the provider level)
       const provider = this.getActiveProvider();
-      DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
+      DevLogger.log('PerpsController: DELEGATING TO PROVIDER', {
         provider: this.state.activeProvider,
         providerReady: !!provider,
       });
@@ -955,7 +1054,7 @@ export class PerpsController extends BaseController<
       // Execute withdrawal through provider
       const result = await provider.withdraw(params);
 
-      DevLogger.log('📊 PerpsController: WITHDRAWAL RESULT', {
+      DevLogger.log('PerpsController: WITHDRAWAL RESULT', {
         success: result.success,
         error: result.error,
         txHash: result.txHash,
@@ -975,7 +1074,7 @@ export class PerpsController extends BaseController<
           };
         });
 
-        DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
+        DevLogger.log('PerpsController: WITHDRAWAL SUCCESSFUL', {
           txHash: result.txHash,
           amount: params.amount,
           assetId: params.assetId,
@@ -1017,7 +1116,7 @@ export class PerpsController extends BaseController<
         };
       });
 
-      DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
+      DevLogger.log('PerpsController: WITHDRAWAL FAILED', {
         error: result.error,
         params,
       });
@@ -1037,7 +1136,7 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
-      DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
+      DevLogger.log('PerpsController: WITHDRAWAL EXCEPTION', {
         error: errorMessage,
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
@@ -1202,6 +1301,23 @@ export class PerpsController extends BaseController<
           return;
         }),
       ]);
+
+      // Add safety check for accountState to prevent TypeError
+      if (!accountState) {
+        const error = new Error(
+          'Failed to get account state: received null/undefined response',
+        );
+
+        // Track null account state errors in Sentry for API monitoring
+        Logger.error(error, {
+          message: 'Received null/undefined account state from provider',
+          context: 'PerpsController.getAccountState',
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        });
+
+        throw error;
+      }
 
       // fallback to the current account total value if possible
       const historicalPortfolioToUse: HistoricalPortfolioResult =

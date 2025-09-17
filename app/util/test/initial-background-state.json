@@ -23,7 +23,9 @@
       "wallets": {}
     },
     "accountGroupsMetadata": {},
-    "accountWalletsMetadata": {}
+    "accountWalletsMetadata": {},
+    "hasAccountTreeSyncingSyncedAtLeastOnce": false,
+    "isAccountTreeSyncingInProgress": false
   },
   "AddressBookController": {
     "addressBook": {}
@@ -171,13 +173,20 @@
   },
   "NetworkEnablementController": {
     "enabledNetworkMap": {
+      "bip122": {
+        "bip122:000000000019d6689c085ae165831e93": true,
+        "bip122:000000000933ea01ad0ee984209779ba": false,
+        "bip122:00000008819873e925422c1ff0f99f7c": false
+      },
       "eip155": {
         "0x1": true,
         "0x2105": true,
         "0xe708": true
       },
       "solana": {
-        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true
+        "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+        "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
       }
     }
   },
@@ -380,6 +389,7 @@
     "accountState": null,
     "pendingOrders": [],
     "depositInProgress": false,
+    "lastDepositTransactionId": null,
     "lastDepositResult": null,
     "lastWithdrawResult": null,
     "withdrawInProgress": false,
@@ -405,7 +415,8 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {}
+    "domains": {},
+    "activeDappNetwork": null
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -435,9 +446,6 @@
     "isUpdatingFCMToken": false
   },
   "UserStorageController": {
-    "hasAccountSyncingSyncedAtLeastOnce": false,
-    "isAccountSyncingReadyToBeDispatched": false,
-    "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
@@ -600,7 +608,9 @@
   },
   "RewardsController": {
     "accounts": {},
-    "lastAuthenticatedAccount": null,
+    "activeAccount": null,
+    "activeBoosts": {},
+    "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},

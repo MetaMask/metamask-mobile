@@ -22,19 +22,19 @@ jobs:
       total_splits: 3
     secrets: inherit
 
-  #confirmations-redesigned-ios-smoke:
-  #  strategy:
-  #    matrix:
-  #      split: [1, 2]
-  #    fail-fast: false
-  #  uses: ./.github/workflows/run-e2e-workflow.yml
-  #  with:
-  #    test-suite-name: confirmations-redesigned-ios-smoke-${{ matrix.split }}
-  #    platform: ios
-  #    test_suite_tag: "SmokeConfirmationsRedesigned"
-  #    split_number: ${{ matrix.split }}
-  #    total_splits: 2
-  #  secrets: inherit
+  confirmations-redesigned-ios-smoke:
+   strategy:
+     matrix:
+       split: [1, 2]
+     fail-fast: false
+   uses: ./.github/workflows/run-e2e-workflow.yml
+   with:
+     test-suite-name: confirmations-redesigned-ios-smoke-${{ matrix.split }}
+     platform: ios
+     test_suite_tag: "SmokeConfirmationsRedesigned"
+     split_number: ${{ matrix.split }}
+     total_splits: 2
+   secrets: inherit
 
   trade-ios-smoke:
     strategy:
@@ -120,37 +120,19 @@ jobs:
       total_splits: 2
     secrets: inherit
 
-  # performance-ios-smoke:
-  #   uses: ./.github/workflows/run-e2e-workflow.yml
-  #   with:
-  #     test-suite-name: performance-ios-smoke
-  #     platform: ios
-  #     test_suite_tag: "SmokePerformance"
-  #   secrets: inherit
-
-  card-ios-smoke:
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: card-ios-smoke
-      platform: ios
-      test_suite_tag: "SmokeCard"
-    secrets: inherit
-
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs:
       - confirmations-ios-smoke
-      #- confirmations-redesigned-ios-smoke
+      - confirmations-redesigned-ios-smoke
       - trade-ios-smoke
       - wallet-platform-ios-smoke
       - identity-ios-smoke
       - accounts-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
-      # - performance-ios-smoke
-      - card-ios-smoke
 
     steps:
       - name: Checkout

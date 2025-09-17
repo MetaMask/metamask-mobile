@@ -5,7 +5,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View } from 'react-native';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -32,6 +33,7 @@ import {
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -59,6 +61,8 @@ const MultichainAccountSelectorList = ({
     () => new Set(selectedAccountGroups.map((g) => g.id)),
     [selectedAccountGroups],
   );
+
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   // Debounce search text with 200ms delay
   useEffect(() => {
@@ -151,6 +155,20 @@ const MultichainAccountSelectorList = ({
     return items;
   }, [filteredWalletSections]);
 
+  // Reset scroll to top when search text changes
+  useEffect(() => {
+    if (listRefToUse.current) {
+      // Use requestAnimationFrame to ensure the list has finished re-rendering
+      const animationFrameId = requestAnimationFrame(() => {
+        listRefToUse.current?.scrollToOffset({ offset: 0, animated: false });
+      });
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
+    }
+  }, [debouncedSearchText, listRefToUse]);
+
   // Listen for account creation and scroll to new account
   useEffect(() => {
     if (lastCreatedAccountId && listRefToUse.current) {
@@ -170,6 +188,31 @@ const MultichainAccountSelectorList = ({
       setLastCreatedAccountId(null);
     }
   }, [lastCreatedAccountId, flattenedData, listRefToUse]);
+
+  // Scroll to the first selected account whenever selection or data changes
+  useEffect(() => {
+    if (debouncedSearchText.trim()) return;
+    if (!listRefToUse.current) return;
+    if (!selectedAccountGroups?.length) return;
+
+    const targetId = selectedAccountGroups[0]?.id;
+    if (!targetId) return;
+
+    const index = flattenedData.findIndex(
+      (item) => item.type === 'cell' && item.data.id === targetId,
+    );
+
+    if (index !== -1) {
+      const raf = requestAnimationFrame(() => {
+        listRefToUse.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5,
+        });
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [selectedAccountGroups, flattenedData, debouncedSearchText, listRefToUse]);
 
   // Handle account creation callback
   const handleAccountCreated = useCallback((newAccountId: string) => {
@@ -197,6 +240,7 @@ const MultichainAccountSelectorList = ({
             return (
               <AccountListCell
                 accountGroup={item.data}
+                avatarAccountType={avatarAccountType}
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
               />
@@ -216,7 +260,12 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedIdSet, handleSelectAccount, handleAccountCreated],
+      [
+        selectedIdSet,
+        handleSelectAccount,
+        handleAccountCreated,
+        avatarAccountType,
+      ],
     );
 
   const keyExtractor = useCallback(
@@ -255,6 +304,7 @@ const MultichainAccountSelectorList = ({
           value={searchText}
           onChangeText={setSearchText}
           placeholder={strings('accounts.search_your_accounts')}
+          placeholderTextColor={styles.searchPlaceholderText.color}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
           style={styles.searchTextField}
@@ -282,6 +332,9 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
+            renderScrollComponent={
+              ScrollView as React.ComponentType<ScrollViewProps>
+            }
             {...props}
           />
         )}

@@ -22,6 +22,9 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
+import { discoverAccounts } from '../../multichain-accounts/discovery';
+import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
+import { captureException } from '@sentry/core';
 
 interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -130,17 +133,32 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  const discoveredAccountsCount = (
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const snapClient = MultichainWalletSnapFactory.createClient(clientType);
-        return await snapClient.addDiscoveredAccounts(
-          newKeyring.id,
-          WALLET_SNAP_MAP[clientType].discoveryScope,
-        );
-      }),
-    )
-  ).reduce((acc, count) => acc + count || 0, 0);
+  let discoveredAccountsCount: number;
+  if (isMultichainAccountsState2Enabled()) {
+    // Use try/catch here, add `addDiscoveredAccounts` also handles errors gracefully.
+    try {
+      await Engine.context.AccountTreeController.syncWithUserStorage();
+      discoveredAccountsCount = await discoverAccounts(newKeyring.id);
+    } catch (error) {
+      captureException(
+        new Error(`Unable to discover and create accounts: ${error}`),
+      );
+      discoveredAccountsCount = 0;
+    }
+  } else {
+    discoveredAccountsCount = (
+      await Promise.all(
+        Object.values(WalletClientType).map(async (clientType) => {
+          const snapClient =
+            MultichainWalletSnapFactory.createClient(clientType);
+          return await snapClient.addDiscoveredAccounts(
+            newKeyring.id,
+            WALLET_SNAP_MAP[clientType].discoveryScope,
+          );
+        }),
+      )
+    ).reduce((acc, count) => acc + count || 0, 0);
+  }
 
   if (shouldSelectAccount) {
     Engine.setSelectedAddress(newAccountAddress);

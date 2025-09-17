@@ -92,7 +92,6 @@ jobs:
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
           configure-keystores: false
-          sd-card-size: 8192
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}

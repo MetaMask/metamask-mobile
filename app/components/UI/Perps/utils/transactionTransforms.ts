@@ -51,17 +51,22 @@ export function transformFillsToTransactions(
       return acc;
     }
 
-    let amount = 0;
     let amountBN = BigNumber(0);
     let displayAmount = '';
-
+    let fillSize = size;
+    if (isFlipped) {
+      fillSize = BigNumber(fill.startPosition || '0')
+        .minus(fill.size)
+        .absoluteValue()
+        .toString();
+    }
     // Calculate display amount based on action type
     if (isOpened) {
       // For opening positions: show fee paid (negative)
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
-    } else if (isClosed) {
+    } else if (isClosed || isFlipped) {
       // For closing positions: show PnL minus fee
       const pnlValue = BigNumber(fill.pnl || 0);
       const feeValue = BigNumber(fill.fee || 0);
@@ -78,16 +83,6 @@ export function transformFillsToTransactions(
         displayAmount = `$${Math.abs(netPnL).toFixed(2)}`;
         isPositive = true; // Treat break-even as positive (green)
       }
-    } else if (isFlipped) {
-      // For flipped positions: calculate based on position change
-      amountBN = BigNumber(fill.startPosition || '0')
-        .minus(fill.size)
-        .times(fill.price);
-      amount = amountBN.toNumber();
-      displayAmount = `${amount >= 0 ? '+' : '-'}$${Math.abs(amount).toFixed(
-        2,
-      )}`;
-      isPositive = amount >= 0;
     } else {
       // Fallback: show order size value
       amountBN = BigNumber(fill.size).times(fill.price);
@@ -116,7 +111,7 @@ export function transformFillsToTransactions(
         amount: displayAmount,
         amountNumber: parseFloat(amountBN.toFixed(2)),
         isPositive,
-        size,
+        size: fillSize,
         entryPrice: price,
         pnl,
         fee,
@@ -239,7 +234,7 @@ export function transformFundingToTransactions(
       type: 'funding',
       category: 'funding_fee',
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
-      subtitle: ``,
+      subtitle: symbol,
       timestamp,
       asset: symbol,
       fundingAmount: {
