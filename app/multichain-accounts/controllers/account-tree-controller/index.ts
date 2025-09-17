@@ -15,7 +15,6 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
  */
 export const accountTreeControllerInit: ControllerInitFunction<
   AccountTreeController,
-  // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
   AccountTreeControllerMessenger
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
