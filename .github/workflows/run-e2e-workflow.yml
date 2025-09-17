@@ -51,6 +51,7 @@ jobs:
       PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       CHANGED_FILES: ${{ inputs.changed_files }}
