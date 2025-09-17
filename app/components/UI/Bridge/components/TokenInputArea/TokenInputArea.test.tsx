@@ -205,9 +205,24 @@ describe('TokenInputArea', () => {
       decimals: 18,
       chainId: '0x1' as `0x${string}`,
     };
+    const destToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001', // Different token on same chain
+      symbol: 'TOKEN1',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
     const tokenBalance = '1.5';
 
-    // Use initial state which has gasless swap enabled
+    // Create state with swap setup (both source and dest tokens on same chain)
+    const stateWithSwap = {
+      ...initialState,
+      bridge: {
+        ...initialState.bridge,
+        sourceToken: nativeToken,
+        destToken,
+      },
+    };
+
     const { getByText } = renderScreen(
       () => (
         <TokenInputArea
@@ -221,7 +236,7 @@ describe('TokenInputArea', () => {
       {
         name: 'TokenInputArea',
       },
-      { state: initialState },
+      { state: stateWithSwap },
     );
 
     // Assert
