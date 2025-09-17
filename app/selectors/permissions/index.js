@@ -24,10 +24,10 @@ const getSubjects = (state) => state.subjects;
 /**
  * Get the authorized CAIP-25 scopes for the subject.
  * The returned value is an immutable value from the PermissionController state,
- * or undefined if no authorization exists.
+ * or empty Caip25CaveatValue if no authorization exists.
  *
  * @param origin - The origin to match the subject state from.
- * @returns {Caip25CaveatValue | undefined} The current authorization or undefined if no authorization exists.
+ * @returns {Caip25CaveatValue} The current authorization or undefined if no authorization exists.
  */
 export const getAuthorizedScopes = (origin) =>
   createSelector(getSubjects, (subjects) => {
@@ -37,6 +37,7 @@ export const getAuthorizedScopes = (origin) =>
       return {
         requiredScopes: {},
         optionalScopes: {},
+        sessionProperties: {},
       };
     }
 
