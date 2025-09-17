@@ -15,19 +15,6 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
-// Mock the Tailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((classes) => {
-      // Simple mock that returns basic style objects
-      if (classes.includes('mb-6')) {
-        return { marginBottom: 24 };
-      }
-      return {};
-    }),
-  }),
-}));
-
 // Mock the i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -48,51 +35,13 @@ jest.mock('../../providers/PerpsConnectionProvider', () => ({
   }),
 }));
 
-// Mock the Button component
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  interface MockButtonProps {
-    label: string;
-    onPress: () => void;
-    testID?: string;
-    variant?: string;
-    size?: string;
-  }
-
-  const ButtonComponent = ({
-    label,
-    onPress,
-    testID,
-    ...props
-  }: MockButtonProps) => (
-    <TouchableOpacity onPress={onPress} testID={testID} {...props}>
-      <Text>{label}</Text>
-    </TouchableOpacity>
-  );
-
-  // Add static properties for ButtonVariants and ButtonSize
-  ButtonComponent.ButtonVariants = {
-    Primary: 'primary',
-    Secondary: 'secondary',
-  };
-
-  ButtonComponent.ButtonSize = {
-    Md: 'medium',
-    Lg: 'large',
-  };
-
-  return {
-    __esModule: true,
-    default: ButtonComponent,
-    ButtonVariants: ButtonComponent.ButtonVariants,
-    ButtonSize: ButtonComponent.ButtonSize,
-  };
-});
-
 // Mock the design system components
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text: RNText } = jest.requireActual('react-native');
+  const {
+    View,
+    Text: RNText,
+    TouchableOpacity,
+  } = jest.requireActual('react-native');
 
   interface MockBoxProps {
     children?: React.ReactNode;
@@ -109,6 +58,14 @@ jest.mock('@metamask/design-system-react-native', () => {
     twClassName?: string;
   }
 
+  interface MockButtonProps {
+    children?: React.ReactNode;
+    onPress: () => void;
+    testID?: string;
+    variant?: string;
+    size?: string;
+  }
+
   return {
     Box: ({ children, testID, ...props }: MockBoxProps) => (
       <View testID={testID} {...props}>
@@ -119,6 +76,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       <RNText testID={testID} {...props}>
         {children}
       </RNText>
+    ),
+    Button: ({ children, onPress, testID, ...props }: MockButtonProps) => (
+      <TouchableOpacity onPress={onPress} testID={testID} {...props}>
+        <RNText>{children}</RNText>
+      </TouchableOpacity>
     ),
     TextVariant: {
       HeadingMd: 'HeadingMd',
@@ -132,6 +94,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     BoxJustifyContent: {
       Center: 'center',
+      Start: 'start',
+    },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+    },
+    ButtonSize: {
+      Sm: 'small',
+      Md: 'medium',
+      Lg: 'large',
     },
   };
 });

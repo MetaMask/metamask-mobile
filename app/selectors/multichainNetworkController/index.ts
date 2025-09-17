@@ -7,11 +7,15 @@ import {
   type MultichainNetworkConfiguration,
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, Json } from '@metamask/utils';
 import { BtcScope, SolScope, EthScope } from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
+import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
+///: END:ONLY_INCLUDE_IF
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -36,8 +40,24 @@ export const selectSelectedNonEvmNetworkChainId = createDeepEqualSelector(
  * @returns An object where the keys are chain IDs and the values are network configurations.
  */
 export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
-  selectMultichainNetworkControllerState,
-  (multichainNetworkControllerState: MultichainNetworkControllerState) => {
+  [
+    selectMultichainNetworkControllerState,
+    selectIsSolanaTestnetEnabled,
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    selectIsBitcoinTestnetEnabled,
+    ///: END:ONLY_INCLUDE_IF
+  ],
+  (
+    multichainNetworkControllerState: MultichainNetworkControllerState,
+    isSolanaTestnetEnabled: Json,
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    isBitcoinTestnetEnabled: Json,
+    ///: END:ONLY_INCLUDE_IF
+  ) => {
+    const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
+    ///: END:ONLY_INCLUDE_IF
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -53,6 +73,13 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         imageSource: imageIcons.SOLANA,
         ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
         isTestnet: false,
+      },
+      [SolScope.Devnet]: {
+        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[SolScope.Devnet],
+        imageSource: imageIcons.SOLANA,
+        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Devnet],
+        isTestnet: true,
+        name: 'Solana Devnet',
       },
       [BtcScope.Mainnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Mainnet],
@@ -94,10 +121,12 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       BtcScope.Mainnet,
-      BtcScope.Testnet,
-      BtcScope.Signet,
+      ...(isBitcoinTestnetEnabledBoolean
+        ? [BtcScope.Testnet, BtcScope.Signet]
+        : []),
       ///: END:ONLY_INCLUDE_IF
       SolScope.Mainnet,
+      ...(isSolanaTestnetEnabledBoolean ? [SolScope.Devnet] : []),
     ];
 
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =

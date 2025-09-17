@@ -6,6 +6,8 @@ import {
 } from '@metamask/account-tree-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
+import { FlashListRef } from '@shopify/flash-list';
+import { FlattenedMultichainAccountListItem } from './MultichainAccountSelectorList.types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
@@ -713,6 +715,77 @@ describe('MultichainAccountSelectorList', () => {
       // Verify the component renders correctly
       expect(getByText('Account 1')).toBeTruthy();
       expect(getByText('Create account')).toBeTruthy();
+    });
+
+    it('scrolls to the first selected account', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Account 2',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+      ]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+
+      type TestFlashListRef = FlashListRef<FlattenedMultichainAccountListItem>;
+      const listRef = React.createRef<TestFlashListRef>();
+
+      // Mock RAF to queue callbacks so we can attach our mock ref before flushing
+      const rafCallbacks: FrameRequestCallback[] = [];
+      const rafSpy = jest
+        .spyOn(global, 'requestAnimationFrame')
+        .mockImplementation((cb: FrameRequestCallback) => {
+          rafCallbacks.push(cb);
+          return rafCallbacks.length as unknown as number;
+        });
+
+      try {
+        renderWithProvider(
+          <MultichainAccountSelectorList
+            onSelectAccount={mockOnSelectAccount}
+            selectedAccountGroups={[account2]}
+            listRef={listRef}
+          />,
+          { state: createMockState([wallet1], internalAccounts) },
+        );
+
+        // Attach mock imperative methods after render, before running RAF
+        interface MinimalFlashListRef {
+          scrollToIndex: jest.Mock;
+          scrollToOffset: jest.Mock;
+          scrollToEnd: jest.Mock;
+        }
+        const mockRefImpl: MinimalFlashListRef = {
+          scrollToIndex: jest.fn(),
+          scrollToOffset: jest.fn(),
+          scrollToEnd: jest.fn(),
+        };
+        const mockRef = mockRefImpl as unknown as TestFlashListRef;
+        (listRef as unknown as { current: TestFlashListRef | null }).current =
+          mockRef;
+
+        // Flush queued RAF callbacks to trigger the scroll effect
+        rafCallbacks.forEach((cb) => cb(0));
+
+        await waitFor(() => {
+          expect(mockRefImpl.scrollToIndex).toHaveBeenCalledWith({
+            index: 2, // header (0), Account 1 (1), Account 2 (2), footer (3)
+            animated: true,
+            viewPosition: 0.5,
+          });
+        });
+      } finally {
+        rafSpy.mockRestore();
+      }
     });
   });
 

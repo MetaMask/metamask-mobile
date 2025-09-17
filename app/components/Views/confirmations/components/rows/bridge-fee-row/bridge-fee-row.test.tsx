@@ -1,5 +1,4 @@
 import React from 'react';
-import { Text as MockText } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
 import {
@@ -18,12 +17,6 @@ import {
 } from '@metamask/transaction-controller';
 
 jest.mock('../../../hooks/pay/useTransactionTotalFiat');
-
-jest.mock('../../../../../UI/AnimatedSpinner', () => ({
-  __esModule: true,
-  ...jest.requireActual('../../../../../UI/AnimatedSpinner'),
-  default: () => <MockText>Spinner</MockText>,
-}));
 
 const TRANSACTION_FEE_MOCK = '$1.23';
 const NETWORK_FEE_MOCK = '$0.45';
@@ -105,8 +98,9 @@ describe('BridgeFeeRow', () => {
     expect(getByText(BRIDGE_FEE_MOCK)).toBeDefined();
   });
 
-  it('renders spinner if quotes loading', async () => {
-    const { getAllByText } = render({ isLoading: true });
-    expect(getAllByText(`Spinner`, {})).toHaveLength(2);
+  it('renders skeletons if quotes loading', async () => {
+    const { getByTestId } = render({ isLoading: true });
+    expect(getByTestId('bridge-fee-row-skeleton')).toBeDefined();
+    expect(getByTestId('metamask-fee-row-skeleton')).toBeDefined();
   });
 });

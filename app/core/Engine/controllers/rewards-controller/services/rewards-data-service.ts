@@ -14,6 +14,13 @@ import type {
   SubscriptionReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
+  MobileLoginDto,
+  SubscriptionDto,
+  OptInStatusInputDto,
+  OptInStatusDto,
+  OptOutDto,
+  PointsBoostEnvelopeDto,
+  RewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -86,6 +93,31 @@ export interface RewardsDataServiceValidateReferralCodeAction {
   handler: RewardsDataService['validateReferralCode'];
 }
 
+export interface RewardsDataServiceMobileJoinAction {
+  type: `${typeof SERVICE_NAME}:mobileJoin`;
+  handler: RewardsDataService['mobileJoin'];
+}
+
+export interface RewardsDataServiceGetOptInStatusAction {
+  type: `${typeof SERVICE_NAME}:getOptInStatus`;
+  handler: RewardsDataService['getOptInStatus'];
+}
+
+export interface RewardsDataServiceOptOutAction {
+  type: `${typeof SERVICE_NAME}:optOut`;
+  handler: RewardsDataService['optOut'];
+}
+
+export interface RewardsDataServiceGetActivePointsBoostsAction {
+  type: `${typeof SERVICE_NAME}:getActivePointsBoosts`;
+  handler: RewardsDataService['getActivePointsBoosts'];
+}
+
+export interface RewardsDataServiceGetUnlockedRewardsAction {
+  type: `${typeof SERVICE_NAME}:getUnlockedRewards`;
+  handler: RewardsDataService['getUnlockedRewards'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -97,20 +129,19 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceLogoutAction
   | RewardsDataServiceGenerateChallengeAction
   | RewardsDataServiceFetchGeoLocationAction
-  | RewardsDataServiceValidateReferralCodeAction;
-
-type AllowedActions = never;
-
-export type RewardsDataServiceEvents = never;
-
-type AllowedEvents = never;
+  | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceMobileJoinAction
+  | RewardsDataServiceGetOptInStatusAction
+  | RewardsDataServiceOptOutAction
+  | RewardsDataServiceGetActivePointsBoostsAction
+  | RewardsDataServiceGetUnlockedRewardsAction;
 
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
   RewardsDataServiceActions,
-  RewardsDataServiceEvents,
-  AllowedActions['type'],
-  AllowedEvents['type']
+  never,
+  never['type'],
+  never['type']
 >;
 
 /**
@@ -185,6 +216,26 @@ export class RewardsDataService {
       `${SERVICE_NAME}:validateReferralCode`,
       this.validateReferralCode.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:mobileJoin`,
+      this.mobileJoin.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOptInStatus`,
+      this.getOptInStatus.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optOut`,
+      this.optOut.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getActivePointsBoosts`,
+      this.getActivePointsBoosts.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getUnlockedRewards`,
+      this.getUnlockedRewards.bind(this),
+    );
   }
 
   /**
@@ -219,7 +270,7 @@ export class RewardsDataService {
       if (subscriptionId) {
         const tokenResult = await getSubscriptionToken(subscriptionId);
         if (tokenResult.success && tokenResult.token) {
-          headers['rewards-api-key'] = tokenResult.token;
+          headers['rewards-access-token'] = tokenResult.token;
         }
       }
     } catch (error) {
@@ -547,5 +598,128 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as { valid: boolean };
+  }
+
+  /**
+   * Join an account to a subscription via mobile login.
+   * @param body - The mobile login request body containing account, timestamp, and signature.
+   * @param subscriptionId - The subscription ID to join the account to.
+   * @returns Promise<SubscriptionDto> - The updated subscription information.
+   */
+  async mobileJoin(
+    body: MobileLoginDto,
+    subscriptionId: string,
+  ): Promise<SubscriptionDto> {
+    const response = await this.makeRequest(
+      '/wr/subscriptions/mobile-join',
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Mobile join failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SubscriptionDto;
+  }
+
+  /**
+   * Get opt-in status for multiple addresses.
+   * @param body - The request body containing addresses to check.
+   * @returns Promise<OptInStatusDto> - The opt-in status for each address.
+   */
+  async getOptInStatus(body: OptInStatusInputDto): Promise<OptInStatusDto> {
+    // Validate input
+    if (!body.addresses || body.addresses.length === 0) {
+      throw new Error('Addresses are required');
+    }
+    if (body.addresses.length > 500) {
+      throw new Error('Addresses must be less than 500');
+    }
+
+    const response = await this.makeRequest('/public/rewards/ois', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Get opt-in status failed: ${response.status}`);
+    }
+
+    return (await response.json()) as OptInStatusDto;
+  }
+
+  /**
+   * Opt-out and delete the subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Promise<OptOutDto> - The opt-out response.
+   */
+  async optOut(subscriptionId: string): Promise<OptOutDto> {
+    const response = await this.makeRequest(
+      '/wr/subscriptions/opt-out',
+      {
+        method: 'POST',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Opt-out failed: ${response.status}`);
+    }
+
+    return (await response.json()) as OptOutDto;
+  }
+
+  /**
+   * Get the active season boosts for a specific subscription.
+   * @param seasonId - The ID of the season to get status for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The active points boosts DTO.
+   */
+  async getActivePointsBoosts(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<PointsBoostEnvelopeDto> {
+    const response = await this.makeRequest(
+      `/seasons/${seasonId}/active-boosts`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get active rewards boost: ${response.status}`);
+    }
+
+    return (await response.json()) as PointsBoostEnvelopeDto;
+  }
+
+  /**
+   * Get the unlocked rewards for a specific subscription.
+   * @param seasonId - The ID of the season to get status for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The rewards DTO.
+   */
+  async getUnlockedRewards(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<RewardDto[]> {
+    const response = await this.makeRequest(
+      `/rewards?seasonId=${seasonId}`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get unlocked: ${response.status}`);
+    }
+
+    return (await response.json()) as RewardDto[];
   }
 }
