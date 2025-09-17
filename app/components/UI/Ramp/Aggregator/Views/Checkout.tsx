@@ -199,7 +199,7 @@ const CheckoutWebView = () => {
           enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
-          userAgent={provider?.features?.buy?.userAgent ?? undefined}
+          userAgent={'MetamaskCheckoutWebview'}
         />
       </View>
     );
