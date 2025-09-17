@@ -114,6 +114,16 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
 
+// Mock useSupportedTokens so that supported deposit tokens include only USDC & USDT.
+// This ensures a non-USDC priority token like ETH is NOT in supported list and triggers swaps path.
+jest.mock('../../../Ramp/Deposit/hooks/useSupportedTokens', () => ({
+  __esModule: true,
+  default: () => [
+    { symbol: 'USDC', chainId: 1 },
+    { symbol: 'USDT', chainId: 1 },
+  ],
+}));
+
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
@@ -343,36 +353,32 @@ describe('CardHome Component', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrivacyMode) {
-        return false;
+      // Guard against unexpected undefined/null selector
+      if (!selector) {
+        return [];
       }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectChainId) {
-        return '0xe708'; // Linea chain ID
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
+
+      // Direct identity checks first (more robust than string matching)
+      if (selector === selectPrivacyMode) return false;
+      if (selector === selectDepositActiveFlag) return true;
+      if (selector === selectDepositMinimumVersionFlag) return '0.9.0';
+      if (selector === selectChainId) return '0xe708'; // Linea chain ID
+      if (selector === selectCardholderAccounts) return [mockCurrentAddress];
+
+      // Fallback to string inspection (Jest wraps anonymous selector fns sometimes)
+      const selectorString =
+        typeof selector === 'function' ? selector.toString() : '';
+      if (selectorString.includes('selectSelectedInternalAccount'))
         return mockSelectedInternalAccount;
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID - fallback for string matching
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress]; // fallback for string matching
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
+      if (selectorString.includes('selectChainId')) return '0xe708';
+      if (selectorString.includes('selectCardholderAccounts'))
+        return [mockCurrentAddress];
+      if (selectorString.includes('selectEvmTokens'))
         return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
+      if (selectorString.includes('selectEvmTokenFiatBalances'))
         return ['1000.00'];
-      }
+
+      // Default safe fallback
       return [];
     });
   });
@@ -391,36 +397,25 @@ describe('CardHome Component', () => {
   it('renders correctly with privacy mode enabled', async () => {
     // Temporarily override privacy mode for this test
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrivacyMode) {
-        return true; // Enable privacy mode for this test
-      }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectChainId) {
-        return '0xe708'; // Linea chain ID
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
+      if (!selector) return [];
+
+      if (selector === selectPrivacyMode) return true; // Enable privacy mode for this test
+      if (selector === selectDepositActiveFlag) return true;
+      if (selector === selectDepositMinimumVersionFlag) return '0.9.0';
+      if (selector === selectChainId) return '0xe708';
+      if (selector === selectCardholderAccounts) return [mockCurrentAddress];
+
+      const selectorString =
+        typeof selector === 'function' ? selector.toString() : '';
+      if (selectorString.includes('selectSelectedInternalAccount'))
         return mockSelectedInternalAccount;
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID - fallback
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
+      if (selectorString.includes('selectChainId')) return '0xe708';
+      if (selectorString.includes('selectCardholderAccounts'))
         return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
+      if (selectorString.includes('selectEvmTokens'))
         return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
-        return ['$1,000.00']; // Return as array, not object
-      }
+      if (selectorString.includes('selectEvmTokenFiatBalances'))
+        return ['$1,000.00'];
       return [];
     });
 
