@@ -4961,10 +4961,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^74.3.2":
-  version "74.3.2"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-74.3.2.tgz#6fa7564f3912dc02d90ea81a3cc32dcada255f21"
-  integrity sha512-J2xey02mmoelhpi+tF/+IuZZMlCL449gI8+dJhX1VSSVdJ4kwqOWyxdKYsHyqgOD5W8xRTTWMU8+ZDGE2Lsqpw==
+"@metamask/assets-controllers@^75.0.0":
+  version "75.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-75.1.0.tgz#4681b7cd3fd8c0ea907522fca61ae0528e165e3c"
+  integrity sha512-Vkj45wTQGBpv4fnDwjvXlLRN4ymJ9cpQVYLfaweWWzfpVUSQUNumwa4ztz3cg1XlPHlyj4aS2VO52ld2KbDEuA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4973,17 +4973,17 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.3"
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/controller-utils" "^11.13.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-api" "^21.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
-    "@metamask/utils" "^11.4.2"
+    "@metamask/utils" "^11.8.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
@@ -5033,10 +5033,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
   integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
-"@metamask/bridge-controller@^42.0.0":
-  version "42.0.0"
-  resolved "https://registry.npmjs.org/@metamask/bridge-controller/-/bridge-controller-42.0.0.tgz#63dc3165c0dcd8654c1e58a080154c2992a5efbe"
-  integrity sha512-C+W1EbtwUWmgp6mds1Vc7yyY1cScZ0xWgBnQ3ta0J8c80lbi4uExZRF+Jsupf1aG7xCsIihfNZymb/QKFBNyYg==
+"@metamask/bridge-controller@^43.0.0":
+  version "43.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-43.0.0.tgz#19da56e46a3f79bf3b90fd681b017f727a82bd5f"
+  integrity sha512-u1Jn7G+IgkeeXTrtR+bRlZ8Y20ZX4bF5bdAl51weMjpGGse40Tg0FyvBK00ZhPczAPuRZ+y9hbzA3I+FBkcY2Q==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -5046,11 +5046,11 @@
     "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/gas-fee-controller" "^24.0.0"
-    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-api" "^21.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/multichain-network-controller" "^0.12.0"
     "@metamask/polling-controller" "^14.0.0"
-    "@metamask/utils" "^11.4.2"
+    "@metamask/utils" "^11.8.0"
     bignumber.js "^9.1.2"
     reselect "^5.1.1"
     uuid "^8.3.2"
@@ -5124,6 +5124,23 @@
     "@metamask/eth-query" "^4.0.0"
     "@metamask/ethjs-unit" "^0.3.0"
     "@metamask/utils" "^11.4.2"
+    "@spruceid/siwe-parser" "2.1.0"
+    "@types/bn.js" "^5.1.5"
+    bignumber.js "^9.1.2"
+    bn.js "^5.2.1"
+    cockatiel "^3.1.2"
+    eth-ens-namehash "^2.0.8"
+    fast-deep-equal "^3.1.3"
+    lodash "^4.17.21"
+
+"@metamask/controller-utils@^11.13.0":
+  version "11.14.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.14.0.tgz#4efe7a5838b039db025d521a6b53905d8770bce4"
+  integrity sha512-QimQHW+kL2pI3EbueuiCG92Q0hKTKuG+6DKHDs7jlHJjU7/EM1Ohq5zLALTOK7iudnFoYkkHjMtO9pY83SSpkw==
+  dependencies:
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/ethjs-unit" "^0.3.0"
+    "@metamask/utils" "^11.8.0"
     "@spruceid/siwe-parser" "2.1.0"
     "@types/bn.js" "^5.1.5"
     bignumber.js "^9.1.2"
