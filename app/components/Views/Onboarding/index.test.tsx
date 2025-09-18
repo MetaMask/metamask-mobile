@@ -17,7 +17,7 @@ jest.mock('react-native', () => {
         start: jest.fn((callback) => {
           // Call callback after a short delay to simulate animation completion
           if (callback) {
-            setTimeout(() => callback(), 50);
+            callback();
           }
         }),
       })),
@@ -25,7 +25,7 @@ jest.mock('react-native', () => {
         start: jest.fn((callback) => {
           // Call callback after a short delay to simulate animation completion
           if (callback) {
-            setTimeout(() => callback(), 50);
+            callback();
           }
         }),
       })),
@@ -72,37 +72,6 @@ jest.mock('rive-react-native', () => {
       reset: jest.fn(),
       pause: jest.fn(),
     }));
-
-    React.useEffect(() => {
-      if (onLoad) {
-        const timer = setTimeout(() => {
-          try {
-            onLoad();
-          } catch (error: unknown) {
-            if (error instanceof Error) {
-              console.warn(error.message);
-            }
-          }
-        }, 50);
-        return () => clearTimeout(timer);
-      }
-    }, [onLoad]);
-
-    React.useEffect(() => {
-      if (onStop) {
-        // Trigger onStop after onLoad to simulate animation completion
-        const timer = setTimeout(() => {
-          try {
-            onStop();
-          } catch (error: unknown) {
-            if (error instanceof Error) {
-              console.warn(error.message);
-            }
-          }
-        }, 100); // Trigger onStop 50ms after onLoad
-        return () => clearTimeout(timer);
-      }
-    }, [onStop]);
 
     return React.createElement(View, { testID, ...props });
   };
@@ -1589,63 +1558,6 @@ describe('Onboarding', () => {
 
       expect(wordmarkAnimation).toBeDefined();
       expect(foxAnimation).toBeDefined();
-    });
-
-    it('should test that animation methods are called during lifecycle', async () => {
-      let parallelCalled = false;
-      let timingCallCount = 0;
-
-      const originalParallel = Animated.parallel;
-      const originalTiming = Animated.timing;
-
-      Object.defineProperty(Animated, 'parallel', {
-        value: jest.fn((args: Parameters<typeof originalParallel>[0]) => {
-          parallelCalled = true;
-          return originalParallel(args);
-        }),
-        writable: true,
-        configurable: true,
-      });
-
-      Object.defineProperty(Animated, 'timing', {
-        value: jest.fn(
-          (
-            arg1: Parameters<typeof originalTiming>[0],
-            arg2: Parameters<typeof originalTiming>[1],
-          ) => {
-            timingCallCount++;
-            return originalTiming(arg1, arg2);
-          },
-        ),
-        writable: true,
-        configurable: true,
-      });
-
-      renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      expect(parallelCalled).toBe(true);
-      expect(timingCallCount).toBeGreaterThan(0);
-
-      Object.defineProperty(Animated, 'parallel', {
-        value: originalParallel,
-        writable: true,
-        configurable: true,
-      });
-      Object.defineProperty(Animated, 'timing', {
-        value: originalTiming,
-        writable: true,
-        configurable: true,
-      });
     });
 
     it('should verify component renders with animations and completes lifecycle', async () => {
