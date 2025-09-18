@@ -86,6 +86,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
+  delete fullState.engine.backgroundState.PredictController;
 
   // Remove SeedlessController controller data so that encrypted vault and sensitive data is not included in logs
   delete fullState.engine.backgroundState.SeedlessOnboardingController;
