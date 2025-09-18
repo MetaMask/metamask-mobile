@@ -36,7 +36,6 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
 
 jest.mock('../sdk', () => ({
   useRampSDK: jest.fn(() => ({
-    selectedChainId: '1',
     selectedAddress: '0x456',
   })),
 }));

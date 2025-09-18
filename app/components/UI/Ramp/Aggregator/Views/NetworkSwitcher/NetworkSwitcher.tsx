@@ -67,7 +67,7 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
+  const { isBuy, intent, setIntent } = useRampSDK();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -118,15 +118,15 @@ function NetworkSwitcher() {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: 'unknown', // TODO: Replace with actual chainId
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: 'unknown', // TODO: Replace with actual chainId
       });
     }
-  }, [isBuy, selectedChainId, trackEvent]);
+  }, [isBuy, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -253,10 +253,7 @@ function NetworkSwitcher() {
   );
 
   useEffect(() => {
-    if (
-      isCurrentNetworkRampSupported &&
-      (!intent?.chainId || selectedChainId === intent.chainId)
-    ) {
+    if (isCurrentNetworkRampSupported && !intent?.chainId) {
       navigateToGetStarted();
     } else if (intent?.chainId) {
       handleIntentChainId(intent.chainId);
@@ -267,7 +264,6 @@ function NetworkSwitcher() {
     isCurrentNetworkRampSupported,
     navigateToGetStarted,
     navigation,
-    selectedChainId,
   ]);
 
   const handleNetworkModalClose = useCallback(() => {
@@ -351,12 +347,7 @@ function NetworkSwitcher() {
                       <Text bold>Ethereum Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      {selectedChainId ===
-                      getDecimalChainId(ChainId.mainnet) ? (
-                        <Text link>{strings('networks.continue')}</Text>
-                      ) : (
-                        <Text link>{strings('networks.switch')}</Text>
-                      )}
+                      <Text link>{strings('networks.switch')}</Text>
                     </View>
                   </TouchableOpacity>
                 ) : null}
@@ -382,12 +373,7 @@ function NetworkSwitcher() {
                       <Text bold>Linea Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      {selectedChainId ===
-                      getDecimalChainId(ChainId['linea-mainnet']) ? (
-                        <Text link>{strings('networks.continue')}</Text>
-                      ) : (
-                        <Text link>{strings('networks.switch')}</Text>
-                      )}
+                      <Text link>{strings('networks.switch')}</Text>
                     </View>
                   </TouchableOpacity>
                 ) : null}

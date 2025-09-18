@@ -44,8 +44,10 @@ const mockUseRampSDKInitialValues: DeepPartial<RampSDK> = {
   selectedPaymentMethodId: 'mocked-payment-method-id',
   selectedAsset: {
     symbol: 'mocked-asset-symbol',
+    network: {
+      chainId: '56',
+    },
   },
-  selectedChainId: '56',
   isBuy: true,
 };
 
@@ -174,9 +176,12 @@ describe('useInAppBrowser', () => {
       );
     });
 
-    it('falls back to selectedChainId when selectedAsset network is not available', async () => {
+    it('uses selectedAsset network chainId when available', async () => {
       mockUseRampSDKValues.selectedAsset = {
         symbol: 'USDC',
+        network: {
+          chainId: '56',
+        },
       };
 
       const { result } = renderHookWithProvider(() => useInAppBrowser(), {
@@ -486,7 +491,7 @@ describe('useInAppBrowser', () => {
       expect(mockHandleSuccessfulOrder).toHaveBeenCalled();
     });
 
-    it('creates transformed order with network from aggregatorOrderToFiatOrder, not selectedChainId', async () => {
+    it('creates transformed order with network from aggregatorOrderToFiatOrder', async () => {
       const mockOrder = {
         id: 'test-order-id',
         status: OrderStatusEnum.Pending,

@@ -22,14 +22,8 @@ const getStartedIcon = require('../../components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const {
-    getStarted,
-    setGetStarted,
-    sdkError,
-    selectedChainId,
-    isBuy,
-    setIntent,
-  } = useRampSDK();
+  const { getStarted, setGetStarted, sdkError, isBuy, setIntent } =
+    useRampSDK();
   const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
@@ -41,15 +35,15 @@ const GetStarted: React.FC = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: 'unknown', // TODO: Replace with actual chainId
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: 'unknown', // TODO: Replace with actual chainId
       });
     }
-  }, [isBuy, selectedChainId, trackEvent]);
+  }, [isBuy, trackEvent]);
 
   useEffect(() => {
     if (params) {
@@ -85,13 +79,10 @@ const GetStarted: React.FC = () => {
   useEffect(() => {
     if (getStarted) {
       // Redirects to Network Switcher view if the current network is not supported by Ramp
-      // or if the chainId from the URL params doesn't match the selected chainId.
+      // or if the chainId from the URL params is specified (for network switching).
       // The Network Switcher handles adding or switching to the network specified in the URL params
       // and continues the intent with any additional params (like token and amount).
-      if (
-        !isNetworkRampSupported ||
-        (params?.chainId && params.chainId !== selectedChainId)
-      ) {
+      if (!isNetworkRampSupported || params?.chainId) {
         navigation.reset({
           index: 0,
           routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
@@ -116,14 +107,7 @@ const GetStarted: React.FC = () => {
         });
       }
     }
-  }, [
-    getStarted,
-    isNetworkRampSupported,
-    navigation,
-    selectedChainId,
-    selectedRegion,
-    params,
-  ]);
+  }, [getStarted, isNetworkRampSupported, navigation, selectedRegion, params]);
 
   if (sdkError) {
     return (

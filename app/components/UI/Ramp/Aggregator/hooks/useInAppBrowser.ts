@@ -20,13 +20,8 @@ import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
 import Device from '../../../../../util/device';
 
 export default function useInAppBrowser() {
-  const {
-    selectedAddress,
-    selectedPaymentMethodId,
-    selectedAsset,
-    selectedChainId,
-    isBuy,
-  } = useRampSDK();
+  const { selectedPaymentMethodId, selectedAsset, selectedAddress, isBuy } =
+    useRampSDK();
 
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
@@ -42,6 +37,11 @@ export default function useInAppBrowser() {
       amount?: number,
       fiatSymbol?: string,
     ) => {
+      if (!selectedAsset?.network?.chainId) {
+        Logger.error(new Error('No chainId available for selected asset'));
+        return;
+      }
+
       const deeplinkRedirectUrl = `${callbackBaseDeeplink}on-ramp${provider.id}`;
       const { url, orderId: customOrderId } = await buyAction.createWidget(
         deeplinkRedirectUrl,
@@ -52,7 +52,7 @@ export default function useInAppBrowser() {
       if (customOrderId) {
         customIdData = createCustomOrderIdData(
           customOrderId,
-          selectedAsset?.network?.chainId || selectedChainId,
+          selectedAsset.network.chainId,
           selectedAddress,
           isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
         );
@@ -70,7 +70,7 @@ export default function useInAppBrowser() {
           if (result.type !== 'success' || !result.url) {
             trackEvent('ONRAMP_PURCHASE_CANCELLED', {
               amount: amount as number,
-              chain_id_destination: selectedChainId,
+              chain_id_destination: selectedAsset?.network?.chainId,
               currency_destination: isBuy
                 ? (selectedAsset?.symbol as string)
                 : (fiatSymbol as string),
@@ -138,9 +138,8 @@ export default function useInAppBrowser() {
       handleSuccessfulOrder,
       isBuy,
       lockTime,
-      selectedAddress,
       selectedAsset,
-      selectedChainId,
+      selectedAddress,
       selectedPaymentMethodId,
       trackEvent,
     ],

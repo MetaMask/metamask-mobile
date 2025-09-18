@@ -19,8 +19,6 @@ import {
 import Logger from '../../../../../util/Logger';
 
 import {
-  selectedAddressSelector,
-  chainIdSelector,
   fiatOrdersGetStartedAgg,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
@@ -31,6 +29,8 @@ import {
   fiatOrdersGetStartedSell,
   setFiatOrdersGetStartedSell,
 } from '../../../../../reducers/fiatOrders';
+import { selectRampWalletAddress } from '../../../../../selectors/ramp';
+import { RootState } from '../../../../../reducers';
 import { RampIntent, RampType, Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';
@@ -107,7 +107,6 @@ export interface RampSDK {
   setGetStarted: (getStartedFlag: boolean) => void;
 
   selectedAddress: string;
-  selectedChainId: string;
   selectedNetworkName?: string;
 
   isBuy: boolean;
@@ -171,8 +170,6 @@ export const RampSDKProvider = ({
   );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
   const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
-  const selectedAddress = useSelector(selectedAddressSelector);
-  const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
@@ -207,6 +204,10 @@ export const RampSDKProvider = ({
 
   const isBuy = rampType === RampType.BUY;
   const isSell = rampType === RampType.SELL;
+
+  const selectedAddress = useSelector((state: RootState) =>
+    selectRampWalletAddress(state, selectedAsset),
+  );
 
   useEffect(() => {
     setSelectedRegion(INITIAL_SELECTED_REGION);
@@ -280,10 +281,7 @@ export const RampSDKProvider = ({
 
       getStarted,
       setGetStarted: setGetStartedCallback,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error - Ramps team ownership"
       selectedAddress,
-      selectedChainId,
       selectedNetworkName,
 
       isBuy,
@@ -304,7 +302,6 @@ export const RampSDKProvider = ({
       sdkError,
       selectedAddress,
       selectedAsset,
-      selectedChainId,
       selectedFiatCurrencyId,
       selectedNetworkName,
       selectedPaymentMethodId,

@@ -47,7 +47,6 @@ const RegionsView = () => {
     setSelectedRegion,
     setSelectedFiatCurrencyId,
     sdkError,
-    selectedChainId,
     isBuy,
     isSell,
     rampType,
@@ -76,26 +75,21 @@ const RegionsView = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: 'unknown', // TODO: Replace with actual chainId
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: 'unknown', // TODO: Replace with actual chainId
       });
     }
-  }, [isBuy, selectedChainId, trackEvent]);
+  }, [isBuy, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
         {
-          title: strings(
-            isBuy
-              ? 'fiat_on_ramp_aggregator.region.buy_crypto_tokens'
-              : 'fiat_on_ramp_aggregator.region.sell_crypto_tokens',
-          ),
           showBack: false,
         },
         colors,

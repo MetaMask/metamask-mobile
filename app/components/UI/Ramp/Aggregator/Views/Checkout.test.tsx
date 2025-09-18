@@ -36,7 +36,6 @@ jest.mock('../orderProcessor/customOrderId');
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedAddress: '0x123',
-  selectedChainId: '1',
   selectedAsset: undefined,
   sdkError: undefined,
   callbackBaseUrl: 'https://callback.test',
@@ -126,14 +125,14 @@ describe('Checkout', () => {
     );
   });
 
-  it('falls back to selectedChainId when selectedAsset network is not available', () => {
+  it('uses selectedAsset network chainId when available', () => {
     mockUseRampSDKValues.selectedAsset = {
       id: '1',
       idv2: '2',
       legacyId: 'legacy-1',
       network: {
         active: true,
-        chainId: '',
+        chainId: '1',
         chainName: 'Test',
         shortName: 'Test',
       },
@@ -157,14 +156,14 @@ describe('Checkout', () => {
     );
   });
 
-  it('falls back to selectedChainId when selectedAsset is undefined', () => {
+  it('handles undefined selectedAsset gracefully', () => {
     mockUseRampSDKValues.selectedAsset = undefined;
 
     render();
 
     expect(createCustomOrderIdData).toHaveBeenCalledWith(
       'test-order-id',
-      '1',
+      undefined,
       '0x123',
       'BUY',
     );

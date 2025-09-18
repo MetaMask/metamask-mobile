@@ -244,7 +244,6 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
   selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
-  selectedChainId: '1',
   selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,

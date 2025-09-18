@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { SDK } from '../sdk';
-import {
-  chainIdSelector,
-  updateOnRampNetworks,
-} from '../../../../../reducers/fiatOrders';
+import { updateOnRampNetworks } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 
 /**
@@ -18,7 +15,6 @@ import Logger from '../../../../../util/Logger';
  */
 function useFetchRampNetworks() {
   const dispatch = useDispatch();
-  const chainId = useSelector(chainIdSelector);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
 
@@ -41,7 +37,7 @@ function useFetchRampNetworks() {
 
   useEffect(() => {
     fetchNetworks();
-  }, [chainId, fetchNetworks]);
+  }, [fetchNetworks]);
 
   return [isLoading, error, fetchNetworks] as const;
 }

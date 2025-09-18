@@ -81,15 +81,14 @@ function Quotes() {
 
   const {
     selectedPaymentMethodId,
-    selectedChainId,
     appConfig,
     callbackBaseUrl,
     sdkError,
     rampType,
     isBuy,
-    selectedAddress,
     selectedRegion,
     selectedAsset,
+    selectedAddress,
     selectedFiatCurrencyId,
     sdk,
   } = useRampSDK();
@@ -150,17 +149,22 @@ function Quotes() {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Quotes Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: params.asset?.network?.chainId || 'unknown',
         results_count: quotesByPriceWithoutError.length,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Quotes Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: params.asset?.network?.chainId || 'unknown',
         results_count: quotesByPriceWithoutError.length,
       });
     }
-  }, [quotesByPriceWithoutError.length, isBuy, selectedChainId, trackEvent]);
+  }, [
+    quotesByPriceWithoutError.length,
+    isBuy,
+    params.asset?.network?.chainId,
+    trackEvent,
+  ]);
 
   const handleClosePress = useCallback(
     (bottomSheetDialogRef: React.RefObject<BottomSheetRef>) => {
@@ -192,14 +196,14 @@ function Quotes() {
         ...payload,
         currency_source: params.fiatCurrency?.symbol,
         currency_destination: params.asset?.symbol,
-        chain_id_destination: selectedChainId,
+        chain_id_destination: params.asset?.network?.chainId || 'unknown',
       });
     } else {
       trackEvent('OFFRAMP_QUOTES_REQUESTED', {
         ...payload,
         currency_destination: params.fiatCurrency?.symbol,
         currency_source: params.asset?.symbol,
-        chain_id_source: selectedChainId,
+        chain_id_source: params.asset?.network?.chainId || 'unknown',
       });
     }
   }, [
@@ -208,7 +212,6 @@ function Quotes() {
     fetchQuotes,
     isBuy,
     params,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
   ]);
@@ -231,14 +234,14 @@ function Quotes() {
     if (isBuy) {
       trackEvent('ONRAMP_QUOTES_EXPANDED', {
         ...payload,
-        chain_id_destination: selectedChainId,
+        chain_id_destination: params.asset?.network?.chainId || 'unknown',
         currency_source: params.fiatCurrency?.symbol,
         currency_destination: params.asset?.symbol,
       });
     } else {
       trackEvent('OFFRAMP_QUOTES_EXPANDED', {
         ...payload,
-        chain_id_source: selectedChainId,
+        chain_id_source: params.asset?.network?.chainId || 'unknown',
         currency_source: params.asset?.symbol,
         currency_destination: params.fiatCurrency?.symbol,
       });
@@ -250,9 +253,9 @@ function Quotes() {
     ordersProviders,
     params.amount,
     params.asset?.symbol,
+    params.asset?.network?.chainId,
     params.fiatCurrency?.symbol,
     pollingCyclesLeft,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
   ]);
@@ -311,7 +314,7 @@ function Quotes() {
             currency_source: currentFiatCurrency?.symbol as string,
             currency_destination: selectedAsset?.symbol as string,
             provider_onramp: provider.name,
-            chain_id_destination: selectedChainId as string,
+            chain_id_destination: params.asset?.network?.chainId || 'unknown',
           });
         } else {
           trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
@@ -319,7 +322,7 @@ function Quotes() {
             currency_destination: currentFiatCurrency?.symbol as string,
             currency_source: selectedAsset?.symbol as string,
             provider_offramp: provider.name,
-            chain_id_source: selectedChainId as string,
+            chain_id_source: params.asset?.network?.chainId || 'unknown',
           });
         }
 
@@ -373,17 +376,16 @@ function Quotes() {
       selectedRegion?.id,
       selectedPaymentMethodId,
       isBuy,
-      selectedAsset?.id,
-      selectedAsset?.symbol,
       selectedFiatCurrencyId,
       params.amount,
       selectedAddress,
       trackEvent,
       currentFiatCurrency?.symbol,
-      selectedChainId,
       callbackBaseUrl,
       navigation,
       renderInAppBrowser,
+      selectedAsset,
+      params.asset?.network?.chainId,
     ],
   );
 
@@ -421,7 +423,7 @@ function Quotes() {
             currency_destination: params.asset?.symbol,
             provider_onramp: quote.provider.name,
             crypto_out: quote.amountOut ?? 0,
-            chain_id_destination: selectedChainId,
+            chain_id_destination: params.asset?.network?.chainId || 'unknown',
           });
         } else {
           trackEvent('OFFRAMP_PROVIDER_SELECTED', {
@@ -430,7 +432,7 @@ function Quotes() {
             currency_source: params.asset?.symbol,
             provider_offramp: quote.provider.name,
             fiat_out: quote.amountOut ?? 0,
-            chain_id_source: selectedChainId,
+            chain_id_source: params.asset?.network?.chainId || 'unknown',
           });
         }
 
@@ -487,10 +489,10 @@ function Quotes() {
       isBuy,
       rampType,
       trackEvent,
-      selectedChainId,
       renderInAppBrowser,
       callbackBaseUrl,
       navigation,
+      params.asset?.network?.chainId,
     ],
   );
 
@@ -544,12 +546,7 @@ function Quotes() {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(
-        navigation,
-        { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
-        theme.colors,
-        handleCancelPress,
-      ),
+      getFiatOnRampAggNavbar(navigation, {}, theme.colors, handleCancelPress),
     );
   }, [navigation, theme.colors, handleCancelPress]);
 
@@ -639,7 +636,7 @@ function Quotes() {
             currency_source: params.fiatCurrency?.symbol,
             currency_destination: params.asset?.symbol,
             average_crypto_out: averageOut,
-            chain_id_destination: selectedChainId,
+            chain_id_destination: params.asset?.network?.chainId || 'unknown',
             provider_onramp_list: providerList,
             provider_onramp_first: providerFirst,
             provider_onramp_last: providerLast,
@@ -652,7 +649,7 @@ function Quotes() {
             currency_destination: params.fiatCurrency?.symbol,
             currency_source: params.asset?.symbol,
             average_fiat_out: averageOut,
-            chain_id_source: selectedChainId,
+            chain_id_source: params.asset?.network?.chainId || 'unknown',
             provider_offramp_list: providerList,
             provider_offramp_first: providerFirst,
             provider_offramp_last: providerLast,
@@ -676,7 +673,7 @@ function Quotes() {
             currency_source: params.fiatCurrency?.symbol,
             currency_destination: params.asset?.symbol,
             provider_onramp: quoteError.provider.name,
-            chain_id_destination: selectedChainId,
+            chain_id_destination: params.asset?.network?.chainId || 'unknown',
           });
         } else {
           trackEvent('OFFRAMP_QUOTE_ERROR', {
@@ -684,7 +681,7 @@ function Quotes() {
             currency_destination: params.fiatCurrency?.symbol,
             currency_source: params.asset?.symbol,
             provider_offramp: quoteError.provider.name,
-            chain_id_source: selectedChainId,
+            chain_id_source: params.asset?.network?.chainId || 'unknown',
           });
         }
       });
@@ -697,11 +694,11 @@ function Quotes() {
     params,
     pollingCyclesLeft,
     rampType,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
     quotesWithError,
     quotesWithoutError,
+    params.asset?.network?.chainId,
   ]);
 
   useEffect(() => {
