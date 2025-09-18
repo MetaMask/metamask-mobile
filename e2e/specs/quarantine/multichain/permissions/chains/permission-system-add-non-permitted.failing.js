@@ -3,7 +3,7 @@ import {
   SmokeNetworkExpansion,
 } from '../../../../../tags';
 import { loginToApp } from '../../../../../viewHelper';
-import Assertions from '../../../../framework/Assertions';
+import Assertions from '../../../../../framework/Assertions';
 import TestHelpers from '../../../../../helpers';
 import FixtureBuilder from '../../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../../framework/fixtures/FixtureHelper';
