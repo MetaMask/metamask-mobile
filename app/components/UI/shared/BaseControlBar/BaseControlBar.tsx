@@ -108,7 +108,9 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   // Determine if disabled (use custom logic if provided, otherwise use hook logic)
-  const isDisabled = customIsDisabled ?? hookIsDisabled;
+  const isDisabled = !isMultichainAccountsState2Enabled
+    ? customIsDisabled ?? hookIsDisabled
+    : false;
 
   const displayAllNetworks = isMultichainAccountsState2Enabled
     ? totalEnabledNetworksCount > 1

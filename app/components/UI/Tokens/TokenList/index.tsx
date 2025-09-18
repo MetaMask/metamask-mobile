@@ -103,10 +103,6 @@ const TokenListComponent = ({
       }}
       decelerationRate={0}
       renderItem={renderTokenListItem}
-      keyExtractor={(item) => {
-        const staked = item.isStaked ? 'staked' : 'unstaked';
-        return `${item.address}-${item.chainId}-${staked}`;
-      }}
       ListFooterComponent={<TokenListFooter />}
       refreshControl={
         <RefreshControl
