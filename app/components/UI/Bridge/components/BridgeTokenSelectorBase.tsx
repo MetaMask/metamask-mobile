@@ -88,7 +88,9 @@ const createStyles = (params: { theme: Theme }) => {
       marginTop: 8,
       alignSelf: 'center',
     },
-    // End section
+    tokensList: {
+      marginTop: 10,
+    },
   });
 };
 
@@ -286,6 +288,7 @@ export const BridgeTokenSelectorBase: React.FC<
 
         {/* Tokens */}
         <ListComponent
+          style={styles.tokensList}
           data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
