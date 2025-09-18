@@ -49,7 +49,7 @@ test('Cold Start after importing a wallet', async ({
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightSelectors.terminateApp(device);
+  await AppwrightSelectors.backgroundApp(device, 30);
   await AppwrightSelectors.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword('123456789');
@@ -96,13 +96,13 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightSelectors.terminateApp(device);
-
+  await AppwrightSelectors.backgroundApp(device, 30);
   await AppwrightSelectors.activateApp(device);
   const timer1 = new TimerHelper(
     'Time since the the app is launched, until login screen appears',
   );
   timer1.start();
+  await AppwrightSelectors.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
   timer1.stop();
   performanceTracker.addTimer(timer1);

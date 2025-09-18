@@ -80,7 +80,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await performanceTracker.attachToTest(testInfo);
 });
 
-test.only('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
+test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {

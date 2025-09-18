@@ -27,7 +27,7 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
   ExternalWebsitesScreen.device = device;
   AccountApprovalModal.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 
   await TabBarModal.tapBrowserButton();
 
