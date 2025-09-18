@@ -10,6 +10,7 @@ export interface PerpsOpenOrderCardProps {
   rightAccessory?: React.ReactNode;
   isActiveOnChart?: boolean;
   activeType?: 'TP' | 'SL' | 'BOTH';
+  isCancelling?: boolean;
 }
 
 export interface OpenOrderCardDerivedData {
