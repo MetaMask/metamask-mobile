@@ -129,22 +129,32 @@ jobs:
         run: |
           echo "📦 Repacking APK with updated JavaScript..."
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
-
+          
+          # Verify APK exists from cache
+          if [ ! -f "$APK_PATH" ]; then
+            echo "❌ Error: APK not found at $APK_PATH"
+            echo "Cache restoration may have failed"
+            exit 1
+          fi
+          
           # Generate new JS bundle with sourcemap
           mkdir -p sourcemaps/android
           yarn react-native bundle \
             --platform android \
             --dev false \
             --entry-file index.js \
-            --bundle-output android/main.jsbundle \
+            --bundle-output android/assets/index.android.bundle \
             --sourcemap-output sourcemaps/android/index.android.bundle.map
-
-          # Repack the APK with new bundle
-          TEMP_DIR=$(mktemp -d)
-          unzip -q "$APK_PATH" -d "$TEMP_DIR"
-          cp android/main.jsbundle "$TEMP_DIR/assets/index.android.bundle"
-          (cd "$TEMP_DIR" && zip -qr "$APK_PATH" .)
-          rm -rf "$TEMP_DIR" android/main.jsbundle
+          
+          # Update the JS bundle directly in the APK (similar to iOS approach)
+          # Create the assets directory structure to match APK internal structure
+          mkdir -p android/assets
+          
+          # Use zip to update the file in-place (this updates the existing APK)
+          cd android && zip -u "$APK_PATH" assets/index.android.bundle && cd ..
+          
+          # Cleanup
+          rm -rf android/assets
           echo "✅ APK repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
