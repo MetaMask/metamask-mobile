@@ -8,6 +8,7 @@ import {
   EIP712Domain,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
+  POLYGON_MAINNET_CHAIN_ID,
 } from './constants';
 import {
   ApiKeyCreds,
@@ -51,7 +52,6 @@ import {
   getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
-  POLYGON_MAINNET_CHAIN_ID,
   priceValid,
   roundDown,
   roundNormal,

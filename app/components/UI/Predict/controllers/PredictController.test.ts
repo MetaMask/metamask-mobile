@@ -198,7 +198,6 @@ describe('PredictController', () => {
 
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getMarkets.mockResolvedValue(mockMarkets as any);
-        await controller.initializeProviders();
 
         const result = await controller.getMarkets({
           providerId: 'polymarket',
@@ -216,7 +215,6 @@ describe('PredictController', () => {
         mockPolymarketProvider.getMarkets.mockRejectedValue(
           new Error(errorMessage),
         );
-        await controller.initializeProviders();
 
         await expect(
           controller.getMarkets({ providerId: 'polymarket' }),
@@ -240,7 +238,6 @@ describe('PredictController', () => {
         mockPolymarketProvider.getPositions.mockResolvedValue(
           mockPositions as any,
         );
-        await controller.initializeProviders();
 
         const result = await controller.getPositions({
           address: '0x1234567890123456789012345678901234567890',
@@ -260,7 +257,6 @@ describe('PredictController', () => {
         mockPolymarketProvider.getPositions.mockRejectedValue(
           new Error(errorMessage),
         );
-        await controller.initializeProviders();
 
         await expect(
           controller.getPositions({
@@ -290,8 +286,6 @@ describe('PredictController', () => {
     it('should place order via provider, connect if needed, and track active order (polymarket approving)', async () => {
       const mockTxMeta = { id: 'tx-1' } as any;
       await withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
         // Prepare provider transaction data
         mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
           id: 'order-1',
@@ -354,8 +348,6 @@ describe('PredictController', () => {
     it('should set status to approving for buy order', async () => {
       const mockTxMeta = { id: 'tx-2' } as any;
       await withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
         mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
           id: 'order-2',
           providerId: 'polymarket',
@@ -398,8 +390,6 @@ describe('PredictController', () => {
 
     it('should throw PLACE_ORDER_FAILED if provider returns no result', async () => {
       await withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
         mockPolymarketProvider.prepareBuyOrder.mockResolvedValue(
           undefined as any,
         );
@@ -419,8 +409,6 @@ describe('PredictController', () => {
     it('should place sell order via provider and track active order (polymarket selling)', async () => {
       const mockTxMeta = { id: 'sell-tx-1' } as any;
       await withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
         const mockPosition = {
           marketId: 'market-1',
           providerId: 'polymarket',
@@ -489,8 +477,6 @@ describe('PredictController', () => {
 
     it('should handle sell order errors', async () => {
       await withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
         const mockPosition = {
           marketId: 'market-1',
           providerId: 'polymarket',

@@ -17,6 +17,7 @@ import {
   EIP712Domain,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
+  POLYGON_MAINNET_CHAIN_ID,
 } from './constants';
 import {
   ApiKeyCreds,
@@ -42,12 +43,11 @@ import {
 import { GetMarketsParams } from '../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
-export const POLYGON_MAINNET_CHAIN_ID = 137;
-
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
   CLOB_ENDPOINT: 'https://clob.polymarket.com',
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+  GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
 });
 
 export const getL1Headers = async ({ address }: { address: string }) => {

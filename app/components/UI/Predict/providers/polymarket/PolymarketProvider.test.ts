@@ -40,6 +40,7 @@ jest.mock('./utils', () => {
       DATA_API_ENDPOINT: 'https://data.polymarket.com',
       GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
+      GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
     })),
     getMarketsFromPolymarketApi: jest.fn(),
     getMarketFromPolymarketApi: jest.fn(),
@@ -656,6 +657,128 @@ describe('PolymarketProvider', () => {
       const result = await provider.submitOffchainTrade(offchainTradeParams);
 
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('isEligible', () => {
+    const originalFetch = globalThis.fetch;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    it('returns true when user is not geoblocked', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        json: jest.fn().mockResolvedValue({ blocked: false }),
+      };
+      globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(true);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/geoblock',
+      );
+    });
+
+    it('returns false when user is geoblocked', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        json: jest.fn().mockResolvedValue({ blocked: true }),
+      };
+      globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(false);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/geoblock',
+      );
+    });
+
+    it('returns false when API response does not contain blocked field', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        json: jest.fn().mockResolvedValue({}),
+      };
+      globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(false);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/geoblock',
+      );
+    });
+
+    it('returns false when API response blocked field is undefined', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        json: jest.fn().mockResolvedValue({ blocked: undefined }),
+      };
+      globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(false);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/geoblock',
+      );
+    });
+
+    it('returns false when fetch request fails', async () => {
+      const provider = createProvider();
+      globalThis.fetch = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(false);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/geoblock',
+      );
+    });
+
+    it('returns false when JSON parsing fails', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      };
+      globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(false);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://polymarket.com/api/geoblock',
+      );
+    });
+
+    it('handles non-Error exceptions gracefully', async () => {
+      const provider = createProvider();
+      globalThis.fetch = jest.fn().mockRejectedValue('String error');
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for malformed API response', async () => {
+      const provider = createProvider();
+      const mockResponse = {
+        json: jest.fn().mockResolvedValue('invalid response'),
+      };
+      globalThis.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await provider.isEligible();
+
+      expect(result).toBe(false);
     });
   });
 });

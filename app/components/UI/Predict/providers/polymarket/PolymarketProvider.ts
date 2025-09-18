@@ -19,7 +19,7 @@ import {
   PredictProvider,
   SellOrderParams,
 } from '../types';
-import { ROUNDING_CONFIG } from './constants';
+import { POLYGON_MAINNET_CHAIN_ID, ROUNDING_CONFIG } from './constants';
 import {
   ApiKeyCreds,
   OrderArtifactsParams,
@@ -44,7 +44,6 @@ import {
   getPolymarketEndpoints,
   getTickSize,
   parsePolymarketPositions,
-  POLYGON_MAINNET_CHAIN_ID,
   priceValid,
   submitClobOrder,
 } from './utils';
@@ -452,7 +451,23 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   public async isEligible(): Promise<boolean> {
-    // TODO: Implement once Polymarket Geo-Blocking API is available
-    return true;
+    const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
+    let eligible = false;
+    try {
+      const res = await fetch(GEOBLOCK_API_ENDPOINT);
+      const { blocked } = (await res.json()) as { blocked: boolean };
+      if (blocked !== undefined) {
+        eligible = blocked === false;
+      }
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Error checking geoblock status', {
+        error:
+          error instanceof Error
+            ? error.message
+            : `Error checking geoblock status: ${error}`,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return eligible;
   }
 }
