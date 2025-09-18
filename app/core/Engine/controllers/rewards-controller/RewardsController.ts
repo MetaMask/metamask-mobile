@@ -21,6 +21,8 @@ import {
   type OptInStatusDto,
   type PointsBoostDto,
   type ActiveBoostsState,
+  type UnlockedRewardsState,
+  type RewardDto,
   CURRENT_SEASON_ID,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -62,17 +64,61 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
 
+// Unlocked rewards cache threshold
+const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
 /**
  * State metadata for the RewardsController
  */
 const metadata = {
-  activeAccount: { persist: true, anonymous: false },
-  accounts: { persist: true, anonymous: false },
-  subscriptions: { persist: true, anonymous: false },
-  seasons: { persist: true, anonymous: false },
-  subscriptionReferralDetails: { persist: true, anonymous: false },
-  seasonStatuses: { persist: true, anonymous: false },
-  activeBoosts: { persist: true, anonymous: false },
+  activeAccount: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  accounts: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  subscriptions: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  seasons: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  subscriptionReferralDetails: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  seasonStatuses: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  activeBoosts: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  unlockedRewards: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 /**
  * Get the default state for the RewardsController
@@ -85,6 +131,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   subscriptionReferralDetails: {},
   seasonStatuses: {},
   activeBoosts: {},
+  unlockedRewards: {},
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -268,6 +315,10 @@ export class RewardsController extends BaseController<
       'RewardsController:getActivePointsBoosts',
       this.getActivePointsBoosts.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getUnlockedRewards',
+      this.getUnlockedRewards.bind(this),
+    );
   }
 
   /**
@@ -339,6 +390,23 @@ export class RewardsController extends BaseController<
       subscriptionId,
     );
     return this.state.activeBoosts[compositeKey] || null;
+  }
+
+  /**
+   * Get cached unlocked rewards for a subscription and season
+   * @param subscriptionId - The subscription ID
+   * @param seasonId - The season ID (defaults to current season)
+   * @returns The cached unlocked rewards state or null if not found
+   */
+  #getUnlockedRewards(
+    subscriptionId: string,
+    seasonId: string = CURRENT_SEASON_ID,
+  ): UnlockedRewardsState | null {
+    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+      seasonId,
+      subscriptionId,
+    );
+    return this.state.unlockedRewards[compositeKey] || null;
   }
 
   /**
@@ -661,7 +729,7 @@ export class RewardsController extends BaseController<
       );
       return {
         hasOptedIn: !!accountState.hasOptedIn,
-        discount: accountState.perpsFeeDiscount,
+        discountBips: accountState.perpsFeeDiscount,
       };
     }
 
@@ -684,7 +752,7 @@ export class RewardsController extends BaseController<
             subscriptionId: null,
             lastCheckedAuth: Date.now(),
             lastCheckedAuthError: false,
-            perpsFeeDiscount: perpsDiscountData.discount ?? 0,
+            perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
             lastPerpsDiscountRateFetched: Date.now(),
           };
         } else {
@@ -694,7 +762,7 @@ export class RewardsController extends BaseController<
             state.accounts[account].subscriptionId = null;
           }
           state.accounts[account].perpsFeeDiscount =
-            perpsDiscountData.discount ?? 0;
+            perpsDiscountData.discountBips ?? 0;
           state.accounts[account].lastPerpsDiscountRateFetched = Date.now();
         }
       });
@@ -753,13 +821,13 @@ export class RewardsController extends BaseController<
   /**
    * Get perps fee discount for an account with caching and threshold logic
    * @param account - The account address in CAIP-10 format
-   * @returns Promise<number> - The discount number value
+   * @returns Promise<number> - The discount in basis points
    */
   async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) return 0;
     const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
-    return perpsDiscountData?.discount || 0;
+    return perpsDiscountData?.discountBips || 0;
   }
 
   /**
@@ -1526,6 +1594,88 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get active points boosts:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Get unlocked rewards with caching
+   * @param seasonId - The season ID
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<RewardDto[]> - The unlocked rewards data
+   */
+  async getUnlockedRewards(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<RewardDto[]> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return [];
+    }
+
+    // Check if we have cached unlocked rewards and if threshold hasn't been reached
+    const cachedUnlockedRewards = this.#getUnlockedRewards(
+      subscriptionId,
+      seasonId,
+    );
+    if (
+      cachedUnlockedRewards?.lastFetched &&
+      Date.now() - cachedUnlockedRewards.lastFetched <
+        UNLOCKED_REWARDS_CACHE_THRESHOLD_MS
+    ) {
+      Logger.log(
+        'RewardsController: Using cached unlocked rewards data for',
+        subscriptionId,
+        seasonId,
+        {
+          rewardCount: cachedUnlockedRewards.rewards.length,
+          cacheAge: Math.round(
+            (Date.now() - cachedUnlockedRewards.lastFetched) / 1000,
+          ),
+          maxAge: Math.round(UNLOCKED_REWARDS_CACHE_THRESHOLD_MS / 1000),
+        },
+      );
+      return cachedUnlockedRewards.rewards;
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh unlocked rewards data via API call for subscriptionId & seasonId',
+        subscriptionId,
+        seasonId,
+      );
+      const response = (await this.messagingSystem.call(
+        'RewardsDataService:getUnlockedRewards',
+        seasonId,
+        subscriptionId,
+      )) as RewardDto[];
+
+      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+
+      // Update state with cached unlocked rewards
+      this.update((state: RewardsControllerState) => {
+        state.unlockedRewards[compositeKey] = {
+          rewards: response || [],
+          lastFetched: Date.now(),
+        };
+      });
+
+      Logger.log(
+        'RewardsController: Successfully cached unlocked rewards data',
+        {
+          rewardCount: (response || []).length,
+        },
+      );
+
+      return response || [];
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get unlocked rewards:',
         error instanceof Error ? error.message : String(error),
       );
       return [];

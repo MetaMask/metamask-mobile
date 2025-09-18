@@ -7,6 +7,8 @@ import {
   formatTimeRemaining,
   getEventDetails,
   PerpsEventType,
+  formatNumber,
+  getIconName,
 } from './formatUtils';
 import {
   PointsEventDto,
@@ -42,6 +44,22 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return t[key] || key;
   }),
+  default: {
+    locale: 'en-US',
+  },
+}));
+
+// Mock intl utility
+const mockFormat = jest.fn((value: number) =>
+  new Intl.NumberFormat('en-US').format(value),
+);
+
+const mockGetIntlNumberFormatter = jest.fn((_locale: string) => ({
+  format: mockFormat,
+}));
+
+jest.mock('../../../../util/intl', () => ({
+  getIntlNumberFormatter: mockGetIntlNumberFormatter,
 }));
 
 describe('formatUtils', () => {
@@ -628,6 +646,231 @@ describe('formatUtils', () => {
         expectedTimestamp,
       );
       expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('formatNumber', () => {
+    it('should format positive numbers correctly', () => {
+      expect(formatNumber(1234)).toBe('1234');
+      expect(formatNumber(1000000)).toBe('1000000');
+      expect(formatNumber(500)).toBe('500');
+    });
+
+    it('should handle zero', () => {
+      expect(formatNumber(0)).toBe('0');
+    });
+
+    it('should handle null values', () => {
+      expect(formatNumber(null)).toBe('0');
+    });
+
+    it('should handle undefined values', () => {
+      expect(formatNumber(undefined as unknown as number)).toBe('0');
+    });
+
+    it('should handle negative numbers', () => {
+      expect(formatNumber(-1234)).toBe('-1234');
+      expect(formatNumber(-500)).toBe('-500');
+    });
+
+    it('should handle decimal numbers', () => {
+      expect(formatNumber(1234.56)).toBe('1234.56');
+      expect(formatNumber(999.99)).toBe('999.99');
+    });
+
+    it('should handle very large numbers', () => {
+      expect(formatNumber(5000000)).toBe('5000000');
+      expect(formatNumber(1500000)).toBe('1500000');
+    });
+
+    it('should fallback to string conversion on formatter error', () => {
+      // Mock the formatter to throw an error
+      const mockErrorFormatter = {
+        format: jest.fn().mockImplementation(() => {
+          throw new Error('Formatter error');
+        }),
+      };
+
+      mockGetIntlNumberFormatter.mockReturnValue(mockErrorFormatter);
+
+      expect(formatNumber(1234)).toBe('1234');
+
+      // Restore original mock
+      mockGetIntlNumberFormatter.mockReturnValue({ format: mockFormat });
+    });
+  });
+
+  describe('getIconName', () => {
+    it('should return valid IconName when provided valid icon name', () => {
+      expect(getIconName('Star')).toBe(IconName.Star);
+      expect(getIconName('ArrowDown')).toBe(IconName.ArrowDown);
+      expect(getIconName('Lock')).toBe(IconName.Lock);
+    });
+
+    it('should return Star as fallback for invalid icon names', () => {
+      expect(getIconName('InvalidIcon')).toBe(IconName.Star);
+      expect(getIconName('NonExistentIcon')).toBe(IconName.Star);
+      expect(getIconName('')).toBe(IconName.Star);
+    });
+
+    it('should handle null and undefined inputs', () => {
+      expect(getIconName(null as unknown as string)).toBe(IconName.Star);
+      expect(getIconName(undefined as unknown as string)).toBe(IconName.Star);
+    });
+
+    it('should handle case-sensitive icon names', () => {
+      expect(getIconName('star')).toBe(IconName.Star); // lowercase should fallback
+      expect(getIconName('STAR')).toBe(IconName.Star); // uppercase should fallback
+    });
+
+    it('should handle special characters and numbers', () => {
+      expect(getIconName('Star123')).toBe(IconName.Star);
+      expect(getIconName('Star-Icon')).toBe(IconName.Star);
+      expect(getIconName('Star_Icon')).toBe(IconName.Star);
+    });
+
+    it('should work with all valid IconName enum values', () => {
+      // Test a few common IconName values
+      const validIcons = [
+        'Add',
+        'Arrow2Down',
+        'Arrow2Left',
+        'Arrow2Right',
+        'Arrow2Up',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'Bank',
+        'Bold',
+        'Book',
+        'Bookmark',
+        'Calculator',
+        'Calendar',
+        'Camera',
+        'Card',
+        'CardPos',
+        'CardToken',
+        'Category',
+        'Chart',
+        'Check',
+        'CheckBold',
+        'CheckBoxOff',
+        'CheckBoxOn',
+        'Clock',
+        'Close',
+        'Coin',
+        'Confirmation',
+        'Connect',
+        'Copy',
+        'CopySuccess',
+        'Danger',
+        'Dark',
+        'Data',
+        'Diagram',
+        'DocumentCode',
+        'Download',
+        'Edit',
+        'Eraser',
+        'Ethereum',
+        'Expand',
+        'Export',
+        'EyeSlash',
+        'File',
+        'Filter',
+        'Flag',
+        'FlashSlash',
+        'FullCircle',
+        'Gas',
+        'Global',
+        'GlobalSearch',
+        'Graph',
+        'Hardware',
+        'Heart',
+        'Hierarchy',
+        'Home',
+        'Import',
+        'Info',
+        'Key',
+        'Light',
+        'Link',
+        'Loading',
+        'Lock',
+        'LockCircle',
+        'LockSlash',
+        'Login',
+        'Logout',
+        'Menu',
+        'MessageQuestion',
+        'Messages',
+        'MinusCircle',
+        'Mobile',
+        'Money',
+        'Monitor',
+        'MoreHorizontal',
+        'MoreVertical',
+        'Notification',
+        'NotificationCircle',
+        'PasswordCheck',
+        'People',
+        'PlusCircle',
+        'Programming',
+        'QrCode',
+        'Question',
+        'Received',
+        'Refresh',
+        'Save',
+        'ScanBarcode',
+        'ScanFocus',
+        'Search',
+        'Security',
+        'SecurityCard',
+        'SecurityCross',
+        'SecurityKey',
+        'SecuritySearch',
+        'SecuritySlash',
+        'SecurityTick',
+        'SecurityTime',
+        'SecurityUser',
+        'Send1',
+        'Send2',
+        'Setting',
+        'Slash',
+        'SnapsMobile',
+        'SpeedUp',
+        'Star',
+        'Swap',
+        'SwapHorizontal',
+        'SwapVertical',
+        'Tag',
+        'Tilde',
+        'Timer',
+        'Trash',
+        'TrendDown',
+        'TrendUp',
+        'Twitter',
+        'Upload',
+        'Usb',
+        'User',
+        'UserAdd',
+        'UserCheck',
+        'UserCircle',
+        'UserCircleAdd',
+        'UserMinus',
+        'UserRemove',
+        'UserSearch',
+        'UserTick',
+        'Wallet',
+        'WalletCard',
+        'WalletMoney',
+        'Warning',
+      ];
+
+      validIcons.forEach((iconName) => {
+        if (Object.values(IconName).includes(iconName as IconName)) {
+          expect(getIconName(iconName)).toBe(iconName);
+        }
+      });
     });
   });
 });
