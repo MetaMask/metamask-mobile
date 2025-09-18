@@ -70,14 +70,6 @@ describe('TabEmptyState', () => {
       expect(getByText('Add Item')).toBeTruthy();
     });
 
-    it('does not render action button when only actionButtonText is provided', () => {
-      const { queryByText } = render(
-        <TabEmptyState actionButtonText="Add Item" testID="tab-empty-state" />,
-      );
-
-      expect(queryByText('Add Item')).toBeNull();
-    });
-
     it('does not render action button when only onAction is provided', () => {
       const { queryByText } = render(
         <TabEmptyState onAction={mockOnAction} testID="tab-empty-state" />,

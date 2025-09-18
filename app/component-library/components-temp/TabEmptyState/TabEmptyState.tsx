@@ -17,7 +17,7 @@ import {
 
 export interface TabEmptyStateProps extends Omit<BoxProps, 'children'> {
   /**
-   * The icon to display in the empty state
+   * The icon to display in the empty state if this is an png/jpg image you will need to account for light and dark theme with useAssetFromTheme
    */
   icon?: React.ReactNode;
   /**
@@ -79,7 +79,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
       </Text>
     )}
 
-    {actionButtonText && onAction && (
+    {actionButtonText && (
       <Button
         variant={ButtonVariant.Tertiary}
         onPress={onAction}
