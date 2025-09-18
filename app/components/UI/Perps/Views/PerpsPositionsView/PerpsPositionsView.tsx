@@ -235,6 +235,7 @@ const PerpsPositionsView: React.FC = () => {
           initialTakeProfitPrice={selectedPosition.takeProfitPrice}
           initialStopLossPrice={selectedPosition.stopLossPrice}
           isUpdating={isUpdating}
+          orderType="market" // Default to market for existing positions
         />
       )}
     </SafeAreaView>
