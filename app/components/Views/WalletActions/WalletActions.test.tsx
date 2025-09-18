@@ -24,7 +24,7 @@ import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -38,7 +38,7 @@ jest.mock('../../UI/Perps/selectors/perpsController', () => ({
   selectIsFirstTimePerpsUser: jest.fn(),
 }));
 
-jest.mock('../../UI/Predict', () => ({
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(),
 }));
 
@@ -547,8 +547,14 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith('Predict', {
-      screen: 'PredictMarketListView',
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
+      screen: 'WalletTabStackFlow',
+      params: {
+        screen: 'Predict',
+        params: {
+          screen: 'PredictMarketList',
+        },
+      },
     });
   });
 
