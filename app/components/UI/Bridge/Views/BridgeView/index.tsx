@@ -445,6 +445,7 @@ const BridgeView = () => {
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
+            isSourceToken
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
