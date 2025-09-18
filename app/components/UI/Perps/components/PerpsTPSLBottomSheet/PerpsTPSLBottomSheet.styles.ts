@@ -174,7 +174,7 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 8,
     },
     keypadContainer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 8,
       paddingTop: 8,
       backgroundColor: colors.background.default,
     },

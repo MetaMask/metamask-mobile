@@ -377,384 +377,389 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   if (!isVisible) return null;
 
   return (
-    <>
-      <BottomSheet
-        ref={bottomSheetRef}
-        shouldNavigateBack={false}
-        onClose={handleClose}
-        testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
-        isFullscreen
-      >
-        <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.tpsl.title')}
-          </Text>
-        </BottomSheetHeader>
-        <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content}>
-          <TouchableOpacity
-            style={styles.scrollContent}
-            activeOpacity={1}
-            testID="scroll-content"
-            onPress={() => {
-              if (focusedInput) {
-                dismissKeypad();
-              }
-            }}
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={handleClose}
+      testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
+      isFullscreen
+    >
+      <BottomSheetHeader onClose={handleClose}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('perps.tpsl.title')}
+        </Text>
+      </BottomSheetHeader>
+      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content}>
+        <TouchableOpacity
+          style={styles.scrollContent}
+          activeOpacity={1}
+          testID="scroll-content"
+          onPress={() => {
+            if (focusedInput) {
+              dismissKeypad();
+            }
+          }}
+        >
+          {showOverlay && (
+            <View style={styles.overlay}>
+              <ActivityIndicator size="large" color={colors.primary.default} />
+            </View>
+          )}
+
+          {/* Description text */}
+          {!focusedInput && (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              style={styles.description}
+            >
+              {strings('perps.tpsl.description')}
+            </Text>
+          )}
+
+          {/* Current price and liquidation price info */}
+          <View
+            style={
+              focusedInput
+                ? styles.priceInfoContainerCondensed
+                : styles.priceInfoContainer
+            }
           >
-            {showOverlay && (
-              <View style={styles.overlay}>
-                <ActivityIndicator
-                  size="large"
-                  color={colors.primary.default}
+            <View style={styles.priceInfoRow}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {orderType === 'limit' &&
+                limitPrice &&
+                parseFloat(limitPrice) > 0
+                  ? strings('perps.order.limit_price')
+                  : strings('perps.tpsl.current_price')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {currentPrice
+                  ? formatPerpsFiat(currentPrice, {
+                      ranges: PRICE_RANGES_POSITION_VIEW,
+                    })
+                  : '--'}
+              </Text>
+            </View>
+            <View style={styles.priceInfoRow}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.tpsl.liquidation_price')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {displayLiquidationPrice &&
+                displayLiquidationPrice !== 'null' &&
+                displayLiquidationPrice !== '0.00'
+                  ? formatPerpsFiat(displayLiquidationPrice, {
+                      ranges: PRICE_RANGES_POSITION_VIEW,
+                    })
+                  : '--'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Take Profit Section */}
+          <View style={focusedInput ? styles.sectionCondensed : styles.section}>
+            <Text
+              variant={TextVariant.HeadingSM}
+              color={TextColor.Default}
+              style={styles.sectionTitle}
+            >
+              {actualDirection === 'short'
+                ? strings('perps.tpsl.take_profit_short')
+                : strings('perps.tpsl.take_profit_long')}
+            </Text>
+
+            {/* Percentage buttons */}
+            <View style={styles.percentageButtonsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.percentageButton,
+                  !takeProfitPrice && styles.percentageButtonOff,
+                ]}
+                onPress={handleTakeProfitOff}
+                disabled={!!focusedInput}
+              >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                  {strings('perps.tpsl.off')}
+                </Text>
+              </TouchableOpacity>
+              {TAKE_PROFIT_PERCENTAGES.map((percentage) => (
+                <TouchableOpacity
+                  key={percentage}
+                  style={[
+                    styles.percentageButton,
+                    selectedTpPercentage === percentage &&
+                      styles.percentageButtonActiveTP,
+                  ]}
+                  onPress={() => handleTakeProfitPercentageButton(percentage)}
+                  testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
+                    percentage,
+                  )}
+                >
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Default}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    +{percentage}%
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Input row */}
+            <View style={styles.inputRow}>
+              {/* Price Input */}
+              <View
+                style={[
+                  styles.inputContainer,
+                  !isValid && takeProfitError && styles.inputError,
+                ]}
+              >
+                <TextInput
+                  ref={takeProfitPriceRef}
+                  style={styles.input}
+                  value={takeProfitPrice}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    handleTakeProfitPriceChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
+                  placeholderTextColor={colors.text.muted}
+                  showSoftInputOnFocus={false}
+                  editable
+                  onFocus={() => {
+                    handleInputFocus('takeProfitPrice');
+                  }}
+                  onBlur={() => {
+                    handleTakeProfitPriceBlur();
+                    handleInputBlur();
+                  }}
+                  selectionColor={colors.primary.default}
+                  cursorColor={colors.primary.default}
                 />
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.tpsl.usd_label')}
+                </Text>
               </View>
-            )}
 
-            {/* Description text */}
-            {!focusedInput && (
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
-                style={styles.description}
+              {/* RoE Percentage Input */}
+              <View
+                style={[
+                  styles.inputContainer,
+                  !isValid && takeProfitError && styles.inputError,
+                ]}
               >
-                {strings('perps.tpsl.description')}
+                <TextInput
+                  ref={takeProfitPercentageRef}
+                  style={styles.input}
+                  value={formattedTakeProfitPercentage}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    handleTakeProfitPercentageChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.profit_roe_placeholder')}
+                  placeholderTextColor={colors.text.muted}
+                  showSoftInputOnFocus={false}
+                  editable
+                  onFocus={() => {
+                    handleInputFocus('takeProfitPercentage');
+                  }}
+                  onBlur={() => {
+                    handleTakeProfitPercentageBlur();
+                    handleInputBlur();
+                  }}
+                  selectionColor={colors.primary.default}
+                  cursorColor={colors.primary.default}
+                />
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  %
+                </Text>
+              </View>
+            </View>
+
+            {/* Error message */}
+            {!isValid && takeProfitError && (
+              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                {takeProfitError}
               </Text>
             )}
+          </View>
 
-            {/* Current price and liquidation price info */}
-            <View
-              style={
-                focusedInput
-                  ? styles.priceInfoContainerCondensed
-                  : styles.priceInfoContainer
+          {/* Stop Loss Section */}
+          <View style={focusedInput ? styles.sectionCondensed : styles.section}>
+            <Text
+              variant={TextVariant.HeadingSM}
+              color={TextColor.Default}
+              style={styles.sectionTitle}
+            >
+              {actualDirection === 'short'
+                ? strings('perps.tpsl.stop_loss_short')
+                : strings('perps.tpsl.stop_loss_long')}
+            </Text>
+
+            {/* Percentage buttons */}
+            <View style={styles.percentageButtonsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.percentageButton,
+                  !stopLossPrice && styles.percentageButtonOff,
+                ]}
+                onPress={handleStopLossOff}
+                disabled={!!focusedInput}
+              >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                  {strings('perps.tpsl.off')}
+                </Text>
+              </TouchableOpacity>
+              {STOP_LOSS_PERCENTAGES.map((percentage) => (
+                <TouchableOpacity
+                  key={percentage}
+                  style={[
+                    styles.percentageButton,
+                    selectedSlPercentage === percentage &&
+                      styles.percentageButtonActiveSL,
+                  ]}
+                  onPress={() => handleStopLossPercentageButton(percentage)}
+                  testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
+                    percentage,
+                  )}
+                >
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Default}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    -{percentage}%
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Input row */}
+            <View style={styles.inputRow}>
+              {/* Price Input */}
+              <View
+                style={[
+                  styles.inputContainer,
+                  !isValid && stopLossError && styles.inputError,
+                ]}
+              >
+                <TextInput
+                  ref={stopLossPriceRef}
+                  style={styles.input}
+                  value={stopLossPrice}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    handleStopLossPriceChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.trigger_price_placeholder')}
+                  placeholderTextColor={colors.text.muted}
+                  showSoftInputOnFocus={false}
+                  editable
+                  onFocus={() => {
+                    handleInputFocus('stopLossPrice');
+                  }}
+                  onBlur={() => {
+                    handleStopLossPriceBlur();
+                    handleInputBlur();
+                  }}
+                  selectionColor={colors.primary.default}
+                  cursorColor={colors.primary.default}
+                />
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.tpsl.usd_label')}
+                </Text>
+              </View>
+
+              {/* Percentage Input */}
+              <View
+                style={[
+                  styles.inputContainer,
+                  !isValid && stopLossError && styles.inputError,
+                ]}
+              >
+                <TextInput
+                  ref={stopLossPercentageRef}
+                  style={styles.input}
+                  value={formattedStopLossPercentage}
+                  onChangeText={(text) => {
+                    const digitCount = (text.match(/\d/g) || []).length;
+                    if (digitCount > 9) return; // Block input beyond 9 digits
+                    handleStopLossPercentageChange(text);
+                  }}
+                  placeholder={strings('perps.tpsl.loss_roe_placeholder')}
+                  placeholderTextColor={colors.text.muted}
+                  showSoftInputOnFocus={false}
+                  editable
+                  onFocus={() => {
+                    handleInputFocus('stopLossPercentage');
+                  }}
+                  onBlur={() => {
+                    handleStopLossPercentageBlur();
+                    handleInputBlur();
+                  }}
+                  selectionColor={colors.primary.default}
+                  cursorColor={colors.primary.default}
+                />
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  %
+                </Text>
+              </View>
+            </View>
+
+            {/* Error message */}
+            {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
+              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                {stopLossError || stopLossLiquidationError}
+              </Text>
+            )}
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
+
+      <View style={styles.keypadFooter}>
+        {focusedInput ? (
+          <View style={styles.keypadContainer}>
+            <Keypad
+              value={
+                focusedInput === 'takeProfitPrice'
+                  ? takeProfitPrice
+                  : focusedInput === 'takeProfitPercentage'
+                  ? formattedTakeProfitPercentage
+                  : focusedInput === 'stopLossPrice'
+                  ? stopLossPrice
+                  : formattedStopLossPercentage
               }
-            >
-              <View style={styles.priceInfoRow}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {orderType === 'limit' &&
-                  limitPrice &&
-                  parseFloat(limitPrice) > 0
-                    ? strings('perps.order.limit_price')
-                    : strings('perps.tpsl.current_price')}
-                </Text>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {currentPrice
-                    ? formatPerpsFiat(currentPrice, {
-                        ranges: PRICE_RANGES_POSITION_VIEW,
-                      })
-                    : '--'}
-                </Text>
-              </View>
-              <View style={styles.priceInfoRow}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.tpsl.liquidation_price')}
-                </Text>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {displayLiquidationPrice &&
-                  displayLiquidationPrice !== 'null' &&
-                  displayLiquidationPrice !== '0.00'
-                    ? formatPerpsFiat(displayLiquidationPrice, {
-                        ranges: PRICE_RANGES_POSITION_VIEW,
-                      })
-                    : '--'}
-                </Text>
-              </View>
-            </View>
-
-            {/* Take Profit Section */}
-            <View
-              style={focusedInput ? styles.sectionCondensed : styles.section}
-            >
-              <Text
-                variant={TextVariant.HeadingSM}
-                color={TextColor.Default}
-                style={styles.sectionTitle}
-              >
-                {actualDirection === 'short'
-                  ? strings('perps.tpsl.take_profit_short')
-                  : strings('perps.tpsl.take_profit_long')}
-              </Text>
-
-              {/* Percentage buttons */}
-              <View style={styles.percentageButtonsContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.percentageButton,
-                    !takeProfitPrice && styles.percentageButtonOff,
-                  ]}
-                  onPress={handleTakeProfitOff}
-                  disabled={!!focusedInput}
-                >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                    {strings('perps.tpsl.off')}
-                  </Text>
-                </TouchableOpacity>
-                {TAKE_PROFIT_PERCENTAGES.map((percentage) => (
-                  <TouchableOpacity
-                    key={percentage}
-                    style={[
-                      styles.percentageButton,
-                      selectedTpPercentage === percentage &&
-                        styles.percentageButtonActiveTP,
-                    ]}
-                    onPress={() => handleTakeProfitPercentageButton(percentage)}
-                    testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
-                      percentage,
-                    )}
-                  >
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Default}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      +{percentage}%
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Input row */}
-              <View style={styles.inputRow}>
-                {/* Price Input */}
-                <View
-                  style={[
-                    styles.inputContainer,
-                    !isValid && takeProfitError && styles.inputError,
-                  ]}
-                >
-                  <TextInput
-                    ref={takeProfitPriceRef}
-                    style={styles.input}
-                    value={takeProfitPrice}
-                    onChangeText={(text) => {
-                      const digitCount = (text.match(/\d/g) || []).length;
-                      if (digitCount > 9) return; // Block input beyond 9 digits
-                      handleTakeProfitPriceChange(text);
-                    }}
-                    placeholder={strings(
-                      'perps.tpsl.trigger_price_placeholder',
-                    )}
-                    placeholderTextColor={colors.text.muted}
-                    showSoftInputOnFocus={false}
-                    editable
-                    onFocus={() => {
-                      handleInputFocus('takeProfitPrice');
-                    }}
-                    onBlur={() => {
-                      handleTakeProfitPriceBlur();
-                      handleInputBlur();
-                    }}
-                    selectionColor={colors.primary.default}
-                    cursorColor={colors.primary.default}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.tpsl.usd_label')}
-                  </Text>
-                </View>
-
-                {/* RoE Percentage Input */}
-                <View
-                  style={[
-                    styles.inputContainer,
-                    !isValid && takeProfitError && styles.inputError,
-                  ]}
-                >
-                  <TextInput
-                    ref={takeProfitPercentageRef}
-                    style={styles.input}
-                    value={formattedTakeProfitPercentage}
-                    onChangeText={(text) => {
-                      const digitCount = (text.match(/\d/g) || []).length;
-                      if (digitCount > 9) return; // Block input beyond 9 digits
-                      handleTakeProfitPercentageChange(text);
-                    }}
-                    placeholder={strings('perps.tpsl.profit_roe_placeholder')}
-                    placeholderTextColor={colors.text.muted}
-                    showSoftInputOnFocus={false}
-                    editable
-                    onFocus={() => {
-                      handleInputFocus('takeProfitPercentage');
-                    }}
-                    onBlur={() => {
-                      handleTakeProfitPercentageBlur();
-                      handleInputBlur();
-                    }}
-                    selectionColor={colors.primary.default}
-                    cursorColor={colors.primary.default}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    %
-                  </Text>
-                </View>
-              </View>
-
-              {/* Error message */}
-              {!isValid && takeProfitError && (
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                  {takeProfitError}
-                </Text>
-              )}
-            </View>
-
-            {/* Stop Loss Section */}
-            <View
-              style={focusedInput ? styles.sectionCondensed : styles.section}
-            >
-              <Text
-                variant={TextVariant.HeadingSM}
-                color={TextColor.Default}
-                style={styles.sectionTitle}
-              >
-                {actualDirection === 'short'
-                  ? strings('perps.tpsl.stop_loss_short')
-                  : strings('perps.tpsl.stop_loss_long')}
-              </Text>
-
-              {/* Percentage buttons */}
-              <View style={styles.percentageButtonsContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.percentageButton,
-                    !stopLossPrice && styles.percentageButtonOff,
-                  ]}
-                  onPress={handleStopLossOff}
-                  disabled={!!focusedInput}
-                >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                    {strings('perps.tpsl.off')}
-                  </Text>
-                </TouchableOpacity>
-                {STOP_LOSS_PERCENTAGES.map((percentage) => (
-                  <TouchableOpacity
-                    key={percentage}
-                    style={[
-                      styles.percentageButton,
-                      selectedSlPercentage === percentage &&
-                        styles.percentageButtonActiveSL,
-                    ]}
-                    onPress={() => handleStopLossPercentageButton(percentage)}
-                    testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
-                      percentage,
-                    )}
-                  >
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Default}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      -{percentage}%
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Input row */}
-              <View style={styles.inputRow}>
-                {/* Price Input */}
-                <View
-                  style={[
-                    styles.inputContainer,
-                    !isValid && stopLossError && styles.inputError,
-                  ]}
-                >
-                  <TextInput
-                    ref={stopLossPriceRef}
-                    style={styles.input}
-                    value={stopLossPrice}
-                    onChangeText={(text) => {
-                      const digitCount = (text.match(/\d/g) || []).length;
-                      if (digitCount > 9) return; // Block input beyond 9 digits
-                      handleStopLossPriceChange(text);
-                    }}
-                    placeholder={strings(
-                      'perps.tpsl.trigger_price_placeholder',
-                    )}
-                    placeholderTextColor={colors.text.muted}
-                    showSoftInputOnFocus={false}
-                    editable
-                    onFocus={() => {
-                      handleInputFocus('stopLossPrice');
-                    }}
-                    onBlur={() => {
-                      handleStopLossPriceBlur();
-                      handleInputBlur();
-                    }}
-                    selectionColor={colors.primary.default}
-                    cursorColor={colors.primary.default}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.tpsl.usd_label')}
-                  </Text>
-                </View>
-
-                {/* Percentage Input */}
-                <View
-                  style={[
-                    styles.inputContainer,
-                    !isValid && stopLossError && styles.inputError,
-                  ]}
-                >
-                  <TextInput
-                    ref={stopLossPercentageRef}
-                    style={styles.input}
-                    value={formattedStopLossPercentage}
-                    onChangeText={(text) => {
-                      const digitCount = (text.match(/\d/g) || []).length;
-                      if (digitCount > 9) return; // Block input beyond 9 digits
-                      handleStopLossPercentageChange(text);
-                    }}
-                    placeholder={strings('perps.tpsl.loss_roe_placeholder')}
-                    placeholderTextColor={colors.text.muted}
-                    showSoftInputOnFocus={false}
-                    editable
-                    onFocus={() => {
-                      handleInputFocus('stopLossPercentage');
-                    }}
-                    onBlur={() => {
-                      handleStopLossPercentageBlur();
-                      handleInputBlur();
-                    }}
-                    selectionColor={colors.primary.default}
-                    cursorColor={colors.primary.default}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    %
-                  </Text>
-                </View>
-              </View>
-
-              {/* Error message */}
-              {!isValid &&
-                Boolean(stopLossError || stopLossLiquidationError) && (
-                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                    {stopLossError || stopLossLiquidationError}
-                  </Text>
-                )}
-            </View>
-          </TouchableOpacity>
-        </ScrollView>
-
-        <View style={styles.keypadFooter}>
+              onChange={handleKeypadChange}
+              // USD_PERPS is not a real currency - it's a custom configuration
+              // that allows 5 decimal places for crypto prices, overriding the
+              // default USD configuration which only allows 2 decimal places.
+              currency="USD_PERPS"
+              decimals={5}
+            />
+            <Button onPress={dismissKeypad} style={styles.keypadDismissButton}>
+              {strings('perps.tpsl.dismiss_tpsl_keypad')}
+            </Button>
+          </View>
+        ) : (
           <BottomSheetFooter
             buttonPropsArray={[
               {
@@ -769,34 +774,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               },
             ]}
           />
-        </View>
-      </BottomSheet>
-
-      {focusedInput && (
-        <View style={styles.keypadContainer}>
-          <Keypad
-            value={
-              focusedInput === 'takeProfitPrice'
-                ? takeProfitPrice
-                : focusedInput === 'takeProfitPercentage'
-                ? formattedTakeProfitPercentage
-                : focusedInput === 'stopLossPrice'
-                ? stopLossPrice
-                : formattedStopLossPercentage
-            }
-            onChange={handleKeypadChange}
-            // USD_PERPS is not a real currency - it's a custom configuration
-            // that allows 5 decimal places for crypto prices, overriding the
-            // default USD configuration which only allows 2 decimal places.
-            currency="USD_PERPS"
-            decimals={5}
-          />
-          <Button onPress={dismissKeypad} style={styles.keypadDismissButton}>
-            {strings('perps.tpsl.dismiss_tpsl_keypad')}
-          </Button>
-        </View>
-      )}
-    </>
+        )}
+      </View>
+    </BottomSheet>
   );
 };
 
