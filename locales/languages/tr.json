@@ -4984,7 +4984,7 @@
       "geo_blocked": "Unstake veya stake işlemlerine izin verilmeyen bir bölgedesiniz.",
       "approximately": "yaklaşık"
     },
-    "unstake_input_banner_description": "Unstake edilen ETH'nin alınabilir olması ortalama 3 günden kısa sürer ancak 11 güne kadar sürebilir.",
+    "unstake_input_banner_description": "Unstake edilen ETH'nin alınabilir olması ortalama 3 günden kısa sürer ancak 44 güne kadar sürebilir.",
     "max": "Maksimum",
     "staking_from": "Stake edilecek yer",
     "advanced_details": "Gelişmiş bilgiler",
@@ -5008,7 +5008,7 @@
       }
     },
     "use_max": "Maksimumu kullan",
-    "estimated_unstaking_time": "1 ila 11 gün",
+    "estimated_unstaking_time": "1 ila 44 gün",
     "proceed_anyway": "Yine de devam et",
     "gas_cost_impact": "Gaz maliyeti etkisi",
     "select_a_token_to_deposit": "Para yatırmak için bir token seçin",

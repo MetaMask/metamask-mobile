@@ -4984,7 +4984,7 @@
       "geo_blocked": "ステーキングの解除またはステーキングが許可されていない地域にいます。",
       "approximately": "約"
     },
-    "unstake_input_banner_description": "ステーキングが解除されたETHは平均3日未満で請求可能になりますが、最長11日かかる場合もあります.",
+    "unstake_input_banner_description": "ステーキングが解除されたETHは平均3日未満で請求可能になりますが、最長44日かかる場合もあります.",
     "max": "最大額",
     "staking_from": "ステーキング元",
     "advanced_details": "高度な詳細",
@@ -5008,7 +5008,7 @@
       }
     },
     "use_max": "最大額を使用",
-    "estimated_unstaking_time": "1～11日",
+    "estimated_unstaking_time": "1～44日",
     "proceed_anyway": "承知の上で続ける",
     "gas_cost_impact": "ガス代の影響",
     "select_a_token_to_deposit": "デポジットするトークンを選択",

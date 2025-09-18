@@ -4984,7 +4984,7 @@
       "geo_blocked": "Usted se encuentra en una región donde no está permitido hacer o dejar de hacer staking.",
       "approximately": "aproximadamente"
     },
-    "unstake_input_banner_description": "En promedio, toma menos de 3 días para que el ETH que no está en staking pueda reclamarse, pero puede demorar hasta 11 días.",
+    "unstake_input_banner_description": "En promedio, toma menos de 3 días para que el ETH que no está en staking pueda reclamarse, pero puede demorar hasta 44 días.",
     "max": "Máx.",
     "staking_from": "Staking de",
     "advanced_details": "Datos avanzados",
@@ -5008,7 +5008,7 @@
       }
     },
     "use_max": "Usar máx.",
-    "estimated_unstaking_time": "De 1 a 11 días",
+    "estimated_unstaking_time": "De 1 a 44 días",
     "proceed_anyway": "Continuar de todos modos",
     "gas_cost_impact": "Impacto en el costo del gas",
     "select_a_token_to_deposit": "Selecciona un token para depositar",
