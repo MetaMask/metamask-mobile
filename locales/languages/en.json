@@ -2593,7 +2593,7 @@
     "deposit_button": "Deposit",
     "earn_button": "Earn",
     "perps_button": "Perps",
-    "predict_button": "Prediction",
+    "predict_button": "Predictions",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2627,7 +2627,7 @@
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perp contracts",
-    "predict_description": "Predict the future",
+    "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
