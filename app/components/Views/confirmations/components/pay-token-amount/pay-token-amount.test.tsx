@@ -12,6 +12,7 @@ jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../hooks/pay/useTransactionPayToken');
+jest.mock('../../../../../component-library/components/Skeleton');
 
 const ASSET_AMOUNT_MOCK = '100';
 const ASSET_FIAT_RATE_MOCK = 10;
@@ -64,11 +65,11 @@ describe('PayTokenAmount', () => {
     expect(getByText(PAY_TOKEN_SYMBOL_MOCK, { exact: false })).toBeDefined();
   });
 
-  it('renders nothing if missing fiat rate', () => {
+  it('renders skeleton if missing fiat rate', () => {
     useTokenFiatRatesMock.mockReturnValue([undefined, undefined]);
 
-    const { queryByTestId } = render();
+    const { getByTestId } = render();
 
-    expect(queryByTestId('pay-token-amount')).toBeNull();
+    expect(getByTestId('pay-token-amount-skeleton')).toBeDefined();
   });
 });

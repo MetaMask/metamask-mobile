@@ -4,7 +4,7 @@ import ReferralStatsSection from './ReferralStatsSection';
 
 // Mock the SVG component
 jest.mock(
-  '../../../../../images/metamask-rewards-points.svg',
+  '../../../../../images/rewards/metamask-rewards-points.svg',
   () => 'MetamaskRewardsPointsSvg',
 );
 
