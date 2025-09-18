@@ -1,7 +1,10 @@
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import ScrollableTabView, {
+  TabBarProps,
+} from '@tommasini/react-native-scrollable-tab-view';
 
 // External dependencies.
 import TextComponent from '../../components/Texts/Text';
@@ -35,7 +38,9 @@ interface TabViewProps {
 export const Default = () => (
   <View style={containerStyle}>
     <ScrollableTabView
-      renderTabBar={(props) => <TabBarComponent {...props} />}
+      renderTabBar={(props: typeof TabBarProps) => (
+        <TabBarComponent {...props} />
+      )}
       initialPage={0}
     >
       <View

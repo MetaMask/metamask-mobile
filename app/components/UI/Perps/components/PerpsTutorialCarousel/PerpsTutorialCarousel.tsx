@@ -117,7 +117,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
-    ScrollableTabView & { goToPage: (pageNumber: number) => void }
+    typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
   const hasTrackedViewed = useRef(false);
   const hasTrackedStarted = useRef(false);

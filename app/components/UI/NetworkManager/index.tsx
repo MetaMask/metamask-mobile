@@ -144,7 +144,7 @@ const NetworkManager = () => {
   );
 
   const onChangeTab = useCallback(
-    (obj: ChangeTabProperties) => {
+    (obj: typeof ChangeTabProperties) => {
       const isDefaultTab = obj.ref.props.tabLabel === strings('wallet.default');
       const eventType = isDefaultTab
         ? MetaMetricsEvents.ASSET_FILTER_SELECTED

@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import ScrollableTabView, {
   TabBarProps,
 } from '@tommasini/react-native-scrollable-tab-view';
@@ -171,7 +172,7 @@ const AddAsset = () => {
     setOpenNetworkFilter(false);
   };
 
-  const renderTabBar = (props: TabBarProps) => <TabBar {...props} />;
+  const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;
 
   const renderNetworkSelector = useCallback(
     () => (
