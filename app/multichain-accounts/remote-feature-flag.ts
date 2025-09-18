@@ -13,8 +13,8 @@ export interface MultichainAccountsFeatureFlag {
 }
 
 const APP_VERSION = packageJson.version;
-const disabledMultichainAccountsState2Local =
-  process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'false';
+const enableMultichainAccountsState2Local =
+  process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2;
 
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
@@ -50,10 +50,10 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
   // Overrides the multichain accounts state 2 enabled flag based on the feature versions.
   // The feature flag is now enabled by default, so we need to disable it if the local override is set to false.
   if (
-    disabledMultichainAccountsState2Local &&
+    enableMultichainAccountsState2Local &&
     featureVersionsToCheck.includes(MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2)
   ) {
-    return false;
+    return enableMultichainAccountsState2Local === 'true';
   }
 
   const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
