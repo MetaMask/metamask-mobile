@@ -1032,6 +1032,7 @@ export class PerpsController extends BaseController<
           setTimeout(() => {
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
             });
           }, 100);
         })
