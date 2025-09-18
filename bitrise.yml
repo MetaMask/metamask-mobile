@@ -570,11 +570,16 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                # Enable corepack to use the project's yarn version
+                # Enable corepack and prepare the specific yarn version
                 corepack enable
+                corepack prepare yarn@3.8.7 --activate
                 
-                # Let corepack handle the yarn version from package.json
+                # Verify the yarn version
                 echo "Yarn version after corepack: $(yarn --version)"
+                echo "Which yarn: $(which yarn)"
+                
+                # Clear any potential yarn cache/config issues
+                export YARN_ENABLE_IMMUTABLE_INSTALLS=false
                 
                 # Run install with immutable flag for Yarn v3
                 yarn install --immutable
