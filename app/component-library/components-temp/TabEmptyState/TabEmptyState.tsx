@@ -47,7 +47,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
       </Text>
     )}
 
-    {actionButtonText && (
+    {actionButtonText && onAction && (
       <Button
         variant={ButtonVariant.Tertiary}
         onPress={onAction}

@@ -39,5 +39,9 @@ export const Default = {
     icon: <ThemedPerpsIcon />,
     description: 'No perpetual positions found',
     actionButtonText: 'Start Trading',
+    onAction: () => {
+      // eslint-disable-next-line no-console
+      console.log('onAction');
+    },
   },
 };
