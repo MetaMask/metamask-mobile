@@ -897,11 +897,12 @@ describe('usePerpsTPSLForm', () => {
   });
 
   describe('reference price logic for validation', () => {
-    it('should validate against entryPrice when provided', () => {
+    it('should validate against entryPrice when orderType is limit', () => {
       const params = {
         ...defaultParams,
         entryPrice: 52000, // Higher than current price
         isVisible: true,
+        orderType: 'limit' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -913,15 +914,16 @@ describe('usePerpsTPSLForm', () => {
 
       // Should be invalid because it's below entryPrice
       expect(result.current.validation.takeProfitError).toContain(
-        'current price',
+        'entry price',
       );
     });
 
-    it('should validate against currentPrice when entryPrice not provided', () => {
+    it('should validate against currentPrice when orderType is market', () => {
       const params = {
         ...defaultParams,
         entryPrice: undefined,
         isVisible: true,
+        orderType: 'market' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -936,7 +938,7 @@ describe('usePerpsTPSLForm', () => {
       );
     });
 
-    it('should validate against position entry price when position exists', () => {
+    it('should validate against position entry price when position exists and orderType is limit', () => {
       const positionWithEntry = {
         ...mockPosition,
         entryPrice: '51000',
@@ -946,6 +948,7 @@ describe('usePerpsTPSLForm', () => {
         position: positionWithEntry,
         currentPrice: 50000,
         isVisible: true,
+        orderType: 'limit' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -956,7 +959,7 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.validation.takeProfitError).toContain(
-        'current price',
+        'entry price',
       );
     });
 
@@ -1008,12 +1011,13 @@ describe('usePerpsTPSLForm', () => {
   });
 
   describe('price type determination in error messages', () => {
-    it('should show "entry price" error for positions', () => {
+    it('should show "entry price" error for positions and orderType is limit', () => {
       const params = {
         asset: 'BTC',
         position: mockPosition,
         currentPrice: 50000,
         isVisible: true,
+        orderType: 'limit' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -1023,29 +1027,11 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.validation.takeProfitError).toContain(
-        'current price',
+        'entry price',
       );
     });
 
-    it('should show "current price" error when entryPrice provided but no orderType', () => {
-      const params = {
-        ...defaultParams,
-        entryPrice: 52000, // Different from current, but no orderType specified
-        isVisible: true,
-      };
-
-      const { result } = renderHook(() => usePerpsTPSLForm(params));
-
-      act(() => {
-        result.current.handlers.handleTakeProfitPriceChange('51000'); // Invalid
-      });
-
-      expect(result.current.validation.takeProfitError).toContain(
-        'current price',
-      );
-    });
-
-    it('should show "limit price" error for actual limit orders', () => {
+    it('should show "entry price" error for actual limit orders', () => {
       const params = {
         ...defaultParams,
         orderType: 'limit' as const,
@@ -1060,7 +1046,7 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.validation.takeProfitError).toContain(
-        'limit price',
+        'entry price',
       );
     });
 
@@ -1069,6 +1055,7 @@ describe('usePerpsTPSLForm', () => {
         ...defaultParams,
         entryPrice: undefined, // No entry price = market order
         isVisible: true,
+        orderType: 'market' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
