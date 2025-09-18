@@ -241,12 +241,9 @@ interface WalletTokensTabViewProps {
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
   const isPerpsEnabled = useMemo(
-    () =>
-      isPerpsFlagEnabled && (isEvmSelected || allEnabledNetworks.length !== 1),
-    [isPerpsFlagEnabled, isEvmSelected, allEnabledNetworks],
+    () => isPerpsFlagEnabled,
+    [isPerpsFlagEnabled],
   );
 
   const {
@@ -604,15 +601,15 @@ const Wallet = ({
 
   const collectiblesEnabled = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
-      if (allEnabledNetworks.length === 1) {
-        return allEnabledNetworks.some(
-          (network) => network.chainId !== SolScope.Mainnet,
-        );
-      }
+      // if (allEnabledNetworks.length === 1) {
+      //   return allEnabledNetworks.some(
+      //     (network) => network.chainId !== SolScope.Mainnet,
+      //   );
+      // }
       return true;
     }
     return isEvmSelected;
-  }, [isMultichainAccountsState2Enabled, isEvmSelected, allEnabledNetworks]);
+  }, [isMultichainAccountsState2Enabled, isEvmSelected]);
 
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
@@ -1165,7 +1162,6 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    (isEvmSelected || isMultichainAccountsState2Enabled) &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;

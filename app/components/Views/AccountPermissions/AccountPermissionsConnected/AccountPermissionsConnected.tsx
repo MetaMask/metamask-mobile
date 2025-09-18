@@ -1,16 +1,11 @@
 // Third party dependencies.
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import { strings } from '../../../../../locales/i18n';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import getAccountNameWithENS from '../../../../util/accounts';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
@@ -41,10 +36,7 @@ const AccountPermissionsConnected = ({
   onDismissSheet,
   hostname,
   favicon,
-  accountAvatarType,
 }: AccountPermissionsConnectedProps) => {
-  const { toastRef } = useContext(ToastContext);
-
   const onConnectMoreAccounts = useCallback(() => {
     onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
   }, [onSetPermissionsScreen]);
@@ -54,32 +46,8 @@ const AccountPermissionsConnected = ({
       const { address } = parseCaipAccountId(caipAccountId);
       Engine.setSelectedAddress(address);
       onDismissSheet();
-      const activeAccountName = getAccountNameWithENS({
-        caipAccountId,
-        accounts,
-        ensByAccountAddress,
-      });
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
-        labelOptions: [
-          {
-            label: `${activeAccountName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        accountAddress: address,
-        accountAvatarType,
-        hasNoTimeout: false,
-      });
     },
-    [
-      onDismissSheet,
-      accounts,
-      ensByAccountAddress,
-      toastRef,
-      accountAvatarType,
-    ],
+    [onDismissSheet],
   );
 
   const renderSheetAction = useCallback(
