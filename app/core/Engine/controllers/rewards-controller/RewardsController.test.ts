@@ -4178,7 +4178,7 @@ describe('RewardsController', () => {
     });
 
     it('should return cached unlocked rewards when cache is fresh', async () => {
-      const recentTime = Date.now() - 120000; // 2 minutes ago (within 5 minute threshold)
+      const recentTime = Date.now() - 5000; // 5 seconds ago (within 5 minute threshold)
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
 
       const mockCachedRewards = [
