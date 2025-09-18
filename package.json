@@ -220,7 +220,7 @@
     "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/account-api": "^0.12.0",
-    "@metamask/account-tree-controller": "^0.16.0",
+    "@metamask/account-tree-controller": "^0.16.1",
     "@metamask/accounts-controller": "^33.1.0",
     "@metamask/address-book-controller": "^6.1.0",
     "@metamask/app-metadata-controller": "^1.0.0",
