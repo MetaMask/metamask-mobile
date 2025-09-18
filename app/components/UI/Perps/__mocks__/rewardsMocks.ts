@@ -15,11 +15,11 @@ export const mockCaipAccountId =
 export const createMockDiscountScenarios = () => ({
   validDiscount: {
     caipAccountId: mockCaipAccountId,
-    discountPercentage: 20,
+    discountBips: 2000, // 20% in basis points (20 * 100 = 2000 bips)
   },
   noDiscount: {
     caipAccountId: null,
-    discountPercentage: 0,
+    discountBips: 0,
   },
   errorDiscount: {
     caipAccountId: mockCaipAccountId,
@@ -36,11 +36,11 @@ export const setupMockDiscountSuccess = (
       (...args: unknown[]) => Promise<number>
     >;
   },
-  discountPercentage: number,
+  discountBips: number, // Renamed to reflect that this should be in basis points
 ) => {
   mockFormatAccountToCaipAccountId.mockReturnValue(mockCaipAccountId);
   mockRewardsController.getPerpsDiscountForAccount.mockResolvedValue(
-    discountPercentage,
+    discountBips, // Now correctly using basis points
   );
 };
 

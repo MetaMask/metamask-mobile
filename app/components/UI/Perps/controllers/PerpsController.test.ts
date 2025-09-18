@@ -21,6 +21,8 @@ import {
   createMockEngineContext,
   clearAllMocks,
 } from '../__mocks__';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -109,6 +111,11 @@ jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn().mockReturnValue('0xabcdef123456'),
 }));
 
+// Mock account utilities
+jest.mock('../utils/accountUtils', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn(),
+}));
+
 // Mock rewards utilities
 jest.mock('../utils/rewardsUtils', () => ({
   formatAccountToCaipAccountId: jest.fn(),
@@ -135,6 +142,14 @@ describe('PerpsController', () => {
     (
       HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
     ).mockImplementation(() => mockHyperLiquidProvider);
+
+    // Set up default behaviors for utility functions to prevent test failures
+    // Tests that need specific behaviors can override these defaults
+    const defaultMockEvmAccount = createMockAccountData();
+    (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+      defaultMockEvmAccount,
+    ); // Default: provide account
+    (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(null); // Default: no CAIP ID (prevents fee discount)
   });
 
   /**
@@ -666,6 +681,145 @@ describe('PerpsController', () => {
       });
     });
 
+    it('should place order with fee discount calculation', async () => {
+      // Test fee discount integration from RewardsController
+      const orderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.0',
+        orderType: 'market' as const,
+      };
+
+      const mockOrderResult = {
+        success: true,
+        orderId: 'reward-order-123',
+      };
+
+      withController(async ({ controller }) => {
+        // Set up proper network client mock with chainId
+        const mockNetworkClient = {
+          configuration: { chainId: '0xa4b1' }, // Arbitrum chainId in hex
+        };
+        mockEngineContext.NetworkController.getNetworkClientById.mockReturnValue(
+          mockNetworkClient,
+        );
+
+        // Mock utility functions for fee discount calculation
+        const mockEvmAccount = createMockAccountData();
+        (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+          mockEvmAccount,
+        );
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        // Mock RewardsController to return discount (basis points: 550 = 5.5%)
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValue(
+          550,
+        );
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        // Verify setUserFeeDiscount was called with correct discount
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          550,
+        );
+        // Verify discount was cleared after order
+        expect(
+          mockHyperLiquidProvider.setUserFeeDiscount,
+        ).toHaveBeenLastCalledWith(undefined);
+        // Verify RewardsController was called for discount
+        expect(
+          mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle fee discount error gracefully', async () => {
+      // Test error handling when RewardsController fails
+      const orderParams = {
+        coin: 'BTC',
+        isBuy: false,
+        size: '0.5',
+        orderType: 'limit' as const,
+        price: '50000',
+      };
+
+      const mockOrderResult = {
+        success: true,
+        orderId: 'order-without-discount',
+      };
+
+      withController(async ({ controller }) => {
+        // Enable fee discount calculation for this test by providing CAIP ID
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        // Mock RewardsController to throw error
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockRejectedValue(
+          new Error('Rewards service unavailable'),
+        );
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        // Order should still succeed without discount
+        expect(result).toEqual(mockOrderResult);
+        // Verify discount was cleared (since no discount was set initially due to error)
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          undefined,
+        );
+      });
+    });
+
+    it('should clear fee discount on order failure', async () => {
+      // Test discount cleanup when order fails
+      const orderParams = {
+        coin: 'SOL',
+        isBuy: true,
+        size: '10',
+        orderType: 'market' as const,
+      };
+
+      const mockOrderResult = {
+        success: false,
+        error: 'Order rejected by exchange',
+      };
+
+      withController(async ({ controller }) => {
+        // Enable fee discount calculation for this test by providing CAIP ID
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValue(
+          1000,
+        ); // 10% discount
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        // Verify discount was set initially
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          1000,
+        );
+        // Verify discount was cleared even after failure
+        expect(
+          mockHyperLiquidProvider.setUserFeeDiscount,
+        ).toHaveBeenLastCalledWith(undefined);
+      });
+    });
+
     it('should cancel order successfully', async () => {
       const cancelParams = {
         coin: 'BTC',
@@ -753,6 +907,86 @@ describe('PerpsController', () => {
         // Verify error state was updated
         expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('should handle network errors during account state updates', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getAccountState.mockRejectedValue(
+          new Error('Network timeout'),
+        );
+
+        await controller.initializeProviders();
+
+        await expect(controller.getAccountState()).rejects.toThrow(
+          'Network timeout',
+        );
+        expect(controller.state.lastError).toBe('Network timeout');
+        expect(controller.state.accountState).toBeNull(); // Should not modify existing state
+      });
+    });
+
+    it('should handle provider method throwing non-Error objects', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getMarkets.mockRejectedValue(
+          'String error instead of Error object',
+        );
+
+        await controller.initializeProviders();
+
+        await expect(controller.getMarkets()).rejects.toBeDefined();
+        expect(controller.state.lastError).toBe('MARKETS_FAILED');
+      });
+    });
+
+    it('should handle RewardsController chain ID lookup failure', async () => {
+      const orderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market' as const,
+      };
+
+      withController(async ({ controller }) => {
+        // Mock NetworkController to return undefined chainId
+        const mockNetworkClient = { configuration: {} }; // Missing chainId
+        mockEngineContext.NetworkController.getNetworkClientById.mockReturnValue(
+          mockNetworkClient,
+        );
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'test',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        // Order should succeed but discount lookup should fail gracefully
+        expect(result.success).toBe(true);
+        expect(
+          mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+        ).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should handle account state returning null gracefully', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        // Use type assertion for this specific test case where we need to test null handling
+        mockHyperLiquidProvider.getAccountState.mockResolvedValue(null as any);
+
+        await controller.initializeProviders();
+
+        await expect(controller.getAccountState()).rejects.toThrow(
+          'Failed to get account state: received null/undefined response',
+        );
+        expect(controller.state.lastError).toBe(
+          'Failed to get account state: received null/undefined response',
+        );
       });
     });
   });
@@ -3583,6 +3817,11 @@ describe('PerpsController', () => {
     });
 
     it('should return error when EVM account is missing', async () => {
+      // Override default mock to return no EVM account for this test
+      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+        null,
+      );
+
       // Mock messenger to return a token
       mockMessenger.call.mockResolvedValue('mock-bearer-token');
 
@@ -3685,6 +3924,11 @@ describe('PerpsController', () => {
     });
 
     it('should return error when both account and token are missing', async () => {
+      // Override default mock to return no EVM account for this test
+      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+        null,
+      );
+
       // Mock messenger to return null token
       mockMessenger.call.mockResolvedValue(null);
 

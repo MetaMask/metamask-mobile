@@ -35,6 +35,9 @@ export const createMockEngineContext = () => ({
       selectedNetworkClientId: 'mainnet',
     },
     findNetworkClientIdByChainId: jest.fn().mockReturnValue('arbitrum'),
+    getNetworkClientById: jest.fn().mockReturnValue({
+      configuration: { chainId: '0xa4b1' }, // Arbitrum chainId in hex
+    }),
   },
   TransactionController: {
     addTransaction: jest.fn(),
@@ -43,7 +46,10 @@ export const createMockEngineContext = () => ({
     clearDepositResult: jest.fn(),
   },
   RewardsController: {
-    getPerpsDiscountForAccount: jest.fn(),
+    getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
+    estimatePoints: jest
+      .fn()
+      .mockResolvedValue({ pointsEstimate: 100, bonusBips: 200 }),
   },
 });
 
