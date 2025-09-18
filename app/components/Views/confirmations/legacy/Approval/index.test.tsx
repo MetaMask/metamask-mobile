@@ -15,6 +15,7 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
   selectPendingSmartTransactionsBySender: () => [],
+  selectPendingSmartTransactionsForSelectedAccountGroup: () => [],
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
