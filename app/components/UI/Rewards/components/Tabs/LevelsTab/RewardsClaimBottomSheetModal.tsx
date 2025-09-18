@@ -32,6 +32,7 @@ import TextField, {
 } from '../../../../../../component-library/components/Form/TextField';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import useRewardsToast from '../../../hooks/useRewardsToast';
 
 export interface ModalAction {
   label: string;
@@ -65,6 +66,8 @@ const RewardsClaimBottomSheetModal = ({
   route,
 }: RewardsClaimBottomSheetModalProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { showToast: showRewardsToast, RewardsToastOptions } =
+    useRewardsToast();
   const tw = useTailwind();
   const { claimReward, isClaimingReward, claimRewardError } = useClaimReward();
   const [inputValue, setInputValue] = useState('');
@@ -86,6 +89,16 @@ const RewardsClaimBottomSheetModal = ({
     navigation.goBack();
   }, [navigation]);
 
+  const showToast = useCallback(() => {
+    // Show success toast
+    showRewardsToast(
+      RewardsToastOptions.success(
+        strings('rewards.unlocked_rewards.reward_claimed'),
+        title,
+      ),
+    );
+  }, [RewardsToastOptions, showRewardsToast, title]);
+
   const handleClaimReward = useCallback(async () => {
     const claimData = {} as ClaimRewardDto;
 
@@ -96,10 +109,18 @@ const RewardsClaimBottomSheetModal = ({
     try {
       await claimReward(rewardId, claimData);
       handleModalClose();
+      showToast();
     } catch (error) {
       // keep modal open to display error message
     }
-  }, [claimReward, handleModalClose, inputValue, rewardId, rewardType]);
+  }, [
+    claimReward,
+    handleModalClose,
+    inputValue,
+    rewardId,
+    rewardType,
+    showToast,
+  ]);
 
   const confirmAction = useMemo(() => {
     if (isLocked || hasClaimed) {

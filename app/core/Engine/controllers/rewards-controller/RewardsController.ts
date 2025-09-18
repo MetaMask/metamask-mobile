@@ -66,7 +66,7 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
 
 // Unlocked rewards cache threshold
-const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 /**
  * State metadata for the RewardsController

@@ -5874,6 +5874,7 @@
       "cta_request_invite": "Request invite",
       "claim_label": "Claim",
       "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
       "expired": "Expired"
     }
   },
