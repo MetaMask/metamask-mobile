@@ -1,30 +1,31 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { handleFetch } from '@metamask/controller-utils';
 import useFetchTokenRatesMulti from './useTokenRates';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
-const MOCK_USDC_TOKEN = {
+
+jest.mock('@metamask/controller-utils', () => ({
+  handleFetch: jest.fn(),
+}));
+
+// Mock tokens directly in the test file to avoid import chain issues
+const MOCK_USDC_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: 'eip155:1',
   name: 'USD Coin',
   symbol: 'USDC',
   decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
 };
 
-const MOCK_USDT_TOKEN = {
+const MOCK_USDT_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
   chainId: 'eip155:1',
   name: 'Tether USD',
   symbol: 'USDT',
   decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
+  iconUrl: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
 };
-
-jest.mock('@metamask/controller-utils', () => ({
-  handleFetch: jest.fn(),
-}));
 
 describe('useFetchTokenRatesMulti', () => {
   const mockTokens = [MOCK_USDC_TOKEN, MOCK_USDT_TOKEN];

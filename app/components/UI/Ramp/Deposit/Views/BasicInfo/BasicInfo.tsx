@@ -344,7 +344,7 @@ const BasicInfo = (): JSX.Element => {
 
             <DepositPhoneField
               label={strings('deposit.basic_info.phone_number')}
-              regions={regions}
+              regions={regions || []}
               value={formData.mobileNumber}
               onChangeText={handleFieldChange(
                 'mobileNumber',

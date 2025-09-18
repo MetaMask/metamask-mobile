@@ -939,9 +939,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           style={
                                             {
                                               "color": "#121314",
-                                              "flexBasis": "0%",
-                                              "flexGrow": 1,
-                                              "flexShrink": 1,
+                                              "flex": 1,
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -2818,9 +2816,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           style={
                                             {
                                               "color": "#121314",
-                                              "flexBasis": "0%",
-                                              "flexGrow": 1,
-                                              "flexShrink": 1,
+                                              "flex": 1,
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -4697,9 +4693,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                           style={
                                             {
                                               "color": "#121314",
-                                              "flexBasis": "0%",
-                                              "flexGrow": 1,
-                                              "flexShrink": 1,
+                                              "flex": 1,
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,

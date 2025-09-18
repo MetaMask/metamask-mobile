@@ -1,4 +1,4 @@
-import { useDepositSdkMethod } from './useDepositSdkMethod';
+import { useDepositSdkMethod, DepositSdkMethodQuery } from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 import { useEffect } from 'react';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
@@ -7,9 +7,7 @@ export interface UseCryptoCurrenciesResult {
   cryptoCurrencies: DepositCryptoCurrency[] | null;
   isFetching: boolean;
   error: string | null;
-  retryFetchCryptoCurrencies: () => Promise<
-    DepositCryptoCurrency[] | undefined
-  >;
+  retryFetchCryptoCurrencies: DepositSdkMethodQuery<'getCryptoCurrencies'>;
 }
 
 export function useCryptoCurrencies(): UseCryptoCurrenciesResult {

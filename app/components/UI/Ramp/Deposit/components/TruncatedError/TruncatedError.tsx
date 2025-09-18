@@ -7,9 +7,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { createErrorDetailsModalNavigationDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 import { strings } from '../../../../../../../locales/i18n';
+import styleSheet from './TruncatedError.styles';
 
 interface TruncatedErrorProps {
   error: string;
@@ -20,15 +21,13 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   error,
   maxLines = 2,
 }) => {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
-  // Calculate characters per line based on screen width
-  // Assuming average character width of ~8px and accounting for padding/margins
   const screenWidth = Dimensions.get('window').width;
-  const availableWidth = screenWidth - 64; // Account for horizontal padding/margins
+  const availableWidth = screenWidth - 64;
   const maxCharactersPerLine = Math.floor(availableWidth / 8);
-  const maxCharacters = Math.max(50, maxLines * maxCharactersPerLine - 50); // Reduce by 50 chars, minimum 50
+  const maxCharacters = Math.max(50, maxLines * maxCharactersPerLine - 50);
 
   const shouldTruncate = error.length > maxCharacters;
   const displayError = shouldTruncate
@@ -42,18 +41,18 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   };
 
   return (
-    <View style={tw.style('mb-2 w-full')}>
+    <View style={styles.container}>
       <BannerAlert
         description={
-          <View style={tw.style('flex-row flex-wrap items-center')}>
-            <Text variant={TextVariant.BodySM} style={tw.style('flex-1')}>
+          <View style={styles.textContainer}>
+            <Text variant={TextVariant.BodySM} style={styles.errorText}>
               {displayError}
             </Text>
             {shouldTruncate && (
               <Text
                 variant={TextVariant.BodySM}
                 color={TextColor.Primary}
-                style={tw.style('underline ml-1')}
+                style={styles.seeMoreText}
                 onPress={handleSeeMore}
               >
                 {strings('deposit.errors.see_more')}

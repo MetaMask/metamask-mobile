@@ -6,6 +6,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
+  IconName,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
@@ -27,6 +28,20 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
+
+// Map SDK icon strings to IconName enum values
+const getIconName = (iconString: string): IconName => {
+  const iconMap: Record<string, IconName> = {
+    bank: IconName.Bank,
+    'credit-card': IconName.Card,
+    card: IconName.Card,
+    apple: IconName.Apple,
+    'apple-pay': IconName.Apple,
+    // Add more mappings as needed for other payment methods
+  };
+
+  return iconMap[iconString] || IconName.Card; // Default to Card if not found
+};
 
 interface PaymentMethodSelectorModalParams {
   paymentMethods: DepositPaymentMethod[];
@@ -92,7 +107,7 @@ function PaymentMethodSelectorModal() {
         <ListItemColumn widthType={WidthType.Auto}>
           <View style={styles.iconContainer}>
             <Icon
-              name={paymentMethod.icon}
+              name={getIconName(paymentMethod.icon)}
               color={
                 typeof paymentMethod.iconColor === 'object'
                   ? paymentMethod.iconColor[themeAppearance]

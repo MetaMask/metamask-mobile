@@ -81,56 +81,56 @@ const verifyPopToBuildQuoteCalled = () => {
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config, ...params) => {
     if (config?.method === 'getKycRequirement') {
-      const wrappedGetKyc = (...customParams) => {
+      const wrappedGetKyc = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockGetKycRequirement(...finalParams);
       };
       return [mockUseDepositSdkMethodInitialState, wrappedGetKyc];
     }
     if (config?.method === 'getAdditionalRequirements') {
-      const wrappedGetAdditional = (...customParams) => {
+      const wrappedGetAdditional = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockGetAdditionalRequirements(...finalParams);
       };
       return [mockUseDepositSdkMethodInitialState, wrappedGetAdditional];
     }
     if (config?.method === 'getUserDetails') {
-      const wrappedFetchUser = (...customParams) => {
+      const wrappedFetchUser = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockFetchUserDetails(...finalParams);
       };
       return [mockUseDepositSdkMethodInitialState, wrappedFetchUser];
     }
     if (config?.method === 'createOrder') {
-      const wrappedCreateOrder = (...customParams) => {
+      const wrappedCreateOrder = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockCreateOrder(...finalParams);
       };
       return [mockUseDepositSdkMethodInitialState, wrappedCreateOrder];
     }
     if (config?.method === 'submitPurposeOfUsageForm') {
-      const wrappedSubmitPurpose = (...customParams) => {
+      const wrappedSubmitPurpose = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockSubmitPurposeOfUsage(...finalParams);
       };
       return [mockUseDepositSdkMethodInitialState, wrappedSubmitPurpose];
     }
     if (config?.method === 'requestOtt') {
-      const wrappedRequestOtt = (...customParams) => {
+      const wrappedRequestOtt = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockRequestOtt(...finalParams);
       };
       return [mockUseDepositSdkMethodInitialState, wrappedRequestOtt];
     }
     if (config?.method === 'generatePaymentWidgetUrl') {
-      const wrappedGeneratePayment = (...customParams) => {
+      const wrappedGeneratePayment = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockGeneratePaymentUrl(...finalParams);
       };
       return [mockUseDepositSdkMethodInitialState, wrappedGeneratePayment];
     }
     if (config?.method === 'getOrder') {
-      const wrappedGetOrder = (...customParams) => {
+      const wrappedGetOrder = (...customParams: unknown[]) => {
         const finalParams = customParams.length > 0 ? customParams : params;
         return mockGetOrder(...finalParams);
       };

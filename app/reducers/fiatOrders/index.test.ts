@@ -4,6 +4,7 @@ import {
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
 import { toHex } from '@metamask/controller-utils';
+import { MOCK_CREDIT_DEBIT_CARD } from '../../components/UI/Ramp/Deposit/testUtils/constants';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -476,8 +477,7 @@ describe('fiatOrderReducer', () => {
 
   it('should set the selected deposit payment method', () => {
     const testDepositPaymentMethod = {
-      id: 'credit_debit_card',
-      name: 'Debit or Credit',
+      ...MOCK_CREDIT_DEBIT_CARD,
       iconUrl: 'https://example.com/icon.png',
       delay: {
         min: 5,
@@ -972,8 +972,7 @@ describe('selectors', () => {
   describe('fiatOrdersPaymentMethodSelectorDeposit', () => {
     it('should return the selected deposit payment method', () => {
       const testDepositPaymentMethod = {
-        id: 'credit_debit_card',
-        name: 'Debit or Credit',
+        ...MOCK_CREDIT_DEBIT_CARD,
         iconUrl: 'https://example.com/icon.png',
         delay: {
           min: 5,

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDepositSDK } from '../sdk';
 import { useDepositSdkMethod } from './useDepositSdkMethod';
+import type { DepositPaymentMethod } from '@consensys/native-ramps-sdk';
 
 export function usePaymentMethods() {
   const {

@@ -108,6 +108,7 @@ describe('DepositPhoneField', () => {
         label="Phone Number"
         onChangeText={mockOnChangeText}
         value=""
+        regions={[]}
       />,
     );
 
@@ -136,6 +137,7 @@ describe('DepositPhoneField', () => {
         onChangeText={mockOnChangeText}
         value=""
         onSubmitEditing={mockOnSubmitEditing}
+        regions={[]}
       />,
     );
 
@@ -159,6 +161,7 @@ describe('DepositPhoneField', () => {
         label="Phone Number"
         onChangeText={mockOnChangeText}
         value="+155512345678901234"
+        regions={[]}
       />,
     );
 
@@ -171,6 +174,7 @@ describe('DepositPhoneField', () => {
         label="Phone Number"
         onChangeText={mockOnChangeText}
         value="+1(555)123-4567"
+        regions={[]}
       />,
     );
 

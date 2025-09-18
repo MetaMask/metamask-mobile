@@ -1,6 +1,12 @@
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { DepositSDKNoAuth } from '../sdk';
 import { depositOrderToFiatOrder, processDepositOrder } from './';
+import {
+  MOCK_BTC_TOKEN,
+  MOCK_CREDIT_DEBIT_CARD,
+  MOCK_US_REGION,
+  MOCK_DEPOSIT_ORDER,
+} from '../testUtils/constants';
 import { DepositOrder, NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 jest.mock('../sdk', () => ({
@@ -27,20 +33,21 @@ describe('depositOrderToFiatOrder', () => {
       fiatAmount: 123,
       totalFeesFiat: 9,
       cryptoAmount: 0.012361263,
-      cryptoCurrency: {
-        assetId: 'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        chainId: 'eip155:1',
-        decimals: 8,
-        iconUrl: 'https://example.com/btc.png',
-      },
+      cryptoCurrency: MOCK_BTC_TOKEN,
       fiatCurrency: 'USD',
       network: 'ethereum',
       status: 'COMPLETED',
       orderType: 'DEPOSIT' as DepositOrder['orderType'],
       walletAddress: '0x1234',
       txHash: '0x987654321',
+      providerOrderId: 'test-order-id',
+      providerOrderLink: 'https://test.com/order',
+      paymentMethod: MOCK_CREDIT_DEBIT_CARD,
+      timeDescriptionPending: '1-2 days',
+      fiatAmountInUsd: 123,
+      feesInUsd: 9,
+      region: MOCK_US_REGION,
+      paymentDetails: [],
     };
 
     const failedOrder = {
@@ -315,14 +322,7 @@ describe('processDepositOrder', () => {
       fiatAmount: 123,
       totalFeesFiat: 9,
       cryptoAmount: 0.012361263,
-      cryptoCurrency: {
-        assetId: 'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        chainId: 'eip155:1',
-        decimals: 8,
-        iconUrl: 'https://example.com/btc.png',
-      },
+      cryptoCurrency: MOCK_BTC_TOKEN,
       fiatCurrency: 'USD',
       network: 'ethreum',
       status: 'COMPLETED',
@@ -330,7 +330,7 @@ describe('processDepositOrder', () => {
       walletAddress: '0x1234',
       txHash: '0x987654321',
     },
-  } as FiatOrder;
+  } as unknown as FiatOrder;
 
   afterEach(() => {
     jest.spyOn(Date, 'now').mockClear();

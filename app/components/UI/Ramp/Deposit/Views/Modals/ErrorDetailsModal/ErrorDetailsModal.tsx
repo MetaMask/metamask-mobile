@@ -13,13 +13,14 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useStyles } from '../../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import styleSheet from './ErrorDetailsModal.styles';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
@@ -33,14 +34,14 @@ export const createErrorDetailsModalNavigationDetails =
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
 
   const { errorMessage } = useParams<ErrorDetailsModalParams>();
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isFullscreen>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <View style={tw.style('flex-row items-center gap-2')}>
+        <View style={styles.headerContainer}>
           <Icon
             name={IconName.Danger}
             size={IconSize.Md}
@@ -53,14 +54,14 @@ function ErrorDetailsModal() {
       </BottomSheetHeader>
 
       <ScrollView
-        style={tw.style('flex-1 px-4 pb-4')}
-        contentContainerStyle={tw.style('pb-8')}
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator
       >
         <Text
           variant={TextVariant.BodyMD}
           color={TextColor.Default}
-          style={tw.style('leading-6')}
+          style={styles.errorText}
         >
           {errorMessage}
         </Text>

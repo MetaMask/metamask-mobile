@@ -296,7 +296,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                         resizeMode="contain"
                         source={
                           {
-                            "uri": undefined,
+                            "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
                           }
                         }
                         style={
@@ -581,7 +581,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -901,7 +901,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                         resizeMode="contain"
                         source={
                           {
-                            "uri": undefined,
+                            "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
                           }
                         }
                         style={
@@ -1186,7 +1186,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -1433,7 +1433,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                         resizeMode="contain"
                         source={
                           {
-                            "uri": undefined,
+                            "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
                           }
                         }
                         style={
@@ -1718,7 +1718,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
