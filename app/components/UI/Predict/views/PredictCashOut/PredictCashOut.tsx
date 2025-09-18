@@ -31,7 +31,7 @@ const PredictCashOut = () => {
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictCashOut'>>();
-  const { placeSellOrder, loading, reset, isOrderLoading } = usePredictSell({
+  const { placeSellOrder, loading, reset } = usePredictSell({
     onError: (error) => {
       Alert.alert('Order failed', error);
       reset();
@@ -40,15 +40,8 @@ const PredictCashOut = () => {
 
   const { position } = route.params;
 
-  const {
-    icon,
-    title,
-    percentPnl,
-    outcome,
-    currentValue,
-    initialValue,
-    outcomeTokenId,
-  } = position;
+  const { icon, title, percentPnl, outcome, currentValue, initialValue } =
+    position;
 
   const onCashOut = () => {
     // Implement cash out action here
@@ -121,7 +114,7 @@ const PredictCashOut = () => {
                 backgroundColor: colors.primary.default,
               }}
               disabled={loading}
-              loading={isOrderLoading(outcomeTokenId)}
+              loading={loading}
             />
             <Text style={styles.cashOutButtonText}>
               All payments are made in USDC

@@ -31,7 +31,7 @@ jest.mock('@react-navigation/native', () => ({
 // Mock usePredictSell hook
 const mockPlaceSellOrder = jest.fn();
 const mockReset = jest.fn();
-const mockIsOrderLoading = jest.fn();
+const mockIsOutcomeLoading = jest.fn();
 let mockLoadingState = false;
 
 jest.mock('../../hooks/usePredictSell', () => ({
@@ -51,7 +51,7 @@ jest.mock('../../hooks/usePredictSell', () => ({
       },
       loading: mockLoadingState,
       reset: mockReset,
-      isOrderLoading: mockIsOrderLoading.mockReturnValue(false),
+      isOutcomeLoading: mockIsOutcomeLoading.mockReturnValue(false),
     };
   },
 }));
@@ -216,7 +216,7 @@ describe('PredictCashOut', () => {
     // Reset mock functions
     mockPlaceSellOrder.mockReset();
     mockReset.mockReset();
-    mockIsOrderLoading.mockReset();
+    mockIsOutcomeLoading.mockReset();
     mockUseStyles.mockReturnValue({
       styles: {
         container: {},
@@ -346,13 +346,13 @@ describe('PredictCashOut', () => {
     });
 
     it('shows loading state for specific outcome token', () => {
-      mockIsOrderLoading.mockReturnValue(true);
+      mockIsOutcomeLoading.mockReturnValue(true);
 
       renderWithProvider(<PredictCashOut />, {
         state: initialState,
       });
 
-      expect(mockIsOrderLoading).toHaveBeenCalledWith('outcome-token-789');
+      expect(mockIsOutcomeLoading).toHaveBeenCalledWith('outcome-token-789');
     });
 
     it('calls goBack when close button is pressed', () => {

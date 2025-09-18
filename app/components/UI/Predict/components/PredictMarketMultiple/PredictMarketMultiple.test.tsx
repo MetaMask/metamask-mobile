@@ -66,7 +66,6 @@ describe('PredictMarket', () => {
       result: null,
       completed: false,
       error: undefined,
-      isOrderLoading: jest.fn(() => false),
       reset: jest.fn(),
     });
   });

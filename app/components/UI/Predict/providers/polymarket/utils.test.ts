@@ -113,6 +113,7 @@ describe('polymarket utils', () => {
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
         CLOB_ENDPOINT: 'https://clob.polymarket.com',
         DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
+        GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
       });
     });
   });
@@ -1022,6 +1023,7 @@ describe('polymarket utils', () => {
 
     beforeEach(() => {
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockOrderResponse),
       });
     });

@@ -21,14 +21,6 @@ interface UsePredictPositionsOptions {
    * @default true
    */
   refreshOnFocus?: boolean;
-  /**
-   * Callback when positions are loaded successfully
-   */
-  onSuccess?: (positions: PredictPosition[]) => void;
-  /**
-   * Callback when an error occurs
-   */
-  onError?: (error: string) => void;
 }
 
 interface UsePredictPositionsReturn {
@@ -47,13 +39,7 @@ interface UsePredictPositionsReturn {
 export function usePredictPositions(
   options: UsePredictPositionsOptions = {},
 ): UsePredictPositionsReturn {
-  const {
-    providerId,
-    loadOnMount = true,
-    refreshOnFocus = true,
-    onSuccess,
-    onError,
-  } = options;
+  const { providerId, loadOnMount = true, refreshOnFocus = true } = options;
 
   const { getPositions } = usePredictTrading();
 
@@ -96,27 +82,17 @@ export function usePredictPositions(
             price: p.curPrice,
           })),
         });
-
-        onSuccess?.(validPositions);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to load positions';
         setError(errorMessage);
         DevLogger.log('usePredictPositions: Error loading positions', err);
-
-        onError?.(errorMessage);
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
       }
     },
-    [
-      getPositions,
-      selectedInternalAccountAddress,
-      providerId,
-      onSuccess,
-      onError,
-    ],
+    [getPositions, selectedInternalAccountAddress, providerId],
   );
 
   // Load positions on mount if enabled

@@ -87,9 +87,9 @@ The Predict feature enables users to participate in prediction markets within Me
 
 - **Loading states**: `placing`, `completed`, `error`
 - **Toast notifications**: Automatic notifications for order placement, completion, and failures
-- **Callbacks**: `onBuyPlaced`/`onSellPlaced`, `onComplete`, `onError`
+- **Callbacks**: `onComplete`, `onError`
 - **Order tracking**: Real-time order status via Redux state selectors
-- **Utilities**: `isOrderLoading()` for UI state, `reset()` for cleanup
+- **Utilities**: `isOutcomeLoading()` for UI state, `reset()` for cleanup
 
 #### Data Management Hooks
 

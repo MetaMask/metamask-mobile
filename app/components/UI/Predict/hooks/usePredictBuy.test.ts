@@ -184,7 +184,6 @@ describe('usePredictBuy', () => {
 
       const { result } = renderHook(() =>
         usePredictBuy({
-          onBuyPlaced: onSuccessMock,
           onError: onErrorMock,
         }),
       );
@@ -209,7 +208,6 @@ describe('usePredictBuy', () => {
 
       const { result } = renderHook(() =>
         usePredictBuy({
-          onBuyPlaced: onSuccessMock,
           onError: onErrorMock,
         }),
       );

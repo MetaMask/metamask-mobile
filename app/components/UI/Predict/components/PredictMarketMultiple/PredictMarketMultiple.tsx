@@ -5,7 +5,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Alert, Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -35,7 +35,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const { placeBuyOrder, reset, loading, isOrderLoading } = usePredictBuy({
+  const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
     onError: (error) => {
       Alert.alert('Order failed', error);
       reset();
@@ -69,6 +69,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
         : outcome.volume || 0;
     return sum + volume;
   }, 0);
+
+  const isOutcomeTokenLoading = useCallback(
+    (outcomeTokenId: string) =>
+      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
+    [currentOrderParams, loading],
+  );
 
   const handleYes = (outcome: PredictOutcome) => {
     placeBuyOrder({
@@ -166,7 +172,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   onPress={() => handleYes(outcome)}
                   style={styles.buttonYes}
                   disabled={loading}
-                  loading={isOrderLoading(outcome.tokens[0].id)}
+                  loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
@@ -183,7 +189,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   onPress={() => handleNo(outcome)}
                   style={styles.buttonNo}
                   disabled={loading}
-                  loading={isOrderLoading(outcome.tokens[1].id)}
+                  loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
                 />
               </Box>
             </Box>

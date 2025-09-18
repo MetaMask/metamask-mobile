@@ -550,6 +550,22 @@ export const submitClobOrder = async ({
     body,
   });
 
+  if (!response.ok) {
+    if (response.status === 403) {
+      return {
+        success: false,
+        error: 'You are unable to access this provider.',
+        errorCode: response.status,
+      };
+    }
+    const responseData = await response.json();
+    const error = responseData.error ?? response.statusText;
+    return {
+      success: false,
+      error,
+    };
+  }
+
   const responseData = (await response.json()) as OrderResponse;
   return responseData;
 };

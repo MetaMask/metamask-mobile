@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../core/Engine';
 
-export const usePredictOrders = () => {
+export const usePredictNotifications = () => {
   const { toastRef } = useContext(ToastContext);
   const controller = Engine.context.PredictController;
 
@@ -18,9 +18,9 @@ export const usePredictOrders = () => {
     (predictState) => predictState.activeOrders,
   );
 
-  const selectOrdersToNotifyState = createSelector(
+  const selectNotifications = createSelector(
     (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.ordersToNotify,
+    (predictState) => predictState.notifications,
   );
 
   const activeOrdersState = useSelector(selectActiveOrdersState);
@@ -30,35 +30,35 @@ export const usePredictOrders = () => {
     [activeOrdersState],
   );
 
-  const ordersToNotify = useSelector(selectOrdersToNotifyState);
+  const notifications = useSelector(selectNotifications);
 
   useEffect(() => {
-    const nextOrderNotification = ordersToNotify[0];
-    if (!nextOrderNotification) {
+    const nextNotification = notifications[0];
+    if (!nextNotification) {
       return;
     }
 
-    const nextOrder = activeOrdersState[nextOrderNotification.orderId];
+    const nextOrder = activeOrdersState[nextNotification.orderId];
 
     if (!nextOrder) {
       return;
     }
 
-    if (nextOrderNotification.status === 'filled') {
+    if (nextNotification.status === 'filled') {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.CheckBold,
         labelOptions: [{ label: 'Order completed' }],
         hasNoTimeout: false,
       });
-    } else if (nextOrderNotification.status === 'error') {
+    } else if (nextNotification.status === 'error') {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
         labelOptions: [{ label: 'Order failed' }],
         hasNoTimeout: false,
       });
-    } else if (nextOrderNotification.status === 'pending') {
+    } else if (nextNotification.status === 'pending') {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
@@ -69,8 +69,8 @@ export const usePredictOrders = () => {
       return;
     }
 
-    controller.deleteOrderToNotify(nextOrderNotification.orderId);
-  }, [activeOrdersState, controller, ordersToNotify, toastRef]);
+    controller.deleteNotification(nextNotification.orderId);
+  }, [activeOrdersState, controller, notifications, toastRef]);
 
   return { activeOrders };
 };

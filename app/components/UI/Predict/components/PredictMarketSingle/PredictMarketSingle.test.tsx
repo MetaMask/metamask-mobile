@@ -75,7 +75,6 @@ describe('PredictMarketSingle', () => {
       result: null,
       completed: false,
       error: undefined,
-      isOrderLoading: jest.fn(() => false),
       reset: jest.fn(),
     });
   });
@@ -111,7 +110,7 @@ describe('PredictMarketSingle', () => {
 
     fireEvent.press(yesButton);
     expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      amount: 1,
+      size: 1,
       outcomeId: mockOutcome.id,
       outcomeTokenId: mockOutcome.tokens[0].id,
       market: mockMarket,
@@ -119,7 +118,7 @@ describe('PredictMarketSingle', () => {
 
     fireEvent.press(noButton);
     expect(mockPlaceBuyOrder).toHaveBeenCalledWith({
-      amount: 1,
+      size: 1,
       outcomeId: mockOutcome.id,
       outcomeTokenId: mockOutcome.tokens[1].id,
       market: mockMarket,

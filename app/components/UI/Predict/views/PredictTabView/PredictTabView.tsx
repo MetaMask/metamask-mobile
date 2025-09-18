@@ -16,7 +16,7 @@ import PredictNewButton from '../../components/PredictNewButton';
 import PredictPosition from '../../components/PredictPosition';
 import PredictPositionEmpty from '../../components/PredictPositionEmpty';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { usePredictOrders } from '../../hooks/usePredictOrders';
+import { usePredictNotifications } from '../../hooks/usePredictNotifications';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import styleSheet from './PredictTabView.styles';
@@ -32,7 +32,9 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  usePredictOrders();
+
+  // TODO: remove this once we have a better way to trigger notifications globally
+  usePredictNotifications();
 
   const renderMarketsWonCard = useCallback(() => {
     const claimablePositions = positions.filter(

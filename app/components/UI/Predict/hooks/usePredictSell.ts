@@ -13,10 +13,6 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 interface UsePredictSellOptions {
   /**
-   * Callback when order is placed successfully
-   */
-  onSellPlaced?: (order: PredictOrder) => void;
-  /**
    * Callback when order is completed
    */
   onComplete?: (order: PredictOrder) => void;
@@ -32,8 +28,8 @@ interface UsePredictSellReturn {
   result: Result | null;
   currentOrder: PredictOrder | null;
   completed: boolean;
+  currentOrderParams: SellParams | null;
   placeSellOrder: (params: SellParams) => Promise<void>;
-  isOrderLoading: (outcomeTokenId: string) => boolean;
   reset: () => void;
 }
 
@@ -45,7 +41,7 @@ interface UsePredictSellReturn {
 export function usePredictSell(
   options: UsePredictSellOptions = {},
 ): UsePredictSellReturn {
-  const { onSellPlaced, onError, onComplete } = options;
+  const { onError, onComplete } = options;
   const { sell } = usePredictTrading();
 
   const [currentOrderParams, setCurrentOrderParams] =
@@ -76,15 +72,35 @@ export function usePredictSell(
     return currentOrder.status === 'filled';
   }, [currentOrder]);
 
-  const error = useMemo(
-    () => result?.error ?? currentOrder?.error,
-    [currentOrder, result],
-  );
+  const error = useMemo(() => {
+    // Prioritize result error first
+    if (result?.error) {
+      return result.error;
+    }
+
+    // Then check order error
+    if (currentOrder?.error) {
+      return currentOrder.error;
+    }
+
+    // Finally check if order was cancelled
+    if (currentOrder?.status === 'cancelled') {
+      return 'Order cancelled';
+    }
+
+    return undefined;
+  }, [currentOrder, result]);
 
   const loading = useMemo(
     () => isPlacing && !completed && !error,
     [isPlacing, completed, error],
   );
+
+  const reset = useCallback(() => {
+    setResult(null);
+    setIsPlacing(false);
+    setCurrentOrderParams(null);
+  }, []);
 
   useEffect(() => {
     if (completed && currentOrder) {
@@ -93,29 +109,10 @@ export function usePredictSell(
   }, [completed, currentOrder, onComplete]);
 
   useEffect(() => {
-    if (result?.id) {
-      const activeOrder = activeOrders[result.id];
-      onSellPlaced?.(activeOrder);
-    }
-  }, [activeOrders, onSellPlaced, result]);
-
-  useEffect(() => {
     if (error) {
       onError?.(error, currentOrder);
     }
   }, [error, onError, currentOrder]);
-
-  const reset = useCallback(() => {
-    setResult(null);
-    setIsPlacing(false);
-    setCurrentOrderParams(null);
-  }, []);
-
-  const isOrderLoading = useCallback(
-    (outcomeTokenId: string) =>
-      currentOrderParams?.position.outcomeTokenId === outcomeTokenId && loading,
-    [currentOrderParams, loading],
-  );
 
   const placeSellOrder = useCallback(
     async (orderParams: SellParams) => {
@@ -162,7 +159,7 @@ export function usePredictSell(
     result,
     currentOrder,
     completed,
-    isOrderLoading,
+    currentOrderParams,
     placeSellOrder,
     reset,
   };

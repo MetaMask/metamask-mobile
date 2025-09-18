@@ -177,6 +177,11 @@ export type PredictPosition = {
   endDate: string;
 };
 
+export type PredictNotification = {
+  orderId: string;
+  status: PredictOrderStatus;
+};
+
 export interface BuyParams {
   market: PredictMarket;
   outcomeId: string;

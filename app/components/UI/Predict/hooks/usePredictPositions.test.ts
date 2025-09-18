@@ -94,9 +94,8 @@ describe('usePredictPositions', () => {
   it('handles errors correctly', async () => {
     const testError = new Error('Failed to load positions');
     mockGetPositions.mockRejectedValue(testError);
-    const onError = jest.fn();
 
-    const { result } = renderHook(() => usePredictPositions({ onError }));
+    const { result } = renderHook(() => usePredictPositions());
 
     expect(result.current.isLoading).toBe(true);
 
@@ -108,7 +107,6 @@ describe('usePredictPositions', () => {
     expect(result.current.error).toBe('Failed to load positions');
     expect(result.current.positions).toEqual([]);
     expect(result.current.isLoading).toBe(false);
-    expect(onError).toHaveBeenCalledWith('Failed to load positions');
   });
 
   it('refreshes positions with isRefresh flag', async () => {
@@ -152,8 +150,7 @@ describe('usePredictPositions', () => {
     expect(result.current.positions).toHaveLength(1);
   });
 
-  it('calls onSuccess callback when positions load successfully', async () => {
-    const onSuccess = jest.fn();
+  it('loads positions successfully', async () => {
     const positions = [
       {
         providerId: 'p1',
@@ -174,14 +171,18 @@ describe('usePredictPositions', () => {
     ];
     mockGetPositions.mockResolvedValue(positions);
 
-    renderHook(() => usePredictPositions({ onSuccess }));
+    const { result } = renderHook(() => usePredictPositions());
+
+    expect(result.current.isLoading).toBe(true);
 
     // Wait for the async operation to complete
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(onSuccess).toHaveBeenCalledWith(positions);
+    expect(result.current.positions).toEqual(positions);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(null);
   });
 
   it('sets up focus effect when refreshOnFocus is true', () => {

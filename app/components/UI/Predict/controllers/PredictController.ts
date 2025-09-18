@@ -12,12 +12,16 @@ import { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
+  TransactionControllerTransactionRejectedEvent,
   TransactionControllerTransactionSubmittedEvent,
 } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { addTransactionBatch } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { GetMarketsParams, PredictProvider } from '../providers/types';
 import {
@@ -25,8 +29,8 @@ import {
   GetPositionsParams,
   OffchainTradeResponse,
   PredictMarket,
+  PredictNotification,
   PredictOrder,
-  PredictOrderStatus,
   PredictPosition,
   Result,
   SellParams,
@@ -47,6 +51,7 @@ export const PREDICT_ERROR_CODES = {
   SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED: 'SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED',
   NO_ONCHAIN_TRADE_PARAMS: 'NO_ONCHAIN_TRADE_PARAMS',
   ONCHAIN_TRANSACTION_NOT_FOUND: 'ONCHAIN_TRANSACTION_NOT_FOUND',
+  SUBMIT_OFFCHAIN_TRADE_FAILED: 'SUBMIT_OFFCHAIN_TRADE_FAILED',
 } as const;
 
 export type PredictErrorCode =
@@ -69,7 +74,10 @@ export type PredictControllerState = {
 
   // Order management
   activeOrders: { [key: string]: PredictOrder };
-  ordersToNotify: { orderId: string; status: PredictOrderStatus }[];
+
+  // Notifications
+  // TODO: Refactor to use generic notifications
+  notifications: PredictNotification[];
 };
 
 /**
@@ -81,7 +89,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   activeOrders: {},
-  ordersToNotify: [],
+  notifications: [],
 });
 
 /**
@@ -95,7 +103,7 @@ const metadata = {
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   activeOrders: { persist: true, anonymous: false },
-  ordersToNotify: { persist: true, anonymous: false },
+  notifications: { persist: false, anonymous: false },
 };
 
 /**
@@ -140,7 +148,8 @@ export type AllowedActions =
 export type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerTransactionFailedEvent;
+  | TransactionControllerTransactionFailedEvent
+  | TransactionControllerTransactionRejectedEvent;
 
 /**
  * PredictController messenger constraints
@@ -204,6 +213,12 @@ export class PredictController extends BaseController<
       this.handleTransactionFailed.bind(this),
     );
 
+    // TODO: Uncomment this when we have a way to handle transaction rejected events
+    /* this.messagingSystem.subscribe(
+      'TransactionController:transactionRejected',
+      this.handleTransactionRejected.bind(this),
+    ); */
+
     this.initializeProviders().catch((error) => {
       DevLogger.log('PredictController: Error initializing providers', {
         error:
@@ -241,12 +256,15 @@ export class PredictController extends BaseController<
     _txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0],
   ): Promise<void> {
     const batchId = _txMeta.batchId;
+    const txId = _txMeta.id;
 
-    if (!batchId) {
+    const id = batchId ?? txId;
+
+    if (!id) {
       return;
     }
 
-    const activeOrder = this.state.activeOrders[batchId];
+    const activeOrder = this.state.activeOrders[id];
 
     if (!activeOrder) {
       return;
@@ -255,8 +273,8 @@ export class PredictController extends BaseController<
     const provider = this.providers.get(activeOrder.providerId);
     if (!provider) {
       this.update((state) => {
-        state.activeOrders[batchId].status = 'error';
-        state.activeOrders[batchId].error =
+        state.activeOrders[id].status = 'error';
+        state.activeOrders[id].error =
           PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
       });
       return;
@@ -270,15 +288,15 @@ export class PredictController extends BaseController<
 
     if (onchainTransactionNotFound) {
       this.update((state) => {
-        state.activeOrders[batchId].status = 'error';
-        state.activeOrders[batchId].error =
+        state.activeOrders[id].status = 'error';
+        state.activeOrders[id].error =
           PREDICT_ERROR_CODES.ONCHAIN_TRANSACTION_NOT_FOUND;
       });
       return;
     }
 
     this.update((state) => {
-      state.activeOrders[batchId].onchainTradeParams[
+      state.activeOrders[id].onchainTradeParams[
         onchainTransactionIndex
       ].transactionId = _txMeta.id;
     });
@@ -295,8 +313,8 @@ export class PredictController extends BaseController<
 
     if (!offchainTradeParams) {
       this.update((state) => {
-        state.activeOrders[batchId].status = 'filled';
-        state.ordersToNotify.push({ orderId: batchId, status: 'filled' });
+        state.activeOrders[id].status = 'filled';
+        state.notifications.push({ orderId: id, status: 'filled' });
       });
 
       return;
@@ -304,28 +322,37 @@ export class PredictController extends BaseController<
 
     if (!provider.submitOffchainTrade) {
       this.update((state) => {
-        state.activeOrders[batchId].status = 'error';
-        state.activeOrders[batchId].error =
+        state.activeOrders[id].status = 'error';
+        state.activeOrders[id].error =
           PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED;
-        state.ordersToNotify.push({ orderId: batchId, status: 'error' });
+        state.notifications.push({ orderId: id, status: 'error' });
       });
       return;
     }
 
-    const { success, response } = (await provider.submitOffchainTrade?.(
-      offchainTradeParams,
-    )) as OffchainTradeResponse;
+    try {
+      const { success, response } = (await provider.submitOffchainTrade?.(
+        offchainTradeParams,
+      )) as OffchainTradeResponse;
 
-    const status = success ? 'filled' : 'error';
-    const error = !success
-      ? (response as { error: string }).error ?? 'Unknown error'
-      : undefined;
+      const status = success ? 'filled' : 'error';
+      const error = !success
+        ? (response as { error: string }).error ?? 'Unknown error'
+        : undefined;
 
-    this.update((state) => {
-      state.activeOrders[batchId].status = status;
-      state.activeOrders[batchId].error = error;
-      state.ordersToNotify.push({ orderId: batchId, status });
-    });
+      this.update((state) => {
+        state.activeOrders[id].status = status;
+        state.activeOrders[id].error = error;
+        state.notifications.push({ orderId: id, status });
+      });
+    } catch (error) {
+      this.update((state) => {
+        state.activeOrders[id].status = 'error';
+        state.activeOrders[id].error =
+          PREDICT_ERROR_CODES.SUBMIT_OFFCHAIN_TRADE_FAILED;
+        state.notifications.push({ orderId: id, status: 'error' });
+      });
+    }
   }
 
   /**
@@ -334,17 +361,46 @@ export class PredictController extends BaseController<
   private handleTransactionFailed(
     _event: TransactionControllerTransactionFailedEvent['payload'][0],
   ): void {
+    console.log('handleTransactionFailed', _event);
     const batchId = _event.transactionMeta.id;
+    const txId = _event.transactionMeta.id;
 
-    if (!batchId) {
+    const id = batchId ?? txId;
+
+    if (!id) {
       return;
     }
 
     // TODO: Implement transaction failure tracking
     this.update((state) => {
-      if (state.activeOrders[batchId]) {
-        state.activeOrders[batchId].status = 'error';
-        state.ordersToNotify.push({ orderId: batchId, status: 'error' });
+      if (state.activeOrders[id]) {
+        state.activeOrders[id].status = 'error';
+        state.notifications.push({ orderId: id, status: 'error' });
+      }
+    });
+  }
+
+  /**
+   * Handle transaction rejected event
+   */
+  private handleTransactionRejected(
+    _event: TransactionControllerTransactionRejectedEvent['payload'][0],
+  ): void {
+    console.log('handleTransactionFailed', _event);
+    const batchId = _event.transactionMeta.id;
+    const txId = _event.transactionMeta.id;
+
+    const id = batchId ?? txId;
+
+    if (!id) {
+      return;
+    }
+
+    // TODO: Implement transaction failure tracking
+    this.update((state) => {
+      if (state.activeOrders[id]) {
+        state.activeOrders[id].status = 'cancelled';
+        state.notifications.push({ orderId: id, status: 'cancelled' });
       }
     });
   }
@@ -545,6 +601,37 @@ export class PredictController extends BaseController<
         numberToHex(chainId),
       );
 
+      if (order.onchainTradeParams.length === 1) {
+        const params = order.onchainTradeParams[0];
+
+        const { transactionMeta } = await addTransaction(
+          {
+            from: selectedAddress as Hex,
+            to: params.to as Hex,
+            data: params.data as Hex,
+            value: params.value as Hex,
+          },
+          {
+            networkClientId,
+            requireApproval: true,
+          },
+        );
+
+        this.update((state) => {
+          state.activeOrders[transactionMeta.id] = order;
+          state.activeOrders[transactionMeta.id].status = 'pending';
+          state.notifications.push({
+            orderId: transactionMeta.id,
+            status: 'pending',
+          });
+        });
+
+        return {
+          success: true,
+          id: transactionMeta.id,
+        };
+      }
+
       const { batchId } = await addTransactionBatch({
         from: selectedAddress as Hex,
         networkClientId,
@@ -564,7 +651,7 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.activeOrders[batchId] = order;
         state.activeOrders[batchId].status = 'pending';
-        state.ordersToNotify.push({ orderId: batchId, status: 'pending' });
+        state.notifications.push({ orderId: batchId, status: 'pending' });
       });
 
       return {
@@ -616,6 +703,37 @@ export class PredictController extends BaseController<
         numberToHex(chainId),
       );
 
+      if (order.onchainTradeParams.length === 1) {
+        const params = order.onchainTradeParams[0];
+
+        const { transactionMeta } = await addTransaction(
+          {
+            from: selectedAddress as Hex,
+            to: params.to as Hex,
+            data: params.data as Hex,
+            value: params.value as Hex,
+          },
+          {
+            networkClientId,
+            requireApproval: true,
+          },
+        );
+
+        this.update((state) => {
+          state.activeOrders[transactionMeta.id] = order;
+          state.activeOrders[transactionMeta.id].status = 'pending';
+          state.notifications.push({
+            orderId: transactionMeta.id,
+            status: 'pending',
+          });
+        });
+
+        return {
+          success: true,
+          id: transactionMeta.id,
+        };
+      }
+
       const { batchId } = await addTransactionBatch({
         from: selectedAddress as Hex,
         networkClientId,
@@ -635,7 +753,7 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.activeOrders[batchId] = order;
         state.activeOrders[batchId].status = 'pending';
-        state.ordersToNotify.push({ orderId: batchId, status: 'pending' });
+        state.notifications.push({ orderId: batchId, status: 'pending' });
       });
 
       return {
@@ -685,9 +803,9 @@ export class PredictController extends BaseController<
     }
   }
 
-  public deleteOrderToNotify(orderId: string): void {
+  public deleteNotification(orderId: string): void {
     this.update((state) => {
-      state.ordersToNotify = state.ordersToNotify.filter(
+      state.notifications = state.notifications.filter(
         (order) => order.orderId !== orderId,
       );
     });

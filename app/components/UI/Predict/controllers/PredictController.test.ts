@@ -9,13 +9,14 @@ import {
 } from './PredictController';
 import { type PredictOrderStatus } from '../types';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { addTransactionBatch } from '../../../../util/transaction-controller';
+import { addTransaction } from '../../../../util/transaction-controller';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
 
-// Mock transaction controller addTransactionBatch
+// Mock transaction controller functions
 jest.mock('../../../../util/transaction-controller', () => ({
+  addTransaction: jest.fn(),
   addTransactionBatch: jest.fn(),
 }));
 
@@ -309,9 +310,9 @@ describe('PredictController', () => {
           chainId: 1,
         } as any);
 
-        // Mock addTransactionBatch to return our batchId
-        (addTransactionBatch as jest.Mock).mockResolvedValue({
-          batchId: mockTxMeta.id,
+        // Mock addTransaction to return transaction meta
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
         });
 
         const result = await controller.buy({
@@ -370,8 +371,8 @@ describe('PredictController', () => {
           chainId: 1,
         } as any);
 
-        (addTransactionBatch as jest.Mock).mockResolvedValue({
-          batchId: mockTxMeta.id,
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
         });
 
         await controller.buy({
@@ -439,9 +440,9 @@ describe('PredictController', () => {
           chainId: 1,
         } as any);
 
-        // Mock addTransactionBatch to return our batchId
-        (addTransactionBatch as jest.Mock).mockResolvedValue({
-          batchId: mockTxMeta.id,
+        // Mock addTransaction to return transaction meta
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
         });
 
         const result = await controller.sell({
@@ -457,9 +458,10 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(addTransactionBatch).toHaveBeenCalledWith(
+        expect(addTransaction).toHaveBeenCalledWith(
+          expect.any(Object), // First parameter is the transaction params
           expect.objectContaining({
-            requireApproval: false, // Key difference from buy
+            requireApproval: true, // Same as buy for single transaction
           }),
         );
 
@@ -906,27 +908,27 @@ describe('PredictController', () => {
   });
 
   describe('deleteOrderToNotify', () => {
-    it('should remove order from ordersToNotify array', () => {
+    it('should remove order from notifications array', () => {
       withController(({ controller }) => {
         const orderIdToRemove = 'order-1';
         const orderIdToKeep = 'order-2';
 
-        // Set up initial state with orders to notify
+        // Set up initial state with notifications
         controller.updateStateForTesting((state) => {
-          state.ordersToNotify = [
+          state.notifications = [
             { orderId: orderIdToRemove, status: 'filled' },
             { orderId: orderIdToKeep, status: 'pending' },
             { orderId: 'order-3', status: 'error' },
           ];
         });
 
-        controller.deleteOrderToNotify(orderIdToRemove);
+        controller.deleteNotification(orderIdToRemove);
 
-        expect(controller.state.ordersToNotify).toHaveLength(2);
-        expect(controller.state.ordersToNotify).not.toContainEqual(
+        expect(controller.state.notifications).toHaveLength(2);
+        expect(controller.state.notifications).not.toContainEqual(
           expect.objectContaining({ orderId: orderIdToRemove }),
         );
-        expect(controller.state.ordersToNotify).toContainEqual(
+        expect(controller.state.notifications).toContainEqual(
           expect.objectContaining({ orderId: orderIdToKeep }),
         );
       });
@@ -940,29 +942,29 @@ describe('PredictController', () => {
         ];
 
         controller.updateStateForTesting((state) => {
-          state.ordersToNotify = initialOrders as {
+          state.notifications = initialOrders as {
             orderId: string;
             status: PredictOrderStatus;
           }[];
         });
 
         // Try to remove non-existent order
-        controller.deleteOrderToNotify('non-existent-order');
+        controller.deleteNotification('non-existent-order');
 
         // State should remain unchanged
-        expect(controller.state.ordersToNotify).toEqual(initialOrders);
+        expect(controller.state.notifications).toEqual(initialOrders);
       });
     });
 
-    it('should handle empty ordersToNotify array', () => {
+    it('should handle empty notifications array', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
-          state.ordersToNotify = [];
+          state.notifications = [];
         });
 
-        controller.deleteOrderToNotify('any-order-id');
+        controller.deleteNotification('any-order-id');
 
-        expect(controller.state.ordersToNotify).toEqual([]);
+        expect(controller.state.notifications).toEqual([]);
       });
     });
   });
@@ -1002,11 +1004,11 @@ describe('PredictController', () => {
               offchainTradeParams: undefined,
             } as any,
           };
-          state.ordersToNotify = [{ orderId: 'test-order', status: 'pending' }];
+          state.notifications = [{ orderId: 'test-order', status: 'pending' }];
         });
 
         expect(controller.state.activeOrders['test-order']).toBeDefined();
-        expect(controller.state.ordersToNotify).toHaveLength(1);
+        expect(controller.state.notifications).toHaveLength(1);
       });
     });
   });

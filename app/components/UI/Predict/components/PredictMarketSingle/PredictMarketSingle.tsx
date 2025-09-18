@@ -4,7 +4,7 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Alert, Image, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
@@ -33,7 +33,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const outcome = market.outcomes[0];
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const { placeBuyOrder, reset, loading, isOrderLoading } = usePredictBuy({
+  const { placeBuyOrder, reset, loading, currentOrderParams } = usePredictBuy({
     onError: (error) => {
       Alert.alert('Order failed', error);
       reset();
@@ -59,9 +59,15 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const yesPercentage = getYesPercentage();
 
+  const isOutcomeTokenLoading = useCallback(
+    (outcomeTokenId: string) =>
+      currentOrderParams?.outcomeTokenId === outcomeTokenId && loading,
+    [currentOrderParams, loading],
+  );
+
   const handleYes = () => {
     placeBuyOrder({
-      amount: 1,
+      size: 1,
       outcomeId: outcome.id,
       outcomeTokenId: outcome.tokens[0].id,
       market,
@@ -70,7 +76,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   const handleNo = () => {
     placeBuyOrder({
-      amount: 1,
+      size: 1,
       outcomeId: outcome.id,
       outcomeTokenId: outcome.tokens[1].id,
       market,
@@ -209,7 +215,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           onPress={handleYes}
           style={styles.buttonYes}
           disabled={loading}
-          loading={isOrderLoading(outcome.tokens[0].id)}
+          loading={isOutcomeTokenLoading(outcome.tokens[0].id)}
         />
         <Button
           variant={ButtonVariants.Secondary}
@@ -223,7 +229,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           onPress={handleNo}
           style={styles.buttonNo}
           disabled={loading}
-          loading={isOrderLoading(outcome.tokens[1].id)}
+          loading={isOutcomeTokenLoading(outcome.tokens[1].id)}
         />
       </View>
       <View style={styles.marketFooter}>

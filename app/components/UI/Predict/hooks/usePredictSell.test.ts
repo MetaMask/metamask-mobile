@@ -112,9 +112,9 @@ describe('usePredictSell', () => {
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toBe(null);
       expect(result.current.currentOrder).toBe(null);
+      expect(result.current.currentOrderParams).toBe(null);
       expect(result.current.completed).toBe(false);
       expect(typeof result.current.placeSellOrder).toBe('function');
-      expect(typeof result.current.isOrderLoading).toBe('function');
       expect(typeof result.current.reset).toBe('function');
     });
   });
@@ -122,9 +122,6 @@ describe('usePredictSell', () => {
   describe('placeSellOrder', () => {
     const mockSellParams = {
       position: mockPosition,
-      outcomeId: 'outcome-456',
-      outcomeTokenId: 'outcome-token-789',
-      quantity: 50,
     };
 
     const mockSellResult = {
@@ -143,9 +140,6 @@ describe('usePredictSell', () => {
 
       expect(mockSell).toHaveBeenCalledWith({
         position: mockPosition,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: 'outcome-token-789',
-        quantity: 50,
       });
       expect(result.current.loading).toBe(true);
       expect(result.current.error).toBeUndefined();
@@ -165,9 +159,6 @@ describe('usePredictSell', () => {
 
       expect(mockSell).toHaveBeenCalledWith({
         position: mockPosition,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: 'outcome-token-789',
-        quantity: 50,
       });
       expect(result.current.loading).toBe(true); // Loading remains true on error (isPlacing not reset)
       expect(result.current.error).toBeUndefined();
@@ -265,37 +256,7 @@ describe('usePredictSell', () => {
       onchainTradeParams: [],
     };
 
-    it('calls onSellPlaced callback when order is placed successfully', async () => {
-      const onSellPlacedMock = jest.fn();
-      const onErrorMock = jest.fn();
-
-      mockSell.mockResolvedValue(mockSellResult);
-
-      // Set up active order in mock state
-      mockState.engine.backgroundState.PredictController.activeOrders = {
-        'order-123': mockActiveOrder,
-      };
-
-      const { result } = renderHook(() =>
-        usePredictSell({
-          onSellPlaced: onSellPlacedMock,
-          onError: onErrorMock,
-        }),
-      );
-
-      await act(async () => {
-        await result.current.placeSellOrder(mockSellParams);
-      });
-
-      await waitFor(() => {
-        expect(onSellPlacedMock).toHaveBeenCalledWith(mockActiveOrder);
-      });
-      expect(onErrorMock).not.toHaveBeenCalled();
-      expect(result.current.currentOrder).toEqual(mockActiveOrder);
-    });
-
     it('calls onError callback when order placement fails', async () => {
-      const onSellPlacedMock = jest.fn();
       const onErrorMock = jest.fn();
 
       const mockError = new Error('Network error');
@@ -303,7 +264,6 @@ describe('usePredictSell', () => {
 
       const { result } = renderHook(() =>
         usePredictSell({
-          onSellPlaced: onSellPlacedMock,
           onError: onErrorMock,
         }),
       );
@@ -314,7 +274,6 @@ describe('usePredictSell', () => {
 
       expect(onErrorMock).toHaveBeenCalledWith('Network error', null);
       expect(onErrorMock).toHaveBeenCalledTimes(1);
-      expect(onSellPlacedMock).not.toHaveBeenCalled();
       expect(result.current.currentOrder).toBe(null);
     });
 
@@ -357,72 +316,6 @@ describe('usePredictSell', () => {
     });
   });
 
-  describe('isOrderLoading', () => {
-    const mockSellParams = {
-      position: mockPosition,
-      outcomeId: 'outcome-456',
-      outcomeTokenId: 'outcome-token-789',
-      quantity: 50,
-    };
-
-    it('returns true when order is loading for the same outcome token', async () => {
-      mockSell.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves - intentionally hanging to test loading state
-          }),
-      );
-
-      const { result } = renderHook(() => usePredictSell());
-
-      act(() => {
-        result.current.placeSellOrder(mockSellParams);
-      });
-
-      expect(result.current.isOrderLoading('outcome-token-789')).toBe(true);
-      expect(result.current.isOrderLoading('different-token')).toBe(false);
-    });
-
-    it('returns false when order is not loading', () => {
-      const { result } = renderHook(() => usePredictSell());
-
-      expect(result.current.isOrderLoading('outcome-token-789')).toBe(false);
-    });
-
-    it('returns false when order is completed', async () => {
-      mockSell.mockResolvedValue({ success: true, id: 'order-123' });
-
-      // Set up completed order in mock state
-      const completedOrder = {
-        id: 'order-123',
-        providerId: 'provider-123',
-        chainId: 1,
-        outcomeId: 'outcome-456',
-        outcomeTokenId: 'outcome-token-789',
-        isBuy: false,
-        amount: 50,
-        price: 0.5,
-        status: 'filled',
-        timestamp: Date.now(),
-        lastUpdated: Date.now(),
-        onchainTradeParams: [],
-      };
-
-      mockState.engine.backgroundState.PredictController.activeOrders = {
-        'order-123': completedOrder,
-      };
-
-      const { result } = renderHook(() => usePredictSell());
-
-      await act(async () => {
-        await result.current.placeSellOrder(mockSellParams);
-      });
-
-      expect(result.current.isOrderLoading('outcome-token-789')).toBe(false);
-      expect(result.current.completed).toBe(true);
-    });
-  });
-
   describe('reset', () => {
     it('resets all state to initial values', async () => {
       const { result } = renderHook(() => usePredictSell());
@@ -436,9 +329,6 @@ describe('usePredictSell', () => {
       await act(async () => {
         await result.current.placeSellOrder({
           position: mockPosition,
-          outcomeId: 'test',
-          outcomeTokenId: 'test-token',
-          size: 10,
         });
       });
 
@@ -488,9 +378,6 @@ describe('usePredictSell', () => {
       await act(async () => {
         await result.current.placeSellOrder({
           position: mockPosition,
-          outcomeId: 'outcome-456',
-          outcomeTokenId: 'outcome-token-789',
-          size: 50,
         });
       });
 
@@ -531,9 +418,6 @@ describe('usePredictSell', () => {
       await act(async () => {
         await result.current.placeSellOrder({
           position: mockPosition,
-          outcomeId: 'outcome-456',
-          outcomeTokenId: 'outcome-token-789',
-          size: 50,
         });
       });
 
@@ -547,13 +431,11 @@ describe('usePredictSell', () => {
 
       const initialPlaceOrder = result.current.placeSellOrder;
       const initialReset = result.current.reset;
-      const initialIsOrderLoading = result.current.isOrderLoading;
 
       rerender({});
 
       expect(result.current.placeSellOrder).toBe(initialPlaceOrder);
       expect(result.current.reset).toBe(initialReset);
-      expect(result.current.isOrderLoading).toBe(initialIsOrderLoading);
     });
   });
 
@@ -585,9 +467,6 @@ describe('usePredictSell', () => {
       await act(async () => {
         await result.current.placeSellOrder({
           position: mockPosition,
-          outcomeId: 'outcome-456',
-          outcomeTokenId: 'outcome-token-789',
-          size: 50,
         });
       });
 
