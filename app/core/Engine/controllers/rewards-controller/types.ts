@@ -343,8 +343,18 @@ export type SeasonTierDto = {
   id: string;
   name: string;
   pointsNeeded: number;
-  // Add other tier properties as needed
+  image: ThemeImage;
+  levelNumber: string;
+  rewards: SeasonRewardDto[];
 };
+
+export interface SeasonRewardDto {
+  id: string;
+  name: string;
+  shortDescription: string;
+  iconName: string;
+  rewardType: string;
+}
 
 export interface SeasonDto {
   id: string;
@@ -371,6 +381,37 @@ export interface SubscriptionReferralDetailsDto {
   totalReferees: number;
 }
 
+export interface PointsBoostEnvelopeDto {
+  boosts: PointsBoostDto[];
+}
+
+export interface PointsBoostDto {
+  id: string;
+  name: string;
+  icon: ThemeImage;
+  boostBips: number;
+  seasonLong: boolean;
+  startDate?: Date;
+  endDate?: Date;
+  backgroundColor: string;
+}
+
+export interface RewardDto {
+  id: string;
+  seasonRewardId: string;
+  claimStatus: RewardClaimStatus;
+}
+
+export enum RewardClaimStatus {
+  UNCLAIMED = 'UNCLAIMED',
+  CLAIMED = 'CLAIMED',
+}
+
+export interface ThemeImage {
+  lightModeUrl: string;
+  darkModeUrl: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionReferralDetailsState = {
   referralCode: string;
@@ -380,12 +421,34 @@ export type SubscriptionReferralDetailsState = {
 
 // Serializable versions for state storage (Date objects converted to timestamps)
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonRewardDtoState = {
+  id: string;
+  name: string;
+  shortDescription: string;
+  iconName: string;
+  rewardType: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonTierDtoState = {
+  id: string;
+  name: string;
+  pointsNeeded: number;
+  image: {
+    lightModeUrl: string;
+    darkModeUrl: string;
+  };
+  levelNumber: string;
+  rewards: SeasonRewardDtoState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonDtoState = {
   id: string;
   name: string;
   startDate: number; // timestamp
   endDate: number; // timestamp
-  tiers: SeasonTierDto[];
+  tiers: SeasonTierDtoState[];
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -397,8 +460,8 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDto;
-  nextTier: SeasonTierDto | null;
+  currentTier: SeasonTierDtoState;
+  nextTier: SeasonTierDtoState | null;
   nextTierPointsNeeded: number | null;
 };
 
@@ -408,6 +471,34 @@ export type SeasonStatusState = {
   balance: SeasonStatusBalanceDtoState;
   tier: SeasonTierState;
   lastFetched?: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ActiveBoostsState = {
+  boosts: {
+    id: string;
+    name: string;
+    icon: {
+      lightModeUrl: string;
+      darkModeUrl: string;
+    };
+    boostBips: number;
+    seasonLong: boolean;
+    startDate?: number; // timestamp
+    endDate?: number; // timestamp
+    backgroundColor: string;
+  }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type UnlockedRewardsState = {
+  rewards: {
+    id: string;
+    seasonRewardId: string;
+    claimStatus: RewardClaimStatus;
+  }[];
+  lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -431,6 +522,8 @@ export type RewardsControllerState = {
     [subscriptionId: string]: SubscriptionReferralDetailsState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
+  activeBoosts: { [compositeId: string]: ActiveBoostsState };
+  unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
 };
 
 /**
@@ -616,6 +709,22 @@ export interface RewardsControllerOptOutAction {
 }
 
 /**
+ * Action for getting active points boosts
+ */
+export interface RewardsControllerGetActivePointsBoostsAction {
+  type: 'RewardsController:getActivePointsBoosts';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<PointsBoostDto[]>;
+}
+
+export interface RewardsControllerGetUnlockedRewardsAction {
+  type: 'RewardsController:getUnlockedRewards';
+  handler: (seasonId: string, subscriptionId: string) => Promise<RewardDto[]>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -634,7 +743,10 @@ export type RewardsControllerActions =
   | RewardsControllerValidateReferralCodeAction
   | RewardsControllerLinkAccountToSubscriptionAction
   | RewardsControllerGetCandidateSubscriptionIdAction
-  | RewardsControllerOptOutAction;
+  | RewardsControllerOptOutAction
+  | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerGetActivePointsBoostsAction
+  | RewardsControllerGetUnlockedRewardsAction;
 
 export const CURRENT_SEASON_ID = 'current';
 

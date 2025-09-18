@@ -4,14 +4,28 @@
 
 import {
   formatRewardsDate,
+  formatTimeRemaining,
   getEventDetails,
   PerpsEventType,
+  formatNumber,
+  getIconName,
 } from './formatUtils';
 import {
   PointsEventDto,
   PointsEventEarnType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { IconName } from '@metamask/design-system-react-native';
+import { getTimeDifferenceFromNow } from '../../../../util/date';
+
+const mockGetTimeDifferenceFromNow =
+  getTimeDifferenceFromNow as jest.MockedFunction<
+    typeof getTimeDifferenceFromNow
+  >;
+
+// Mock date utility
+jest.mock('../../../../util/date', () => ({
+  getTimeDifferenceFromNow: jest.fn(),
+}));
 
 // Mock i18n strings
 jest.mock('../../../../../locales/i18n', () => ({
@@ -30,9 +44,29 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return t[key] || key;
   }),
+  default: {
+    locale: 'en-US',
+  },
+}));
+
+// Mock intl utility
+const mockFormat = jest.fn((value: number) =>
+  new Intl.NumberFormat('en-US').format(value),
+);
+
+const mockGetIntlNumberFormatter = jest.fn((_locale: string) => ({
+  format: mockFormat,
+}));
+
+jest.mock('../../../../util/intl', () => ({
+  getIntlNumberFormatter: mockGetIntlNumberFormatter,
 }));
 
 describe('formatUtils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('formatRewardsDate', () => {
     it('formats timestamp correctly with default locale', () => {
       const timestamp = new Date('2024-01-15T14:30:00Z').getTime();
@@ -415,6 +449,427 @@ describe('formatUtils', () => {
           details: 'Long 1.5 ETH',
           icon: IconName.Candlestick,
         });
+      });
+    });
+  });
+
+  describe('formatTimeRemaining', () => {
+    it('should return formatted time with days and hours when hours > 0', () => {
+      // Given: 2 days, 5 hours, 30 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 2,
+        hours: 5,
+        minutes: 30,
+      });
+
+      const endDate = new Date('2024-12-31T23:59:59Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format
+      expect(result).toBe('2d 5h');
+      expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledWith(
+        endDate.getTime(),
+      );
+    });
+
+    it('should return formatted time with only minutes when hours = 0 and minutes > 0', () => {
+      // Given: 0 hours, 45 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 0,
+        hours: 0,
+        minutes: 45,
+      });
+
+      const endDate = new Date('2024-01-01T12:45:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return minutes format
+      expect(result).toBe('45m');
+    });
+
+    it('should return null when both hours and minutes are 0', () => {
+      // Given: 0 hours, 0 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 0,
+        hours: 0,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-01-01T12:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return null
+      expect(result).toBeNull();
+    });
+
+    it('should return null when minutes are negative (past date)', () => {
+      // Given: negative minutes (past date)
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 0,
+        hours: 0,
+        minutes: -10,
+      });
+
+      const endDate = new Date('2023-01-01T12:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return null
+      expect(result).toBeNull();
+    });
+
+    it('should handle edge case with 0 days, 1 hour, 0 minutes', () => {
+      // Given: exactly 1 hour remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 0,
+        hours: 1,
+        minutes: 0,
+      });
+
+      const endDate = new Date('2024-01-01T13:00:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format
+      expect(result).toBe('0d 1h');
+    });
+
+    it('should handle large time differences correctly', () => {
+      // Given: 365 days, 23 hours, 59 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 365,
+        hours: 23,
+        minutes: 59,
+      });
+
+      const endDate = new Date('2025-01-01T23:59:59Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format
+      expect(result).toBe('365d 23h');
+    });
+
+    it('should handle single digit values correctly', () => {
+      // Given: 1 day, 1 hour, 1 minute remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 1,
+        hours: 1,
+        minutes: 1,
+      });
+
+      const endDate = new Date('2024-01-02T13:01:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format without padding
+      expect(result).toBe('1d 1h');
+    });
+
+    it('should prioritize hours over minutes when hours > 0', () => {
+      // Given: 0 days, 2 hours, 59 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 0,
+        hours: 2,
+        minutes: 59,
+      });
+
+      const endDate = new Date('2024-01-01T14:59:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format (ignoring minutes)
+      expect(result).toBe('0d 2h');
+    });
+
+    it('should handle exactly 1 minute remaining', () => {
+      // Given: exactly 1 minute remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 0,
+        hours: 0,
+        minutes: 1,
+      });
+
+      const endDate = new Date('2024-01-01T12:01:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return minutes format
+      expect(result).toBe('1m');
+    });
+
+    it('should handle zero days with hours correctly', () => {
+      // Given: 0 days, 12 hours, 30 minutes remaining
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 0,
+        hours: 12,
+        minutes: 30,
+      });
+
+      const endDate = new Date('2024-01-02T00:30:00Z');
+
+      // When: formatting time remaining
+      const result = formatTimeRemaining(endDate);
+
+      // Then: should return days and hours format with 0 days
+      expect(result).toBe('0d 12h');
+    });
+
+    it('should call getTimeDifferenceFromNow with correct timestamp', () => {
+      // Given: a specific end date
+      const endDate = new Date('2024-06-15T10:30:00Z');
+      const expectedTimestamp = endDate.getTime();
+
+      mockGetTimeDifferenceFromNow.mockReturnValue({
+        days: 1,
+        hours: 2,
+        minutes: 30,
+      });
+
+      // When: formatting time remaining
+      formatTimeRemaining(endDate);
+
+      // Then: should call getTimeDifferenceFromNow with correct timestamp
+      expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledWith(
+        expectedTimestamp,
+      );
+      expect(mockGetTimeDifferenceFromNow).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('formatNumber', () => {
+    it('should format positive numbers correctly', () => {
+      expect(formatNumber(1234)).toBe('1234');
+      expect(formatNumber(1000000)).toBe('1000000');
+      expect(formatNumber(500)).toBe('500');
+    });
+
+    it('should handle zero', () => {
+      expect(formatNumber(0)).toBe('0');
+    });
+
+    it('should handle null values', () => {
+      expect(formatNumber(null)).toBe('0');
+    });
+
+    it('should handle undefined values', () => {
+      expect(formatNumber(undefined as unknown as number)).toBe('0');
+    });
+
+    it('should handle negative numbers', () => {
+      expect(formatNumber(-1234)).toBe('-1234');
+      expect(formatNumber(-500)).toBe('-500');
+    });
+
+    it('should handle decimal numbers', () => {
+      expect(formatNumber(1234.56)).toBe('1234.56');
+      expect(formatNumber(999.99)).toBe('999.99');
+    });
+
+    it('should handle very large numbers', () => {
+      expect(formatNumber(5000000)).toBe('5000000');
+      expect(formatNumber(1500000)).toBe('1500000');
+    });
+
+    it('should fallback to string conversion on formatter error', () => {
+      // Mock the formatter to throw an error
+      const mockErrorFormatter = {
+        format: jest.fn().mockImplementation(() => {
+          throw new Error('Formatter error');
+        }),
+      };
+
+      mockGetIntlNumberFormatter.mockReturnValue(mockErrorFormatter);
+
+      expect(formatNumber(1234)).toBe('1234');
+
+      // Restore original mock
+      mockGetIntlNumberFormatter.mockReturnValue({ format: mockFormat });
+    });
+  });
+
+  describe('getIconName', () => {
+    it('should return valid IconName when provided valid icon name', () => {
+      expect(getIconName('Star')).toBe(IconName.Star);
+      expect(getIconName('ArrowDown')).toBe(IconName.ArrowDown);
+      expect(getIconName('Lock')).toBe(IconName.Lock);
+    });
+
+    it('should return Star as fallback for invalid icon names', () => {
+      expect(getIconName('InvalidIcon')).toBe(IconName.Star);
+      expect(getIconName('NonExistentIcon')).toBe(IconName.Star);
+      expect(getIconName('')).toBe(IconName.Star);
+    });
+
+    it('should handle null and undefined inputs', () => {
+      expect(getIconName(null as unknown as string)).toBe(IconName.Star);
+      expect(getIconName(undefined as unknown as string)).toBe(IconName.Star);
+    });
+
+    it('should handle case-sensitive icon names', () => {
+      expect(getIconName('star')).toBe(IconName.Star); // lowercase should fallback
+      expect(getIconName('STAR')).toBe(IconName.Star); // uppercase should fallback
+    });
+
+    it('should handle special characters and numbers', () => {
+      expect(getIconName('Star123')).toBe(IconName.Star);
+      expect(getIconName('Star-Icon')).toBe(IconName.Star);
+      expect(getIconName('Star_Icon')).toBe(IconName.Star);
+    });
+
+    it('should work with all valid IconName enum values', () => {
+      // Test a few common IconName values
+      const validIcons = [
+        'Add',
+        'Arrow2Down',
+        'Arrow2Left',
+        'Arrow2Right',
+        'Arrow2Up',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'Bank',
+        'Bold',
+        'Book',
+        'Bookmark',
+        'Calculator',
+        'Calendar',
+        'Camera',
+        'Card',
+        'CardPos',
+        'CardToken',
+        'Category',
+        'Chart',
+        'Check',
+        'CheckBold',
+        'CheckBoxOff',
+        'CheckBoxOn',
+        'Clock',
+        'Close',
+        'Coin',
+        'Confirmation',
+        'Connect',
+        'Copy',
+        'CopySuccess',
+        'Danger',
+        'Dark',
+        'Data',
+        'Diagram',
+        'DocumentCode',
+        'Download',
+        'Edit',
+        'Eraser',
+        'Ethereum',
+        'Expand',
+        'Export',
+        'EyeSlash',
+        'File',
+        'Filter',
+        'Flag',
+        'FlashSlash',
+        'FullCircle',
+        'Gas',
+        'Global',
+        'GlobalSearch',
+        'Graph',
+        'Hardware',
+        'Heart',
+        'Hierarchy',
+        'Home',
+        'Import',
+        'Info',
+        'Key',
+        'Light',
+        'Link',
+        'Loading',
+        'Lock',
+        'LockCircle',
+        'LockSlash',
+        'Login',
+        'Logout',
+        'Menu',
+        'MessageQuestion',
+        'Messages',
+        'MinusCircle',
+        'Mobile',
+        'Money',
+        'Monitor',
+        'MoreHorizontal',
+        'MoreVertical',
+        'Notification',
+        'NotificationCircle',
+        'PasswordCheck',
+        'People',
+        'PlusCircle',
+        'Programming',
+        'QrCode',
+        'Question',
+        'Received',
+        'Refresh',
+        'Save',
+        'ScanBarcode',
+        'ScanFocus',
+        'Search',
+        'Security',
+        'SecurityCard',
+        'SecurityCross',
+        'SecurityKey',
+        'SecuritySearch',
+        'SecuritySlash',
+        'SecurityTick',
+        'SecurityTime',
+        'SecurityUser',
+        'Send1',
+        'Send2',
+        'Setting',
+        'Slash',
+        'SnapsMobile',
+        'SpeedUp',
+        'Star',
+        'Swap',
+        'SwapHorizontal',
+        'SwapVertical',
+        'Tag',
+        'Tilde',
+        'Timer',
+        'Trash',
+        'TrendDown',
+        'TrendUp',
+        'Twitter',
+        'Upload',
+        'Usb',
+        'User',
+        'UserAdd',
+        'UserCheck',
+        'UserCircle',
+        'UserCircleAdd',
+        'UserMinus',
+        'UserRemove',
+        'UserSearch',
+        'UserTick',
+        'Wallet',
+        'WalletCard',
+        'WalletMoney',
+        'Warning',
+      ];
+
+      validIcons.forEach((iconName) => {
+        if (Object.values(IconName).includes(iconName as IconName)) {
+          expect(getIconName(iconName)).toBe(iconName);
+        }
       });
     });
   });

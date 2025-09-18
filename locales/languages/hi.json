@@ -77,8 +77,8 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
-    "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
+    "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
+    "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
     "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "यह पासवर्ड आपके MetaMask वॉलेट को केवल इसी डिवाइस पर अनलॉक करेगा।",
-    "password": "नया पासवर्ड बनाएं",
+    "password": "Create password",
     "confirm_password": "पासवर्ड की पुष्टि करें",
     "create_button": "पासवर्ड बनाएं",
     "import_with_seed_phrase": "सीक्रेट रिकवरी फ्रेज के साथ इम्पोर्ट करें",
@@ -404,7 +404,7 @@
     "show": "दिखाएं",
     "hide": "छिपाएं",
     "seed_phrase": "सीक्रेट रिकवरी फ्रेज ",
-    "must_be_at_least": "पासवर्ड में कम से कम {{number}} कैरैक्टर होने चाहिए",
+    "must_be_at_least": "कम से कम {{number}} कैरेक्टर होने चाहिएं",
     "remember_me": "मुझे याद रखें",
     "security_alert_title": "सुरक्षा चेतावनी",
     "security_alert_message": "आगे बढ़ने के दौरान, आपको अपने पासकोड या आपके डिवाइस का समर्थन करने वाले किसी बायोमेट्रिक प्रमाणित तरीके को चालू करने की जरुरत है (फेसID, टचID या फिंगरप्रिंट)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "अगर मैं यह पासवर्ड भूल गया, तो मैं अपने वॉलेट तक हमेशा के लिए पहुँच खो दूँगा। MetaMask इसे मेरे लिए रीसेट नहीं कर सकता।",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "फिर से प्रयास करें"
   },
   "import_from_seed": {
     "title": "एक वॉलेट इंपोर्ट करें",
     "seed_phrase_placeholder": "अपना सीक्रेट रिकवरी फ्रेज दर्ज करें",
-    "create_new_password": "नया पासवर्ड बनाएं",
+    "create_new_password": "Create password",
     "confirm_password": "पासवर्ड की पुष्टि करें",
     "import_button": "इम्पोर्ट",
     "cancel_button": "रद्द करें",
@@ -491,7 +491,7 @@
     "srp": "सीक्रेट रिकवरी फ्रेज़ है",
     "srp_placeholder": "प्रत्येक शब्द के बीच एक स्पेस जोड़ें और ध्यान दें कि कोई भी नहीं देख रहा हो।",
     "learn_more_link": "ज़्यादा जानें",
-    "create_password_cta": "पासवर्ड बनाएं",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Flow के साथ जारी रखें",
     "steps": "{{totalSteps}} का स्टेप {{currentStep}}",
     "password_error": "पासवर्ड मेल नहीं खाए। दोबारा कोशिश करें।",
@@ -507,6 +507,7 @@
     "home": "होम",
     "browser": "ब्राउज़र",
     "activity": "गतिविधि",
+    "trade": "Trade",
     "settings": "सेटिंग्स",
     "rewards": "पुरस्कार"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "लीवरेज",
         "confirm": "कन्फर्म करें",
         "entry_price": "एंट्री प्राइस",
         "current_price": "वर्तमान प्राइस",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "खरीदें",
     "sell": "बेचें",
-    "orders": "ऑर्डर",
+    "orders": "Transfers",
     "All": "सभी",
     "Buy": "खरीदें",
     "Sell": "बेचें",
     "token_marketplace": "टोकन मार्केटप्लेस",
     "Purchased": "खरीदा गया",
     "Sold": "बेचा गया",
-    "empty_orders_list": "आपके पास कोई ऑर्डर नहीं है",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "आपके पास कोई खरीद की ऑर्डर नहीं है",
     "empty_sell_orders_list": "आपके पास कोई बेचने की ऑर्डर नहीं है",
     "purchased_currency": "{{currency}} खरीदा गया",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "एक मित्र को रेफर करें",
@@ -5791,7 +5814,9 @@
         "title": "अधिक कमाने के लिए अपना कोड साझा करें",
         "description": "आपके मित्र बोनस पॉइंट्स अर्जित करते हैं, और आपको उनके पुरस्कार का 20% मिलता है।"
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} मिनट",
