@@ -9,33 +9,43 @@ class PerpsTutorialScreen {
     this._device = device;
   }
 
-  async getAddFundsButton() {
-    return await AppwrightSelectors.getElementByID(
-      this._device,
-      'perps-tutorial-continue-button',
-    );
+  get addFundsButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-continue-button');
+  }
+
+  get skipButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-skip-button');
+  }
+
+  get title() {
+    return AppwrightSelectors.getElementByCatchAll(this._device, 'What are perps?');
+  }
+
+  get continueButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-continue-button');
+  }
+
+  get skipButtonTutorial() {
+    return AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-skip-button');
   }
 
   async tapAddFunds() {
-    const btn = await this.getAddFundsButton();
+    const btn = await this.addFundsButton;
     await btn.tap();
 }
 
   async tapSkip() {
-    const btn = await AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-skip-button');
+    const btn = await this.skipButtonTutorial;
     await btn.tap();
   }
 
   async expectFirstScreenVisible() {
-    const title = await AppwrightSelectors.getElementByCatchAll(
-      this._device,
-      'What are perps?',
-    );
+    const title = await this.title;
     await title.isVisible({ timeout: 10000 });
   }
 
   async flowTapContinueTutorial(times = 1) {
-    const btn = await AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-continue-button');
+    const btn = await this.addFundsButton;
     for (let i = 0; i < times; i++) {
       await btn.tap();
     }

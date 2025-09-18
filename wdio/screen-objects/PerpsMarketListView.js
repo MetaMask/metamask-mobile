@@ -9,14 +9,22 @@ class PerpsMarketListView {
     this._device = device;
   }
 
-  async isHeaderVisible() {
-    const header = await AppwrightSelectors.getElementByID(this._device, 'perps-market-list-header');
+  get backButtonMarketList() {
+    return AppwrightSelectors.getElementByID(this._device, 'perps-market-list-back-button');
+  }
+
+  get listHeader() {
+    return AppwrightSelectors.getElementByID(this._device, 'perps-market-list-header');
+  }
+
+  async isHeaderVisible() { 
+    const header = await this.listHeader;
     await header.isVisible({ timeout: 10000 });
   }
 
-  async tapBackButton() {
-    const back = await AppwrightSelectors.getElementByID(this._device, 'perps-market-list-back-button');
-    await back.tap();
+  async tapBackButtonMarketList() {
+    const backButtonMarketList = await this.backButtonMarketList;
+    await backButtonMarketList.tap();
   }
 }
 
