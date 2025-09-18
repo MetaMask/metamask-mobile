@@ -1,5 +1,6 @@
 # This workflow runs mobile E2E tests for a specific test category.
 # It passes matrix sharding info to the test framework via environment variables.
+# TESTING: Android tests now use Cirrus Linux runners
 
 name: Run E2E
 
@@ -37,7 +38,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
