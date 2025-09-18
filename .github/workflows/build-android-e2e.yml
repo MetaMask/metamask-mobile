@@ -127,15 +127,7 @@ jobs:
       - name: Repack APK with JS updates
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
-          echo "📦 Repacking APK with updated JavaScript..."
-          APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
-
-          # Verify APK exists from cache
-          if [ ! -f "$APK_PATH" ]; then
-            echo "❌ Error: APK not found at $APK_PATH"
-            echo "Cache restoration may have failed"
-            exit 1
-          fi
+          echo "📦 Rebuilding APK with updated JavaScript bundle..."
 
           # Generate new JS bundle with sourcemap
           echo "🔄 Generating new JavaScript bundle..."
@@ -144,67 +136,41 @@ jobs:
             --platform android \
             --dev false \
             --entry-file index.js \
-            --bundle-output android/index.android.bundle \
+            --bundle-output android/app/build/generated/assets/createBundleProdRelease/index.android.bundle \
+            --assets-dest android/app/build/generated/res/createBundleProdRelease \
             --sourcemap-output sourcemaps/android/index.android.bundle.map
 
-          # SAFER APPROACH: Extract, replace, and repackage to preserve APK structure
-          echo "📦 Extracting APK for safe repacking..."
-          TEMP_DIR=$(mktemp -d)
-          unzip -q "$APK_PATH" -d "$TEMP_DIR"
-          
-          # Replace the JavaScript bundle
-          echo "🔄 Replacing JavaScript bundle..."
-          cp android/index.android.bundle "$TEMP_DIR/assets/index.android.bundle"
-          
-          # Remove old signatures before repacking
-          echo "🧹 Removing old signatures..."
-          rm -rf "$TEMP_DIR/META-INF"
-          
-          # Repackage the APK preserving the structure
-          echo "📦 Repackaging APK..."
-          (cd "$TEMP_DIR" && zip -qr0 "../temp.apk" .)
-          
-          # Compress everything except native libraries and other uncompressed assets
-          (cd "$TEMP_DIR" && zip -qr9 "../temp.apk" . -x "*.so" "resources.arsc" "assets/*" "META-INF/*")
-          
-          # Move the repacked APK back
-          mv "${TEMP_DIR}/../temp.apk" "$APK_PATH"
-          
-          # Clean up temp directory
-          rm -rf "$TEMP_DIR" android/index.android.bundle
+          # Use Gradle to rebuild JUST the APK assembly (not the full compile)
+          # This will package the new JS bundle with all native libraries properly
+          echo "🏗 Using Gradle to reassemble APK with new bundle..."
+          cd android
 
-          # CRITICAL: Re-sign the APK after modification
-          echo "🔏 Re-signing APK after repacking..."
-          
-          # Re-sign with the QA keystore
-          # The keystore is set up by the setup-e2e-env action
-          KEYSTORE_PATH="${ANDROID_KEYSTORE_PATH:-android/app/debug.keystore}"
-          
-          if [ -f "$KEYSTORE_PATH" ]; then
-            echo "📝 Signing APK with keystore at: $KEYSTORE_PATH"
-            
-            # Sign the APK
-            jarsigner -verbose \
-              -sigalg SHA256withRSA \
-              -digestalg SHA-256 \
-              -keystore "$KEYSTORE_PATH" \
-              -storepass "${BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD:-android}" \
-              -keypass "${BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD:-android}" \
-              "$APK_PATH" \
-              "${BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS:-androiddebugkey}"
-            
-            # Verify the signature
-            echo "✅ Verifying APK signature..."
-            jarsigner -verify -verbose "$APK_PATH"
-            
-            echo "✅ APK successfully repacked and signed for E2E tests"
-          else
-            echo "❌ Error: Keystore not found at $KEYSTORE_PATH"
-            echo "The APK cannot be signed and E2E tests will fail"
+          # Skip JS bundling task since we already generated it
+          ./gradlew app:assembleProdRelease \
+            -x bundleProdReleaseJsAndAssets \
+            -x mergeProdReleaseAssets \
+            --no-daemon \
+            --no-build-cache
+
+          cd ..
+
+          # Verify the APK was built
+          APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "❌ Error: APK not found at $APK_PATH after Gradle assembly"
             exit 1
           fi
-          
-          echo "✅ APK repacking complete"
+
+          echo "✅ APK successfully rebuilt with updated JavaScript bundle"
+          echo "📦 APK size: $(du -h "$APK_PATH" | cut -f1)"
+        env:
+          # Pass the same environment variables as the original build
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          E2E: "true"
+          NODE_OPTIONS: "--max-old-space-size=8192"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
