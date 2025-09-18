@@ -211,7 +211,7 @@ export const formatUrl = (url: string): string => {
   }
 
   // Clean up the input: trim whitespace and remove backticks
-  const cleanedUrl = url.trim().replace(/^`|`$/g, '');
+  const cleanedUrl = url.trim().replace(/(^`|`$)/g, '');
 
   try {
     const urlObj = new URL(cleanedUrl);
