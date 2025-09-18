@@ -407,9 +407,9 @@ async function analyzeCoverage(specificFiles = null) {
     filesNeedingImprovement: belowTarget.concat(
       coverageResults.filter(r => r.coverage.newLinesTotal > 0 && r.coverage.newLines < 80)
     ).map(result => {
-      const uncoveredNewLines = result.coverage.changedLineNumbers.filter(() =>
-        // This is a simplified check - in a real implementation you'd check the actual coverage data
-        result.coverage.newLinesCovered === 0 || result.coverage.newLines < 80
+      const uncoveredNewLines = result.coverage.executableChangedLines.filter(lineNum =>
+        // Check if this specific line is uncovered (0 hits or missing from coverage data)
+        !result.coverage.lcovLineData[lineNum] || result.coverage.lcovLineData[lineNum] === 0
       );
 
       return {
