@@ -1,5 +1,6 @@
 # Pure Android E2E build workflow - just builds APKs and uploads artifacts
 # No testing, no unnecessary setup - optimized for speed and efficiency
+# TESTING: Currently using Cirrus Linux x86 runners
 
 name: Build Android E2E APKs
 
@@ -19,9 +20,9 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     env:
-      GRADLE_USER_HOME: /home/runner/_work/.gradle
+      GRADLE_USER_HOME: ~/.gradle
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
@@ -43,8 +44,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            /home/runner/_work/.gradle/caches
-            /home/runner/_work/.gradle/wrapper
+            ~/.gradle/caches
+            ~/.gradle/wrapper
             android/.gradle
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
