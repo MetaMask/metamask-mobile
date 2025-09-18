@@ -47,8 +47,9 @@ const getRealmInstance = (): Realm => RealmSingleton.getInstance();
 console.log('📦 [REALM DEBUG] RealmPersistentStorage object created');
 
 // Key transformation utilities for handling problematic characters in object keys
+// Uses Base64 encoding to avoid any possible collisions with real URLs
 const KeyTransformUtils = {
-  // Transform problematic keys to be Realm-safe
+  // Transform problematic keys to be Realm-safe using Base64 encoding
   encodeObjectKeys(obj: any): any {
     if (obj === null || typeof obj !== 'object') {
       return obj;
@@ -60,12 +61,11 @@ const KeyTransformUtils = {
     
     const transformedObj: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      // Replace dots with __DOT__ and other problematic characters
-      const safeKey = key
-        .replace(/\./g, '__DOT__')
-        .replace(/:/g, '__COLON__')
-        .replace(/@/g, '__AT__')
-        .replace(/\//g, '__SLASH__');
+      // Use Base64 encoding for keys with problematic characters
+      // This prevents collisions with real URLs that might contain our replacement strings
+      const safeKey = this.hasProblematicChars(key)
+        ? `__B64__${Buffer.from(key).toString('base64')}__END__`
+        : key;
       
       // Recursively transform nested objects
       transformedObj[safeKey] = this.encodeObjectKeys(value);
@@ -86,18 +86,21 @@ const KeyTransformUtils = {
     
     const originalObj: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      // Restore original characters
-      const originalKey = key
-        .replace(/__DOT__/g, '.')
-        .replace(/__COLON__/g, ':')
-        .replace(/__AT__/g, '@')
-        .replace(/__SLASH__/g, '/');
+      // Decode Base64 encoded keys back to original
+      const originalKey = key.startsWith('__B64__') && key.endsWith('__END__')
+        ? Buffer.from(key.slice(7, -7), 'base64').toString('utf8')
+        : key;
       
       // Recursively restore nested objects
       originalObj[originalKey] = this.decodeObjectKeys(value);
     }
     
     return originalObj;
+  },
+  
+  // Check if key contains characters problematic for Realm
+  hasProblematicChars(key: string): boolean {
+    return /[.:\/@]/.test(key);
   },
   
   // Check if object has problematic keys that need transformation
@@ -112,7 +115,7 @@ const KeyTransformUtils = {
     
     for (const [key, value] of Object.entries(obj)) {
       // Check for problematic characters in keys
-      if (key.includes('.') || key.includes(':') || key.includes('@') || key.includes('/')) {
+      if (this.hasProblematicChars(key)) {
         return true;
       }
       
@@ -149,9 +152,9 @@ const RealmPersistentStorage = {
           
           // Check if this was a transformed object and decode if needed
           if (key === 'persist:PermissionController' || key === 'persist:SnapController') {
-            console.log(`🔄 [REALM PERSIST DEBUG] Decoding transformed keys for: "${key}"`);
+            console.log(`🔄 [REALM PERSIST DEBUG] Base64 decoding transformed keys for: "${key}"`);
             const decodedObject = KeyTransformUtils.decodeObjectKeys(plainObject);
-            console.log(`📤 [REALM PERSIST DEBUG] Returning decoded object for key: "${key}"`);
+            console.log(`📤 [REALM PERSIST DEBUG] Returning Base64-decoded object for key: "${key}"`);
             return decodedObject;
           }
           
@@ -201,9 +204,9 @@ const RealmPersistentStorage = {
         // Check for problematic controllers and apply key transformation
         if ((key === 'persist:PermissionController' || key === 'persist:SnapController') && 
             KeyTransformUtils.hasProblematicKeys(objectValue)) {
-          console.log(`🔧 [REALM PERSIST DEBUG] Transforming problematic keys for: "${key}"`);
+          console.log(`🔧 [REALM PERSIST DEBUG] Base64 encoding problematic keys for: "${key}"`);
           dataToStore = KeyTransformUtils.encodeObjectKeys(objectValue);
-          console.log(`📦 [REALM PERSIST DEBUG] Storing transformed object for key: "${key}"`);
+          console.log(`📦 [REALM PERSIST DEBUG] Storing Base64-transformed object for key: "${key}"`);
         } else {
           console.log(`📦 [REALM PERSIST DEBUG] Storing object directly for key: "${key}"`);
           dataToStore = objectValue;
