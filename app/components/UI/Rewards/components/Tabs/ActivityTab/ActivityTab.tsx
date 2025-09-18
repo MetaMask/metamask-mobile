@@ -23,6 +23,8 @@ import MetamaskRewardsActivityEmptyImage from '../../../../../../images/rewards/
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { setActiveTab } from '../../../../../../actions/rewards';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
+import { NameType } from '../../../../Name/Name.types';
 
 const LoadingFooter: React.FC = () => (
   <Box twClassName="py-4 items-center">
@@ -103,9 +105,16 @@ export const ActivityTab: React.FC = () => {
     seasonId: seasonId ?? undefined,
     subscriptionId: subscriptionId || '',
   });
+  const accountNames = useAccountNames(
+    pointsEvents.map((event) => ({
+      type: NameType.EthereumAddress,
+      value: event.accountAddress ?? '',
+      variation: '',
+    })),
+  );
 
-  const renderItem: ListRenderItem<PointsEventDto> = ({ item }) => (
-    <ActivityEventRow event={item} />
+  const renderItem: ListRenderItem<PointsEventDto> = ({ item, index }) => (
+    <ActivityEventRow event={item} accountName={accountNames[index]} />
   );
 
   const renderFooter = () => {
