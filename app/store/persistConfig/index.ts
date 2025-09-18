@@ -13,6 +13,12 @@ import { getPersistentState } from '../getPersistentState/getPersistentState';
 import { debounce } from 'lodash';
 import ReduxService from '../../core/redux';
 import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
+import { RealmControllerStorage, testRealmOperations } from './realmInstance';
+
+console.log('🏪 [PERSIST DEBUG] persistConfig/index.ts loading...');
+console.log('🧪 [PERSIST DEBUG] About to explicitly call testRealmOperations...');
+testRealmOperations();
+console.log('✅ [PERSIST DEBUG] testRealmOperations call completed in persistConfig');
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -153,6 +159,7 @@ const MigratedStorage = {
 };
 
 export const setupEnginePersistence = () => {
+  console.log('🚀 [ENGINE DEBUG] setupEnginePersistence function starting...');
   try {
     if (Engine.controllerMessenger) {
       BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
@@ -246,5 +253,8 @@ const persistConfig = {
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };
+
+// Re-export Realm storage for easy access
+export { RealmControllerStorage };
 
 export default persistConfig;

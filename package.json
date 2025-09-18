@@ -324,6 +324,7 @@
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
+    "@realm/react": "^0.11.0",
     "@reduxjs/toolkit": "^1.9.7",
     "@reown/walletkit": "^1.2.3",
     "@segment/analytics-react-native": "^2.20.3",
@@ -469,6 +470,7 @@
     "react-redux": "^8.1.3",
     "reactotron-react-native": "^5.1.14",
     "readable-stream": "2.3.7",
+    "realm": "^20.2.0",
     "redux": "^4.2.1",
     "redux-mock-store": "1.5.4",
     "redux-persist": "6.0.0",
@@ -728,7 +730,8 @@
       "appium-xcuitest-driver>appium-ios-simulator>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
-      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false
+      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
+      "realm": false
     }
   },
   "packageManager": "yarn@1.22.22",
