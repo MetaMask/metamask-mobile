@@ -50,7 +50,7 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
         justifyContent={BoxJustifyContent.Center}
         twClassName="gap-3"
       >
-        <Box twClassName="w-10 h-10 rounded-full bg-primary-default items-center justify-center">
+        <Box twClassName="w-10 h-10 rounded-full bg-primary-muted items-center justify-center">
           <Icon
             name={IconName.Add}
             size={IconSize.Md}
